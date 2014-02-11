@@ -4,7 +4,7 @@
 
 (function(){
 
-    "use strict"
+    "use strict";
 
     var undef   = {}.undefined,
         proto   = "prototype";
@@ -22,7 +22,7 @@
             var ret     = undef;
             this.supr   = parent[proto][k] || function(){};
             try {
-                ret     = fn.apply(this, arguments)
+                ret     = fn.apply(this, arguments);
             } finally {}
             this.supr   = null;
             return ret;
@@ -45,11 +45,11 @@
         noop[proto]     = parent[proto];
         var prototype   = new noop;
 
-        function fn() {
+        var fn = function() {
             if (this.initialize) {
-                this.initialize.apply(this, arguments)
+                this.initialize.apply(this, arguments);
             }
-        }
+        };
 
         process(prototype, cls, parent);
         fn[proto]   = prototype;
@@ -102,6 +102,32 @@
         c.__class       = cls.__class;
 
         return c;
+    };
+
+    MetaphorJs.is = function(cmp, cls) {
+        var _cls    = typeof cls == "string" ? MetaphorJs.ns.getNs(cls) : cls;
+        return cmp instanceof _cls;
+    };
+
+    MetaphorJs.isSubclass = function(child, parent) {
+
+        var p = child;
+
+        if (typeof parent != "string") {
+            parent  = parent.__class;
+        }
+
+        while (p) {
+            if (p == parent) {
+                return true;
+            }
+            p = MetaphorJs.ns.getNs(p);
+            if (p) {
+                p = p.__parentClass;
+            }
+        }
+
+        return false;
     };
 
 }());

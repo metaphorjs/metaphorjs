@@ -1,5 +1,7 @@
 (function(){
 
+    "use strict";
+
     var undef   = {}.undefined;
 
     var apply   = function(dst, src, override) {

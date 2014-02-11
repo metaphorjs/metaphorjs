@@ -1,6 +1,6 @@
 (function(){
 
-    "use strict"
+    "use strict";
 
     MetaphorJs.define("MetaphorJs.cmp.Observable", "MetaphorJs.cmp.Base", {
 

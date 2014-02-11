@@ -1,5 +1,7 @@
 (function(){
 
+    "use strict";
+
     var undef   = {}.undefined;
 
     var apply   = function(dst, src, override) {
@@ -28,7 +30,7 @@
 }());
 (function(){
 
-    "use strict"
+    "use strict";
 
     var root        = window,
         cache       = {};
@@ -114,7 +116,7 @@
 
 (function(){
 
-    "use strict"
+    "use strict";
 
     var undef   = {}.undefined,
         proto   = "prototype";
@@ -132,7 +134,7 @@
             var ret     = undef;
             this.supr   = parent[proto][k] || function(){};
             try {
-                ret     = fn.apply(this, arguments)
+                ret     = fn.apply(this, arguments);
             } finally {}
             this.supr   = null;
             return ret;
@@ -155,11 +157,11 @@
         noop[proto]     = parent[proto];
         var prototype   = new noop;
 
-        function fn() {
+        var fn = function() {
             if (this.initialize) {
-                this.initialize.apply(this, arguments)
+                this.initialize.apply(this, arguments);
             }
-        }
+        };
 
         process(prototype, cls, parent);
         fn[proto]   = prototype;
@@ -214,10 +216,36 @@
         return c;
     };
 
+    MetaphorJs.is = function(cmp, cls) {
+        var _cls    = typeof cls == "string" ? MetaphorJs.ns.getNs(cls) : cls;
+        return cmp instanceof _cls;
+    };
+
+    MetaphorJs.isSubclass = function(child, parent) {
+
+        var p = child;
+
+        if (typeof parent != "string") {
+            parent  = parent.__class;
+        }
+
+        while (p) {
+            if (p == parent) {
+                return true;
+            }
+            p = MetaphorJs.ns.getNs(p);
+            if (p) {
+                p = p.__parentClass;
+            }
+        }
+
+        return false;
+    };
+
 }());
 (function(){
 
-    "use strict"
+    "use strict";
 
     MetaphorJs.define("MetaphorJs.cmp.Base", {
 
@@ -231,7 +259,7 @@
     });
 
 }());
-/*!
+/**
  * MetaphorJs.lib.Observable 1.1
  * @author johann kuindji
  * @github https://github.com/kuindji/metaphorjs-observable
@@ -239,7 +267,7 @@
 
 (function(){
 
-"use strict"
+"use strict";
 
 
 var randomHash = function() {
@@ -606,7 +634,7 @@ else {
 
 (function(){
 
-    "use strict"
+    "use strict";
 
     MetaphorJs.define("MetaphorJs.cmp.Observable", "MetaphorJs.cmp.Base", {
 
@@ -652,7 +680,7 @@ else {
 }());
 (function(){
 
-    "use strict"
+    "use strict";
 
     var cmps    = {},
         cmpInx  = -1;
