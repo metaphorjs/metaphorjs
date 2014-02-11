@@ -22,7 +22,7 @@
         return cmps[id] || null;
     };
 
-    MetaphorJs.define("MetaphorJs.Component", "MetaphorJs.Observable", {
+    MetaphorJs.define("MetaphorJs.cmp.Component", "MetaphorJs.cmp.Observable", {
 
         id:             null,
         tag:            'div',
@@ -224,7 +224,7 @@
             name    = null;
         }
 
-        name    = name || "MetaphorJs.Component";
+        name    = name || "MetaphorJs.cmp.Component";
         cfg     = cfg || {};
 
         this.each(function() {

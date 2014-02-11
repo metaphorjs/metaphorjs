@@ -2,7 +2,7 @@
 
     "use strict"
 
-    MetaphorJs.define("MetaphorJs.Observable", "MetaphorJs.Base", {
+    MetaphorJs.define("MetaphorJs.cmp.Observable", "MetaphorJs.cmp.Base", {
 
         _observable:    null,
         listeners:      null,

@@ -5,15 +5,16 @@
     <script src="../src/MetaphorJs.js"></script>
     <script src="../src/lib/Namespace.js"></script>
     <script src="../src/lib/Class.js"></script>
-    <script src="../src/lib/Base.js"></script>
+
     <script src="../../observable/metaphorjs.observable.js"></script>
-    <script src="../src/lib/Observable.js"></script>
-    <script src="../src/lib/Component.js"></script>
+    <script src="../src/cmp/Base.js"></script>
+    <script src="../src/cmp/Observable.js"></script>
+    <script src="../src/cmp/Component.js"></script>
 
     <script>
         $(function(){
 
-            MetaphorJs.define("Haverything.Test", "MetaphorJs.Component", {
+            MetaphorJs.define("Haverything.Test", "MetaphorJs.cmp.Component", {
 
                 renderTo: "body",
                 initComponent: function() {

@@ -2,7 +2,7 @@
 
     "use strict"
 
-    MetaphorJs.define("MetaphorJs.Base", {
+    MetaphorJs.define("MetaphorJs.cmp.Base", {
 
         initialize: function(cfg) {
             cfg     = cfg || {};

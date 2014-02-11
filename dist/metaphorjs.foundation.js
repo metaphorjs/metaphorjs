@@ -219,7 +219,7 @@
 
     "use strict"
 
-    MetaphorJs.define("MetaphorJs.Base", {
+    MetaphorJs.define("MetaphorJs.cmp.Base", {
 
         initialize: function(cfg) {
             cfg     = cfg || {};
@@ -608,7 +608,7 @@ else {
 
     "use strict"
 
-    MetaphorJs.define("MetaphorJs.Observable", "MetaphorJs.Base", {
+    MetaphorJs.define("MetaphorJs.cmp.Observable", "MetaphorJs.cmp.Base", {
 
         _observable:    null,
         listeners:      null,
@@ -674,7 +674,7 @@ else {
         return cmps[id] || null;
     };
 
-    MetaphorJs.define("MetaphorJs.Component", "MetaphorJs.Observable", {
+    MetaphorJs.define("MetaphorJs.cmp.Component", "MetaphorJs.cmp.Observable", {
 
         id:             null,
         tag:            'div',
@@ -876,7 +876,7 @@ else {
             name    = null;
         }
 
-        name    = name || "MetaphorJs.Component";
+        name    = name || "MetaphorJs.cmp.Component";
         cfg     = cfg || {};
 
         this.each(function() {
