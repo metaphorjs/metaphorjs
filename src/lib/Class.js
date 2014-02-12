@@ -67,8 +67,13 @@
 
         var p   = parentClass && typeof parentClass == "string" ?
                     MetaphorJs.ns.getNs(parentClass) :
-                    parentClass,
-            c   = p ? extend(p, cls) : create(cls);
+                    parentClass;
+
+        if (parentClass && !p) {
+            throw new Error(parentClass + " not found");
+        }
+
+        var c   = p ? extend(p, cls) : create(cls);
 
         c.__parent          = p;
         c.__parentClass     = p ? p.__class : null;
@@ -92,7 +97,7 @@
             c;
 
         if (!cls) {
-            throw new Error("Class " + cls + " not found");
+            throw new Error(cls + " not found");
         }
 
         c = new cls(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)

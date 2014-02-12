@@ -119,6 +119,18 @@
             self.renderTo   = null;
         },
 
+        setContent: function(newContent) {
+
+            var self    = this;
+
+            if (self.rendered) {
+                self.el.html(newContent);
+            }
+            else {
+                self.html   = newContent;
+            }
+        },
+
         onRender: function() {
 
             var self    = this;
