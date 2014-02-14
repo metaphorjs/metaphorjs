@@ -32,7 +32,7 @@
     var process = function(what, o, parent) {
         for (var k in o) {
             if (o.hasOwnProperty(k)) {
-                what[k] = isFn(o[k]) && isFn(parent[proto][k]) ?
+                what[k] = isFn(o[k]) && parent[proto] && isFn(parent[proto][k]) ?
                             wrap(parent, k, o[k]) :
                             o[k];
             }
@@ -54,19 +54,48 @@
         process(prototype, cls, parent);
         fn[proto]   = prototype;
         fn[proto].constructor = fn;
+        fn[proto].getClass = function() {
+            return this.__proto__.constructor.__class;
+        };
+        fn[proto].getParentClass = function() {
+            return this.__proto__.constructor.__parentClass;
+        };
+        fn.__instantiate = function(fn) {
+
+            return function() {
+                var Temp = function(){},
+                    inst, ret;
+
+                // Give the Temp constructor the Constructor's prototype
+                Temp.prototype = fn.prototype;
+
+                // Create a new instance
+                inst = new Temp;
+
+                // Call the original Constructor with the temp
+                // instance as its context (i.e. its 'this' value)
+                ret = fn.prototype.constructor.apply(inst, arguments);
+
+                // If an object has been returned then return it otherwise
+                // return the original instance.
+                // (consistent with behaviour of the new operator)
+                return typeof ret == "object" ? ret : inst;
+            }
+        }(fn);
 
         return fn;
     };
 
     MetaphorJs.define   = function(ns, parentClass, cls, statics) {
 
-        if (!cls) {
+        if (typeof parentClass != "string") {
+            statics     = cls;
             cls         = parentClass;
             parentClass = null;
         }
 
         var p   = parentClass && typeof parentClass == "string" ?
-                    MetaphorJs.ns.getNs(parentClass) :
+                    MetaphorJs.ns.get(parentClass) :
                     parentClass;
 
         if (parentClass && !p) {
@@ -91,27 +120,21 @@
         return c;
     };
 
-    MetaphorJs.create = function(ns, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) {
+    MetaphorJs.create = function(ns) {
 
-        var cls = MetaphorJs.ns.getNs(ns),
-            c;
+        var cls     = MetaphorJs.ns.get(ns),
+            args    = Array.prototype.slice.call(arguments, 1);
 
         if (!cls) {
-            throw new Error(cls + " not found");
+            throw new Error(ns + " not found");
         }
 
-        c = new cls(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
-
-        c.__parent      = cls.__parent;
-        c.__parentClass = cls.__parentClass;
-        c.__class       = cls.__class;
-
-        return c;
+        return cls.__instantiate.apply(this, args);
     };
 
     MetaphorJs.is = function(cmp, cls) {
-        var _cls    = typeof cls == "string" ? MetaphorJs.ns.getNs(cls) : cls;
-        return cmp instanceof _cls;
+        var _cls    = typeof cls == "string" ? MetaphorJs.ns.get(cls) : cls;
+        return _cls ? cmp instanceof _cls : false;
     };
 
     MetaphorJs.isSubclass = function(child, parent) {
@@ -119,16 +142,16 @@
         var p = child;
 
         if (typeof parent != "string") {
-            parent  = parent.__class;
+            parent  = parent.getClass();
         }
 
         while (p) {
             if (p == parent) {
                 return true;
             }
-            p = MetaphorJs.ns.getNs(p);
+            p = MetaphorJs.ns.get(p);
             if (p) {
-                p = p.__parentClass;
+                p = p.getParentClass();
             }
         }
 

@@ -264,5 +264,20 @@
         return getCmp(this.attr('cmp-id'));
     };
 
+    $.fn.getParentCmp   = function() {
+
+        if (!this.attr("cmp-id")) {
+            var parent = this.parents("[cmp-id]").eq(0);
+            if (parent.length) {
+                return MetaphorJs.getCmp(parent.attr("cmp-id"));
+            }
+        }
+        else {
+            return MetaphorJs.getCmp(el.attr("cmp-id"));
+        }
+
+        return null;
+    };
+
 
 }());

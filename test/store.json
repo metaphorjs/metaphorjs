@@ -1,0 +1,37 @@
+{
+    "record": [
+        {
+            "id": 1,
+            "name": "Record 1"
+        },
+        {
+            "id": 2,
+            "name": "Record 2"
+        },
+        {
+            "id": 3,
+            "name": "Record 3"
+        },
+        {
+            "id": 4,
+            "name": "Record 4"
+        },
+        {
+            "id": 5,
+            "name": "Record 5"
+        },
+        {
+            "id": 6,
+            "name": "Record 6"
+        },
+        {
+            "id": 7,
+            "name": "Record 7"
+        },
+        {
+            "id": 8,
+            "name": "Record 8"
+        }
+    ],
+    "total": 2
+}

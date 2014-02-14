@@ -33,7 +33,7 @@
         return [current, last];
     };
 
-    var getNs       = function(ns) {
+    var get       = function(ns) {
 
         if (cache[ns]) {
             return cache[ns];
@@ -45,7 +45,7 @@
             name,
             current = root;
 
-        for (i = 0; i < len - 1; i++) {
+        for (i = 0; i < len; i++) {
 
             name    = tmp[i];
 
@@ -76,7 +76,7 @@
     register("MetaphorJs.ns", {
         register:   register,
         exists:     exists,
-        getNs:      getNs
+        get:      get
     });
 
 }());
