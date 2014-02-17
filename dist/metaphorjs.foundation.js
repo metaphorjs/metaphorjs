@@ -164,7 +164,13 @@
     register("MetaphorJs.ns", {
         register:   register,
         exists:     exists,
-        get:      get
+        get:        get,
+        add:        function(ns, c) {
+            cache[ns] = c;
+        },
+        remove:     function(ns) {
+            delete cache[ns];
+        }
     });
 
 }());
@@ -236,27 +242,21 @@
                 var Temp = function(){},
                     inst, ret;
 
-                // Give the Temp constructor the Constructor's prototype
-                Temp.prototype = fn.prototype;
-
-                // Create a new instance
-                inst = new Temp;
-
-                // Call the original Constructor with the temp
-                // instance as its context (i.e. its 'this' value)
-                ret = fn.prototype.constructor.apply(inst, arguments);
+                Temp.prototype  = fn.prototype;
+                inst            = new Temp;
+                ret             = fn.prototype.constructor.apply(inst, arguments);
 
                 // If an object has been returned then return it otherwise
                 // return the original instance.
                 // (consistent with behaviour of the new operator)
                 return typeof ret == "object" ? ret : inst;
-            }
+            };
         }(fn);
 
         return fn;
     };
 
-    MetaphorJs.define   = function(ns, parentClass, cls, statics) {
+    MetaphorJs.define = MetaphorJs.d = function(ns, parentClass, cls, statics) {
 
         if (typeof parentClass != "string") {
             statics     = cls;
@@ -287,10 +287,15 @@
         }
 
         MetaphorJs.ns.register(ns, c);
+
+        if (cls.alias) {
+            MetaphorJs.ns.add(cls.alias, c);
+        }
+
         return c;
     };
 
-    MetaphorJs.create = function(ns) {
+    MetaphorJs.create = MetaphorJs.c = function(ns) {
 
         var cls     = MetaphorJs.ns.get(ns),
             args    = Array.prototype.slice.call(arguments, 1);
@@ -307,7 +312,7 @@
         return _cls ? cmp instanceof _cls : false;
     };
 
-    MetaphorJs.isSubclass = function(child, parent) {
+    MetaphorJs.isSubclass = MetaphorJs.iss = function(child, parent) {
 
         var p = child;
 
@@ -1094,8 +1099,8 @@ MetaphorJs.define("MetaphorJs.data.Model", {
                     delete:     null,
                     id:         null,
                     data:       null,
-                    extra:      {},
-                    extend:     {}
+                    success:    null,
+                    extra:      {}
                 },
 
                 store: {
@@ -1107,8 +1112,8 @@ MetaphorJs.define("MetaphorJs.data.Model", {
                     total:      null,
                     start:      null,
                     limit:      null,
-                    extra:      {},
-                    extend:     {}
+                    success:    null,
+                    extra:      {}
                 }
             };
 
@@ -1182,25 +1187,158 @@ MetaphorJs.define("MetaphorJs.data.Model", {
         return cfg;
     },
 
-    _processRecordResponse: function(type, response, cb) {
+    _processRecordResponse: function(type, response, df) {
         var self        = this,
             idProp      = self.getRecordProp(type, "id"),
             dataProp    = self.getRecordProp(type, "data"),
             data        = dataProp ? response[dataProp] : response,
-            id          = data && (data[idProp] || response[idProp]);
+            id          = (data && data[idProp]) || response[idProp];
 
-        cb(id, data);
+        if (!self._getSuccess("record", type, response)) {
+            df.reject(response);
+        }
+        else {
+            df.resolve(id, data);
+        }
     },
 
-    _processStoreResponse: function(type, response, cb) {
+    _processStoreResponse: function(type, response, df) {
         var self        = this,
             dataProp    = self.getStoreProp(type, "data"),
             totalProp   = self.getStoreProp(type, "total"),
             data        = dataProp ? response[dataProp] : response,
             total       = totalProp ? response[totalProp] : null;
 
-        cb(data, total);
+        if (!self._getSuccess("store", type, response)) {
+            df.reject(response);
+        }
+        else {
+            df.resolve(data, total);
+        }
     },
+
+    _getSuccess: function(what, type, response) {
+        var self    = this,
+            sucProp = self.getProp(what, type, "success");
+
+        return sucProp ? response[sucProp] : true;
+    },
+
+
+    loadRecord: function(id) {
+
+        var self    = this,
+            p       = $.ajax(self._createAjaxCfg("record", "load", id)),
+            df      = new jQuery.Deferred;
+
+        p.then(
+            function(response){
+                self._processRecordResponse("load", response, df);
+            },
+            df.reject
+        );
+
+        return df.promise();
+    },
+
+    saveRecord: function(rec) {
+
+        var self    = this,
+            p       = $.ajax(self._createAjaxCfg(
+                        "record", "save",
+                        rec.getId(),
+                        rec.storeData(rec.getData())
+                    )),
+            df      = new jQuery.Deferred;
+
+
+        p.then(
+            function(response) {
+                self._processRecordResponse("save", response, df);
+            },
+            df.reject
+        );
+
+        return df.promise();
+    },
+
+    deleteRecord: function(rec) {
+        var self    = this,
+            p       = $.ajax(this._createAjaxCfg("record", "delete", rec.getId())),
+            df      = new jQuery.Deferred;
+
+        p.then(
+            function(response){
+                df[self._getSuccess("record", "delete", response) ? "resolve" : "reject"]();
+            },
+            df.reject
+        );
+
+        return df.promise();
+    },
+
+
+
+
+
+    loadStore: function(store, params, cb) {
+
+        var self    = this,
+            acfg    = self._createAjaxCfg("store", "load"),
+            df      = new jQuery.Deferred,
+            p;
+
+        acfg.data   = $.extend(true, acfg.data, params);
+        p           = $.ajax(acfg);
+
+        p.then(
+            function(response) {
+                self._processStoreResponse("load", response, df);
+            },
+            df.reject
+        );
+
+        return df.promise();
+    },
+
+    saveStore: function(store, recordData) {
+
+        var self    = this,
+            p       = $.ajax(self._createAjaxCfg("store", "save", null, recordData)),
+            df      = new jQuery.Deferred;
+
+        p.then(
+            function(response) {
+                self._processStoreResponse("save", response, df);
+            },
+            df.reject
+        );
+
+        return df.promise();
+    },
+
+    deleteRecords: function(store, ids) {
+
+        var self    = this,
+            p       = $.ajax(self._createAjaxCfg("store", "delete", ids)),
+            df      = new jQuery.Deferred;
+
+        p.then(
+            function(response) {
+                df[self._getSuccess("store", "delete", response) ? "resolve" : "reject"]();
+            },
+            df.reject
+        );
+
+        return df.promise();
+    },
+
+
+
+
+
+
+
 
     getFields: function() {
         return this.fields;
@@ -1317,90 +1455,7 @@ MetaphorJs.define("MetaphorJs.data.Model", {
 
     onStoreField: function(rec, name, value) {
         return value;
-    },
-
-
-
-
-    loadRecord: function(id, cb) {
-
-        var self    = this,
-            acfg    = self._createAjaxCfg("record", "load", id);
-
-        if (acfg) {
-            acfg.success    = function(response) {
-                self._processRecordResponse("load", response, cb);
-            };
-            return $.ajax(acfg);
-        }
-    },
-
-    saveRecord: function(rec, cb) {
-
-        var self    = this,
-            acfg    = self._createAjaxCfg(
-                "record", "save",
-                rec.getId(),
-                rec.storeData(rec.getData())
-            );
-
-        if (acfg) {
-            acfg.success    = function(response) {
-                self._processRecordResponse("save", response, cb);
-            };
-            return $.ajax(acfg);
-        }
-    },
-
-    deleteRecord: function(rec, cb) {
-
-        var self    = this,
-            acfg    = self._createAjaxCfg("record", "delete", rec.getId());
-
-        acfg.success = function() {
-            cb();
-        };
-        return $.ajax(acfg);
-    },
-
-
-
-
-
-    loadStore: function(store, params, cb) {
-
-        var self    = this,
-            acfg    = self._createAjaxCfg("store", "load");
-
-        acfg.data       = $.extend(true, acfg.data, params);
-        acfg.success    = function(response) {
-            self._processStoreResponse("load", response, cb);
-        };
-
-        return $.ajax(acfg);
-    },
-
-    saveStore: function(store, recordData, cb) {
-
-        var self    = this,
-            acfg    = self._createAjaxCfg("store", "save", null, recordData);
-
-        acfg.success    = function(response) {
-            self._processStoreResponse("save", response, cb);
-        };
-
-        return $.ajax(acfg);
-    },
-
-    deleteRecords: function(store, ids, cb) {
-
-        var self    = this,
-            acfg    = self._createAjaxCfg("store", "delete", ids);
-
-        acfg.success    = cb;
-        return $.ajax(acfg);
     }
-
 
 
 }, {
@@ -1665,10 +1720,19 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                 params[lp]    = self.pageSize;
             }
 
-            return self.model.loadStore(self, params, function(data, total) {
-                self.import(data);
-                self.totalLength    = parseInt(total);
-            });
+            if (self.trigger("beforeload", self) === false) {
+                return;
+            }
+
+            return self.model.loadStore(self, params).then(
+                function(data, total) {
+                    self.import(data);
+                    self.totalLength    = parseInt(total);
+                },
+                function() {
+                    self.trigger("failedload", self);
+                }
+            );
         },
 
         save: function() {
@@ -1678,7 +1742,7 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                 cnt     = 0;
 
             if (self.model.isPlain()) {
-                return;
+                throw new Error("Cannot save plain store");
             }
 
             self.each(function(rec) {
@@ -1688,8 +1752,16 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                 }
             });
 
-            if (cnt) {
-                return self.model.saveStore(self, recs, function(data){
+            if (!cnt) {
+                throw new Error("Nothing to save");
+            }
+
+            if (self.trigger("beforesave", self, recs) === false) {
+                return;
+            }
+
+            return self.model.saveStore(self, recs).then(
+                function(data) {
 
                     var i, len,
                         id, rec;
@@ -1707,8 +1779,11 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                     }
 
                     self.trigger("save", self);
-                });
-            }
+                },
+                function() {
+                    self.trigger("failedsave", self);
+                }
+            );
         },
 
         deleteById: function(ids) {
@@ -1716,8 +1791,8 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             var self    = this,
                 i, len, rec;
 
-            if (!ids) {
-                return;
+            if (!ids || ($.isArray(ids) && !ids.length)) {
+                throw new Error("Record id required");
             }
 
             if (!$.isArray(ids)) {
@@ -1734,24 +1809,33 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                 }
             }
 
-            return self.model.deleteRecords(self, ids, function(){
-                self.trigger("delete", self, ids);
-            });
+            if (self.trigger("beforedelete", self, ids) === false) {
+                return;
+            }
+
+            return self.model.deleteRecords(self, ids).then(
+                function() {
+                    self.trigger("delete", self, ids);
+                },
+                function() {
+                    self.trigger("faileddelete", self, ids);
+                }
+            );
         },
 
         deleteAt: function(inx) {
             var self    = this,
                 rec     = self.getAt(inx);
-            if (rec) {
-                return self.deleteRecord(rec);
+
+            if (!rec) {
+                throw new Error("Record not found at " + inx);
             }
+            return self.deleteRecord(rec);
         },
 
         delete: function(rec) {
             var self    = this;
-            if (rec) {
-                return self.deleteById(self.getRecordId(rec));
-            }
+            return self.deleteById(self.getRecordId(rec));
         },
 
         deleteRecords: function(recs) {
@@ -1763,18 +1847,25 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                 ids.push(self.getRecordId(recs[i]));
             }
 
-            if (ids.length) {
-                return self.deleteById(ids);
-            }
+            return self.deleteById(ids);
         },
 
         loadAjaxData: function(data) {
 
             var self    = this;
 
-            self.model._processStoreResponse("load", data, function(data, total) {
-                self.import(data);
-                self.totalLength    = parseInt(total);
+            if (self.trigger("beforeload", self) === false) {
+                return;
+            }
+
+            self.model._processStoreResponse("load", data, {
+                resolve: function(data, total) {
+                    self.import(data);
+                    self.totalLength    = parseInt(total);
+                },
+                reject: function() {
+
+                }
             });
         },
 
@@ -2630,30 +2721,45 @@ MetaphorJs.define("MetaphorJs.data.Record", "MetaphorJs.cmp.Observable", {
     load: function() {
         var self    = this;
         self.trigger("beforeload", self);
-        return self.model.loadRecord(self.id, function(id, data) {
-            self.setId(id);
-            self.import(data);
-            self.trigger("load", self);
-        });
+        return self.model.loadRecord(self.id).then(
+            function(id, data) {
+                self.setId(id);
+                self.import(data);
+                self.trigger("load", self);
+            },
+            function() {
+                self.trigger("failedload", self);
+            }
+        );
     },
 
     save: function() {
         var self    = this;
         self.trigger("beforesave", self);
-        return self.model.saveRecord(self, function(id, data) {
-            self.setId(id);
-            self.import(data);
-            self.trigger("save", self);
-        });
+        return self.model.saveRecord(self).then(
+            function(id, data) {
+                self.setId(id);
+                self.import(data);
+                self.trigger("save", self);
+            },
+            function() {
+                self.trigger("failedsave", self);
+            }
+        );
     },
 
     delete: function() {
         var self    = this;
         self.trigger("beforedelete", self);
-        return self.model.deleteRecord(self, function(){
-            self.trigger("delete", self);
-            self.destroy();
-        });
+        return self.model.deleteRecord(self).then(
+            function() {
+                self.trigger("delete", self);
+                self.destroy();
+            },
+            function() {
+                self.trigger("faileddelete", self);
+            }
+        );
     },
 
 

@@ -1,6 +1,8 @@
 $(function(){
 
-    MetaphorJs.define("Haverything.Test", "MetaphorJs.cmp.Component", {
+    var M = MetaphorJs;
+
+    M.d("Haverything.Test", "MetaphorJs.cmp.Component", {
 
         renderTo: "body",
         initComponent: function() {
@@ -8,7 +10,7 @@ $(function(){
         }
     });
 
-    MetaphorJs.define("Haverything.Test1", "Haverything.Test", {
+    M.d("Haverything.Test1", "Haverything.Test", {
 
         initComponent: function() {
             this.supr();
@@ -17,13 +19,13 @@ $(function(){
     });
 
 
-    var test = MetaphorJs.create("Haverything.Test");
+    var test = M.c("Haverything.Test");
     var test1 = new Haverything.Test1;
 
 
-    var cmp1        = MetaphorJs.create("MetaphorJs.cmp.Component");
+    var cmp1        = M.c("MetaphorJs.cmp.Component");
     cmp1.render("body");
-    var objStore    = MetaphorJs.create("MetaphorJs.data.Store", {
+    var objStore    = M.c("MetaphorJs.data.Store", {
         url:    "data.json",
         autoLoad: true,
         model: {
@@ -43,8 +45,8 @@ $(function(){
         }
     });
 
-    var cmp2        = MetaphorJs.create("MetaphorJs.cmp.DataList", {
-        store: MetaphorJs.create("MetaphorJs.data.Store", {
+    var cmp2        = M.c("MetaphorJs.cmp.DataList", {
+        store: M.create("MetaphorJs.data.Store", {
             model: {
                type: "MetaphorJs.data.Record",
                id: "id",
@@ -70,16 +72,17 @@ $(function(){
                         window.setTimeout(function(){
                             store.removeId(3);
                             console.log("first save - nothing");
-                            store.save();
+                            try {
+                                store.save();
+                            }
+                            catch (e) {}
                             console.log("second save - post");
                             store.getAt(0).set("name", "new name");
 
-                            store.once("save", function(){
+                            store.save().then(function(){
                                 console.log("delete after save");
                                 store.deleteRecords(store.getRange());
                             });
-
-                            store.save();
                         }, 2000);
                     }, 1000);
                 }
@@ -91,7 +94,7 @@ $(function(){
     });
     cmp2.render("body");
 
-    var rec     = MetaphorJs.create("MetaphorJs.data.Record", 10, {
+    var rec     = M.c("MetaphorJs.data.Record", 10, {
         model: {
             id:     "id",
             record: {

@@ -201,10 +201,19 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                 params[lp]    = self.pageSize;
             }
 
-            return self.model.loadStore(self, params, function(data, total) {
-                self.import(data);
-                self.totalLength    = parseInt(total);
-            });
+            if (self.trigger("beforeload", self) === false) {
+                return;
+            }
+
+            return self.model.loadStore(self, params).then(
+                function(data, total) {
+                    self.import(data);
+                    self.totalLength    = parseInt(total);
+                },
+                function() {
+                    self.trigger("failedload", self);
+                }
+            );
         },
 
         save: function() {
@@ -214,7 +223,7 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                 cnt     = 0;
 
             if (self.model.isPlain()) {
-                return;
+                throw new Error("Cannot save plain store");
             }
 
             self.each(function(rec) {
@@ -224,8 +233,16 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                 }
             });
 
-            if (cnt) {
-                return self.model.saveStore(self, recs, function(data){
+            if (!cnt) {
+                throw new Error("Nothing to save");
+            }
+
+            if (self.trigger("beforesave", self, recs) === false) {
+                return;
+            }
+
+            return self.model.saveStore(self, recs).then(
+                function(data) {
 
                     var i, len,
                         id, rec;
@@ -243,8 +260,11 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                     }
 
                     self.trigger("save", self);
-                });
-            }
+                },
+                function() {
+                    self.trigger("failedsave", self);
+                }
+            );
         },
 
         deleteById: function(ids) {
@@ -252,8 +272,8 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             var self    = this,
                 i, len, rec;
 
-            if (!ids) {
-                return;
+            if (!ids || ($.isArray(ids) && !ids.length)) {
+                throw new Error("Record id required");
             }
 
             if (!$.isArray(ids)) {
@@ -270,24 +290,33 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                 }
             }
 
-            return self.model.deleteRecords(self, ids, function(){
-                self.trigger("delete", self, ids);
-            });
+            if (self.trigger("beforedelete", self, ids) === false) {
+                return;
+            }
+
+            return self.model.deleteRecords(self, ids).then(
+                function() {
+                    self.trigger("delete", self, ids);
+                },
+                function() {
+                    self.trigger("faileddelete", self, ids);
+                }
+            );
         },
 
         deleteAt: function(inx) {
             var self    = this,
                 rec     = self.getAt(inx);
-            if (rec) {
-                return self.deleteRecord(rec);
+
+            if (!rec) {
+                throw new Error("Record not found at " + inx);
             }
+            return self.deleteRecord(rec);
         },
 
         delete: function(rec) {
             var self    = this;
-            if (rec) {
-                return self.deleteById(self.getRecordId(rec));
-            }
+            return self.deleteById(self.getRecordId(rec));
         },
 
         deleteRecords: function(recs) {
@@ -299,18 +328,25 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                 ids.push(self.getRecordId(recs[i]));
             }
 
-            if (ids.length) {
-                return self.deleteById(ids);
-            }
+            return self.deleteById(ids);
         },
 
         loadAjaxData: function(data) {
 
             var self    = this;
 
-            self.model._processStoreResponse("load", data, function(data, total) {
-                self.import(data);
-                self.totalLength    = parseInt(total);
+            if (self.trigger("beforeload", self) === false) {
+                return;
+            }
+
+            self.model._processStoreResponse("load", data, {
+                resolve: function(data, total) {
+                    self.import(data);
+                    self.totalLength    = parseInt(total);
+                },
+                reject: function() {
+
+                }
             });
         },
 

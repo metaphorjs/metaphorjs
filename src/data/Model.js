@@ -33,8 +33,8 @@ MetaphorJs.define("MetaphorJs.data.Model", {
                     delete:     null,
                     id:         null,
                     data:       null,
-                    extra:      {},
-                    extend:     {}
+                    success:    null,
+                    extra:      {}
                 },
 
                 store: {
@@ -46,8 +46,8 @@ MetaphorJs.define("MetaphorJs.data.Model", {
                     total:      null,
                     start:      null,
                     limit:      null,
-                    extra:      {},
-                    extend:     {}
+                    success:    null,
+                    extra:      {}
                 }
             };
 
@@ -121,25 +121,158 @@ MetaphorJs.define("MetaphorJs.data.Model", {
         return cfg;
     },
 
-    _processRecordResponse: function(type, response, cb) {
+    _processRecordResponse: function(type, response, df) {
         var self        = this,
             idProp      = self.getRecordProp(type, "id"),
             dataProp    = self.getRecordProp(type, "data"),
             data        = dataProp ? response[dataProp] : response,
-            id          = data && (data[idProp] || response[idProp]);
+            id          = (data && data[idProp]) || response[idProp];
 
-        cb(id, data);
+        if (!self._getSuccess("record", type, response)) {
+            df.reject(response);
+        }
+        else {
+            df.resolve(id, data);
+        }
     },
 
-    _processStoreResponse: function(type, response, cb) {
+    _processStoreResponse: function(type, response, df) {
         var self        = this,
             dataProp    = self.getStoreProp(type, "data"),
             totalProp   = self.getStoreProp(type, "total"),
             data        = dataProp ? response[dataProp] : response,
             total       = totalProp ? response[totalProp] : null;
 
-        cb(data, total);
+        if (!self._getSuccess("store", type, response)) {
+            df.reject(response);
+        }
+        else {
+            df.resolve(data, total);
+        }
     },
+
+    _getSuccess: function(what, type, response) {
+        var self    = this,
+            sucProp = self.getProp(what, type, "success");
+
+        return sucProp ? response[sucProp] : true;
+    },
+
+
+    loadRecord: function(id) {
+
+        var self    = this,
+            p       = $.ajax(self._createAjaxCfg("record", "load", id)),
+            df      = new jQuery.Deferred;
+
+        p.then(
+            function(response){
+                self._processRecordResponse("load", response, df);
+            },
+            df.reject
+        );
+
+        return df.promise();
+    },
+
+    saveRecord: function(rec) {
+
+        var self    = this,
+            p       = $.ajax(self._createAjaxCfg(
+                        "record", "save",
+                        rec.getId(),
+                        rec.storeData(rec.getData())
+                    )),
+            df      = new jQuery.Deferred;
+
+
+        p.then(
+            function(response) {
+                self._processRecordResponse("save", response, df);
+            },
+            df.reject
+        );
+
+        return df.promise();
+    },
+
+    deleteRecord: function(rec) {
+        var self    = this,
+            p       = $.ajax(this._createAjaxCfg("record", "delete", rec.getId())),
+            df      = new jQuery.Deferred;
+
+        p.then(
+            function(response){
+                df[self._getSuccess("record", "delete", response) ? "resolve" : "reject"]();
+            },
+            df.reject
+        );
+
+        return df.promise();
+    },
+
+
+
+
+
+    loadStore: function(store, params, cb) {
+
+        var self    = this,
+            acfg    = self._createAjaxCfg("store", "load"),
+            df      = new jQuery.Deferred,
+            p;
+
+        acfg.data   = $.extend(true, acfg.data, params);
+        p           = $.ajax(acfg);
+
+        p.then(
+            function(response) {
+                self._processStoreResponse("load", response, df);
+            },
+            df.reject
+        );
+
+        return df.promise();
+    },
+
+    saveStore: function(store, recordData) {
+
+        var self    = this,
+            p       = $.ajax(self._createAjaxCfg("store", "save", null, recordData)),
+            df      = new jQuery.Deferred;
+
+        p.then(
+            function(response) {
+                self._processStoreResponse("save", response, df);
+            },
+            df.reject
+        );
+
+        return df.promise();
+    },
+
+    deleteRecords: function(store, ids) {
+
+        var self    = this,
+            p       = $.ajax(self._createAjaxCfg("store", "delete", ids)),
+            df      = new jQuery.Deferred;
+
+        p.then(
+            function(response) {
+                df[self._getSuccess("store", "delete", response) ? "resolve" : "reject"]();
+            },
+            df.reject
+        );
+
+        return df.promise();
+    },
+
+
+
+
+
+
+
 
     getFields: function() {
         return this.fields;
@@ -256,90 +389,7 @@ MetaphorJs.define("MetaphorJs.data.Model", {
 
     onStoreField: function(rec, name, value) {
         return value;
-    },
-
-
-
-
-    loadRecord: function(id, cb) {
-
-        var self    = this,
-            acfg    = self._createAjaxCfg("record", "load", id);
-
-        if (acfg) {
-            acfg.success    = function(response) {
-                self._processRecordResponse("load", response, cb);
-            };
-            return $.ajax(acfg);
-        }
-    },
-
-    saveRecord: function(rec, cb) {
-
-        var self    = this,
-            acfg    = self._createAjaxCfg(
-                "record", "save",
-                rec.getId(),
-                rec.storeData(rec.getData())
-            );
-
-        if (acfg) {
-            acfg.success    = function(response) {
-                self._processRecordResponse("save", response, cb);
-            };
-            return $.ajax(acfg);
-        }
-    },
-
-    deleteRecord: function(rec, cb) {
-
-        var self    = this,
-            acfg    = self._createAjaxCfg("record", "delete", rec.getId());
-
-        acfg.success = function() {
-            cb();
-        };
-        return $.ajax(acfg);
-    },
-
-
-
-
-
-    loadStore: function(store, params, cb) {
-
-        var self    = this,
-            acfg    = self._createAjaxCfg("store", "load");
-
-        acfg.data       = $.extend(true, acfg.data, params);
-        acfg.success    = function(response) {
-            self._processStoreResponse("load", response, cb);
-        };
-
-        return $.ajax(acfg);
-    },
-
-    saveStore: function(store, recordData, cb) {
-
-        var self    = this,
-            acfg    = self._createAjaxCfg("store", "save", null, recordData);
-
-        acfg.success    = function(response) {
-            self._processStoreResponse("save", response, cb);
-        };
-
-        return $.ajax(acfg);
-    },
-
-    deleteRecords: function(store, ids, cb) {
-
-        var self    = this,
-            acfg    = self._createAjaxCfg("store", "delete", ids);
-
-        acfg.success    = cb;
-        return $.ajax(acfg);
     }
-
 
 
 }, {

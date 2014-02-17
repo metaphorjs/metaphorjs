@@ -66,27 +66,21 @@
                 var Temp = function(){},
                     inst, ret;
 
-                // Give the Temp constructor the Constructor's prototype
-                Temp.prototype = fn.prototype;
-
-                // Create a new instance
-                inst = new Temp;
-
-                // Call the original Constructor with the temp
-                // instance as its context (i.e. its 'this' value)
-                ret = fn.prototype.constructor.apply(inst, arguments);
+                Temp.prototype  = fn.prototype;
+                inst            = new Temp;
+                ret             = fn.prototype.constructor.apply(inst, arguments);
 
                 // If an object has been returned then return it otherwise
                 // return the original instance.
                 // (consistent with behaviour of the new operator)
                 return typeof ret == "object" ? ret : inst;
-            }
+            };
         }(fn);
 
         return fn;
     };
 
-    MetaphorJs.define   = function(ns, parentClass, cls, statics) {
+    MetaphorJs.define = MetaphorJs.d = function(ns, parentClass, cls, statics) {
 
         if (typeof parentClass != "string") {
             statics     = cls;
@@ -117,10 +111,15 @@
         }
 
         MetaphorJs.ns.register(ns, c);
+
+        if (cls.alias) {
+            MetaphorJs.ns.add(cls.alias, c);
+        }
+
         return c;
     };
 
-    MetaphorJs.create = function(ns) {
+    MetaphorJs.create = MetaphorJs.c = function(ns) {
 
         var cls     = MetaphorJs.ns.get(ns),
             args    = Array.prototype.slice.call(arguments, 1);
@@ -137,7 +136,7 @@
         return _cls ? cmp instanceof _cls : false;
     };
 
-    MetaphorJs.isSubclass = function(child, parent) {
+    MetaphorJs.isSubclass = MetaphorJs.iss = function(child, parent) {
 
         var p = child;
 

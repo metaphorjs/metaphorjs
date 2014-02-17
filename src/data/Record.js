@@ -188,30 +188,45 @@ MetaphorJs.define("MetaphorJs.data.Record", "MetaphorJs.cmp.Observable", {
     load: function() {
         var self    = this;
         self.trigger("beforeload", self);
-        return self.model.loadRecord(self.id, function(id, data) {
-            self.setId(id);
-            self.import(data);
-            self.trigger("load", self);
-        });
+        return self.model.loadRecord(self.id).then(
+            function(id, data) {
+                self.setId(id);
+                self.import(data);
+                self.trigger("load", self);
+            },
+            function() {
+                self.trigger("failedload", self);
+            }
+        );
     },
 
     save: function() {
         var self    = this;
         self.trigger("beforesave", self);
-        return self.model.saveRecord(self, function(id, data) {
-            self.setId(id);
-            self.import(data);
-            self.trigger("save", self);
-        });
+        return self.model.saveRecord(self).then(
+            function(id, data) {
+                self.setId(id);
+                self.import(data);
+                self.trigger("save", self);
+            },
+            function() {
+                self.trigger("failedsave", self);
+            }
+        );
     },
 
     delete: function() {
         var self    = this;
         self.trigger("beforedelete", self);
-        return self.model.deleteRecord(self, function(){
-            self.trigger("delete", self);
-            self.destroy();
-        });
+        return self.model.deleteRecord(self).then(
+            function() {
+                self.trigger("delete", self);
+                self.destroy();
+            },
+            function() {
+                self.trigger("faileddelete", self);
+            }
+        );
     },
 
 

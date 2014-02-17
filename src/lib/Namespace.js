@@ -76,7 +76,13 @@
     register("MetaphorJs.ns", {
         register:   register,
         exists:     exists,
-        get:      get
+        get:        get,
+        add:        function(ns, c) {
+            cache[ns] = c;
+        },
+        remove:     function(ns) {
+            delete cache[ns];
+        }
     });
 
 }());
