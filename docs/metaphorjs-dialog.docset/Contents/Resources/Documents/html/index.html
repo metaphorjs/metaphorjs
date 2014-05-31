@@ -1,0 +1,1871 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MetaphorJs Foundation</title>
+    <link rel="stylesheet" href="../assets/stylesheet.css">
+    <link rel="stylesheet" href="../assets/prism.css">
+    <meta name="Content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="target-densitydpi=device-dpi, width=device-width, initial-scale=1, maximum-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+</head>
+<body class="index">
+<div id="header"><h1>MetaphorJs Foundation</h1><p>Api Reference</p></div><div id="sidebar" class="hidden"><a href="#" id="show-sidebar">Show map</a><a href="#" id="hide-sidebar">Hide map</a><label><input type="checkbox" id="toggle-private"/> Hide private</label><label><input type="checkbox" id="toggle-protected"/> Hide protected</label><label><input type="checkbox" id="toggle-inherited"/> Hide inherited</label><a id="sidebar-index" href="index.html">Index</a><label class="index">Map</label><ul class="namespaces"><li><h2><span>namespace</span> __Global__</h2><label class="sidebar-section">Functions</label><ul class="functions"><li class="
+                    
+    
+    
+
+"><a href="_.html#$.fn.createCmp">$.fn.createCmp(name, cfg)</a></li><li class="
+                    
+    
+    
+
+"><a href="_.html#$.fn.getCmp">$.fn.getCmp()</a></li><li class="
+                    
+    
+    
+
+"><a href="_.html#$.fn.getParentCmp">$.fn.getParentCmp()</a></li></ul></li><li><h2><span>namespace</span> MetaphorJs</h2><label class="sidebar-section">Functions</label><ul class="functions"><li class="
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.apply">MetaphorJs.apply(dst, src, override)</a></li><li class="
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.emptyFn">MetaphorJs.emptyFn()</a></li><li class="
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.getCmp">MetaphorJs.getCmp(id)</a></li><li class="
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.define">MetaphorJs.define(ns, parentClass, constructor, definition, statics)</a></li><li class="
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.define">MetaphorJs.define(ns, constructor, definition, statics)</a></li><li class="
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.define">MetaphorJs.define(ns, definition, statics)</a></li><li class="
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.define">MetaphorJs.define(ns, definition)</a></li><li class="
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.create">MetaphorJs.create(ns)</a></li><li class="
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.is">MetaphorJs.is(cmp, cls)</a></li><li class="
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.isSubclass">MetaphorJs.isSubclass(child, parent)</a></li><li class="
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.ns.get">MetaphorJs.ns.get(ns)</a></li><li class="
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.ns.register">MetaphorJs.ns.register(ns, fn)</a></li><li class="
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.ns.exists">MetaphorJs.ns.exists(ns)</a></li><li class="
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.ns.add">MetaphorJs.ns.add(ns, c)</a></li><li class="
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.ns.remove">MetaphorJs.ns.remove(ns)</a></li></ul><label class="sidebar-section">Classes</label><ul class="classes"><li><a href="MetaphorJs/MetaphorJs.cmp.Base.html">
+                                    MetaphorJs.cmp.Base
+                                </a></li><li><a href="MetaphorJs/MetaphorJs.cmp.Component.html">
+                                    MetaphorJs.cmp.Component
+                                </a></li><li><a href="MetaphorJs/MetaphorJs.cmp.DataList.html">
+                                    MetaphorJs.cmp.DataList
+                                </a></li><li><a href="MetaphorJs/MetaphorJs.cmp.Observable.html">
+                                    MetaphorJs.cmp.Observable
+                                </a></li><li><a href="MetaphorJs/MetaphorJs.data.Model.html">
+                                    MetaphorJs.data.Model
+                                </a></li><li><a href="MetaphorJs/MetaphorJs.data.Record.html">
+                                    MetaphorJs.data.Record
+                                </a></li><li><a href="MetaphorJs/MetaphorJs.data.Store.html">
+                                    MetaphorJs.data.Store
+                                </a></li></ul></li></ul></div><ul class="namespaces"><li><h2><span>namespace</span> __Global__</h2><label class="section">Functions</label><ul class="functions"><li class="index-item 
+                    
+    
+    
+
+"><a href="_.html#$.fn.createCmp">$.fn.createCmp(name, cfg)</a><span class="short"></span></li><li class="index-item 
+                    
+    
+    
+
+"><a href="_.html#$.fn.getCmp">$.fn.getCmp()</a><span class="short"></span></li><li class="index-item 
+                    
+    
+    
+
+"><a href="_.html#$.fn.getParentCmp">$.fn.getParentCmp()</a><span class="short"></span></li></ul></li><li><h2><span>namespace</span> MetaphorJs</h2><label class="section">Functions</label><ul class="functions"><li class="index-item 
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.apply">MetaphorJs.apply(dst, src, override)</a><span class="short"></span></li><li class="index-item 
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.emptyFn">MetaphorJs.emptyFn()</a><span class="short">        Empty function. Used for callback placeholders
+</span></li><li class="index-item 
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.getCmp">MetaphorJs.getCmp(id)</a><span class="short"></span></li><li class="index-item 
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.define">MetaphorJs.define(ns, parentClass, constructor, definition, statics)</a><span class="short">        Define class
+</span></li><li class="index-item 
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.define">MetaphorJs.define(ns, constructor, definition, statics)</a><span class="short">        Define class
+</span></li><li class="index-item 
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.define">MetaphorJs.define(ns, definition, statics)</a><span class="short">        Define class
+</span></li><li class="index-item 
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.define">MetaphorJs.define(ns, definition)</a><span class="short">        Define class
+</span></li><li class="index-item 
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.create">MetaphorJs.create(ns)</a><span class="short">        Instantiate class
+</span></li><li class="index-item 
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.is">MetaphorJs.is(cmp, cls)</a><span class="short">        Is cmp instance of cls
+</span></li><li class="index-item 
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.isSubclass">MetaphorJs.isSubclass(child, parent)</a><span class="short">        Is one class subclass of another class
+</span></li><li class="index-item 
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.ns.get">MetaphorJs.ns.get(ns)</a><span class="short">        Get class constructor
+</span></li><li class="index-item 
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.ns.register">MetaphorJs.ns.register(ns, fn)</a><span class="short">        Register class constructor
+</span></li><li class="index-item 
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.ns.exists">MetaphorJs.ns.exists(ns)</a><span class="short">        Class exists
+</span></li><li class="index-item 
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.ns.add">MetaphorJs.ns.add(ns, c)</a><span class="short">        Add constructor to cache
+</span></li><li class="index-item 
+                    
+    
+    
+
+"><a href="MetaphorJs.html#MetaphorJs.ns.remove">MetaphorJs.ns.remove(ns)</a><span class="short">        Remove constructor from cache
+</span></li></ul><label class="section">Classes</label><ul class="classes"><li><div class="index-item"><a href="MetaphorJs/MetaphorJs.cmp.Base.html">
+                                    MetaphorJs.cmp.Base
+                                </a><span class="short"></span></div><ul class="functions"><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Base.html#initialize">initialize(cfg)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Base.html#destroy">destroy()</a><span class="short"></span></li></ul></li><li><div class="index-item"><a href="MetaphorJs/MetaphorJs.cmp.Component.html">
+                                    MetaphorJs.cmp.Component
+                                </a><span class="short"></span></div><ul class="variables"><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#id">id</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#tag">tag</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#el">el</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#dom">dom</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#cls">cls</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#style">style</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#renderTo">renderTo</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#html">html</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#propertyAttr">propertyAttr</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#rendered">rendered</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#hidden">hidden</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#destroyed">destroyed</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#destroyEl">destroyEl</a><span class="short"></span></li></ul><ul class="functions"><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#initialize">initialize(cfg)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#render">render(to)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#setContent">setContent(newContent)</a><span class="short">        Set component content
+</span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#onRender">onRender()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#show">show()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#hide">hide()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#isHidden">isHidden()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#isRendered">isRendered()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#isDestroyed">isDestroyed()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#getEl">getEl()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#getDom">getDom()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#initComponent">initComponent()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#afterRender">afterRender()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#onShow">onShow()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#onHide">onHide()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#onDestroy">onDestroy()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#destroy">destroy()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#createEvent">createEvent(name, returnResult)</a><span class="short">        You don&#039;t have to call this function unless you want to pass returnResult param.
+This function will be automatically called from on() with
+returnResult = false,
+so if you want to receive handler&#039;s return values, create event first, then call on().
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#getEvent">getEvent(name)</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#on">on(name, fn, scope, options)</a><span class="short">        Subscribe to an event or register collector function.
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#once">once(name, fn, scope, options)</a><span class="short">        Same as on(), but options.limit is forcefully set to 1.
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#un">un(name, fn, scope)</a><span class="short">        Unsubscribe from an event
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#hasListener">hasListener(name)</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#hasListener">hasListener(name, fn, scope)</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#removeAllListeners">removeAllListeners()</a><span class="short">        Remove all listeners from all events
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#removeAllListeners">removeAllListeners(name)</a><span class="short">        Remove all listeners from specific event
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#trigger">trigger(name, ...)</a><span class="short">        Trigger an event -- call all listeners.
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#suspendEvent">suspendEvent(name)</a><span class="short">        Suspend an event. Suspended event will not call any listeners on trigger().
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#suspendAllEvents">suspendAllEvents()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#resumeEvent">resumeEvent(name)</a><span class="short">        Resume suspended event.
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Component.html#resumeAllEvents">resumeAllEvents()</a><span class="short"></span></li></ul></li><li><div class="index-item"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html">
+                                    MetaphorJs.cmp.DataList
+                                </a><span class="short"></span></div><ul class="variables"><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#store">store</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#destroyStore">destroyStore</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#elList">elList</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#listSelector">listSelector</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#itemSelector">itemSelector</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#itemTpl">itemTpl</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#addClearfix">addClearfix</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#emptyText">emptyText</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#emptyCls">emptyCls</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#continuousScroll">continuousScroll</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#continuousOffset">continuousOffset</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#continuousTmt">continuousTmt</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#continuousTime">continuousTime</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#continuousSelector">continuousSelector</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#elContinuous">elContinuous</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#id">id</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#tag">tag</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#el">el</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#dom">dom</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#cls">cls</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#style">style</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#renderTo">renderTo</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#html">html</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#propertyAttr">propertyAttr</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#rendered">rendered</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#hidden">hidden</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#destroyed">destroyed</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#destroyEl">destroyEl</a><span class="short"></span></li></ul><ul class="functions"><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#initialize">initialize(cfg)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    private
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#initStore">initStore()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    private
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#setStoreEvents">setStoreEvents()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#getStore">getStore()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#onRowClick">onRowClick(e)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#onItemClick">onItemClick(e, rec, el)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#getItemByEvent">getItemByEvent(e)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#getElById">getElById(id)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#getRecordByEl">getRecordByEl(el)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#getRecordByEvent">getRecordByEvent(e)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#toggleEmpty">toggleEmpty()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#onBeforeStoreLoad">onBeforeStoreLoad()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#onStoreLoad">onStoreLoad()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#onStoreFilter">onStoreFilter()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#onStoreClearFilter">onStoreClearFilter()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#onStoreAdd">onStoreAdd(inx, recs)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#onStoreReplace">onStoreReplace(id, oldRec, newRec)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#onStoreRemove">onStoreRemove(rec, id)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#onStoreClear">onStoreClear()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#renderAll">renderAll()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#renderRows">renderRows(inx, rows)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#renderOneRow">renderOneRow(inx, rec)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#onWindowScroll">onWindowScroll()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#checkWindowScroll">checkWindowScroll()</a><span class="short">        right now continuous scrolling works only
+within window
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#render">render(to)</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#setContent">setContent(newContent)</a><span class="short">        Set component content
+</span></li><li class="index-item 
+                                        
+                
+    inherited protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#onRender">onRender()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#show">show()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#hide">hide()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#isHidden">isHidden()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#isRendered">isRendered()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#isDestroyed">isDestroyed()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#getEl">getEl()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#getDom">getDom()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#initComponent">initComponent()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#afterRender">afterRender()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#onShow">onShow()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#onHide">onHide()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited protected
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#onDestroy">onDestroy()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#destroy">destroy()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#createEvent">createEvent(name, returnResult)</a><span class="short">        You don&#039;t have to call this function unless you want to pass returnResult param.
+This function will be automatically called from on() with
+returnResult = false,
+so if you want to receive handler&#039;s return values, create event first, then call on().
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#getEvent">getEvent(name)</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#on">on(name, fn, scope, options)</a><span class="short">        Subscribe to an event or register collector function.
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#once">once(name, fn, scope, options)</a><span class="short">        Same as on(), but options.limit is forcefully set to 1.
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#un">un(name, fn, scope)</a><span class="short">        Unsubscribe from an event
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#hasListener">hasListener(name)</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#hasListener">hasListener(name, fn, scope)</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#removeAllListeners">removeAllListeners()</a><span class="short">        Remove all listeners from all events
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#removeAllListeners">removeAllListeners(name)</a><span class="short">        Remove all listeners from specific event
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#trigger">trigger(name, ...)</a><span class="short">        Trigger an event -- call all listeners.
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#suspendEvent">suspendEvent(name)</a><span class="short">        Suspend an event. Suspended event will not call any listeners on trigger().
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#suspendAllEvents">suspendAllEvents()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#resumeEvent">resumeEvent(name)</a><span class="short">        Resume suspended event.
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.DataList.html#resumeAllEvents">resumeAllEvents()</a><span class="short"></span></li></ul></li><li><div class="index-item"><a href="MetaphorJs/MetaphorJs.cmp.Observable.html">
+                                    MetaphorJs.cmp.Observable
+                                </a><span class="short"></span></div><ul class="functions"><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Observable.html#initialize">initialize(cfg)</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Observable.html#destroy">destroy()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Observable.html#createEvent">createEvent(name, returnResult)</a><span class="short">        You don&#039;t have to call this function unless you want to pass returnResult param.
+This function will be automatically called from on() with
+returnResult = false,
+so if you want to receive handler&#039;s return values, create event first, then call on().
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Observable.html#getEvent">getEvent(name)</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Observable.html#on">on(name, fn, scope, options)</a><span class="short">        Subscribe to an event or register collector function.
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Observable.html#once">once(name, fn, scope, options)</a><span class="short">        Same as on(), but options.limit is forcefully set to 1.
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Observable.html#un">un(name, fn, scope)</a><span class="short">        Unsubscribe from an event
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Observable.html#hasListener">hasListener(name)</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Observable.html#hasListener">hasListener(name, fn, scope)</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Observable.html#removeAllListeners">removeAllListeners()</a><span class="short">        Remove all listeners from all events
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Observable.html#removeAllListeners">removeAllListeners(name)</a><span class="short">        Remove all listeners from specific event
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Observable.html#trigger">trigger(name, ...)</a><span class="short">        Trigger an event -- call all listeners.
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Observable.html#suspendEvent">suspendEvent(name)</a><span class="short">        Suspend an event. Suspended event will not call any listeners on trigger().
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Observable.html#suspendAllEvents">suspendAllEvents()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Observable.html#resumeEvent">resumeEvent(name)</a><span class="short">        Resume suspended event.
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.cmp.Observable.html#resumeAllEvents">resumeAllEvents()</a><span class="short"></span></li></ul></li><li><div class="index-item"><a href="MetaphorJs/MetaphorJs.data.Model.html">
+                                    MetaphorJs.data.Model
+                                </a><span class="short"></span></div><ul class="functions"><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#initialize">initialize(cfg)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#isPlain">isPlain()</a><span class="short">        Do records within this model have type or they are plain objects
+</span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#getRecordProp">getRecordProp(type, prop)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#setRecordProp">setRecordProp(prop, value)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#getStoreProp">getStoreProp(type, prop)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#setStoreProp">setStoreProp(prop, value)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#getProp">getProp(what, type, prop)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#setProp">setProp(prop, value)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#loadRecord">loadRecord(id)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#saveRecord">saveRecord(rec)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#deleteRecord">deleteRecord(rec)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#loadStore">loadStore(store, params)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#saveStore">saveStore(store, recordData)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#deleteRecords">deleteRecords(store, ids)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#getFields">getFields()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#restoreField">restoreField(rec, name, value)</a><span class="short">        Convert field&#039;s value from database state to app state
+</span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#onRestoreField">onRestoreField(rec, name, value)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#storeField">storeField(rec, name, value)</a><span class="short">        Convert field&#039;s value from app state to database state
+</span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#onStoreField">onStoreField(rec, name, value)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#create">create()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#addToCache">addToCache(rec)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#getFromCache">getFromCache(type, id)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Model.html#removeFromCache">removeFromCache(type, id)</a><span class="short"></span></li></ul></li><li><div class="index-item"><a href="MetaphorJs/MetaphorJs.data.Record.html">
+                                    MetaphorJs.data.Record
+                                </a><span class="short"></span></div><ul class="variables"><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#id">id</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#data">data</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#orig">orig</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#modified">modified</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#loaded">loaded</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#dirty">dirty</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#destroyed">destroyed</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#model">model</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#standalone">standalone</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#stores">stores</a><span class="short"></span></li></ul><ul class="functions"><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#initialize">initialize(id, data, cfg)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#initialize">initialize(id, cfg)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#initialize">initialize(cfg)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#isLoaded">isLoaded()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#isStandalone">isStandalone()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#isDirty">isDirty()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#getModel">getModel()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#attachStore">attachStore(store)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#detachStore">detachStore(store)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#setDirty">setDirty(dirty)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#import">import(data)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#storeData">storeData(data)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#getId">getId()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#getData">getData()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#getChanged">getChanged()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#isChanged">isChanged(key)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#get">get(key)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#setId">setId(id)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#set">set(key, value)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#revert">revert()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#load">load()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#save">save()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#delete">delete()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#destroy">destroy()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#createEvent">createEvent(name, returnResult)</a><span class="short">        You don&#039;t have to call this function unless you want to pass returnResult param.
+This function will be automatically called from on() with
+returnResult = false,
+so if you want to receive handler&#039;s return values, create event first, then call on().
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#getEvent">getEvent(name)</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#on">on(name, fn, scope, options)</a><span class="short">        Subscribe to an event or register collector function.
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#once">once(name, fn, scope, options)</a><span class="short">        Same as on(), but options.limit is forcefully set to 1.
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#un">un(name, fn, scope)</a><span class="short">        Unsubscribe from an event
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#hasListener">hasListener(name)</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#hasListener">hasListener(name, fn, scope)</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#removeAllListeners">removeAllListeners()</a><span class="short">        Remove all listeners from all events
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#removeAllListeners">removeAllListeners(name)</a><span class="short">        Remove all listeners from specific event
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#trigger">trigger(name, ...)</a><span class="short">        Trigger an event -- call all listeners.
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#suspendEvent">suspendEvent(name)</a><span class="short">        Suspend an event. Suspended event will not call any listeners on trigger().
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#suspendAllEvents">suspendAllEvents()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#resumeEvent">resumeEvent(name)</a><span class="short">        Resume suspended event.
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Record.html#resumeAllEvents">resumeAllEvents()</a><span class="short"></span></li></ul></li><li><div class="index-item"><a href="MetaphorJs/MetaphorJs.data.Store.html">
+                                    MetaphorJs.data.Store
+                                </a><span class="short"></span></div><ul class="variables"><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#id">id</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#autoLoad">autoLoad</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#clearOnLoad">clearOnLoad</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#model">model</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#loaded">loaded</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#loading">loading</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#local">local</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#items">items</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#map">map</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#keys">keys</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#length">length</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#totalLength">totalLength</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#start">start</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#pages">pages</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#filtered">filtered</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#filterBackup">filterBackup</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#filterScope">filterScope</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#filterParams">filterParams</a><span class="short"></span></li></ul><ul class="functions"><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#filterFn">filterFn(rec, id, params)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#initialize">initialize(options, initialData)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#initialize">initialize(url, options, initialData)</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#initialize">initialize(cfg)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#getId">getId()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#isLoaded">isLoaded()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#isLocal">isLocal()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#setLocal">setLocal(state)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#isLoading">isLoading()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#isFiltered">isFiltered()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#getLength">getLength()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#getTotalLength">getTotalLength()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#getPagesCount">getPagesCount()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#setParam">setParam(k, v)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#getParam">getParam(k)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#getAjaxData">getAjaxData()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#hasDirty">hasDirty()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#getDirty">getDirty()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#getModel">getModel()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#import">import(recs)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#load">load(params)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#save">save()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#deleteById">deleteById(ids)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#deleteAt">deleteAt(inx)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#delete">delete(rec)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#deleteRecords">deleteRecords(recs)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#loadAjaxData">loadAjaxData(data)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#loadArray">loadArray(recs, add)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#loadOr">loadOr(cb, scope)</a><span class="short">        Load store if not loaded or call provided callback
+</span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#addNextPage">addNextPage()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#loadNextPage">loadNextPage()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#loadPrevPage">loadPrevPage()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#getRecordId">getRecordId(rec)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#processRawDataItem">processRawDataItem(item)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#onRecordDirtyChange">onRecordDirtyChange(rec)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#onRecordChange">onRecordChange(rec, k, v, prev)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    protected
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#onRecordDestroy">onRecordDestroy(rec)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#add">add(id, rec, silent)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#removeAt">removeAt(index)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#insert">insert(index, id, rec, silent)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#replace">replace(id, rec)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#remove">remove(rec)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#removeId">removeId(id)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#contains">contains(rec)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#containsId">containsId(id)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#clear">clear()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#reset">reset()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#filter">filter(fn, fnScope, params)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#clearFilter">clearFilter(silent)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#getAt">getAt(index)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#getById">getById(id)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#indexOf">indexOf()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#indexOfId">indexOfId(id)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#each">each(fn, fnScope)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#eachId">eachId(fn, fnScope)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#collect">collect(f)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#first">first()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#last">last()</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#getRange">getRange(start, end)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#findBy">findBy(fn, fnScope, start)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#findIndexBy">findIndexBy(fn, fnScope, start)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#find">find(property, value, exact)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#findExact">findExact(property, value)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#findBySet">findBySet(props)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#createFromSelect">createFromSelect(selectObj)</a><span class="short"></span></li><li class="index-item 
+                    
+                
+    public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#lookupStore">lookupStore(id)</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#destroy">destroy()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#createEvent">createEvent(name, returnResult)</a><span class="short">        You don&#039;t have to call this function unless you want to pass returnResult param.
+This function will be automatically called from on() with
+returnResult = false,
+so if you want to receive handler&#039;s return values, create event first, then call on().
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#getEvent">getEvent(name)</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#on">on(name, fn, scope, options)</a><span class="short">        Subscribe to an event or register collector function.
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#once">once(name, fn, scope, options)</a><span class="short">        Same as on(), but options.limit is forcefully set to 1.
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#un">un(name, fn, scope)</a><span class="short">        Unsubscribe from an event
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#hasListener">hasListener(name)</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#hasListener">hasListener(name, fn, scope)</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#removeAllListeners">removeAllListeners()</a><span class="short">        Remove all listeners from all events
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#removeAllListeners">removeAllListeners(name)</a><span class="short">        Remove all listeners from specific event
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#trigger">trigger(name, ...)</a><span class="short">        Trigger an event -- call all listeners.
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#suspendEvent">suspendEvent(name)</a><span class="short">        Suspend an event. Suspended event will not call any listeners on trigger().
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#suspendAllEvents">suspendAllEvents()</a><span class="short"></span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#resumeEvent">resumeEvent(name)</a><span class="short">        Resume suspended event.
+</span></li><li class="index-item 
+                                        
+                
+    inherited public
+
+"><a href="MetaphorJs/MetaphorJs.data.Store.html#resumeAllEvents">resumeAllEvents()</a><span class="short"></span></li></ul></li></ul></li></ul><script src="../assets/prism.js"></script><script src="../assets/jquery-1.11.0.min.js"></script><script src="../assets/toggle.js"></script></body>

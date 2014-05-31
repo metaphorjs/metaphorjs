@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MetaphorJs Foundation</title>
+    <link rel="stylesheet" href="../../assets/stylesheet.css">
+    <link rel="stylesheet" href="../../assets/prism.css">
+    <meta name="Content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="target-densitydpi=device-dpi, width=device-width, initial-scale=1, maximum-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+</head>
+<body class="class">
+<div id="header"><h1>MetaphorJs Foundation</h1><p>Api Reference</p></div><div id="sidebar" class="hidden"><a href="#" id="show-sidebar">Show map</a><a href="#" id="hide-sidebar">Hide map</a><label><input type="checkbox" id="toggle-private"/> Hide private</label><label><input type="checkbox" id="toggle-protected"/> Hide protected</label><label><input type="checkbox" id="toggle-inherited"/> Hide inherited</label><a id="sidebar-index" href="../index.html">Index</a><label class="index">Map</label><h2>MetaphorJs.cmp.DataList</h2><ul class="variables"><li class="
+                    
+                
+    protected
+
+"><a href="#store">store</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#destroyStore">destroyStore</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#elList">elList</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#listSelector">listSelector</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#itemSelector">itemSelector</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#itemTpl">itemTpl</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#addClearfix">addClearfix</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#emptyText">emptyText</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#emptyCls">emptyCls</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#continuousScroll">continuousScroll</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#continuousOffset">continuousOffset</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#continuousTmt">continuousTmt</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#continuousTime">continuousTime</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#continuousSelector">continuousSelector</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#elContinuous">elContinuous</a></li><li class="
+                                        
+                
+    inherited protected
+
+"><a href="#id">id</a></li><li class="
+                                        
+                
+    inherited protected
+
+"><a href="#tag">tag</a></li><li class="
+                                        
+                
+    inherited protected
+
+"><a href="#el">el</a></li><li class="
+                                        
+                
+    inherited protected
+
+"><a href="#dom">dom</a></li><li class="
+                                        
+                
+    inherited protected
+
+"><a href="#cls">cls</a></li><li class="
+                                        
+                
+    inherited protected
+
+"><a href="#style">style</a></li><li class="
+                                        
+                
+    inherited protected
+
+"><a href="#renderTo">renderTo</a></li><li class="
+                                        
+                
+    inherited protected
+
+"><a href="#html">html</a></li><li class="
+                                        
+                
+    inherited protected
+
+"><a href="#propertyAttr">propertyAttr</a></li><li class="
+                                        
+                
+    inherited protected
+
+"><a href="#rendered">rendered</a></li><li class="
+                                        
+                
+    inherited protected
+
+"><a href="#hidden">hidden</a></li><li class="
+                                        
+                
+    inherited protected
+
+"><a href="#destroyed">destroyed</a></li><li class="
+                                        
+                
+    inherited protected
+
+"><a href="#destroyEl">destroyEl</a></li></ul><ul class="functions"><li class="
+                    
+                
+    public
+
+"><a href="#initialize">initialize(cfg)</a></li><li class="
+                    
+                
+    private
+
+"><a href="#initStore">initStore()</a></li><li class="
+                    
+                
+    private
+
+"><a href="#setStoreEvents">setStoreEvents()</a></li><li class="
+                    
+                
+    public
+
+"><a href="#getStore">getStore()</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#onRowClick">onRowClick(e)</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#onItemClick">onItemClick(e, rec, el)</a></li><li class="
+                    
+                
+    public
+
+"><a href="#getItemByEvent">getItemByEvent(e)</a></li><li class="
+                    
+                
+    public
+
+"><a href="#getElById">getElById(id)</a></li><li class="
+                    
+                
+    public
+
+"><a href="#getRecordByEl">getRecordByEl(el)</a></li><li class="
+                    
+                
+    public
+
+"><a href="#getRecordByEvent">getRecordByEvent(e)</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#toggleEmpty">toggleEmpty()</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#onBeforeStoreLoad">onBeforeStoreLoad()</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#onStoreLoad">onStoreLoad()</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#onStoreFilter">onStoreFilter()</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#onStoreClearFilter">onStoreClearFilter()</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#onStoreAdd">onStoreAdd(inx, recs)</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#onStoreReplace">onStoreReplace(id, oldRec, newRec)</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#onStoreRemove">onStoreRemove(rec, id)</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#onStoreClear">onStoreClear()</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#renderAll">renderAll()</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#renderRows">renderRows(inx, rows)</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#renderOneRow">renderOneRow(inx, rec)</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#onWindowScroll">onWindowScroll()</a></li><li class="
+                    
+                
+    protected
+
+"><a href="#checkWindowScroll">checkWindowScroll()</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#render">render(to)</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#setContent">setContent(newContent)</a></li><li class="
+                                        
+                
+    inherited protected
+
+"><a href="#onRender">onRender()</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#show">show()</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#hide">hide()</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#isHidden">isHidden()</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#isRendered">isRendered()</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#isDestroyed">isDestroyed()</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#getEl">getEl()</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#getDom">getDom()</a></li><li class="
+                                        
+                
+    inherited protected
+
+"><a href="#initComponent">initComponent()</a></li><li class="
+                                        
+                
+    inherited protected
+
+"><a href="#afterRender">afterRender()</a></li><li class="
+                                        
+                
+    inherited protected
+
+"><a href="#onShow">onShow()</a></li><li class="
+                                        
+                
+    inherited protected
+
+"><a href="#onHide">onHide()</a></li><li class="
+                                        
+                
+    inherited protected
+
+"><a href="#onDestroy">onDestroy()</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#destroy">destroy()</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#createEvent">createEvent(name, returnResult)</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#getEvent">getEvent(name)</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#on">on(name, fn, scope, options)</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#once">once(name, fn, scope, options)</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#un">un(name, fn, scope)</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#hasListener">hasListener(name)</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#hasListener">hasListener(name, fn, scope)</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#removeAllListeners">removeAllListeners()</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#removeAllListeners">removeAllListeners(name)</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#trigger">trigger(name, ...)</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#suspendEvent">suspendEvent(name)</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#suspendAllEvents">suspendAllEvents()</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#resumeEvent">resumeEvent(name)</a></li><li class="
+                                        
+                
+    inherited public
+
+"><a href="#resumeAllEvents">resumeAllEvents()</a></li></ul><ul class="namespaces"><li><h2><span>namespace</span> __Global__</h2><label class="sidebar-section">Functions</label><ul class="functions"><li class="
+                    
+    
+    
+
+"><a href="../_.html#$.fn.createCmp">$.fn.createCmp(name, cfg)</a></li><li class="
+                    
+    
+    
+
+"><a href="../_.html#$.fn.getCmp">$.fn.getCmp()</a></li><li class="
+                    
+    
+    
+
+"><a href="../_.html#$.fn.getParentCmp">$.fn.getParentCmp()</a></li></ul></li><li><h2><span>namespace</span> MetaphorJs</h2><label class="sidebar-section">Functions</label><ul class="functions"><li class="
+                    
+    
+    
+
+"><a href="../MetaphorJs.html#MetaphorJs.apply">MetaphorJs.apply(dst, src, override)</a></li><li class="
+                    
+    
+    
+
+"><a href="../MetaphorJs.html#MetaphorJs.emptyFn">MetaphorJs.emptyFn()</a></li><li class="
+                    
+    
+    
+
+"><a href="../MetaphorJs.html#MetaphorJs.getCmp">MetaphorJs.getCmp(id)</a></li><li class="
+                    
+    
+    
+
+"><a href="../MetaphorJs.html#MetaphorJs.define">MetaphorJs.define(ns, parentClass, constructor, definition, statics)</a></li><li class="
+                    
+    
+    
+
+"><a href="../MetaphorJs.html#MetaphorJs.define">MetaphorJs.define(ns, constructor, definition, statics)</a></li><li class="
+                    
+    
+    
+
+"><a href="../MetaphorJs.html#MetaphorJs.define">MetaphorJs.define(ns, definition, statics)</a></li><li class="
+                    
+    
+    
+
+"><a href="../MetaphorJs.html#MetaphorJs.define">MetaphorJs.define(ns, definition)</a></li><li class="
+                    
+    
+    
+
+"><a href="../MetaphorJs.html#MetaphorJs.create">MetaphorJs.create(ns)</a></li><li class="
+                    
+    
+    
+
+"><a href="../MetaphorJs.html#MetaphorJs.is">MetaphorJs.is(cmp, cls)</a></li><li class="
+                    
+    
+    
+
+"><a href="../MetaphorJs.html#MetaphorJs.isSubclass">MetaphorJs.isSubclass(child, parent)</a></li><li class="
+                    
+    
+    
+
+"><a href="../MetaphorJs.html#MetaphorJs.ns.get">MetaphorJs.ns.get(ns)</a></li><li class="
+                    
+    
+    
+
+"><a href="../MetaphorJs.html#MetaphorJs.ns.register">MetaphorJs.ns.register(ns, fn)</a></li><li class="
+                    
+    
+    
+
+"><a href="../MetaphorJs.html#MetaphorJs.ns.exists">MetaphorJs.ns.exists(ns)</a></li><li class="
+                    
+    
+    
+
+"><a href="../MetaphorJs.html#MetaphorJs.ns.add">MetaphorJs.ns.add(ns, c)</a></li><li class="
+                    
+    
+    
+
+"><a href="../MetaphorJs.html#MetaphorJs.ns.remove">MetaphorJs.ns.remove(ns)</a></li></ul><label class="sidebar-section">Classes</label><ul class="classes"><li><a href="../MetaphorJs/MetaphorJs.cmp.Base.html">
+                                    MetaphorJs.cmp.Base
+                                </a></li><li><a href="../MetaphorJs/MetaphorJs.cmp.Component.html">
+                                    MetaphorJs.cmp.Component
+                                </a></li><li><a href="../MetaphorJs/MetaphorJs.cmp.DataList.html">
+                                    MetaphorJs.cmp.DataList
+                                </a></li><li><a href="../MetaphorJs/MetaphorJs.cmp.Observable.html">
+                                    MetaphorJs.cmp.Observable
+                                </a></li><li><a href="../MetaphorJs/MetaphorJs.data.Model.html">
+                                    MetaphorJs.data.Model
+                                </a></li><li><a href="../MetaphorJs/MetaphorJs.data.Record.html">
+                                    MetaphorJs.data.Record
+                                </a></li><li><a href="../MetaphorJs/MetaphorJs.data.Store.html">
+                                    MetaphorJs.data.Store
+                                </a></li></ul></li></ul></div><div class="class-body"><h2>MetaphorJs.cmp.DataList</h2><div class="labels"><span class="label plain class-extend">^MetaphorJs.cmp.Component</span></div><ul class="fields"><li class="fieldclass-field"><strong>@file</strong>
+                        cmp/DataList.js
+                    </li></ul><label class="section">Properties</label><ul class="properties"><li id="store"
+            class="
+                                                        
+                
+    property protected
+
+"><div class="labels"><span class="label var-protected">protected</span></div><h3><span class="var-name">store</span><span class="var-type">
+            MetaphorJs.data.Store
+        </span><span class="var-default"> = null</span></h3></li><li id="destroyStore"
+            class="
+                                                        
+                
+    property protected
+
+"><div class="labels"><span class="label var-protected">protected</span></div><h3><span class="var-name">destroyStore</span><span class="var-type">
+            bool
+        </span><span class="var-default"> = true</span></h3></li><li id="elList"
+            class="
+                                                        
+                
+    property protected
+
+"><div class="labels"><span class="label var-protected">protected</span></div><h3><span class="var-name">elList</span><span class="var-type">
+            jQuery
+        </span><span class="var-default"> = null</span></h3></li><li id="listSelector"
+            class="
+                                                        
+                
+    property protected
+
+"><div class="labels"><span class="label var-protected">protected</span></div><h3><span class="var-name">listSelector</span><span class="var-type">
+            string
+        </span><span class="var-default"> = null</span></h3></li><li id="itemSelector"
+            class="
+                                                        
+                
+    property protected
+
+"><div class="labels"><span class="label var-protected">protected</span></div><h3><span class="var-name">itemSelector</span><span class="var-type">
+            string
+        </span><span class="var-default"> = null</span></h3></li><li id="itemTpl"
+            class="
+                                                        
+                
+    property protected
+
+"><div class="labels"><span class="label var-protected">protected</span></div><h3><span class="var-name">itemTpl</span><span class="var-type">
+            string
+        </span><span class="var-default"> = null</span></h3></li><li id="addClearfix"
+            class="
+                                                        
+                
+    property protected
+
+"><div class="labels"><span class="label var-protected">protected</span></div><h3><span class="var-name">addClearfix</span><span class="var-type">
+            bool
+        </span><span class="var-default"> = false</span></h3></li><li id="emptyText"
+            class="
+                                                        
+                
+    property protected
+
+"><div class="labels"><span class="label var-protected">protected</span></div><h3><span class="var-name">emptyText</span><span class="var-type">
+            string
+        </span><span class="var-default"> = &quot;&quot;</span></h3></li><li id="emptyCls"
+            class="
+                                                        
+                
+    property protected
+
+"><div class="labels"><span class="label var-protected">protected</span></div><h3><span class="var-name">emptyCls</span><span class="var-type">
+            string
+        </span><span class="var-default"> = null</span></h3></li><li id="continuousScroll"
+            class="
+                                                        
+                
+    property protected
+
+"><div class="labels"><span class="label var-protected">protected</span></div><h3><span class="var-name">continuousScroll</span><span class="var-type">
+            bool
+        </span><span class="var-default"> = false</span></h3></li><li id="continuousOffset"
+            class="
+                                                        
+                
+    property protected
+
+"><div class="labels"><span class="label var-protected">protected</span></div><h3><span class="var-name">continuousOffset</span><span class="var-type">
+            number
+        </span><span class="var-default"> = 50</span></h3></li><li id="continuousTmt"
+            class="
+                                                        
+                
+    property protected
+
+"><div class="labels"><span class="label var-protected">protected</span></div><h3><span class="var-name">continuousTmt</span><span class="var-type">
+            number
+        </span><span class="var-default"> = null</span></h3></li><li id="continuousTime"
+            class="
+                                                        
+                
+    property protected
+
+"><div class="labels"><span class="label var-protected">protected</span></div><h3><span class="var-name">continuousTime</span><span class="var-type">
+            number
+        </span><span class="var-default"> = 300</span></h3></li><li id="continuousSelector"
+            class="
+                                                        
+                
+    property protected
+
+"><div class="labels"><span class="label var-protected">protected</span></div><h3><span class="var-name">continuousSelector</span><span class="var-type">
+            string
+        </span><span class="var-default"> = null</span></h3></li><li id="elContinuous"
+            class="
+                                                        
+                
+    property protected
+
+"><div class="labels"><span class="label var-protected">protected</span></div><h3><span class="var-name">elContinuous</span><span class="var-type">
+            jQuery
+        </span><span class="var-default"> = null</span></h3></li><li id="id"
+            class="
+                                                                            
+                
+    property inherited protected
+
+"><div class="labels"><span class="label var-protected">protected</span><span class="label var-inherited">Inherited</span></div><h3><span class="var-name">id</span><span class="var-type">
+            string
+        </span><span class="var-default"> = null</span></h3></li><li id="tag"
+            class="
+                                                                            
+                
+    property inherited protected
+
+"><div class="labels"><span class="label var-protected">protected</span><span class="label var-inherited">Inherited</span></div><h3><span class="var-name">tag</span><span class="var-type">
+            string
+        </span><span class="var-default"> = &#039;div&#039;</span></h3></li><li id="el"
+            class="
+                                                                            
+                
+    property inherited protected
+
+"><div class="labels"><span class="label var-protected">protected</span><span class="label var-inherited">Inherited</span></div><h3><span class="var-name">el</span><span class="var-type">
+            jQuery
+        </span><span class="var-default"> = null</span></h3></li><li id="dom"
+            class="
+                                                                            
+                
+    property inherited protected
+
+"><div class="labels"><span class="label var-protected">protected</span><span class="label var-inherited">Inherited</span></div><h3><span class="var-name">dom</span><span class="var-type">
+            DOM
+        </span><span class="var-default"> = null</span></h3></li><li id="cls"
+            class="
+                                                                            
+                
+    property inherited protected
+
+"><div class="labels"><span class="label var-protected">protected</span><span class="label var-inherited">Inherited</span></div><h3><span class="var-name">cls</span><span class="var-type">
+            string
+        </span><span class="var-default"> = null</span></h3></li><li id="style"
+            class="
+                                                                            
+                
+    property inherited protected
+
+"><div class="labels"><span class="label var-protected">protected</span><span class="label var-inherited">Inherited</span></div><h3><span class="var-name">style</span><span class="var-type">
+            object
+        </span><span class="var-default"> = null</span></h3></li><li id="renderTo"
+            class="
+                                                                            
+                
+    property inherited protected
+
+"><div class="labels"><span class="label var-protected">protected</span><span class="label var-inherited">Inherited</span></div><h3><span class="var-name">renderTo</span><span class="var-type">
+            string | jQuery | DOM
+        </span><span class="var-default"> = null</span></h3></li><li id="html"
+            class="
+                                                                            
+                
+    property inherited protected
+
+"><div class="labels"><span class="label var-protected">protected</span><span class="label var-inherited">Inherited</span></div><h3><span class="var-name">html</span><span class="var-type">
+            string
+        </span><span class="var-default"> = null</span></h3></li><li id="propertyAttr"
+            class="
+                                                                            
+                
+    property inherited protected
+
+"><div class="labels"><span class="label var-protected">protected</span><span class="label var-inherited">Inherited</span></div><h3><span class="var-name">propertyAttr</span><span class="var-type">
+            string
+        </span><span class="var-default"> = &quot;data-property&quot;</span></h3></li><li id="rendered"
+            class="
+                                                                            
+                
+    property inherited protected
+
+"><div class="labels"><span class="label var-protected">protected</span><span class="label var-inherited">Inherited</span></div><h3><span class="var-name">rendered</span><span class="var-type">
+            bool
+        </span><span class="var-default"> = false</span></h3></li><li id="hidden"
+            class="
+                                                                            
+                
+    property inherited protected
+
+"><div class="labels"><span class="label var-protected">protected</span><span class="label var-inherited">Inherited</span></div><h3><span class="var-name">hidden</span><span class="var-type">
+            bool
+        </span><span class="var-default"> = false</span></h3></li><li id="destroyed"
+            class="
+                                                                            
+                
+    property inherited protected
+
+"><div class="labels"><span class="label var-protected">protected</span><span class="label var-inherited">Inherited</span></div><h3><span class="var-name">destroyed</span><span class="var-type">
+            bool
+        </span><span class="var-default"> = false</span></h3></li><li id="destroyEl"
+            class="
+                                                                            
+                
+    property inherited protected
+
+"><div class="labels"><span class="label var-protected">protected</span><span class="label var-inherited">Inherited</span></div><h3><span class="var-name">destroyEl</span><span class="var-type">
+            bool
+        </span><span class="var-default"> = true</span></h3></li></ul><label class="section">Methods</label><ul class="methods"><li id="initialize" class="
+                                                                                                                
+                
+    method overriden public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-overriden">Overriden</span></div><h3 class="method" id="">initialize<span class="func-sig">(cfg)</span><span class="func-return">: void</span></h3><ul class="params"><li id="initialize/cfg"
+            class="
+                                                        
+    
+    param
+
+"><div class="varmap"><strong>cfg </strong><ul><li><a href="#initialize/cfg/store">store</a></li><li><a href="#initialize/cfg/destroyStore">destroyStore</a></li><li><a href="#initialize/cfg/listSelector">listSelector</a></li><li><a href="#initialize/cfg/itemSelector">itemSelector</a></li><li><a href="#initialize/cfg/itemTpl">itemTpl</a></li><li><a href="#initialize/cfg/addClearfix">addClearfix</a></li><li><a href="#initialize/cfg/emptyText">emptyText</a></li><li><a href="#initialize/cfg/emptyCls">emptyCls</a></li><li><a href="#initialize/cfg/continuousScroll">continuousScroll</a></li><li><a href="#initialize/cfg/continuousOffset">continuousOffset</a></li><li><a href="#initialize/cfg/continuousTime">continuousTime</a></li><li><a href="#initialize/cfg/continuousSelector">continuousSelector</a></li></ul></div><h4><span class="var-name">cfg</span><span class="var-type">
+            object
+        </span></h4><ul class="sub-level"><li id="initialize/cfg/store"
+            class="
+                                                        
+    
+    variable
+
+"><span class="var-name">store</span><span class="var-type">
+            MetaphorJs.data.Store
+        </span></li><li id="initialize/cfg/destroyStore"
+            class="
+                                                        
+    
+    variable
+
+"><span class="var-name">destroyStore</span><span class="var-type">
+            bool
+        </span><span class="var-default"> = true</span></li><li id="initialize/cfg/listSelector"
+            class="
+                                                        
+    
+    variable
+
+"><span class="var-name">listSelector</span><span class="var-type">
+            string
+        </span></li><li id="initialize/cfg/itemSelector"
+            class="
+                                                        
+    
+    variable
+
+"><span class="var-name">itemSelector</span><span class="var-type">
+            string
+        </span></li><li id="initialize/cfg/itemTpl"
+            class="
+                                                        
+    
+    variable
+
+"><span class="var-name">itemTpl</span><span class="var-type">
+            string
+        </span></li><li id="initialize/cfg/addClearfix"
+            class="
+                                                        
+    
+    variable
+
+"><span class="var-name">addClearfix</span><span class="var-type">
+            bool
+        </span><span class="var-default"> = false</span></li><li id="initialize/cfg/emptyText"
+            class="
+                                                        
+    
+    variable
+
+"><span class="var-name">emptyText</span><span class="var-type">
+            string
+        </span><span class="var-default"> = &quot;&quot;</span></li><li id="initialize/cfg/emptyCls"
+            class="
+                                                        
+    
+    variable
+
+"><span class="var-name">emptyCls</span><span class="var-type">
+            string
+        </span></li><li id="initialize/cfg/continuousScroll"
+            class="
+                                                        
+    
+    variable
+
+"><span class="var-name">continuousScroll</span><span class="var-type">
+            bool
+        </span><span class="var-default"> = false</span></li><li id="initialize/cfg/continuousOffset"
+            class="
+                                                        
+    
+    variable
+
+"><span class="var-name">continuousOffset</span><span class="var-type">
+            number
+        </span><span class="var-default"> = 50</span></li><li id="initialize/cfg/continuousTime"
+            class="
+                                                        
+    
+    variable
+
+"><span class="var-name">continuousTime</span><span class="var-type">
+            number
+        </span><span class="var-default"> = 300</span></li><li id="initialize/cfg/continuousSelector"
+            class="
+                                                        
+    
+    variable
+
+"><span class="var-name">continuousSelector</span><span class="var-type">
+            string
+        </span></li></ul></li></ul></li><li id="initStore" class="
+                                                                                            
+                
+    method private
+
+"><div class="labels"><span class="label func-private">private</span></div><h3 class="method" id="">initStore<span class="func-sig">()</span><span class="func-return">: void</span></h3></li><li id="setStoreEvents" class="
+                                                                                            
+                
+    method private
+
+"><div class="labels"><span class="label func-private">private</span></div><h3 class="method" id="">setStoreEvents<span class="func-sig">()</span><span class="func-return">: void</span></h3></li><li id="getStore" class="
+                                                                                            
+                
+    method public
+
+"><div class="labels"><span class="label func-public">public</span></div><h3 class="method" id="">getStore<span class="func-sig">()</span><span class="func-return">: MetaphorJs.data.Store</span></h3></li><li id="onRowClick" class="
+                                                                                            
+                
+    method protected
+
+"><div class="labels"><span class="label func-protected">protected</span></div><h3 class="method" id="">onRowClick<span class="func-sig">(e)</span><span class="func-return">: void</span></h3><ul class="params"><li id="onRowClick/e"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">e</span><span class="var-type">
+            jQuery.Event
+        </span></h4></li></ul></li><li id="onItemClick" class="
+                                                                                            
+                
+    method protected
+
+"><div class="labels"><span class="label func-protected">protected</span></div><h3 class="method" id="">onItemClick<span class="func-sig">(e, rec, el)</span><span class="func-return">: void</span></h3><ul class="params"><li id="onItemClick/e"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">e</span><span class="var-type">
+            jQuery.Event
+        </span></h4></li><li id="onItemClick/rec"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">rec</span><span class="var-type">
+            MetaphorJs.data.Record
+        </span></h4></li><li id="onItemClick/el"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">el</span><span class="var-type">
+            jQuery
+        </span></h4></li></ul></li><li id="getItemByEvent" class="
+                                                                                            
+                
+    method public
+
+"><div class="labels"><span class="label func-public">public</span></div><h3 class="method" id="">getItemByEvent<span class="func-sig">(e)</span><span class="func-return">: jQuery</span></h3><ul class="params"><li id="getItemByEvent/e"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">e</span><span class="var-type">
+            jQuery.Event
+        </span></h4></li></ul></li><li id="getElById" class="
+                                                                                            
+                
+    method public
+
+"><div class="labels"><span class="label func-public">public</span></div><h3 class="method" id="">getElById<span class="func-sig">(id)</span><span class="func-return">: jQuery | null</span></h3><ul class="params"><li id="getElById/id"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">id</span><span class="var-type">
+            mixed
+        </span></h4><p>Record id</p></li></ul></li><li id="getRecordByEl" class="
+                                                                                            
+                
+    method public
+
+"><div class="labels"><span class="label func-public">public</span></div><h3 class="method" id="">getRecordByEl<span class="func-sig">(el)</span><span class="func-return">: MetaphorJs.data.Record</span></h3><ul class="params"><li id="getRecordByEl/el"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">el</span><span class="var-type">
+            jQuery
+        </span></h4></li></ul></li><li id="getRecordByEvent" class="
+                                                                                            
+                
+    method public
+
+"><div class="labels"><span class="label func-public">public</span></div><h3 class="method" id="">getRecordByEvent<span class="func-sig">(e)</span><span class="func-return">: MetaphorJs.data.Record | null</span></h3><ul class="params"><li id="getRecordByEvent/e"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">e</span><span class="var-type">
+            jQuery.Event
+        </span></h4></li></ul></li><li id="toggleEmpty" class="
+                                                                                            
+                
+    method protected
+
+"><div class="labels"><span class="label func-protected">protected</span></div><h3 class="method" id="">toggleEmpty<span class="func-sig">()</span><span class="func-return">: void</span></h3></li><li id="onBeforeStoreLoad" class="
+                                                                                            
+                
+    method protected
+
+"><div class="labels"><span class="label func-protected">protected</span></div><h3 class="method" id="">onBeforeStoreLoad<span class="func-sig">()</span><span class="func-return">: void</span></h3></li><li id="onStoreLoad" class="
+                                                                                            
+                
+    method protected
+
+"><div class="labels"><span class="label func-protected">protected</span></div><h3 class="method" id="">onStoreLoad<span class="func-sig">()</span><span class="func-return">: void</span></h3></li><li id="onStoreFilter" class="
+                                                                                            
+                
+    method protected
+
+"><div class="labels"><span class="label func-protected">protected</span></div><h3 class="method" id="">onStoreFilter<span class="func-sig">()</span><span class="func-return">: void</span></h3></li><li id="onStoreClearFilter" class="
+                                                                                            
+                
+    method protected
+
+"><div class="labels"><span class="label func-protected">protected</span></div><h3 class="method" id="">onStoreClearFilter<span class="func-sig">()</span><span class="func-return">: void</span></h3></li><li id="onStoreAdd" class="
+                                                                                            
+                
+    method protected
+
+"><div class="labels"><span class="label func-protected">protected</span></div><h3 class="method" id="">onStoreAdd<span class="func-sig">(inx, recs)</span><span class="func-return">: void</span></h3><ul class="params"><li id="onStoreAdd/inx"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">inx</span><span class="var-type">
+            number
+        </span></h4></li><li id="onStoreAdd/recs"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">recs</span><span class="var-type">
+            array
+        </span></h4></li></ul></li><li id="onStoreReplace" class="
+                                                                                            
+                
+    method protected
+
+"><div class="labels"><span class="label func-protected">protected</span></div><h3 class="method" id="">onStoreReplace<span class="func-sig">(id, oldRec, newRec)</span><span class="func-return">: void</span></h3><ul class="params"><li id="onStoreReplace/id"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">id</span><span class="var-type">
+            mixed
+        </span></h4></li><li id="onStoreReplace/oldRec"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">oldRec</span><span class="var-type">
+            MetaphorJs.data.Record
+        </span></h4></li><li id="onStoreReplace/newRec"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">newRec</span><span class="var-type">
+            MetaphorJs.data.Record
+        </span></h4></li></ul></li><li id="onStoreRemove" class="
+                                                                                            
+                
+    method protected
+
+"><div class="labels"><span class="label func-protected">protected</span></div><h3 class="method" id="">onStoreRemove<span class="func-sig">(rec, id)</span><span class="func-return">: void</span></h3><ul class="params"><li id="onStoreRemove/rec"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">rec</span><span class="var-type">
+            MetaphorJs.data.Record
+        </span></h4></li><li id="onStoreRemove/id"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">id</span><span class="var-type">
+            mixed
+        </span></h4></li></ul></li><li id="onStoreClear" class="
+                                                                                            
+                
+    method protected
+
+"><div class="labels"><span class="label func-protected">protected</span></div><h3 class="method" id="">onStoreClear<span class="func-sig">()</span><span class="func-return">: void</span></h3></li><li id="renderAll" class="
+                                                                                            
+                
+    method protected
+
+"><div class="labels"><span class="label func-protected">protected</span></div><h3 class="method" id="">renderAll<span class="func-sig">()</span><span class="func-return">: void</span></h3></li><li id="renderRows" class="
+                                                                                            
+                
+    method protected
+
+"><div class="labels"><span class="label func-protected">protected</span></div><h3 class="method" id="">renderRows<span class="func-sig">(inx, rows)</span><span class="func-return">: void</span></h3><ul class="params"><li id="renderRows/inx"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">inx</span><span class="var-type">
+            number
+        </span></h4></li><li id="renderRows/rows"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">rows</span><span class="var-type">
+            array
+        </span></h4></li></ul></li><li id="renderOneRow" class="
+                                                                                            
+                
+    method protected
+
+"><div class="labels"><span class="label func-protected">protected</span></div><h3 class="method" id="">renderOneRow<span class="func-sig">(inx, rec)</span><span class="func-return">: void</span></h3><ul class="params"><li id="renderOneRow/inx"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">inx</span><span class="var-type">
+            number
+        </span></h4></li><li id="renderOneRow/rec"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">rec</span><span class="var-type">
+            MetaphorJs.data.Record
+        </span></h4></li></ul></li><li id="onWindowScroll" class="
+                                                                                            
+                
+    method protected
+
+"><div class="labels"><span class="label func-protected">protected</span></div><h3 class="method" id="">onWindowScroll<span class="func-sig">()</span><span class="func-return">: void</span></h3></li><li id="checkWindowScroll" class="
+                                                                                            
+                
+    method protected
+
+"><div class="labels"><span class="label func-protected">protected</span></div><h3 class="method" id="">checkWindowScroll<span class="func-sig">()</span><span class="func-return">: void</span></h3><p>right now continuous scrolling works only
+within window</p></li><li id="render" class="
+                                                                                                                
+                
+    method inherited public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span></div><h3 class="method" id="">render<span class="func-sig">(to)</span><span class="func-return">: void</span></h3><ul class="params"><li id="render/to"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">to</span><span class="var-type">
+            string | DOM | jQuery
+        </span></h4></li></ul></li><li id="setContent" class="
+                                                                                                                
+                
+    method inherited public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span></div><h3 class="method" id="">setContent<span class="func-sig">(newContent)</span><span class="func-return">: void</span></h3><p>Set component content</p><ul class="params"><li id="setContent/newContent"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">newContent</span><span class="var-type">
+            string
+        </span></h4></li></ul></li><li id="onRender" class="
+                                                                                                                
+                
+    method inherited protected
+
+"><div class="labels"><span class="label func-protected">protected</span><span class="label func-inherited">Inherited</span></div><h3 class="method" id="">onRender<span class="func-sig">()</span><span class="func-return">: void</span></h3></li><li id="show" class="
+                                                                                                                
+                
+    method inherited public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span></div><h3 class="method" id="">show<span class="func-sig">()</span><span class="func-return">: void</span></h3></li><li id="hide" class="
+                                                                                                                
+                
+    method inherited public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span></div><h3 class="method" id="">hide<span class="func-sig">()</span><span class="func-return">: void</span></h3></li><li id="isHidden" class="
+                                                                                                                
+                
+    method inherited public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span></div><h3 class="method" id="">isHidden<span class="func-sig">()</span><span class="func-return">: bool</span></h3></li><li id="isRendered" class="
+                                                                                                                
+                
+    method inherited public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span></div><h3 class="method" id="">isRendered<span class="func-sig">()</span><span class="func-return">: bool</span></h3></li><li id="isDestroyed" class="
+                                                                                                                
+                
+    method inherited public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span></div><h3 class="method" id="">isDestroyed<span class="func-sig">()</span><span class="func-return">: bool</span></h3></li><li id="getEl" class="
+                                                                                                                
+                
+    method inherited public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span></div><h3 class="method" id="">getEl<span class="func-sig">()</span><span class="func-return">: jQuery</span></h3></li><li id="getDom" class="
+                                                                                                                
+                
+    method inherited public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span></div><h3 class="method" id="">getDom<span class="func-sig">()</span><span class="func-return">: DOM</span></h3></li><li id="initComponent" class="
+                                                                                                                
+                
+    method inherited protected
+
+"><div class="labels"><span class="label func-protected">protected</span><span class="label func-inherited">Inherited</span></div><h3 class="method" id="">initComponent<span class="func-sig">()</span><span class="func-return">: void</span></h3></li><li id="afterRender" class="
+                                                                                                                
+                
+    method inherited protected
+
+"><div class="labels"><span class="label func-protected">protected</span><span class="label func-inherited">Inherited</span></div><h3 class="method" id="">afterRender<span class="func-sig">()</span><span class="func-return">: void</span></h3></li><li id="onShow" class="
+                                                                                                                
+                
+    method inherited protected
+
+"><div class="labels"><span class="label func-protected">protected</span><span class="label func-inherited">Inherited</span></div><h3 class="method" id="">onShow<span class="func-sig">()</span><span class="func-return">: void</span></h3></li><li id="onHide" class="
+                                                                                                                
+                
+    method inherited protected
+
+"><div class="labels"><span class="label func-protected">protected</span><span class="label func-inherited">Inherited</span></div><h3 class="method" id="">onHide<span class="func-sig">()</span><span class="func-return">: void</span></h3></li><li id="onDestroy" class="
+                                                                                                                
+                
+    method inherited protected
+
+"><div class="labels"><span class="label func-protected">protected</span><span class="label func-inherited">Inherited</span></div><h3 class="method" id="">onDestroy<span class="func-sig">()</span><span class="func-return">: void</span></h3></li><li id="destroy" class="
+                                                                                                                                    
+                
+    method inherited overriden public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span><span class="label func-overriden">Overriden</span></div><h3 class="method" id="">destroy<span class="func-sig">()</span><span class="func-return">: void</span></h3></li><li id="createEvent" class="
+                                                                                                                                    
+                
+    method inherited overriden public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span><span class="label func-overriden">Overriden</span></div><h3 class="method" id="">createEvent<span class="func-sig">(name, returnResult)</span><span class="func-return">: MetaphorJs.lib.ObservableEvent</span></h3><p>You don't have to call this function unless you want to pass returnResult param.
+This function will be automatically called from on() with
+<code class="language-javascript">returnResult = false</code>,
+so if you want to receive handler's return values, create event first, then call on().</p><pre><code class="language-javascript">
+ var observable = new MetaphorJs.lib.Observable;
+ observable.createEvent("collectStuff", "all");
+ observable.on("collectStuff", function(){ return 1; });
+ observable.on("collectStuff", function(){ return 2; });
+ var results = observable.trigger("collectStuff"); // [1, 2]
+ </code></pre><ul class="params"><li id="createEvent/name"
+            class="
+                                                        
+    
+    param
+
+"><div class="labels"><span class="label var-required">Required</span></div><h4><span class="var-name">name</span><span class="var-type">
+            string
+        </span></h4><p>Event name</p></li><li id="createEvent/returnResult"
+            class="
+                                                        
+    
+    param
+
+"><div class="labels"><span class="label var-required">Required</span></div><h4><span class="var-name">returnResult</span><span class="var-type">
+            bool | string
+        </span></h4><p>false -- do not return results except if handler returned "false". This is how normal observables work.<br> "all" -- return all results as array<br> "first" -- return result of the first handler<br> "last" -- return result of the last handler</p></li></ul></li><li id="getEvent" class="
+                                                                                                                                    
+                
+    method inherited overriden public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span><span class="label func-overriden">Overriden</span></div><h3 class="method" id="">getEvent<span class="func-sig">(name)</span><span class="func-return">: MetaphorJs.lib.ObservableEvent | undefined</span></h3><ul class="params"><li id="getEvent/name"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">name</span><span class="var-type">
+            string
+        </span></h4><p>Event name</p></li></ul></li><li id="on" class="
+                                                                                                                                    
+                
+    method inherited overriden public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span><span class="label func-overriden">Overriden</span></div><h3 class="method" id="">on<span class="func-sig">(name, fn, scope, options)</span><span class="func-return">: void</span></h3><p>Subscribe to an event or register collector function.</p><ul class="params"><li id="on/name"
+            class="
+                                                        
+    
+    param
+
+"><div class="labels"><span class="label var-required">Required</span></div><h4><span class="var-name">name</span><span class="var-type">
+            string
+        </span></h4><p>Event name</p></li><li id="on/fn" class="
+                                                                                            
+    
+    param
+
+"><h3 class="method" id="">fn<span class="func-sig">()</span><span class="func-return">: void</span></h3><p>Callback function</p></li><li id="on/scope"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">scope</span><span class="var-type">
+            object
+        </span></h4><p>"this" object for the callback function</p></li><li id="on/options"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">options</span><span class="var-type">
+            object
+        </span></h4><ul class="sub-level"><li id="on/options/first"
+            class="
+                                                        
+    
+    variable
+
+"><span class="var-name">first</span><span class="var-type">
+            bool
+        </span><span class="var-default"> = false</span><p>True to prepend to the list of handlers</p></li><li id="on/options/limit"
+            class="
+                                                        
+    
+    variable
+
+"><span class="var-name">limit</span><span class="var-type">
+            number
+        </span><p>Call handler this number of times; 0 for unlimited</p></li><li id="on/options/start"
+            class="
+                                                        
+    
+    variable
+
+"><span class="var-name">start</span><span class="var-type">
+            number
+        </span><span class="var-default"> = 1</span><p>Start calling handler after this number of calls. Starts from 1</p></li></ul></li></ul></li><li id="once" class="
+                                                                                                                                    
+                
+    method inherited overriden public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span><span class="label func-overriden">Overriden</span></div><h3 class="method" id="">once<span class="func-sig">(name, fn, scope, options)</span><span class="func-return">: void</span></h3><p>Same as on(), but options.limit is forcefully set to 1.</p><ul class="params"><li id="once/name"
+            class="
+                                                        
+    
+    param
+
+"><div class="labels"><span class="label var-required">Required</span></div><h4><span class="var-name">name</span><span class="var-type">
+            string
+        </span></h4><p>Event name</p></li><li id="once/fn" class="
+                                                                                            
+    
+    param
+
+"><h3 class="method" id="">fn<span class="func-sig">()</span><span class="func-return">: void</span></h3><p>Callback function</p></li><li id="once/scope"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">scope</span><span class="var-type">
+            object
+        </span></h4><p>"this" object for the callback function</p></li><li id="once/options"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">options</span><span class="var-type">
+            object
+        </span></h4><ul class="sub-level"><li id="once/options/first"
+            class="
+                                                        
+    
+    variable
+
+"><span class="var-name">first</span><span class="var-type">
+            bool
+        </span><span class="var-default"> = false</span><p>True to prepend to the list of handlers</p></li><li id="once/options/limit"
+            class="
+                                                        
+    
+    variable
+
+"><span class="var-name">limit</span><span class="var-type">
+            number
+        </span><p>Call handler this number of times; 0 for unlimited</p></li><li id="once/options/start"
+            class="
+                                                        
+    
+    variable
+
+"><span class="var-name">start</span><span class="var-type">
+            number
+        </span><span class="var-default"> = 1</span><p>Start calling handler after this number of calls. Starts from 1</p></li></ul></li></ul></li><li id="un" class="
+                                                                                                                                    
+                
+    method inherited overriden public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span><span class="label func-overriden">Overriden</span></div><h3 class="method" id="">un<span class="func-sig">(name, fn, scope)</span><span class="func-return">: void</span></h3><p>Unsubscribe from an event</p><ul class="params"><li id="un/name"
+            class="
+                                                        
+    
+    param
+
+"><div class="labels"><span class="label var-required">Required</span></div><h4><span class="var-name">name</span><span class="var-type">
+            string
+        </span></h4><p>Event name</p></li><li id="un/fn" class="
+                                                                                            
+    
+    param
+
+"><h3 class="method" id="">fn<span class="func-sig">()</span><span class="func-return">: void</span></h3><p>Event handler</p></li><li id="un/scope"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">scope</span><span class="var-type">
+            object
+        </span></h4><p>If you called on() with scope you must call un() with the same scope</p></li></ul></li><li id="hasListener" class="
+                                                                                                                                    
+                
+    method inherited overriden public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span><span class="label func-overriden">Overriden</span></div><h3 class="method" id="">hasListener<span class="func-sig">(name)</span><span class="func-return">: bool</span></h3><ul class="params"><li id="hasListener/name"
+            class="
+                                                        
+    
+    param
+
+"><div class="labels"><span class="label var-required">Required</span></div><h4><span class="var-name">name</span><span class="var-type">
+            string
+        </span></h4><p>Event name</p></li></ul></li><li id="hasListener" class="
+                                                                                                                                    
+                
+    method inherited overriden public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span><span class="label func-overriden">Overriden</span></div><h3 class="method" id="">hasListener<span class="func-sig">(name, fn, scope)</span><span class="func-return">: bool</span></h3><ul class="params"><li id="hasListener/name"
+            class="
+                                                        
+    
+    param
+
+"><div class="labels"><span class="label var-required">Required</span></div><h4><span class="var-name">name</span><span class="var-type">
+            string
+        </span></h4><p>Event name</p></li><li id="hasListener/fn" class="
+                                                                                            
+    
+    param
+
+"><h3 class="method" id="">fn<span class="func-sig">()</span><span class="func-return">: void</span></h3><p>Callback function</p></li><li id="hasListener/scope"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">scope</span><span class="var-type">
+            object
+        </span></h4><p>Function's "this" object</p></li></ul></li><li id="removeAllListeners" class="
+                                                                                                                                    
+                
+    method inherited overriden public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span><span class="label func-overriden">Overriden</span></div><h3 class="method" id="">removeAllListeners<span class="func-sig">()</span><span class="func-return">: void</span></h3><p>Remove all listeners from all events</p></li><li id="removeAllListeners" class="
+                                                                                                                                    
+                
+    method inherited overriden public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span><span class="label func-overriden">Overriden</span></div><h3 class="method" id="">removeAllListeners<span class="func-sig">(name)</span><span class="func-return">: void</span></h3><p>Remove all listeners from specific event</p><ul class="params"><li id="removeAllListeners/name"
+            class="
+                                                        
+    
+    param
+
+"><div class="labels"><span class="label var-required">Required</span></div><h4><span class="var-name">name</span><span class="var-type">
+            string
+        </span></h4><p>Event name</p></li></ul></li><li id="trigger" class="
+                                                                                                                                    
+                
+    method inherited overriden public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span><span class="label func-overriden">Overriden</span></div><h3 class="method" id="">trigger<span class="func-sig">(name, ...)</span><span class="func-return">: mixed</span></h3><p>Trigger an event -- call all listeners.</p><ul class="params"><li id="trigger/name"
+            class="
+                                                        
+    
+    param
+
+"><div class="labels"><span class="label var-required">Required</span></div><h4><span class="var-name">name</span><span class="var-type">
+            string
+        </span></h4><p>Event name</p></li><li id="trigger/..."
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">...</span><span class="var-type">
+            mixed
+        </span></h4><p>As many other params as needed</p></li></ul></li><li id="suspendEvent" class="
+                                                                                                                                    
+                
+    method inherited overriden public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span><span class="label func-overriden">Overriden</span></div><h3 class="method" id="">suspendEvent<span class="func-sig">(name)</span><span class="func-return">: void</span></h3><p>Suspend an event. Suspended event will not call any listeners on trigger().</p><ul class="params"><li id="suspendEvent/name"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">name</span><span class="var-type">
+            string
+        </span></h4><p>Event name</p></li></ul></li><li id="suspendAllEvents" class="
+                                                                                                                                    
+                
+    method inherited overriden public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span><span class="label func-overriden">Overriden</span></div><h3 class="method" id="">suspendAllEvents<span class="func-sig">()</span><span class="func-return">: void</span></h3></li><li id="resumeEvent" class="
+                                                                                                                                    
+                
+    method inherited overriden public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span><span class="label func-overriden">Overriden</span></div><h3 class="method" id="">resumeEvent<span class="func-sig">(name)</span><span class="func-return">: void</span></h3><p>Resume suspended event.</p><ul class="params"><li id="resumeEvent/name"
+            class="
+                                                        
+    
+    param
+
+"><h4><span class="var-name">name</span><span class="var-type">
+            string
+        </span></h4><p>Event name</p></li></ul></li><li id="resumeAllEvents" class="
+                                                                                                                                    
+                
+    method inherited overriden public
+
+"><div class="labels"><span class="label func-public">public</span><span class="label func-inherited">Inherited</span><span class="label func-overriden">Overriden</span></div><h3 class="method" id="">resumeAllEvents<span class="func-sig">()</span><span class="func-return">: void</span></h3></li></ul></div><script src="../../assets/prism.js"></script><script src="../../assets/jquery-1.11.0.min.js"></script><script src="../../assets/toggle.js"></script></body>

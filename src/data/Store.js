@@ -7,32 +7,152 @@ var storeId     = 0;
 var allStores   = {};
 
 
-MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
-    {
+/**
+ * @namespace MetaphorJs
+ * @class MetaphorJs.data.Store
+ * @extends MetaphorJs.cmp.Observable
+ */
+MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
+
+        /**
+         * @var {string}
+         * @access protected
+         */
         id:             null,
+        /**
+         * @var {bool}
+         * @access protected
+         */
         autoLoad:       false,
+        /**
+         * @var {bool}
+         * @access protected
+         */
         clearOnLoad:    true,
 
-        model:          null,       //"MetaphorJs.data.Record",
+        /**
+         * @var {MetaphorJs.data.Model}
+         * @access protected
+         */
+        model:          null,
 
+        /**
+         * Extra params to pass to Model when loading stuff
+         * @var {object}
+         * @access protected
+         */
+        extraParams:    null,
+
+        /**
+         * @var {bool}
+         * @access protected
+         */
         loaded:         false,
+        /**
+         * @var {bool}
+         * @access protected
+         */
         loading:        false,
+        /**
+         * @var {bool}
+         * @access protected
+         */
         local:          false,
 
+        /**
+         * @var {[]}
+         * @access protected
+         */
         items:          null,
+
+        /**
+         * @var {object}
+         * @access protected
+         */
         map:            null,
+
+        /**
+         * @var {object}
+         * @access protected
+         */
         keys:           null,
+
+        /**
+         * @var {number}
+         * @access protected
+         */
         length:         0,
+
+        /**
+         * @var {number}
+         * @access protected
+         */
         totalLength:    0,
+
+        /**
+         * @var {number}
+         * @access protected
+         */
         start:          0,
+
+        /**
+         * @var {number}
+         * @access protected
+         */
+        pageSize:       null,
+
+        /**
+         * @var {number}
+         * @access protected
+         */
         pages:          null,
 
+        /**
+         * @var {bool}
+         * @access protected
+         */
         filtered:       false,
+
+        /**
+         * @var {object}
+         * @access protected
+         */
         filterBackup:   null,
+
+        /**
+         * @access protected
+         * @param {MetaphorJs.data.Record|Object} rec
+         * @param {string|int} id
+         * @param {[]} params
+         */
         filterFn:       null,
+
+        /**
+         * @var {object}
+         * @access protected
+         */
         filterScope:    null,
+
+        /**
+         * @var {[]}
+         * @access protected
+         */
         filterParams:   null,
 
+
+        /**
+         * @constructor
+         * @name initialize
+         * @param {object} options
+         * @param {[]} initialData
+         */
+
+        /**
+         * @constructor
+         * @param {string} url
+         * @param {object} options
+         * @param {[]} initialData
+         */
         initialize:     function(url, options, initialData) {
 
             var self        = this;
@@ -41,6 +161,7 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             self.map        = {};
             self.keys       = [];
             self.loaded     = false;
+            self.extraParams    = self.extraParams || {};
 
             if (url && typeof url != "string") {
                 initialData = options;
@@ -71,7 +192,7 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                 self.load();
             }
             else if (initialData) {
-                if ($.isArray(initialData)) {
+                if (MetaphorJs.isArray(initialData)) {
                     self.loadArray(initialData);
                 }
                 else {
@@ -84,39 +205,66 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             }
         },
 
+        /**
+         * @returns string
+         */
         getId: function() {
             return this.id;
         },
 
+        /**
+         * @returns bool
+         */
         isLoaded: function() {
             return this.loaded;
         },
 
+        /**
+         * @returns bool
+         */
         isLocal: function() {
             return this.local;
         },
 
+        /**
+         * @param {bool} state
+         */
         setLocal: function(state) {
-            this.local  = state ? true : false;
+            this.local  = !!state;
         },
 
+        /**
+         * @returns bool
+         */
         isLoading: function() {
             return this.loading;
         },
 
+        /**
+         * @returns bool
+         */
         isFiltered: function() {
             return this.filtered;
         },
 
+        /**
+         * @returns number
+         */
         getLength: function() {
             return this.length;
         },
 
+        /**
+         * @returns number
+         */
         getTotalLength: function() {
             return this.filtered ?
                         this.length : (this.totalLength || this.length);
         },
 
+        /**
+         * @returns number
+         */
         getPagesCount: function() {
 
             var self    = this;
@@ -129,18 +277,46 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             }
         },
 
+        /**
+         * @param {string} k
+         * @param {string|int|null} v
+         */
         setParam: function(k, v) {
-            this.model.store.extra[k] = v;
+            this.extraParams[k] = v;
         },
 
+        /**
+         * @param {string} k
+         * @returns mixed
+         */
         getParam: function(k) {
-            return this.model.store.extra[k];
+            return this.extraParams[k];
         },
 
+        /**
+         * @param {number} val
+         */
+        setStart: function(val) {
+            this.start = val;
+        },
+
+        /**
+         * @param {number} val
+         */
+        setPageSize: function(val) {
+            this.pageSize = val;
+        },
+
+        /**
+         * @returns {object}
+         */
         getAjaxData: function() {
             return this.ajaxData;
         },
 
+        /**
+         * @returns bool
+         */
         hasDirty: function() {
             if (this.model.isPlain()) {
                 return false;
@@ -151,10 +327,14 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                     ret = true;
                     return false;
                 }
+                return true;
             });
             return ret;
         },
 
+        /**
+         * @returns []
+         */
         getDirty: function() {
             var recs    = [];
             if (this.model.isPlain()) {
@@ -168,10 +348,17 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             return recs;
         },
 
+        /**
+         * @returns MetaphorJs.data.Model
+         */
+        getModel: function() {
+            return this.model;
+        },
 
-
-
-        import: function(recs) {
+        /**
+         * @param {[]} recs
+         */
+        importData: function(recs) {
             var self    = this;
 
             self.suspendAllEvents();
@@ -184,9 +371,14 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             self.loaded     = true;
             self.loading    = false;
 
+            self.onLoad();
             self.trigger("load", self);
         },
 
+        /**
+         * @param {object} params
+         * @returns jQuery.Deferred
+         */
         load: function(params) {
 
             var self    = this,
@@ -194,7 +386,11 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                 sp      = ms.start,
                 lp      = ms.limit;
 
-            params      = params || {};
+            if (self.local) {
+                return null;
+            }
+
+            params      = $.extend({}, self.extraParams, params || {});
 
             if (self.pageSize !== null && !params[sp] && !params[lp]) {
                 params[sp]    = self.start;
@@ -202,25 +398,36 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             }
 
             if (self.trigger("beforeload", self) === false) {
-                return;
+                return null;
             }
 
-            return self.model.loadStore(self, params).then(
-                function(data, total) {
-                    self.import(data);
+            return self.model.loadStore(self, params)
+                .done(function(data, total) {
                     self.totalLength    = parseInt(total);
-                },
-                function() {
+                    self.importData(data);
+                    self.totalLength    = parseInt(total);
+                })
+                .fail(function() {
+                    self.onFailedLoad();
                     self.trigger("failedload", self);
-                }
-            );
+                });
         },
 
+        onLoad: MetaphorJs.emptyFn,
+        onFailedLoad: MetaphorJs.emptyFn,
+
+        /**
+         * @returns jQuery.Deferred
+         */
         save: function() {
 
             var self    = this,
                 recs    = {},
                 cnt     = 0;
+
+            if (self.local) {
+                return null;
+            }
 
             if (self.model.isPlain()) {
                 throw new Error("Cannot save plain store");
@@ -238,11 +445,11 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             }
 
             if (self.trigger("beforesave", self, recs) === false) {
-                return;
+                return null;
             }
 
-            return self.model.saveStore(self, recs).then(
-                function(data) {
+            return self.model.saveStore(self, recs)
+                .done(function(data) {
 
                     var i, len,
                         id, rec;
@@ -254,29 +461,42 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                             rec     = self.getById(id);
 
                             if (rec) {
-                                rec.import(data[i]);
+                                rec.importData(data[i]);
                             }
                         }
                     }
 
+                    self.onSave();
                     self.trigger("save", self);
-                },
-                function() {
+                })
+                .fail(function() {
+                    self.onFailedSave();
                     self.trigger("failedsave", self);
-                }
-            );
+                });
         },
 
+        onSave: MetaphorJs.emptyFn,
+        onFailedSave: MetaphorJs.emptyFn,
+
+
+        /**
+         * @param {[]} ids
+         * @returns jQuery.Deferred
+         */
         deleteById: function(ids) {
 
             var self    = this,
                 i, len, rec;
 
-            if (!ids || ($.isArray(ids) && !ids.length)) {
+            if (self.local) {
+                return null;
+            }
+
+            if (!ids || (MetaphorJs.isArray(ids) && !ids.length)) {
                 throw new Error("Record id required");
             }
 
-            if (!$.isArray(ids)) {
+            if (!MetaphorJs.isArray(ids)) {
                 ids = [ids];
             }
 
@@ -291,19 +511,27 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             }
 
             if (self.trigger("beforedelete", self, ids) === false) {
-                return;
+                return null;
             }
 
-            return self.model.deleteRecords(self, ids).then(
-                function() {
+            return self.model.deleteRecords(self, ids)
+                .done(function() {
+                    self.onDelete();
                     self.trigger("delete", self, ids);
-                },
-                function() {
+                })
+                .fail(function() {
+                    self.onFailedDelete();
                     self.trigger("faileddelete", self, ids);
-                }
-            );
+                });
         },
 
+        onDelete: MetaphorJs.emptyFn,
+        onFailedDelete: MetaphorJs.emptyFn,
+
+        /**
+         * @param {number} inx
+         * @returns jQuery.Deferred
+         */
         deleteAt: function(inx) {
             var self    = this,
                 rec     = self.getAt(inx);
@@ -314,11 +542,19 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             return self.deleteRecord(rec);
         },
 
-        delete: function(rec) {
+        /**
+         * @param {MetaphorJs.data.Record} rec
+         * @returns jQuery.Deferred
+         */
+        "delete": function(rec) {
             var self    = this;
             return self.deleteById(self.getRecordId(rec));
         },
 
+        /**
+         * @param {MetaphorJs.data.Record[]} recs
+         * @returns jQuery.Deferred
+         */
         deleteRecords: function(recs) {
             var ids     = [],
                 self    = this,
@@ -331,6 +567,9 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             return self.deleteById(ids);
         },
 
+        /**
+         * @param {object} data
+         */
         loadAjaxData: function(data) {
 
             var self    = this;
@@ -341,7 +580,7 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
 
             self.model._processStoreResponse("load", data, {
                 resolve: function(data, total) {
-                    self.import(data);
+                    self.importData(data);
                     self.totalLength    = parseInt(total);
                 },
                 reject: function() {
@@ -350,6 +589,10 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             });
         },
 
+        /**
+         * @param {[]} recs
+         * @param {bool} add
+         */
         loadArray: function(recs, add) {
 
             var self    = this;
@@ -362,14 +605,16 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                 self.clear();
             }
 
-            if ($.isArray(recs)) {
-                self.import(recs);
+            if (MetaphorJs.isArray(recs)) {
+                self.importData(recs);
                 self.totalLength    = self.length;
             }
         },
 
         /**
          * Load store if not loaded or call provided callback
+         * @param {function} cb
+         * @param {object} cbScope
          */
         loadOr: function(cb, cbScope) {
 
@@ -389,6 +634,9 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             }
         },
 
+        /**
+         * @method
+         */
         addNextPage: function() {
 
             var self    = this;
@@ -401,6 +649,9 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             }
         },
 
+        /**
+         * @method
+         */
         loadNextPage: function() {
 
             var self    = this;
@@ -411,6 +662,9 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             }
         },
 
+        /**
+         * @method
+         */
         loadPrevPage: function() {
 
             var self    = this;
@@ -424,7 +678,9 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
 
 
 
-
+        /**
+         * @param {MetaphorJs.data.Record|Object} rec
+         */
         getRecordId: function(rec) {
             if (rec instanceof MetaphorJs.data.Record) {
                 return rec.getId();
@@ -434,6 +690,11 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             }
         },
 
+        /**
+         * @access protected
+         * @param {MetaphorJs.data.Record|Object} item
+         * @returns MetaphorJs.data.Record|Object
+         */
         processRawDataItem: function(item) {
 
             var self    = this;
@@ -457,8 +718,8 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
 
                 if (!r) {
                     r       = MetaphorJs.create(type, id, item, {
-                        model:      self.model,
-                        standalone: false
+                                model:      self.model,
+                                standalone: false
                     });
                 }
 
@@ -466,9 +727,6 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             }
         },
 
-        /**
-         * @protected
-         */
         bindRecord: function(mode, rec) {
             var self = this;
             rec[mode]("change", self.onRecordChange, self);
@@ -477,32 +735,40 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             return rec;
         },
 
+        /**
+         * @access protected
+         * @param {MetaphorJs.data.Record|Object} rec
+         */
         onRecordDirtyChange: function(rec) {
             this.trigger("update", this, rec);
         },
 
+        /**
+         * @access protected
+         * @param {MetaphorJs.data.Record|Object} rec
+         * @param {string} k
+         * @param {string|int|bool} v
+         * @param {string|int|bool} prev
+         */
         onRecordChange: function(rec, k, v, prev) {
             this.trigger("update", this, rec);
         },
 
+        /**
+         * @access protected
+         * @param {MetaphorJs.data.Record|Object} rec
+         */
         onRecordDestroy: function(rec) {
             this.remove(rec);
         },
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+        /**
+         *
+         * @param {string|int} id
+         * @param {MetaphorJs.data.Record|Object} rec
+         * @param {bool} silent
+         */
         add: function(id, rec, silent) {
 
             var self    = this;
@@ -515,7 +781,7 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
 
                 rec = arguments[0];
 
-                if ($.isArray(rec)) {
+                if (MetaphorJs.isArray(rec)) {
 
                     if (!rec.length) {
                         return;
@@ -527,6 +793,8 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                         rec[i]  = self.processRawDataItem(rec[i]);
                         self.add(self.getRecordId(rec[i]), rec[i], true);
                     }
+
+                    self.onAdd(prevLength, rec);
 
                     if (!silent) {
                         // fn(index, rec)
@@ -558,17 +826,25 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                 self.bindRecord("on", rec);
             }
 
+            self.onAdd(self.length - 1, [rec]);
             if (!silent) {
                 self.trigger('add', self.length - 1, [rec]);
             }
         },
 
+        onAdd: MetaphorJs.emptyFn,
+
+        /**
+         * @param {number} index
+         * @returns MetaphorJs.data.Record|Object|null
+         */
         removeAt: function(index) {
 
             var self    = this;
 
             if(index < self.length && index >= 0){
                 self.length--;
+                self.totalLength--;
                 var rec = self.items[index];
                 self.items.splice(index, 1);
                 var id = self.keys[index];
@@ -576,6 +852,7 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                     delete self.map[id];
                 }
                 self.keys.splice(index, 1);
+                self.onRemove(rec, id);
                 self.trigger('remove', rec, id);
 
                 if (rec instanceof MetaphorJs.data.Record) {
@@ -590,6 +867,15 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             return false;
         },
 
+        onRemove: MetaphorJs.emptyFn,
+
+        /**
+         * @param {number} index
+         * @param {string|int} id
+         * @param {MetaphorJs.data.Record|Object} rec
+         * @param {bool} silent
+         * @returns MetaphorJs.data.Record|Object
+         */
         insert: function(index, id, rec, silent) {
             var self = this;
 
@@ -622,6 +908,7 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                 self.bindRecord("on", rec);
             }
 
+            self.onAdd(index, [rec]);
             if (!silent) {
                 self.trigger('add', index, [rec]);
             }
@@ -629,6 +916,11 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             return rec;
         },
 
+        /**
+         * @param {string|int} id
+         * @param {MetaphorJs.data.Record|Object} rec
+         * @returns MetaphorJs.data.Record|Object
+         */
         replace: function(id, rec) {
             var self    = this,
                 old,
@@ -655,26 +947,48 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             self.items[index]   = rec;
             self.map[id]        = rec;
 
+            self.onReplace(id, old, rec);
             self.trigger('replace', id, old, rec);
             return rec;
         },
 
+        onReplace: MetaphorJs.emptyFn,
+
+        /**
+         * @param {MetaphorJs.data.Record|Object} rec
+         * @returns MetaphorJs.data.Record|Object|null
+         */
         remove: function(rec) {
             return this.removeAt(this.indexOf(rec));
         },
 
+        /**
+         * @param {string|int} id
+         * @returns MetaphorJs.data.Record|Object|null
+         */
         removeId: function(id) {
             return this.removeAt(this.indexOfId(id));
         },
 
+        /**
+         * @param {MetaphorJs.data.Record|Object} rec
+         * @returns bool
+         */
         contains: function(rec) {
             return this.indexOf(rec) != -1;
         },
 
+        /**
+         * @param {string|int} id
+         * @returns bool
+         */
         containsId: function(id) {
             return typeof this.map[id] != 'undefined';
         },
 
+        /**
+         * @method
+         */
         clear: function() {
 
             var self    = this,
@@ -682,16 +996,19 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
 
             self.clearFilter(true);
             self._reset();
+            self.onClear();
             self.trigger('clear', recs);
         },
 
+        onClear: MetaphorJs.emptyFn,
+
+        /**
+         * @method
+         */
         reset: function() {
             this._reset();
         },
 
-        /**
-         * @private
-         */
         _reset: function(keepRecords) {
             var self    = this,
             i, len, rec;
@@ -716,10 +1033,15 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
         },
 
 
-
-
-
-
+        /**
+         * @param {function} fn {
+         *      @param {MetaphorJs.data.Record|Object} rec
+         *      @param {string|int} id
+         *      @param {[]} params
+         * }
+         * @param {object} fnScope
+         * @param {[]} params
+         */
         filter: function(fn, fnScope, params) {
 
             var self    = this;
@@ -758,8 +1080,11 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             }
 
             self.resumeAllEvents();
+            self.onFilter();
             self.trigger("filter", self);
         },
+
+        onFilter: MetaphorJs.emptyFn,
 
         _filterRecord: function(rec, id) {
             var self    = this;
@@ -767,6 +1092,9 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                 self.filterFn.call(self.filterScope, rec, id, self.filterParams);
         },
 
+        /**
+         * @param {bool} silent
+         */
         clearFilter: function(silent) {
 
             var self    = this;
@@ -792,32 +1120,55 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
 
             self.resumeAllEvents();
 
+            self.onClearFilter();
             if (!silent) {
                 self.trigger("clearfilter", self);
             }
         },
 
+        onClearFilter: MetaphorJs.emptyFn,
 
 
-
-
-
+        /**
+         * @param {number} index
+         * @returns MetaphorJs.data.Record|Object|null
+         */
         getAt: function(index) {
             return this.items[index] || null;
         },
 
+        /**
+         * @param {string|int} id
+         * @returns MetaphorJs.data.Record|Object|null
+         */
         getById: function(id) {
             return this.map[id] || null;
         },
 
+        /**
+         * @param {MetaphorJs.data.Record|Object} rec
+         * @returns Number
+         */
         indexOf: function(rec) {
             return this.items.indexOf(rec);
         },
 
+        /**
+         * @param {string|int} id
+         * @returns Number
+         */
         indexOfId: function(id) {
             return this.keys.indexOf(id);
         },
 
+        /**
+         * @param {function} fn {
+         *      @param {MetaphorJs.data.Record|Object} rec
+         *      @param {number} index
+         *      @param {number} length
+         * }
+         * @param {object} fnScope
+         */
         each: function(fn, fnScope) {
             var items = [].concat(this.items);
             fnScope = fnScope || window;
@@ -828,6 +1179,14 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             }
         },
 
+        /**
+         * @param {function} fn {
+         *      @param {MetaphorJs.data.Record|Object} rec
+         *      @param {number} index
+         *      @param {number} length
+         * }
+         * @param {object} fnScope
+         */
         eachId: function(fn, fnScope) {
             var self    = this;
             fnScope = fnScope || window;
@@ -836,6 +1195,10 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             }
         },
 
+        /**
+         * @param {string} f Field name
+         * @returns []
+         */
         collect: function(f) {
 
             var coll    = [],
@@ -861,14 +1224,26 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             return coll;
         },
 
+        /**
+         * @returns MetaphorJs.data.Record|Object
+         */
         first : function(){
             return this.items[0];
         },
 
+        /**
+         * @returns MetaphorJs.data.Record|Object
+         */
         last : function(){
             return this.items[this.length-1];
         },
 
+        /**
+         *
+         * @param {number} start Optional
+         * @param {number} end Optional
+         * @returns MetaphorJs.data.Record[]|Object[]
+         */
         getRange : function(start, end){
             var self    = this;
             var items   = self.items;
@@ -890,11 +1265,31 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             return r;
         },
 
+        /**
+         *
+         * @param {function} fn {
+         *      @param {MetaphorJs.data.Record|Object} rec
+         *      @param {string|int} id
+         * }
+         * @param {object} fnScope
+         * @param {number} start { @default 0 }
+         * @returns MetaphorJs.data.Record|Object|null
+         */
         findBy: function(fn, fnScope, start) {
             var inx = this.findIndexBy(fn, fnScope, start);
             return inx == -1 ? null : this.getAt(inx);
         },
 
+        /**
+         *
+         * @param {function} fn {
+         *      @param {MetaphorJs.data.Record|Object} rec
+         *      @param {string|int} id
+         * }
+         * @param {object} fnScope
+         * @param {number} start { @default 0 }
+         * @returns Number
+         */
         findIndexBy : function(fn, fnScope, start) {
 
             fnScope = fnScope || this;
@@ -911,6 +1306,12 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             return -1;
         },
 
+        /**
+         * @param {string} property
+         * @param {string|int|bool} value
+         * @param {bool} exact
+         * @returns Number
+         */
         find: function(property, value, exact) {
 
             var self    = this,
@@ -936,10 +1337,19 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             }, self);
         },
 
+        /**
+         * @param {string} property
+         * @param {string|int|bool} value
+         * @returns number
+         */
         findExact: function(property, value) {
             return this.find(property, value, true);
         },
 
+        /**
+         * @param {object} props
+         * @returns MetaphorJs.data.Record|Object|null
+         */
         findBySet: function(props) {
 
             var found   = null,
@@ -961,6 +1371,8 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                     found   = rec;
                     return false;
                 }
+
+                return true;
             });
 
             return found;
@@ -970,24 +1382,24 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
 
 
 
-        destroy: function() {
+        onDestroy: function() {
 
             var self    = this;
 
             delete allStores[self.id];
 
-            self.trigger("destroy", self);
-            self.removeAllListeners("clear");
             self.clear();
-
             self.supr();
         }
-
-
 
     },
 
     {
+        /**
+         * @static
+         * @param {DOMElement} selectObj
+         * @returns MetaphorJs.data.Store
+         */
         createFromSelect: function(selectObj) {
             var d = [], opts = selectObj.options;
             for(var i = 0, len = opts.length;i < len; i++){
@@ -1001,9 +1413,25 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             return s;
         },
 
-
+        /**
+         * @static
+         * @param {string} id
+         * @returns MetaphorJs.data.Store|null
+         */
         lookupStore: function(id) {
             return allStores[id] || null;
+        },
+
+
+        eachStore: function(fn, fnScope) {
+
+            var id;
+
+            for (id in allStores) {
+                if (fn.call(fnScope || window, allStores[id]) === false) {
+                    break;
+                }
+            }
         }
     }
 );

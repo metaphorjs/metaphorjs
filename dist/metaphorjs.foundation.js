@@ -1590,7 +1590,7 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                 self.load();
             }
             else if (initialData) {
-                if ($.isArray(initialData)) {
+                if (_.isArray(initialData)) {
                     self.loadArray(initialData);
                 }
                 else {
@@ -1791,11 +1791,11 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
             var self    = this,
                 i, len, rec;
 
-            if (!ids || ($.isArray(ids) && !ids.length)) {
+            if (!ids || (_.isArray(ids) && !ids.length)) {
                 throw new Error("Record id required");
             }
 
-            if (!$.isArray(ids)) {
+            if (!_.isArray(ids)) {
                 ids = [ids];
             }
 
@@ -1881,7 +1881,7 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
                 self.clear();
             }
 
-            if ($.isArray(recs)) {
+            if (_.isArray(recs)) {
                 self.import(recs);
                 self.totalLength    = self.length;
             }
@@ -2034,7 +2034,7 @@ MetaphorJs.define("MetaphorJs.data.Store", "MetaphorJs.cmp.Observable",
 
                 rec = arguments[0];
 
-                if ($.isArray(rec)) {
+                if (_.isArray(rec)) {
 
                     if (!rec.length) {
                         return;

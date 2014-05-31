@@ -2,14 +2,22 @@
 
     "use strict";
 
-    var undef   = {}.undefined;
+    var undef   = {}.undefined,
 
-    var apply   = function(dst, src, override) {
+    /**
+     * @function MetaphorJs.apply
+     * @param {object} dst Apply properties to this object
+     * @param {object} src Take properties from this object
+     * @param {bool} override If both dst and src have a property, override it. Applies to scalar properties.
+     *                  Defaults to true
+     * @md-tmp apply
+     */
+    apply   = function(dst, src, override) {
         if (src && dst) {
             for (var k in src) {
                 if (src.hasOwnProperty(k)) {
                     if (dst[k] && typeof dst[k] == "object" && typeof src[k] == "object") {
-                        apply(dst[k], src[k]);
+                        apply(dst[k], src[k], override);
                     }
                     else {
                         if (override !== false || dst[k] === undef || dst[k] === null) {
@@ -19,63 +27,119 @@
                 }
             }
         }
-    };
+        return dst;
+    },
 
-    var Metaphor  = {
-        apply:      apply,
-        emptyFn:    function() {},
-        cookie:     {
-            set: function(name, value, expires) {
+    uid = ['0', '0', '0'],
 
-                if (expires && typeof expires == 'number') {
-                    expires	= new Date( (new Date).getTime() + (expires * 1000) );
-                }
+    nextUid  = function() {
+        var index = uid.length;
+        var digit;
 
-                value	= encodeURIComponent(value) +
-                            (expires ? "; expires=" + expires.toUTCString() : "") +
-                            "; path=/";
-                document.cookie	= encodeURIComponent(name) + "=" + value;
-            },
+        while(index) {
+            index--;
+            digit = uid[index].charCodeAt(0);
+            if (digit == 57 /*'9'*/) {
+                uid[index] = 'A';
+                return uid.join('');
+            }
+            if (digit == 90  /*'Z'*/) {
+                uid[index] = '0';
+            } else {
+                uid[index] = String.fromCharCode(digit + 1);
+                return uid.join('');
+            }
+        }
+        uid.unshift('0');
+        return uid.join('');
+    },
 
-            get: function(name) {
+    tplCache = {},
 
-                var x,y,cookies = document.cookie.split(";");
+    getTemplate = function(tplId) {
 
-                for (var i = 0, len = cookies.length; i < len; i++) {
+        if (!tplCache[tplId]) {
+            var tplNode     = document.getElementById(tplId),
+                tag;
 
-                    x = cookies[i].substr(0, cookies[i].indexOf("="));
-                    y = cookies[i].substr(cookies[i].indexOf("=") + 1);
-
-                    x = x.replace(/^\s+|\s+$/g,"");
-                    if (x == name) {
-                        return decodeURIComponent(y);
-                    }
-                }
-
+            if (!tplNode) {
                 return null;
             }
-        },
-        fn: {
-            delegate : function(fn, scope){
-                return function() {
-                    return fn.apply(scope, arguments);
-                };
-            },
 
-            defer : function(ms, fn, scope){
-                var fn = this.delegate(fn, scope);
-                return setTimeout(fn, ms);
-            },
+            tag         = tplNode.tagName.toLowerCase();
+            tplCache[tplId] = tag == "script" ? $(tplNode.innerHTML) : $(tplNode.childNodes);
+        }
 
-            countdown: function(cnt, fn, scope) {
-                var cnt = parseInt(cnt, 10);
-                return function() {
-                    cnt--;
-                    if (cnt == 0) {
-                        fn.apply(scope, arguments);
-                    }
+        return tplCache[tplId];
+    };
+
+
+    /**
+     * @namespace MetaphorJs
+     */
+    var Metaphor  = {
+
+        VERSION:    "0.1",
+
+
+        /**
+         * @function MetaphorJs.apply
+         * @md-use apply
+         */
+        apply:      apply,
+
+        nextUid:    nextUid,
+
+        getTemplate: getTemplate,
+
+        /**
+         * Empty function. Used for callback placeholders
+         * @function MetaphorJs.emptyFn
+         */
+        emptyFn:    function() {},
+
+        trim: (function() {
+            // native trim is way faster: http://jsperf.com/angular-trim-test
+            // but IE doesn't have it... :-(
+            if (!String.prototype.trim) {
+                return function(value) {
+                    return typeof value == "string" ? value.replace(/^\s\s*/, '').replace(/\s\s*$/, '') : value;
                 };
             }
+            return function(value) {
+                return typeof value == "string" ? value.trim() : value;
+            };
+        })(),
+
+        bind: function(fn, scope) {
+            return function() {
+                return fn.apply(scope, arguments);
+            }
+        },
+
+        isArray: function(value) {
+            return value && typeof value == 'object' && typeof value.length == 'number' &&
+                toString.call(value) == '[object Array]' || false;
+        },
+
+        isPlainObject: function(value) {
+
+            var hasProperty = Object.prototype.hasOwnProperty;
+            var stringify = Object.prototype.toString;
+
+            if (stringify.call(value) !== "[object Object]" || value.nodeType )
+                return false;
+
+            try {
+                if (value.constructor &&
+                    !hasProperty.call(value.constructor.prototype, "isPrototypeOf")) {
+                    return false;
+                }
+            } catch (e) {
+                return false;
+            }
+
+            return true;
         }
     };
 

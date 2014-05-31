@@ -2,6 +2,10 @@
 
     "use strict";
 
+    /**
+     * @namespace MetaphorJs
+     */
+
     var root        = window,
         cache       = {};
 
@@ -33,9 +37,16 @@
         return [current, last];
     };
 
-    var get       = function(ns) {
+    /**
+     * Get namespace/cache object
+     * @function MetaphorJs.ns.get
+     * @param {string} ns
+     * @param {bool} cacheOnly
+     * @returns {object} constructor
+     */
+    var get       = function(ns, cacheOnly) {
 
-        if (cache[ns]) {
+        if (cache[ns] || cacheOnly) {
             return cache[ns];
         }
 
@@ -59,6 +70,12 @@
         return current;
     };
 
+    /**
+     * Register class constructor
+     * @function MetaphorJs.ns.register
+     * @param {string} ns
+     * @param {*} fn
+     */
     var register    = function(ns, fn) {
 
         var parse   = parseNs(ns),
@@ -69,20 +86,43 @@
         cache[ns]       = fn;
     };
 
+    /**
+     * Class exists
+     * @function MetaphorJs.ns.exists
+     * @param {string} ns
+     * @returns boolean
+     */
     var exists      = function(ns) {
         return cache[ns] ? true : false;
+    };
+
+    /**
+     * Add constructor to cache
+     * @function MetaphorJs.ns.add
+     * @param {string} ns
+     * @param {function} c
+     */
+    var add = function(ns, c) {
+        cache[ns] = c;
     };
 
     register("MetaphorJs.ns", {
         register:   register,
         exists:     exists,
         get:        get,
-        add:        function(ns, c) {
-            cache[ns] = c;
-        },
+        add:        add,
+        /**
+         * Remove constructor from cache
+         * @function MetaphorJs.ns.remove
+         * @param {string} ns
+         */
         remove:     function(ns) {
             delete cache[ns];
         }
     });
+
+    MetaphorJs.r = register;
+    MetaphorJs.g = get;
+    MetaphorJs.add = add;
 
 }());

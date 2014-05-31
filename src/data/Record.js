@@ -1,20 +1,89 @@
+/**
+ * @namespace MetaphorJs
+ * @class MetaphorJs.data.Record
+ * @extends MetaphorJs.cmp.Observable
+ */
+MetaphorJs.define("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
-MetaphorJs.define("MetaphorJs.data.Record", "MetaphorJs.cmp.Observable", {
-
+    /**
+     * @var mixed
+     * @access protected
+     */
     id:             null,
+
+    /**
+     * @var object
+     * @access protected
+     */
     data:           null,
+
+    /**
+     * @var object
+     * @access protected
+     */
     orig:           null,
+
+    /**
+     * @var object
+     * @access protected
+     */
     modified:       null,
+
+    /**
+     * @var bool
+     * @access protected
+     */
     loaded:         false,
+
+    /**
+     * @var bool
+     * @access protected
+     */
     dirty:          false,
+
+    /**
+     * @var bool
+     * @access protected
+     */
     destroyed:      false,
+
+    /**
+     * @var MetaphorJs.data.Model
+     * @access protected
+     */
     model:          null,
+
+    /**
+     * @var bool
+     * @access protected
+     */
     standalone:     true,
+
+    /**
+     * @var array
+     * @access protected
+     */
     stores:         null,
 
-    // (id, data, cfg)
-    // (id, cfg)
-    // (cfg)
+    /**
+     * @constructor
+     * @method initialize
+     * @param {*} id
+     * @param {object} cfg
+     */
+
+    /**
+     * @constructor
+     * @method initialize
+     * @param {object} cfg
+     */
+
+    /**
+     * @constructor
+     * @param {string|int|null} id
+     * @param {object} data
+     * @param {object} cfg
+     */
     initialize: function(id, data, cfg) {
 
         var self    = this,
@@ -30,9 +99,11 @@ MetaphorJs.define("MetaphorJs.data.Record", "MetaphorJs.cmp.Observable", {
             data    = null;
         }
 
+        self.data       = {};
         self.orig       = {};
         self.stores     = [];
         self.modified   = {};
+        cfg             = cfg || {};
         self.supr(cfg);
 
         if (typeof self.model == "string") {
@@ -45,9 +116,9 @@ MetaphorJs.define("MetaphorJs.data.Record", "MetaphorJs.cmp.Observable", {
         self.id     = id;
 
         if (data) {
-            self.import(data);
+            self.importData(data);
         }
-        else {
+        else if(cfg.autoLoad !== false && id) {
             self.load();
         }
 
@@ -56,18 +127,37 @@ MetaphorJs.define("MetaphorJs.data.Record", "MetaphorJs.cmp.Observable", {
         }
     },
 
+    /**
+     * @returns bool
+     */
     isLoaded: function() {
         return this.loaded;
     },
 
+    /**
+     * @returns bool
+     */
     isStandalone: function() {
         return this.standalone;
     },
 
+    /**
+     * @returns bool
+     */
     isDirty: function() {
         return this.dirty;
     },
 
+    /**
+     * @returns MetaphorJs.data.Model
+     */
+    getModel: function() {
+        return this.model;
+    },
+
+    /**
+     * @param {MetaphorJs.data.Store} store
+     */
     attachStore: function(store) {
         var self    = this,
             sid     = store.getId();
@@ -77,6 +167,9 @@ MetaphorJs.define("MetaphorJs.data.Record", "MetaphorJs.cmp.Observable", {
         }
     },
 
+    /**
+     * @param {MetaphorJs.data.Store} store
+     */
     detachStore: function(store) {
         var self    = this,
             sid     = store.getId(),
@@ -91,15 +184,21 @@ MetaphorJs.define("MetaphorJs.data.Record", "MetaphorJs.cmp.Observable", {
         }
     },
 
+    /**
+     * @param {bool} dirty
+     */
     setDirty: function(dirty) {
         var self    = this;
         if (self.dirty != dirty) {
-            self.dirty  = dirty ? true : false;
+            self.dirty  = !!dirty;
             self.trigger("dirtychange", self, dirty);
         }
     },
 
-    import: function(data) {
+    /**
+     * @param {object} data
+     */
+    importData: function(data) {
 
         var self        = this,
             processed   = {},
@@ -119,6 +218,11 @@ MetaphorJs.define("MetaphorJs.data.Record", "MetaphorJs.cmp.Observable", {
         self.setDirty(false);
     },
 
+    /**
+     * @access protected
+     * @param {object} data
+     * @returns object
+     */
     storeData: function(data) {
 
         var self        = this,
@@ -133,33 +237,70 @@ MetaphorJs.define("MetaphorJs.data.Record", "MetaphorJs.cmp.Observable", {
     },
 
 
-
+    /**
+     * @returns mixed
+     */
     getId: function() {
         return this.id;
     },
 
-    getData: function() {
-        return $.extend({}, this.data);
+    /**
+     * @param {array|null|string} keys
+     * @returns object
+     */
+    getData: function(keys) {
+        if (keys) {
+            var data = {}, i, len,
+                self    = this;
+
+            keys = typeof keys == "string" ? [keys] : keys;
+
+            for (i = 0, len = keys.length; i < len; i++) {
+                data[keys[i]] = self.data[keys[i]];
+            }
+            return data;
+        }
+        else {
+            return $.extend({}, this.data);
+        }
     },
 
+    /**
+     * @returns object
+     */
     getChanged: function() {
         return $.extend({}, this.modified);
     },
 
+    /**
+     * @param {string} key
+     * @returns bool
+     */
     isChanged: function(key) {
         return this.modified[key] || false;
     },
 
+    /**
+     * @param {string} key
+     * @returns *
+     */
     get: function(key) {
         return this.data[key];
     },
 
+    /**
+     * @param {*} id
+     */
     setId: function(id) {
         if (!this.id && id) {
             this.id = id;
         }
     },
 
+    /**
+     * @param {string} key
+     * @param {*} value
+     */
     set: function(key, value) {
 
         var self    = this,
@@ -176,6 +317,9 @@ MetaphorJs.define("MetaphorJs.data.Record", "MetaphorJs.cmp.Observable", {
         }
     },
 
+    /**
+     * @method
+     */
     revert: function() {
         var self    = this;
         if (self.dirty) {
@@ -185,49 +329,76 @@ MetaphorJs.define("MetaphorJs.data.Record", "MetaphorJs.cmp.Observable", {
         }
     },
 
+    /**
+     * @method
+     * @returns jQuery.Deferred
+     */
     load: function() {
         var self    = this;
         self.trigger("beforeload", self);
-        return self.model.loadRecord(self.id).then(
-            function(id, data) {
+        return self.model.loadRecord(self.id)
+            .done(function(id, data) {
                 self.setId(id);
-                self.import(data);
+                self.importData(data);
                 self.trigger("load", self);
-            },
-            function() {
+            })
+            .fail(function() {
                 self.trigger("failedload", self);
-            }
-        );
+            });
     },
 
-    save: function() {
+    /**
+     * @method
+     * @param {array|null|string} keys
+     * @param {object|null} extra
+     * @returns jQuery.Deferred
+     */
+    save: function(keys, extra) {
         var self    = this;
         self.trigger("beforesave", self);
-        return self.model.saveRecord(self).then(
-            function(id, data) {
+        return self.model.saveRecord(self, keys, extra)
+            .done(function(id, data) {
                 self.setId(id);
-                self.import(data);
+                self.importData(data);
                 self.trigger("save", self);
-            },
-            function() {
+            })
+            .fail(function(response) {
                 self.trigger("failedsave", self);
-            }
-        );
+            });
     },
 
-    delete: function() {
+    /**
+     * @method
+     * @returns jQuery.Deferred
+     */
+    "delete": function() {
         var self    = this;
         self.trigger("beforedelete", self);
-        return self.model.deleteRecord(self).then(
-            function() {
+        return self.model.removeRecord(self)
+            .done(function() {
                 self.trigger("delete", self);
                 self.destroy();
-            },
-            function() {
+            }).
+            fail(function() {
                 self.trigger("faileddelete", self);
-            }
-        );
+            });
     },
+
+
+    reset: function() {
+
+        var self        = this;
+
+        self.id         = null;
+        self.data       = {};
+        self.orig       = {};
+        self.modified   = {};
+        self.loaded     = false;
+        self.dirty      = false;
+
+        self.trigger("reset", self);
+    },
+
 
 
     destroy: function() {

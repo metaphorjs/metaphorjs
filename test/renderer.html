@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="jquery-1.11.0.min.js"></script>
+    <script src="../src/MetaphorJs.js"></script>
+    <script src="../src/lib/Namespace.js"></script>
+    <script src="../src/lib/Class.js"></script>
+    <script src="../../observable/metaphorjs.observable.js"></script>
+    <script src="../../watchable/metaphorjs.watchable.js"></script>
+    <script src="../src/cmp/Base.js"></script>
+    <script src="../src/data/Model.js"></script>
+    <script src="../src/data/Store.js"></script>
+    <script src="../src/data/Record.js"></script>
+    <script src="../src/view/Scope.js"></script>
+    <script src="../src/view/Browser.js"></script>
+    <script src="../src/view/Renderer.js"></script>
+    <script src="../src/cmp/Component.js"></script>
+    <script src="../src/view/Attribute.js"></script>
+    <script src="../src/view/Filter.js"></script>
+
+    <style>
+
+        mjs-template {
+            display:none;
+        }
+
+        .cls1 {
+            font-size: 32px;
+        }
+
+        .cls2 {
+            color: #008200;
+        }
+
+        .cls3 {
+            text-decoration: line-through;
+        }
+
+        .article {
+            width: 50%;
+            float: left;
+        }
+
+    </style>
+</head>
+<body>
+
+    <mjs-template id="test-template">
+
+        <p>{{.text}}</p>
+        <p>{{.subtext}}</p>
+        <p>{{.a}}</p>
+        <div mjs-transclude></div>
+
+    </mjs-template>
+
+    <mjs-template id="cmp1-template">
+
+        <h2>{{.title}}</h2>
+        <div mjs-transclude></div>
+
+    </mjs-template>
+
+    <script type="text/mjs-template" id="a+b">
+        <p>a + b = {{ .$root.a + .$root.b }}</p>
+    </script>
+
+    <script type="text/mjs-template" id="a*b">
+        <p>a * b = {{ .$root.a * .$root.b }}</p>
+    </script>
+
+
+    <div id="render">
+        <div class="header">{{.header}}</div>
+        <div class="article">
+
+            {{.rootText | toUpper }}
+
+            <div class="menu" mjs-bind-html=".subtext"></div>
+            <p>
+                Here is some {{ .text }} <span> and {{.subtext}}</span> <sup>{{ .text }}</sup><sub> {{ .bool ? "true" : "false" }}</sub>
+            </p>
+            <p mjs-class="{cls1: .bool, cls2: .a == 0}">
+                {{ .a + .b }}
+            </p>
+            <a href="http://{{.text}}.com" mjs-click=".bool = !.bool">{{.subtext | limitTo:3}}</a>
+            <input mjs-bind=".a * .b"/>
+            <input mjs-model=".a" type="number"/>
+            <input type="checkbox" mjs-model="bool"/>
+            <input type="radio" name="r" value="header" mjs-model="header"/>1
+            <label><input type="radio" name="r" value="header1"/>2</label>
+            <input type="radio" name="r" value="header2"/>3
+
+            <br><br>
+            <input mjs-model=".newItem"/>
+            <input type="button"
+                   mjs-disabled="!.newItem"
+                   mjs-click=".list.push({bool: false, txt: .newItem}); .newItem = '';"
+                   value="Add item"/>
+
+            <ul mjs-show=".bool">
+                <li mjs-each="item in .list">
+                    <label mjs-class="{cls3: .item.bool}">
+                        <input type="checkbox" mjs-model=".item.bool"/>{{.$index}} - {{.item.txt}}</label>
+                    <a href="#" mjs-click=".$parent.list.splice(.$index,1);">x</a>
+                </li>
+            </ul>
+
+            <div mjs-include="test-template" mjs-hide="!.bool">
+                <p>transcluded text</p>
+            </div>
+
+            <mjs-include src="test-template"></mjs-include>
+
+
+        </div>
+
+        <div class="article">
+            <div mjs-cmp="Test.MyComponent as ctrl">
+                <p mjs-cmp-prop="para">Component's transcluded text + {{ .$root.a}}</p>
+                <a href="#" mjs-click=".ctrl.reverse()">reverse</a>
+            </div>
+
+            <div mjs-cmp="Test.MyComponent as ctrl">
+                <p>This is another instance</p>
+            </div>
+
+            <div mjs-cmp="Test.TplComponent as ctrl">
+                <h2>{{ .title }}</h2>
+                <a href="#" mjs-click=".tpl='a+b'">a + b</a> | <a href="#" mjs-click=".tpl='a*b'">a * b</a>
+
+                <div mjs-include=".tpl"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        $(function(){
+
+
+            MetaphorJs.d("Test.MyComponent", "MetaphorJs.cmp.Component", {
+                initComponent: function() {
+                    this.scope.title = "My Component" + (new Date).getTime();
+                },
+                template: 'cmp1-template',
+                afterRender: function() {
+                },
+                reverse: function() {
+                    var title   = this.scope.title;
+                    this.scope.title    = title.split("").reverse().join('');
+                }
+            });
+
+            MetaphorJs.d("Test.TplComponent", "MetaphorJs.cmp.Component", {
+
+                initComponent: function() {
+
+                    var self    = this;
+
+                    self.scope.title= "Tpl Component";
+                    self.scope.tpl  = "a+b";
+                }
+
+            });
+
+            var dataObj     = {
+                header: "header",
+                text: "text",
+                subtext: "subtext",
+                rootText: "root text",
+                a: 1,
+                b: 2,
+                bool: true,
+                newItem: "",
+                list: [
+                    {bool: true, txt: "item 1"},
+                    {bool: false, txt: "item 2"},
+                    {bool: false, txt: "item 3"}
+                ]
+            };
+            var start  = (new Date).getTime();
+
+            var scope       = new MetaphorJs.view.Scope(dataObj);
+            var renderer    = new MetaphorJs.view.Renderer(document.getElementById("render"), scope);
+            renderer.render();
+
+            var end  = (new Date).getTime();
+            console.log("time: ", end - start);
+
+            window.dataScope = scope;
+
+        });
+
+
+    </script>
+
+</body>
+</html>

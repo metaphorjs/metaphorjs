@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+</head>
+<body>
+
+    <script>
+
+        var str = "aaa .bbb ccc .ddd";
+
+
+        var parseReg    = function(str) {
+            return str.replace(/(^|[^a-z0-9_$])(\.)([^0-9])/ig, '$1____.$3');
+        };
+
+
+        var parseSplit  = function(text) {
+
+            var index   = 0,
+                pIndex,
+                prev, next,
+                separators = [],
+                prevReg = /[a-zA-Z0-9_$]/,
+                nextReg = /[0-9]/;
+
+            while((pIndex  = text.indexOf('.', index)) != -1) {
+
+                prev = text.charAt(pIndex -1);
+                next = text.charAt(pIndex + 1);
+
+                if ((!prev || !prevReg.test(prev)) && !nextReg.test(next) )  {
+                    separators.push(text.substring(index, pIndex));
+                    separators.push('____.');
+                }
+                index = pIndex + 1;
+            }
+
+            separators.push(text.substr(index));
+
+            return separators.join("");
+
+        };
+
+        //console.log(parseReg(str));
+        //console.log(parseSplit(str));
+
+        var start = (new Date).getTime();
+        for (var i = 0; i < 1000; i++) {
+            parseReg(str);
+        }
+        var end = (new Date).getTime();
+        console.log("reg: ", end-start);
+
+
+        start = (new Date).getTime();
+        for (i = 0; i < 1000; i++) {
+            parseSplit(str);
+        }
+        end = (new Date).getTime();
+        console.log("split: ", end-start);
+
+
+
+    </script>
+
+</body>
+</html>

@@ -5,17 +5,11 @@
 var instances   = {};
 var cache       = {};
 
+/**
+ * @namespace MetaphorJs
+ * @class MetaphorJs.data.Model
+ */
 MetaphorJs.define("MetaphorJs.data.Model", {
-
-    /*
-    for every type of request load/save/delete
-    you can provide options loadId, loadData, loadExtra
-    if not provided, id/data will be used
-    "extra" is always used
-
-    also, every type of request can be either null (none),
-    url or ajaxCfg object
-     */
 
     type:           null,
     fields:         null,
@@ -23,6 +17,50 @@ MetaphorJs.define("MetaphorJs.data.Model", {
     store:          null,
     plain:          false,
 
+
+    /**
+     * @var object {
+     *      @type {bool} json send data as json
+     *      @type {string} url
+     *      @type {string} id Id field
+     *      @type {string} data Data field
+     *      @type {string} success Success field
+     *      @type {object} extra Extra params object
+     *      @type {string|int|bool} ... other $.ajax({ properties })
+     * }
+     * @name atom
+     * @md-tmp model-atom
+     */
+
+    /**
+     * @var object {
+     *      @type {string|object} load { @md-apply model-atom }
+     *      @type {string|object} save { @md-apply model-atom }
+     *      @type {string|object} delete { @md-apply model-atom }
+     * }
+     * @name group
+     * @md-apply model-atom
+     * @md-tmp model-group
+     */
+
+    /**
+     * @constructor
+     * @param {object} cfg {
+     *      @type {string} type Record class
+     *      @type {object} fields Fields conf
+     *      @type {object} record {
+     *          @type {string|object} create { @md-apply model-atom }
+     *          @md-apply model-group
+     *      }
+     *      @type {object} store {
+     *          @type {string} total Total field
+     *          @type {string} start Start field
+     *          @type {string} limit Limit field
+     *          @md-apply model-group
+     *      }
+     *      @md-apply model-atom
+     * }
+     */
     initialize: function(cfg) {
 
         var self        = this,
@@ -30,7 +68,7 @@ MetaphorJs.define("MetaphorJs.data.Model", {
                 record: {
                     load:       null,
                     save:       null,
-                    delete:     null,
+                    "delete":     null,
                     id:         null,
                     data:       null,
                     success:    null,
@@ -40,7 +78,7 @@ MetaphorJs.define("MetaphorJs.data.Model", {
                 store: {
                     load:       null,
                     save:       null,
-                    delete:     null,
+                    "delete":     null,
                     id:         null,
                     data:       null,
                     total:      null,
@@ -64,34 +102,97 @@ MetaphorJs.define("MetaphorJs.data.Model", {
         MetaphorJs.apply(self.store, defaults.store, false);
     },
 
+    /**
+     * Do records within this model have type or they are plain objects
+     * @access public
+     * @returns bool
+     */
     isPlain: function() {
         return this.plain;
     },
 
+    /**
+     * @param {string} type load|save|delete
+     * @param {string} prop
+     * @returns mixed
+     */
     getRecordProp: function(type, prop) {
         return this.getProp("record", type, prop);
     },
 
+    /**
+     * @param {string} prop
+     * @param {string|int|bool} value
+     */
+    setRecordProp: function(prop, value) {
+        this.record[prop] = value;
+    },
+
+    /**
+     * @param {string} type load|save|delete
+     * @param {string} prop
+     * @returns mixed
+     */
     getStoreProp: function(type, prop) {
         return this.getProp("store", type, prop);
     },
 
+    /**
+     * @param {string} prop
+     * @param {string|int|bool} value
+     */
+    setStoreProp: function(prop, value) {
+        this.store[prop] = value;
+    },
+
+
+    /**
+     * @param {string} what record|store
+     * @param {string} type load|save|delete
+     * @param {string} prop
+     * @returns mixed
+     */
     getProp: function(what, type, prop) {
         var profile = this[what];
         return (profile[type] && profile[type][prop]) || profile[prop] || this[prop] || null;
+    },
+
+    /**
+     * @param {string} prop
+     * @param {string|int|bool} value
+     */
+    setProp: function(prop, value) {
+        return this[prop] = value;
     },
 
     _createAjaxCfg: function(what, type, id, data) {
 
         var self        = this,
             profile     = self[what],
-            cfg         = typeof profile[type] == "string" ?
-                            {url: profile[type]} : profile[type],
+            cfg         = $.extend({}, typeof profile[type] == "string" ?
+                            {url: profile[type]} : profile[type]),
             idProp      = self.getProp(what, type, "id"),
-            dataProp    = self.getProp(what, type, "data");
+            dataProp    = self.getProp(what, type, "data"),
+            url         = self.getProp(what, type, "url"),
+            isJson      = self.getProp(what, type, "json");
 
         if (!cfg) {
-            throw new Error(what + "." + type + " not defined");
+            if (url) {
+                cfg     = {url: url};
+            }
+            else {
+                throw new Error(what + "." + type + " not defined");
+            }
+        }
+        if (typeof cfg == "string") {
+            cfg         = {url: cfg};
+        }
+
+        if (!cfg.url) {
+            if (!url) {
+                throw new Error(what + "." + type + " url not defined");
+            }
+            cfg.url     = url;
         }
 
         cfg.data        = $.extend(
@@ -99,7 +200,7 @@ MetaphorJs.define("MetaphorJs.data.Model", {
             cfg.data,
             self.extra,
             profile.extra,
-            profile[type].extra
+            profile[type] ? profile[type].extra : {}
         );
 
         if (!cfg.type) {
@@ -116,6 +217,10 @@ MetaphorJs.define("MetaphorJs.data.Model", {
             else {
                 cfg.data    = data;
             }
+        }
+
+        if (isJson && cfg.data && cfg.type != 'GET') {
+            cfg.data    = JSON.stringify(cfg.data);
         }
 
         return cfg;
@@ -155,58 +260,74 @@ MetaphorJs.define("MetaphorJs.data.Model", {
         var self    = this,
             sucProp = self.getProp(what, type, "success");
 
-        return sucProp ? response[sucProp] : true;
+        if (sucProp && response[sucProp] != undefined) {
+            return response[sucProp];
+        }
+        else {
+            return true;
+        }
     },
 
-
+    /**
+     * @access public
+     * @param {string|number} id Record id
+     * @returns jQuery.Deferred
+     */
     loadRecord: function(id) {
 
         var self    = this,
             p       = $.ajax(self._createAjaxCfg("record", "load", id)),
             df      = new jQuery.Deferred;
 
-        p.then(
-            function(response){
+        p.done(function(response){
                 self._processRecordResponse("load", response, df);
-            },
-            df.reject
-        );
+            })
+            .fail(df.reject);
 
         return df.promise();
     },
 
-    saveRecord: function(rec) {
+    /**
+     * @access public
+     * @param {MetaphorJs.data.Record} rec
+     * @param {array|null} keys
+     * @param {object|null} extra
+     * @returns jQuery.Deferred
+     */
+    saveRecord: function(rec, keys, extra) {
 
         var self    = this,
             p       = $.ajax(self._createAjaxCfg(
-                        "record", "save",
+                        "record",
+                        rec.getId() ? "save" : "create",
                         rec.getId(),
-                        rec.storeData(rec.getData())
+                        $.extend({}, rec.storeData(rec.getData(keys)), extra)
                     )),
             df      = new jQuery.Deferred;
 
 
-        p.then(
-            function(response) {
+        p.done(function(response) {
                 self._processRecordResponse("save", response, df);
-            },
-            df.reject
-        );
+            })
+            .fail(df.reject);
 
         return df.promise();
     },
 
+    /**
+     * @access public
+     * @param {MetaphorJs.data.Record} rec
+     * @returns jQuery.Deferred
+     */
     deleteRecord: function(rec) {
         var self    = this,
             p       = $.ajax(this._createAjaxCfg("record", "delete", rec.getId())),
             df      = new jQuery.Deferred;
 
-        p.then(
-            function(response){
+        p.done(function(response){
                 df[self._getSuccess("record", "delete", response) ? "resolve" : "reject"]();
-            },
-            df.reject
-        );
+            })
+            .fail(df.reject);
 
         return df.promise();
     },
@@ -214,8 +335,13 @@ MetaphorJs.define("MetaphorJs.data.Model", {
 
 
 
-
-    loadStore: function(store, params, cb) {
+    /**
+     * @access public
+     * @param {MetaphorJs.data.Store} store
+     * @param {object} params
+     * @returns jQuery.Deferred
+     */
+    loadStore: function(store, params) {
 
         var self    = this,
             acfg    = self._createAjaxCfg("store", "load"),
@@ -225,59 +351,69 @@ MetaphorJs.define("MetaphorJs.data.Model", {
         acfg.data   = $.extend(true, acfg.data, params);
         p           = $.ajax(acfg);
 
-        p.then(
-            function(response) {
+        p.done(function(response) {
                 self._processStoreResponse("load", response, df);
-            },
-            df.reject
-        );
+            })
+            .fail(df.reject);
 
         return df.promise();
     },
 
+    /**
+     * @access public
+     * @param {MetaphorJs.data.Store} store
+     * @param {object} recordData
+     * @returns jQuery.Deferred
+     */
     saveStore: function(store, recordData) {
 
         var self    = this,
             p       = $.ajax(self._createAjaxCfg("store", "save", null, recordData)),
             df      = new jQuery.Deferred;
 
-        p.then(
-            function(response) {
+        p.done(function(response) {
                 self._processStoreResponse("save", response, df);
-            },
-            df.reject
-        );
+            })
+            .fail(df.reject);
 
         return df.promise();
     },
 
+    /**
+     * @access public
+     * @param {MetaphorJs.data.Store} store
+     * @param {array} ids
+     * @returns jQuery.Deferred
+     */
     deleteRecords: function(store, ids) {
 
         var self    = this,
             p       = $.ajax(self._createAjaxCfg("store", "delete", ids)),
             df      = new jQuery.Deferred;
 
-        p.then(
-            function(response) {
+        p.done(function(response) {
                 df[self._getSuccess("store", "delete", response) ? "resolve" : "reject"]();
-            },
-            df.reject
-        );
+            })
+            .fail(df.reject);
 
         return df.promise();
     },
 
 
-
-
-
-
-
-
+    /**
+     * @returns object
+     */
     getFields: function() {
         return this.fields;
     },
 
+    /**
+     * Convert field's value from database state to app state
+     * @param {MetaphorJs.data.Record} rec
+     * @param {string} name
+     * @param {string|int|bool|Date} value
+     * @returns mixed
+     */
     restoreField: function(rec, name, value) {
 
         var self    = this,
@@ -295,13 +431,8 @@ MetaphorJs.define("MetaphorJs.data.Model", {
                 case "boolean": {
                     if (typeof value == "string") {
                         value   = value.toLowerCase();
-                        if (value === "off" || value === "no" || value === "0" ||
-                            value == "false" || value == "null") {
-                            value = false;
-                        }
-                        else {
-                            value = true;
-                        }
+                        value   = !(value === "off" || value === "no" || value === "0" ||
+                                    value == "false" || value == "null");
                     }
                     else {
                         value = value ? true : false;
@@ -314,11 +445,11 @@ MetaphorJs.define("MetaphorJs.data.Model", {
                     break;
                 }
                 case "date": {
-                    if (f.parseFn) {
-                        value   = f.parseFn(value, f.format);
+                    if (f['parseFn']) {
+                        value   = f['parseFn'](value, f.format);
                     }
-                    else if (Date.parse) {
-                        value   = Date.parse(value, f.format);
+                    else if (Date['parse']) {
+                        value   = Date['parse'](value, f.format);
                     }
                     else {
                         if (f.format == "timestamp") {
@@ -338,10 +469,24 @@ MetaphorJs.define("MetaphorJs.data.Model", {
         return self.onRestoreField(rec, name, value);
     },
 
+    /**
+     * @access protected
+     * @param {MetaphorJs.data.Record} rec
+     * @param {string} name
+     * @param {string|int|bool} value
+     * @returns string|int|bool|Date
+     */
     onRestoreField: function(rec, name, value) {
         return value;
     },
 
+    /**
+     * Convert field's value from app state to database state
+     * @param {MetaphorJs.data.Record} rec
+     * @param {string} name
+     * @param {string|int|bool|Date} value
+     * @returns mixed
+     */
     storeField: function(rec, name, value) {
 
         var self    = this,
@@ -357,8 +502,8 @@ MetaphorJs.define("MetaphorJs.data.Model", {
                     break;
                 }
                 case "date": {
-                    if (f.formatFn) {
-                        value   = f.formatFn(value, f.format);
+                    if (f['formatFn']) {
+                        value   = f['formatFn'](value, f.format);
                     }
                     else if (Date.format) {
                         value   = Date.format(value, f.format);
@@ -368,7 +513,7 @@ MetaphorJs.define("MetaphorJs.data.Model", {
                             value   = value.getTime() / 1000;
                         }
                         else {
-                            value   = value.format ? value.format(f.format) : value.toString();
+                            value   = value['format'] ? value['format'](f.format) : value.toString();
                         }
                     }
                     break;
@@ -387,6 +532,13 @@ MetaphorJs.define("MetaphorJs.data.Model", {
 
     },
 
+    /**
+     * @access protected
+     * @param {MetaphorJs.data.Record} rec
+     * @param {string} name
+     * @param {string|int|bool} value
+     * @returns string|int
+     */
     onStoreField: function(rec, name, value) {
         return value;
     }
@@ -395,7 +547,8 @@ MetaphorJs.define("MetaphorJs.data.Model", {
 }, {
 
     /**
-     * @returns MetaphorJs.data.Model
+     * @static
+     * @returns Object
      */
     create: function(model, cfg) {
 
@@ -417,6 +570,10 @@ MetaphorJs.define("MetaphorJs.data.Model", {
         }
     },
 
+    /**
+     * @static
+     * @param {MetaphorJs.data.Record} rec
+     */
     addToCache: function(rec) {
 
         var cls     = rec.getClass(),
@@ -430,6 +587,11 @@ MetaphorJs.define("MetaphorJs.data.Model", {
         }
     },
 
+    /**
+     * @static
+     * @param {string} type
+     * @param {string|int|bool} id
+     */
     getFromCache: function(type, id) {
 
         if (cache[type] && cache[type][id]) {
@@ -440,6 +602,11 @@ MetaphorJs.define("MetaphorJs.data.Model", {
         }
     },
 
+    /**
+     * @static
+     * @param {string} type
+     * @param {string|int|bool} id
+     */
     removeFromCache: function(type, id) {
         if (cache[type] && cache[type][id]) {
             delete cache[type][id];

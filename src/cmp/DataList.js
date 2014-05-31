@@ -1,41 +1,146 @@
-
+/**
+ * @namespace MetaphorJs
+ * @class MetaphorJs.cmp.DataList
+ * @extends MetaphorJs.cmp.Component
+ */
 MetaphorJs.define("MetaphorJs.cmp.DataList", "MetaphorJs.cmp.Component", {
 
+    /**
+     * @var MetaphorJs.data.Store
+     * @access protected
+     */
     store:              null,
+
+    /**
+     * @var bool
+     * @access protected
+     */
     destroyStore:       true,
 
+    /**
+     * @var jQuery
+     * @access protected
+     */
     elList:             null,
+
+    /**
+     * @var string
+     * @access protected
+     */
     listSelector:       null,
+
+    /**
+     * @var string
+     * @access protected
+     */
     itemSelector:       null,
+
+    /**
+     * @var string
+     * @access protected
+     */
     itemTpl:            null,
 
+    /**
+     * @var bool
+     * @access protected
+     */
     addClearfix:        false,
+
+    /**
+     * @var string
+     * @access protected
+     */
     emptyText:          "",
+
+    /**
+     * @var string
+     * @access protected
+     */
     emptyCls:           null,
 
+    /**
+     * @var bool
+     * @access protected
+     */
     continuousScroll:   false,
+
+    /**
+     * @var number
+     * @access protected
+     */
     continuousOffset:   50,
+
+    /**
+     * @var number
+     * @access protected
+     */
     continuousTmt:      null,
+
+    /**
+     * @var number
+     * @access protected
+     */
     continuousTime:     300,
+
+    /**
+     * @var string
+     * @access protected
+     */
     continuousSelector: null,
+
+    /**
+     * @var jQuery
+     * @access protected
+     */
     elContinuous:       null,
 
+    /**
+     * @method initialize
+     * @param {object} cfg {
+     *      @type MetaphorJs.data.Store store
+     *      @type bool destroyStore { @default true }
+     *      @type string listSelector
+     *      @type string itemSelector
+     *      @type string itemTpl
+     *      @type bool addClearfix { @default false }
+     *      @type string emptyText { @default "" }
+     *      @type string emptyCls
+     *      @type bool continuousScroll { @default false }
+     *      @type number continuousOffset { @default 50 }
+     *      @type number continuousTime { @default 300 }
+     *      @type string continuousSelector
+     * }
+     */
+
+    /**
+     * @access protected
+     */
     initComponent: function() {
 
-        var self    = this;
+        var self    = this,
+            bind    = MetaphorJs.bind;
 
-        self.checkWindowScrollDelegate  = MetaphorJs.fn.delegate(self.checkWindowScroll, self);
-        self.onWindowScrollDelegate     = MetaphorJs.fn.delegate(self.onWindowScroll, self);
+        self.checkWindowScrollDelegate  = bind(self.checkWindowScroll, self);
+        self.onWindowScrollDelegate     = bind(self.onWindowScroll, self);
 
         self.initStore();
         self.supr();
     },
 
 
+    /**
+     * @access private
+     * @method
+     */
     initStore: function() {
         this.setStoreEvents("on");
     },
 
+    /**
+     * @access private
+     * @method
+     */
     setStoreEvents: function(mode) {
 
         var self    = this,
@@ -53,6 +158,10 @@ MetaphorJs.define("MetaphorJs.cmp.DataList", "MetaphorJs.cmp.Component", {
         }
     },
 
+    /**
+     * @access public
+     * @returns MetaphorJs.data.Store
+     */
     getStore: function() {
         return this.store;
     },
@@ -83,7 +192,7 @@ MetaphorJs.define("MetaphorJs.cmp.DataList", "MetaphorJs.cmp.Component", {
             self.elList.delegate(
                 self.itemSelector,
                 "click",
-                MetaphorJs.fn.delegate(self.onRowClick, self)
+                MetaphorJs.bind(self.onRowClick, self)
             );
         }
 
@@ -97,6 +206,10 @@ MetaphorJs.define("MetaphorJs.cmp.DataList", "MetaphorJs.cmp.Component", {
 
     },
 
+    /**
+     * @access protected
+     * @param {jQuery.Event} e
+     */
     onRowClick: function(e) {
 
         var self    = this,
@@ -110,12 +223,19 @@ MetaphorJs.define("MetaphorJs.cmp.DataList", "MetaphorJs.cmp.Component", {
     },
 
     /**
-     * @param e
-     * @param rec
-     * @param el
+     * @access protected
+     * @method
+     * @param {jQuery.Event} e
+     * @param {MetaphorJs.data.Record} rec
+     * @param {jQuery} el
      */
     onItemClick: MetaphorJs.emptyFn,
 
+    /**
+     * @access public
+     * @param {jQuery.Event} e
+     * @returns jQuery
+     */
     getItemByEvent: function(e) {
         var trg     = $(e.target);
         if (!trg.is(this.itemSelector)) {
@@ -124,29 +244,47 @@ MetaphorJs.define("MetaphorJs.cmp.DataList", "MetaphorJs.cmp.Component", {
         return trg;
     },
 
+    /**
+     * @access public
+     * @param {string|int} id Record id
+     * @returns jQuery|null
+     */
     getElById: function(id) {
         var self    = this,
             el      = $("[data-id="+id+"]", self.dom);
         return el.length ? el : null;
     },
 
+    /**
+     * @access public
+     * @param {jQuery} el
+     * @returns MetaphorJs.data.Record
+     */
     getRecordByEl: function(el) {
         var id      = el.attr("data-id");
         return this.store.getById(id);
     },
 
+    /**
+     * @access public
+     * @param {jQuery.Event} e
+     * @returns MetaphorJs.data.Record|null
+     */
     getRecordByEvent: function(e) {
         var self    = this,
             el      = self.getItemByEvent(e);
+
         if (el && el.length) {
             return self.getRecordByEl(el);
         }
+        return null;
     },
 
 
-
-
-
+    /**
+     * @access protected
+     * @method
+     */
     toggleEmpty: function() {
 
         var self    = this,
@@ -164,9 +302,16 @@ MetaphorJs.define("MetaphorJs.cmp.DataList", "MetaphorJs.cmp.Component", {
         }
     },
 
-
+    /**
+     * @access protected
+     * @method
+     */
     onBeforeStoreLoad: MetaphorJs.emptyFn,
 
+    /**
+     * @access protected
+     * @method
+     */
     onStoreLoad: function() {
 
         var self    = this;
@@ -177,16 +322,30 @@ MetaphorJs.define("MetaphorJs.cmp.DataList", "MetaphorJs.cmp.Component", {
         }
     },
 
+    /**
+     * @access protected
+     * @method
+     */
     onStoreFilter: function() {
         this.renderAll();
         this.toggleEmpty();
     },
 
+    /**
+     * @access protected
+     * @method
+     */
     onStoreClearFilter: function() {
         this.renderAll();
         this.toggleEmpty();
     },
 
+    /**
+     * @access protected
+     * @method
+     * @param {number} inx
+     * @param {[]} recs
+     */
     onStoreAdd: function(inx, recs) {
 
         var self    = this,
@@ -208,6 +367,13 @@ MetaphorJs.define("MetaphorJs.cmp.DataList", "MetaphorJs.cmp.Component", {
         self.toggleEmpty();
     },
 
+    /**
+     * @access protected
+     * @method
+     * @param {string|int} id
+     * @param {MetaphorJs.data.Record} oldRec
+     * @param {MetaphorJs.data.Record} newRec
+     */
     onStoreReplace: function(id, oldRec, newRec) {
 
         var self    = this,
@@ -218,6 +384,12 @@ MetaphorJs.define("MetaphorJs.cmp.DataList", "MetaphorJs.cmp.Component", {
         el.replaceWith(html);
     },
 
+    /**
+     * @access protected
+     * @method
+     * @param {MetaphorJs.data.Record} rec
+     * @param {string|int} id
+     */
     onStoreRemove: function(rec, id) {
         var self    = this,
             el      = self.getElById(id);
@@ -229,11 +401,19 @@ MetaphorJs.define("MetaphorJs.cmp.DataList", "MetaphorJs.cmp.Component", {
         self.toggleEmpty();
     },
 
+    /**
+     * @access protected
+     * @method
+     */
     onStoreClear: function() {
         this.elList.html("");
         this.toggleEmpty();
     },
 
+    /**
+     * @access protected
+     * @method
+     */
     renderAll: function() {
 
         var self    = this,
@@ -248,8 +428,10 @@ MetaphorJs.define("MetaphorJs.cmp.DataList", "MetaphorJs.cmp.Component", {
     },
 
     /**
-     * @param inx
-     * @param rows
+     * @access protected
+     * @method
+     * @param {number} inx
+     * @param {[]} rows
      */
     renderRows: function(inx, rows) {
 
@@ -264,6 +446,12 @@ MetaphorJs.define("MetaphorJs.cmp.DataList", "MetaphorJs.cmp.Component", {
         return html;
     },
 
+    /**
+     * @access protected
+     * @method
+     * @param {number} inx
+     * @param {MetaphorJs.data.Record} rec
+     */
     renderOneRow: function(inx, rec) {
 
         var self    = this,
@@ -285,7 +473,10 @@ MetaphorJs.define("MetaphorJs.cmp.DataList", "MetaphorJs.cmp.Component", {
 
 
 
-
+    /**
+     * @access protected
+     * @method
+     */
     onWindowScroll: function() {
 
         var self = this;
@@ -301,6 +492,8 @@ MetaphorJs.define("MetaphorJs.cmp.DataList", "MetaphorJs.cmp.Component", {
     /**
      * right now continuous scrolling works only
      * within window
+     * @access protected
+     * @method
      */
     checkWindowScroll: function() {
 
