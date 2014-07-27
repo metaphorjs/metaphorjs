@@ -1,17 +1,5 @@
 (function(){
 
-    var profileTime = function(prev, comment) {
-
-        var time    = (new Date).getTime();
-
-        if (prev) {
-            console.log(comment, time - prev);
-        }
-
-        return time;
-    };
-
-
     "use strict";
 
     var cmps        = {},
@@ -19,7 +7,8 @@
         $           = window.jQuery,
         getTemplate = MetaphorJs.getTemplate,
         Scope       = MetaphorJs.view.Scope,
-        Renderer    = MetaphorJs.view.Renderer;
+        Renderer    = MetaphorJs.view.Renderer,
+        dataFn      = MetaphorJs.data;
 
     var getCmpId    = function(cmp) {
         return cmp.id || "cmp-" + nextUid();
@@ -51,19 +40,13 @@
         id:             null,
 
         /**
-         * @access protected
-         * @var jQuery
-         */
-        el:             null,
-
-        /**
          * @var Element
          * @access protected
          */
         node:           null,
 
         /**
-         * @var string|jQuery|Element
+         * @var string|Element
          * @access protected
          */
         renderTo:       null,
@@ -104,7 +87,7 @@
         /**
          * @var string
          */
-        propertyAttr:   "mjs-cmp-prop",
+        propertyAttr:   null, //"mjs-cmp-prop",
 
         /**
          * @var string
@@ -115,8 +98,8 @@
          * @constructor
          * @param {object} cfg {
          *      @type string id Element id
-         *      @type string|jQuery|Element el
-         *      @type string|Element|jQuery renderTo
+         *      @type string|Element el
+         *      @type string|Element renderTo
          *      @type bool hidden
          *      @type bool destroyEl
          * }
@@ -127,15 +110,8 @@
 
             self.supr(cfg);
 
-            if (self.node && !self.el) {
-                self.el     = $(self.node);
-            }
-
-            if (self.el) {
-                self.id     = self.el.attr('id');
-                if (!self.node) {
-                    self.node    = self.el.get(0);
-                }
+            if (self.node) {
+                self.id     = self.node.getAttribute("id");
             }
 
             self.id         = getCmpId(self);
@@ -153,7 +129,7 @@
 
             self._initElement();
 
-            if (!self.node.parentElement && self.renderTo) {
+            if (!self.node.parentNode && self.renderTo) {
                 self.render(self.renderTo);
             }
             else if (self.node) {
@@ -165,25 +141,29 @@
         _createNode: function() {
 
             var self    = this,
-                tpl,
-                el;
+                node, tmp, tpl;
 
             if (self.tag) {
                 self.node   = document.createElement(self.tag);
-                self.el     = $(self.node);
             }
             else {
                 tpl     = getTemplate(self.template) || self.template;
-                el      = $(tpl);
 
-                if (el.length == 1) {
-                    self.el     = el;
-                    self.node   = el.get(0);
+                if (typeof tpl == "string") {
+                    tmp = document.createElement("div");
+                    tmp.innerHTML = tpl;
+                    tpl = MetaphorJs.toArray(tmp.childNodes);
+                }
+
+                if (tpl.length == 1) {
+                    self.node   = tpl[0];
                 }
                 else {
-                    self.node   = document.createElement('div');
-                    self.el     = $(self.node);
-                    self.el.append(el);
+                    self.node = node = document.createElement('div');
+
+                    for (var i = 0, len = tpl.length; i < len; i++) {
+                        node.appendChild(tpl[i]);
+                    }
                 }
             }
         },
@@ -191,23 +171,37 @@
         _applyTemplate: function() {
 
             var self        = this,
+                node        = self.node,
                 tpl         = getTemplate(self.template) || self.template,
-                contents    = $(self.node.childNodes),
-                el          = self.el;
+                contents    = MetaphorJs.toArray(node.childNodes),
+                clone,
+                i, len, tmp;
 
-            if (contents.length) {
-                contents.remove();
-                el.data("mjs-transclude", contents);
+            if (typeof tpl == "string") {
+                tmp = document.createElement("div");
+                tmp.innerHTML = tpl;
+                clone = MetaphorJs.toArray(tmp.childNodes);
+            }
+            else {
+                clone   = MetaphorJs.clone(tpl);
             }
 
-            el.empty();
-            el.append(tpl.clone());
+            while (node.firstChild) {
+                node.removeChild(node.firstChild);
+            }
+
+            if (contents.length) {
+                dataFn(self.node, "mjs-transclude", contents);
+            }
+
+            for (i = 0, len = clone.length; i < len; i++) {
+                node.appendChild(clone[i]);
+            }
         },
 
         _initElement: function() {
 
             var self    = this,
-                el      = self.el,
                 node    = self.node,
                 pa      = self.propertyAttr;
 
@@ -215,15 +209,15 @@
             node.setAttribute("cmp-id", self.id);
 
             if (self.hidden) {
-                el.hide();
+                node.style.display = "none";
             }
 
             self.renderer   = new Renderer(self.node, self.scope);
             self.renderer.render();
 
-            if (pa) {
+            if (pa && window.jQuery) {
 
-                el.find("["+pa+"]").each(function(){
+                $(node).find("["+pa+"]").each(function(){
                     var elem    = $(this),
                         prop    = elem.attr(pa);
 
@@ -239,7 +233,7 @@
         },
 
         /**
-         * @param {string|Element|jQuery} to
+         * @param {string|Element} to
          */
         render: function(to) {
 
@@ -250,10 +244,10 @@
             }
 
             if (to) {
-                $(to).append(self.el);
+                to.appendChild(self.node);
             }
 
-            self.hidden     = self.el.is(':hidden');
+            self.hidden     = !MetaphorJs.isVisible(self.node);
             self.rendered   = true;
 
             self.trigger('render', self);
@@ -274,7 +268,9 @@
             if (self.trigger('beforeshow', self) === false) {
                 return;
             }
-            self.el.show();
+
+            self.node.style.display = "block";
+
             self.hidden = false;
             self.onShow();
             self.trigger("show", self);
@@ -292,7 +288,9 @@
             if (self.trigger('beforehide', self) === false) {
                 return;
             }
-            self.el.hide();
+
+            self.node.style.display = "none";
+
             self.hidden = true;
             self.onHide();
             self.trigger("hide", self);
@@ -324,18 +322,10 @@
 
         /**
          * @access public
-         * @return jQuery
+         * @return Element
          */
         getEl: function() {
-            return this.el;
-        },
-
-        /**
-         * @access public
-         * @return DOM
-         */
-        getDom: function() {
-            return this.dom;
+            return this.node;
         },
 
         /**
@@ -368,9 +358,12 @@
             var self    = this;
 
             if (self.destroyEl) {
-                self.el.remove();
-                self.el     = null;
-                self.dom    = null;
+
+                if (self.node.parentNode) {
+                    self.node.parentNode.removeChild(self.node);
+                }
+
+                self.node   = null;
             }
 
             self.supr();
@@ -422,10 +415,8 @@
                     return false;
                 }
 
-                cfg.el      = o;
-                cfg.dom     = this;
-
-                cmp     = MetaphorJs.create(name, cfg);
+                cfg.node    = this;
+                cmp         = MetaphorJs.create(name, cfg);
 
                 return false;
             });

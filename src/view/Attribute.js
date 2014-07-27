@@ -2,33 +2,35 @@
 
 (function(){
 
-    var Scope   = MetaphorJs.view.Scope,
-        trim    = MetaphorJs.trim,
-        bind    = MetaphorJs.bind,
-        nextUid = MetaphorJs.nextUid,
-        dc      = MetaphorJs.dc,
-        r       = MetaphorJs.r,
-        g       = MetaphorJs.g,
-        $       = window.jQuery,
-        Watchable   = MetaphorJs.lib.Watchable,
-        Renderer    = MetaphorJs.view.Renderer;
+    var Scope           = MetaphorJs.view.Scope,
+        trim            = MetaphorJs.trim,
+        bind            = MetaphorJs.bind,
+        dc              = MetaphorJs.defineCache,
+        r               = MetaphorJs.ns.register,
+        g               = MetaphorJs.ns.get,
+        Watchable       = MetaphorJs.lib.Watchable,
+        Renderer        = MetaphorJs.view.Renderer,
+        dataFn          = MetaphorJs.data,
+        toArray         = MetaphorJs.toArray,
+        addListener     = MetaphorJs.addListener,
+        removeListener  = MetaphorJs.removeListener;
 
 
     var parentData  = function(node, key) {
 
-        var el  = $(node),
-            val;
+        var val;
 
-        while (el && el.length) {
-            val = el.data(key);
+        while (node) {
+            val = dataFn(node ,key);
             if (val != undefined) {
                 return val;
             }
-            el  = el.parent();
+            node  = node.parentNode;
         }
 
         return undefined;
     };
+
 
 
     MetaphorJs.d("MetaphorJs.view.AttributeHandler", {
@@ -111,12 +113,12 @@
 
     dc("attr.mjs-model", "MetaphorJs.view.AttributeHandler", {
 
-        el: null,
+        //el: null,
         inProg: false,
         type: null,
         inputType: null,
         radio: null,
-        listenerHash: null,
+        listeners: null,
 
         initialize: function(scope, node, expr, attrs) {
 
@@ -124,10 +126,12 @@
                 type;
 
 
-            self.listenerHash   = nextUid();
             self.node           = node;
-            self.el             = $(node);
             self.inputType      = type = node.type.toLowerCase();
+            self.listeners      = [];
+
+            self.onRadioInputChangeDelegate     = bind(self.onRadioInputChange, self);
+            self.onCheckboxInputChangeDelegate  = bind(self.onCheckboxInputChange, self);
 
             if (type == "radio") {
                 self.initRadioInput();
@@ -145,14 +149,22 @@
 
         onScopeDestroy: function() {
 
-            var self    = this,
-                type    = self.type;
+            var self        = this,
+                type        = self.type,
+                listeners   = self.listeners,
+                radio       = self.radio,
+                i, ilen,
+                j, jlen;
 
-            if (type == "radio") {
-                self.radio.unbind("." + self.listenerHash);
-            }
-            else {
-                self.el.unbind("." + self.listenerHash);
+            for (i = 0, ilen = listeners.length; i < ilen; i++) {
+                if (type == "radio") {
+                    for (j = 0, jlen = radio.length; j < jlen; j++) {
+                        removeListener(radio[j], listeners[i][0], listeners[i][1]);
+                    }
+                }
+                else {
+                    removeListener(self.node, listeners[i][0], listeners[i][1]);
+                }
             }
 
             delete self.radio;
@@ -164,22 +176,24 @@
         initRadioInput: function() {
 
             var self    = this,
-                name    = self.node.name;
+                name    = self.node.name,
+                radio,
+                i, len;
 
-            self.radio  = $("input[name="+name+"]");
+            self.radio  = radio = toArray(document.querySelectorAll("input[name="+name+"]"));
+            self.listeners.push(["click", self.onRadioInputChangeDelegate]);
 
-            self.radio.bind("click." + self.listenerHash, function(e){
-                self.onRadioInputChange(e);
-            });
+            for (i = 0, len = radio.length; i < len; i++) {
+                addListener(radio[i], "click", self.onRadioInputChangeDelegate);
+            }
         },
 
         initCheckboxInput: function() {
 
             var self    = this;
 
-            self.el.bind("click." + self.listenerHash, function(e){
-                self.onCheckboxInputChange(e);
-            });
+            self.listeners.push(["click", self.onCheckboxInputChangeDelegate]);
+            addListener(self.node, "click", self.onCheckboxInputChangeDelegate);
         },
 
         initTextInput: function() {
@@ -187,8 +201,8 @@
             var browser     = MetaphorJs.browser,
                 composing   = false,
                 self        = this,
-                el          = self.el,
-                lhash       = self.listenerHash,
+                node        = self.node,
+                listeners   = self.listeners,
                 timeout;
 
             // In composition mode, users are still inputing intermediate text buffer,
@@ -196,14 +210,20 @@
             // More about composition events: https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent
             if (!browser.android) {
 
-                el.bind('compositionstart.' + lhash, function() {
+                var compositionStart    = function() {
                     composing = true;
-                });
+                };
 
-                el.bind('compositionend.' + lhash, function() {
+                var compositionEnd  = function() {
                     composing = false;
                     listener();
-                });
+                };
+
+                listeners.push(["compositionstart", compositionStart]);
+                listeners.push(["compositionend", compositionEnd]);
+
+                addListener(node, "compositionstart", compositionStart);
+                addListener(node, "compositionend", compositionEnd);
             }
 
             var listener = self.onTextInputChangeDelegate = function() {
@@ -216,7 +236,8 @@
             // if the browser does support "input" event, we are fine - except on IE9 which doesn't fire the
             // input event on backspace, delete or cut
             if (browser.hasEvent('input')) {
-                el.bind('input.' + lhash, listener);
+                listeners.push(["input", listener]);
+                addListener(node, "input", listener);
 
             } else {
 
@@ -229,7 +250,7 @@
                     }
                 };
 
-                el.bind('keydown.' + lhash, function(event) {
+                var keydown = function(event) {
                     var key = event.keyCode;
 
                     // ignore
@@ -239,25 +260,33 @@
                     }
 
                     deferListener(event);
-                });
+                };
+
+                listeners.push(["keydown", keydown]);
+                addListener(node, "keydown", keydown);
 
                 // if user modifies input value using context menu in IE, we need "paste" and "cut" events to catch it
                 if (browser.hasEvent('paste')) {
-                    el.bind('paste.' + lhash, deferListener);
-                    el.bind('cut.' + lhash, deferListener);
+
+                    listeners.push(["paste", deferListener]);
+                    listeners.push(["cut", deferListener]);
+
+                    addListener(node, "paste", deferListener);
+                    addListener(node, "cut", deferListener);
                 }
             }
 
             // if user paste into input using mouse on older browser
             // or form autocomplete on newer browser, we need "change" event to catch it
-            el.bind('change.' + lhash, listener);
 
+            listeners.push(["change", listener]);
+            addListener(node, "change", listener);
         },
 
         onTextInputChange: function() {
 
             var self    = this,
-                val     = self.el.val(),
+                val     = self.node.value,
                 scope   = self.scope;
 
             switch (self.inputType) {
@@ -319,25 +348,30 @@
 
             var self    = this,
                 val     = self.watcher.getLastResult(),
-                type    = self.inputType;
+                type    = self.inputType,
+                i, len,
+                radio;
 
             if (!self.inProg) {
 
 
                 if (type == "radio") {
-                    self.radio.each(function(inx, node){
-                        if (node.value == val) {
-                            node.checked = true;
-                            return false;
+
+                    radio = self.radio;
+
+                    for (i = 0, len = radio.length; i < len; i++) {
+                        if (radio[i].value == val) {
+                            radio[i].checked = true;
+                            break;
                         }
-                    });
+                    }
                 }
                 else if (type == "checkbox") {
                     var node    = self.node;
                     node.checked    = val === true || val == node.value;
                 }
                 else {
-                    self.el.val(val);
+                    MetaphorJs.setValue(self.node, val);
                 }
             }
         }
@@ -347,20 +381,51 @@
     dc("attr.mjs-show", "MetaphorJs.view.AttributeHandler", {
 
         display: null,
+        animate: false,
+        attrs: null,
 
         initialize: function(scope, node, expr, attrs) {
 
             var self    = this;
 
+            self.attrs      = attrs;
             self.display    = node.style.display || "block";
+
+            if (self.display == "none") {
+                self.display = "block";
+            }
+
             self.supr(scope, node, expr, attrs);
+        },
+
+        runAnimation: function(show) {
+
+            var self    = this;
+
+            if (show) {
+                self.node.style.display = self.display;
+            }
+
+            MetaphorJs.animate(
+                self.node,
+                show ? "show" : "hide",
+                self.attrs,
+                function() {
+                    if (!show) {
+                        self.node.style.display = "none";
+                    }
+                    else {
+                        self.node.style.display = self.display;
+                    }
+                }
+            );
         },
 
         onChange: function() {
             var self    = this,
                 val     = self.watcher.getLastResult();
 
-            self.node.style.display = val ? self.display : "none";
+            self.runAnimation(val);
         }
     });
 
@@ -370,7 +435,7 @@
             var self    = this,
                 val     = self.watcher.getLastResult();
 
-            self.node.style.display = !val ? self.display : "none";
+            self.runAnimation(!val);
         }
     });
 
@@ -379,14 +444,15 @@
         parentEl: null,
         prevEl: null,
         el: null,
+        attrs: null,
 
         initialize: function(scope, node, expr, attrs) {
 
             var self    = this;
 
-            self.prevEl     = node.previousSibling ? $(node.previousSibling) : null;
-            self.parentEl   = $(node.parentNode);
-            self.el         = $(node);
+            self.attrs      = attrs;
+            self.parentEl   = node.parentNode;
+            self.prevEl     = node.previousSibling;
 
             self.supr(scope, node, expr, attrs);
         },
@@ -403,18 +469,27 @@
 
         onChange: function() {
             var self    = this,
-                val     = self.watcher.getLastResult();
+                val     = self.watcher.getLastResult(),
+                parent  = self.parentEl,
+                node    = self.node;
 
             if (val) {
-                if (self.prevEl) {
-                    self.el.insertAfter(self.prevEl);
-                }
-                else {
-                    self.parentEl.append(self.el);
+                if (!node.parentNode) {
+                    if (self.prevEl) {
+                        parent.insertBefore(node, self.prevEl ? self.prevEl.nextSibling : null);
+                    }
+                    else {
+                        parent.appendChild(node);
+                    }
+                    MetaphorJs.animate(node, "enter", self.attrs);
                 }
             }
             else {
-                self.el.remove();
+                if (node.parentNode) {
+                    MetaphorJs.animate(node, "leave", self.attrs, function(){
+                        parent.removeChild(node);
+                    });
+                }
             }
         }
     });
@@ -429,19 +504,19 @@
         renderers: null,
         parentEl: null,
         prevEl: null,
+        nextEl: null,
 
         initialize: function(scope, node, expr, attrs) {
 
-            var self    = this,
-                tpl;
+            var self    = this;
 
             self.parseExpr(expr);
 
-            //self.list       = scope[self.model];
-            self.tpl        = tpl = $(node);
+            self.tpl        = node;
             self.renderers  = [];
-            self.prevEl     = node.previousSibling ? $(node.previousSibling) : null;
-            self.parentEl   = $(node.parentNode);
+            self.prevEl     = node.previousSibling;
+            self.nextEl     = node.nextSibling;
+            self.parentEl   = node.parentNode;
 
             self.node       = node;
             self.scope      = scope;
@@ -449,9 +524,9 @@
             self.list       = self.watcher.getValue();
             self.watcher.addListener(self.onChange, self);
 
-            tpl.remove();
-            tpl.removeAttr("mjs-each");
-            tpl.removeAttr("mjs-include");
+            self.parentEl.removeChild(node);
+            node.removeAttribute("mjs-each");
+            node.removeAttribute("mjs-include");
 
             self.render();
         },
@@ -470,6 +545,7 @@
             delete self.renderers;
             delete self.tpl;
             delete self.prevEl;
+            delete self.nextEl;
             delete self.parentEl;
 
             self.supr();
@@ -482,23 +558,16 @@
                 renderers   = self.renderers,
                 Renderer    = MetaphorJs.view.Renderer,
                 tpl         = self.tpl,
+                parent      = self.parentEl,
+                next        = self.nextEl,
                 el,
-                prev,
                 i, len;
 
             for (i = 0, len = list.length; i < len; i++) {
 
-                el          = tpl.clone();
+                el          = tpl.cloneNode(true);
 
-                if (i == 0) {
-                    self.prevEl ? el.insertAfter(self.prevEl) : self.parentEl.append(el);
-                }
-                else {
-                    el.insertAfter(prev);
-                }
-
-                prev        = el;
-
+                parent.insertBefore(el, next);
                 renderers.push(self.createItem(el, Renderer, i));
             }
         },
@@ -524,7 +593,7 @@
 
             itemScope.$index    = index;
             itemScope[iname]    = list[index];
-            renderer            = new Renderer(el.get(0), itemScope);
+            renderer            = new Renderer(el, itemScope);
             renderer.render();
 
             return {
@@ -542,6 +611,7 @@
                 tpl         = self.tpl,
                 Renderer    = MetaphorJs.view.Renderer,
                 index       = 0,
+                parent      = self.parentEl,
                 el,
                 i, len,
                 r,
@@ -551,9 +621,7 @@
                 action = prs[i];
 
                 if (action == '-') {
-                    //if (renderers[i]) {
-                        renderers[index].scope.$index = index;
-                    //}
+                    renderers[index].scope.$index = index;
                     index++;
                     continue;
                 }
@@ -567,19 +635,27 @@
                     }
 
                     r.renderer.destroy();
-                    r.el.remove();
+
+                    parent.removeChild(r.el);
                 }
 
                 if (action == 'D') {
                     renderers.splice(i, 1);
                 }
                 else {
-                    el  = tpl.clone();
+
+                    el  = tpl.cloneNode(true);
+
                     if (i > 0) {
-                        el.insertAfter(renderers[i-1].el);
+                        parent.insertBefore(el, renderers[i - 1].el.nextSibling);
                     }
                     else {
-                        self.prevEl ? el.insertAfter(self.prevEl) : self.parentEl.append(el);
+                        if (self.prevEl) {
+                            parent.insertBefore(el, self.prevEl.nextSibling);
+                        }
+                        else {
+                            parent.appendChild(el);
+                        }
                     }
                     if (action == 'R') {
                         renderers[i] = self.createItem(el, Renderer, index);
@@ -641,7 +717,6 @@
         watcher: null,
         scope: null,
         node: null,
-        el: null,
         expr: null,
         tpl: null,
         renderer: null,
@@ -651,17 +726,17 @@
 
             var self    = this,
                 contents,
-                tpl,
-                el;
+                tpl;
 
             self.node   = node;
-            self.el     = el = $(node);
             self.scope  = scope;
 
-            contents    = $(node.childNodes);
+            contents    = toArray(node.childNodes);
             if (contents.length) {
-                contents.remove();
-                el.data("mjs-transclude", contents);
+                while (node.firstChild) {
+                    node.removeChild(node.firstChild);
+                }
+                dataFn(node, "mjs-transclude", contents);
             }
 
             node.removeAttribute("mjs-include");
@@ -669,7 +744,7 @@
             tpl         = getTemplate(tplExpr);
 
             if (tpl) {
-                self.applyTemplate(el, tpl);
+                self.applyTemplate(node, tpl);
             }
             else {
                 self.watcher    = Watchable.create(scope, tplExpr);
@@ -688,22 +763,26 @@
         onChange: function() {
 
             var self    = this,
-                tplId   = self.watcher.getLastResult(),
-                el      = self.el;
+                tplId   = self.watcher.getLastResult();
 
             if (self.renderer) {
                 self.renderer.destroy();
             }
 
-            self.applyTemplate(el, getTemplate(tplId));
+            self.applyTemplate(self.node, getTemplate(tplId));
 
             self.renderer   = new Renderer(self.node, self.scope);
             self.renderer.render();
         },
 
         applyTemplate: function(el, tpl) {
-            el.empty();
-            el.append(tpl.clone());
+            while (el.firstChild) {
+                el.removeChild(el.firstChild);
+            }
+            var i, len, clone = MetaphorJs.clone(tpl);
+            for (i = 0, len = clone.length; i < len; i++) {
+                el.appendChild(clone[i]);
+            }
         },
 
         onParentRendererDestroy: function() {
@@ -727,7 +806,7 @@
 
             delete self.node;
             delete self.scope;
-            delete self.el;
+            //delete self.el;
 
             if (self.watcher) {
                 self.watcher.unsubscribeAndDestroy(self.onChange, self);
@@ -742,77 +821,99 @@
     r("tag.mjs-include", function(scope, node) {
 
         var tplId       = node.attributes['src'].value,
-            clone       = getTemplate(tplId).clone(),
-            el          = $(node),
-            contents    = $(node.childNodes);
+            tpl         = getTemplate(tplId),
+            contents    = toArray(node.childNodes);
 
         if (contents.length) {
-            contents.remove();
-            el.data("mjs-transclude", contents);
+            while (node.firstChild) {
+                node.removeChild(node.firstChild);
+            }
+            dataFn(node, "mjs-transclude", contents);
         }
 
-        el.replaceWith(clone);
-        return clone.length < 2 ? clone.get(0) : clone.toArray();
+        var parent  = node.parentNode,
+            next    = node.nextSibling,
+            clone   = MetaphorJs.clone(tpl),
+            i, len;
+
+        parent.removeChild(node);
+
+        for (i = 0, len = clone.length; i < len; i++) {
+            parent.insertBefore(clone[i], next);
+        }
+
+        return clone;
     });
 
     g("tag.mjs-include").$breakRenderer = true;
 
     r("attr.mjs-transclude", function(scope, node) {
 
-        var el          = $(node),
-            contents    = $(node.childNodes),
+        var contents    = toArray(node.childNodes),
             transclude  = parentData(node, 'mjs-transclude');
 
         if (transclude) {
 
-            if (contents.length) {
-                contents.remove();
-                el.data("mjs-transclude", contents);
+            while (node.firstChild) {
+                node.removeChild(node.firstChild);
             }
 
-            el.empty();
-            el.append(transclude.clone());
+            if (contents.length) {
+                dataFn(node, "mjs-transclude", contents);
+            }
+
+            var parent  = node.parentNode,
+                next    = node.nextSibling,
+                clone   = MetaphorJs.clone(transclude),
+                i, len;
+
+            parent.removeChild(node);
+
+            for (i = 0, len = clone.length; i < len; i++) {
+                parent.insertBefore(clone[i], next);
+            }
+
+            return clone;
         }
     });
 
     r("tag.mjs-transclude", function(scope, node) {
 
-        var el          = $(node),
-            contents    = $(node.childNodes),
+        var contents    = toArray(node.childNodes),
             transclude  = parentData(node, 'mjs-transclude');
 
         if (transclude) {
 
             if (contents.length) {
-                contents.remove();
-                el.data("mjs-transclude", contents);
+                while (node.firstChild) {
+                    node.removeChild(node.firstChild);
+                }
+                dataFn(node, "mjs-transclude", contents);
             }
 
-            el.replaceWith(transclude.clone());
+            var parent  = node.parentNode,
+                next    = node.nextSibling,
+                clone   = MetaphorJs.clone(transclude),
+                i, len;
+
+            parent.removeChild(node);
+
+            for (i = 0, len = clone.length; i < len; i++) {
+                parent.insertBefore(clone[i], next);
+            }
         }
     });
 
     dc("attr.mjs-class", "MetaphorJs.view.AttributeHandler", {
-
-        el: null,
-
-        initialize: function(scope, node, expr, attrs) {
-
-            var self    = this;
-
-            self.el     = $(node);
-            self.supr(scope, node, expr, attrs);
-        },
-
         onChange: function() {
 
             var self    = this,
-                el      = self.el,
+                node    = self.node,
                 clss    = self.watcher.getLastResult(),
                 i;
 
             for (i in clss) {
-                el[clss[i] ? "addClass" : "removeClass"](i);
+                MetaphorJs[clss[i] ? "addClass" : "removeClass"](node, i);
             }
         }
     });
@@ -829,7 +930,7 @@
 
                 var fn  = createFn(expr);
 
-                $(node).bind(name, function(e){
+                addListener(node, name, function(e){
 
                     scope.$event = e;
 

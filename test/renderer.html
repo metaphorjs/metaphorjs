@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="jquery-1.11.0.min.js"></script>
+    <!--<script src="jquery-1.11.0.min.js"></script>-->
+    <script src="numeral.min.js"></script>
+    <script src="moment.min.js"></script>
     <script src="../src/MetaphorJs.js"></script>
     <script src="../src/lib/Namespace.js"></script>
     <script src="../src/lib/Class.js"></script>
+    <script src="../src/lib/Value.js"></script>
     <script src="../../observable/metaphorjs.observable.js"></script>
     <script src="../../watchable/metaphorjs.watchable.js"></script>
     <script src="../src/cmp/Base.js"></script>
@@ -17,6 +20,7 @@
     <script src="../src/cmp/Component.js"></script>
     <script src="../src/view/Attribute.js"></script>
     <script src="../src/view/Filter.js"></script>
+    <script src="../src/view/Animate.js"></script>
 
     <style>
 
@@ -40,6 +44,27 @@
             width: 50%;
             float: left;
         }
+
+
+        .mjs-show {
+            opacity: 0;
+        }
+        .mjs-hide {
+            opacity: 1;
+        }
+        .mjs-show-active, .mjs-hide-active {
+            -webkit-transition:  opacity 0.4s;
+            -moz-transition:  opacity 0.4s;
+            -o-transition:   opacity 0.4s;
+            transition:  opacity 0.4s;
+        }
+        .mjs-show-active {
+            opacity: 1;
+        }
+        .mjs-hide-active {
+            opacity: 0;
+        }
+
 
     </style>
 </head>
@@ -78,7 +103,10 @@
 
             <div class="menu" mjs-bind-html=".subtext"></div>
             <p>
-                Here is some {{ .text }} <span> and {{.subtext}}</span> <sup>{{ .text }}</sup><sub> {{ .bool ? "true" : "false" }}</sub>
+                Here is some {{ .text }} <span> and {{.subtext}}</span> <sup>{{ .text }}</sup>
+                <sub> {{ .bool ? "true" : "false" }}</sub>
+                <span>{{ .num | numeral:0,00.0000}}</span>
+                <span>{{ .date | moment:LLL}}</span>
             </p>
             <p mjs-class="{cls1: .bool, cls2: .a == 0}">
                 {{ .a + .b }}
@@ -98,7 +126,7 @@
                    mjs-click=".list.push({bool: false, txt: .newItem}); .newItem = '';"
                    value="Add item"/>
 
-            <ul mjs-show=".bool">
+            <ul mjs-show=".bool" mjs-animate>
                 <li mjs-each="item in .list">
                     <label mjs-class="{cls3: .item.bool}">
                         <input type="checkbox" mjs-model=".item.bool"/>{{.$index}} - {{.item.txt}}</label>
@@ -106,7 +134,7 @@
                 </li>
             </ul>
 
-            <div mjs-include="test-template" mjs-hide="!.bool">
+            <div mjs-include="test-template" mjs-hide="!.bool" mjs-animate>
                 <p>transcluded text</p>
             </div>
 
@@ -125,7 +153,7 @@
                 <p>This is another instance</p>
             </div>
 
-            <div mjs-cmp="Test.TplComponent as ctrl">
+            <div mjs-cmp="Test.TplComponent as ctrl" mjs-if=".bool" mjs-animate>
                 <h2>{{ .title }}</h2>
                 <a href="#" mjs-click=".tpl='a+b'">a + b</a> | <a href="#" mjs-click=".tpl='a*b'">a * b</a>
 
@@ -136,7 +164,7 @@
 
     <script>
 
-        $(function(){
+        MetaphorJs.onReady(function(){
 
 
             MetaphorJs.d("Test.MyComponent", "MetaphorJs.cmp.Component", {
@@ -173,6 +201,8 @@
                 b: 2,
                 bool: true,
                 newItem: "",
+                date: new Date,
+                num: 10000,
                 list: [
                     {bool: true, txt: "item 1"},
                     {bool: false, txt: "item 2"},

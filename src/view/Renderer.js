@@ -9,11 +9,30 @@
         Scope       = MetaphorJs.view.Scope,
         Watchable   = MetaphorJs.lib.Watchable,
         Observable  = MetaphorJs.lib.Observable,
+        toArray     = MetaphorJs.toArray,
         Renderer;
+
+
+    var getAttributeMap = function(el) {
+
+        var attrs   = el.attributes,
+            map     = {},
+            i, len;
+
+        for (i = 0, len = attrs.length; i < len; i++) {
+            map[attrs[i].name] = attrs[i];
+        }
+
+        map.getValue = function(attr) {
+            return this[attr] ? this[attr].value : undefined;
+        };
+
+        return map;
+    };
 
     var eachNode = function(el, fn, fnScope) {
 
-        var children,
+        var children = [],
             len, i, res;
 
         if ((res = fn.call(fnScope || window, el)) !== false) {
@@ -24,13 +43,14 @@
                     return;
                 }
                 else {
-                    el = {
-                        childNodes: res
-                    };
+                    children = toArray(res);
                 }
             }
 
-            children = slice.call(el.childNodes);
+            if (!children.length) {
+                children    = toArray(el.childNodes);
+            }
+
             for (i = 0, len = children.length; i < len; i++) {
                 if (children[i]) {
                     eachNode(children[i], fn, fnScope);
@@ -165,8 +185,8 @@
                 // element node
                 else if (nodeType == 1) {
 
-                    var attrs   = node.attributes,
-                        len     = attrs.length,
+                    var attrs   = getAttributeMap(node),
+                        //len     = attrs.length,
                         tag     = node.tagName.toLowerCase(),
                         i, f,
                         name,
@@ -182,8 +202,10 @@
                         }
                     }
 
-                    for (i = 0, len; i < len; i++) {
-                        name    = attrs[i].name;
+                    //for (i = 0, len; i < len; i++) {
+                    for (i in attrs) {
+                        //name    = attrs[i].name;
+                        name    = i;
                         n       = "attr." + name;
 
                         if (f = g(n, true)) {
@@ -194,7 +216,7 @@
                                 return res;
                             }
                         }
-                        else {
+                        else if (attrs[i].value) {
                             self.texts[inx] = txt = {
                                 watchers:   [],
                                 node:       node,
@@ -348,7 +370,7 @@
                 for (j = 0; j < jlen; j++) {
                     args    = pipes[j][1].slice();
                     args.unshift(val);
-                    val     = g("filter." + pipes[j][0], true).apply(window, args);
+                    val     = g("filter." + pipes[j][0], true).apply(text.node, args);
                 }
                 tpl     = tpl.replace('---' + i + '---', val);
             }

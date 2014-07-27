@@ -1,7 +1,9 @@
 
 (function(){
 
-    var add     = MetaphorJs.add;
+    var add     = MetaphorJs.add,
+        nf      = MetaphorJs.numberFormats,
+        df      = MetaphorJs.dateFormats;
 
     add("filter.toUpper", function(val){
         return val.toUpperCase();
@@ -56,5 +58,14 @@
     add("filter.ucfirst", function(val){
         return val.substr(0, 1).toUpperCase() + val.substr(1);
     });
-
+    add("filter.numeral", function(val, format) {
+        format  = format || this.getAttribute("mjs-numeral-format");
+        format  = nf[format] || format;
+        return numeral(val).format(format);
+    });
+    add("filter.moment", function(val, format) {
+        format  = format || this.getAttribute("mjs-moment-format");
+        format  = df[format] || format;
+        return moment(val).format(format);
+    });
 }());

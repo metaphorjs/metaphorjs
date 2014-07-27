@@ -2,7 +2,28 @@
 
     "use strict";
 
+
+    // querySelectorAll polyfill
+    if (!document.querySelectorAll) {
+        document.querySelectorAll = function(selector) {
+            var doc = document,
+                head = doc.documentElement.firstChild,
+                styleTag = doc.createElement('STYLE');
+            head.appendChild(styleTag);
+            doc.__qsaels = [];
+
+            styleTag.sheet.insertRule(selector + "{x:expression(document.__qsaels.push(this))}", 0);
+            window.scrollBy(0, 0);
+
+            return doc.__qsaels;
+        };
+    }
+
+
+
     var undef   = {}.undefined,
+
+    dataCache   = {},
 
     /**
      * @function MetaphorJs.apply
@@ -32,6 +53,7 @@
 
     uid = ['0', '0', '0'],
 
+    // from AngularJs
     nextUid  = function() {
         var index = uid.length;
         var digit;
@@ -56,6 +78,11 @@
 
     tplCache = {},
 
+    toArray = function(list) {
+        for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]);
+        return a;
+    },
+
     getTemplate = function(tplId) {
 
         if (!tplCache[tplId]) {
@@ -67,10 +94,22 @@
             }
 
             tag         = tplNode.tagName.toLowerCase();
-            tplCache[tplId] = tag == "script" ? $(tplNode.innerHTML) : $(tplNode.childNodes);
+
+            if (tag == "script") {
+                var div = document.createElement("div");
+                div.innerHTML = tplNode.innerHTML;
+                tplCache[tplId] = toArray(div.childNodes);
+            }
+            else {
+                tplCache[tplId] = toArray(tplNode.childNodes);
+            }
         }
 
         return tplCache[tplId];
+    },
+
+    getNodeId = function(el) {
+        return el._mjsId || (el._mjsId = nextUid());
     };
 
 
@@ -91,6 +130,27 @@
         nextUid:    nextUid,
 
         getTemplate: getTemplate,
+
+        numberFormats: {},
+        dateFormats: {},
+
+        getNodeId: getNodeId,
+
+        data: function(el, key, value) {
+            var id  = getNodeId(el),
+                obj = dataCache[id];
+
+            if (value != undef) {
+                if (!obj) {
+                    obj = dataCache[id] = {};
+                }
+                obj[key] = value;
+                return value;
+            }
+            else {
+                return obj ? obj[key] : undef;
+            }
+        },
 
         /**
          * Empty function. Used for callback placeholders
@@ -117,6 +177,10 @@
             }
         },
 
+        inArray: function(val, arr) {
+            return arr ? Array.prototype.indexOf.call(arr, val) : -1;
+        },
+
         isArray: function(value) {
             return value && typeof value == 'object' && typeof value.length == 'number' &&
                 toString.call(value) == '[object Array]' || false;
@@ -140,7 +204,109 @@
             }
 
             return true;
-        }
+        },
+
+        clone: function(node) {
+
+            if (this.isArray(node)) {
+                var i, len, clone = [];
+                for (i = 0, len = node.length; i < len; i++) {
+                    clone.push(this.clone(node[i]));
+                }
+                return clone;
+            }
+            else {
+                switch (node.nodeType) {
+                    case 1:
+                        return node.cloneNode(true);
+                    case 3:
+                        return document.createTextNode(node.innerText || node.textContent);
+                    default:
+                        return null;
+                }
+            }
+        },
+
+        addListener: function(el, event, func) {
+            if (el.addEventListener) {
+                el.addEventListener(event, func, false);
+            } else if (el.attachEvent)  {
+                el.attachEvent('on' + event, func);
+            }
+        },
+
+        removeListener: function(el, event, func) {
+            if (el.removeEventListener) {
+                el.removeEventListener(event, func);
+            } else if (el.detachEvent)  {
+                el.detachEvent('on' + event, func);
+            }
+        },
+
+        addClass: function(el, cls) {
+            var reg = new RegExp('(?:^|\\s)'+cls+'(?!\\S)', 'g');
+            if (!reg.test(el.className)) {
+                el.className += " " + cls;
+            }
+        },
+        removeClass: function(el, cls) {
+            var reg = new RegExp('(?:^|\\s)'+cls+'(?!\\S)', 'g');
+            el.className = el.className.replace(reg, '');
+        },
+
+        isVisible: function(el) {
+            return !(el.offsetWidth <= 0 || el.offsetHeight <= 0);
+        },
+
+        onReady: function(fn) {
+
+            var done    = false,
+                top     = true,
+                add     = MetaphorJs.addListener,
+                rem     = MetaphorJs.removeListener,
+                win     = window,
+                doc     = win.document,
+                root    = doc.documentElement,
+
+                init    = function(e) {
+                    if (e.type == 'readystatechange' && doc.readyState != 'complete') {
+                        return;
+                    }
+
+                    rem(e.type == 'load' ? win : doc, e.type, init);
+
+                    if (!done && (done = true)) {
+                        fn.call(win, e.type || e);
+                    }
+                },
+
+                poll = function() {
+                    try {
+                        root.doScroll('left');
+                    } catch(e) {
+                        setTimeout(poll, 50);
+                        return;
+                    }
+
+                    init('poll');
+                };
+
+            if (doc.readyState == 'complete') {
+                fn.call(win, 'lazy');
+            }
+            else {
+                if (doc.createEventObject && root.doScroll) {
+                    try { top = !win.frameElement; } catch(e) { }
+                    if (top) poll();
+                }
+                add(doc, 'DOMContentLoaded', init);
+                add(doc, 'readystatechange', init);
+                add(win, 'load', init);
+            }
+
+        },
+
+        toArray: toArray
     };
 
     if (window.MetaphorJs) {
