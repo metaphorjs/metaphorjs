@@ -31,7 +31,8 @@
 
             try {
                 ret     = fn.apply(this, arguments);
-            } finally {}
+            }
+            catch(e) {}
 
             this.supr   = prev;
             return ret;
@@ -144,6 +145,10 @@
 
         var mns = MetaphorJs.ns;
 
+        if (ns === null) {
+            ns = "";
+        }
+
         // constructor as first argument
         if (typeof ns == "function") {
 
@@ -194,9 +199,12 @@
 
         var c   = pConstructor ? extend(pConstructor, definition, constructor) : create(definition, constructor);
 
+        c.__isMetaphorClass = true;
         c.__parent          = pConstructor;
         c.__parentClass     = pConstructor ? pConstructor.__class : null;
         c.__class           = ns;
+
+
 
         if (statics) {
             for (var k in statics) {

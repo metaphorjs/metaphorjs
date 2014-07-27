@@ -92,7 +92,7 @@
 
             return duration;
         },
-        animationStage  = function animationStage(el, stages, position, endCallback) {
+        animationStage  = function animationStage(el, stages, position, startCallback, endCallback) {
 
             var finishStage = function() {
                 removeClass(el, stages[position]);
@@ -111,6 +111,8 @@
             animFrame(function(){
                 addClass(el, stages[position]);
 
+                startCallback && startCallback();
+
                 animFrame(function(){
                     addClass(el, stages[position] + "-active");
                     var duration = getAnimationDuration(el);
@@ -127,10 +129,10 @@
         removeClass = MetaphorJs.removeClass;
 
 
-    MetaphorJs.animate = function animate(el, stages, attrMap, endCallback) {
+    MetaphorJs.animate = function animate(el, stages, startCallback, endCallback) {
 
-        var animate = attrMap.getValue('mjs-animate'),
-            js      = attrMap.getValue('mjs-animate-js'),
+        var animate = el.getAttribute('mjs-animate'),
+            js      = el.getAttribute('mjs-animate-js'),
             jsName,
             jsFn;
 
@@ -144,13 +146,14 @@
         }
 
         if (animate != undefined && cssAnimations && stages) {
-            animationStage(el, stages, 0, endCallback);
+            animationStage(el, stages, 0, startCallback, endCallback);
         }
         else if ((jsName = js || animate) && (jsFn = g("animate." + jsName, true))) {
-            jsFn(el, endCallback)
+            jsFn(el, startCallback, endCallback)
         }
-        else if (endCallback) {
-            endCallback();
+        else  {
+            startCallback && startCallback();
+            endCallback && endCallback();
         }
     };
 

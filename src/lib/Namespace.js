@@ -84,6 +84,8 @@
 
         parent[name]    = fn;
         cache[ns]       = fn;
+
+        return fn;
     };
 
     /**
@@ -104,6 +106,7 @@
      */
     var add = function(ns, c) {
         cache[ns] = c;
+        return c;
     };
 
     register("MetaphorJs.ns", {

@@ -1,34 +1,21 @@
 
 (function(){
 
-    var startSymbol = '{{',
-        endSymbol   = '}}',
-        startSymbolLength   = 2,
-        endSymbolLength = 2,
-        slice       = Array.prototype.slice,
-        Scope       = MetaphorJs.view.Scope,
-        Watchable   = MetaphorJs.lib.Watchable,
-        Observable  = MetaphorJs.lib.Observable,
-        toArray     = MetaphorJs.toArray,
-        Renderer;
+    var startSymbol             = '{{',
+        endSymbol               = '}}',
+        startSymbolLength       = 2,
+        endSymbolLength         = 2,
+        Scope                   = MetaphorJs.view.Scope,
+        Watchable               = MetaphorJs.lib.Watchable,
+        Observable              = MetaphorJs.lib.Observable,
+        toArray                 = MetaphorJs.toArray,
+        getAttributeHandlers    = MetaphorJs.getAttributeHandlers,
+        Renderer,
+        textProp                = function(){
+            var node    = document.createTextNode("");
+            return typeof node.textContent == "string" ? "textContent" : "nodeValue";
+        }();
 
-
-    var getAttributeMap = function(el) {
-
-        var attrs   = el.attributes,
-            map     = {},
-            i, len;
-
-        for (i = 0, len = attrs.length; i < len; i++) {
-            map[attrs[i].name] = attrs[i];
-        }
-
-        map.getValue = function(attr) {
-            return this[attr] ? this[attr].value : undefined;
-        };
-
-        return map;
-    };
 
     var eachNode = function(el, fn, fnScope) {
 
@@ -111,12 +98,13 @@
             return this.el;
         },
 
-        runHandler: function(f, parentScope, node, value, attrs) {
+        runHandler: function(f, parentScope, node, value) {
 
-            var scope, inst;
+            var scope, inst,
+                self    = this;
 
             if (f.$breakRenderer && !this._doNotBreak) {
-                var r = this.createChild(node);
+                var r = self.createChild(node);
                 r.render();
                 return false;
             }
@@ -138,15 +126,15 @@
                 scope = parentScope;
             }
 
-            if (f.__class) {
-                inst = new f(scope, node, value, attrs, this);
+            if (f.__isMetaphorClass) {
+                inst = new f(scope, node, value, self);
 
                 if (f.$stopRenderer || inst.$stopRenderer) {
                     return false;
                 }
             }
             else {
-                return f(scope, node, value, attrs, this);
+                return f(scope, node, value, self);
             }
 
             return null;
@@ -175,7 +163,7 @@
                         text:       ""
                     };
 
-                    txt.text    = self.processText(node.textContent);
+                    txt.text    = self.processText(node[textProp]);
 
                     if (txt.watchers.length > 0) {
                         inx++;
@@ -185,10 +173,10 @@
                 // element node
                 else if (nodeType == 1) {
 
-                    var attrs   = getAttributeMap(node),
-                        //len     = attrs.length,
+                    var attrs   = node.attributes,
+                        ah      = getAttributeHandlers(),
                         tag     = node.tagName.toLowerCase(),
-                        i, f,
+                        i, f, len,
                         name,
                         res;
 
@@ -202,21 +190,24 @@
                         }
                     }
 
-                    //for (i = 0, len; i < len; i++) {
-                    for (i in attrs) {
-                        //name    = attrs[i].name;
-                        name    = i;
-                        n       = "attr." + name;
+                    for (i = 0, len = ah.length; i < len; i++) {
+                        name    = ah[i].name;
 
-                        if (f = g(n, true)) {
-
-                            res = self.runHandler(f, o, node, attrs[i].value, attrs);
+                        if (node.hasAttribute(name)) {
+                            res     = self.runHandler(ah[i].handler, o, node, node.getAttribute(name));
 
                             if (res || res === false) {
                                 return res;
                             }
                         }
-                        else if (attrs[i].value) {
+                    }
+
+                    for (i = 0, len = attrs.length; i < len; i++) {
+
+                        name    = attrs[i].name;
+                        n       = "attr." + name;
+
+                        if (!g(n, true)) {
                             self.texts[inx] = txt = {
                                 watchers:   [],
                                 node:       node,
@@ -382,7 +373,7 @@
                 }
             }
             else {
-                text.node.textContent = tpl;
+                text.node[textProp] = tpl;
             }
         },
 

@@ -5,15 +5,18 @@
     var Scope           = MetaphorJs.view.Scope,
         trim            = MetaphorJs.trim,
         bind            = MetaphorJs.bind,
+        d               = MetaphorJs.define,
         dc              = MetaphorJs.defineCache,
-        r               = MetaphorJs.ns.register,
         g               = MetaphorJs.ns.get,
         Watchable       = MetaphorJs.lib.Watchable,
         Renderer        = MetaphorJs.view.Renderer,
         dataFn          = MetaphorJs.data,
         toArray         = MetaphorJs.toArray,
         addListener     = MetaphorJs.addListener,
-        removeListener  = MetaphorJs.removeListener;
+        removeListener  = MetaphorJs.removeListener,
+        normalizeEvent  = MetaphorJs.normalizeEvent,
+        registerAttr    = MetaphorJs.registerAttributeHandler,
+        registerTag     = MetaphorJs.registerTagHandler;
 
 
     var parentData  = function(node, key) {
@@ -76,18 +79,18 @@
 
     });
 
-    dc("attr.mjs-bind", "MetaphorJs.view.AttributeHandler", {
+    registerAttr("mjs-bind", 1000, d(null, "MetaphorJs.view.AttributeHandler", {
 
         isInput: false,
 
-        initialize: function(scope, node, expr, attrs) {
+        initialize: function(scope, node, expr) {
 
             var self    = this,
                 tag     = node.tagName.toLowerCase();
 
             self.isInput    = tag == "input" || tag == "textarea";
 
-            self.supr(scope, node, expr, attrs);
+            self.supr(scope, node, expr);
         },
 
         onChange: function() {
@@ -101,33 +104,31 @@
                 self.node.textContent = val;
             }
         }
-    });
+    }));
 
-    dc("attr.mjs-bind-html", "MetaphorJs.view.AttributeHandler", {
+    registerAttr("mjs-bind-html", 1000, d(null, "MetaphorJs.view.AttributeHandler", {
 
         onChange: function() {
             var self    = this;
             self.node.innerHTML = self.watcher.getLastResult();
         }
-    });
+    }));
 
-    dc("attr.mjs-model", "MetaphorJs.view.AttributeHandler", {
+    registerAttr("mjs-model", 1000, d(null, "MetaphorJs.view.AttributeHandler", {
 
-        //el: null,
         inProg: false,
         type: null,
         inputType: null,
         radio: null,
         listeners: null,
 
-        initialize: function(scope, node, expr, attrs) {
+        initialize: function(scope, node, expr) {
 
             var self    = this,
                 type;
 
-
             self.node           = node;
-            self.inputType      = type = node.type.toLowerCase();
+            self.inputType      = type = node.getAttribute("mjs-input-type") || node.type.toLowerCase();
             self.listeners      = [];
 
             self.onRadioInputChangeDelegate     = bind(self.onRadioInputChange, self);
@@ -143,7 +144,7 @@
                 self.initTextInput();
             }
 
-            self.supr(scope, node, expr, attrs);
+            self.supr(scope, node, expr);
 
         },
 
@@ -327,6 +328,8 @@
 
         onRadioInputChange: function(e) {
 
+            e = normalizeEvent(e);
+
             var self    = this,
                 node    = e.target,
                 scope   = self.scope;
@@ -376,46 +379,45 @@
             }
         }
 
-    });
+    }));
 
-    dc("attr.mjs-show", "MetaphorJs.view.AttributeHandler", {
+    registerAttr("mjs-show", 500, d(null, "MetaphorJs.view.AttributeHandler", {
 
         display: null,
-        animate: false,
-        attrs: null,
 
-        initialize: function(scope, node, expr, attrs) {
+        initialize: function(scope, node, expr) {
 
             var self    = this;
 
-            self.attrs      = attrs;
             self.display    = node.style.display || "block";
 
             if (self.display == "none") {
                 self.display = "block";
             }
 
-            self.supr(scope, node, expr, attrs);
+            self.supr(scope, node, expr);
         },
 
         runAnimation: function(show) {
 
-            var self    = this;
-
-            if (show) {
-                self.node.style.display = self.display;
-            }
+            var self    = this,
+                style   = self.node.style,
+                display = self.display;
 
             MetaphorJs.animate(
                 self.node,
                 show ? "show" : "hide",
-                self.attrs,
+                function() {
+                    if (show) {
+                        style.display = display;
+                    }
+                },
                 function() {
                     if (!show) {
-                        self.node.style.display = "none";
+                        style.display = "none";
                     }
                     else {
-                        self.node.style.display = self.display;
+                        style.display = display;
                     }
                 }
             );
@@ -427,9 +429,9 @@
 
             self.runAnimation(val);
         }
-    });
+    }));
 
-    dc("attr.mjs-hide", "attr.mjs-show", {
+    registerAttr("mjs-hide", 500, d(null, "attr.mjs-show", {
 
         onChange: function() {
             var self    = this,
@@ -437,24 +439,22 @@
 
             self.runAnimation(!val);
         }
-    });
+    }));
 
-    dc("attr.mjs-if", "MetaphorJs.view.AttributeHandler", {
+    registerAttr("mjs-if", 500, d(null, "MetaphorJs.view.AttributeHandler", {
 
         parentEl: null,
         prevEl: null,
         el: null,
-        attrs: null,
 
-        initialize: function(scope, node, expr, attrs) {
+        initialize: function(scope, node, expr) {
 
             var self    = this;
 
-            self.attrs      = attrs;
             self.parentEl   = node.parentNode;
             self.prevEl     = node.previousSibling;
 
-            self.supr(scope, node, expr, attrs);
+            self.supr(scope, node, expr);
         },
 
         onScopeDestroy: function() {
@@ -475,27 +475,28 @@
 
             if (val) {
                 if (!node.parentNode) {
-                    if (self.prevEl) {
-                        parent.insertBefore(node, self.prevEl ? self.prevEl.nextSibling : null);
-                    }
-                    else {
-                        parent.appendChild(node);
-                    }
-                    MetaphorJs.animate(node, "enter", self.attrs);
+                    MetaphorJs.animate(node, "enter", function() {
+                        if (self.prevEl) {
+                            parent.insertBefore(node, self.prevEl ? self.prevEl.nextSibling : null);
+                        }
+                        else {
+                            parent.appendChild(node);
+                        }
+                    });
                 }
             }
             else {
                 if (node.parentNode) {
-                    MetaphorJs.animate(node, "leave", self.attrs, function(){
+                    MetaphorJs.animate(node, "leave", null, function(){
                         parent.removeChild(node);
                     });
                 }
             }
         }
-    });
+    }));
 
 
-    dc("attr.mjs-each", "MetaphorJs.view.AttributeHandler", {
+    registerAttr("mjs-each", 100, d(null, "MetaphorJs.view.AttributeHandler", {
 
         model: null,
         itemName: null,
@@ -506,7 +507,7 @@
         prevEl: null,
         nextEl: null,
 
-        initialize: function(scope, node, expr, attrs) {
+        initialize: function(scope, node, expr) {
 
             var self    = this;
 
@@ -556,7 +557,6 @@
             var self        = this,
                 list        = self.list,
                 renderers   = self.renderers,
-                Renderer    = MetaphorJs.view.Renderer,
                 tpl         = self.tpl,
                 parent      = self.parentEl,
                 next        = self.nextEl,
@@ -609,7 +609,6 @@
                 renderers   = self.renderers,
                 prs         = changes.prescription,
                 tpl         = self.tpl,
-                Renderer    = MetaphorJs.view.Renderer,
                 index       = 0,
                 parent      = self.parentEl,
                 el,
@@ -636,7 +635,9 @@
 
                     r.renderer.destroy();
 
-                    parent.removeChild(r.el);
+                    MetaphorJs.animate(r.el, "leave", null, function(){
+                        parent.removeChild(r.el);
+                    });
                 }
 
                 if (action == 'D') {
@@ -646,17 +647,22 @@
 
                     el  = tpl.cloneNode(true);
 
-                    if (i > 0) {
-                        parent.insertBefore(el, renderers[i - 1].el.nextSibling);
-                    }
-                    else {
-                        if (self.prevEl) {
-                            parent.insertBefore(el, self.prevEl.nextSibling);
+                    MetaphorJs.animate(el, "enter", function(){
+                        if (i > 0) {
+                            parent.insertBefore(el, renderers[i - 1].el.nextSibling);
                         }
                         else {
-                            parent.appendChild(el);
+                            if (self.prevEl) {
+                                parent.insertBefore(el, self.prevEl.nextSibling);
+                            }
+                            else {
+                                parent.appendChild(el);
+                            }
                         }
-                    }
+                    });
+
+
+
                     if (action == 'R') {
                         renderers[i] = self.createItem(el, Renderer, index);
                     }
@@ -706,13 +712,14 @@
         }
 
     }, {
+        itsMe: true,
         $stopRenderer: true
-    });
+    }));
 
 
     var getTemplate = MetaphorJs.getTemplate;
 
-    dc("attr.mjs-include", {
+    registerAttr("mjs-include", 900, d(null, {
 
         watcher: null,
         scope: null,
@@ -722,7 +729,7 @@
         renderer: null,
         $stopRenderer: false,
 
-        initialize: function(scope, node, tplExpr, attrs, parentRenderer) {
+        initialize: function(scope, node, tplExpr, parentRenderer) {
 
             var self    = this,
                 contents,
@@ -780,8 +787,14 @@
                 el.removeChild(el.firstChild);
             }
             var i, len, clone = MetaphorJs.clone(tpl);
-            for (i = 0, len = clone.length; i < len; i++) {
-                el.appendChild(clone[i]);
+
+            if (MetaphorJs.isArray(clone)) {
+                for (i = 0, len = clone.length; i < len; i++) {
+                    el.appendChild(clone[i]);
+                }
+            }
+            else {
+                el.appendChild(clone);
             }
         },
 
@@ -806,7 +819,6 @@
 
             delete self.node;
             delete self.scope;
-            //delete self.el;
 
             if (self.watcher) {
                 self.watcher.unsubscribeAndDestroy(self.onChange, self);
@@ -816,9 +828,9 @@
             delete self.tpl;
         }
 
-    });
+    }));
 
-    r("tag.mjs-include", function(scope, node) {
+    registerTag("mjs-include", 900, function(scope, node) {
 
         var tplId       = node.attributes['src'].value,
             tpl         = getTemplate(tplId),
@@ -847,7 +859,9 @@
 
     g("tag.mjs-include").$breakRenderer = true;
 
-    r("attr.mjs-transclude", function(scope, node) {
+
+
+    registerAttr("mjs-transclude", 1000, function(scope, node) {
 
         var contents    = toArray(node.childNodes),
             transclude  = parentData(node, 'mjs-transclude');
@@ -877,7 +891,7 @@
         }
     });
 
-    r("tag.mjs-transclude", function(scope, node) {
+    registerTag("mjs-transclude", 900, function(scope, node) {
 
         var contents    = toArray(node.childNodes),
             transclude  = parentData(node, 'mjs-transclude');
@@ -904,7 +918,7 @@
         }
     });
 
-    dc("attr.mjs-class", "MetaphorJs.view.AttributeHandler", {
+    registerAttr("mjs-class", 1000, d(null, "MetaphorJs.view.AttributeHandler", {
         onChange: function() {
 
             var self    = this,
@@ -916,7 +930,7 @@
                 MetaphorJs[clss[i] ? "addClass" : "removeClass"](node, i);
             }
         }
-    });
+    }));
 
     var events = 'click dblclick mousedown mouseup mouseover mouseout mousemove mouseenter mouseleave keydown keyup keypress submit focus blur copy cut paste'.split(' '),
         i, len,
@@ -926,12 +940,13 @@
 
         (function(name){
 
-            r("attr.mjs-" + name, function(scope, node, expr){
+            registerAttr("mjs-" + name, 1000, function(scope, node, expr){
 
                 var fn  = createFn(expr);
 
                 addListener(node, name, function(e){
 
+                    e = normalizeEvent(e);
                     scope.$event = e;
 
                     fn(scope);
@@ -946,6 +961,7 @@
                     }
 
                     e.preventDefault();
+                    return false;
                 });
             });
         }(events[i]));
@@ -956,7 +972,7 @@
 
         (function(name){
 
-            dc("attr.mjs-" + name, "MetaphorJs.view.AttributeHandler", {
+            registerAttr("mjs-" + name, 1000, d(null, "MetaphorJs.view.AttributeHandler", {
 
                 onChange: function() {
 
@@ -971,7 +987,7 @@
                     }
 
                 }
-            });
+            }));
 
         }(boolAttrs[i]));
     }
@@ -1021,5 +1037,5 @@
 
     cmpAttribute.$breakScope = true;
 
-    r("attr.mjs-cmp", cmpAttribute);
+    registerAttr("mjs-cmp", 200, cmpAttribute);
 }());

@@ -21,96 +21,155 @@
 
 
 
-    var undef   = {}.undefined,
+    var undef       = {}.undefined,
 
-    dataCache   = {},
+        dataCache   = {},
 
-    /**
-     * @function MetaphorJs.apply
-     * @param {object} dst Apply properties to this object
-     * @param {object} src Take properties from this object
-     * @param {bool} override If both dst and src have a property, override it. Applies to scalar properties.
-     *                  Defaults to true
-     * @md-tmp apply
-     */
-    apply   = function(dst, src, override) {
-        if (src && dst) {
-            for (var k in src) {
-                if (src.hasOwnProperty(k)) {
-                    if (dst[k] && typeof dst[k] == "object" && typeof src[k] == "object") {
-                        apply(dst[k], src[k], override);
-                    }
-                    else {
-                        if (override !== false || dst[k] === undef || dst[k] === null) {
-                            dst[k] = src[k];
+        /**
+         * @function MetaphorJs.apply
+         * @param {object} dst Apply properties to this object
+         * @param {object} src Take properties from this object
+         * @param {bool} override If both dst and src have a property, override it. Applies to scalar properties.
+         *                  Defaults to true
+         * @md-tmp apply
+         */
+        apply   = function(dst, src, override) {
+            if (src && dst) {
+                for (var k in src) {
+                    if (src.hasOwnProperty(k)) {
+                        if (dst[k] && typeof dst[k] == "object" && typeof src[k] == "object") {
+                            apply(dst[k], src[k], override);
+                        }
+                        else {
+                            if (override !== false || dst[k] === undef || dst[k] === null) {
+                                dst[k] = src[k];
+                            }
                         }
                     }
                 }
             }
-        }
-        return dst;
-    },
+            return dst;
+        },
 
-    uid = ['0', '0', '0'],
+        uid = ['0', '0', '0'],
 
-    // from AngularJs
-    nextUid  = function() {
-        var index = uid.length;
-        var digit;
+        // from AngularJs
+        nextUid  = function() {
+            var index = uid.length;
+            var digit;
 
-        while(index) {
-            index--;
-            digit = uid[index].charCodeAt(0);
-            if (digit == 57 /*'9'*/) {
-                uid[index] = 'A';
-                return uid.join('');
+            while(index) {
+                index--;
+                digit = uid[index].charCodeAt(0);
+                if (digit == 57 /*'9'*/) {
+                    uid[index] = 'A';
+                    return uid.join('');
+                }
+                if (digit == 90  /*'Z'*/) {
+                    uid[index] = '0';
+                } else {
+                    uid[index] = String.fromCharCode(digit + 1);
+                    return uid.join('');
+                }
             }
-            if (digit == 90  /*'Z'*/) {
-                uid[index] = '0';
-            } else {
-                uid[index] = String.fromCharCode(digit + 1);
-                return uid.join('');
+            uid.unshift('0');
+            return uid.join('');
+        },
+
+        tplCache = {},
+
+        toArray = function(list) {
+            for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]);
+            return a;
+        },
+
+        getTemplate = function(tplId) {
+
+            if (!tplCache[tplId]) {
+                var tplNode     = document.getElementById(tplId),
+                    tag;
+
+                if (!tplNode) {
+                    return null;
+                }
+
+                tag         = tplNode.tagName.toLowerCase();
+
+                if (tag == "script") {
+                    var div = document.createElement("div");
+                    div.innerHTML = tplNode.innerHTML;
+                    tplCache[tplId] = toArray(div.childNodes);
+                }
+                else {
+                    if ("content" in tplNode) {
+                        tplCache[tplId] = tplNode.content;
+                    }
+                    else {
+                        tplCache[tplId] = toArray(tplNode.childNodes);
+                    }
+                }
             }
-        }
-        uid.unshift('0');
-        return uid.join('');
-    },
 
-    tplCache = {},
+            return tplCache[tplId];
+        },
 
-    toArray = function(list) {
-        for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]);
-        return a;
-    },
+        getNodeId = function(el) {
+            return el._mjsId || (el._mjsId = nextUid());
+        },
 
-    getTemplate = function(tplId) {
+        attributeHandlers   = [],
+        tagHandlers         = [],
+        attributesSorted    = false,
+        tagsSorted          = false,
 
-        if (!tplCache[tplId]) {
-            var tplNode     = document.getElementById(tplId),
-                tag;
-
-            if (!tplNode) {
-                return null;
+        compare             = function(a, b) {
+            //if (a is less than b by some ordering criterion)
+            if (a.priority < b.priority) {
+                return -1;
             }
 
-            tag         = tplNode.tagName.toLowerCase();
-
-            if (tag == "script") {
-                var div = document.createElement("div");
-                div.innerHTML = tplNode.innerHTML;
-                tplCache[tplId] = toArray(div.childNodes);
+            //if (a is greater than b by the ordering criterion)
+            if (a.priority > b.priority) {
+                return 1;
             }
-            else {
-                tplCache[tplId] = toArray(tplNode.childNodes);
+
+            // a must be equal to b
+            return 0;
+        },
+
+        registerAttributeHandler    = function(name, priority, handler) {
+            attributeHandlers.push({
+                priority: priority,
+                name: name,
+                handler: MetaphorJs.add("attr." + name, handler)
+            });
+            attributesSorted = false;
+        },
+
+        getAttributeHandlers        = function() {
+            if (!attributesSorted) {
+                attributeHandlers.sort(compare);
+                attributesSorted = true;
             }
-        }
+            return attributeHandlers;
+        },
 
-        return tplCache[tplId];
-    },
+        registerTagHandler          = function(name, priority, handler) {
+            tagHandlers.push({
+                priority: priority,
+                name: name,
+                handler: MetaphorJs.add("tag." + name, handler)
+            });
+            tagsSorted = false;
+        },
 
-    getNodeId = function(el) {
-        return el._mjsId || (el._mjsId = nextUid());
-    };
+        getTagHandlers              = function() {
+            if (!tagsSorted) {
+                tagHandlers.sort(compare);
+                tagsSorted = true;
+            }
+            return tagHandlers;
+        };
 
 
     /**
@@ -118,7 +177,12 @@
      */
     var Metaphor  = {
 
-        VERSION:    "0.1",
+        VERSION:    "0.2",
+
+        registerAttributeHandler: registerAttributeHandler,
+        registerTagHandler: registerTagHandler,
+        getAttributeHandlers: getAttributeHandlers,
+        getTagHandlers: getTagHandlers,
 
 
         /**
@@ -183,7 +247,7 @@
 
         isArray: function(value) {
             return value && typeof value == 'object' && typeof value.length == 'number' &&
-                toString.call(value) == '[object Array]' || false;
+                Object.prototype.toString.call(value) == '[object Array]' || false;
         },
 
         isPlainObject: function(value) {
@@ -208,19 +272,27 @@
 
         clone: function(node) {
 
-            if (this.isArray(node)) {
-                var i, len, clone = [];
+            var i, len, clone;
+
+            if (MetaphorJs.isArray(node)) {
+                clone = [];
                 for (i = 0, len = node.length; i < len; i++) {
-                    clone.push(this.clone(node[i]));
+                    clone.push(MetaphorJs.clone(node[i]));
                 }
                 return clone;
             }
             else {
                 switch (node.nodeType) {
+                    // element
                     case 1:
                         return node.cloneNode(true);
+                    // text node
                     case 3:
                         return document.createTextNode(node.innerText || node.textContent);
+                    // document fragment
+                    case 11:
+                        return node.cloneNode(true);
+
                     default:
                         return null;
                 }
@@ -228,18 +300,18 @@
         },
 
         addListener: function(el, event, func) {
-            if (el.addEventListener) {
-                el.addEventListener(event, func, false);
-            } else if (el.attachEvent)  {
+            if (el.attachEvent) {
                 el.attachEvent('on' + event, func);
+            } else {
+                el.addEventListener(event, func, false);
             }
         },
 
         removeListener: function(el, event, func) {
-            if (el.removeEventListener) {
-                el.removeEventListener(event, func);
-            } else if (el.detachEvent)  {
+            if (el.detachEvent) {
                 el.detachEvent('on' + event, func);
+            } else {
+                el.removeEventListener(event, func, false);
             }
         },
 
@@ -296,8 +368,11 @@
             }
             else {
                 if (doc.createEventObject && root.doScroll) {
-                    try { top = !win.frameElement; } catch(e) { }
-                    if (top) poll();
+                    try {
+                        top = !win.frameElement;
+                    } catch(e) {}
+
+                    top && poll();
                 }
                 add(doc, 'DOMContentLoaded', init);
                 add(doc, 'readystatechange', init);

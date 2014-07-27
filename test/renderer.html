@@ -8,6 +8,7 @@
     <script src="../src/lib/Namespace.js"></script>
     <script src="../src/lib/Class.js"></script>
     <script src="../src/lib/Value.js"></script>
+    <script src="../src/lib/Event.js"></script>
     <script src="../../observable/metaphorjs.observable.js"></script>
     <script src="../../watchable/metaphorjs.watchable.js"></script>
     <script src="../src/cmp/Base.js"></script>
@@ -46,17 +47,18 @@
         }
 
 
+        .mjs-show, .mjs-hide {
+            -webkit-transition:  opacity 0.4s;
+            -moz-transition:  opacity 0.4s;
+            -o-transition:   opacity 0.4s;
+            transition:  opacity 0.4s;
+        }
+
         .mjs-show {
             opacity: 0;
         }
         .mjs-hide {
             opacity: 1;
-        }
-        .mjs-show-active, .mjs-hide-active {
-            -webkit-transition:  opacity 0.4s;
-            -moz-transition:  opacity 0.4s;
-            -o-transition:   opacity 0.4s;
-            transition:  opacity 0.4s;
         }
         .mjs-show-active {
             opacity: 1;
@@ -66,25 +68,51 @@
         }
 
 
+        .mjs-enter, .mjs-leave {
+            -webkit-transition: -webkit-transform 0.4s, opacity 0.4s;
+            -moz-transition: -moz-transform 0.4s, opacity 0.4s;
+            -o-transition:   -o-transform: 0.4s, opacity 0.4s;
+            transition:  transform 0.4s, opacity 0.4s;
+        }
+
+        .mjs-enter {
+            opacity: 0;
+            -webkit-transform: translateX(200px);
+            -moz-transform: translateX(200px);
+            transform: translateX(200px);
+        }
+        .mjs-leave {
+            opacity: 1;
+        }
+        .mjs-enter-active {
+            opacity: 1;
+            -webkit-transform: translateX(0);
+            -moz-transform: translateX(0);
+            transform: translateX(0);
+        }
+        .mjs-leave-active {
+            opacity: 0;
+            -webkit-transform: translateX(200px);
+            -moz-transform: translateX(200px);
+            transform: translateX(200px);
+        }
+
+
     </style>
 </head>
 <body>
 
-    <mjs-template id="test-template">
-
+    <script type="text/mjs-template" id="test-template">
         <p>{{.text}}</p>
         <p>{{.subtext}}</p>
         <p>{{.a}}</p>
         <div mjs-transclude></div>
+    </script>
 
-    </mjs-template>
-
-    <mjs-template id="cmp1-template">
-
+    <script type="text/mjs-template" id="cmp1-template">
         <h2>{{.title}}</h2>
         <div mjs-transclude></div>
-
-    </mjs-template>
+    </script>
 
     <script type="text/mjs-template" id="a+b">
         <p>a + b = {{ .$root.a + .$root.b }}</p>
@@ -113,7 +141,7 @@
             </p>
             <a href="http://{{.text}}.com" mjs-click=".bool = !.bool">{{.subtext | limitTo:3}}</a>
             <input mjs-bind=".a * .b"/>
-            <input mjs-model=".a" type="number"/>
+            <input mjs-model=".a" type="number" mjs-input-type="number"/>
             <input type="checkbox" mjs-model="bool"/>
             <input type="radio" name="r" value="header" mjs-model="header"/>1
             <label><input type="radio" name="r" value="header1"/>2</label>
@@ -127,7 +155,7 @@
                    value="Add item"/>
 
             <ul mjs-show=".bool" mjs-animate>
-                <li mjs-each="item in .list">
+                <li mjs-each="item in .list" mjs-animate>
                     <label mjs-class="{cls3: .item.bool}">
                         <input type="checkbox" mjs-model=".item.bool"/>{{.$index}} - {{.item.txt}}</label>
                     <a href="#" mjs-click=".$parent.list.splice(.$index,1);">x</a>
@@ -138,7 +166,8 @@
                 <p>transcluded text</p>
             </div>
 
-            <mjs-include src="test-template"></mjs-include>
+            <div mjs-include="test-template"></div>
+            <!--<mjs-include src="test-template"></mjs-include>-->
 
 
         </div>
@@ -153,7 +182,7 @@
                 <p>This is another instance</p>
             </div>
 
-            <div mjs-cmp="Test.TplComponent as ctrl" mjs-if=".bool" mjs-animate>
+            <div mjs-cmp="Test.TplComponent as ctrl" mjs-if=".$parent.bool" mjs-animate>
                 <h2>{{ .title }}</h2>
                 <a href="#" mjs-click=".tpl='a+b'">a + b</a> | <a href="#" mjs-click=".tpl='a*b'">a * b</a>
 
@@ -212,11 +241,14 @@
             var start  = (new Date).getTime();
 
             var scope       = new MetaphorJs.view.Scope(dataObj);
-            var renderer    = new MetaphorJs.view.Renderer(document.getElementById("render"), scope);
+            var renderer    = new MetaphorJs.view.Renderer(document.documentElement, scope);
             renderer.render();
 
             var end  = (new Date).getTime();
-            console.log("time: ", end - start);
+
+            if (window.console) {
+                console.log("time: ", end - start);
+            }
 
             window.dataScope = scope;
 
