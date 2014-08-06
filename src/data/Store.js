@@ -7,6 +7,15 @@ var storeId     = 0;
 var allStores   = {};
 
 
+var create      = MetaphorJs.create,
+    isArray     = MetaphorJs.isArray,
+    Record      = MetaphorJs.data.Record,
+    Model       = MetaphorJs.data.Model,
+    is          = MetaphorJs.is,
+    emptyFn     = MetaphorJs.emptyFn,
+    extend      = MetaphorJs.apply;
+
+
 /**
  * @namespace MetaphorJs
  * @class MetaphorJs.data.Store
@@ -177,10 +186,10 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
             allStores[self.id]  = self;
 
             if (typeof self.model == "string") {
-                self.model  = MetaphorJs.create(self.model);
+                self.model  = create(self.model);
             }
-            else if (!MetaphorJs.is(self.model, "MetaphorJs.data.Model")) {
-                self.model  = MetaphorJs.create("MetaphorJs.data.Model", self.model);
+            else if (!is(self.model, Model)) {
+                self.model  = create("MetaphorJs.data.Model", self.model);
             }
 
             if (url || options.url) {
@@ -192,7 +201,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                 self.load();
             }
             else if (initialData) {
-                if (MetaphorJs.isArray(initialData)) {
+                if (isArray(initialData)) {
                     self.loadArray(initialData);
                 }
                 else {
@@ -368,6 +377,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
             }
 
             self.resumeAllEvents();
+
             self.loaded     = true;
             self.loading    = false;
 
@@ -390,7 +400,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                 return null;
             }
 
-            params      = $.extend({}, self.extraParams, params || {});
+            params      = extend({}, self.extraParams, params || {});
 
             if (self.pageSize !== null && !params[sp] && !params[lp]) {
                 params[sp]    = self.start;
@@ -402,10 +412,10 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
             }
 
             return self.model.loadStore(self, params)
-                .done(function(data, total) {
-                    self.totalLength    = parseInt(total);
-                    self.importData(data);
-                    self.totalLength    = parseInt(total);
+                .done(function(response) {
+                    self.totalLength    = parseInt(response.total);
+                    self.importData(response.data);
+                    self.totalLength    = parseInt(response.total);
                 })
                 .fail(function() {
                     self.onFailedLoad();
@@ -413,8 +423,8 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                 });
         },
 
-        onLoad: MetaphorJs.emptyFn,
-        onFailedLoad: MetaphorJs.emptyFn,
+        onLoad: emptyFn,
+        onFailedLoad: emptyFn,
 
         /**
          * @returns jQuery.Deferred
@@ -449,10 +459,11 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
             }
 
             return self.model.saveStore(self, recs)
-                .done(function(data) {
+                .done(function(response) {
 
                     var i, len,
-                        id, rec;
+                        id, rec,
+                        data = response.data;
 
                     if (data && data.length) {
                         for (i = 0, len = data.length; i < len; i++) {
@@ -475,8 +486,8 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                 });
         },
 
-        onSave: MetaphorJs.emptyFn,
-        onFailedSave: MetaphorJs.emptyFn,
+        onSave: emptyFn,
+        onFailedSave: emptyFn,
 
 
         /**
@@ -492,17 +503,17 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                 return null;
             }
 
-            if (!ids || (MetaphorJs.isArray(ids) && !ids.length)) {
+            if (!ids || (isArray(ids) && !ids.length)) {
                 throw new Error("Record id required");
             }
 
-            if (!MetaphorJs.isArray(ids)) {
+            if (!isArray(ids)) {
                 ids = [ids];
             }
 
             for (i = 0, len = ids.length; i < len; i++){
                 rec = self.getById(ids[i]);
-                if (rec instanceof MetaphorJs.data.Record) {
+                if (rec instanceof Record) {
                     rec.destroy();
                 }
                 else {
@@ -525,8 +536,8 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                 });
         },
 
-        onDelete: MetaphorJs.emptyFn,
-        onFailedDelete: MetaphorJs.emptyFn,
+        onDelete: emptyFn,
+        onFailedDelete: emptyFn,
 
         /**
          * @param {number} inx
@@ -605,7 +616,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                 self.clear();
             }
 
-            if (MetaphorJs.isArray(recs)) {
+            if (isArray(recs)) {
                 self.importData(recs);
                 self.totalLength    = self.length;
             }
@@ -682,7 +693,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
          * @param {MetaphorJs.data.Record|Object} rec
          */
         getRecordId: function(rec) {
-            if (rec instanceof MetaphorJs.data.Record) {
+            if (rec instanceof Record) {
                 return rec.getId();
             }
             else {
@@ -699,7 +710,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
 
             var self    = this;
 
-            if (item instanceof MetaphorJs.data.Record) {
+            if (item instanceof Record) {
                 return item;
             }
 
@@ -713,11 +724,11 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                     r;
 
                 if (id) {
-                    r       = MetaphorJs.data.Model.getFromCache(type, id);
+                    r       = Model.getFromCache(type, id);
                 }
 
                 if (!r) {
-                    r       = MetaphorJs.create(type, id, item, {
+                    r       = create(type, id, item, {
                                 model:      self.model,
                                 standalone: false
                     });
@@ -774,14 +785,14 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
             var self    = this;
 
             if (self.filtered) {
-                throw new Error("Cannot add to filtered store");
+                throw "Cannot add to filtered store";
             }
 
             if (typeof id != "string" && typeof id != "number") {
 
                 rec = arguments[0];
 
-                if (MetaphorJs.isArray(rec)) {
+                if (isArray(rec)) {
 
                     if (!rec.length) {
                         return;
@@ -797,7 +808,6 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                     self.onAdd(prevLength, rec);
 
                     if (!silent) {
-                        // fn(index, rec)
                         self.trigger('add', prevLength, rec);
                     }
                     return;
@@ -821,7 +831,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
             self.items.push(rec);
             self.keys.push(id);
 
-            if (rec instanceof MetaphorJs.data.Record) {
+            if (rec instanceof Record) {
                 rec.attachStore(self);
                 self.bindRecord("on", rec);
             }
@@ -832,7 +842,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
             }
         },
 
-        onAdd: MetaphorJs.emptyFn,
+        onAdd: emptyFn,
 
         /**
          * @param {number} index
@@ -855,7 +865,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                 self.onRemove(rec, id);
                 self.trigger('remove', rec, id);
 
-                if (rec instanceof MetaphorJs.data.Record) {
+                if (rec instanceof Record) {
                     self.bindRecord("un", rec);
                     rec.detachStore(self);
                     return rec = null;
@@ -867,7 +877,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
             return false;
         },
 
-        onRemove: MetaphorJs.emptyFn,
+        onRemove: emptyFn,
 
         /**
          * @param {number} index
@@ -903,7 +913,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
             }
             self.keys.splice(index, 0, id);
 
-            if (rec instanceof MetaphorJs.data.Record) {
+            if (rec instanceof Record) {
                 rec.attachStore(self);
                 self.bindRecord("on", rec);
             }
@@ -938,7 +948,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                 return self.add(id, rec);
             }
 
-            if (old instanceof MetaphorJs.data.Record) {
+            if (old instanceof Record) {
                 self.bindRecord("un", old);
                 old.detachStore(self);
             }
@@ -947,12 +957,17 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
             self.items[index]   = rec;
             self.map[id]        = rec;
 
+            if (rec instanceof Record) {
+                self.bindRecord("on", rec);
+                rec.attachStore(self);
+            }
+
             self.onReplace(id, old, rec);
             self.trigger('replace', id, old, rec);
             return rec;
         },
 
-        onReplace: MetaphorJs.emptyFn,
+        onReplace: emptyFn,
 
         /**
          * @param {MetaphorJs.data.Record|Object} rec
@@ -1000,7 +1015,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
             self.trigger('clear', recs);
         },
 
-        onClear: MetaphorJs.emptyFn,
+        onClear: emptyFn,
 
         /**
          * @method
@@ -1016,7 +1031,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
             if (!keepRecords) {
                 for (i = 0, len = self.items.length; i < len; i++) {
                     rec = self.items[i];
-                    if (rec instanceof MetaphorJs.data.Record) {
+                    if (rec instanceof Record) {
                         self.bindRecord("un", rec);
                         rec.detachStore(self);
                     }
@@ -1084,7 +1099,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
             self.trigger("filter", self);
         },
 
-        onFilter: MetaphorJs.emptyFn,
+        onFilter: emptyFn,
 
         _filterRecord: function(rec, id) {
             var self    = this;
@@ -1126,7 +1141,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
             }
         },
 
-        onClearFilter: MetaphorJs.emptyFn,
+        onClearFilter: emptyFn,
 
 
         /**
@@ -1408,7 +1423,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                                 o.value : o.text;
                 d.push([value, o.text]);
             }
-            var s   = MetaphorJs.create("MetaphorJs.data.Store", {server: {load: {id: 0}}});
+            var s   = create("MetaphorJs.data.Store", {server: {load: {id: 0}}});
             s.loadArray(d);
             return s;
         },

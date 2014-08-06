@@ -5,11 +5,18 @@
         endSymbol               = '}}',
         startSymbolLength       = 2,
         endSymbolLength         = 2,
+        nextUid                 = MetaphorJs.nextUid,
         Scope                   = MetaphorJs.view.Scope,
         Watchable               = MetaphorJs.lib.Watchable,
         Observable              = MetaphorJs.lib.Observable,
+        isThenable              = MetaphorJs.isThenable,
         toArray                 = MetaphorJs.toArray,
         getAttributeHandlers    = MetaphorJs.getAttributeHandlers,
+        handlers                = null,
+        g                       = MetaphorJs.g,
+        trim                    = MetaphorJs.trim,
+        createWatchable         = Watchable.create,
+        unsubscribeAndDestroy   = Watchable.unsubscribeAndDestroy,
         Renderer,
         textProp                = function(){
             var node    = document.createTextNode("");
@@ -17,55 +24,78 @@
         }();
 
 
-    var eachNode = function(el, fn, fnScope) {
+    var nodeChildren = function(res, el, fn, fnScope, async) {
 
         var children = [],
-            len, i, res;
+            i, len;
 
-        if ((res = fn.call(fnScope || window, el)) !== false) {
-
-            if (res && res !== true) {
-                if (res.nodeType) {
-                    eachNode(res, fn, fnScope);
-                    return;
-                }
-                else {
-                    children = toArray(res);
-                }
+        if (res && res !== true) {
+            if (res.nodeType) {
+                eachNode(res, fn, fnScope, async);
+                return;
             }
-
-            if (!children.length) {
-                children    = toArray(el.childNodes);
+            else {
+                children = toArray(res);
             }
+        }
 
-            for (i = 0, len = children.length; i < len; i++) {
-                if (children[i]) {
-                    eachNode(children[i], fn, fnScope);
-                }
+        if (!children.length) {
+            children    = toArray(el.childNodes);
+        }
+
+        for(i =- 1, len = children.length>>>0;
+            ++i !== len;
+            eachNode(children[i], fn, fnScope, async)){}
+    };
+
+    var rSkipTag = /^(script|template|mjs-template|style)$/i;
+
+    var eachNode = function(el, fn, fnScope, async) {
+
+        var res,
+            tag = el.nodeName;
+
+        if (tag.match(rSkipTag)) {
+            return;
+        }
+
+        if ((res = fn.call(fnScope, el, async)) !== false) {
+
+            if (isThenable(res)) {
+                res.done(function(response){
+                    nodeChildren(response, el, fn, fnScope, async);
+                });
+            }
+            else {
+                nodeChildren(res, el, fn, fnScope, async);
             }
         }
     };
 
 
+    var observer = new Observable;
+
+
     Renderer = MetaphorJs.d("MetaphorJs.view.Renderer", {
 
+        id: null,
         el: null,
         scope: null,
         texts: null,
         parent: null,
         destroyed: false,
         _observable: null,
-        _doNotBreak: true,
 
         initialize: function(el, scope, parent) {
 
             var self            = this;
 
+            self.id             = nextUid();
             self.el             = el;
             self.scope          = scope;
             self.texts          = [];
             self.parent         = parent;
-            self._observable    = new Observable;
+            //self._observable    = new Observable;
 
             if (scope instanceof Scope) {
                 scope.$on("destroy", self.destroy, self);
@@ -79,11 +109,13 @@
         },
 
         on: function(event, fn, fnScope) {
-            return this._observable.on(event, fn, fnScope);
+            //return this._observable.on(event, fn, fnScope);
+            return observer.on(event + '-' + this.id, fn, fnScope);
         },
 
         un: function(event, fn, fnScope) {
-            return this._observable.un(event, fn, fnScope);
+            return observer.un(event + '-' + this.id, fn, fnScope);
+            //return this._observable.un(event, fn, fnScope);
         },
 
         createChild: function(node) {
@@ -103,7 +135,7 @@
             var scope, inst,
                 self    = this;
 
-            if (f.$breakRenderer && !this._doNotBreak) {
+            if (f.$breakRenderer) {
                 var r = self.createChild(node);
                 r.render();
                 return false;
@@ -132,105 +164,116 @@
                 if (f.$stopRenderer || inst.$stopRenderer) {
                     return false;
                 }
+                else {
+                    return inst.$returnToRenderer;
+                }
             }
             else {
                 return f(scope, node, value, self);
             }
-
-            return null;
         },
 
-        process: function() {
+        processNode: function(node, async) {
 
-            var self    = this,
-                inx     = 0,
+            var self        = this,
+                nodeType    = node.nodeType,
+                texts       = self.texts,
+                scope       = self.scope,
                 txt,
-                g       = MetaphorJs.g,
-                o       = self.scope;
+                inx,
+                n;
 
-            eachNode(self.el, function(node){
+            // text node
+            if (nodeType == 3) {
 
-                var nodeType    = node.nodeType,
-                    n;
+                txt = {
+                    watchers:   [],
+                    node:       node,
+                    text:       "",
+                    inx:        inx = texts.length
+                };
 
+                self.processText(txt, node[textProp]);
 
-                // text node
-                if (nodeType == 3) {
+                if (txt.watchers.length > 0) {
+                    texts.push(txt);
+                    if (async) {
+                        self.renderText(inx);
+                    }
+                }
+            }
 
-                    self.texts[inx] = txt = {
-                        watchers:   [],
-                        node:       node,
-                        text:       ""
-                    };
+            // element node
+            else if (nodeType == 1) {
 
-                    txt.text    = self.processText(node[textProp]);
+                if (!handlers) {
+                    handlers = getAttributeHandlers();
+                }
 
-                    if (txt.watchers.length > 0) {
-                        inx++;
+                var attrs   = node.attributes,
+                    tag     = node.tagName.toLowerCase(),
+                    i, f, len,
+                    name,
+                    res;
+
+                n = "tag." + tag;
+                if (f = g(n, true)) {
+
+                    res = self.runHandler(f, scope, node);
+
+                    if (res || res === false) {
+                        return res;
                     }
                 }
 
-                // element node
-                else if (nodeType == 1) {
+                for (i = 0, len = handlers.length; i < len; i++) {
+                    name    = handlers[i].name;
 
-                    var attrs   = node.attributes,
-                        ah      = getAttributeHandlers(),
-                        tag     = node.tagName.toLowerCase(),
-                        i, f, len,
-                        name,
-                        res;
-
-                    n = "tag." + tag;
-                    if (f = g(n, true)) {
-
-                        res = self.runHandler(f, o, node);
+                    if (node.hasAttribute(name)) {
+                        res     = self.runHandler(handlers[i].handler, scope, node, node.getAttribute(name));
+                        node.removeAttribute(name);
 
                         if (res || res === false) {
                             return res;
                         }
                     }
+                }
 
-                    for (i = 0, len = ah.length; i < len; i++) {
-                        name    = ah[i].name;
+                for (i = 0, len = attrs.length; i < len; i++) {
 
-                        if (node.hasAttribute(name)) {
-                            res     = self.runHandler(ah[i].handler, o, node, node.getAttribute(name));
+                    //name    = attrs[i].name;
+                    //n       = "attr." + name;
 
-                            if (res || res === false) {
-                                return res;
-                            }
-                        }
-                    }
+                    if (!g(n, true)) {
+                        txt = {
+                            watchers:   [],
+                            node:       node,
+                            attr:       attrs[i].name,
+                            text:       "",
+                            inx:        inx = texts.length
+                        };
 
-                    for (i = 0, len = attrs.length; i < len; i++) {
+                        self.processText(txt, attrs[i].value);
 
-                        name    = attrs[i].name;
-                        n       = "attr." + name;
-
-                        if (!g(n, true)) {
-                            self.texts[inx] = txt = {
-                                watchers:   [],
-                                node:       node,
-                                attr:       name,
-                                text:       ""
-                            };
-
-                            txt.text    = self.processText(attrs[i].value);
-
-                            if (txt.watchers.length > 0) {
-                                inx++;
+                        if (txt.watchers.length > 0) {
+                            texts.push(txt);
+                            if (async) {
+                                self.renderText(inx);
                             }
                         }
                     }
                 }
+            }
 
-                self._doNotBreak = false;
-
-                return true;
-            });
+            return true;
         },
 
-        processText: function(text) {
+        process: function() {
+            var self    = this;
+            eachNode(self.el, self.processNode, self);
+        },
+
+        processText: function(txtObj, text) {
 
             var self    = this,
                 index   = 0,
@@ -244,7 +287,7 @@
                      ((endIndex = text.indexOf(endSymbol, startIndex + startSymbolLength)) != -1) ) {
 
                     separators.push(text.substring(index, startIndex));
-                    separators.push(self.watcherMatch(text.substring(startIndex + startSymbolLength, endIndex)));
+                    separators.push(self.watcherMatch(txtObj, text.substring(startIndex + startSymbolLength, endIndex)));
 
                     index = endIndex + endSymbolLength;
 
@@ -257,7 +300,7 @@
                 }
             }
 
-            return separators.join("");
+            return txtObj.text = separators.join("");
         },
 
         processPipes: function(text, pipes) {
@@ -267,8 +310,7 @@
                 pIndex,
                 prev, next, pipe,
                 found   = false,
-                ret     = text,
-                trim    = MetaphorJs.trim;
+                ret     = text;
 
             while(index < textLength) {
 
@@ -302,22 +344,21 @@
         },
 
 
-        watcherMatch: function(expr) {
+        watcherMatch: function(txtObj, expr) {
 
             var pipes   = [],
                 self    = this,
-                inx     = self.texts.length - 1,
-                ws      = self.texts[inx].watchers;
+                ws      = txtObj.watchers;
 
             expr        = self.processPipes(expr, pipes);
 
             ws.push({
-                watcher: Watchable.create(
+                watcher: createWatchable(
                     self.scope,
                     expr,
                     self.onDataChange,
                     self,
-                    inx
+                    txtObj.inx
                 ),
                 pipes: pipes
             });
@@ -347,7 +388,6 @@
                 tpl     = text.text,
                 ws      = text.watchers,
                 len     = ws.length,
-                g       = MetaphorJs.g,
                 attr    = text.attr,
                 i, val,
                 j, jlen,
@@ -396,7 +436,7 @@
                 ws  = texts[i].watchers;
 
                 for (j = 0, jlen = ws.length; j < jlen; j++) {
-                    Watchable.unsubscribeAndDestroy(self.scope, ws[j].watcher.code, self.onDataChange, self);
+                    unsubscribeAndDestroy(self.scope, ws[j].watcher.code, self.onDataChange, self);
                 }
             }
 
@@ -404,15 +444,16 @@
                 self.parent.un("destroy", self.destroy, self);
             }
 
-            self._observable.trigger("destroy");
+            //self._observable.trigger("destroy");
+            observer.trigger("destroy-" + self.id);
 
             self.texts      = null;
             self.el         = null;
             self.scope      = null;
             self.parent     = null;
 
-            self._observable.destroy();
-            self._observable = null;
+            //self._observable.destroy();
+            //self._observable = null;
         }
 
 

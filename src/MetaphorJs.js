@@ -2,9 +2,14 @@
 
     "use strict";
 
+    var undef       = {}.undefined;
+
+    if (typeof window == "undefined") {
+        global.window = global;
+    }
 
     // querySelectorAll polyfill
-    if (!document.querySelectorAll) {
+    if (window.document && !document.querySelectorAll) {
         document.querySelectorAll = function(selector) {
             var doc = document,
                 head = doc.documentElement.firstChild,
@@ -21,21 +26,32 @@
 
 
 
-    var undef       = {}.undefined,
+    var dataCache   = {},
 
-        dataCache   = {},
+        slice       = Array.prototype.slice,
 
         /**
          * @function MetaphorJs.apply
          * @param {object} dst Apply properties to this object
-         * @param {object} src Take properties from this object
-         * @param {bool} override If both dst and src have a property, override it. Applies to scalar properties.
+         * @param {object} src Take properties from this object (can provide more srcs as arguments)
+         * @param {bool} override (last argument) If both dst and src have a property, override it. Applies to scalar properties.
          *                  Defaults to true
          * @md-tmp apply
          */
-        apply   = function(dst, src, override) {
-            if (src && dst) {
-                for (var k in src) {
+        apply   = function() {
+
+            var override    = false,
+                args        = slice.call(arguments),
+                dst         = args.shift(),
+                src,
+                k;
+
+            if (typeof args[args.length - 1] == "bool") {
+                override = args.pop();
+            }
+
+            while (src = args.shift()) {
+                for (k in src) {
                     if (src.hasOwnProperty(k)) {
                         if (dst[k] && typeof dst[k] == "object" && typeof src[k] == "object") {
                             apply(dst[k], src[k], override);
@@ -78,8 +94,23 @@
 
         tplCache = {},
 
+
+        toFragment = function(nodes) {
+
+            var fragment = document.createDocumentFragment();
+
+            if (nodes.nodeType) {
+                fragment.appendChild(nodes);
+            }
+            else {
+                for(var i =- 1, l = nodes.length>>>0; ++i !== l; fragment.appendChild(nodes[0])){}
+            }
+
+            return fragment;
+        },
+
         toArray = function(list) {
-            for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]);
+            for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]){}
             return a;
         },
 
@@ -98,14 +129,14 @@
                 if (tag == "script") {
                     var div = document.createElement("div");
                     div.innerHTML = tplNode.innerHTML;
-                    tplCache[tplId] = toArray(div.childNodes);
+                    tplCache[tplId] = toFragment(div.childNodes);
                 }
                 else {
                     if ("content" in tplNode) {
                         tplCache[tplId] = tplNode.content;
                     }
                     else {
-                        tplCache[tplId] = toArray(tplNode.childNodes);
+                        tplCache[tplId] = toFragment(tplNode.childNodes);
                     }
                 }
             }
@@ -330,6 +361,19 @@
             return !(el.offsetWidth <= 0 || el.offsetHeight <= 0);
         },
 
+        isThenable: function(any) {
+            var then;
+            return any && //(typeof any == "object" || typeof any == "function") &&
+                   typeof (then = any.then) == "function" ?
+                    then : false;
+        },
+
+        async: function(fn, fnScope, args) {
+            setTimeout(function(){
+                fn.apply(fnScope, args || []);
+            }, 0);
+        },
+
         onReady: function(fn) {
 
             var done    = false,
@@ -381,8 +425,11 @@
 
         },
 
+        toFragment: toFragment,
+
         toArray: toArray
     };
+
 
     if (window.MetaphorJs) {
         apply(window.MetaphorJs, Metaphor, true);
@@ -390,4 +437,6 @@
     else {
         window.MetaphorJs = Metaphor;
     }
+
+
 }());

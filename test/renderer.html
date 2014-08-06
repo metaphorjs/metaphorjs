@@ -1,20 +1,22 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <!--<script src="jquery-1.11.0.min.js"></script>-->
     <script src="numeral.min.js"></script>
     <script src="moment.min.js"></script>
     <script src="../src/MetaphorJs.js"></script>
-    <script src="../src/lib/Namespace.js"></script>
-    <script src="../src/lib/Class.js"></script>
+    <script src="../../metaphorjs-namespace/metaphorjs.namespace.js"></script>
+    <script src="../../metaphorjs-class/metaphorjs.class.js"></script>
+    <script src="../../metaphorjs-observable/metaphorjs.observable.js"></script>
+    <script src="../../metaphorjs-promise/metaphorjs.promise.js"></script>
+    <script src="../../metaphorjs-watchable/metaphorjs.watchable.js"></script>
+    <script src="../../metaphorjs-ajax/metaphorjs.ajax.js"></script>
     <script src="../src/lib/Value.js"></script>
     <script src="../src/lib/Event.js"></script>
-    <script src="../../observable/metaphorjs.observable.js"></script>
-    <script src="../../watchable/metaphorjs.watchable.js"></script>
     <script src="../src/cmp/Base.js"></script>
     <script src="../src/data/Model.js"></script>
-    <script src="../src/data/Store.js"></script>
     <script src="../src/data/Record.js"></script>
+    <script src="../src/data/Store.js"></script>
+
     <script src="../src/view/Scope.js"></script>
     <script src="../src/view/Browser.js"></script>
     <script src="../src/view/Renderer.js"></script>
@@ -68,7 +70,7 @@
         }
 
 
-        .mjs-enter, .mjs-leave {
+        .mjs-enter-active, .mjs-leave-active {
             -webkit-transition: -webkit-transform 0.4s, opacity 0.4s;
             -moz-transition: -moz-transform 0.4s, opacity 0.4s;
             -o-transition:   -o-transform: 0.4s, opacity 0.4s;
@@ -77,24 +79,27 @@
 
         .mjs-enter {
             opacity: 0;
-            -webkit-transform: translateX(200px);
-            -moz-transform: translateX(200px);
-            transform: translateX(200px);
+            -webkit-transform: translateY(100px);
+            -moz-transform: translateY(100px);
+            transform: translateY(100px);
         }
         .mjs-leave {
             opacity: 1;
+            -webkit-transform: translateY(0);
+            -moz-transform: translateY(0);
+            transform: translateY(0);
         }
         .mjs-enter-active {
             opacity: 1;
-            -webkit-transform: translateX(0);
-            -moz-transform: translateX(0);
-            transform: translateX(0);
+            -webkit-transform: translateY(0);
+            -moz-transform: translateY(0);
+            transform: translateY(0);
         }
         .mjs-leave-active {
             opacity: 0;
-            -webkit-transform: translateX(200px);
-            -moz-transform: translateX(200px);
-            transform: translateX(200px);
+            -webkit-transform: translateY(100px);
+            -moz-transform: translateY(100px);
+            transform: translateY(100px);
         }
 
 
@@ -123,7 +128,7 @@
     </script>
 
 
-    <div id="render">
+    <div id="render" mjs-init=".header = 'new header'; .text = 'new text'">
         <div class="header">{{.header}}</div>
         <div class="article">
 
@@ -148,7 +153,7 @@
             <input type="radio" name="r" value="header2"/>3
 
             <br><br>
-            <input mjs-model=".newItem"/>
+            <input mjs-model=".newItem" mjs-enter="if (.newItem) {.list.push({bool: false, txt: .newItem}); .newItem = '';}"/>
             <input type="button"
                    mjs-disabled="!.newItem"
                    mjs-click=".list.push({bool: false, txt: .newItem}); .newItem = '';"
@@ -175,7 +180,14 @@
         <div class="article">
             <div mjs-cmp="Test.MyComponent as ctrl">
                 <p mjs-cmp-prop="para">Component's transcluded text + {{ .$root.a}}</p>
-                <a href="#" mjs-click=".ctrl.reverse()">reverse</a>
+                <a href="#" mjs-click=".ctrl.reverse()">reverse</a><br><br>
+                <button mjs-click=".store.load()">Load store</button>
+                <button mjs-click=".store.clear()">Clear store</button>
+                <ul>
+                    <li mjs-each-in-store="item in .store" mjs-animate>
+                        {{ .item.get("name") }}
+                    </li>
+                </ul>
             </div>
 
             <div mjs-cmp="Test.MyComponent as ctrl">
@@ -184,28 +196,55 @@
 
             <div mjs-cmp="Test.TplComponent as ctrl" mjs-if=".$parent.bool" mjs-animate>
                 <h2>{{ .title }}</h2>
-                <a href="#" mjs-click=".tpl='a+b'">a + b</a> | <a href="#" mjs-click=".tpl='a*b'">a * b</a>
+                change template: <a href="#" mjs-click=".tpl='a+b'">a + b</a> | <a href="#" mjs-click=".tpl='a*b'">a * b</a>
 
-                <div mjs-include=".tpl"></div>
+                <div mjs-include=".tpl" mjs-animate></div>
             </div>
         </div>
     </div>
 
     <script>
 
+
+
         MetaphorJs.onReady(function(){
 
+            //console.profile();
+
+            MetaphorJs.d("Test.MyRecord", "MetaphorJs.data.Record", {});
 
             MetaphorJs.d("Test.MyComponent", "MetaphorJs.cmp.Component", {
-                initComponent: function() {
-                    this.scope.title = "My Component" + (new Date).getTime();
-                },
+
                 template: 'cmp1-template',
-                afterRender: function() {
+
+                initComponent: function() {
+
+                    this.scope.title = "My Component" + (new Date).getTime();
+
+                    var model   = new MetaphorJs.data.Model({
+                        type: "Test.MyRecord",
+                        id: "id",
+                        data: "record",
+                        total: "total",
+                        store: {
+                            load: "data.json"
+                        }
+                    });
+
+                    this.scope.store = new MetaphorJs.data.Store({
+                        model: model
+                    });
                 },
+
                 reverse: function() {
                     var title   = this.scope.title;
                     this.scope.title    = title.split("").reverse().join('');
+                },
+
+                loadStore: function() {
+                    this.scope.store.load().done(function(){
+                        this.scope.$check();
+                    }, this);
                 }
             });
 
@@ -244,11 +283,14 @@
             var renderer    = new MetaphorJs.view.Renderer(document.documentElement, scope);
             renderer.render();
 
+            //console.profileEnd();
+
             var end  = (new Date).getTime();
 
             if (window.console) {
                 console.log("time: ", end - start);
             }
+
 
             window.dataScope = scope;
 

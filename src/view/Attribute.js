@@ -6,17 +6,21 @@
         trim            = MetaphorJs.trim,
         bind            = MetaphorJs.bind,
         d               = MetaphorJs.define,
-        dc              = MetaphorJs.defineCache,
         g               = MetaphorJs.ns.get,
         Watchable       = MetaphorJs.lib.Watchable,
         Renderer        = MetaphorJs.view.Renderer,
+        Promise         = MetaphorJs.lib.Promise,
         dataFn          = MetaphorJs.data,
         toArray         = MetaphorJs.toArray,
+        toFragment      = MetaphorJs.toFragment,
         addListener     = MetaphorJs.addListener,
         removeListener  = MetaphorJs.removeListener,
         normalizeEvent  = MetaphorJs.normalizeEvent,
         registerAttr    = MetaphorJs.registerAttributeHandler,
-        registerTag     = MetaphorJs.registerTagHandler;
+        registerTag     = MetaphorJs.registerTagHandler,
+        async           = MetaphorJs.async,
+        createWatchable = Watchable.create,
+        createGetter    = Watchable.createGetter;
 
 
     var parentData  = function(node, key) {
@@ -51,7 +55,7 @@
             self.node       = node;
             self.expr       = expr;
             self.scope      = scope;
-            self.watcher    = Watchable.create(scope, expr);
+            self.watcher    = createWatchable(scope, expr);
 
             self.watcher.addListener(self.onChange, self);
 
@@ -69,9 +73,10 @@
             delete self.node;
             delete self.scope;
 
-            self.watcher.unsubscribeAndDestroy(self.onChange, self);
-
-            delete self.watcher;
+            if (self.watcher) {
+                self.watcher.unsubscribeAndDestroy(self.onChange, self);
+                delete self.watcher;
+            }
 
         },
 
@@ -384,6 +389,7 @@
     registerAttr("mjs-show", 500, d(null, "MetaphorJs.view.AttributeHandler", {
 
         display: null,
+        initial: true,
 
         initialize: function(scope, node, expr) {
 
@@ -402,25 +408,25 @@
 
             var self    = this,
                 style   = self.node.style,
-                display = self.display;
-
-            MetaphorJs.animate(
-                self.node,
-                show ? "show" : "hide",
-                function() {
-                    if (show) {
-                        style.display = display;
-                    }
-                },
-                function() {
+                display = self.display,
+                done    = function() {
                     if (!show) {
                         style.display = "none";
                     }
                     else {
                         style.display = display;
                     }
-                }
-            );
+                };
+
+            self.initial ? done() : MetaphorJs.animate(
+                self.node,
+                show ? "show" : "hide",
+                function() {
+                    if (show) {
+                        style.display = display;
+                    }
+                })
+                .done(done);
         },
 
         onChange: function() {
@@ -428,6 +434,8 @@
                 val     = self.watcher.getLastResult();
 
             self.runAnimation(val);
+
+            self.initial = false;
         }
     }));
 
@@ -438,6 +446,7 @@
                 val     = self.watcher.getLastResult();
 
             self.runAnimation(!val);
+            self.initial = false;
         }
     }));
 
@@ -446,6 +455,7 @@
         parentEl: null,
         prevEl: null,
         el: null,
+        initial: true,
 
         initialize: function(scope, node, expr) {
 
@@ -473,25 +483,32 @@
                 parent  = self.parentEl,
                 node    = self.node;
 
+            var show    = function(){
+                if (self.prevEl) {
+                    parent.insertBefore(node, self.prevEl ? self.prevEl.nextSibling : null);
+                }
+                else {
+                    parent.appendChild(node);
+                }
+            };
+
+            var hide    = function() {
+                parent.removeChild(node);
+            };
+
+
             if (val) {
                 if (!node.parentNode) {
-                    MetaphorJs.animate(node, "enter", function() {
-                        if (self.prevEl) {
-                            parent.insertBefore(node, self.prevEl ? self.prevEl.nextSibling : null);
-                        }
-                        else {
-                            parent.appendChild(node);
-                        }
-                    });
+                    self.initial ? show() : MetaphorJs.animate(node, "enter", show);
                 }
             }
             else {
                 if (node.parentNode) {
-                    MetaphorJs.animate(node, "leave", null, function(){
-                        parent.removeChild(node);
-                    });
+                    self.initial ? hide() : MetaphorJs.animate(node, "leave").done(hide);
                 }
             }
+
+            self.initial = false;
         }
     }));
 
@@ -500,7 +517,6 @@
 
         model: null,
         itemName: null,
-        list: null,
         tpl: null,
         renderers: null,
         parentEl: null,
@@ -513,6 +529,9 @@
 
             self.parseExpr(expr);
 
+            node.removeAttribute("mjs-each");
+            node.removeAttribute("mjs-include");
+
             self.tpl        = node;
             self.renderers  = [];
             self.prevEl     = node.previousSibling;
@@ -521,15 +540,12 @@
 
             self.node       = node;
             self.scope      = scope;
-            self.watcher    = MetaphorJs.lib.Watchable.create(scope, self.model);
-            self.list       = self.watcher.getValue();
+            self.watcher    = createWatchable(scope, self.model);
             self.watcher.addListener(self.onChange, self);
 
             self.parentEl.removeChild(node);
-            node.removeAttribute("mjs-each");
-            node.removeAttribute("mjs-include");
 
-            self.render();
+            self.render(self.watcher.getValue());
         },
 
         onScopeDestroy: function() {
@@ -542,7 +558,6 @@
                 renderers[i].renderer.destroy();
             }
 
-            delete self.list;
             delete self.renderers;
             delete self.tpl;
             delete self.prevEl;
@@ -552,24 +567,26 @@
             self.supr();
         },
 
-        render: function() {
+        render: function(list) {
 
             var self        = this,
-                list        = self.list,
                 renderers   = self.renderers,
                 tpl         = self.tpl,
                 parent      = self.parentEl,
                 next        = self.nextEl,
+                fragment    = document.createDocumentFragment(),
                 el,
                 i, len;
 
             for (i = 0, len = list.length; i < len; i++) {
 
                 el          = tpl.cloneNode(true);
-
-                parent.insertBefore(el, next);
+                fragment.appendChild(el);
                 renderers.push(self.createItem(el, Renderer, i));
             }
+
+            parent.insertBefore(fragment, next);
+
         },
 
         createItem: function(el, Renderer, index) {
@@ -625,9 +642,9 @@
                     continue;
                 }
 
-                if (i < renderers.length) {
+                if (renderers[index]) {
 
-                    r = renderers[i];
+                    r = renderers[index];
 
                     if (r.scope instanceof Scope) {
                         r.scope.$destroy();
@@ -635,33 +652,36 @@
 
                     r.renderer.destroy();
 
-                    MetaphorJs.animate(r.el, "leave", null, function(){
-                        parent.removeChild(r.el);
-                    });
+                    MetaphorJs.animate(r.el, "leave")
+                        .done(function(el){
+                            if (el.parentNode) {
+                                el.parentNode.removeChild(el);
+                            }
+                        });
                 }
 
                 if (action == 'D') {
-                    renderers.splice(i, 1);
+                    renderers.splice(index, 1);
                 }
                 else {
 
                     el  = tpl.cloneNode(true);
 
-                    MetaphorJs.animate(el, "enter", function(){
-                        if (i > 0) {
-                            parent.insertBefore(el, renderers[i - 1].el.nextSibling);
-                        }
-                        else {
-                            if (self.prevEl) {
-                                parent.insertBefore(el, self.prevEl.nextSibling);
+                    MetaphorJs.animate(el, "enter", function(inx) {
+                        return function(el){
+                            if (inx > 0) {
+                                parent.insertBefore(el, renderers[inx - 1].el.nextSibling);
                             }
                             else {
-                                parent.appendChild(el);
+                                if (self.prevEl) {
+                                    parent.insertBefore(el, self.prevEl.nextSibling);
+                                }
+                                else {
+                                    parent.appendChild(el);
+                                }
                             }
                         }
-                    });
-
-
+                    }(index));
 
                     if (action == 'R') {
                         renderers[i] = self.createItem(el, Renderer, index);
@@ -677,7 +697,6 @@
                     index++;
                 }
             }
-
         },
 
         parseExpr: function(expr) {
@@ -708,11 +727,106 @@
             }
 
             this.model = model;
-            this.itemName = name;
+            this.itemName = name || "item";
         }
 
     }, {
-        itsMe: true,
+        $stopRenderer: true
+    }));
+
+    registerAttr("mjs-each-in-store", 100, d(null, "attr.mjs-each", {
+
+        store: null,
+
+        initialize: function(scope, node, expr) {
+
+            var self    = this,
+                store;
+
+            self.parseExpr(expr);
+
+            node.removeAttribute("mjs-each-in-store");
+            node.removeAttribute("mjs-include");
+
+            self.tpl        = node;
+            self.renderers  = [];
+            self.prevEl     = node.previousSibling;
+            self.nextEl     = node.nextSibling;
+            self.parentEl   = node.parentNode;
+
+            self.node       = node;
+            self.scope      = scope;
+            self.store      = store = createGetter("."+self.model)(scope);
+
+            self.parentEl.removeChild(node);
+
+            self.initWatcher();
+            self.render(self.watcher.getValue());
+
+            async(self.bindStore, self, [store, "on"]);
+        },
+
+        onScopeDestroy: function() {
+
+            var self    = this;
+
+            self.bindStore(self.store, "un");
+            delete self.store;
+
+            self.supr();
+        },
+
+        initWatcher: function() {
+            var self        = this;
+            self.watcher    = createWatchable(self.store, ".items", null);
+            self.watcher.addListener(self.onChange, self);
+        },
+
+        resetWatcher: function() {
+            var self        = this;
+            self.watcher.setValue(self.store.items);
+        },
+
+        bindStore: function(store, fn) {
+
+            var self    = this;
+
+            store[fn]("load", self.onStoreUpdate, self);
+            store[fn]("update", self.onStoreUpdate, self);
+            store[fn]("add", self.onStoreUpdate, self);
+            store[fn]("remove", self.onStoreUpdate, self);
+            store[fn]("replace", self.onStoreUpdate, self);
+
+            store[fn]("filter", self.onStoreFilter, self);
+            store[fn]("clearfilter", self.onStoreFilter, self);
+
+            store[fn]("clear", self.onStoreClear, self);
+
+            store[fn]("destroy", self.onStoreDestroy, self);
+        },
+
+        onStoreUpdate: function() {
+            this.watcher.check();
+        },
+
+        onStoreFilter: function() {
+            this.resetWatcher();
+            this.onStoreUpdate();
+        },
+
+        onStoreClear: function() {
+            this.resetWatcher();
+            this.onStoreUpdate();
+        },
+
+        onStoreDestroy: function() {
+            var self = this;
+            self.onStoreClear();
+            self.watcher.unsubscribeAndDestroy(self.onChange, self);
+            delete self.watcher;
+        }
+
+    }, {
         $stopRenderer: true
     }));
 
@@ -728,22 +842,18 @@
         tpl: null,
         renderer: null,
         $stopRenderer: false,
+        initial: true,
 
         initialize: function(scope, node, tplExpr, parentRenderer) {
 
             var self    = this,
-                contents,
                 tpl;
 
             self.node   = node;
             self.scope  = scope;
 
-            contents    = toArray(node.childNodes);
-            if (contents.length) {
-                while (node.firstChild) {
-                    node.removeChild(node.firstChild);
-                }
-                dataFn(node, "mjs-transclude", contents);
+            if (node.firstChild) {
+                dataFn(node, "mjs-transclude", toFragment(node.childNodes));
             }
 
             node.removeAttribute("mjs-include");
@@ -751,13 +861,13 @@
             tpl         = getTemplate(tplExpr);
 
             if (tpl) {
-                self.applyTemplate(node, tpl);
+                self.$returnToRenderer = self.applyTemplate(node, tpl);
             }
             else {
-                self.watcher    = Watchable.create(scope, tplExpr);
+                self.watcher    = createWatchable(scope, tplExpr);
                 self.watcher.addListener(self.onChange, self);
                 self.$stopRenderer = true;
-                self.onChange();
+                self.$returnToRenderer = self.onChange();
 
                 parentRenderer.on("destroy", self.onParentRendererDestroy, self);
             }
@@ -776,26 +886,43 @@
                 self.renderer.destroy();
             }
 
-            self.applyTemplate(self.node, getTemplate(tplId));
-
-            self.renderer   = new Renderer(self.node, self.scope);
-            self.renderer.render();
+            return self.applyTemplate(self.node, getTemplate(tplId))
+                .done(function(){
+                    self.renderer   = new Renderer(self.node, self.scope);
+                    self.renderer.render();
+                });
         },
 
         applyTemplate: function(el, tpl) {
-            while (el.firstChild) {
-                el.removeChild(el.firstChild);
-            }
-            var i, len, clone = MetaphorJs.clone(tpl);
 
-            if (MetaphorJs.isArray(clone)) {
-                for (i = 0, len = clone.length; i < len; i++) {
-                    el.appendChild(clone[i]);
-                }
+            var self        = this,
+                deferred    = new Promise,
+
+                applyNext   = function() {
+
+                    while (el.firstChild) {
+                        el.removeChild(el.firstChild);
+                    }
+
+                    if (tpl) {
+                        el.appendChild(MetaphorJs.clone(tpl));
+
+                    }
+
+                    deferred.resolve();
+                };
+
+            if (!self.initial) {
+                MetaphorJs.animate(el, "leave").done(applyNext);
+                MetaphorJs.animate(el, "enter");
             }
             else {
-                el.appendChild(clone);
+                applyNext();
             }
+
+            self.initial = false;
+
+            return deferred.promise();
         },
 
         onParentRendererDestroy: function() {
@@ -832,89 +959,75 @@
 
     registerTag("mjs-include", 900, function(scope, node) {
 
-        var tplId       = node.attributes['src'].value,
-            tpl         = getTemplate(tplId),
-            contents    = toArray(node.childNodes);
+        var tplId       = node.getAttribute("src"),
+            tpl         = getTemplate(tplId);
 
-        if (contents.length) {
-            while (node.firstChild) {
-                node.removeChild(node.firstChild);
-            }
-            dataFn(node, "mjs-transclude", contents);
+        if (node.firstChild) {
+            dataFn(node, "mjs-transclude", toFragment(node.childNodes));
         }
 
-        var parent  = node.parentNode,
-            next    = node.nextSibling,
-            clone   = MetaphorJs.clone(tpl),
-            i, len;
+        var parent      = node.parentNode,
+            next        = node.nextSibling,
+            clone       = MetaphorJs.clone(tpl),
+            children    = toArray(clone.childNodes),
+            deferred    = new Promise;
 
         parent.removeChild(node);
+        parent.insertBefore(clone, next);
 
-        for (i = 0, len = clone.length; i < len; i++) {
-            parent.insertBefore(clone[i], next);
-        }
+        MetaphorJs.animate(node, "enter")
+            .done(function(){
+                deferred.resolve(children);
+            });
 
-        return clone;
+        return deferred.promise();
     });
 
-    g("tag.mjs-include").$breakRenderer = true;
+    //g("tag.mjs-include").$breakRenderer = true;
 
 
 
     registerAttr("mjs-transclude", 1000, function(scope, node) {
 
-        var contents    = toArray(node.childNodes),
-            transclude  = parentData(node, 'mjs-transclude');
+        var transclude  = parentData(node, 'mjs-transclude');
 
         if (transclude) {
 
-            while (node.firstChild) {
-                node.removeChild(node.firstChild);
+            if (node.firstChild) {
+                dataFn(node, "mjs-transclude", toFragment(node.childNodes));
             }
 
-            if (contents.length) {
-                dataFn(node, "mjs-transclude", contents);
-            }
-
-            var parent  = node.parentNode,
-                next    = node.nextSibling,
-                clone   = MetaphorJs.clone(transclude),
-                i, len;
+            var parent      = node.parentNode,
+                next        = node.nextSibling,
+                clone       = MetaphorJs.clone(transclude),
+                children    = toArray(clone.childNodes);
 
             parent.removeChild(node);
+            parent.insertBefore(clone, next);
 
-            for (i = 0, len = clone.length; i < len; i++) {
-                parent.insertBefore(clone[i], next);
-            }
-
-            return clone;
+            return children;
         }
     });
 
     registerTag("mjs-transclude", 900, function(scope, node) {
 
-        var contents    = toArray(node.childNodes),
-            transclude  = parentData(node, 'mjs-transclude');
+        var transclude  = parentData(node, 'mjs-transclude');
 
         if (transclude) {
 
-            if (contents.length) {
-                while (node.firstChild) {
-                    node.removeChild(node.firstChild);
-                }
-                dataFn(node, "mjs-transclude", contents);
+            if (node.firstChild) {
+                dataFn(node, "mjs-transclude", toFragment(node.childNodes));
             }
 
-            var parent  = node.parentNode,
-                next    = node.nextSibling,
-                clone   = MetaphorJs.clone(transclude),
-                i, len;
+            var parent      = node.parentNode,
+                next        = node.nextSibling,
+                clone       = MetaphorJs.clone(transclude),
+                children    = toArray(clone.childNodes);
 
             parent.removeChild(node);
+            parent.insertBefore(clone, next);
 
-            for (i = 0, len = clone.length; i < len; i++) {
-                parent.insertBefore(clone[i], next);
-            }
+            return children;
         }
     });
 
@@ -932,21 +1045,33 @@
         }
     }));
 
-    var events = 'click dblclick mousedown mouseup mouseover mouseout mousemove mouseenter mouseleave keydown keyup keypress submit focus blur copy cut paste'.split(' '),
+    var events = ('click dblclick mousedown mouseup mouseover mouseout mousemove mouseenter ' +
+                  'mouseleave keydown keyup keypress submit focus blur copy cut paste enter').split(' '),
         i, len,
-        createFn     = MetaphorJs.lib.Watchable.createFunc;
+        createFn     = Watchable.createFunc;
 
     for (i = 0, len = events.length; i < len; i++) {
 
         (function(name){
 
+            var eventName = name;
+
+            if (eventName == "enter") {
+                eventName = "keyup";
+            }
+
             registerAttr("mjs-" + name, 1000, function(scope, node, expr){
 
                 var fn  = createFn(expr);
 
-                addListener(node, name, function(e){
+                addListener(node, eventName, function(e){
 
                     e = normalizeEvent(e);
+
+                    if (name == "enter" && e.keyCode != 13) {
+                        return null;
+                    }
+
                     scope.$event = e;
 
                     fn(scope);
@@ -985,7 +1110,6 @@
                     else {
                         self.node.removeAttribute(name);
                     }
-
                 }
             }));
 
@@ -1038,4 +1162,10 @@
     cmpAttribute.$breakScope = true;
 
     registerAttr("mjs-cmp", 200, cmpAttribute);
+
+
+    registerAttr("mjs-init", 150, function(scope, node, expr){
+        node.removeAttribute("mjs-init");
+        createFn(expr)(scope);
+    });
 }());

@@ -2,8 +2,12 @@
 (function(){
 
 "use strict";
-var instances   = {};
-var cache       = {};
+var instances   = {},
+    cache       = {},
+    Promise     = MetaphorJs.lib.Promise,
+    extend      = MetaphorJs.apply,
+    ajax        = MetaphorJs.ajax;
+
 
 /**
  * @namespace MetaphorJs
@@ -68,7 +72,7 @@ MetaphorJs.define("MetaphorJs.data.Model", {
                 record: {
                     load:       null,
                     save:       null,
-                    "delete":     null,
+                    "delete":   null,
                     id:         null,
                     data:       null,
                     success:    null,
@@ -78,7 +82,7 @@ MetaphorJs.define("MetaphorJs.data.Model", {
                 store: {
                     load:       null,
                     save:       null,
-                    "delete":     null,
+                    "delete":   null,
                     id:         null,
                     data:       null,
                     total:      null,
@@ -92,14 +96,10 @@ MetaphorJs.define("MetaphorJs.data.Model", {
 
         self.fields     = {};
 
-        MetaphorJs.apply(self, cfg);
+        extend(self, defaults, false);
+        extend(self, cfg, true);
 
-        self.record     = self.record || {};
-        self.store      = self.store || {};
-        self.plain      = self.type ? false : true;
-
-        MetaphorJs.apply(self.record, defaults.record, false);
-        MetaphorJs.apply(self.store, defaults.store, false);
+        self.plain      = !self.type;
     },
 
     /**
@@ -169,7 +169,7 @@ MetaphorJs.define("MetaphorJs.data.Model", {
 
         var self        = this,
             profile     = self[what],
-            cfg         = $.extend({}, typeof profile[type] == "string" ?
+            cfg         = extend({}, typeof profile[type] == "string" ?
                             {url: profile[type]} : profile[type]),
             idProp      = self.getProp(what, type, "id"),
             dataProp    = self.getProp(what, type, "data"),
@@ -181,7 +181,7 @@ MetaphorJs.define("MetaphorJs.data.Model", {
                 cfg     = {url: url};
             }
             else {
-                throw new Error(what + "." + type + " not defined");
+                throw what + "." + type + " not defined";
             }
         }
         if (typeof cfg == "string") {
@@ -190,37 +190,53 @@ MetaphorJs.define("MetaphorJs.data.Model", {
 
         if (!cfg.url) {
             if (!url) {
-                throw new Error(what + "." + type + " url not defined");
+                throw what + "." + type + " url not defined";
             }
             cfg.url     = url;
         }
 
-        cfg.data        = $.extend(
-            true, {},
+        cfg.data        = extend(
+            {},
             cfg.data,
             self.extra,
             profile.extra,
             profile[type] ? profile[type].extra : {}
         );
 
-        if (!cfg.type) {
+        /*if (!cfg.type) {
             cfg.type    = type == "load" ? "GET" : "POST";
+        }*/
+        if (!cfg.method) {
+            cfg.method = type == "load" ? "GET" : "POST";
         }
 
         if (id) {
-            cfg.data[idProp]    = id;
+            cfg.data[idProp] = id;
         }
         if (data) {
             if (dataProp) {
-                cfg.data[dataProp]  = data;
+                cfg.data[dataProp] = data;
             }
             else {
-                cfg.data    = data;
+                cfg.data = data;
             }
         }
 
-        if (isJson && cfg.data && cfg.type != 'GET') {
+        if (isJson && cfg.data && cfg.method != 'GET') { // && cfg.type != 'GET') {
             cfg.data    = JSON.stringify(cfg.data);
+        }
+
+        cfg.callbackScope = self;
+
+        if (what == "record") {
+            cfg.processResponse = function(response, deferred) {
+                self._processRecordResponse(type, response, deferred);
+            }
+        }
+        else if (what == "store") {
+            cfg.processResponse = function(response, deferred) {
+                self._processStoreResponse(type, response, deferred);
+            };
         }
 
         return cfg;
@@ -237,7 +253,8 @@ MetaphorJs.define("MetaphorJs.data.Model", {
             df.reject(response);
         }
         else {
-            df.resolve(id, data);
+            //df.resolve(id, data);
+            df.resolve({id: id, data: data});
         }
     },
 
@@ -252,7 +269,8 @@ MetaphorJs.define("MetaphorJs.data.Model", {
             df.reject(response);
         }
         else {
-            df.resolve(data, total);
+            //df.resolve(data, total);
+            df.resolve({data: data, total: total});
         }
     },
 
@@ -271,12 +289,12 @@ MetaphorJs.define("MetaphorJs.data.Model", {
     /**
      * @access public
      * @param {string|number} id Record id
-     * @returns jQuery.Deferred
+     * @returns MetaphorJs.lib.Promise
      */
     loadRecord: function(id) {
 
-        var self    = this,
-            p       = $.ajax(self._createAjaxCfg("record", "load", id)),
+        var self    = this;/*,
+            p       = ajax(self._createAjaxCfg("record", "load", id)),
             df      = new jQuery.Deferred;
 
         p.done(function(response){
@@ -284,7 +302,9 @@ MetaphorJs.define("MetaphorJs.data.Model", {
             })
             .fail(df.reject);
 
-        return df.promise();
+        return df.promise();*/
+
+        return ajax(self._createAjaxCfg("record", "load", id));
     },
 
     /**
@@ -292,44 +312,24 @@ MetaphorJs.define("MetaphorJs.data.Model", {
      * @param {MetaphorJs.data.Record} rec
      * @param {array|null} keys
      * @param {object|null} extra
-     * @returns jQuery.Deferred
+     * @returns MetaphorJs.lib.Promise
      */
     saveRecord: function(rec, keys, extra) {
-
-        var self    = this,
-            p       = $.ajax(self._createAjaxCfg(
-                        "record",
-                        rec.getId() ? "save" : "create",
-                        rec.getId(),
-                        $.extend({}, rec.storeData(rec.getData(keys)), extra)
-                    )),
-            df      = new jQuery.Deferred;
-
-
-        p.done(function(response) {
-                self._processRecordResponse("save", response, df);
-            })
-            .fail(df.reject);
-
-        return df.promise();
+        return ajax(this._createAjaxCfg(
+            "record",
+            rec.getId() ? "save" : "create",
+            rec.getId(),
+            extend({}, rec.storeData(rec.getData(keys)), extra)
+        ));
     },
 
     /**
      * @access public
      * @param {MetaphorJs.data.Record} rec
-     * @returns jQuery.Deferred
+     * @returns MetaphorJs.lib.Promise
      */
     deleteRecord: function(rec) {
-        var self    = this,
-            p       = $.ajax(this._createAjaxCfg("record", "delete", rec.getId())),
-            df      = new jQuery.Deferred;
-
-        p.done(function(response){
-                df[self._getSuccess("record", "delete", response) ? "resolve" : "reject"]();
-            })
-            .fail(df.reject);
-
-        return df.promise();
+        return ajax(this._createAjaxCfg("record", "delete", rec.getId()));
     },
 
 
@@ -339,64 +339,30 @@ MetaphorJs.define("MetaphorJs.data.Model", {
      * @access public
      * @param {MetaphorJs.data.Store} store
      * @param {object} params
-     * @returns jQuery.Deferred
+     * @returns MetaphorJs.lib.Promise
      */
     loadStore: function(store, params) {
-
-        var self    = this,
-            acfg    = self._createAjaxCfg("store", "load"),
-            df      = new jQuery.Deferred,
-            p;
-
-        acfg.data   = $.extend(true, acfg.data, params);
-        p           = $.ajax(acfg);
-
-        p.done(function(response) {
-                self._processStoreResponse("load", response, df);
-            })
-            .fail(df.reject);
-
-        return df.promise();
+        return ajax(extend(this._createAjaxCfg("store", "load"), params, true));
     },
 
     /**
      * @access public
      * @param {MetaphorJs.data.Store} store
      * @param {object} recordData
-     * @returns jQuery.Deferred
+     * @returns MetaphorJs.lib.Promise
      */
     saveStore: function(store, recordData) {
-
-        var self    = this,
-            p       = $.ajax(self._createAjaxCfg("store", "save", null, recordData)),
-            df      = new jQuery.Deferred;
-
-        p.done(function(response) {
-                self._processStoreResponse("save", response, df);
-            })
-            .fail(df.reject);
-
-        return df.promise();
+        return ajax(this._createAjaxCfg("store", "save", null, recordData));
     },
 
     /**
      * @access public
      * @param {MetaphorJs.data.Store} store
      * @param {array} ids
-     * @returns jQuery.Deferred
+     * @returns MetaphorJs.lib.Promise
      */
     deleteRecords: function(store, ids) {
-
-        var self    = this,
-            p       = $.ajax(self._createAjaxCfg("store", "delete", ids)),
-            df      = new jQuery.Deferred;
-
-        p.done(function(response) {
-                df[self._getSuccess("store", "delete", response) ? "resolve" : "reject"]();
-            })
-            .fail(df.reject);
-
-        return df.promise();
+        return ajax(this._createAjaxCfg("store", "delete", ids));
     },
 
 

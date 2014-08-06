@@ -1,3 +1,4 @@
+
 /**
  * @namespace MetaphorJs
  * @class MetaphorJs.data.Record
@@ -212,7 +213,7 @@ MetaphorJs.define("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             self.data   = processed;
         }
 
-        self.orig       = $.extend({}, self.data);
+        self.orig       = MetaphorJs.apply({}, self.data);
         self.modified   = {};
         self.loaded     = true;
         self.setDirty(false);
@@ -261,7 +262,7 @@ MetaphorJs.define("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             return data;
         }
         else {
-            return $.extend({}, this.data);
+            return MetaphorJs.apply({}, this.data);
         }
     },
 
@@ -269,7 +270,7 @@ MetaphorJs.define("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
      * @returns object
      */
     getChanged: function() {
-        return $.extend({}, this.modified);
+        return MetaphorJs.apply({}, this.modified);
     },
 
     /**
@@ -323,7 +324,7 @@ MetaphorJs.define("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
     revert: function() {
         var self    = this;
         if (self.dirty) {
-            self.data       = $.extend({}, self.orig);
+            self.data       = MetaphorJs.apply({}, self.orig);
             self.modified   = {};
             self.setDirty(false);
         }
@@ -331,15 +332,15 @@ MetaphorJs.define("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
     /**
      * @method
-     * @returns jQuery.Deferred
+     * @returns MetaphorJs.lib.Promise
      */
     load: function() {
         var self    = this;
         self.trigger("beforeload", self);
         return self.model.loadRecord(self.id)
-            .done(function(id, data) {
-                self.setId(id);
-                self.importData(data);
+            .done(function(response) {
+                self.setId(response.id);
+                self.importData(response.data);
                 self.trigger("load", self);
             })
             .fail(function() {
@@ -351,15 +352,15 @@ MetaphorJs.define("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
      * @method
      * @param {array|null|string} keys
      * @param {object|null} extra
-     * @returns jQuery.Deferred
+     * @returns MetaphorJs.lib.Promise
      */
     save: function(keys, extra) {
         var self    = this;
         self.trigger("beforesave", self);
         return self.model.saveRecord(self, keys, extra)
-            .done(function(id, data) {
-                self.setId(id);
-                self.importData(data);
+            .done(function(response) {
+                self.setId(response.id);
+                self.importData(response.data);
                 self.trigger("save", self);
             })
             .fail(function(response) {
@@ -369,12 +370,12 @@ MetaphorJs.define("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
     /**
      * @method
-     * @returns jQuery.Deferred
+     * @returns MetaphorJs.lib.Promise
      */
     "delete": function() {
         var self    = this;
         self.trigger("beforedelete", self);
-        return self.model.removeRecord(self)
+        return self.model.deleteRecord(self)
             .done(function() {
                 self.trigger("delete", self);
                 self.destroy();

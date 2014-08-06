@@ -4,11 +4,10 @@
 
     var cmps        = {},
         nextUid     = MetaphorJs.nextUid,
-        $           = window.jQuery,
         getTemplate = MetaphorJs.getTemplate,
-        Scope       = MetaphorJs.view.Scope,
         Renderer    = MetaphorJs.view.Renderer,
-        dataFn      = MetaphorJs.data;
+        dataFn      = MetaphorJs.data,
+        toFragment  = MetaphorJs.toFragment;
 
     var getCmpId    = function(cmp) {
         return cmp.id || "cmp-" + nextUid();
@@ -141,29 +140,27 @@
         _createNode: function() {
 
             var self    = this,
-                node, tmp, tpl;
+                tmp, tpl;
 
             if (self.tag) {
                 self.node   = document.createElement(self.tag);
             }
             else {
+
                 tpl     = getTemplate(self.template) || self.template;
 
                 if (typeof tpl == "string") {
                     tmp = document.createElement("div");
                     tmp.innerHTML = tpl;
-                    tpl = MetaphorJs.toArray(tmp.childNodes);
+                    tpl = toFragment(tmp.childNodes);
                 }
 
-                if (tpl.length == 1) {
-                    self.node   = tpl[0];
+                if (tpl.childNodes.length == 1) {
+                    self.node   = tpl.firstChild.cloneNode(true);
                 }
                 else {
-                    self.node = node = document.createElement('div');
-
-                    for (var i = 0, len = tpl.length; i < len; i++) {
-                        node.appendChild(tpl[i]);
-                    }
+                    self.node = document.createElement('div');
+                    self.node.appendChild(tpl.cloneNode(true));
                 }
             }
         },
@@ -173,30 +170,23 @@
             var self        = this,
                 node        = self.node,
                 tpl         = getTemplate(self.template) || self.template,
-                contents    = MetaphorJs.toArray(node.childNodes),
                 clone,
-                i, len, tmp;
+                tmp;
 
             if (typeof tpl == "string") {
                 tmp = document.createElement("div");
                 tmp.innerHTML = tpl;
-                clone = MetaphorJs.toArray(tmp.childNodes);
+                clone = toFragment(tmp.childNodes);
             }
             else {
                 clone   = MetaphorJs.clone(tpl);
             }
 
-            while (node.firstChild) {
-                node.removeChild(node.firstChild);
+            if (node.firstChild) {
+                dataFn(self.node, "mjs-transclude", toFragment(node.childNodes));
             }
 
-            if (contents.length) {
-                dataFn(self.node, "mjs-transclude", contents);
-            }
-
-            for (i = 0, len = clone.length; i < len; i++) {
-                node.appendChild(clone[i]);
-            }
+            node.appendChild(clone);
         },
 
         _initElement: function() {
