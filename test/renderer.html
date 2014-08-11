@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+
     <script src="numeral.min.js"></script>
     <script src="moment.min.js"></script>
     <script src="../src/MetaphorJs.js"></script>
@@ -10,20 +11,24 @@
     <script src="../../metaphorjs-promise/metaphorjs.promise.js"></script>
     <script src="../../metaphorjs-watchable/metaphorjs.watchable.js"></script>
     <script src="../../metaphorjs-ajax/metaphorjs.ajax.js"></script>
+    <script src="../../metaphorjs-history/metaphorjs.history.js"></script>
+
     <script src="../src/lib/Value.js"></script>
     <script src="../src/lib/Event.js"></script>
     <script src="../src/cmp/Base.js"></script>
-    <script src="../src/data/Model.js"></script>
-    <script src="../src/data/Record.js"></script>
-    <script src="../src/data/Store.js"></script>
+    <script src="../../metaphorjs-model/src/Model.js"></script>
+    <script src="../../metaphorjs-model/src/Record.js"></script>
+    <script src="../../metaphorjs-model/src/Store.js"></script>
 
+    <script src="../src/view/Animate.js"></script>
     <script src="../src/view/Scope.js"></script>
     <script src="../src/view/Browser.js"></script>
     <script src="../src/view/Renderer.js"></script>
     <script src="../src/cmp/Component.js"></script>
+    <script src="../src/cmp/View.js"></script>
     <script src="../src/view/Attribute.js"></script>
     <script src="../src/view/Filter.js"></script>
-    <script src="../src/view/Animate.js"></script>
+
 
     <style>
 
@@ -162,7 +167,14 @@
             <ul mjs-show=".bool" mjs-animate>
                 <li mjs-each="item in .list" mjs-animate>
                     <label mjs-class="{cls3: .item.bool}">
-                        <input type="checkbox" mjs-model=".item.bool"/>{{.$index}} - {{.item.txt}}</label>
+                        <input type="checkbox" mjs-model=".item.bool"/>
+                        {{.$index}} -
+                        {{.item.txt}} -
+                        {{ .$first ? "first" : "" }} -
+                        {{ .$last ? "last" : "" }} -
+                        {{ .$even ? "even" : "" }} -
+                        {{ .$odd ? "odd" : "" }}
+                    </label>
                     <a href="#" mjs-click=".$parent.list.splice(.$index,1);">x</a>
                 </li>
             </ul>
@@ -191,14 +203,20 @@
             </div>
 
             <div mjs-cmp="Test.MyComponent as ctrl">
-                <p>This is another instance</p>
+                <p>This is another instance with deferred value: {{ .deferred }}</p>
             </div>
 
             <div mjs-cmp="Test.TplComponent as ctrl" mjs-if=".$parent.bool" mjs-animate>
                 <h2>{{ .title }}</h2>
-                change template: <a href="#" mjs-click=".tpl='a+b'">a + b</a> | <a href="#" mjs-click=".tpl='a*b'">a * b</a>
+                change template:
+                <a href="#" mjs-click=".tpl='a+b'">a + b</a> |
+                <a href="#" mjs-click=".tpl='a*b'">a * b</a>
 
                 <div mjs-include=".tpl" mjs-animate></div>
+            </div>
+
+            <div mjs-view="Test.MyView" mjs-animate>
+                <p>This component controller by View</p>
             </div>
         </div>
     </div>
@@ -209,7 +227,27 @@
 
         MetaphorJs.onReady(function(){
 
-            //console.profile();
+            MetaphorJs.d("Test.MyView", "MetaphorJs.cmp.View", {
+
+                route: [
+                    {
+                        reg: /^\/1$/,
+                        cmp: "Test.MyComponent"
+                    },
+                    {
+                        reg: /^\/2\/(\d+)$/,
+                        cmp: "Test.MyComponent2"
+                    },
+                    {
+                        reg: /^\/2$/,
+                        cmp: "Test.MyComponent2"
+                    },
+                    {
+                        reg: /^\/3$/,
+                        template: "a+b"
+                    }
+                ]
+            });
 
             MetaphorJs.d("Test.MyRecord", "MetaphorJs.data.Record", {});
 
@@ -219,21 +257,37 @@
 
                 initComponent: function() {
 
-                    this.scope.title = "My Component" + (new Date).getTime();
+                    var self    = this;
 
-                    var model   = new MetaphorJs.data.Model({
-                        type: "Test.MyRecord",
-                        id: "id",
-                        data: "record",
-                        total: "total",
-                        store: {
-                            load: "data.json"
-                        }
-                    });
+                    self.scope.title = "My Component" + (new Date).getTime();
 
-                    this.scope.store = new MetaphorJs.data.Store({
-                        model: model
-                    });
+                    var resolve = function() {
+
+                        var model   = new MetaphorJs.data.Model({
+                            type: "Test.MyRecord",
+                            id: "id",
+                            data: "record",
+                            total: "total",
+                            store: {
+                                load: "/metaphorjs/test/data.json"
+                            }
+                        });
+
+                        self.scope.store = new MetaphorJs.data.Store({
+                            model: model
+                        });
+
+                        self.scope.deferred = (new Date).getTime();
+                    };
+
+                    var deferred = new MetaphorJs.lib.Promise;
+
+                    setTimeout(function(){
+                        resolve();
+                        deferred.resolve();
+                    }, 1000);
+
+                    return deferred.promise();
                 },
 
                 reverse: function() {
@@ -245,6 +299,20 @@
                     this.scope.store.load().done(function(){
                         this.scope.$check();
                     }, this);
+                }
+            });
+
+            MetaphorJs.d("Test.MyComponent2", "MetaphorJs.cmp.Component", {
+
+                template: 'cmp1-template',
+
+                initComponent: function(cfg, param) {
+                    var self    = this;
+
+                    if (param) {
+                        alert("received param: " + param);
+                    }
+                    self.scope.title = "My Component2 " + (new Date).getTime();
                 }
             });
 
@@ -279,25 +347,25 @@
             };
             var start  = (new Date).getTime();
 
-            var scope       = new MetaphorJs.view.Scope(dataObj);
-            var renderer    = new MetaphorJs.view.Renderer(document.documentElement, scope);
-            renderer.render();
-
+            //console.profile();
+            MetaphorJs.app(document.documentElement, dataObj);
             //console.profileEnd();
 
             var end  = (new Date).getTime();
 
             if (window.console) {
-                console.log("time: ", end - start);
+                console.log("render time: ", end - start);
             }
 
-
-            window.dataScope = scope;
+            history.initPushState();
 
         });
 
 
     </script>
+
+
+    pushUrl: <a href="/1">/1</a> | <a href="/2">/2</a> | <a href="http://www.kuindji.com">outside</a><br><br>
 
 </body>
 </html>

@@ -17,12 +17,28 @@
             head.appendChild(styleTag);
             doc.__qsaels = [];
 
-            styleTag.sheet.insertRule(selector + "{x:expression(document.__qsaels.push(this))}", 0);
+            if (styleTag.sheet){
+                styleTag.sheet.insertRule(selector + "{x:expression(document.__qsaels.push(this))}", 0);
+            }
+            else if (styleTag.styleSheet) {
+                styleTag.styleSheet.cssText = selector + "{x:expression(document.__qsaels.push(this))}";
+            }
             window.scrollBy(0, 0);
 
             return doc.__qsaels;
         };
     }
+
+    var bind        = Function.prototype.bind ?
+                      function(fn, fnScope){
+                          return fn.bind(fnScope);
+                      } :
+                      function(fn, fnScope) {
+                          return function() {
+                              fn.apply(fnScope, arguments);
+                          };
+                      };
+
 
 
 
@@ -46,7 +62,7 @@
                 src,
                 k;
 
-            if (typeof args[args.length - 1] == "bool") {
+            if (typeof args[args.length - 1] == "boolean") {
                 override = args.pop();
             }
 
@@ -57,7 +73,7 @@
                             apply(dst[k], src[k], override);
                         }
                         else {
-                            if (override !== false || dst[k] === undef || dst[k] === null) {
+                            if (override === true || dst[k] === undef || dst[k] === null) {
                                 dst[k] = src[k];
                             }
                         }
@@ -235,7 +251,7 @@
             var id  = getNodeId(el),
                 obj = dataCache[id];
 
-            if (value != undef) {
+            if (typeof value != "undefined") {
                 if (!obj) {
                     obj = dataCache[id] = {};
                 }
@@ -266,11 +282,7 @@
             };
         })(),
 
-        bind: function(fn, scope) {
-            return function() {
-                return fn.apply(scope, arguments);
-            }
-        },
+        bind: bind,
 
         inArray: function(val, arr) {
             return arr ? Array.prototype.indexOf.call(arr, val) : -1;
@@ -427,7 +439,26 @@
 
         toFragment: toFragment,
 
-        toArray: toArray
+        toArray: toArray,
+
+        app: function(node, scope) {
+
+            var Scope = MetaphorJs.view.Scope;
+
+            if (!scope) {
+                scope   = new Scope;
+            }
+            else {
+                if (!(scope instanceof Scope)) {
+                    scope   = new Scope(scope);
+                }
+            }
+
+            var renderer    = new MetaphorJs.view.Renderer(node, scope);
+            renderer.render();
+
+            return renderer;
+        }
     };
 
 
@@ -437,6 +468,7 @@
     else {
         window.MetaphorJs = Metaphor;
     }
+
 
 
 }());

@@ -213,6 +213,7 @@
                 var attrs   = node.attributes,
                     tag     = node.tagName.toLowerCase(),
                     i, f, len,
+                    attr,
                     name,
                     res;
 
@@ -229,8 +230,9 @@
                 for (i = 0, len = handlers.length; i < len; i++) {
                     name    = handlers[i].name;
 
-                    if (node.hasAttribute(name)) {
-                        res     = self.runHandler(handlers[i].handler, scope, node, node.getAttribute(name));
+                    // ie6 doesn't have hasAttribute()
+                    if ((attr = node.getAttribute(name)) !== null && typeof attr != "undefined") {
+                        res     = self.runHandler(handlers[i].handler, scope, node, attr);
                         node.removeAttribute(name);
 
                         if (res || res === false) {
@@ -461,5 +463,25 @@
         eachNode: eachNode
     });
 
+
+    var initApps = function() {
+
+        var app = MetaphorJs.app;
+
+        if (document.querySelectorAll) {
+            var appNodes = document.querySelectorAll("[mjs-app]");
+            for (var i = -1, l = appNodes.length; ++i < l; app(appNodes[i])){}
+        }
+        else {
+            eachNode(document.documentElement, function(el) {
+                if (el.hasAttribute("mjs-app")) {
+                    app(el);
+                    return false;
+                }
+            });
+        }
+    };
+
+    MetaphorJs.onReady(initApps);
 
 }());

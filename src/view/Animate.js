@@ -14,6 +14,7 @@
         animationDuration   = "animationDuration",
         transitionDelay     = "transitionDelay",
         transitionDuration  = "transitionDuration",
+        animId              = 0,
         detectCssPrefixes   = function() {
 
             var el = document.createElement("div"),
@@ -49,6 +50,8 @@
         Promise         = MetaphorJs.lib.Promise,
 
         dataFn          = MetaphorJs.data,
+
+        isThenable      = MetaphorJs.isThenable,
 
         dataParam       = "mjsAnimationQueue",
 
@@ -105,21 +108,22 @@
                 next;
             if (queue.length) {
                 next = queue[0];
-                animationStage(next.el, next.stages, 0, next.start, next.deferred, false);
+                animationStage(next.el, next.stages, 0, next.start, next.deferred, false, next.id);
             }
             else {
                 dataFn(el, dataParam, null);
             }
         },
 
-        animationStage  = function animationStage(el, stages, position, startCallback, deferred, first) {
+        animationStage  = function animationStage(el, stages, position, startCallback, deferred, first, id) {
 
             var stopped   = function() {
-                var so = !dataFn(el, dataParam);
-                if (so) {
-                    deferred.resolve(el);
+                var q = dataFn(el, dataParam);
+                if (!q || !q.length || q[0].id != id) {
+                    deferred.reject(el);
+                    return true;
                 }
-                return so;
+                return false;
             };
 
             var finishStage = function() {
@@ -144,6 +148,24 @@
                 }
             };
 
+            var setStage = function() {
+
+                if (stopped()) {
+                    return;
+                }
+
+                addClass(el, stages[position] + "-active");
+
+                var duration = getAnimationDuration(el);
+
+                if (duration) {
+                    callTimeout(finishStage, (new Date).getTime(), duration);
+                }
+                else {
+                    finishStage();
+                }
+            };
+
             var start = function(){
 
                 if (stopped()) {
@@ -152,26 +174,19 @@
 
                 addClass(el, stages[position]);
 
-                startCallback && startCallback(el);
-                startCallback = null;
+                var promise;
 
-                animFrame(function() {
+                if (startCallback) {
+                    promise = startCallback(el);
+                    startCallback = null;
+                }
 
-                    if (stopped()) {
-                        return;
-                    }
-
-                    addClass(el, stages[position] + "-active");
-
-                    var duration = getAnimationDuration(el);
-
-                    if (duration) {
-                        callTimeout(finishStage, (new Date).getTime(), duration);
-                    }
-                    else {
-                        finishStage();
-                    }
-                });
+                if (isThenable(promise)) {
+                    promise.done(setStage);
+                }
+                else {
+                    animFrame(setStage);
+                }
             };
 
             first ? animFrame(start) : start();
@@ -187,10 +202,10 @@
             position,
             stages;
 
-        if (queue) {
+        if (queue && queue.length) {
             current = queue[0];
 
-            if (current.stages) {
+            if (current && current.stages) {
                 position = current.position;
                 stages = current.stages;
                 removeClass(el, stages[position]);
@@ -207,6 +222,7 @@
             js          = el.getAttribute('mjs-animate-js'),
             deferred    = new Promise,
             queue       = dataFn(el, dataParam) || [],
+            id          = ++animId,
             jsName,
             jsFn;
 
@@ -224,21 +240,34 @@
             stages: stages,
             start: startCallback,
             deferred: deferred,
-            position: 0
+            position: 0,
+            id: id
         });
         dataFn(el, dataParam, queue);
 
         if (animate != undefined && cssAnimations && stages) {
             if (queue.length == 1) {
-                animationStage(el, stages, 0, startCallback, deferred, true);
+                animationStage(el, stages, 0, startCallback, deferred, true, id);
             }
         }
         else if ((jsName = js || animate) && (jsFn = g("animate." + jsName, true))) {
             jsFn(el, startCallback, deferred);
         }
         else  {
-            startCallback && startCallback(el);
-            deferred.resolve(el);
+            if (startCallback) {
+                var promise = startCallback(el);
+                if (isThenable(promise)) {
+                    promise.done(function(){
+                        deferred.resolve(el);
+                    });
+                }
+                else {
+                    deferred.resolve(el);
+                }
+            }
+            else {
+                deferred.resolve(el);
+            }
         }
 
         return deferred.promise();

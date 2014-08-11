@@ -20,7 +20,8 @@
         registerTag     = MetaphorJs.registerTagHandler,
         async           = MetaphorJs.async,
         createWatchable = Watchable.create,
-        createGetter    = Watchable.createGetter;
+        createGetter    = Watchable.createGetter,
+        animate         = MetaphorJs.animate;
 
 
     var parentData  = function(node, key) {
@@ -257,6 +258,7 @@
                 };
 
                 var keydown = function(event) {
+                    event = event || window.event;
                     var key = event.keyCode;
 
                     // ignore
@@ -333,6 +335,7 @@
 
         onRadioInputChange: function(e) {
 
+            e = e || window.event;
             e = normalizeEvent(e);
 
             var self    = this,
@@ -418,7 +421,7 @@
                     }
                 };
 
-            self.initial ? done() : MetaphorJs.animate(
+            self.initial ? done() : animate(
                 self.node,
                 show ? "show" : "hide",
                 function() {
@@ -499,12 +502,12 @@
 
             if (val) {
                 if (!node.parentNode) {
-                    self.initial ? show() : MetaphorJs.animate(node, "enter", show);
+                    self.initial ? show() : animate(node, "enter", show);
                 }
             }
             else {
                 if (node.parentNode) {
-                    self.initial ? hide() : MetaphorJs.animate(node, "leave").done(hide);
+                    self.initial ? hide() : animate(node, "leave").done(hide);
                 }
             }
 
@@ -567,6 +570,41 @@
             self.supr();
         },
 
+        doUpdate: function(list, start) {
+
+            var self        = this,
+                renderers   = self.renderers,
+                index       = start,
+                len         = renderers.length,
+                last        = len - 1,
+                even        = !(index % 2),
+                r,
+                scope;
+
+            for (; index < len; index++) {
+
+                r       = renderers[index];
+                scope   = r.scope;
+
+                scope.$index    = index;
+                scope.$first    = index === 0;
+                scope.$last     = index === last;
+                scope.$even     = even;
+                scope.$odd      = !even;
+
+                even = !even;
+
+                if (!r.renderer) {
+                    r.renderer  = new Renderer(r.el, r.scope);
+                    r.renderer.render();
+                }
+                else {
+                    scope.$check();
+                }
+            }
+
+        },
+
         render: function(list) {
 
             var self        = this,
@@ -582,20 +620,19 @@
 
                 el          = tpl.cloneNode(true);
                 fragment.appendChild(el);
-                renderers.push(self.createItem(el, Renderer, i));
+                renderers.push(self.createItem(el, list, i));
             }
 
             parent.insertBefore(fragment, next);
 
+            self.doUpdate(list, 0);
         },
 
-        createItem: function(el, Renderer, index) {
+        createItem: function(el, list, index) {
 
             var self    = this,
                 iname   = self.itemName,
                 scope   = self.scope,
-                list    = self.watcher.getValue(),
-                renderer,
                 itemScope;
 
             if (scope instanceof Scope) {
@@ -608,14 +645,10 @@
                 };
             }
 
-            itemScope.$index    = index;
             itemScope[iname]    = list[index];
-            renderer            = new Renderer(el, itemScope);
-            renderer.render();
 
             return {
                 el: el,
-                renderer: renderer,
                 scope: itemScope
             };
         },
@@ -628,6 +661,8 @@
                 tpl         = self.tpl,
                 index       = 0,
                 parent      = self.parentEl,
+                list        = self.watcher.getValue(),
+                updateStart = null,
                 el,
                 i, len,
                 r,
@@ -642,6 +677,10 @@
                     continue;
                 }
 
+                if (updateStart === null) {
+                    updateStart = i > 0 ? i - 1 : 0;
+                }
+
                 if (renderers[index]) {
 
                     r = renderers[index];
@@ -652,7 +691,7 @@
 
                     r.renderer.destroy();
 
-                    MetaphorJs.animate(r.el, "leave")
+                    animate(r.el, "leave")
                         .done(function(el){
                             if (el.parentNode) {
                                 el.parentNode.removeChild(el);
@@ -667,7 +706,7 @@
 
                     el  = tpl.cloneNode(true);
 
-                    MetaphorJs.animate(el, "enter", function(inx) {
+                    animate(el, "enter", function(inx) {
                         return function(el){
                             if (inx > 0) {
                                 parent.insertBefore(el, renderers[inx - 1].el.nextSibling);
@@ -684,19 +723,21 @@
                     }(index));
 
                     if (action == 'R') {
-                        renderers[i] = self.createItem(el, Renderer, index);
+                        renderers[i] = self.createItem(el, list, index);
                     }
                     else if (action == 'I') {
                         if (i > renderers.length - 1) {
-                            renderers.splice(i, 0, self.createItem(el, Renderer, index));
+                            renderers.splice(i, 0, self.createItem(el, list, index));
                         }
                         else {
-                            renderers.push(self.createItem(el, Renderer, index));
+                            renderers.push(self.createItem(el, list, index));
                         }
                     }
                     index++;
                 }
             }
+
+            self.doUpdate(list, updateStart);
         },
 
         parseExpr: function(expr) {
@@ -913,8 +954,8 @@
                 };
 
             if (!self.initial) {
-                MetaphorJs.animate(el, "leave").done(applyNext);
-                MetaphorJs.animate(el, "enter");
+                animate(el, "leave").done(applyNext);
+                animate(el, "enter");
             }
             else {
                 applyNext();
@@ -975,7 +1016,7 @@
         parent.removeChild(node);
         parent.insertBefore(clone, next);
 
-        MetaphorJs.animate(node, "enter")
+        animate(node, "enter")
             .done(function(){
                 deferred.resolve(children);
             });
@@ -1066,6 +1107,7 @@
 
                 addListener(node, eventName, function(e){
 
+                    e = e || window.event;
                     e = normalizeEvent(e);
 
                     if (name == "enter" && e.keyCode != 13) {
@@ -1156,12 +1198,31 @@
             scope[as]   = cmp;
         }
 
-        return false;
+        return cmp.$returnToRenderer || false;
     };
 
     cmpAttribute.$breakScope = true;
 
     registerAttr("mjs-cmp", 200, cmpAttribute);
+
+    registerAttr("mjs-view", 200, function(scope, node, expr) {
+
+        node.removeAttribute("mjs-view");
+
+        var constr = g(expr);
+
+        if (constr) {
+            var view = new constr({
+                scope: scope,
+                node: node
+            });
+        }
+        else {
+            throw "View '" + expr + "' not found";
+        }
+
+        return false;
+    });
 
 
     registerAttr("mjs-init", 150, function(scope, node, expr){

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Angular</title>
+    <script src="angular.js"></script>
+</head>
+<body ng-app="test">
+
+
+<script type="text/ng-template" id="test-template">
+    <p>{{text}}</p>
+    <p>{{subtext}}</p>
+    <p>{{a}}</p>
+    <div ng-transclude></div>
+</script>
+
+<script type="text/ng-template" id="cmp1-template">
+    <h2>{{title}}</h2>
+    <div ng-transclude></div>
+</script>
+
+<script type="text/ng-template" id="a+b">
+    <p>a + b = {{ a + b }}</p>
+</script>
+
+<script type="text/ng-template" id="a*b">
+    <p>a * b = {{ a * b }}</p>
+</script>
+
+
+<div id="render" ng-init="header = 'new header'; text = 'new text'">
+    <div class="header">{{header}}</div>
+    <div class="article">
+
+        {{rootText }}
+
+        <div class="menu" ng-bind-html-unsafe="subtext"></div>
+        <p>
+            Here is some {{ text }} <span> and {{subtext}}</span> <sup>{{ text }}</sup>
+            <sub> {{ bool ? "true" : "false" }}</sub>
+            <span>{{ num }}</span>
+            <span>{{ date }}</span>
+        </p>
+        <p ng-class="{cls1: bool, cls2: a == 0}">
+            {{ a + b }}
+        </p>
+        <a href="http://{{text}}.com" ng-click="bool = !bool">{{subtext | limitTo:3}}</a>
+        <input ng-value="a * b"/>
+        <input ng-model="a" type="number"/>
+        <input type="checkbox" ng-model="bool"/>
+        <input type="radio" name="r" value="header" ng-model="header"/>1
+        <label><input type="radio" name="r" value="header1" ng-model="header"/>2</label>
+        <input type="radio" name="r" value="header2" ng-model="header"/>3
+
+        <br><br>
+        <input ng-model="newItem"/>
+        <input type="button"
+               ng-disabled="!newItem"
+               ng-click="list.push({bool: false, txt: newItem}); newItem = '';"
+               value="Add item"/>
+
+        <ul ng-show="bool" ng-animate>
+            <li ng-repeat="item in list" ng-animate>
+                <label ng-class="{cls3: item.bool}">
+                    <input type="checkbox" ng-model="item.bool"/>{{$index}} - {{item.txt}}</label>
+                <a href="#" ng-click="list.splice($index,1);">x</a>
+            </li>
+        </ul>
+
+        <div ng-include="test-template" ng-hide="!bool" ng-animate>
+            <p>transcluded text</p>
+        </div>
+
+        <div ng-include="test-template"></div>
+        <!--<mjs-include src="test-template"></mjs-include>-->
+
+
+    </div>
+
+    <div class="article">
+        <div mjs-cmp="Test.MyComponent as ctrl">
+            <p>Component's transcluded text + {{ a}}</p>
+            <a href="#" ng-click="ctrl.reverse()">reverse</a><br><br>
+            <button ng-click="store.load()">Load store</button>
+            <button ng-click="store.clear()">Clear store</button>
+            <ul>
+                <li mjs-each-in-store="item in store" mjs-animate>
+                    {{ item.get("name") }}
+                </li>
+            </ul>
+        </div>
+
+        <div mjs-cmp="Test.MyComponent as ctrl">
+            <p>This is another instance</p>
+        </div>
+
+        <div mjs-cmp="Test.TplComponent as ctrl" ng-if="bool" mjs-animate>
+            <h2>{{ title }}</h2>
+            change template: <a href="#" ng-click="tpl='a+b'">a + b</a> | <a href="#" ng-click="tpl='a*b'">a * b</a>
+
+            <div ng-include="tpl" ng-animate></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var app         = angular.module("test", []);
+
+    var extend  = function(trg, src) {
+        for (var i in src) {
+            if (src.hasOwnProperty(i)) {
+                trg[i] = src[i];
+            }
+        }
+    };
+
+    app.run(['$rootScope', function($rootScope) {
+        extend($rootScope, {
+            header: "header",
+            text: "text",
+            subtext: "subtext",
+            rootText: "root text",
+            a: 1,
+            b: 2,
+            bool: true,
+            newItem: "",
+            date: new Date,
+            num: 10000,
+            list: [
+                {bool: true, txt: "item 1"},
+                {bool: false, txt: "item 2"},
+                {bool: false, txt: "item 3"}
+            ]
+        });
+    }])
+</script>
+
+</body>
+</html>

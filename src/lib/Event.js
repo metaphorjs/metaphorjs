@@ -21,7 +21,7 @@
         var self    = this;
 
         for (var i in src) {
-            if (!src.hasOwnProperty(i) && !self[i]) {
+            if ((!src.hasOwnProperty || !src.hasOwnProperty(i)) && !self[i]) {
                 self[i] = src[i];
             }
         }
@@ -29,6 +29,10 @@
         // Event object
         self.originalEvent = src;
         self.type = src.type;
+
+        if (!self.target && src.srcElement) {
+            self.target = src.srcElement;
+        }
 
         // Events bubbling up the document may have been marked as prevented
         // by a handler lower down the tree; reflect the correct value.

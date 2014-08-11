@@ -7,7 +7,9 @@
         getTemplate = MetaphorJs.getTemplate,
         Renderer    = MetaphorJs.view.Renderer,
         dataFn      = MetaphorJs.data,
-        toFragment  = MetaphorJs.toFragment;
+        toFragment  = MetaphorJs.toFragment,
+        isThenable  = MetaphorJs.isThenable,
+        emptyFn     = MetaphorJs.emptyFn;
 
     var getCmpId    = function(cmp) {
         return cmp.id || "cmp-" + nextUid();
@@ -37,6 +39,8 @@
          * @var string
          */
         id:             null,
+
+        originalId:     false,
 
         /**
          * @var Element
@@ -93,6 +97,8 @@
          */
         tag:            null,
 
+        initPromise:    null,
+
         /**
          * @constructor
          * @param {object} cfg {
@@ -111,13 +117,38 @@
 
             if (self.node) {
                 self.id     = self.node.getAttribute("id");
+                if (self.id) {
+                    self.originalId = true;
+                }
             }
 
             self.id         = getCmpId(self);
 
             registerCmp(self);
 
-            self.initComponent();
+            var promise = self.initComponent.apply(self, arguments);
+
+            if (isThenable(promise)) {
+                self.initPromise = promise;
+                if (self.node) {
+                    self.node.style.visibility = "hidden";
+                }
+                promise.done(self.finishInitialize, self);
+            }
+            else {
+                self.finishInitialize();
+            }
+        },
+
+        finishInitialize: function() {
+
+            var self = this;
+
+            self.initPromise = null;
+
+            if (self.node) {
+                self.node.style.visibility = "";
+            }
 
             if (!self.node) {
                 self._createNode();
@@ -134,7 +165,6 @@
             else if (self.node) {
                 self.render();
             }
-
         },
 
         _createNode: function() {
@@ -322,25 +352,25 @@
          * @method
          * @access protected
          */
-        initComponent:  MetaphorJs.emptyFn,
+        initComponent:  emptyFn,
 
         /**
          * @method
          * @access protected
          */
-        afterRender:    MetaphorJs.emptyFn,
+        afterRender:    emptyFn,
 
         /**
          * @method
          * @access protected
          */
-        onShow:         MetaphorJs.emptyFn,
+        onShow:         emptyFn,
 
         /**
          * @method
          * @access protected
          */
-        onHide:         MetaphorJs.emptyFn,
+        onHide:         emptyFn,
 
 
         onDestroy:      function() {
@@ -348,13 +378,26 @@
             var self    = this;
 
             if (self.destroyEl) {
-
+                console.log("destroy")
                 if (self.node.parentNode) {
                     self.node.parentNode.removeChild(self.node);
                 }
-
-                self.node   = null;
             }
+            else {
+                self.node.removeAttribute("cmp-id");
+                if (!self.originalId) {
+                    self.node.removeAttribute("id");
+                }
+            }
+
+            if (self.rendered) {
+                self.renderer.destroy();
+                delete self.renderer;
+            }
+
+            self.scope.$destroy();
+            delete self.scope;
+            delete self.node;
 
             self.supr();
             destroyCmp(self);
