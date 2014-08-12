@@ -8,6 +8,8 @@ than 100kb minified.)
 There is no dependency injector and code parser: adding one dot before variable names in templates {{.var}}
 removes the need in parser.
 
+// Some of the code in the library and its modules is taken from Angular and jQuery.
+
 ###Modules that can be used separately
 
 [MetaphorJs.lib.Namespace](https://github.com/kuindji/metaphorjs-namespace)
