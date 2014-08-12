@@ -27,3 +27,9 @@ Promise/A+ compliant library / ES6 Promise polyfill.
 
 [MetaphorJs.lib.Watchable](https://github.com/kuindji/metaphorjs-watchable)
 This one watches for changes in objects and scopes.
+
+###Demo
+
+A few Angular-like demos:
+
+[Basics](http://kuindji.com/js/metaphorjs/demo/basics.html), [Todo](http://kuindji.com/js/metaphorjs/demo/todo.html)
