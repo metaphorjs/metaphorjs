@@ -3396,7 +3396,7 @@ if (typeof global != "undefined") {
                     for (nFile = 0;
                          nFile < oField.files.length;
                          sSearch += "&" + encodeURIComponent(oField.name) + "=" +
-                                    encodeURIComponent(oField.files[nFile++].name));
+                                    encodeURIComponent(oField.files[nFile++].name)){}
 
                 } else if ((sFieldType !== "RADIO" && sFieldType !== "CHECKBOX") || oField.checked) {
                     sSearch += "&" + encodeURIComponent(oField.name) + "=" + encodeURIComponent(oField.value);
