@@ -115,6 +115,10 @@
 
             self.supr(cfg);
 
+            if (cfg.as) {
+                self.scope[cfg.as] = self;
+            }
+
             if (self.node) {
                 self.id     = self.node.getAttribute("id");
                 if (self.id) {
@@ -235,7 +239,7 @@
             self.renderer   = new Renderer(self.node, self.scope);
             self.renderer.render();
 
-            if (pa && window.jQuery) {
+            /*if (pa && window.jQuery) {
 
                 $(node).find("["+pa+"]").each(function(){
                     var elem    = $(this),
@@ -248,7 +252,7 @@
                         self[prop].add(elem);
                     }
                 });
-            }
+            }*/
 
         },
 

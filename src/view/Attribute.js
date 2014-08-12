@@ -321,7 +321,7 @@
                 node    = self.node,
                 scope   = self.scope;
 
-            self.watcher.setValue(node.checked ? (node.value || true) : false);
+            self.watcher.setValue(node.checked ? (node.getAttribute("value") || true) : false);
 
             self.inProg = true;
             if (scope instanceof Scope) {
@@ -1191,12 +1191,9 @@
         constr      = g(cmpName);
         cmp         = new constr({
             scope: scope,
-            node: node
+            node: node,
+            as: as
         });
-
-        if (as) {
-            scope[as]   = cmp;
-        }
 
         return cmp.$returnToRenderer || false;
     };

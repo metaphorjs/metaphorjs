@@ -386,6 +386,12 @@
             }, 0);
         },
 
+        asyncError: function(e) {
+            Metaphor.async(function(){
+                throw e;
+            });
+        },
+
         onReady: function(fn) {
 
             var done    = false,
@@ -2745,7 +2751,6 @@ if (typeof global != "undefined") {
             });
         }
 
-
         self.code       = code;
         self.getterFn   = type == "expr" ? createGetter(code) : null;
         self.id         = id;
@@ -2753,7 +2758,6 @@ if (typeof global != "undefined") {
         self.obj        = dataObj;
         self.itv        = null;
         self.curr       = self._getValue();
-
     };
 
     extend(Watchable.prototype, {
@@ -2840,7 +2844,17 @@ if (typeof global != "undefined") {
                     val = self.obj[self.code];
                     break;
                 case "expr":
-                    val = self.getterFn(self.obj);
+                    try {
+                        val = self.getterFn(self.obj);
+                    }
+                    catch (e) {
+                        if (window.MetaphorJs) {
+                            MetaphorJs.asyncError(e);
+                        }
+                    }
+                    if (typeof val == "undefined") {
+                        val = "";
+                    }
                     break;
                 case "object":
                     return copy(self.obj);
@@ -8025,6 +8039,9 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                 if (attr == "value") {
                     text.node.value = tpl;
                 }
+                if (attr == "class") {
+                    text.node.className = tpl;
+                }
             }
             else {
                 text.node[textProp] = tpl;
@@ -8216,6 +8233,10 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
 
             self.supr(cfg);
 
+            if (cfg.as) {
+                self.scope[cfg.as] = self;
+            }
+
             if (self.node) {
                 self.id     = self.node.getAttribute("id");
                 if (self.id) {
@@ -8336,7 +8357,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
             self.renderer   = new Renderer(self.node, self.scope);
             self.renderer.render();
 
-            if (pa && window.jQuery) {
+            /*if (pa && window.jQuery) {
 
                 $(node).find("["+pa+"]").each(function(){
                     var elem    = $(this),
@@ -8349,7 +8370,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                         self[prop].add(elem);
                     }
                 });
-            }
+            }*/
 
         },
 
@@ -9033,7 +9054,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                 node    = self.node,
                 scope   = self.scope;
 
-            self.watcher.setValue(node.checked ? (node.value || true) : false);
+            self.watcher.setValue(node.checked ? (node.getAttribute("value") || true) : false);
 
             self.inProg = true;
             if (scope instanceof Scope) {
@@ -9903,12 +9924,9 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
         constr      = g(cmpName);
         cmp         = new constr({
             scope: scope,
-            node: node
+            node: node,
+            as: as
         });
-
-        if (as) {
-            scope[as]   = cmp;
-        }
 
         return cmp.$returnToRenderer || false;
     };

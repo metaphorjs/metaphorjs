@@ -386,6 +386,12 @@
             }, 0);
         },
 
+        asyncError: function(e) {
+            Metaphor.async(function(){
+                throw e;
+            });
+        },
+
         onReady: function(fn) {
 
             var done    = false,

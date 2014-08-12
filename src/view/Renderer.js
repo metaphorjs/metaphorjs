@@ -413,6 +413,9 @@
                 if (attr == "value") {
                     text.node.value = tpl;
                 }
+                if (attr == "class") {
+                    text.node.className = tpl;
+                }
             }
             else {
                 text.node[textProp] = tpl;

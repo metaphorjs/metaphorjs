@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html mjs-app>
+<head>
+    <title>MetaphorJs Basics</title>
+    <link rel="stylesheet" href="rsc/prism.css">
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <script src="rsc/prism.js" data-manual></script>
+    <script src="../dist/metaphorjs.js"></script>
+
+    <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="rsc/export.js"></script>
+
+    <link rel="stylesheet" href="todo/style.css">
+    <script src="todo/script.js"></script>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="jumbotron">
+        <h1>Todo</h1>
+    </div>
+
+    <div class="row">
+
+        <div class="col-md-6">
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="active"><a href="#html" role="tab" data-toggle="tab">HTML</a></li>
+                <li><a href="#css" role="tab" data-toggle="tab">style.css</a></li>
+                <li><a href="#js" role="tab" data-toggle="tab">script.js</a></li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane active" id="html">
+                    <pre><code data-export="todo/todo.html" class="language-markup"></code></pre>
+                </div>
+                <div class="tab-pane" id="css">
+                    <pre><code data-export="todo/style.css" class="language-css"></code></pre>
+                </div>
+                <div class="tab-pane" id="js">
+                    <pre><code data-export="todo/script.js" class="language-javascript"></code></pre>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h2>Todo</h2>
+            <div mjs-cmp="My.Todo as ctrl">
+                <span>{{.ctrl.remaining()}} of {{.todos.length}} remaining</span>
+                [ <a href="" mjs-click=".ctrl.archive()">archive</a> ]
+                <ul class="unstyled">
+                    <li mjs-each="todo in .todos">
+                        <input type="checkbox" mjs-model=".todo.done"/>
+                        <span class="done-{{.todo.done}}">{{.todo.text}}</span>
+                    </li>
+                </ul>
+                <form mjs-submit=".ctrl.addTodo()">
+                    <input type="text" mjs-model=".todoText" size="30"
+                           placeholder="add new todo here">
+                    <input class="btn-primary" type="submit" value="add">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
