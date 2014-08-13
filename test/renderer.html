@@ -41,6 +41,16 @@
         .cls1 {
             font-size: 32px;
         }
+        .cls1-add {
+            font-size: 16px;
+        }
+        .cls1-add-active {
+            font-size: 32px;
+            -webkit-transition:  font-size 1s;
+            -moz-transition:  font-size 1s;
+            -o-transition:   font-size 1s;
+            transition:  font-size 1s;
+        }
 
         .cls2 {
             color: #008200;
@@ -152,7 +162,7 @@
                 <span>{{ .num | numeral:'0,00.0000'}}</span>
                 <span>{{ .date | moment:'LLL'}}</span>
             </p>
-            <p mjs-class="{cls1: .bool, cls2: .a == 0}">
+            <p mjs-class="{cls1: .bool, cls2: .a == 0}" mjs-animate>
                 {{ .a + .b }}
             </p>
             <a href="http://{{.text}}.com" mjs-click=".bool = !.bool">{{.subtext | limitTo:.a}}</a><br>

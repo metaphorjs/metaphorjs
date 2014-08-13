@@ -24,7 +24,12 @@
         animate         = MetaphorJs.animate,
         isExpression    = Watchable.isExpression,
         ajax            = MetaphorJs.ajax,
-        evaluate        = Watchable.eval;
+        evaluate        = Watchable.eval,
+        addClass        = MetaphorJs.addClass,
+        removeClass     = MetaphorJs.removeClass,
+        hasClass        = MetaphorJs.hasClass,
+        stopAnimation   = MetaphorJs.stopAnimation,
+        isArray         = MetaphorJs.isArray;
 
 
     var parentData  = function(node, key) {
@@ -1090,6 +1095,24 @@
         }
     });
 
+
+
+    var toggleClass = function(node, cls, toggle) {
+
+        var has = typeof toggle != "undefined" ? !toggle : hasClass(node, cls);
+
+        if (has) {
+            animate(node, [cls + "-remove"]).done(function(){
+                removeClass(node, cls);
+            });
+        }
+        else {
+            animate(node, [cls + "-add"]).done(function(){
+                addClass(node, cls);
+            });
+        }
+    };
+
     registerAttr("mjs-class", 1000, d(null, "MetaphorJs.view.AttributeHandler", {
         onChange: function() {
 
@@ -1098,8 +1121,19 @@
                 clss    = self.watcher.getLastResult(),
                 i;
 
-            for (i in clss) {
-                MetaphorJs[clss[i] ? "addClass" : "removeClass"](node, i);
+            stopAnimation(node);
+
+            if (typeof clss == "string") {
+                toggleClass(node, clss);
+            }
+            else if (isArray(clss)) {
+                var l;
+                for (i = -1, l = clss.length; ++i < l; toggleClass(node, clss[i])){}
+            }
+            else {
+                for (i in clss) {
+                    toggleClass(node, i, clss[i]);
+                }
             }
         }
     }));
