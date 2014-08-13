@@ -1202,6 +1202,11 @@
 
     registerAttr("mjs-cmp", 200, cmpAttribute);
 
+
+    registerAttr("mjs-cmp-prop", 200, function(){
+
+    });
+
     registerAttr("mjs-view", 200, function(scope, node, expr) {
 
         node.removeAttribute("mjs-view");

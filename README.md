@@ -8,6 +8,8 @@ than 100kb minified.)
 There is no dependency injector and code parser: adding one dot before variable names in templates {{.var}}
 removes the need in parser.
 
+MetaphorJs and all of its modules do not depend on jQuery or any other dom helper.
+
 // Some of the code in the library and its modules is taken from Angular and jQuery.
 
 ###Modules that can be used separately

@@ -1,3 +1,9 @@
+/**
+ * This is file is just a bunch of utility functions.
+ * All the fun happens in view/Renderer.js and view/Attributes.js
+ * :)
+ */
+
 (function(){
 
     "use strict";
@@ -40,6 +46,11 @@
                       };
 
 
+    var clsRegCache = {},
+        getClsReg   = function(cls) {
+            return clsRegCache[cls] ||
+                   (clsRegCache[cls] = new RegExp('(?:^|\\s)'+cls+'(?!\\S)', 'g'));
+        };
 
 
     var dataCache   = {},
@@ -358,16 +369,22 @@
             }
         },
 
+        hasClass: function(el, cls) {
+            var reg = getClsReg(cls);
+            return reg.test(el.className);
+        },
+
         addClass: function(el, cls) {
-            var reg = new RegExp('(?:^|\\s)'+cls+'(?!\\S)', 'g');
-            if (!reg.test(el.className)) {
+            if (!Metaphor.hasClass(el, cls)) {
                 el.className += " " + cls;
             }
         },
+
         removeClass: function(el, cls) {
-            var reg = new RegExp('(?:^|\\s)'+cls+'(?!\\S)', 'g');
+            var reg = getClsReg(cls);
             el.className = el.className.replace(reg, '');
         },
+
 
         isVisible: function(el) {
             return !(el.offsetWidth <= 0 || el.offsetHeight <= 0);
