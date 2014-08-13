@@ -77,44 +77,20 @@
     });
 
 
-    var Watchable = MetaphorJs.lib.Watchable,
-        createGetter = Watchable.createGetter,
-        filterArray = MetaphorJs.filterArray;
+    var filterArray = MetaphorJs.filterArray;
 
-    var filter = function(val, by, opt, scope) {
+    add("filter.filter", function(val, by, opt, scope) {
 
         if (opt && !scope) {
-            scope = opt;
             opt = null;
         }
 
-        by  = createGetter(by)(scope);
-
-        if (opt) {
-            opt = createGetter(opt)(scope);
-        }
-
         return filterArray(val, by, opt);
-    };
+    });
 
-    filter.$expectExpressions = true;
-
-    add("filter.filter", filter);
-
-
-    var sort = function(val, field, dir, scope) {
+    add("filter.sortBy", function(val, field, dir, scope) {
 
         if (dir && !scope) {
-            scope = dir;
-            dir = null;
-        }
-
-        field = createGetter(field)(scope);
-
-        if (dir) {
-            dir = createGetter(dir)(scope);
-        }
-        else {
             dir = "asc";
         }
 
@@ -138,11 +114,7 @@
         });
 
         return dir == "desc" ? ret.reverse() : ret;
-    }
-
-    sort.$expectExpressions = true;
-
-    add("filter.sortBy", sort);
+    });
 
 
 }());

@@ -149,13 +149,13 @@
             <p>
                 Here is some {{ .text }} <span> and {{.subtext}}</span> <sup>{{ .text }}</sup>
                 <sub> {{ .bool ? "true" : "false" }}</sub>
-                <span>{{ .num | numeral:0,00.0000}}</span>
-                <span>{{ .date | moment:LLL}}</span>
+                <span>{{ .num | numeral:'0,00.0000'}}</span>
+                <span>{{ .date | moment:'LLL'}}</span>
             </p>
             <p mjs-class="{cls1: .bool, cls2: .a == 0}">
                 {{ .a + .b }}
             </p>
-            <a href="http://{{.text}}.com" mjs-click=".bool = !.bool">{{.subtext | limitTo:3}}</a>
+            <a href="http://{{.text}}.com" mjs-click=".bool = !.bool">{{.subtext | limitTo:.a}}</a><br>
             <input mjs-bind=".a * .b"/>
             <input mjs-model=".a" type="number" mjs-input-type="number"/>
             <input type="checkbox" mjs-model="bool"/>
@@ -189,13 +189,11 @@
             <a href="#" mjs-click=".sortBy='asc'">asc</a>
             <a href="#" mjs-click=".sortBy='desc'">desc</a>
 
-            <div mjs-include="test-template" mjs-hide="!.bool" mjs-animate>
+            <div mjs-include="'test-template'" mjs-hide="!.bool" mjs-animate>
                 <p>transcluded text</p>
             </div>
 
-            <div mjs-include="test-template"></div>
-            <!--<mjs-include src="test-template"></mjs-include>-->
-
+            <div mjs-include="'test-template'"></div>
 
             <form name="myForm" mjs-validate mjs-class="{error: .myForm.$invalid}">
                 <h2>Test form</h2>
@@ -216,6 +214,11 @@
         </div>
 
         <div class="article">
+
+            <div mjs-include="'template.html'">
+                <p>Transcluded text</p>
+            </div>
+
             <div mjs-cmp="Test.MyComponent as ctrl">
                 <p mjs-cmp-prop="para">Component's transcluded text + {{ .$root.a}}</p>
                 <a href="#" mjs-click=".ctrl.reverse()">reverse</a><br><br>

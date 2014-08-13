@@ -21,7 +21,10 @@
         async           = MetaphorJs.async,
         createWatchable = Watchable.create,
         createGetter    = Watchable.createGetter,
-        animate         = MetaphorJs.animate;
+        animate         = MetaphorJs.animate,
+        isExpression    = Watchable.isExpression,
+        ajax            = MetaphorJs.ajax,
+        evaluate        = Watchable.eval;
 
 
     var parentData  = function(node, key) {
@@ -897,18 +900,24 @@
 
             node.removeAttribute("mjs-include");
 
-            tpl         = getTemplate(tplExpr);
-
-            if (tpl) {
-                self.$returnToRenderer = self.applyTemplate(node, tpl);
-            }
-            else {
-                self.watcher    = createWatchable(scope, tplExpr);
-                self.watcher.addListener(self.onChange, self);
-                self.$stopRenderer = true;
-                self.$returnToRenderer = self.onChange();
+            if (isExpression(tplExpr)) {
+                self.watcher            = createWatchable(scope, tplExpr, self.onChange, self);
+                self.$stopRenderer      = true;
+                self.$returnToRenderer  = self.onChange();
 
                 parentRenderer.on("destroy", self.onParentRendererDestroy, self);
+            }
+            else {
+                tplExpr = evaluate(tplExpr);
+                tpl = getTemplate(tplExpr);
+                if (tpl) {
+                    self.$returnToRenderer = self.applyTemplate(node, tpl);
+                }
+                else {
+                    self.$returnToRenderer = ajax(tplExpr, {dataType: "fragment"}).then(function(fragment){
+                        return self.applyTemplate(node, fragment);
+                    });
+                }
             }
 
             if (scope instanceof Scope) {
@@ -998,31 +1007,42 @@
 
     registerTag("mjs-include", 900, function(scope, node) {
 
-        var tplId       = node.getAttribute("src"),
+        var tplExpr     = node.getAttribute("src"),
+            tplId       = evaluate(tplExpr, scope),
             tpl         = getTemplate(tplId);
 
         if (node.firstChild) {
             dataFn(node, "mjs-transclude", toFragment(node.childNodes));
         }
 
-        var parent      = node.parentNode,
-            next        = node.nextSibling,
-            clone       = MetaphorJs.clone(tpl),
-            children    = toArray(clone.childNodes),
-            deferred    = new Promise;
+        var applyTemplate = function() {
+            var parent      = node.parentNode,
+                next        = node.nextSibling,
+                clone       = MetaphorJs.clone(tpl),
+                children    = toArray(clone.childNodes),
+                deferred    = new Promise;
 
-        parent.removeChild(node);
-        parent.insertBefore(clone, next);
+            parent.removeChild(node);
+            parent.insertBefore(clone, next);
 
-        animate(node, "enter")
-            .done(function(){
-                deferred.resolve(children);
+            animate(node, "enter")
+                .done(function(){
+                    deferred.resolve(children);
+                });
+
+            return deferred.promise();
+        };
+
+        if (tpl) {
+            return applyTemplate();
+        }
+        else {
+            return ajax(tplId, {dataType: "fragment"}).then(function(fragment){
+                tpl = fragment;
+                return applyTemplate();
             });
-
-        return deferred.promise();
+        }
     });
-
-    //g("tag.mjs-include").$breakRenderer = true;
 
 
 
