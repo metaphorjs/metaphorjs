@@ -46,13 +46,6 @@
                       },
 
 
-        clsRegCache = {},
-        getClsReg   = function(cls) {
-            return clsRegCache[cls] ||
-                   (clsRegCache[cls] = new RegExp('(?:^|\\s)'+cls+'(?!\\S)', 'g'));
-        },
-
-
         dataCache   = {},
 
         dataFn      = function(el, key, value) {
@@ -343,6 +336,12 @@
             } else {
                 el.removeEventListener(event, func, false);
             }
+        },
+
+        clsRegCache = {},
+        getClsReg   = function(cls) {
+            return clsRegCache[cls] ||
+                   (clsRegCache[cls] = new RegExp('(?:^|\\s)'+cls+'(?!\\S)', ''));
         },
 
         hasClass = function(el, cls) {

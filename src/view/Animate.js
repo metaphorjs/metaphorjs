@@ -132,8 +132,7 @@
                     return;
                 }
 
-                removeClass(el, stages[position]);
-                removeClass(el, stages[position] + "-active");
+                var thisPosition = position;
 
                 position++;
 
@@ -146,6 +145,9 @@
                     dataFn(el, dataParam)[0].position = position;
                     animationStage(el, stages, position, null, deferred);
                 }
+
+                removeClass(el, stages[thisPosition]);
+                removeClass(el, stages[thisPosition] + "-active");
             };
 
             var setStage = function() {

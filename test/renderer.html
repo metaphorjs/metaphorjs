@@ -41,16 +41,6 @@
         .cls1 {
             font-size: 32px;
         }
-        .cls1-add {
-            font-size: 16px;
-        }
-        .cls1-add-active {
-            font-size: 32px;
-            -webkit-transition:  font-size 1s;
-            -moz-transition:  font-size 1s;
-            -o-transition:   font-size 1s;
-            transition:  font-size 1s;
-        }
 
         .cls2 {
             color: #008200;
@@ -121,7 +111,18 @@
 
 
         .error {
+            border: 4px solid #800000;
+        }
+        .error-add {
             border: 1px solid #800000;
+            border-width: 1px;
+        }
+        .error-add-active {
+            border-width: 4px;
+            -webkit-transition:  border-width 0.4s;
+            -moz-transition:  border-width 0.4s;
+            -o-transition:   border-width 0.4s;
+            transition:  border-width 0.4s;
         }
 
     </style>
@@ -205,7 +206,7 @@
 
             <div mjs-include="'test-template'"></div>
 
-            <form name="myForm" mjs-validate mjs-class="{error: .myForm.$invalid}">
+            <form name="myForm" mjs-validate mjs-class="{error: .myForm.$invalid}" mjs-animate>
                 <h2>Test form</h2>
                 <div>
                     <input name="field1" data-validate-required mjs-class="{error: .myForm.field1.$invalid}"/>
