@@ -90,11 +90,6 @@
         /**
          * @var string
          */
-        propertyAttr:   null, //"mjs-cmp-prop",
-
-        /**
-         * @var string
-         */
         tag:            null,
 
         initPromise:    null,
@@ -226,8 +221,7 @@
         _initElement: function() {
 
             var self    = this,
-                node    = self.node,
-                pa      = self.propertyAttr;
+                node    = self.node;
 
             node.setAttribute("id", self.id);
             node.setAttribute("cmp-id", self.id);
@@ -238,22 +232,6 @@
 
             self.renderer   = new Renderer(self.node, self.scope);
             self.renderer.render();
-
-            /*if (pa && window.jQuery) {
-
-                $(node).find("["+pa+"]").each(function(){
-                    var elem    = $(this),
-                        prop    = elem.attr(pa);
-
-                    if (!self[prop]) {
-                        self[prop]  = elem;
-                    }
-                    else {
-                        self[prop].add(elem);
-                    }
-                });
-            }*/
-
         },
 
         /**

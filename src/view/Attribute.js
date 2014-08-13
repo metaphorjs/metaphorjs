@@ -668,6 +668,7 @@
                 r,
                 action;
 
+
             for (i = 0, len = prs.length; i < len; i++) {
                 action = prs[i];
 
@@ -681,7 +682,7 @@
                     updateStart = i > 0 ? i - 1 : 0;
                 }
 
-                if (renderers[index]) {
+                if (action != 'I' && renderers[index]) {
 
                     r = renderers[index];
 
@@ -726,7 +727,7 @@
                         renderers[i] = self.createItem(el, list, index);
                     }
                     else if (action == 'I') {
-                        if (i > renderers.length - 1) {
+                        if (i < renderers.length) {
                             renderers.splice(i, 0, self.createItem(el, list, index));
                         }
                         else {
@@ -759,10 +760,7 @@
                     name = row;
                 }
                 else {
-                    model = row;
-                    if (model.charAt(0) == '.') {
-                        model = model.substr(1);
-                    }
+                    model = tmp.slice(i).join(" ");
                     break;
                 }
             }
@@ -797,7 +795,7 @@
 
             self.node       = node;
             self.scope      = scope;
-            self.store      = store = createGetter("."+self.model)(scope);
+            self.store      = store = createGetter(self.model)(scope);
 
             self.parentEl.removeChild(node);
 
@@ -1203,8 +1201,26 @@
     registerAttr("mjs-cmp", 200, cmpAttribute);
 
 
-    registerAttr("mjs-cmp-prop", 200, function(){
+    var getCmp = MetaphorJs.getCmp;
 
+    registerAttr("mjs-cmp-prop", 200, function(scope, node, expr){
+
+        var parent = node.parentNode,
+            id,
+            cmp;
+
+        while (parent) {
+
+            if (id = parent.getAttribute("cmp-id")) {
+                cmp = getCmp(id);
+                if (cmp) {
+                    cmp[expr] = node;
+                }
+                return;
+            }
+
+            parent = parent.parentNode;
+        }
     });
 
     registerAttr("mjs-view", 200, function(scope, node, expr) {
@@ -1231,4 +1247,7 @@
         node.removeAttribute("mjs-init");
         createFn(expr)(scope);
     });
+
+
+
 }());

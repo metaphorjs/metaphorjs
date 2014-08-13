@@ -95,7 +95,6 @@
             self.scope          = scope;
             self.texts          = [];
             self.parent         = parent;
-            //self._observable    = new Observable;
 
             if (scope instanceof Scope) {
                 scope.$on("destroy", self.destroy, self);
@@ -109,13 +108,11 @@
         },
 
         on: function(event, fn, fnScope) {
-            //return this._observable.on(event, fn, fnScope);
             return observer.on(event + '-' + this.id, fn, fnScope);
         },
 
         un: function(event, fn, fnScope) {
             return observer.un(event + '-' + this.id, fn, fnScope);
-            //return this._observable.un(event, fn, fnScope);
         },
 
         createChild: function(node) {
@@ -348,11 +345,8 @@
 
         watcherMatch: function(txtObj, expr) {
 
-            var pipes   = [],
-                self    = this,
+            var self    = this,
                 ws      = txtObj.watchers;
-
-            expr        = self.processPipes(expr, pipes);
 
             ws.push({
                 watcher: createWatchable(
@@ -361,8 +355,7 @@
                     self.onDataChange,
                     self,
                     txtObj.inx
-                ),
-                pipes: pipes
+                )
             });
 
             return '---'+ (ws.length-1) +'---';
@@ -391,20 +384,10 @@
                 ws      = text.watchers,
                 len     = ws.length,
                 attr    = text.attr,
-                i, val,
-                j, jlen,
-                pipes,
-                args;
+                i, val;
 
             for (i = 0; i < len; i++) {
                 val     = ws[i].watcher.getLastResult();
-                pipes   = ws[i].pipes;
-                jlen    = pipes.length;
-                for (j = 0; j < jlen; j++) {
-                    args    = pipes[j][1].slice();
-                    args.unshift(val);
-                    val     = g("filter." + pipes[j][0], true).apply(text.node, args);
-                }
                 tpl     = tpl.replace('---' + i + '---', val);
             }
 

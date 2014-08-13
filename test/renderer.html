@@ -12,6 +12,7 @@
     <script src="../../metaphorjs-watchable/metaphorjs.watchable.js"></script>
     <script src="../../metaphorjs-ajax/metaphorjs.ajax.js"></script>
     <script src="../../metaphorjs-history/metaphorjs.history.js"></script>
+    <script src="../../metaphorjs-validator/metaphorjs.validator.js"></script>
 
     <script src="../src/lib/Value.js"></script>
     <script src="../src/lib/Event.js"></script>
@@ -28,6 +29,7 @@
     <script src="../src/cmp/View.js"></script>
     <script src="../src/view/Attribute.js"></script>
     <script src="../src/view/Filter.js"></script>
+    <script src="../src/view/Validator.js"></script>
 
 
     <style>
@@ -108,6 +110,10 @@
         }
 
 
+        .error {
+            border: 1px solid #800000;
+        }
+
     </style>
 </head>
 <body>
@@ -165,7 +171,7 @@
                    value="Add item"/>
 
             <ul mjs-show=".bool" mjs-animate>
-                <li mjs-each="item in .list" mjs-animate>
+                <li mjs-each="item in .list | filter:.listFilter | sortBy:'txt':.sortBy" mjs-animate>
                     <label mjs-class="{cls3: .item.bool}">
                         <input type="checkbox" mjs-model=".item.bool"/>
                         {{.$index}} -
@@ -179,6 +185,10 @@
                 </li>
             </ul>
 
+            <input mjs-model=".listFilter" placeholder="Search"/>
+            <a href="#" mjs-click=".sortBy='asc'">asc</a>
+            <a href="#" mjs-click=".sortBy='desc'">desc</a>
+
             <div mjs-include="test-template" mjs-hide="!.bool" mjs-animate>
                 <p>transcluded text</p>
             </div>
@@ -186,6 +196,22 @@
             <div mjs-include="test-template"></div>
             <!--<mjs-include src="test-template"></mjs-include>-->
 
+
+            <form name="myForm" mjs-validate mjs-class="{error: .myForm.$invalid}">
+                <h2>Test form</h2>
+                <div>
+                    <input name="field1" data-validate-required mjs-class="{error: .myForm.field1.$invalid}"/>
+                </div>
+                <div mjs-class="{error: .myForm.radio1.$invalid}">
+                    <label><input type="radio" name="radio1" value="1" data-validate-required/> -- 1</label>
+                    <label><input type="radio" name="radio1" value="2"/> -- 2</label>
+                    <label><input type="radio" name="radio1" value="3"/> -- 3</label>
+                </div>
+                <div>
+                    <input type="submit" value="Submit"/>
+                    <input type="reset" value="Reset"/>
+                </div>
+            </form>
 
         </div>
 

@@ -8,8 +8,6 @@
 
     "use strict";
 
-    var undef       = {}.undefined;
-
     if (typeof window == "undefined") {
         global.window = global;
     }
@@ -35,7 +33,9 @@
         };
     }
 
-    var bind        = Function.prototype.bind ?
+    var undef       = {}.undefined,
+
+        bind        = Function.prototype.bind ?
                       function(fn, fnScope){
                           return fn.bind(fnScope);
                       } :
@@ -43,17 +43,34 @@
                           return function() {
                               fn.apply(fnScope, arguments);
                           };
-                      };
+                      },
 
 
-    var clsRegCache = {},
+        clsRegCache = {},
         getClsReg   = function(cls) {
             return clsRegCache[cls] ||
                    (clsRegCache[cls] = new RegExp('(?:^|\\s)'+cls+'(?!\\S)', 'g'));
-        };
+        },
 
 
-    var dataCache   = {},
+        dataCache   = {},
+
+        dataFn      = function(el, key, value) {
+            var id  = getNodeId(el),
+                obj = dataCache[id];
+
+            if (typeof value != "undefined") {
+                if (!obj) {
+                    obj = dataCache[id] = {};
+                }
+                obj[key] = value;
+                return value;
+            }
+            else {
+                return obj ? obj[key] : undef;
+            }
+        },
+
 
         slice       = Array.prototype.slice,
 
@@ -84,7 +101,7 @@
                             apply(dst[k], src[k], override);
                         }
                         else {
-                            if (override === true || dst[k] === undef || dst[k] === null) {
+                            if (override === true || typeof dst[k] == "undefined" || dst[k] === null) {
                                 dst[k] = src[k];
                             }
                         }
@@ -119,9 +136,6 @@
             return uid.join('');
         },
 
-        tplCache = {},
-
-
         toFragment = function(nodes) {
 
             var fragment = document.createDocumentFragment();
@@ -140,6 +154,8 @@
             for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]){}
             return a;
         },
+
+        tplCache = {},
 
         getTemplate = function(tplId) {
 
@@ -195,11 +211,18 @@
             return 0;
         },
 
+        add,
+
         registerAttributeHandler    = function(name, priority, handler) {
+
+            if (!add) {
+                add = MetaphorJs.add;
+            }
+
             attributeHandlers.push({
                 priority: priority,
                 name: name,
-                handler: MetaphorJs.add("attr." + name, handler)
+                handler: add("attr." + name, handler)
             });
             attributesSorted = false;
         },
@@ -213,10 +236,15 @@
         },
 
         registerTagHandler          = function(name, priority, handler) {
+
+            if (!add) {
+                add = MetaphorJs.add;
+            }
+
             tagHandlers.push({
                 priority: priority,
                 name: name,
-                handler: MetaphorJs.add("tag." + name, handler)
+                handler: add("tag." + name, handler)
             });
             tagsSorted = false;
         },
@@ -227,7 +255,222 @@
                 tagsSorted = true;
             }
             return tagHandlers;
+        },
+
+        trimFn = (function() {
+            // native trim is way faster: http://jsperf.com/angular-trim-test
+            // but IE doesn't have it... :-(
+            if (!String.prototype.trim) {
+                return function(value) {
+                    return typeof value == "string" ? value.replace(/^\s\s*/, '').replace(/\s\s*$/, '') : value;
+                };
+            }
+            return function(value) {
+                return typeof value == "string" ? value.trim() : value;
+            };
+        })(),
+
+        aIndexOf    = Array.prototype.indexOf,
+        toString    = Object.prototype.toString,
+        hasProperty = Object.prototype.hasOwnProperty,
+
+        inArray     = function(val, arr) {
+            return arr ? aIndexOf.call(arr, val) : -1;
+        },
+
+        isArray     = function(value) {
+            return value && typeof value == 'object' && typeof value.length == 'number' &&
+                   toString.call(value) == '[object Array]' || false;
+        },
+
+        isPlainObject = function(value) {
+
+            if (toString.call(value) !== "[object Object]" || value.nodeType )
+                return false;
+
+            try {
+                if (value.constructor &&
+                    !hasProperty.call(value.constructor.prototype, "isPrototypeOf")) {
+                    return false;
+                }
+            } catch (e) {
+                return false;
+            }
+
+            return true;
+        },
+
+        cloneFn = function(node) {
+
+            var i, len, clone;
+
+            if (isArray(node)) {
+                clone = [];
+                for (i = 0, len = node.length; i < len; i++) {
+                    clone.push(cloneFn(node[i]));
+                }
+                return clone;
+            }
+            else {
+                switch (node.nodeType) {
+                    // element
+                    case 1:
+                        return node.cloneNode(true);
+                    // text node
+                    case 3:
+                        return document.createTextNode(node.innerText || node.textContent);
+                    // document fragment
+                    case 11:
+                        return node.cloneNode(true);
+
+                    default:
+                        return null;
+                }
+            }
+        },
+
+        addListener = function(el, event, func) {
+            if (el.attachEvent) {
+                el.attachEvent('on' + event, func);
+            } else {
+                el.addEventListener(event, func, false);
+            }
+        },
+
+        removeListener = function(el, event, func) {
+            if (el.detachEvent) {
+                el.detachEvent('on' + event, func);
+            } else {
+                el.removeEventListener(event, func, false);
+            }
+        },
+
+        hasClass = function(el, cls) {
+            var reg = getClsReg(cls);
+            return reg.test(el.className);
+        },
+
+        addClass = function(el, cls) {
+            if (!hasClass(el, cls)) {
+                el.className += " " + cls;
+            }
+        },
+
+        removeClass = function(el, cls) {
+            var reg = getClsReg(cls);
+            el.className = el.className.replace(reg, '');
+        },
+
+        async = function(fn, fnScope, args) {
+            setTimeout(function(){
+                fn.apply(fnScope, args || []);
+            }, 0);
+        },
+
+
+        Scope,
+        Renderer,
+
+        appFn = function(node, scope) {
+
+            if (!Scope) {
+                Scope = MetaphorJs.view.Scope;
+                Renderer = MetaphorJs.view.Renderer;
+            }
+
+            if (!scope) {
+                scope   = new Scope;
+            }
+            else {
+                if (!(scope instanceof Scope)) {
+                    scope   = new Scope(scope);
+                }
+            }
+
+            var renderer    = new Renderer(node, scope);
+            renderer.render();
+
+            return renderer;
+        },
+
+        filterArrayCompareValues = function(value, to, opt) {
+
+            if (to === "" || typeof to == "undefined") {
+                return true;
+            }
+            else if (typeof value == "undefined") {
+                return false;
+            }
+            else if (typeof value == "boolean") {
+                return value === to;
+            }
+            else if (opt instanceof RegExp) {
+                return to.test("" + value);
+            }
+            else if (opt == "strict") {
+                return ""+value === ""+to;
+            }
+            else if (opt === true || opt === null || typeof opt == "undefined") {
+                return ""+value.indexOf(to) != -1;
+            }
+            else if (opt === false) {
+                return ""+value.indexOf(to) == -1;
+            }
+            return false;
+        },
+
+        filterArrayCompare = function(value, by, opt) {
+
+            if (typeof value != "object") {
+                if (typeof by.$ == "undefined") {
+                    return true;
+                }
+                else {
+                    return filterArrayCompareValues(value, by.$, opt);
+                }
+            }
+            else {
+                var k, i;
+
+                for (k in by) {
+
+                    if (k == '$') {
+
+                        for (i in value) {
+                            if (filterArrayCompareValues(value[i], by.$, opt)) {
+                                return true;
+                            }
+                        }
+                    }
+                    else {
+                        if (filterArrayCompareValues(value[k], by[k], opt)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        },
+
+        filterArray = function(a, by, compare) {
+
+            if (typeof by != "object") {
+                by = {$: by};
+            }
+
+            var ret = [],
+                i, l;
+
+            for (i = -1, l = a.length; ++i < l;) {
+                if (filterArrayCompare(a[i], by, compare)) {
+                    ret.push(a[i]);
+                }
+            }
+
+            return ret;
         };
+
 
 
     /**
@@ -258,21 +501,7 @@
 
         getNodeId: getNodeId,
 
-        data: function(el, key, value) {
-            var id  = getNodeId(el),
-                obj = dataCache[id];
-
-            if (typeof value != "undefined") {
-                if (!obj) {
-                    obj = dataCache[id] = {};
-                }
-                obj[key] = value;
-                return value;
-            }
-            else {
-                return obj ? obj[key] : undef;
-            }
-        },
+        data: dataFn,
 
         /**
          * Empty function. Used for callback placeholders
@@ -280,110 +509,27 @@
          */
         emptyFn:    function() {},
 
-        trim: (function() {
-            // native trim is way faster: http://jsperf.com/angular-trim-test
-            // but IE doesn't have it... :-(
-            if (!String.prototype.trim) {
-                return function(value) {
-                    return typeof value == "string" ? value.replace(/^\s\s*/, '').replace(/\s\s*$/, '') : value;
-                };
-            }
-            return function(value) {
-                return typeof value == "string" ? value.trim() : value;
-            };
-        })(),
+        trim: trimFn,
 
         bind: bind,
 
-        inArray: function(val, arr) {
-            return arr ? Array.prototype.indexOf.call(arr, val) : -1;
-        },
+        inArray: inArray,
 
-        isArray: function(value) {
-            return value && typeof value == 'object' && typeof value.length == 'number' &&
-                Object.prototype.toString.call(value) == '[object Array]' || false;
-        },
+        isArray: isArray,
 
-        isPlainObject: function(value) {
+        isPlainObject: isPlainObject,
 
-            var hasProperty = Object.prototype.hasOwnProperty;
-            var stringify = Object.prototype.toString;
+        clone: cloneFn,
 
-            if (stringify.call(value) !== "[object Object]" || value.nodeType )
-                return false;
+        addListener: addListener,
 
-            try {
-                if (value.constructor &&
-                    !hasProperty.call(value.constructor.prototype, "isPrototypeOf")) {
-                    return false;
-                }
-            } catch (e) {
-                return false;
-            }
+        removeListener: removeListener,
 
-            return true;
-        },
+        hasClass: hasClass,
 
-        clone: function(node) {
+        addClass: addClass,
 
-            var i, len, clone;
-
-            if (MetaphorJs.isArray(node)) {
-                clone = [];
-                for (i = 0, len = node.length; i < len; i++) {
-                    clone.push(MetaphorJs.clone(node[i]));
-                }
-                return clone;
-            }
-            else {
-                switch (node.nodeType) {
-                    // element
-                    case 1:
-                        return node.cloneNode(true);
-                    // text node
-                    case 3:
-                        return document.createTextNode(node.innerText || node.textContent);
-                    // document fragment
-                    case 11:
-                        return node.cloneNode(true);
-
-                    default:
-                        return null;
-                }
-            }
-        },
-
-        addListener: function(el, event, func) {
-            if (el.attachEvent) {
-                el.attachEvent('on' + event, func);
-            } else {
-                el.addEventListener(event, func, false);
-            }
-        },
-
-        removeListener: function(el, event, func) {
-            if (el.detachEvent) {
-                el.detachEvent('on' + event, func);
-            } else {
-                el.removeEventListener(event, func, false);
-            }
-        },
-
-        hasClass: function(el, cls) {
-            var reg = getClsReg(cls);
-            return reg.test(el.className);
-        },
-
-        addClass: function(el, cls) {
-            if (!Metaphor.hasClass(el, cls)) {
-                el.className += " " + cls;
-            }
-        },
-
-        removeClass: function(el, cls) {
-            var reg = getClsReg(cls);
-            el.className = el.className.replace(reg, '');
-        },
+        removeClass: removeClass,
 
 
         isVisible: function(el) {
@@ -397,14 +543,10 @@
                     then : false;
         },
 
-        async: function(fn, fnScope, args) {
-            setTimeout(function(){
-                fn.apply(fnScope, args || []);
-            }, 0);
-        },
+        async: async,
 
         asyncError: function(e) {
-            Metaphor.async(function(){
+            async(function(){
                 throw e;
             });
         },
@@ -413,8 +555,6 @@
 
             var done    = false,
                 top     = true,
-                add     = MetaphorJs.addListener,
-                rem     = MetaphorJs.removeListener,
                 win     = window,
                 doc     = win.document,
                 root    = doc.documentElement,
@@ -424,7 +564,7 @@
                         return;
                     }
 
-                    rem(e.type == 'load' ? win : doc, e.type, init);
+                    removeListener(e.type == 'load' ? win : doc, e.type, init);
 
                     if (!done && (done = true)) {
                         fn.call(win, e.type || e);
@@ -453,9 +593,9 @@
 
                     top && poll();
                 }
-                add(doc, 'DOMContentLoaded', init);
-                add(doc, 'readystatechange', init);
-                add(win, 'load', init);
+                addListener(doc, 'DOMContentLoaded', init);
+                addListener(doc, 'readystatechange', init);
+                addListener(win, 'load', init);
             }
 
         },
@@ -464,24 +604,9 @@
 
         toArray: toArray,
 
-        app: function(node, scope) {
+        app: appFn,
 
-            var Scope = MetaphorJs.view.Scope;
-
-            if (!scope) {
-                scope   = new Scope;
-            }
-            else {
-                if (!(scope instanceof Scope)) {
-                    scope   = new Scope(scope);
-                }
-            }
-
-            var renderer    = new MetaphorJs.view.Renderer(node, scope);
-            renderer.render();
-
-            return renderer;
-        }
+        filterArray: filterArray
     };
 
 
