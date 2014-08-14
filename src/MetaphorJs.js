@@ -156,24 +156,30 @@
                 var tplNode     = document.getElementById(tplId),
                     tag;
 
-                if (!tplNode) {
-                    return null;
-                }
+                if (tplNode) {
 
-                tag         = tplNode.tagName.toLowerCase();
+                    tag         = tplNode.tagName.toLowerCase();
 
-                if (tag == "script") {
-                    var div = document.createElement("div");
-                    div.innerHTML = tplNode.innerHTML;
-                    tplCache[tplId] = toFragment(div.childNodes);
-                }
-                else {
-                    if ("content" in tplNode) {
-                        tplCache[tplId] = tplNode.content;
+                    if (tag == "script") {
+                        var div = document.createElement("div");
+                        div.innerHTML = tplNode.innerHTML;
+                        tplCache[tplId] = toFragment(div.childNodes);
                     }
                     else {
-                        tplCache[tplId] = toFragment(tplNode.childNodes);
+                        if ("content" in tplNode) {
+                            tplCache[tplId] = tplNode.content;
+                        }
+                        else {
+                            tplCache[tplId] = toFragment(tplNode.childNodes);
+                        }
                     }
+                }
+                else {
+                    return tplCache[tplId] = MetaphorJs.ajax(tplId, {dataType: 'fragment'})
+                        .then(function(fragment){
+                            tplCache[tplId] = fragment;
+                            return fragment;
+                    });
                 }
             }
 
@@ -545,6 +551,7 @@
         async: async,
 
         asyncError: function(e) {
+            throw e;
             async(function(){
                 throw e;
             });

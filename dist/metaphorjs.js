@@ -1,8 +1,12 @@
+/**
+ * This is file is just a bunch of utility functions.
+ * All the fun happens in view/Renderer.js and view/Attributes.js
+ * :)
+ */
+
 (function(){
 
     "use strict";
-
-    var undef       = {}.undefined;
 
     if (typeof window == "undefined") {
         global.window = global;
@@ -29,7 +33,9 @@
         };
     }
 
-    var bind        = Function.prototype.bind ?
+    var undef       = {}.undefined,
+
+        bind        = Function.prototype.bind ?
                       function(fn, fnScope){
                           return fn.bind(fnScope);
                       } :
@@ -37,12 +43,27 @@
                           return function() {
                               fn.apply(fnScope, arguments);
                           };
-                      };
+                      },
 
 
+        dataCache   = {},
 
+        dataFn      = function(el, key, value) {
+            var id  = getNodeId(el),
+                obj = dataCache[id];
 
-    var dataCache   = {},
+            if (typeof value != "undefined") {
+                if (!obj) {
+                    obj = dataCache[id] = {};
+                }
+                obj[key] = value;
+                return value;
+            }
+            else {
+                return obj ? obj[key] : undef;
+            }
+        },
+
 
         slice       = Array.prototype.slice,
 
@@ -73,7 +94,7 @@
                             apply(dst[k], src[k], override);
                         }
                         else {
-                            if (override === true || dst[k] === undef || dst[k] === null) {
+                            if (override === true || typeof dst[k] == "undefined" || dst[k] === null) {
                                 dst[k] = src[k];
                             }
                         }
@@ -108,9 +129,6 @@
             return uid.join('');
         },
 
-        tplCache = {},
-
-
         toFragment = function(nodes) {
 
             var fragment = document.createDocumentFragment();
@@ -129,6 +147,8 @@
             for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]){}
             return a;
         },
+
+        tplCache = {},
 
         getTemplate = function(tplId) {
 
@@ -184,11 +204,18 @@
             return 0;
         },
 
+        add,
+
         registerAttributeHandler    = function(name, priority, handler) {
+
+            if (!add) {
+                add = MetaphorJs.add;
+            }
+
             attributeHandlers.push({
                 priority: priority,
                 name: name,
-                handler: MetaphorJs.add("attr." + name, handler)
+                handler: add("attr." + name, handler)
             });
             attributesSorted = false;
         },
@@ -202,10 +229,15 @@
         },
 
         registerTagHandler          = function(name, priority, handler) {
+
+            if (!add) {
+                add = MetaphorJs.add;
+            }
+
             tagHandlers.push({
                 priority: priority,
                 name: name,
-                handler: MetaphorJs.add("tag." + name, handler)
+                handler: add("tag." + name, handler)
             });
             tagsSorted = false;
         },
@@ -216,7 +248,228 @@
                 tagsSorted = true;
             }
             return tagHandlers;
+        },
+
+        trimFn = (function() {
+            // native trim is way faster: http://jsperf.com/angular-trim-test
+            // but IE doesn't have it... :-(
+            if (!String.prototype.trim) {
+                return function(value) {
+                    return typeof value == "string" ? value.replace(/^\s\s*/, '').replace(/\s\s*$/, '') : value;
+                };
+            }
+            return function(value) {
+                return typeof value == "string" ? value.trim() : value;
+            };
+        })(),
+
+        aIndexOf    = Array.prototype.indexOf,
+        toString    = Object.prototype.toString,
+        hasProperty = Object.prototype.hasOwnProperty,
+
+        inArray     = function(val, arr) {
+            return arr ? aIndexOf.call(arr, val) : -1;
+        },
+
+        isArray     = function(value) {
+            return value && typeof value == 'object' && typeof value.length == 'number' &&
+                   toString.call(value) == '[object Array]' || false;
+        },
+
+        isPlainObject = function(value) {
+
+            if (toString.call(value) !== "[object Object]" || value.nodeType )
+                return false;
+
+            try {
+                if (value.constructor &&
+                    !hasProperty.call(value.constructor.prototype, "isPrototypeOf")) {
+                    return false;
+                }
+            } catch (e) {
+                return false;
+            }
+
+            return true;
+        },
+
+        cloneFn = function(node) {
+
+            var i, len, clone;
+
+            if (isArray(node)) {
+                clone = [];
+                for (i = 0, len = node.length; i < len; i++) {
+                    clone.push(cloneFn(node[i]));
+                }
+                return clone;
+            }
+            else {
+                switch (node.nodeType) {
+                    // element
+                    case 1:
+                        return node.cloneNode(true);
+                    // text node
+                    case 3:
+                        return document.createTextNode(node.innerText || node.textContent);
+                    // document fragment
+                    case 11:
+                        return node.cloneNode(true);
+
+                    default:
+                        return null;
+                }
+            }
+        },
+
+        addListener = function(el, event, func) {
+            if (el.attachEvent) {
+                el.attachEvent('on' + event, func);
+            } else {
+                el.addEventListener(event, func, false);
+            }
+        },
+
+        removeListener = function(el, event, func) {
+            if (el.detachEvent) {
+                el.detachEvent('on' + event, func);
+            } else {
+                el.removeEventListener(event, func, false);
+            }
+        },
+
+        clsRegCache = {},
+        getClsReg   = function(cls) {
+            return clsRegCache[cls] ||
+                   (clsRegCache[cls] = new RegExp('(?:^|\\s)'+cls+'(?!\\S)', ''));
+        },
+
+        hasClass = function(el, cls) {
+            var reg = getClsReg(cls);
+            return reg.test(el.className);
+        },
+
+        addClass = function(el, cls) {
+            if (!hasClass(el, cls)) {
+                el.className += " " + cls;
+            }
+        },
+
+        removeClass = function(el, cls) {
+            var reg = getClsReg(cls);
+            el.className = el.className.replace(reg, '');
+        },
+
+        async = function(fn, fnScope, args) {
+            setTimeout(function(){
+                fn.apply(fnScope, args || []);
+            }, 0);
+        },
+
+
+        Scope,
+        Renderer,
+
+        appFn = function(node, scope) {
+
+            if (!Scope) {
+                Scope = MetaphorJs.view.Scope;
+                Renderer = MetaphorJs.view.Renderer;
+            }
+
+            if (!scope) {
+                scope   = new Scope;
+            }
+            else {
+                if (!(scope instanceof Scope)) {
+                    scope   = new Scope(scope);
+                }
+            }
+
+            var renderer    = new Renderer(node, scope);
+            renderer.render();
+
+            return renderer;
+        },
+
+        filterArrayCompareValues = function(value, to, opt) {
+
+            if (to === "" || typeof to == "undefined") {
+                return true;
+            }
+            else if (typeof value == "undefined") {
+                return false;
+            }
+            else if (typeof value == "boolean") {
+                return value === to;
+            }
+            else if (opt instanceof RegExp) {
+                return to.test("" + value);
+            }
+            else if (opt == "strict") {
+                return ""+value === ""+to;
+            }
+            else if (opt === true || opt === null || typeof opt == "undefined") {
+                return ""+value.indexOf(to) != -1;
+            }
+            else if (opt === false) {
+                return ""+value.indexOf(to) == -1;
+            }
+            return false;
+        },
+
+        filterArrayCompare = function(value, by, opt) {
+
+            if (typeof value != "object") {
+                if (typeof by.$ == "undefined") {
+                    return true;
+                }
+                else {
+                    return filterArrayCompareValues(value, by.$, opt);
+                }
+            }
+            else {
+                var k, i;
+
+                for (k in by) {
+
+                    if (k == '$') {
+
+                        for (i in value) {
+                            if (filterArrayCompareValues(value[i], by.$, opt)) {
+                                return true;
+                            }
+                        }
+                    }
+                    else {
+                        if (filterArrayCompareValues(value[k], by[k], opt)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        },
+
+        filterArray = function(a, by, compare) {
+
+            if (typeof by != "object") {
+                by = {$: by};
+            }
+
+            var ret = [],
+                i, l;
+
+            for (i = -1, l = a.length; ++i < l;) {
+                if (filterArrayCompare(a[i], by, compare)) {
+                    ret.push(a[i]);
+                }
+            }
+
+            return ret;
         };
+
 
 
     /**
@@ -247,21 +500,7 @@
 
         getNodeId: getNodeId,
 
-        data: function(el, key, value) {
-            var id  = getNodeId(el),
-                obj = dataCache[id];
-
-            if (typeof value != "undefined") {
-                if (!obj) {
-                    obj = dataCache[id] = {};
-                }
-                obj[key] = value;
-                return value;
-            }
-            else {
-                return obj ? obj[key] : undef;
-            }
-        },
+        data: dataFn,
 
         /**
          * Empty function. Used for callback placeholders
@@ -269,105 +508,28 @@
          */
         emptyFn:    function() {},
 
-        trim: (function() {
-            // native trim is way faster: http://jsperf.com/angular-trim-test
-            // but IE doesn't have it... :-(
-            if (!String.prototype.trim) {
-                return function(value) {
-                    return typeof value == "string" ? value.replace(/^\s\s*/, '').replace(/\s\s*$/, '') : value;
-                };
-            }
-            return function(value) {
-                return typeof value == "string" ? value.trim() : value;
-            };
-        })(),
+        trim: trimFn,
 
         bind: bind,
 
-        inArray: function(val, arr) {
-            return arr ? Array.prototype.indexOf.call(arr, val) : -1;
-        },
+        inArray: inArray,
 
-        isArray: function(value) {
-            return value && typeof value == 'object' && typeof value.length == 'number' &&
-                Object.prototype.toString.call(value) == '[object Array]' || false;
-        },
+        isArray: isArray,
 
-        isPlainObject: function(value) {
+        isPlainObject: isPlainObject,
 
-            var hasProperty = Object.prototype.hasOwnProperty;
-            var stringify = Object.prototype.toString;
+        clone: cloneFn,
 
-            if (stringify.call(value) !== "[object Object]" || value.nodeType )
-                return false;
+        addListener: addListener,
 
-            try {
-                if (value.constructor &&
-                    !hasProperty.call(value.constructor.prototype, "isPrototypeOf")) {
-                    return false;
-                }
-            } catch (e) {
-                return false;
-            }
+        removeListener: removeListener,
 
-            return true;
-        },
+        hasClass: hasClass,
 
-        clone: function(node) {
+        addClass: addClass,
 
-            var i, len, clone;
+        removeClass: removeClass,
 
-            if (MetaphorJs.isArray(node)) {
-                clone = [];
-                for (i = 0, len = node.length; i < len; i++) {
-                    clone.push(MetaphorJs.clone(node[i]));
-                }
-                return clone;
-            }
-            else {
-                switch (node.nodeType) {
-                    // element
-                    case 1:
-                        return node.cloneNode(true);
-                    // text node
-                    case 3:
-                        return document.createTextNode(node.innerText || node.textContent);
-                    // document fragment
-                    case 11:
-                        return node.cloneNode(true);
-
-                    default:
-                        return null;
-                }
-            }
-        },
-
-        addListener: function(el, event, func) {
-            if (el.attachEvent) {
-                el.attachEvent('on' + event, func);
-            } else {
-                el.addEventListener(event, func, false);
-            }
-        },
-
-        removeListener: function(el, event, func) {
-            if (el.detachEvent) {
-                el.detachEvent('on' + event, func);
-            } else {
-                el.removeEventListener(event, func, false);
-            }
-        },
-
-        addClass: function(el, cls) {
-            var reg = new RegExp('(?:^|\\s)'+cls+'(?!\\S)', 'g');
-            if (!reg.test(el.className)) {
-                el.className += " " + cls;
-            }
-        },
-        removeClass: function(el, cls) {
-            var reg = new RegExp('(?:^|\\s)'+cls+'(?!\\S)', 'g');
-            el.className = el.className.replace(reg, '');
-        },
 
         isVisible: function(el) {
             return !(el.offsetWidth <= 0 || el.offsetHeight <= 0);
@@ -380,14 +542,10 @@
                     then : false;
         },
 
-        async: function(fn, fnScope, args) {
-            setTimeout(function(){
-                fn.apply(fnScope, args || []);
-            }, 0);
-        },
+        async: async,
 
         asyncError: function(e) {
-            Metaphor.async(function(){
+            async(function(){
                 throw e;
             });
         },
@@ -396,8 +554,6 @@
 
             var done    = false,
                 top     = true,
-                add     = MetaphorJs.addListener,
-                rem     = MetaphorJs.removeListener,
                 win     = window,
                 doc     = win.document,
                 root    = doc.documentElement,
@@ -407,7 +563,7 @@
                         return;
                     }
 
-                    rem(e.type == 'load' ? win : doc, e.type, init);
+                    removeListener(e.type == 'load' ? win : doc, e.type, init);
 
                     if (!done && (done = true)) {
                         fn.call(win, e.type || e);
@@ -436,9 +592,9 @@
 
                     top && poll();
                 }
-                add(doc, 'DOMContentLoaded', init);
-                add(doc, 'readystatechange', init);
-                add(win, 'load', init);
+                addListener(doc, 'DOMContentLoaded', init);
+                addListener(doc, 'readystatechange', init);
+                addListener(win, 'load', init);
             }
 
         },
@@ -447,24 +603,9 @@
 
         toArray: toArray,
 
-        app: function(node, scope) {
+        app: appFn,
 
-            var Scope = MetaphorJs.view.Scope;
-
-            if (!scope) {
-                scope   = new Scope;
-            }
-            else {
-                if (!(scope instanceof Scope)) {
-                    scope   = new Scope(scope);
-                }
-            }
-
-            var renderer    = new MetaphorJs.view.Renderer(node, scope);
-            renderer.render();
-
-            return renderer;
-        }
+        filterArray: filterArray
     };
 
 
@@ -2693,7 +2834,7 @@ if (typeof global != "undefined") {
                 prescription: route.reverse()
             };
         },
-        trim = MetaphorJs ? MetaphorJs.trim : (function() {
+        trim = window.MetaphorJs ? MetaphorJs.trim : (function() {
             // native trim is way faster: http://jsperf.com/angular-trim-test
             // but IE doesn't have it... :-(
             if (!String.prototype.trim) {
@@ -2706,7 +2847,11 @@ if (typeof global != "undefined") {
             };
         })(),
 
-        observable;
+        observable,
+
+        g = window.MetaphorJs ? MetaphorJs.ns.get : null;
+
+
 
     var Watchable   = function(dataObj, code, fn, fnScope, userData) {
 
@@ -2751,6 +2896,8 @@ if (typeof global != "undefined") {
             });
         }
 
+        code            = self._processPipes(code, dataObj);
+
         self.code       = code;
         self.getterFn   = type == "expr" ? createGetter(code) : null;
         self.id         = id;
@@ -2771,6 +2918,77 @@ if (typeof global != "undefined") {
         itv: null,
         curr: null,
         arraySlice: false,
+        pipes: null,
+
+        _addPipe: function(pipes, pipe, dataObj) {
+
+            var name    = pipe.shift(),
+                fn      = null,
+                ws      = [],
+                i, l;
+
+            if (g) {
+                fn = g("filter." + name, true);
+            }
+            if (!fn) {
+                fn = window[name] || dataObj[name];
+            }
+
+            if (typeof fn == "function") {
+
+                for (i = -1, l = pipe.length; ++i < l;
+                     ws.push(create(dataObj, pipe[i], self.check, self))) {}
+
+                pipes.push([fn, pipe, ws]);
+            }
+        },
+
+        _processPipes: function(text, dataObj) {
+
+            var self        = this,
+                index       = 0,
+                textLength  = text.length,
+                pipes       = [],
+                pIndex,
+                prev, next, pipe,
+                found       = false,
+                ret         = text;
+
+            while(index < textLength) {
+
+                if ((pIndex  = text.indexOf('|', index)) != -1) {
+
+                    prev = text.charAt(pIndex -1);
+                    next = text.charAt(pIndex + 1);
+
+                    if (prev != '|' && prev != "'" && prev != '"' && next != '|' && next != "'" && next != '"') {
+                        if (!found) {
+                            found = true;
+                            ret = trim(text.substring(0, pIndex));
+                        }
+                        else {
+                            pipe = trim(text.substring(index, pIndex)).split(":");
+
+                            self._addPipe(pipes, pipe, dataObj);
+                        }
+                    }
+                    index = pIndex + 1;
+                }
+                else {
+                    if (found) {
+                        pipe = trim(text.substr(index)).split(":");
+                        self._addPipe(pipes, pipe, dataObj);
+                    }
+                    break;
+                }
+            }
+
+            if (pipes.length) {
+                self.pipes = pipes;
+            }
+
+            return ret;
+        },
 
         _checkCode: function() {
 
@@ -2851,20 +3069,49 @@ if (typeof global != "undefined") {
                         if (window.MetaphorJs) {
                             MetaphorJs.asyncError(e);
                         }
+                        else {
+                            throw e;
+                        }
                     }
                     if (typeof val == "undefined") {
                         val = "";
                     }
                     break;
                 case "object":
-                    return copy(self.obj);
+                    val = copy(self.obj);
+                    break;
                 case "array":
-                    return self.obj.slice();
+                    val = self.obj;
+                    break;
             }
 
             if (isArray(val)) {
-                return val.slice();
+                val = val.slice();
             }
+
+            var pipes   = self.pipes;
+
+            if (pipes) {
+                var j,
+                    args,
+                    exprs,
+                    jlen    = pipes.length,
+                    dataObj = self.obj,
+                    z, zl;
+
+                for (j = 0; j < jlen; j++) {
+                    exprs   = pipes[j][1];
+                    args    = [];
+                    for (z = -1, zl = exprs.length; ++z < zl;
+                        args.push(evaluate(exprs[z], dataObj))){}
+
+                    args.unshift(val);
+                    args.push(dataObj);
+                    val     = pipes[j][0].apply(null, args);
+                }
+
+            }
+
 
             return val;
         },
@@ -2968,14 +3215,28 @@ if (typeof global != "undefined") {
 
         destroy: function() {
 
-            var self    = this;
-
-            self.curr   = null;
-            self.obj    = null;
+            var self    = this,
+                pipes   = self.pipes,
+                i, il,
+                j, jl,
+                ws;
 
             if (self.itv) {
                 self.clearInterval();
             }
+
+            if (pipes) {
+                for (i = -1, il = pipes.length; ++i < il;) {
+                    ws = pipes[i][2];
+                    for (j = -1, jl = ws.length; ++j < jl;) {
+                        ws[j].unsubscribeAndDestroy(self.check, self);
+                    }
+                }
+            }
+
+            self.curr   = null;
+            self.obj    = null;
+            self.pipes  = null;
 
             observable.destroyEvent(self.id);
 
@@ -3070,19 +3331,45 @@ if (typeof global != "undefined") {
         return expr.replace(REG_REPLACE_EXPR, '$1____.$3');
     };
 
+    var getterCache = {};
     var createGetter = function createGetter(expr) {
-        expr = expr.replace(REG_REPLACE_EXPR, '$1____.$3');
-        return new f('____', 'return '.concat(expr));
+        if (!getterCache[expr]) {
+            return getterCache[expr] = new f('____', 'return '.concat(expr.replace(REG_REPLACE_EXPR, '$1____.$3')));
+        }
+        return getterCache[expr];
     };
 
+    var setterCache = {};
     var createSetter = function createSetter(expr) {
-        expr = expr.replace(REG_REPLACE_EXPR, '$1____.$3');
-        return new f('____', '$$$$', expr.concat(' = $$$$'));
+        if (!setterCache[expr]) {
+            var code = expr.replace(REG_REPLACE_EXPR, '$1____.$3');
+            return setterCache[expr] = new f('____', '$$$$', code.concat(' = $$$$'));
+        }
+        return setterCache[expr];
     };
 
+    var funcCache = {};
     var createFunc = function createFunc(expr) {
-        expr = expr.replace(REG_REPLACE_EXPR, '$1____.$3');
-        return new f('____', expr);
+        if (!funcCache[expr]) {
+            return funcCache[expr] = new f('____', expr.replace(REG_REPLACE_EXPR, '$1____.$3'));
+        }
+        return funcCache[expr];
+    };
+
+    var evaluate = function(expr, scope) {
+        return createGetter(expr)(scope);
+    };
+
+    var isExpression = function(str) {
+        var first = str.substr(0,1);
+
+        if ((first == '"' || first == "'") && str.substr(str.length-1) == first) {
+            return false;
+        }
+        if (""+parseInt(str, 10) === str) {
+            return false;
+        }
+        return true;
     };
 
     Watchable.create = create;
@@ -3092,7 +3379,8 @@ if (typeof global != "undefined") {
     Watchable.createGetter = createGetter;
     Watchable.createSetter = createSetter;
     Watchable.createFunc = createFunc;
-
+    Watchable.eval = evaluate;
+    Watchable.isExpression = isExpression;
 
     if (window.MetaphorJs && MetaphorJs.r) {
         MetaphorJs.r("MetaphorJs.lib.Watchable", Watchable);
@@ -7320,8 +7608,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                     return;
                 }
 
-                removeClass(el, stages[position]);
-                removeClass(el, stages[position] + "-active");
+                var thisPosition = position;
 
                 position++;
 
@@ -7334,6 +7621,9 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                     dataFn(el, dataParam)[0].position = position;
                     animationStage(el, stages, position, null, deferred);
                 }
+
+                removeClass(el, stages[thisPosition]);
+                removeClass(el, stages[thisPosition] + "-active");
             };
 
             var setStage = function() {
@@ -7721,7 +8011,6 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
             self.scope          = scope;
             self.texts          = [];
             self.parent         = parent;
-            //self._observable    = new Observable;
 
             if (scope instanceof Scope) {
                 scope.$on("destroy", self.destroy, self);
@@ -7735,13 +8024,11 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
         },
 
         on: function(event, fn, fnScope) {
-            //return this._observable.on(event, fn, fnScope);
             return observer.on(event + '-' + this.id, fn, fnScope);
         },
 
         un: function(event, fn, fnScope) {
             return observer.un(event + '-' + this.id, fn, fnScope);
-            //return this._observable.un(event, fn, fnScope);
         },
 
         createChild: function(node) {
@@ -7974,11 +8261,8 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
 
         watcherMatch: function(txtObj, expr) {
 
-            var pipes   = [],
-                self    = this,
+            var self    = this,
                 ws      = txtObj.watchers;
-
-            expr        = self.processPipes(expr, pipes);
 
             ws.push({
                 watcher: createWatchable(
@@ -7987,8 +8271,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                     self.onDataChange,
                     self,
                     txtObj.inx
-                ),
-                pipes: pipes
+                )
             });
 
             return '---'+ (ws.length-1) +'---';
@@ -8017,20 +8300,10 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                 ws      = text.watchers,
                 len     = ws.length,
                 attr    = text.attr,
-                i, val,
-                j, jlen,
-                pipes,
-                args;
+                i, val;
 
             for (i = 0; i < len; i++) {
                 val     = ws[i].watcher.getLastResult();
-                pipes   = ws[i].pipes;
-                jlen    = pipes.length;
-                for (j = 0; j < jlen; j++) {
-                    args    = pipes[j][1].slice();
-                    args.unshift(val);
-                    val     = g("filter." + pipes[j][0], true).apply(text.node, args);
-                }
                 tpl     = tpl.replace('---' + i + '---', val);
             }
 
@@ -8208,11 +8481,6 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
         /**
          * @var string
          */
-        propertyAttr:   null, //"mjs-cmp-prop",
-
-        /**
-         * @var string
-         */
         tag:            null,
 
         initPromise:    null,
@@ -8344,8 +8612,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
         _initElement: function() {
 
             var self    = this,
-                node    = self.node,
-                pa      = self.propertyAttr;
+                node    = self.node;
 
             node.setAttribute("id", self.id);
             node.setAttribute("cmp-id", self.id);
@@ -8356,22 +8623,6 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
 
             self.renderer   = new Renderer(self.node, self.scope);
             self.renderer.render();
-
-            /*if (pa && window.jQuery) {
-
-                $(node).find("["+pa+"]").each(function(){
-                    var elem    = $(this),
-                        prop    = elem.attr(pa);
-
-                    if (!self[prop]) {
-                        self[prop]  = elem;
-                    }
-                    else {
-                        self[prop].add(elem);
-                    }
-                });
-            }*/
-
         },
 
         /**
@@ -8754,7 +9005,15 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
         async           = MetaphorJs.async,
         createWatchable = Watchable.create,
         createGetter    = Watchable.createGetter,
-        animate         = MetaphorJs.animate;
+        animate         = MetaphorJs.animate,
+        isExpression    = Watchable.isExpression,
+        ajax            = MetaphorJs.ajax,
+        evaluate        = Watchable.eval,
+        addClass        = MetaphorJs.addClass,
+        removeClass     = MetaphorJs.removeClass,
+        hasClass        = MetaphorJs.hasClass,
+        stopAnimation   = MetaphorJs.stopAnimation,
+        isArray         = MetaphorJs.isArray;
 
 
     var parentData  = function(node, key) {
@@ -9401,6 +9660,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                 r,
                 action;
 
+
             for (i = 0, len = prs.length; i < len; i++) {
                 action = prs[i];
 
@@ -9414,7 +9674,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                     updateStart = i > 0 ? i - 1 : 0;
                 }
 
-                if (renderers[index]) {
+                if (action != 'I' && renderers[index]) {
 
                     r = renderers[index];
 
@@ -9459,7 +9719,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                         renderers[i] = self.createItem(el, list, index);
                     }
                     else if (action == 'I') {
-                        if (i > renderers.length - 1) {
+                        if (i < renderers.length) {
                             renderers.splice(i, 0, self.createItem(el, list, index));
                         }
                         else {
@@ -9492,10 +9752,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                     name = row;
                 }
                 else {
-                    model = row;
-                    if (model.charAt(0) == '.') {
-                        model = model.substr(1);
-                    }
+                    model = tmp.slice(i).join(" ");
                     break;
                 }
             }
@@ -9530,7 +9787,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
 
             self.node       = node;
             self.scope      = scope;
-            self.store      = store = createGetter("."+self.model)(scope);
+            self.store      = store = createGetter(self.model)(scope);
 
             self.parentEl.removeChild(node);
 
@@ -9632,18 +9889,24 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
 
             node.removeAttribute("mjs-include");
 
-            tpl         = getTemplate(tplExpr);
-
-            if (tpl) {
-                self.$returnToRenderer = self.applyTemplate(node, tpl);
-            }
-            else {
-                self.watcher    = createWatchable(scope, tplExpr);
-                self.watcher.addListener(self.onChange, self);
-                self.$stopRenderer = true;
-                self.$returnToRenderer = self.onChange();
+            if (isExpression(tplExpr)) {
+                self.watcher            = createWatchable(scope, tplExpr, self.onChange, self);
+                self.$stopRenderer      = true;
+                self.$returnToRenderer  = self.onChange();
 
                 parentRenderer.on("destroy", self.onParentRendererDestroy, self);
+            }
+            else {
+                tplExpr = evaluate(tplExpr);
+                tpl = getTemplate(tplExpr);
+                if (tpl) {
+                    self.$returnToRenderer = self.applyTemplate(node, tpl);
+                }
+                else {
+                    self.$returnToRenderer = ajax(tplExpr, {dataType: "fragment"}).then(function(fragment){
+                        return self.applyTemplate(node, fragment);
+                    });
+                }
             }
 
             if (scope instanceof Scope) {
@@ -9733,31 +9996,42 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
 
     registerTag("mjs-include", 900, function(scope, node) {
 
-        var tplId       = node.getAttribute("src"),
+        var tplExpr     = node.getAttribute("src"),
+            tplId       = evaluate(tplExpr, scope),
             tpl         = getTemplate(tplId);
 
         if (node.firstChild) {
             dataFn(node, "mjs-transclude", toFragment(node.childNodes));
         }
 
-        var parent      = node.parentNode,
-            next        = node.nextSibling,
-            clone       = MetaphorJs.clone(tpl),
-            children    = toArray(clone.childNodes),
-            deferred    = new Promise;
+        var applyTemplate = function() {
+            var parent      = node.parentNode,
+                next        = node.nextSibling,
+                clone       = MetaphorJs.clone(tpl),
+                children    = toArray(clone.childNodes),
+                deferred    = new Promise;
 
-        parent.removeChild(node);
-        parent.insertBefore(clone, next);
+            parent.removeChild(node);
+            parent.insertBefore(clone, next);
 
-        animate(node, "enter")
-            .done(function(){
-                deferred.resolve(children);
+            animate(node, "enter")
+                .done(function(){
+                    deferred.resolve(children);
+                });
+
+            return deferred.promise();
+        };
+
+        if (tpl) {
+            return applyTemplate();
+        }
+        else {
+            return ajax(tplId, {dataType: "fragment"}).then(function(fragment){
+                tpl = fragment;
+                return applyTemplate();
             });
-
-        return deferred.promise();
+        }
     });
-
-    //g("tag.mjs-include").$breakRenderer = true;
 
 
 
@@ -9805,7 +10079,48 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
         }
     });
 
+
+
+    var toggleClass = function(node, cls, toggle, doAnim) {
+
+        var has;
+
+        if (toggle !== null) {
+            if (toggle == hasClass(node, cls)) {
+                return;
+            }
+            has = !toggle;
+        }
+        else {
+            has = hasClass(node, cls);
+        }
+
+        if (has) {
+            if (doAnim) {
+                animate(node, [cls + "-remove"]).done(function(){
+                    removeClass(node, cls);
+                });
+            }
+            else {
+                removeClass(node, cls);
+            }
+        }
+        else {
+            if (doAnim) {
+                animate(node, [cls + "-add"]).done(function(){
+                    addClass(node, cls);
+                });
+            }
+            else {
+                addClass(node, cls);
+            }
+        }
+    };
+
     registerAttr("mjs-class", 1000, d(null, "MetaphorJs.view.AttributeHandler", {
+
+        initial: true,
+
         onChange: function() {
 
             var self    = this,
@@ -9813,9 +10128,22 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                 clss    = self.watcher.getLastResult(),
                 i;
 
-            for (i in clss) {
-                MetaphorJs[clss[i] ? "addClass" : "removeClass"](node, i);
+            stopAnimation(node);
+
+            if (typeof clss == "string") {
+                toggleClass(node, clss, null, !self.initial);
             }
+            else if (isArray(clss)) {
+                var l;
+                for (i = -1, l = clss.length; ++i < l; toggleClass(node, clss[i], true, !self.initial)){}
+            }
+            else {
+                for (i in clss) {
+                    toggleClass(node, i, clss[i] ? true : false, !self.initial);
+                }
+            }
+
+            self.initial = false;
         }
     }));
 
@@ -9935,6 +10263,29 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
 
     registerAttr("mjs-cmp", 200, cmpAttribute);
 
+
+    var getCmp = MetaphorJs.getCmp;
+
+    registerAttr("mjs-cmp-prop", 200, function(scope, node, expr){
+
+        var parent = node.parentNode,
+            id,
+            cmp;
+
+        while (parent) {
+
+            if (id = parent.getAttribute("cmp-id")) {
+                cmp = getCmp(id);
+                if (cmp) {
+                    cmp[expr] = node;
+                }
+                return;
+            }
+
+            parent = parent.parentNode;
+        }
+    });
+
     registerAttr("mjs-view", 200, function(scope, node, expr) {
 
         node.removeAttribute("mjs-view");
@@ -9959,6 +10310,9 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
         node.removeAttribute("mjs-init");
         createFn(expr)(scope);
     });
+
+
+
 }());
 
 
@@ -9966,6 +10320,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
 (function(){
 
     var add     = MetaphorJs.add,
+        g       = MetaphorJs.g,
         nf      = MetaphorJs.numberFormats,
         df      = MetaphorJs.dateFormats;
 
@@ -10022,15 +10377,63 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
     add("filter.ucfirst", function(val){
         return val.substr(0, 1).toUpperCase() + val.substr(1);
     });
+
+    var numberFormats = MetaphorJs.numberFormats;
+
     add("filter.numeral", function(val, format) {
-        format  = format || this.getAttribute("mjs-numeral-format");
+        format  = numberFormats[format] || format;
         format  = nf[format] || format;
         return numeral(val).format(format);
     });
+
+    var dateFormats = MetaphorJs.dateFormats;
+
     add("filter.moment", function(val, format) {
-        format  = format || this.getAttribute("mjs-moment-format");
+        format  = dateFormats[format] || format;
         format  = df[format] || format;
         return moment(val).format(format);
     });
+
+
+    var filterArray = MetaphorJs.filterArray;
+
+    add("filter.filter", function(val, by, opt, scope) {
+
+        if (opt && !scope) {
+            opt = null;
+        }
+
+        return filterArray(val, by, opt);
+    });
+
+    add("filter.sortBy", function(val, field, dir, scope) {
+
+        if (dir && !scope) {
+            dir = "asc";
+        }
+
+        var ret = val.slice();
+
+        ret.sort(function(a,b){
+
+            var typeA = typeof a,
+                typeB = typeof b;
+
+            if (typeA != typeB) {
+                return 0;
+            }
+
+            if (typeA == "object") {
+                return a[field] > b[field] ? 1 : (a[field] < b[field] ? -1 : 0);
+            }
+            else {
+                return a > b ? 1 : (a < b ? -1 : 0);
+            }
+        });
+
+        return dir == "desc" ? ret.reverse() : ret;
+    });
+
+
 }());
 

@@ -25,6 +25,7 @@
     <script src="../src/view/Scope.js"></script>
     <script src="../src/view/Browser.js"></script>
     <script src="../src/view/Renderer.js"></script>
+    <script src="../src/view/Template.js"></script>
     <script src="../src/cmp/Component.js"></script>
     <script src="../src/cmp/View.js"></script>
     <script src="../src/view/Attribute.js"></script>
@@ -293,41 +294,27 @@
 
             MetaphorJs.d("Test.MyComponent", "MetaphorJs.cmp.Component", {
 
-                template: 'cmp1-template',
-
                 initComponent: function() {
 
                     var self    = this;
 
                     self.scope.title = "My Component" + (new Date).getTime();
 
-                    var resolve = function() {
+                    var model   = new MetaphorJs.data.Model({
+                        type: "Test.MyRecord",
+                        id: "id",
+                        data: "record",
+                        total: "total",
+                        store: {
+                            load: "/metaphorjs/test/data.json"
+                        }
+                    });
 
-                        var model   = new MetaphorJs.data.Model({
-                            type: "Test.MyRecord",
-                            id: "id",
-                            data: "record",
-                            total: "total",
-                            store: {
-                                load: "/metaphorjs/test/data.json"
-                            }
-                        });
+                    self.scope.store = new MetaphorJs.data.Store({
+                        model: model
+                    });
 
-                        self.scope.store = new MetaphorJs.data.Store({
-                            model: model
-                        });
-
-                        self.scope.deferred = (new Date).getTime();
-                    };
-
-                    var deferred = new MetaphorJs.lib.Promise;
-
-                    setTimeout(function(){
-                        resolve();
-                        deferred.resolve();
-                    }, 1000);
-
-                    return deferred.promise();
+                    self.scope.deferred = self.deferred;
                 },
 
                 reverse: function() {
@@ -339,6 +326,17 @@
                     this.scope.store.load().done(function(){
                         this.scope.$check();
                     }, this);
+                }
+            }, {
+                template: "cmp1-template",
+                resolve: {
+                    deferred: function() {
+                        return new MetaphorJs.lib.Promise(function(resolve, reject){
+                            setTimeout(function(){
+                                resolve((new Date).getTime());
+                            }, 1000);
+                        });
+                    }
                 }
             });
 
@@ -405,7 +403,10 @@
     </script>
 
 
-    pushUrl: <a href="/1">/1</a> | <a href="/2">/2</a> | <a href="http://www.kuindji.com">outside</a><br><br>
+    pushUrl: <a href="/1">/1</a> |
+    <a href="/2">/2</a> |
+    <a href="/3">/3</a> |
+    <a href="http://www.kuindji.com">outside</a><br><br>
 
 </body>
 </html>

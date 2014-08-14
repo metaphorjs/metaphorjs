@@ -9,7 +9,8 @@
         animate     = MetaphorJs.animate,
         Scope       = MetaphorJs.lib.Scope,
         apply       = MetaphorJs.apply,
-        stop        = MetaphorJs.stopAnimation;
+        stop        = MetaphorJs.stopAnimation,
+        resolveComponent    = MetaphorJs.resolveComponent;
 
     MetaphorJs.define("MetaphorJs.cmp.View", {
 
@@ -18,6 +19,7 @@
          *  {
          *      reg: /.../,
          *      cmp: 'Cmp.Name',
+         *      template: '',
          *      isolateScope: bool
          *  }
          * ]
@@ -41,6 +43,8 @@
             if (node.firstChild) {
                 dataFn(node, "mjs-transclude", toFragment(node.childNodes));
             }
+
+            node.removeAttribute("mjs-view");
 
             this.onLocationChange();
         },
@@ -67,9 +71,10 @@
         },
 
         changeComponent: function(route, matches) {
-            stop(this.node);
-            this.clearComponent();
-            this.setComponent(route, matches);
+            var self = this;
+            stop(self.node);
+            self.clearComponent();
+            self.setComponent(route, matches);
         },
 
         clearComponent: function() {
@@ -77,14 +82,18 @@
                 node    = self.node;
 
             if (self.currentComponent) {
+
                 animate(node, "leave").done(function(){
+
                     self.currentComponent.destroy();
                     self.currentComponent = null;
+
                     while (node.firstChild) {
                         node.removeChild(node.firstChild);
                     }
                 });
             }
+
         },
 
         setComponent: function(route, matches) {
@@ -94,8 +103,7 @@
 
             animate(node, "enter", function(){
 
-                var constr  = g(route.cmp || "MetaphorJs.cmp.Component"),
-                    args    = matches,
+                var args    = matches || [],
                     cfg     = {
                         destroyEl: false,
                         node: node,
@@ -107,9 +115,19 @@
                 }
 
                 args.shift();
-                args.unshift(cfg);
-                self.currentComponent = constr.__instantiate.apply(null, args);
-                return self.currentComponent.initPromise;
+
+                return resolveComponent(
+                        route.cmp || "MetaphorJs.cmp.Component",
+                        cfg,
+                        cfg.scope,
+                        node,
+                        null,
+                        args
+                    )
+                    .done(function(newCmp){
+                        self.currentComponent = newCmp;
+                    });
+
             });
         }
     });

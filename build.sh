@@ -1,11 +1,14 @@
 #!/bin/sh
 
-if [ -f dist/metaphorjs.js ]; then
-    rm dist/metaphorjs.js
+trg=dist/metaphorjs.js
+trgMin=dist/metaphorjs.min.js
+
+if [ -f $trg ]; then
+    rm $trg
 fi
 
-if [ -f dist/metaphorjs.min.js ]; then
-    rm dist/metaphorjs.min.js
+if [ -f $trgMin ]; then
+    rm $trgMin
 fi
 
 manifest=(
@@ -33,13 +36,15 @@ manifest=(
     "src/view/Filter.js"
 )
 
-touch dist/metaphorjs.js
+touch $trg
 
 for f in "${manifest[@]}"
 do
-	cat $f >> dist/metaphorjs.js
-    echo "\n" >> dist/metaphorjs.js
+	cat $f >> $trg
+    echo "\n" >> $trg
 done
 
 
-ccjs dist/metaphorjs.js > dist/metaphorjs.min.js
+ccjs $trg > $trgMin
+
+./build-validator.sh

@@ -4,12 +4,13 @@
 
     var cmps        = {},
         nextUid     = MetaphorJs.nextUid,
-        getTemplate = MetaphorJs.getTemplate,
-        Renderer    = MetaphorJs.view.Renderer,
-        dataFn      = MetaphorJs.data,
-        toFragment  = MetaphorJs.toFragment,
-        isThenable  = MetaphorJs.isThenable,
-        emptyFn     = MetaphorJs.emptyFn;
+        emptyFn     = MetaphorJs.emptyFn,
+        g           = MetaphorJs.ns.get,
+        Promise     = MetaphorJs.lib.Promise,
+        Template    = MetaphorJs.view.Template,
+        trim        = MetaphorJs.trim,
+        toExpression    = MetaphorJs.lib.Watchable.toExpression;
+
 
     var getCmpId    = function(cmp) {
         return cmp.id || "cmp-" + nextUid();
@@ -55,6 +56,11 @@
         renderTo:       null,
 
         /**
+         * @var {boolean}
+         */
+        autoRender:     true,
+
+        /**
          * @var bool
          * @access protected
          */
@@ -73,17 +79,12 @@
         destroyEl:      true,
 
         /**
-         * @var MetaphorJs.view.Renderer
-         */
-        renderer:      null,
-
-        /**
-         * @var MetaphorJs.view.Scope
+         * @var {MetaphorJs.view.Scope}
          */
         scope:          null,
 
         /**
-         * @var string
+         * @var {MetaphorJs.view.Template}
          */
         template:       null,
 
@@ -92,7 +93,6 @@
          */
         tag:            null,
 
-        initPromise:    null,
 
         /**
          * @constructor
@@ -125,97 +125,45 @@
 
             registerCmp(self);
 
-            var promise = self.initComponent.apply(self, arguments);
+            self.initComponent.apply(self, arguments);
 
-            if (isThenable(promise)) {
-                self.initPromise = promise;
-                if (self.node) {
-                    self.node.style.visibility = "hidden";
-                }
-                promise.done(self.finishInitialize, self);
-            }
-            else {
-                self.finishInitialize();
-            }
-        },
-
-        finishInitialize: function() {
-
-            var self = this;
-
-            self.initPromise = null;
-
-            if (self.node) {
-                self.node.style.visibility = "";
-            }
 
             if (!self.node) {
                 self._createNode();
             }
-            else if (self.template) {
-                self._applyTemplate();
+
+            var tpl = self.template;
+
+            if (!tpl || !(tpl instanceof Template)) {
+                self.template = tpl = new Template({
+                    scope: self.scope,
+                    node: self.node,
+                    deferRendering: true,
+                    ownRenderer: true,
+                    tpl: toExpression(trim(tpl))
+                });
+            }
+
+            if (self.parentRenderer) {
+                self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
             }
 
             self._initElement();
 
-            if (!self.node.parentNode && self.renderTo) {
-                self.render(self.renderTo);
-            }
-            else if (self.node) {
-                self.render();
+            if (self.autoRender) {
+                if (tpl.initPromise) {
+                    tpl.initPromise.done(self.render, self);
+                }
+                else {
+                    self.render();
+                }
             }
         },
 
         _createNode: function() {
 
-            var self    = this,
-                tmp, tpl;
-
-            if (self.tag) {
-                self.node   = document.createElement(self.tag);
-            }
-            else {
-
-                tpl     = getTemplate(self.template) || self.template;
-
-                if (typeof tpl == "string") {
-                    tmp = document.createElement("div");
-                    tmp.innerHTML = tpl;
-                    tpl = toFragment(tmp.childNodes);
-                }
-
-                if (tpl.childNodes.length == 1) {
-                    self.node   = tpl.firstChild.cloneNode(true);
-                }
-                else {
-                    self.node = document.createElement('div');
-                    self.node.appendChild(tpl.cloneNode(true));
-                }
-            }
-        },
-
-        _applyTemplate: function() {
-
-            var self        = this,
-                node        = self.node,
-                tpl         = getTemplate(self.template) || self.template,
-                clone,
-                tmp;
-
-            if (typeof tpl == "string") {
-                tmp = document.createElement("div");
-                tmp.innerHTML = tpl;
-                clone = toFragment(tmp.childNodes);
-            }
-            else {
-                clone   = MetaphorJs.clone(tpl);
-            }
-
-            if (node.firstChild) {
-                dataFn(self.node, "mjs-transclude", toFragment(node.childNodes));
-            }
-
-            node.appendChild(clone);
+            var self    = this;
+            self.node   = document.createElement(self.tag || 'div');
         },
 
         _initElement: function() {
@@ -229,15 +177,9 @@
             if (self.hidden) {
                 node.style.display = "none";
             }
-
-            self.renderer   = new Renderer(self.node, self.scope);
-            self.renderer.render();
         },
 
-        /**
-         * @param {string|Element} to
-         */
-        render: function(to) {
+        render: function() {
 
             var self        = this;
 
@@ -245,12 +187,14 @@
                 return;
             }
 
-            if (to) {
-                to.appendChild(self.node);
+            if (self.renderTo) {
+                self.renderTo.appendChild(self.node);
             }
 
             self.hidden     = !MetaphorJs.isVisible(self.node);
             self.rendered   = true;
+
+            self.template.startRendering();
 
             self.trigger('render', self);
             self.afterRender();
@@ -354,13 +298,20 @@
          */
         onHide:         emptyFn,
 
+        onParentRendererDestroy: function() {
+            this.destroy();
+        },
 
         onDestroy:      function() {
 
             var self    = this;
 
+            if (self.template) {
+                self.template.destroy();
+                delete self.template;
+            }
+
             if (self.destroyEl) {
-                console.log("destroy")
                 if (self.node.parentNode) {
                     self.node.parentNode.removeChild(self.node);
                 }
@@ -370,11 +321,6 @@
                 if (!self.originalId) {
                     self.node.removeAttribute("id");
                 }
-            }
-
-            if (self.rendered) {
-                self.renderer.destroy();
-                delete self.renderer;
             }
 
             self.scope.$destroy();
@@ -398,75 +344,55 @@
     MetaphorJs.getCmp           = getCmp;
 
 
-    if (window.jQuery) {
+    MetaphorJs.resolveComponent = function(cmp, cfg, scope, node, parentRenderer, args) {
 
+        var constr  = typeof cmp == "string" ? g(cmp) : cmp,
+            i,
+            defers  = [],
+            tpl     = constr.template || cfg.template;
 
-        /**
-         * @namespace
-         * @function $.fn.createCmp
-         * @param {string} name
-         * @param {object} cfg See MetaphorJs.cmp.Component constructor
-         * @returns jQuery
-         */
-        jQuery.fn.createCmp = function(name, cfg) {
+        args        = args || [];
 
-            var cmp = null;
+        if (constr.resolve) {
 
-            if (name && typeof name != "string") {
-                cfg     = name;
-                name    = null;
+            for (i in constr.resolve) {
+                (function(name){
+                    var d = new Promise;
+                    defers.push(d.done(function(value){
+                        cfg[name] = value;
+                    }));
+                    d.resolve(constr.resolve[i](scope, node));
+                }(i));
             }
+        }
+        if (tpl) {
 
-            name    = name || "MetaphorJs.cmp.Component";
-            cfg     = cfg || {};
-
-            this.each(function() {
-
-                var o   = $(this),
-                    id  = o.attr('cmp-id');
-
-                if (id) {
-                    cmp     = getCmp(id);
-                    return false;
-                }
-
-                cfg.node    = this;
-                cmp         = MetaphorJs.create(name, cfg);
-
-                return false;
+            cfg.template = new Template({
+                scope: scope,
+                node: node,
+                deferRendering: true,
+                ownRenderer: true,
+                tpl: toExpression(trim(tpl))
             });
 
-            return cmp;
-        };
+            defers.push(cfg.template.initPromise);
+        }
 
-        /**
-         * @function $.fn.getCmp
-         * @return MetaphorJs.cmp.Component
-         */
-        jQuery.fn.getCmp = function() {
-            return getCmp(this.attr('cmp-id'));
-        };
+        var deferred = defers.length;
 
-        /**
-         * @function $.fn.getParentCmp
-         * @return MetaphorJs.cmp.Component
-         */
-        jQuery.fn.getParentCmp   = function() {
+        if (deferred) {
+            node.style.visibility = 'hidden';
+        }
 
-            if (!this.attr("cmp-id")) {
-                var parent = this.parents("[cmp-id]").eq(0);
-                if (parent.length) {
-                    return MetaphorJs.getCmp(parent.attr("cmp-id"));
-                }
+        args.unshift(cfg);
+
+        return Promise.all(defers).then(function(){
+            if (deferred) {
+                node.style.visibility = 'visible';
             }
-            else {
-                return MetaphorJs.getCmp(this.attr("cmp-id"));
-            }
-
-            return null;
-        };
-
-    }
+            return constr.__instantiate.apply(null, args);
+        });
+    };
 
 
 }());

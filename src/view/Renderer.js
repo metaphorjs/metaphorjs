@@ -63,7 +63,9 @@
 
             if (isThenable(res)) {
                 res.done(function(response){
-                    nodeChildren(response, el, fn, fnScope, async);
+                    if (response !== false) {
+                        nodeChildren(response, el, fn, fnScope, async);
+                    }
                 });
             }
             else {
