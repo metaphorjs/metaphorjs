@@ -59,7 +59,14 @@
                 return;
             }
 
-            if ((res = fn.call(fnScope, el, async)) !== false) {
+            try {
+                res = fn.call(fnScope, el, async);
+            }
+            catch (e) {
+                MetaphorJs.error(e);
+            }
+
+            if (res !== false) {
 
                 if (isThenable(res)) {
                     res.done(function(response){

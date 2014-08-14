@@ -1,7 +1,7 @@
 (function(){
 
     var Observable  = MetaphorJs.lib.Observable,
-        apply       = MetaphorJs.apply;
+        extend       = MetaphorJs.extend;
 
     /**
      * @namespace MetaphorJs
@@ -30,7 +30,7 @@
             cfg         = cfg || {};
 
             self._observable    = new Observable;
-            apply(self, self._observable.getApi());
+            extend(self, self._observable.getApi());
 
             if (cfg.callback) {
 
@@ -47,7 +47,7 @@
                 delete cfg.callback;
             }
 
-            apply(self, cfg, true);
+            extend(self, cfg, true);
         },
 
         /**

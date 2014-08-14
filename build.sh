@@ -13,6 +13,10 @@ fi
 
 manifest=(
     "src/MetaphorJs.js"
+    "src/lib/Common.js"
+    "src/lib/Value.js"
+    "src/lib/Event.js"
+    "src/lib/Input.js"
     "../metaphorjs-namespace/metaphorjs.namespace.js"
     "../metaphorjs-class/metaphorjs.class.js"
     "../metaphorjs-promise/metaphorjs.promise.js"
@@ -20,8 +24,6 @@ manifest=(
     "../metaphorjs-watchable/metaphorjs.watchable.js"
     "../metaphorjs-ajax/metaphorjs.ajax.js"
     "../metaphorjs-history/metaphorjs.history.js"
-    "src/lib/Value.js"
-    "src/lib/Event.js"
     "src/cmp/Base.js"
     "src/view/Animate.js"
     "src/view/Scope.js"

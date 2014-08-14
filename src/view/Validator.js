@@ -61,7 +61,7 @@
                             fn(scope);
                         }
                         catch(e) {
-                            console.log(e)
+                            MetaphorJs.error(e);
                         }
                     }
                 }(createFn(submit), self.scope);

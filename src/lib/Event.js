@@ -5,48 +5,48 @@
 (function(){
 
     var returnFalse = function() {
-        return false;
-    };
+            return false;
+        },
 
-    var returnTrue = function() {
-        return true;
-    };
+        returnTrue = function() {
+            return true;
+        },
 
-    var NormalizedEvent = function(src) {
-        // Allow instantiation without the 'new' keyword
-        if (!(this instanceof NormalizedEvent)) {
-            return new NormalizedEvent(src);
-        }
-
-        var self    = this;
-
-        for (var i in src) {
-            if ((!src.hasOwnProperty || !src.hasOwnProperty(i)) && !self[i]) {
-                self[i] = src[i];
+        NormalizedEvent = function(src) {
+            // Allow instantiation without the 'new' keyword
+            if (!(this instanceof NormalizedEvent)) {
+                return new NormalizedEvent(src);
             }
-        }
 
-        // Event object
-        self.originalEvent = src;
-        self.type = src.type;
+            var self    = this;
 
-        if (!self.target && src.srcElement) {
-            self.target = src.srcElement;
-        }
+            for (var i in src) {
+                if ((!src.hasOwnProperty || !src.hasOwnProperty(i)) && !self[i]) {
+                    self[i] = src[i];
+                }
+            }
 
-        // Events bubbling up the document may have been marked as prevented
-        // by a handler lower down the tree; reflect the correct value.
-        self.isDefaultPrevented = src.defaultPrevented ||
-                                  src.defaultPrevented === undefined &&
-                                      // Support: Android<4.0
-                                  src.returnValue === false ?
-                                  returnTrue :
-                                  returnFalse;
+            // Event object
+            self.originalEvent = src;
+            self.type = src.type;
+
+            if (!self.target && src.srcElement) {
+                self.target = src.srcElement;
+            }
+
+            // Events bubbling up the document may have been marked as prevented
+            // by a handler lower down the tree; reflect the correct value.
+            self.isDefaultPrevented = src.defaultPrevented ||
+                                      src.defaultPrevented === undefined &&
+                                          // Support: Android<4.0
+                                      src.returnValue === false ?
+                                      returnTrue :
+                                      returnFalse;
 
 
-        // Create a timestamp if incoming event doesn't have one
-        self.timeStamp = src && src.timeStamp || (new Date).getTime();
-    };
+            // Create a timestamp if incoming event doesn't have one
+            self.timeStamp = src && src.timeStamp || (new Date).getTime();
+        };
 
     // Event is based on DOM3 Events as specified by the ECMAScript Language Binding
     // http://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
@@ -85,6 +85,8 @@
             this.stopPropagation();
         }
     };
+
+    window.MetaphorJs || (window.MetaphorJs = {});
 
     MetaphorJs.normalizeEvent = function(originalEvent) {
         return new NormalizedEvent(originalEvent);

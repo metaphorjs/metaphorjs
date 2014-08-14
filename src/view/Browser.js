@@ -14,6 +14,7 @@
         msie    = parseInt((/trident\/.*; rv:(\d+)/.exec(ua) || [])[1], 10);
     }
 
+    window.MetaphorJs || (window.MetaphorJs = {});
 
     MetaphorJs.browser  = {
 

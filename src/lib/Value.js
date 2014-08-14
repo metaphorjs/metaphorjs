@@ -3,50 +3,54 @@
 
 (function(){
 
-    var rreturn = /\r/g;
+    var rreturn     = /\r/g,
+        trim        = MetaphorJs.trim,
+        toArray     = MetaphorJs.toArray,
+        inArray     = MetaphorJs.inArray,
+        isArray     = MetaphorJs.isArray,
 
-    var getValue    = function(elem) {
+        getValue    = function(elem) {
 
-        var hooks, ret;
+            var hooks, ret;
 
-        hooks = valHooks[ elem.type ] ||
-                valHooks[ elem.nodeName.toLowerCase() ];
+            hooks = valHooks[ elem.type ] ||
+                    valHooks[ elem.nodeName.toLowerCase() ];
 
-        if ( hooks && "get" in hooks && (ret = hooks.get( elem, "value" )) !== undefined ) {
-            return ret;
-        }
+            if ( hooks && "get" in hooks && (ret = hooks.get( elem, "value" )) !== undefined ) {
+                return ret;
+            }
 
-        ret = elem.value;
+            ret = elem.value;
 
-        return typeof ret === "string" ?
-            // Handle most common string cases
-               ret.replace(rreturn, "") :
-            // Handle cases where value is null/undef or number
-               ret == null ? "" : ret;
+            return typeof ret === "string" ?
+                // Handle most common string cases
+                   ret.replace(rreturn, "") :
+                // Handle cases where value is null/undef or number
+                   ret == null ? "" : ret;
 
-    };
+        },
 
-    var setValue = function(el, val) {
+        setValue = function(el, val) {
 
 
-        if ( el.nodeType !== 1 ) {
-            return;
-        }
+            if ( el.nodeType !== 1 ) {
+                return;
+            }
 
-        // Treat null/undefined as ""; convert numbers to string
-        if ( val == null ) {
-            val = "";
-        } else if ( typeof val === "number" ) {
-            val += "";
-        }
+            // Treat null/undefined as ""; convert numbers to string
+            if ( val == null ) {
+                val = "";
+            } else if ( typeof val === "number" ) {
+                val += "";
+            }
 
-        var hooks = valHooks[ el.type ] || valHooks[ el.nodeName.toLowerCase() ];
+            var hooks = valHooks[ el.type ] || valHooks[ el.nodeName.toLowerCase() ];
 
-        // If set returns undefined, fall back to normal setting
-        if ( !hooks || !("set" in hooks) || hooks.set( this, val, "value" ) === undefined ) {
-            el.value = val;
-        }
-    };
+            // If set returns undefined, fall back to normal setting
+            if ( !hooks || !("set" in hooks) || hooks.set( this, val, "value" ) === undefined ) {
+                el.value = val;
+            }
+        };
 
 
 
@@ -58,7 +62,7 @@
 
                     return val != null ?
                            val :
-                           MetaphorJs.trim( elem.innerText || elem.textContent );
+                           trim( elem.innerText || elem.textContent );
                 }
             },
             select: {
@@ -103,12 +107,12 @@
                 set: function( elem, value ) {
                     var optionSet, option,
                         options = elem.options,
-                        values = MetaphorJs.toArray( value ),
+                        values = toArray( value ),
                         i = options.length;
 
                     while ( i-- ) {
                         option = options[ i ];
-                        if ( (option.selected = MetaphorJs.inArray( option.value, values )) ) {
+                        if ( (option.selected = inArray( option.value, values )) ) {
                             optionSet = true;
                         }
                     }
@@ -124,8 +128,8 @@
 
     valHooks["radio"] = valHooks["checkbox"] = {
         set: function( elem, value ) {
-            if (MetaphorJs.isArray( value ) ) {
-                return ( elem.checked = MetaphorJs.inArray( getValue(elem), value ) >= 0 );
+            if (isArray( value ) ) {
+                return ( elem.checked = inArray( getValue(elem), value ) >= 0 );
             }
         },
         get: function( elem ) {
@@ -133,9 +137,7 @@
         }
     };
 
-
     MetaphorJs.getValue     = getValue;
     MetaphorJs.setValue     = setValue;
-
 
 }());

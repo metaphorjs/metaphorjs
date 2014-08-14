@@ -3,7 +3,7 @@
 
     var Observable  = MetaphorJs.lib.Observable,
         Watchable   = MetaphorJs.lib.Watchable,
-        apply       = MetaphorJs.apply,
+        extend      = MetaphorJs.extend,
         Scope;
 
     Scope = MetaphorJs.d("MetaphorJs.view.Scope", {
@@ -22,7 +22,7 @@
 
             self.$$observable    = new Observable;
 
-            apply(self, cfg);
+            extend(self, cfg);
 
             if (self.$parent) {
                 self.$parent.$on("check", self.$$onParentCheck, self);

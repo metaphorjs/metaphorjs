@@ -10,13 +10,50 @@
         createWatchable = Watchable.create,
         isExpression    = Watchable.isExpression,
         evaluate        = Watchable.eval,
-        getTemplate     = m.getTemplate,
         Renderer        = m.view.Renderer,
         cloneFn         = m.clone,
         Scope           = m.view.Scope,
         animate         = m.animate,
         Promise         = m.lib.Promise,
-        extend          = m.apply;
+        extend          = m.extend,
+
+        tplCache        = {},
+
+        getTemplate     = function(tplId) {
+
+            if (!tplCache[tplId]) {
+                var tplNode     = document.getElementById(tplId),
+                    tag;
+
+                if (tplNode) {
+
+                    tag         = tplNode.tagName.toLowerCase();
+
+                    if (tag == "script") {
+                        var div = document.createElement("div");
+                        div.innerHTML = tplNode.innerHTML;
+                        tplCache[tplId] = toFragment(div.childNodes);
+                    }
+                    else {
+                        if ("content" in tplNode) {
+                            tplCache[tplId] = tplNode.content;
+                        }
+                        else {
+                            tplCache[tplId] = toFragment(tplNode.childNodes);
+                        }
+                    }
+                }
+                else {
+                    return tplCache[tplId] = MetaphorJs.ajax(tplId, {dataType: 'fragment'})
+                        .then(function(fragment){
+                            tplCache[tplId] = fragment;
+                            return fragment;
+                        });
+                }
+            }
+
+            return tplCache[tplId];
+        };
 
     m.define("MetaphorJs.view.Template", {
 
@@ -212,6 +249,9 @@
             delete self.tpl;
         }
 
+    }, {
+
+        getTemplate: getTemplate
     });
 
 }());

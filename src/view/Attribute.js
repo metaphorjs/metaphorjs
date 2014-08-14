@@ -9,12 +9,10 @@
         g               = MetaphorJs.ns.get,
         Watchable       = MetaphorJs.lib.Watchable,
         Renderer        = MetaphorJs.view.Renderer,
-        Promise         = MetaphorJs.lib.Promise,
         dataFn          = MetaphorJs.data,
         toArray         = MetaphorJs.toArray,
         toFragment      = MetaphorJs.toFragment,
         addListener     = MetaphorJs.addListener,
-        removeListener  = MetaphorJs.removeListener,
         normalizeEvent  = MetaphorJs.normalizeEvent,
         registerAttr    = MetaphorJs.registerAttributeHandler,
         registerTag     = MetaphorJs.registerTagHandler,
@@ -22,15 +20,13 @@
         createWatchable = Watchable.create,
         createGetter    = Watchable.createGetter,
         animate         = MetaphorJs.animate,
-        isExpression    = Watchable.isExpression,
-        evaluate        = Watchable.eval,
         addClass        = MetaphorJs.addClass,
         removeClass     = MetaphorJs.removeClass,
         hasClass        = MetaphorJs.hasClass,
         stopAnimation   = MetaphorJs.stopAnimation,
         isArray         = MetaphorJs.isArray,
-        isThenable      = MetaphorJs.isThenable,
         Template        = MetaphorJs.view.Template,
+        Input           = MetaphorJs.lib.Input,
         resolveComponent;
 
 
@@ -133,185 +129,22 @@
     registerAttr("mjs-model", 1000, d(null, "MetaphorJs.view.AttributeHandler", {
 
         inProg: false,
-        type: null,
-        inputType: null,
-        radio: null,
-        listeners: null,
+        input: null,
 
         initialize: function(scope, node, expr) {
 
-            var self    = this,
-                type;
-
-            self.node           = node;
-            self.inputType      = type = node.getAttribute("mjs-input-type") || node.type.toLowerCase();
-            self.listeners      = [];
-
-            self.onRadioInputChangeDelegate     = bind(self.onRadioInputChange, self);
-            self.onCheckboxInputChangeDelegate  = bind(self.onCheckboxInputChange, self);
-
-            if (type == "radio") {
-                self.initRadioInput();
-            }
-            else if (type == "checkbox") {
-                self.initCheckboxInput();
-            }
-            else {
-                self.initTextInput();
-            }
-
-            self.supr(scope, node, expr);
-
-        },
-
-        onScopeDestroy: function() {
-
-            var self        = this,
-                type        = self.type,
-                listeners   = self.listeners,
-                radio       = self.radio,
-                i, ilen,
-                j, jlen;
-
-            for (i = 0, ilen = listeners.length; i < ilen; i++) {
-                if (type == "radio") {
-                    for (j = 0, jlen = radio.length; j < jlen; j++) {
-                        removeListener(radio[j], listeners[i][0], listeners[i][1]);
-                    }
-                }
-                else {
-                    removeListener(self.node, listeners[i][0], listeners[i][1]);
-                }
-            }
-
-            delete self.radio;
-
-            self.supr();
-        },
-
-
-        initRadioInput: function() {
-
-            var self    = this,
-                name    = self.node.name,
-                radio,
-                i, len;
-
-            self.radio  = radio = toArray(document.querySelectorAll("input[name="+name+"]"));
-            self.listeners.push(["click", self.onRadioInputChangeDelegate]);
-
-            for (i = 0, len = radio.length; i < len; i++) {
-                addListener(radio[i], "click", self.onRadioInputChangeDelegate);
-            }
-        },
-
-        initCheckboxInput: function() {
-
             var self    = this;
 
-            self.listeners.push(["click", self.onCheckboxInputChangeDelegate]);
-            addListener(self.node, "click", self.onCheckboxInputChangeDelegate);
+            self.node           = node;
+            self.input          = new Input(node, self.onInputChange, self);
+
+            self.supr(scope, node, expr);
         },
 
-        initTextInput: function() {
-
-            var browser     = MetaphorJs.browser,
-                composing   = false,
-                self        = this,
-                node        = self.node,
-                listeners   = self.listeners,
-                timeout;
-
-            // In composition mode, users are still inputing intermediate text buffer,
-            // hold the listener until composition is done.
-            // More about composition events: https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent
-            if (!browser.android) {
-
-                var compositionStart    = function() {
-                    composing = true;
-                };
-
-                var compositionEnd  = function() {
-                    composing = false;
-                    listener();
-                };
-
-                listeners.push(["compositionstart", compositionStart]);
-                listeners.push(["compositionend", compositionEnd]);
-
-                addListener(node, "compositionstart", compositionStart);
-                addListener(node, "compositionend", compositionEnd);
-            }
-
-            var listener = self.onTextInputChangeDelegate = function() {
-                if (composing) {
-                    return;
-                }
-                self.onTextInputChange();
-            };
-
-            // if the browser does support "input" event, we are fine - except on IE9 which doesn't fire the
-            // input event on backspace, delete or cut
-            if (browser.hasEvent('input')) {
-                listeners.push(["input", listener]);
-                addListener(node, "input", listener);
-
-            } else {
-
-                var deferListener = function(ev) {
-                    if (!timeout) {
-                        timeout = window.setTimeout(function() {
-                            listener(ev);
-                            timeout = null;
-                        }, 0);
-                    }
-                };
-
-                var keydown = function(event) {
-                    event = event || window.event;
-                    var key = event.keyCode;
-
-                    // ignore
-                    //    command            modifiers                   arrows
-                    if (key === 91 || (15 < key && key < 19) || (37 <= key && key <= 40)) {
-                        return;
-                    }
-
-                    deferListener(event);
-                };
-
-                listeners.push(["keydown", keydown]);
-                addListener(node, "keydown", keydown);
-
-                // if user modifies input value using context menu in IE, we need "paste" and "cut" events to catch it
-                if (browser.hasEvent('paste')) {
-
-                    listeners.push(["paste", deferListener]);
-                    listeners.push(["cut", deferListener]);
-
-                    addListener(node, "paste", deferListener);
-                    addListener(node, "cut", deferListener);
-                }
-            }
-
-            // if user paste into input using mouse on older browser
-            // or form autocomplete on newer browser, we need "change" event to catch it
-
-            listeners.push(["change", listener]);
-            addListener(node, "change", listener);
-        },
-
-        onTextInputChange: function() {
+        onInputChange: function(val) {
 
             var self    = this,
-                val     = self.node.value,
                 scope   = self.scope;
-
-            switch (self.inputType) {
-                case "number":
-                    val     = parseInt(val, 10);
-                    break;
-            }
 
             self.watcher.setValue(val);
 
@@ -325,75 +158,23 @@
             self.inProg = false;
         },
 
-        onCheckboxInputChange: function() {
+        onScopeDestroy: function() {
 
-            var self    = this,
-                node    = self.node,
-                scope   = self.scope;
+            var self        = this;
 
-            self.watcher.setValue(node.checked ? (node.getAttribute("value") || true) : false);
-
-            self.inProg = true;
-            if (scope instanceof Scope) {
-                scope.$root.$check();
-            }
-            else {
-                self.watcher.checkAll();
-            }
-            self.inProg = false;
-        },
-
-        onRadioInputChange: function(e) {
-
-            e = e || window.event;
-            e = normalizeEvent(e);
-
-            var self    = this,
-                node    = e.target,
-                scope   = self.scope;
-
-            self.watcher.setValue(node.value);
-
-            self.inProg = true;
-            if (scope instanceof Scope) {
-                scope.$root.$check();
-            }
-            else {
-                self.watcher.checkAll();
-            }
-            self.inProg = false;
+            self.input.destroy();
+            delete self.input;
+            self.supr();
         },
 
 
         onChange: function() {
 
             var self    = this,
-                val     = self.watcher.getLastResult(),
-                type    = self.inputType,
-                i, len,
-                radio;
+                val     = self.watcher.getLastResult();
 
             if (!self.inProg) {
-
-
-                if (type == "radio") {
-
-                    radio = self.radio;
-
-                    for (i = 0, len = radio.length; i < len; i++) {
-                        if (radio[i].value == val) {
-                            radio[i].checked = true;
-                            break;
-                        }
-                    }
-                }
-                else if (type == "checkbox") {
-                    var node    = self.node;
-                    node.checked    = val === true || val == node.value;
-                }
-                else {
-                    MetaphorJs.setValue(self.node, val);
-                }
+                self.input.setValue(val);
             }
         }
 
@@ -545,11 +326,15 @@
 
             self.node       = node;
             self.scope      = scope;
-            self.watcher    = createWatchable(scope, self.model);
-            self.watcher.addListener(self.onChange, self);
+
+            try {
+                self.watcher    = createWatchable(scope, self.model, self.onChange, self);
+            }
+            catch (e) {
+                MetaphorJs.error(e);
+            }
 
             self.parentEl.removeChild(node);
-
             self.render(self.watcher.getValue());
         },
 
@@ -618,6 +403,7 @@
                 el,
                 i, len;
 
+
             for (i = 0, len = list.length; i < len; i++) {
 
                 el          = tpl.cloneNode(true);
@@ -669,6 +455,7 @@
                 i, len,
                 r,
                 action;
+
 
 
             for (i = 0, len = prs.length; i < len; i++) {
@@ -1051,7 +838,7 @@
                         fn(scope);
                     }
                     catch (e) {
-                        MetaphorJs.asyncError(e);
+                        MetaphorJs.error(e);
                     }
 
                     delete scope.$event;

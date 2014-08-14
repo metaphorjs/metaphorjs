@@ -1,80 +1,35 @@
-/**
- * This is file is just a bunch of utility functions.
- * All the fun happens in view/Renderer.js and view/Attributes.js
- * :)
- */
+
 
 (function(){
 
-    "use strict";
-
-    if (typeof window == "undefined") {
-        global.window = global;
-    }
-
-    // querySelectorAll polyfill
-    if (window.document && !document.querySelectorAll) {
-        document.querySelectorAll = function(selector) {
-            var doc = document,
-                head = doc.documentElement.firstChild,
-                styleTag = doc.createElement('STYLE');
-            head.appendChild(styleTag);
-            doc.__qsaels = [];
-
-            if (styleTag.sheet){
-                styleTag.sheet.insertRule(selector + "{x:expression(document.__qsaels.push(this))}", 0);
-            }
-            else if (styleTag.styleSheet) {
-                styleTag.styleSheet.cssText = selector + "{x:expression(document.__qsaels.push(this))}";
-            }
-            window.scrollBy(0, 0);
-
-            return doc.__qsaels;
-        };
-    }
-
-    var undef       = {}.undefined,
+    var slice       = Array.prototype.slice,
 
         bind        = Function.prototype.bind ?
-                      function(fn, fnScope){
-                          return fn.bind(fnScope);
+                      function(fn, context){
+                          return fn.bind(context);
                       } :
-                      function(fn, fnScope) {
+                      function(fn, context) {
                           return function() {
-                              fn.apply(fnScope, arguments);
+                              fn.apply(context, arguments);
                           };
                       },
 
-
-        dataCache   = {},
-
-        dataFn      = function(el, key, value) {
-            var id  = getNodeId(el),
-                obj = dataCache[id];
-
-            if (typeof value != "undefined") {
-                if (!obj) {
-                    obj = dataCache[id] = {};
-                }
-                obj[key] = value;
-                return value;
-            }
-            else {
-                return obj ? obj[key] : undef;
+        addListener = function(el, event, func) {
+            if (el.attachEvent) {
+                el.attachEvent('on' + event, func);
+            } else {
+                el.addEventListener(event, func, false);
             }
         },
 
+        removeListener = function(el, event, func) {
+            if (el.detachEvent) {
+                el.detachEvent('on' + event, func);
+            } else {
+                el.removeEventListener(event, func, false);
+            }
+        },
 
-        slice       = Array.prototype.slice,
-
-        /**
-         * @function MetaphorJs.apply
-         * @param {object} dst Apply properties to this object
-         * @param {object} src Take properties from this object (can provide more srcs as arguments)
-         * @param {bool} override (last argument) If both dst and src have a property, override it. Applies to scalar properties.
-         *                  Defaults to true
-         * @md-tmp apply
-         */
         apply   = function() {
 
             var override    = false,
@@ -104,6 +59,56 @@
             return dst;
         },
 
+        trimFn = (function() {
+            // native trim is way faster: http://jsperf.com/angular-trim-test
+            // but IE doesn't have it... :-(
+            if (!String.prototype.trim) {
+                return function(value) {
+                    return typeof value == "string" ? value.replace(/^\s\s*/, '').replace(/\s\s*$/, '') : value;
+                };
+            }
+            return function(value) {
+                return typeof value == "string" ? value.trim() : value;
+            };
+        })(),
+
+        inArray     = function(val, arr) {
+            return arr ? aIndexOf.call(arr, val) : -1;
+        },
+
+        isArray     = function(value) {
+            return value && typeof value == 'object' && typeof value.length == 'number' &&
+                   toString.call(value) == '[object Array]' || false;
+        },
+
+        toArray = function(list) {
+            for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]){}
+            return a;
+        },
+
+        clsRegCache = {},
+        getClsReg   = function(cls) {
+            return clsRegCache[cls] ||
+                   (clsRegCache[cls] = new RegExp('(?:^|\\s)'+cls+'(?!\\S)', ''));
+        },
+
+        hasClass    = function(el, cls) {
+            var reg = getClsReg(cls);
+            return reg.test(el.className);
+        },
+
+        addClass    = function(el, cls) {
+            if (!hasClass(el, cls)) {
+                el.className += " " + cls;
+            }
+        },
+
+        removeClass = function(el, cls) {
+            var reg = getClsReg(cls);
+            el.className = el.className.replace(reg, '');
+        },
+
+
         uid = ['0', '0', '0'],
 
         // from AngularJs
@@ -127,6 +132,67 @@
             }
             uid.unshift('0');
             return uid.join('');
+        };
+
+
+    if (typeof window != "undefined") {
+        window.MetaphorJs || (window.MetaphorJs = {});
+    }
+    else {
+        global.MetaphorJs || (global.MetaphorJs = {});
+    }
+
+
+    MetaphorJs.bind = bind;
+    MetaphorJs.addListener = addListener;
+    MetaphorJs.removeListener = removeListener;
+    MetaphorJs.extend = apply;
+    MetaphorJs.trim = trimFn;
+    MetaphorJs.inArray = inArray;
+    MetaphorJs.isArray = isArray;
+    MetaphorJs.toArray = toArray;
+    MetaphorJs.addClass = addClass;
+    MetaphorJs.removeClass = removeClass;
+    MetaphorJs.hasClass = hasClass;
+    MetaphorJs.nextUid = nextUid;
+}());
+
+/**
+ * This is file is just a bunch of utility functions.
+ * All the fun happens in view/Renderer.js and view/Attributes.js
+ * :)
+ */
+
+(function(){
+
+    "use strict";
+
+    var undef       = {}.undefined,
+
+        extend      = MetaphorJs.extend,
+        nextUid     = MetaphorJs.nextUid,
+
+        addListener     = MetaphorJs.addListener,
+        removeListener  = MetaphorJs.removeListener,
+
+        isArray     = MetaphorJs.isArray,
+
+        dataCache   = {},
+
+        dataFn      = function(el, key, value) {
+            var id  = getNodeId(el),
+                obj = dataCache[id];
+
+            if (typeof value != "undefined") {
+                if (!obj) {
+                    obj = dataCache[id] = {};
+                }
+                obj[key] = value;
+                return value;
+            }
+            else {
+                return obj ? obj[key] : undef;
+            }
         },
 
         toFragment = function(nodes) {
@@ -141,49 +207,6 @@
             }
 
             return fragment;
-        },
-
-        toArray = function(list) {
-            for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]){}
-            return a;
-        },
-
-        tplCache = {},
-
-        getTemplate = function(tplId) {
-
-            if (!tplCache[tplId]) {
-                var tplNode     = document.getElementById(tplId),
-                    tag;
-
-                if (tplNode) {
-
-                    tag         = tplNode.tagName.toLowerCase();
-
-                    if (tag == "script") {
-                        var div = document.createElement("div");
-                        div.innerHTML = tplNode.innerHTML;
-                        tplCache[tplId] = toFragment(div.childNodes);
-                    }
-                    else {
-                        if ("content" in tplNode) {
-                            tplCache[tplId] = tplNode.content;
-                        }
-                        else {
-                            tplCache[tplId] = toFragment(tplNode.childNodes);
-                        }
-                    }
-                }
-                else {
-                    return tplCache[tplId] = MetaphorJs.ajax(tplId, {dataType: 'fragment'})
-                        .then(function(fragment){
-                            tplCache[tplId] = fragment;
-                            return fragment;
-                    });
-                }
-            }
-
-            return tplCache[tplId];
         },
 
         getNodeId = function(el) {
@@ -256,48 +279,6 @@
             return tagHandlers;
         },
 
-        trimFn = (function() {
-            // native trim is way faster: http://jsperf.com/angular-trim-test
-            // but IE doesn't have it... :-(
-            if (!String.prototype.trim) {
-                return function(value) {
-                    return typeof value == "string" ? value.replace(/^\s\s*/, '').replace(/\s\s*$/, '') : value;
-                };
-            }
-            return function(value) {
-                return typeof value == "string" ? value.trim() : value;
-            };
-        })(),
-
-        aIndexOf    = Array.prototype.indexOf,
-        toString    = Object.prototype.toString,
-        hasProperty = Object.prototype.hasOwnProperty,
-
-        inArray     = function(val, arr) {
-            return arr ? aIndexOf.call(arr, val) : -1;
-        },
-
-        isArray     = function(value) {
-            return value && typeof value == 'object' && typeof value.length == 'number' &&
-                   toString.call(value) == '[object Array]' || false;
-        },
-
-        isPlainObject = function(value) {
-
-            if (toString.call(value) !== "[object Object]" || value.nodeType )
-                return false;
-
-            try {
-                if (value.constructor &&
-                    !hasProperty.call(value.constructor.prototype, "isPrototypeOf")) {
-                    return false;
-                }
-            } catch (e) {
-                return false;
-            }
-
-            return true;
-        },
 
         cloneFn = function(node) {
 
@@ -328,50 +309,11 @@
             }
         },
 
-        addListener = function(el, event, func) {
-            if (el.attachEvent) {
-                el.attachEvent('on' + event, func);
-            } else {
-                el.addEventListener(event, func, false);
-            }
-        },
-
-        removeListener = function(el, event, func) {
-            if (el.detachEvent) {
-                el.detachEvent('on' + event, func);
-            } else {
-                el.removeEventListener(event, func, false);
-            }
-        },
-
-        clsRegCache = {},
-        getClsReg   = function(cls) {
-            return clsRegCache[cls] ||
-                   (clsRegCache[cls] = new RegExp('(?:^|\\s)'+cls+'(?!\\S)', ''));
-        },
-
-        hasClass = function(el, cls) {
-            var reg = getClsReg(cls);
-            return reg.test(el.className);
-        },
-
-        addClass = function(el, cls) {
-            if (!hasClass(el, cls)) {
-                el.className += " " + cls;
-            }
-        },
-
-        removeClass = function(el, cls) {
-            var reg = getClsReg(cls);
-            el.className = el.className.replace(reg, '');
-        },
-
         async = function(fn, fnScope, args) {
             setTimeout(function(){
                 fn.apply(fnScope, args || []);
             }, 0);
         },
-
 
         Scope,
         Renderer,
@@ -396,110 +338,18 @@
             renderer.render();
 
             return renderer;
-        },
-
-        filterArrayCompareValues = function(value, to, opt) {
-
-            if (to === "" || typeof to == "undefined") {
-                return true;
-            }
-            else if (typeof value == "undefined") {
-                return false;
-            }
-            else if (typeof value == "boolean") {
-                return value === to;
-            }
-            else if (opt instanceof RegExp) {
-                return to.test("" + value);
-            }
-            else if (opt == "strict") {
-                return ""+value === ""+to;
-            }
-            else if (opt === true || opt === null || typeof opt == "undefined") {
-                return ""+value.indexOf(to) != -1;
-            }
-            else if (opt === false) {
-                return ""+value.indexOf(to) == -1;
-            }
-            return false;
-        },
-
-        filterArrayCompare = function(value, by, opt) {
-
-            if (typeof value != "object") {
-                if (typeof by.$ == "undefined") {
-                    return true;
-                }
-                else {
-                    return filterArrayCompareValues(value, by.$, opt);
-                }
-            }
-            else {
-                var k, i;
-
-                for (k in by) {
-
-                    if (k == '$') {
-
-                        for (i in value) {
-                            if (filterArrayCompareValues(value[i], by.$, opt)) {
-                                return true;
-                            }
-                        }
-                    }
-                    else {
-                        if (filterArrayCompareValues(value[k], by[k], opt)) {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            return false;
-        },
-
-        filterArray = function(a, by, compare) {
-
-            if (typeof by != "object") {
-                by = {$: by};
-            }
-
-            var ret = [],
-                i, l;
-
-            for (i = -1, l = a.length; ++i < l;) {
-                if (filterArrayCompare(a[i], by, compare)) {
-                    ret.push(a[i]);
-                }
-            }
-
-            return ret;
         };
 
 
 
-    /**
-     * @namespace MetaphorJs
-     */
-    var Metaphor  = {
+    extend(MetaphorJs, {
 
-        VERSION:    "0.2",
+        VERSION:    "0.1",
 
         registerAttributeHandler: registerAttributeHandler,
         registerTagHandler: registerTagHandler,
         getAttributeHandlers: getAttributeHandlers,
         getTagHandlers: getTagHandlers,
-
-
-        /**
-         * @function MetaphorJs.apply
-         * @md-use apply
-         */
-        apply:      apply,
-
-        nextUid:    nextUid,
-
-        getTemplate: getTemplate,
 
         numberFormats: {},
         dateFormats: {},
@@ -514,28 +364,7 @@
          */
         emptyFn:    function() {},
 
-        trim: trimFn,
-
-        bind: bind,
-
-        inArray: inArray,
-
-        isArray: isArray,
-
-        isPlainObject: isPlainObject,
-
         clone: cloneFn,
-
-        addListener: addListener,
-
-        removeListener: removeListener,
-
-        hasClass: hasClass,
-
-        addClass: addClass,
-
-        removeClass: removeClass,
-
 
         isVisible: function(el) {
             return !(el.offsetWidth <= 0 || el.offsetHeight <= 0);
@@ -606,23 +435,574 @@
         },
 
         toFragment: toFragment,
-
-        toArray: toArray,
-
         app: appFn,
 
-        filterArray: filterArray
+        error: function(e) {
+
+            var stack = e.stack || (new Error).stack;
+
+            setTimeout(function(){
+                if (typeof console != "undefined" && console.log) {
+                    console.log(e);
+                    if (stack) {
+                        console.log(stack);
+                    }
+                }
+            }, 0);
+        }
+    });
+
+
+}());
+
+
+// from jQuery.val()
+
+(function(){
+
+    var rreturn     = /\r/g,
+        trim        = MetaphorJs.trim,
+        toArray     = MetaphorJs.toArray,
+        inArray     = MetaphorJs.inArray,
+        isArray     = MetaphorJs.isArray,
+
+        getValue    = function(elem) {
+
+            var hooks, ret;
+
+            hooks = valHooks[ elem.type ] ||
+                    valHooks[ elem.nodeName.toLowerCase() ];
+
+            if ( hooks && "get" in hooks && (ret = hooks.get( elem, "value" )) !== undefined ) {
+                return ret;
+            }
+
+            ret = elem.value;
+
+            return typeof ret === "string" ?
+                // Handle most common string cases
+                   ret.replace(rreturn, "") :
+                // Handle cases where value is null/undef or number
+                   ret == null ? "" : ret;
+
+        },
+
+        setValue = function(el, val) {
+
+
+            if ( el.nodeType !== 1 ) {
+                return;
+            }
+
+            // Treat null/undefined as ""; convert numbers to string
+            if ( val == null ) {
+                val = "";
+            } else if ( typeof val === "number" ) {
+                val += "";
+            }
+
+            var hooks = valHooks[ el.type ] || valHooks[ el.nodeName.toLowerCase() ];
+
+            // If set returns undefined, fall back to normal setting
+            if ( !hooks || !("set" in hooks) || hooks.set( this, val, "value" ) === undefined ) {
+                el.value = val;
+            }
+        };
+
+
+
+    var valHooks = {
+            option: {
+                get: function( elem ) {
+                    //var val = jQuery.find.attr( elem, "value" );
+                    var val = elem.getAttribute("value");
+
+                    return val != null ?
+                           val :
+                           trim( elem.innerText || elem.textContent );
+                }
+            },
+            select: {
+                get: function( elem ) {
+                    var value, option,
+                        options = elem.options,
+                        index = elem.selectedIndex,
+                        one = elem.type === "select-one" || index < 0,
+                        values = one ? null : [],
+                        max = one ? index + 1 : options.length,
+                        disabled,
+                        i = index < 0 ?
+                            max :
+                            one ? index : 0;
+
+                    // Loop through all the selected options
+                    for ( ; i < max; i++ ) {
+                        option = options[ i ];
+
+                        disabled = option.disabled || option.getAttribute("disabled") !== null ||
+                                   options.parentNode.disabled;
+
+                        // IE6-9 doesn't update selected after form reset (#2551)
+                        if ( ( option.selected || i === index ) && !disabled ) {
+
+                            // Get the specific value for the option
+                            value = getValue(option);
+
+                            // We don't need an array for one selects
+                            if ( one ) {
+                                return value;
+                            }
+
+                            // Multi-Selects return an array
+                            values.push( value );
+                        }
+                    }
+
+                    return values;
+                },
+
+                set: function( elem, value ) {
+                    var optionSet, option,
+                        options = elem.options,
+                        values = toArray( value ),
+                        i = options.length;
+
+                    while ( i-- ) {
+                        option = options[ i ];
+                        if ( (option.selected = inArray( option.value, values )) ) {
+                            optionSet = true;
+                        }
+                    }
+
+                    // Force browsers to behave consistently when non-matching value is set
+                    if ( !optionSet ) {
+                        elem.selectedIndex = -1;
+                    }
+                    return values;
+                }
+            }
+        };
+
+    valHooks["radio"] = valHooks["checkbox"] = {
+        set: function( elem, value ) {
+            if (isArray( value ) ) {
+                return ( elem.checked = inArray( getValue(elem), value ) >= 0 );
+            }
+        },
+        get: function( elem ) {
+            return elem.getAttribute("value") === null ? "on" : elem.value;
+        }
+    };
+
+    MetaphorJs.getValue     = getValue;
+    MetaphorJs.setValue     = setValue;
+
+}());
+
+
+
+// from jQuery
+
+(function(){
+
+    var returnFalse = function() {
+            return false;
+        },
+
+        returnTrue = function() {
+            return true;
+        },
+
+        NormalizedEvent = function(src) {
+            // Allow instantiation without the 'new' keyword
+            if (!(this instanceof NormalizedEvent)) {
+                return new NormalizedEvent(src);
+            }
+
+            var self    = this;
+
+            for (var i in src) {
+                if ((!src.hasOwnProperty || !src.hasOwnProperty(i)) && !self[i]) {
+                    self[i] = src[i];
+                }
+            }
+
+            // Event object
+            self.originalEvent = src;
+            self.type = src.type;
+
+            if (!self.target && src.srcElement) {
+                self.target = src.srcElement;
+            }
+
+            // Events bubbling up the document may have been marked as prevented
+            // by a handler lower down the tree; reflect the correct value.
+            self.isDefaultPrevented = src.defaultPrevented ||
+                                      src.defaultPrevented === undefined &&
+                                          // Support: Android<4.0
+                                      src.returnValue === false ?
+                                      returnTrue :
+                                      returnFalse;
+
+
+            // Create a timestamp if incoming event doesn't have one
+            self.timeStamp = src && src.timeStamp || (new Date).getTime();
+        };
+
+    // Event is based on DOM3 Events as specified by the ECMAScript Language Binding
+    // http://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
+    NormalizedEvent.prototype = {
+        isDefaultPrevented: returnFalse,
+        isPropagationStopped: returnFalse,
+        isImmediatePropagationStopped: returnFalse,
+
+        preventDefault: function() {
+            var e = this.originalEvent;
+
+            this.isDefaultPrevented = returnTrue;
+
+            if ( e && e.preventDefault ) {
+                e.preventDefault();
+            }
+        },
+        stopPropagation: function() {
+            var e = this.originalEvent;
+
+            this.isPropagationStopped = returnTrue;
+
+            if ( e && e.stopPropagation ) {
+                e.stopPropagation();
+            }
+        },
+        stopImmediatePropagation: function() {
+            var e = this.originalEvent;
+
+            this.isImmediatePropagationStopped = returnTrue;
+
+            if ( e && e.stopImmediatePropagation ) {
+                e.stopImmediatePropagation();
+            }
+
+            this.stopPropagation();
+        }
+    };
+
+    window.MetaphorJs || (window.MetaphorJs = {});
+
+    MetaphorJs.normalizeEvent = function(originalEvent) {
+        return new NormalizedEvent(originalEvent);
     };
 
 
-    if (window.MetaphorJs) {
-        apply(window.MetaphorJs, Metaphor, true);
-    }
-    else {
-        window.MetaphorJs = Metaphor;
-    }
+}());
 
 
+
+
+(function(){
+
+    var extend          = MetaphorJs.extend,
+        bind            = MetaphorJs.bind,
+        addListener     = MetaphorJs.addListener,
+        removeListener  = MetaphorJs.removeListener,
+        getValue        = MetaphorJs.getValue,
+        setValue        = MetaphorJs.setValue,
+
+        isSubmittable	= function(elem) {
+            var type	= elem.type ? elem.type.toLowerCase() : '';
+            return elem.nodeName.toLowerCase() == 'input' && type != 'radio' && type != 'checkbox';
+        };
+
+    var Input   = function(el, changeFn, changeFnContext, submitFn) {
+
+        var self    = this,
+            type;
+
+        self.el             = el;
+        self.cb             = changeFn;
+        self.scb            = submitFn;
+        self.cbContext      = changeFnContext;
+        self.inputType      = type = el.getAttribute("mjs-input-type") || el.type.toLowerCase();
+        self.listeners      = [];
+        self.submittable    = isSubmittable(el);
+
+        if (type == "radio") {
+            self.initRadioInput();
+        }
+        else if (type == "checkbox") {
+            self.initCheckboxInput();
+        }
+        else {
+            self.initTextInput();
+        }
+    };
+
+    extend(Input.prototype, {
+
+        el: null,
+        inputType: null,
+        cb: null,
+        scb: null,
+        cbContext: null,
+        listeners: [],
+        radio: null,
+        submittable: false,
+
+        destroy: function() {
+
+            var self        = this,
+                type        = self.inputType,
+                listeners   = self.listeners,
+                radio       = self.radio,
+                el          = self.el,
+                i, ilen,
+                j, jlen;
+
+            for (i = 0, ilen = listeners.length; i < ilen; i++) {
+                if (type == "radio") {
+                    for (j = 0, jlen = radio.length; j < jlen; j++) {
+                        removeListener(radio[j], listeners[i][0], listeners[i][1]);
+                    }
+                }
+                else {
+                    removeListener(el, listeners[i][0], listeners[i][1]);
+                }
+            }
+
+            delete self.radio;
+            delete self.el;
+            delete self.cb;
+            delete self.cbContext;
+        },
+
+        initRadioInput: function() {
+
+            var self    = this,
+                el      = self.el,
+                type    = el.type,
+                name    = el.name,
+                radio,
+                i, len;
+
+            self.onRadioInputChangeDelegate = bind(self.onRadioInputChange, self);
+
+            if (document.querySelectorAll) {
+                radio = document.querySelectorAll("input[name="+name+"]");
+            }
+            else {
+                var nodes = document.getElementsByTagName("input"),
+                    node;
+
+                radio = [];
+                for (i = 0, len = nodes.length; i < len; i++) {
+                    node = nodes[i];
+                    if (node.type == type && node.name == name) {
+                        radio.push(node);
+                    }
+                }
+            }
+
+            self.radio  = radio;
+            self.listeners.push(["click", self.onRadioInputChangeDelegate]);
+
+            for (i = 0, len = radio.length; i < len; i++) {
+                addListener(radio[i], "click", self.onRadioInputChangeDelegate);
+            }
+        },
+
+        initCheckboxInput: function() {
+
+            var self    = this;
+
+            self.onCheckboxInputChangeDelegate = bind(self.onCheckboxInputChange, self);
+
+            self.listeners.push(["click", self.onCheckboxInputChangeDelegate]);
+            addListener(self.el, "click", self.onCheckboxInputChangeDelegate);
+        },
+
+        initTextInput: function() {
+
+            var browser     = MetaphorJs.browser,
+                composing   = false,
+                self        = this,
+                node        = self.el,
+                listeners   = self.listeners,
+                timeout;
+
+            // In composition mode, users are still inputing intermediate text buffer,
+            // hold the listener until composition is done.
+            // More about composition events: https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent
+            if (!browser.android) {
+
+                var compositionStart    = function() {
+                    composing = true;
+                };
+
+                var compositionEnd  = function() {
+                    composing = false;
+                    listener();
+                };
+
+                listeners.push(["compositionstart", compositionStart]);
+                listeners.push(["compositionend", compositionEnd]);
+
+                addListener(node, "compositionstart", compositionStart);
+                addListener(node, "compositionend", compositionEnd);
+            }
+
+            var listener = self.onTextInputChangeDelegate = function() {
+                if (composing) {
+                    return;
+                }
+                self.onTextInputChange();
+            };
+
+            // if the browser does support "input" event, we are fine - except on IE9 which doesn't fire the
+            // input event on backspace, delete or cut
+            if (browser.hasEvent('input')) {
+                listeners.push(["input", listener]);
+                addListener(node, "input", listener);
+
+            } else {
+
+                var deferListener = function(ev) {
+                    if (!timeout) {
+                        timeout = window.setTimeout(function() {
+                            listener(ev);
+                            timeout = null;
+                        }, 0);
+                    }
+                };
+
+                var keydown = function(event) {
+                    event = event || window.event;
+                    var key = event.keyCode;
+
+                    if (key == 13 && self.submittable && self.scb) {
+                        return self.scb.call(self.callbackContext, event);
+                    }
+
+                    // ignore
+                    //    command            modifiers                   arrows
+                    if (key === 91 || (15 < key && key < 19) || (37 <= key && key <= 40)) {
+                        return;
+                    }
+
+                    deferListener(event);
+                };
+
+                listeners.push(["keydown", keydown]);
+                addListener(node, "keydown", keydown);
+
+                // if user modifies input value using context menu in IE, we need "paste" and "cut" events to catch it
+                if (browser.hasEvent('paste')) {
+
+                    listeners.push(["paste", deferListener]);
+                    listeners.push(["cut", deferListener]);
+
+                    addListener(node, "paste", deferListener);
+                    addListener(node, "cut", deferListener);
+                }
+            }
+
+            // if user paste into input using mouse on older browser
+            // or form autocomplete on newer browser, we need "change" event to catch it
+
+            listeners.push(["change", listener]);
+            addListener(node, "change", listener);
+        },
+
+        onTextInputChange: function() {
+
+            var self    = this,
+                val     = self.el.value;
+
+            switch (self.inputType) {
+                case "number":
+                    val     = parseInt(val, 10);
+                    break;
+            }
+
+            self.cb.call(self.cbContext, val);
+        },
+
+        onCheckboxInputChange: function() {
+
+            var self    = this,
+                node    = self.el;
+
+            self.cb.call(self.cbContext, node.checked ? (node.getAttribute("value") || true) : false);
+        },
+
+        onRadioInputChange: function(e) {
+
+            e = e || window.event;
+
+            var self    = this,
+                trg     = e.target || e.srcElement;
+
+            self.cb.call(self.cbContext, trg.value);
+        },
+
+        setValue: function(val) {
+
+            var self    = this,
+                type    = self.inputType,
+                radio,
+                i, len;
+
+            if (type == "radio") {
+
+                radio = self.radio;
+
+                for (i = 0, len = radio.length; i < len; i++) {
+                    if (radio[i].value == val) {
+                        radio[i].checked = true;
+                        break;
+                    }
+                }
+            }
+            else if (type == "checkbox") {
+                var node        = self.el;
+                node.checked    = val === true || val == node.value;
+            }
+            else {
+                setValue(self.el, val);
+            }
+        },
+
+        getValue: function() {
+
+            var self    = this,
+                type    = self.inputType,
+                radio,
+                i, l;
+
+            if (type == "radio") {
+                radio = self.radio;
+                for (i = 0, l = radio.length; i < l; i++) {
+                    if (radio[i].checked) {
+                        return radio[i].value;
+                    }
+                }
+                return null;
+            }
+            else if (type == "checkbox") {
+                return self.el.checked ? (self.el.getAttribute("value") || true) : false;
+            }
+            else {
+                return getValue(self.el);
+            }
+        }
+    });
+
+    window.MetaphorJs || (window.MetaphorJs = {});
+
+    if (!MetaphorJs.lib) {
+        MetaphorJs.lib = {};
+    }
+
+    MetaphorJs.lib.Input = Input;
 
 }());
 
@@ -3385,7 +3765,23 @@ if (typeof global != "undefined") {
         return expr;
     };
 
-    var f = Function;
+    var f = Function,
+
+        error = function(e) {
+
+            var stack = e.stack || (new Error).stack;
+
+            if (typeof console != "undefined" && console.log) {
+                console.log(e);
+                if (stack) {
+                    console.log(stack);
+                }
+            }
+        },
+
+        fnBodyStart = 'try {',
+
+        fnBodyEnd   = ';} catch (e) { error(e); }';
 
     var prepareCode = function prepareCode(expr) {
         return expr.replace(REG_REPLACE_EXPR, '$1____.$3');
@@ -3394,7 +3790,10 @@ if (typeof global != "undefined") {
     var getterCache = {};
     var createGetter = function createGetter(expr) {
         if (!getterCache[expr]) {
-            return getterCache[expr] = new f('____', 'return '.concat(expr.replace(REG_REPLACE_EXPR, '$1____.$3')));
+            return getterCache[expr] = new f(
+                '____',
+                "".concat(fnBodyStart, 'return ', expr.replace(REG_REPLACE_EXPR, '$1____.$3'), fnBodyEnd)
+            );
         }
         return getterCache[expr];
     };
@@ -3403,7 +3802,11 @@ if (typeof global != "undefined") {
     var createSetter = function createSetter(expr) {
         if (!setterCache[expr]) {
             var code = expr.replace(REG_REPLACE_EXPR, '$1____.$3');
-            return setterCache[expr] = new f('____', '$$$$', code.concat(' = $$$$'));
+            return setterCache[expr] = new f(
+                '____',
+                '$$$$',
+                "".concat(fnBodyStart, code, ' = $$$$', fnBodyEnd)
+            );
         }
         return setterCache[expr];
     };
@@ -3411,7 +3814,10 @@ if (typeof global != "undefined") {
     var funcCache = {};
     var createFunc = function createFunc(expr) {
         if (!funcCache[expr]) {
-            return funcCache[expr] = new f('____', expr.replace(REG_REPLACE_EXPR, '$1____.$3'));
+            return funcCache[expr] = new f(
+                '____',
+                "".concat(fnBodyStart, expr.replace(REG_REPLACE_EXPR, '$1____.$3'), fnBodyEnd)
+            );
         }
         return funcCache[expr];
     };
@@ -3492,25 +3898,11 @@ if (typeof global != "undefined") {
         Observable  = window.MetaphorJs.lib.Observable;
     }
 
-    var extend = function(trg, src, overwrite) {
-        for (var i in src) {
-            if (src.hasOwnProperty(i)) {
-                if (typeof trg[i] == undefined || overwrite !== false) {
-                    trg[i] = src[i];
-                }
-            }
-        }
-    };
-
-    var bind    = Function.prototype.bind ?
-                  function(fn, fnScope){
-                      return fn.bind(fnScope);
-                  } :
-                  function(fn, fnScope) {
-                      return function() {
-                          fn.apply(fnScope, arguments);
-                      };
-                  };
+    var extend      = MetaphorJs.extend,
+        bind        = MetaphorJs.bind,
+        addListener = MetaphorJs.addListener,
+        trim        = MetaphorJs.trim,
+        isArray     = MetaphorJs.isArray;
 
     var qsa;
 
@@ -3556,27 +3948,6 @@ if (typeof global != "undefined") {
                 fn.call(fnScope);
             }, 0);
         },
-
-        addListener = function(el, event, func) {
-            if (el.attachEvent) {
-                el.attachEvent('on' + event, func);
-            } else {
-                el.addEventListener(event, func, false);
-            }
-        },
-
-        trim    = (function() {
-            // native trim is way faster: http://jsperf.com/angular-trim-test
-            // but IE doesn't have it... :-(
-            if (!String.prototype.trim) {
-                return function(value) {
-                    return typeof value == "string" ? value.replace(/^\s\s*/, '').replace(/\s\s*$/, '') : value;
-                };
-            }
-            return function(value) {
-                return typeof value == "string" ? value.trim() : value;
-            };
-        })(),
 
         parseXML    = function(data, type) {
 
@@ -3720,11 +4091,6 @@ if (typeof global != "undefined") {
                     indirect(code);
                 }
             }
-        },
-
-        isArray     = function(value) {
-            return value && typeof value == 'object' && typeof value.length == 'number' &&
-                   Object.prototype.toString.call(value) == '[object Array]' || false;
         },
 
         data2form       = function(data, form, name) {
@@ -4737,248 +5103,10 @@ if (typeof global != "undefined") {
 
 }());
 
-
-// from jQuery.val()
-
-(function(){
-
-    var rreturn = /\r/g;
-
-    var getValue    = function(elem) {
-
-        var hooks, ret;
-
-        hooks = valHooks[ elem.type ] ||
-                valHooks[ elem.nodeName.toLowerCase() ];
-
-        if ( hooks && "get" in hooks && (ret = hooks.get( elem, "value" )) !== undefined ) {
-            return ret;
-        }
-
-        ret = elem.value;
-
-        return typeof ret === "string" ?
-            // Handle most common string cases
-               ret.replace(rreturn, "") :
-            // Handle cases where value is null/undef or number
-               ret == null ? "" : ret;
-
-    };
-
-    var setValue = function(el, val) {
-
-
-        if ( el.nodeType !== 1 ) {
-            return;
-        }
-
-        // Treat null/undefined as ""; convert numbers to string
-        if ( val == null ) {
-            val = "";
-        } else if ( typeof val === "number" ) {
-            val += "";
-        }
-
-        var hooks = valHooks[ el.type ] || valHooks[ el.nodeName.toLowerCase() ];
-
-        // If set returns undefined, fall back to normal setting
-        if ( !hooks || !("set" in hooks) || hooks.set( this, val, "value" ) === undefined ) {
-            el.value = val;
-        }
-    };
-
-
-
-    var valHooks = {
-            option: {
-                get: function( elem ) {
-                    //var val = jQuery.find.attr( elem, "value" );
-                    var val = elem.getAttribute("value");
-
-                    return val != null ?
-                           val :
-                           MetaphorJs.trim( elem.innerText || elem.textContent );
-                }
-            },
-            select: {
-                get: function( elem ) {
-                    var value, option,
-                        options = elem.options,
-                        index = elem.selectedIndex,
-                        one = elem.type === "select-one" || index < 0,
-                        values = one ? null : [],
-                        max = one ? index + 1 : options.length,
-                        disabled,
-                        i = index < 0 ?
-                            max :
-                            one ? index : 0;
-
-                    // Loop through all the selected options
-                    for ( ; i < max; i++ ) {
-                        option = options[ i ];
-
-                        disabled = option.disabled || option.getAttribute("disabled") !== null ||
-                                   options.parentNode.disabled;
-
-                        // IE6-9 doesn't update selected after form reset (#2551)
-                        if ( ( option.selected || i === index ) && !disabled ) {
-
-                            // Get the specific value for the option
-                            value = getValue(option);
-
-                            // We don't need an array for one selects
-                            if ( one ) {
-                                return value;
-                            }
-
-                            // Multi-Selects return an array
-                            values.push( value );
-                        }
-                    }
-
-                    return values;
-                },
-
-                set: function( elem, value ) {
-                    var optionSet, option,
-                        options = elem.options,
-                        values = MetaphorJs.toArray( value ),
-                        i = options.length;
-
-                    while ( i-- ) {
-                        option = options[ i ];
-                        if ( (option.selected = MetaphorJs.inArray( option.value, values )) ) {
-                            optionSet = true;
-                        }
-                    }
-
-                    // Force browsers to behave consistently when non-matching value is set
-                    if ( !optionSet ) {
-                        elem.selectedIndex = -1;
-                    }
-                    return values;
-                }
-            }
-        };
-
-    valHooks["radio"] = valHooks["checkbox"] = {
-        set: function( elem, value ) {
-            if (MetaphorJs.isArray( value ) ) {
-                return ( elem.checked = MetaphorJs.inArray( getValue(elem), value ) >= 0 );
-            }
-        },
-        get: function( elem ) {
-            return elem.getAttribute("value") === null ? "on" : elem.value;
-        }
-    };
-
-
-    MetaphorJs.getValue     = getValue;
-    MetaphorJs.setValue     = setValue;
-
-
-}());
-
-
-
-// from jQuery
-
-(function(){
-
-    var returnFalse = function() {
-        return false;
-    };
-
-    var returnTrue = function() {
-        return true;
-    };
-
-    var NormalizedEvent = function(src) {
-        // Allow instantiation without the 'new' keyword
-        if (!(this instanceof NormalizedEvent)) {
-            return new NormalizedEvent(src);
-        }
-
-        var self    = this;
-
-        for (var i in src) {
-            if ((!src.hasOwnProperty || !src.hasOwnProperty(i)) && !self[i]) {
-                self[i] = src[i];
-            }
-        }
-
-        // Event object
-        self.originalEvent = src;
-        self.type = src.type;
-
-        if (!self.target && src.srcElement) {
-            self.target = src.srcElement;
-        }
-
-        // Events bubbling up the document may have been marked as prevented
-        // by a handler lower down the tree; reflect the correct value.
-        self.isDefaultPrevented = src.defaultPrevented ||
-                                  src.defaultPrevented === undefined &&
-                                      // Support: Android<4.0
-                                  src.returnValue === false ?
-                                  returnTrue :
-                                  returnFalse;
-
-
-        // Create a timestamp if incoming event doesn't have one
-        self.timeStamp = src && src.timeStamp || (new Date).getTime();
-    };
-
-    // Event is based on DOM3 Events as specified by the ECMAScript Language Binding
-    // http://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
-    NormalizedEvent.prototype = {
-        isDefaultPrevented: returnFalse,
-        isPropagationStopped: returnFalse,
-        isImmediatePropagationStopped: returnFalse,
-
-        preventDefault: function() {
-            var e = this.originalEvent;
-
-            this.isDefaultPrevented = returnTrue;
-
-            if ( e && e.preventDefault ) {
-                e.preventDefault();
-            }
-        },
-        stopPropagation: function() {
-            var e = this.originalEvent;
-
-            this.isPropagationStopped = returnTrue;
-
-            if ( e && e.stopPropagation ) {
-                e.stopPropagation();
-            }
-        },
-        stopImmediatePropagation: function() {
-            var e = this.originalEvent;
-
-            this.isImmediatePropagationStopped = returnTrue;
-
-            if ( e && e.stopImmediatePropagation ) {
-                e.stopImmediatePropagation();
-            }
-
-            this.stopPropagation();
-        }
-    };
-
-    MetaphorJs.normalizeEvent = function(originalEvent) {
-        return new NormalizedEvent(originalEvent);
-    };
-
-
-}());
-
-
 (function(){
 
     var Observable  = MetaphorJs.lib.Observable,
-        apply       = MetaphorJs.apply;
+        extend       = MetaphorJs.extend;
 
     /**
      * @namespace MetaphorJs
@@ -5007,7 +5135,7 @@ if (typeof global != "undefined") {
             cfg         = cfg || {};
 
             self._observable    = new Observable;
-            apply(self, self._observable.getApi());
+            extend(self, self._observable.getApi());
 
             if (cfg.callback) {
 
@@ -5024,7 +5152,7 @@ if (typeof global != "undefined") {
                 delete cfg.callback;
             }
 
-            apply(self, cfg, true);
+            extend(self, cfg, true);
         },
 
         /**
@@ -5349,7 +5477,7 @@ if (typeof global != "undefined") {
 
     var Observable  = MetaphorJs.lib.Observable,
         Watchable   = MetaphorJs.lib.Watchable,
-        apply       = MetaphorJs.apply,
+        extend      = MetaphorJs.extend,
         Scope;
 
     Scope = MetaphorJs.d("MetaphorJs.view.Scope", {
@@ -5368,7 +5496,7 @@ if (typeof global != "undefined") {
 
             self.$$observable    = new Observable;
 
-            apply(self, cfg);
+            extend(self, cfg);
 
             if (self.$parent) {
                 self.$parent.$on("check", self.$$onParentCheck, self);
@@ -5482,6 +5610,7 @@ if (typeof global != "undefined") {
         msie    = parseInt((/trident\/.*; rv:(\d+)/.exec(ua) || [])[1], 10);
     }
 
+    window.MetaphorJs || (window.MetaphorJs = {});
 
     MetaphorJs.browser  = {
 
@@ -5565,7 +5694,14 @@ if (typeof global != "undefined") {
                 return;
             }
 
-            if ((res = fn.call(fnScope, el, async)) !== false) {
+            try {
+                res = fn.call(fnScope, el, async);
+            }
+            catch (e) {
+                MetaphorJs.error(e);
+            }
+
+            if (res !== false) {
 
                 if (isThenable(res)) {
                     res.done(function(response){
@@ -5951,13 +6087,50 @@ if (typeof global != "undefined") {
         createWatchable = Watchable.create,
         isExpression    = Watchable.isExpression,
         evaluate        = Watchable.eval,
-        getTemplate     = m.getTemplate,
         Renderer        = m.view.Renderer,
         cloneFn         = m.clone,
         Scope           = m.view.Scope,
         animate         = m.animate,
         Promise         = m.lib.Promise,
-        extend          = m.apply;
+        extend          = m.extend,
+
+        tplCache        = {},
+
+        getTemplate     = function(tplId) {
+
+            if (!tplCache[tplId]) {
+                var tplNode     = document.getElementById(tplId),
+                    tag;
+
+                if (tplNode) {
+
+                    tag         = tplNode.tagName.toLowerCase();
+
+                    if (tag == "script") {
+                        var div = document.createElement("div");
+                        div.innerHTML = tplNode.innerHTML;
+                        tplCache[tplId] = toFragment(div.childNodes);
+                    }
+                    else {
+                        if ("content" in tplNode) {
+                            tplCache[tplId] = tplNode.content;
+                        }
+                        else {
+                            tplCache[tplId] = toFragment(tplNode.childNodes);
+                        }
+                    }
+                }
+                else {
+                    return tplCache[tplId] = MetaphorJs.ajax(tplId, {dataType: 'fragment'})
+                        .then(function(fragment){
+                            tplCache[tplId] = fragment;
+                            return fragment;
+                        });
+                }
+            }
+
+            return tplCache[tplId];
+        };
 
     m.define("MetaphorJs.view.Template", {
 
@@ -6153,6 +6326,9 @@ if (typeof global != "undefined") {
             delete self.tpl;
         }
 
+    }, {
+
+        getTemplate: getTemplate
     });
 
 }());
@@ -6563,10 +6739,9 @@ if (typeof global != "undefined") {
     var dataFn      = MetaphorJs.data,
         currentUrl  = MetaphorJs.currentUrl,
         toFragment  = MetaphorJs.toFragment,
-        g           = MetaphorJs.ns.get,
         animate     = MetaphorJs.animate,
         Scope       = MetaphorJs.lib.Scope,
-        apply       = MetaphorJs.apply,
+        extend      = MetaphorJs.extend,
         stop        = MetaphorJs.stopAnimation,
         resolveComponent    = MetaphorJs.resolveComponent;
 
@@ -6594,7 +6769,7 @@ if (typeof global != "undefined") {
 
             history.initPushState();
 
-            apply(self, cfg, true);
+            extend(self, cfg, true);
 
             MetaphorJs.on("locationchange", self.onLocationChange, self);
 
@@ -6719,12 +6894,10 @@ if (typeof global != "undefined") {
         g               = MetaphorJs.ns.get,
         Watchable       = MetaphorJs.lib.Watchable,
         Renderer        = MetaphorJs.view.Renderer,
-        Promise         = MetaphorJs.lib.Promise,
         dataFn          = MetaphorJs.data,
         toArray         = MetaphorJs.toArray,
         toFragment      = MetaphorJs.toFragment,
         addListener     = MetaphorJs.addListener,
-        removeListener  = MetaphorJs.removeListener,
         normalizeEvent  = MetaphorJs.normalizeEvent,
         registerAttr    = MetaphorJs.registerAttributeHandler,
         registerTag     = MetaphorJs.registerTagHandler,
@@ -6732,15 +6905,13 @@ if (typeof global != "undefined") {
         createWatchable = Watchable.create,
         createGetter    = Watchable.createGetter,
         animate         = MetaphorJs.animate,
-        isExpression    = Watchable.isExpression,
-        evaluate        = Watchable.eval,
         addClass        = MetaphorJs.addClass,
         removeClass     = MetaphorJs.removeClass,
         hasClass        = MetaphorJs.hasClass,
         stopAnimation   = MetaphorJs.stopAnimation,
         isArray         = MetaphorJs.isArray,
-        isThenable      = MetaphorJs.isThenable,
         Template        = MetaphorJs.view.Template,
+        Input           = MetaphorJs.lib.Input,
         resolveComponent;
 
 
@@ -6843,185 +7014,22 @@ if (typeof global != "undefined") {
     registerAttr("mjs-model", 1000, d(null, "MetaphorJs.view.AttributeHandler", {
 
         inProg: false,
-        type: null,
-        inputType: null,
-        radio: null,
-        listeners: null,
+        input: null,
 
         initialize: function(scope, node, expr) {
 
-            var self    = this,
-                type;
-
-            self.node           = node;
-            self.inputType      = type = node.getAttribute("mjs-input-type") || node.type.toLowerCase();
-            self.listeners      = [];
-
-            self.onRadioInputChangeDelegate     = bind(self.onRadioInputChange, self);
-            self.onCheckboxInputChangeDelegate  = bind(self.onCheckboxInputChange, self);
-
-            if (type == "radio") {
-                self.initRadioInput();
-            }
-            else if (type == "checkbox") {
-                self.initCheckboxInput();
-            }
-            else {
-                self.initTextInput();
-            }
-
-            self.supr(scope, node, expr);
-
-        },
-
-        onScopeDestroy: function() {
-
-            var self        = this,
-                type        = self.type,
-                listeners   = self.listeners,
-                radio       = self.radio,
-                i, ilen,
-                j, jlen;
-
-            for (i = 0, ilen = listeners.length; i < ilen; i++) {
-                if (type == "radio") {
-                    for (j = 0, jlen = radio.length; j < jlen; j++) {
-                        removeListener(radio[j], listeners[i][0], listeners[i][1]);
-                    }
-                }
-                else {
-                    removeListener(self.node, listeners[i][0], listeners[i][1]);
-                }
-            }
-
-            delete self.radio;
-
-            self.supr();
-        },
-
-
-        initRadioInput: function() {
-
-            var self    = this,
-                name    = self.node.name,
-                radio,
-                i, len;
-
-            self.radio  = radio = toArray(document.querySelectorAll("input[name="+name+"]"));
-            self.listeners.push(["click", self.onRadioInputChangeDelegate]);
-
-            for (i = 0, len = radio.length; i < len; i++) {
-                addListener(radio[i], "click", self.onRadioInputChangeDelegate);
-            }
-        },
-
-        initCheckboxInput: function() {
-
             var self    = this;
 
-            self.listeners.push(["click", self.onCheckboxInputChangeDelegate]);
-            addListener(self.node, "click", self.onCheckboxInputChangeDelegate);
+            self.node           = node;
+            self.input          = new Input(node, self.onInputChange, self);
+
+            self.supr(scope, node, expr);
         },
 
-        initTextInput: function() {
-
-            var browser     = MetaphorJs.browser,
-                composing   = false,
-                self        = this,
-                node        = self.node,
-                listeners   = self.listeners,
-                timeout;
-
-            // In composition mode, users are still inputing intermediate text buffer,
-            // hold the listener until composition is done.
-            // More about composition events: https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent
-            if (!browser.android) {
-
-                var compositionStart    = function() {
-                    composing = true;
-                };
-
-                var compositionEnd  = function() {
-                    composing = false;
-                    listener();
-                };
-
-                listeners.push(["compositionstart", compositionStart]);
-                listeners.push(["compositionend", compositionEnd]);
-
-                addListener(node, "compositionstart", compositionStart);
-                addListener(node, "compositionend", compositionEnd);
-            }
-
-            var listener = self.onTextInputChangeDelegate = function() {
-                if (composing) {
-                    return;
-                }
-                self.onTextInputChange();
-            };
-
-            // if the browser does support "input" event, we are fine - except on IE9 which doesn't fire the
-            // input event on backspace, delete or cut
-            if (browser.hasEvent('input')) {
-                listeners.push(["input", listener]);
-                addListener(node, "input", listener);
-
-            } else {
-
-                var deferListener = function(ev) {
-                    if (!timeout) {
-                        timeout = window.setTimeout(function() {
-                            listener(ev);
-                            timeout = null;
-                        }, 0);
-                    }
-                };
-
-                var keydown = function(event) {
-                    event = event || window.event;
-                    var key = event.keyCode;
-
-                    // ignore
-                    //    command            modifiers                   arrows
-                    if (key === 91 || (15 < key && key < 19) || (37 <= key && key <= 40)) {
-                        return;
-                    }
-
-                    deferListener(event);
-                };
-
-                listeners.push(["keydown", keydown]);
-                addListener(node, "keydown", keydown);
-
-                // if user modifies input value using context menu in IE, we need "paste" and "cut" events to catch it
-                if (browser.hasEvent('paste')) {
-
-                    listeners.push(["paste", deferListener]);
-                    listeners.push(["cut", deferListener]);
-
-                    addListener(node, "paste", deferListener);
-                    addListener(node, "cut", deferListener);
-                }
-            }
-
-            // if user paste into input using mouse on older browser
-            // or form autocomplete on newer browser, we need "change" event to catch it
-
-            listeners.push(["change", listener]);
-            addListener(node, "change", listener);
-        },
-
-        onTextInputChange: function() {
+        onInputChange: function(val) {
 
             var self    = this,
-                val     = self.node.value,
                 scope   = self.scope;
-
-            switch (self.inputType) {
-                case "number":
-                    val     = parseInt(val, 10);
-                    break;
-            }
 
             self.watcher.setValue(val);
 
@@ -7035,75 +7043,23 @@ if (typeof global != "undefined") {
             self.inProg = false;
         },
 
-        onCheckboxInputChange: function() {
+        onScopeDestroy: function() {
 
-            var self    = this,
-                node    = self.node,
-                scope   = self.scope;
+            var self        = this;
 
-            self.watcher.setValue(node.checked ? (node.getAttribute("value") || true) : false);
-
-            self.inProg = true;
-            if (scope instanceof Scope) {
-                scope.$root.$check();
-            }
-            else {
-                self.watcher.checkAll();
-            }
-            self.inProg = false;
-        },
-
-        onRadioInputChange: function(e) {
-
-            e = e || window.event;
-            e = normalizeEvent(e);
-
-            var self    = this,
-                node    = e.target,
-                scope   = self.scope;
-
-            self.watcher.setValue(node.value);
-
-            self.inProg = true;
-            if (scope instanceof Scope) {
-                scope.$root.$check();
-            }
-            else {
-                self.watcher.checkAll();
-            }
-            self.inProg = false;
+            self.input.destroy();
+            delete self.input;
+            self.supr();
         },
 
 
         onChange: function() {
 
             var self    = this,
-                val     = self.watcher.getLastResult(),
-                type    = self.inputType,
-                i, len,
-                radio;
+                val     = self.watcher.getLastResult();
 
             if (!self.inProg) {
-
-
-                if (type == "radio") {
-
-                    radio = self.radio;
-
-                    for (i = 0, len = radio.length; i < len; i++) {
-                        if (radio[i].value == val) {
-                            radio[i].checked = true;
-                            break;
-                        }
-                    }
-                }
-                else if (type == "checkbox") {
-                    var node    = self.node;
-                    node.checked    = val === true || val == node.value;
-                }
-                else {
-                    MetaphorJs.setValue(self.node, val);
-                }
+                self.input.setValue(val);
             }
         }
 
@@ -7255,11 +7211,15 @@ if (typeof global != "undefined") {
 
             self.node       = node;
             self.scope      = scope;
-            self.watcher    = createWatchable(scope, self.model);
-            self.watcher.addListener(self.onChange, self);
+
+            try {
+                self.watcher    = createWatchable(scope, self.model, self.onChange, self);
+            }
+            catch (e) {
+                MetaphorJs.error(e);
+            }
 
             self.parentEl.removeChild(node);
-
             self.render(self.watcher.getValue());
         },
 
@@ -7328,6 +7288,7 @@ if (typeof global != "undefined") {
                 el,
                 i, len;
 
+
             for (i = 0, len = list.length; i < len; i++) {
 
                 el          = tpl.cloneNode(true);
@@ -7379,6 +7340,7 @@ if (typeof global != "undefined") {
                 i, len,
                 r,
                 action;
+
 
 
             for (i = 0, len = prs.length; i < len; i++) {
@@ -7761,7 +7723,7 @@ if (typeof global != "undefined") {
                         fn(scope);
                     }
                     catch (e) {
-                        MetaphorJs.asyncError(e);
+                        MetaphorJs.error(e);
                     }
 
                     delete scope.$event;
@@ -7909,7 +7871,6 @@ if (typeof global != "undefined") {
 (function(){
 
     var add     = MetaphorJs.add,
-        g       = MetaphorJs.g,
         nf      = MetaphorJs.numberFormats,
         df      = MetaphorJs.dateFormats;
 
@@ -7984,7 +7945,90 @@ if (typeof global != "undefined") {
     });
 
 
-    var filterArray = MetaphorJs.filterArray;
+
+
+
+
+    var filterArrayCompareValues = function(value, to, opt) {
+
+            if (to === "" || typeof to == "undefined") {
+                return true;
+            }
+            else if (typeof value == "undefined") {
+                return false;
+            }
+            else if (typeof value == "boolean") {
+                return value === to;
+            }
+            else if (opt instanceof RegExp) {
+                return to.test("" + value);
+            }
+            else if (opt == "strict") {
+                return ""+value === ""+to;
+            }
+            else if (opt === true || opt === null || typeof opt == "undefined") {
+                return ""+value.indexOf(to) != -1;
+            }
+            else if (opt === false) {
+                return ""+value.indexOf(to) == -1;
+            }
+            return false;
+        },
+
+        filterArrayCompare = function(value, by, opt) {
+
+            if (typeof value != "object") {
+                if (typeof by.$ == "undefined") {
+                    return true;
+                }
+                else {
+                    return filterArrayCompareValues(value, by.$, opt);
+                }
+            }
+            else {
+                var k, i;
+
+                for (k in by) {
+
+                    if (k == '$') {
+
+                        for (i in value) {
+                            if (filterArrayCompareValues(value[i], by.$, opt)) {
+                                return true;
+                            }
+                        }
+                    }
+                    else {
+                        if (filterArrayCompareValues(value[k], by[k], opt)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        },
+
+        filterArray = function(a, by, compare) {
+
+            if (typeof by != "object") {
+                by = {$: by};
+            }
+
+            var ret = [],
+                i, l;
+
+            for (i = -1, l = a.length; ++i < l;) {
+                if (filterArrayCompare(a[i], by, compare)) {
+                    ret.push(a[i]);
+                }
+            }
+
+            return ret;
+        };
+
+
+
 
     add("filter.filter", function(val, by, opt, scope) {
 
@@ -7995,6 +8039,11 @@ if (typeof global != "undefined") {
         return filterArray(val, by, opt);
     });
 
+
+
+
+
+
     add("filter.sortBy", function(val, field, dir, scope) {
 
         if (dir && !scope) {
@@ -8003,8 +8052,7 @@ if (typeof global != "undefined") {
 
         var ret = val.slice();
 
-        ret.sort(function(a,b){
-
+        ret.sort(function(a, b) {
             var typeA = typeof a,
                 typeB = typeof b;
 

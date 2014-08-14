@@ -5,10 +5,9 @@
     var dataFn      = MetaphorJs.data,
         currentUrl  = MetaphorJs.currentUrl,
         toFragment  = MetaphorJs.toFragment,
-        g           = MetaphorJs.ns.get,
         animate     = MetaphorJs.animate,
         Scope       = MetaphorJs.lib.Scope,
-        apply       = MetaphorJs.apply,
+        extend      = MetaphorJs.extend,
         stop        = MetaphorJs.stopAnimation,
         resolveComponent    = MetaphorJs.resolveComponent;
 
@@ -36,7 +35,7 @@
 
             history.initPushState();
 
-            apply(self, cfg, true);
+            extend(self, cfg, true);
 
             MetaphorJs.on("locationchange", self.onLocationChange, self);
 
