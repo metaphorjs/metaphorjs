@@ -14,7 +14,6 @@
         getAttributeHandlers    = MetaphorJs.getAttributeHandlers,
         handlers                = null,
         g                       = MetaphorJs.g,
-        trim                    = MetaphorJs.trim,
         createWatchable         = Watchable.create,
         unsubscribeAndDestroy   = Watchable.unsubscribeAndDestroy,
         Renderer,
@@ -26,56 +25,56 @@
 
     var nodeChildren = function(res, el, fn, fnScope, async) {
 
-        var children = [],
-            i, len;
+            var children = [],
+                i, len;
 
-        if (res && res !== true) {
-            if (res.nodeType) {
-                eachNode(res, fn, fnScope, async);
+            if (res && res !== true) {
+                if (res.nodeType) {
+                    eachNode(res, fn, fnScope, async);
+                    return;
+                }
+                else {
+                    children = toArray(res);
+                }
+            }
+
+            if (!children.length) {
+                children    = toArray(el.childNodes);
+            }
+
+            for(i =- 1, len = children.length>>>0;
+                ++i !== len;
+                eachNode(children[i], fn, fnScope, async)){}
+        },
+
+
+        rSkipTag = /^(script|template|mjs-template|style)$/i,
+
+        eachNode = function(el, fn, fnScope, async) {
+
+            var res,
+                tag = el.nodeName;
+
+            if (tag.match(rSkipTag)) {
                 return;
             }
-            else {
-                children = toArray(res);
+
+            if ((res = fn.call(fnScope, el, async)) !== false) {
+
+                if (isThenable(res)) {
+                    res.done(function(response){
+                        if (response !== false) {
+                            nodeChildren(response, el, fn, fnScope, async);
+                        }
+                    });
+                }
+                else {
+                    nodeChildren(res, el, fn, fnScope, async);
+                }
             }
-        }
+        },
 
-        if (!children.length) {
-            children    = toArray(el.childNodes);
-        }
-
-        for(i =- 1, len = children.length>>>0;
-            ++i !== len;
-            eachNode(children[i], fn, fnScope, async)){}
-    };
-
-    var rSkipTag = /^(script|template|mjs-template|style)$/i;
-
-    var eachNode = function(el, fn, fnScope, async) {
-
-        var res,
-            tag = el.nodeName;
-
-        if (tag.match(rSkipTag)) {
-            return;
-        }
-
-        if ((res = fn.call(fnScope, el, async)) !== false) {
-
-            if (isThenable(res)) {
-                res.done(function(response){
-                    if (response !== false) {
-                        nodeChildren(response, el, fn, fnScope, async);
-                    }
-                });
-            }
-            else {
-                nodeChildren(res, el, fn, fnScope, async);
-            }
-        }
-    };
-
-
-    var observer = new Observable;
+        observer = new Observable;
 
 
     Renderer = MetaphorJs.d("MetaphorJs.view.Renderer", {
@@ -303,47 +302,6 @@
 
             return txtObj.text = separators.join("");
         },
-
-        processPipes: function(text, pipes) {
-
-            var index   = 0,
-                textLength  = text.length,
-                pIndex,
-                prev, next, pipe,
-                found   = false,
-                ret     = text;
-
-            while(index < textLength) {
-
-                if ((pIndex  = text.indexOf('|', index)) != -1) {
-
-                    prev = text.charAt(pIndex -1);
-                    next = text.charAt(pIndex + 1);
-
-                    if (prev != '|' && prev != "'" && prev != '"' && next != '|' && next != "'" && next != '"') {
-                        if (!found) {
-                            found = true;
-                            ret = trim(text.substring(0, pIndex));
-                        }
-                        else {
-                            pipe = trim(text.substring(index, pIndex)).split(":");
-                            pipes.push([pipe[0], pipe.slice(1)]);
-                        }
-                    }
-                    index = pIndex + 1;
-                }
-                else {
-                    if (found) {
-                        pipe = trim(text.substr(index)).split(":");
-                        pipes.push([pipe[0], pipe.slice(1)]);
-                    }
-                    break;
-                }
-            }
-
-            return ret;
-        },
-
 
         watcherMatch: function(txtObj, expr) {
 
