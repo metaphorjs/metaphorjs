@@ -3,6 +3,8 @@
 (function(){
 
     var Validator   = MetaphorJs.lib.Validator,
+        bind        = MetaphorJs.bind,
+        createFn    = MetaphorJs.lib.Watchable.createFunc,
         eachNode    = function(el, fn, fnScope) {
             var i, len,
                 children = el.childNodes;
@@ -46,7 +48,26 @@
         },
 
         createValidator: function() {
-            return new Validator(this.node, this.scope);
+            var self    = this,
+                node    = self.node,
+                cfg     = {},
+                submit;
+
+            if (submit = node.getAttribute("mjs-validator-submit")) {
+                cfg.callback = {};
+                cfg.callback.submit = function(fn, scope){
+                    return function() {
+                        try {
+                            fn(scope);
+                        }
+                        catch(e) {
+                            console.log(e)
+                        }
+                    }
+                }(createFn(submit), self.scope);
+            }
+
+            return new Validator(node, cfg);
         },
 
         initValidatorEvents: function() {
@@ -107,6 +128,7 @@
 
             state.$invalid = false;
             state.$pristine = true;
+            state.$submit = bind(self.validator.onFormSubmit, self.validator);
         },
 
         onDisplayStateChange: function(vld, state) {
@@ -127,7 +149,7 @@
                     }
                 }
 
-                state.$invalid = vld.isValid();
+                state.$invalid = !vld.isValid();
                 state.$pristine = false;
 
                 self.scope.$check();

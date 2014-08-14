@@ -30,6 +30,7 @@ manifest=(
     "src/view/Scope.js"
     "src/view/Browser.js"
     "src/view/Renderer.js"
+    "src/view/Template.js"
     "src/cmp/Component.js"
     "src/cmp/View.js"
     "src/view/Attribute.js"

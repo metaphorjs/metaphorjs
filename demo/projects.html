@@ -4,11 +4,13 @@
     <title>MetaphorJs Basics</title>
     <link rel="stylesheet" href="rsc/prism.css">
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap-theme.min.css">
     <script src="rsc/prism.js" data-manual></script>
 
 
-    <!--<script src="../dist/metaphorjs.js"></script>
-    <script src="../dist/metaphorjs.validator.js"></script>-->
+    <script src="../dist/metaphorjs.js"></script>
+    <script src="../dist/metaphorjs.validator.js"></script>
+    <!--
     <script src="../src/MetaphorJs.js"></script>
     <script src="../../metaphorjs-namespace/metaphorjs.namespace.js"></script>
     <script src="../../metaphorjs-class/metaphorjs.class.js"></script>
@@ -30,16 +32,20 @@
     <script src="../src/view/Scope.js"></script>
     <script src="../src/view/Browser.js"></script>
     <script src="../src/view/Renderer.js"></script>
+    <script src="../src/view/Template.js"></script>
     <script src="../src/cmp/Component.js"></script>
     <script src="../src/cmp/View.js"></script>
     <script src="../src/view/Attribute.js"></script>
     <script src="../src/view/Filter.js"></script>
-    <script src="../src/view/Validator.js"></script>
+    <script src="../src/view/Validator.js"></script>-->
 
 
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
     <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
     <script src="bower_components/firebase/firebase.js"></script>
+
+    <script src="projects/projects.js"></script>
+
     <script src="rsc/export.js"></script>
 </head>
 <body>
@@ -54,16 +60,29 @@
 
         <div class="col-md-6">
             <ul class="nav nav-tabs" role="tablist">
-                <li class="active"><a href="#html" role="tab" data-toggle="tab">HTML</a></li>
+                <li class="active"><a href="#main" role="tab" data-toggle="tab">HTML</a></li>
+                <li><a href="#js" role="tab" data-toggle="tab">projects.js</a></li>
+                <li><a href="#list" role="tab" data-toggle="tab">list.html</a></li>
+                <li><a href="#detail" role="tab" data-toggle="tab">detail.html</a></li>
             </ul>
             <div class="tab-content">
-                <div class="tab-pane active" id="html">
-                    <pre><code data-export="" class="language-markup"></code></pre>
+                <div class="tab-pane active" id="main">
+                    <pre><code data-export="projects/main.html" class="language-markup"></code></pre>
+                </div>
+                <div class="tab-pane" id="js">
+                    <pre><code data-export="projects/projects.js" class="language-javascript"></code></pre>
+                </div>
+                <div class="tab-pane" id="list">
+                    <pre><code data-export="projects/list.html" class="language-markup"></code></pre>
+                </div>
+                <div class="tab-pane" id="detail">
+                    <pre><code data-export="projects/detail.html" class="language-markup"></code></pre>
                 </div>
             </div>
         </div>
         <div class="col-md-6">
-
+            <h2>JavaScript Projects</h2>
+            <div mjs-view="My.ProjectsView"></div>
         </div>
     </div>
 </div>

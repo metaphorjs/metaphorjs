@@ -34,6 +34,8 @@
 
             var self    = this;
 
+            history.initPushState();
+
             apply(self, cfg, true);
 
             MetaphorJs.on("locationchange", self.onLocationChange, self);
@@ -54,6 +56,7 @@
             var self    = this,
                 url     = currentUrl(),
                 routes  = self.route,
+                def,
                 i, len,
                 r, matches;
 
@@ -65,9 +68,17 @@
                     self.changeComponent(r, matches);
                     return;
                 }
+                if (r['default'] && !def) {
+                    def = r;
+                }
             }
 
-            self.clearComponent();
+            if (def) {
+                self.changeComponent(def, []);
+            }
+            else {
+                self.clearComponent();
+            }
         },
 
         changeComponent: function(route, matches) {
@@ -110,6 +121,9 @@
                         scope: route.isolateScope ? new Scope : self.scope.$new()
                     };
 
+                if (route.as) {
+                    cfg.as = route.as;
+                }
                 if (route.template) {
                     cfg.template = route.template;
                 }

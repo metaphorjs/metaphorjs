@@ -551,7 +551,6 @@
         async: async,
 
         asyncError: function(e) {
-            throw e;
             async(function(){
                 throw e;
             });

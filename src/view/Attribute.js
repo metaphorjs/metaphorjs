@@ -401,18 +401,11 @@
 
     registerAttr("mjs-show", 500, d(null, "MetaphorJs.view.AttributeHandler", {
 
-        display: null,
         initial: true,
 
         initialize: function(scope, node, expr) {
 
             var self    = this;
-
-            self.display    = node.style.display || "block";
-
-            if (self.display == "none") {
-                self.display = "block";
-            }
 
             self.supr(scope, node, expr);
         },
@@ -421,13 +414,12 @@
 
             var self    = this,
                 style   = self.node.style,
-                display = self.display,
                 done    = function() {
                     if (!show) {
                         style.display = "none";
                     }
                     else {
-                        style.display = display;
+                        style.display = "";
                     }
                 };
 
@@ -436,7 +428,7 @@
                 show ? "show" : "hide",
                 function() {
                     if (show) {
-                        style.display = display;
+                        style.display = "";
                     }
                 })
                 .done(done);
@@ -880,8 +872,6 @@
     }));
 
 
-    var getTemplate = MetaphorJs.getTemplate;
-
     registerAttr("mjs-include", 900, function(scope, node, tplExpr, parentRenderer){
 
         var tpl = new Template({
@@ -1057,7 +1047,12 @@
 
                     scope.$event = e;
 
-                    fn(scope);
+                    try {
+                        fn(scope);
+                    }
+                    catch (e) {
+                        MetaphorJs.asyncError(e);
+                    }
 
                     delete scope.$event;
 

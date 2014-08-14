@@ -13,8 +13,8 @@ fi
 
 
 manifest=(
-    "src/view/Validator.js"
     "../metaphorjs-validator/metaphorjs.validator.js"
+    "src/view/Validator.js"
 )
 
 touch $trg

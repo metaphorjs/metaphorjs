@@ -156,24 +156,30 @@
                 var tplNode     = document.getElementById(tplId),
                     tag;
 
-                if (!tplNode) {
-                    return null;
-                }
+                if (tplNode) {
 
-                tag         = tplNode.tagName.toLowerCase();
+                    tag         = tplNode.tagName.toLowerCase();
 
-                if (tag == "script") {
-                    var div = document.createElement("div");
-                    div.innerHTML = tplNode.innerHTML;
-                    tplCache[tplId] = toFragment(div.childNodes);
-                }
-                else {
-                    if ("content" in tplNode) {
-                        tplCache[tplId] = tplNode.content;
+                    if (tag == "script") {
+                        var div = document.createElement("div");
+                        div.innerHTML = tplNode.innerHTML;
+                        tplCache[tplId] = toFragment(div.childNodes);
                     }
                     else {
-                        tplCache[tplId] = toFragment(tplNode.childNodes);
+                        if ("content" in tplNode) {
+                            tplCache[tplId] = tplNode.content;
+                        }
+                        else {
+                            tplCache[tplId] = toFragment(tplNode.childNodes);
+                        }
                     }
+                }
+                else {
+                    return tplCache[tplId] = MetaphorJs.ajax(tplId, {dataType: 'fragment'})
+                        .then(function(fragment){
+                            tplCache[tplId] = fragment;
+                            return fragment;
+                    });
                 }
             }
 
@@ -2135,6 +2141,8 @@ if (typeof global != "undefined") {
         _dones: null,
         _fails: null,
 
+        _wait: 0,
+
         _value: null,
         _reason: null,
 
@@ -2201,11 +2209,11 @@ if (typeof global != "undefined") {
         },
 
 
-        _doResolve: function(value) {
+        _callResolveHandlers: function() {
+
             var self    = this;
 
-            self._value = value;
-            self._state = FULFILLED;
+            self._done();
 
             var cbs  = self._fulfills,
                 cb;
@@ -2214,8 +2222,19 @@ if (typeof global != "undefined") {
                 next(cb[0], cb[1], [self._value]);
             }
 
-            self._done();
             self._cleanup();
+        },
+
+
+        _doResolve: function(value) {
+            var self    = this;
+
+            self._value = value;
+            self._state = FULFILLED;
+
+            if (self._wait == 0) {
+                self._callResolveHandlers();
+            }
         },
 
         _processResolveValue: function(value) {
@@ -2230,14 +2249,31 @@ if (typeof global != "undefined") {
             var self    = this;
 
             if (self._triggered) {
-                return;
+                return self;
             }
 
             self._triggered = true;
             self._processResolveValue(value);
+
+            return self;
         },
 
 
+        _callRejectHandlers: function() {
+
+            var self    = this;
+
+            self._fail();
+
+            var cbs  = self._rejects,
+                cb;
+
+            while (cb = cbs.shift()) {
+                next(cb[0], cb[1], [self._reason]);
+            }
+
+            self._cleanup();
+        },
 
         _doReject: function(reason) {
 
@@ -2246,15 +2282,9 @@ if (typeof global != "undefined") {
             self._state     = REJECTED;
             self._reason    = reason;
 
-            var cbs  = self._rejects,
-                cb;
-
-            while (cb = cbs.shift()) {
-                next(cb[0], cb[1], [reason]);
+            if (self._wait == 0) {
+                self._callRejectHandlers();
             }
-
-            self._fail();
-            self._cleanup();
         },
 
 
@@ -2270,12 +2300,14 @@ if (typeof global != "undefined") {
             var self    = this;
 
             if (self._triggered) {
-                return;
+                return self;
             }
 
             self._triggered = true;
 
             self._processRejectReason(reason);
+
+            return self;
         },
 
         /**
@@ -2289,7 +2321,7 @@ if (typeof global != "undefined") {
                 promise         = new Promise,
                 state           = self._state;
 
-            if (state == PENDING) {
+            if (state == PENDING || self._wait != 0) {
 
                 if (resolve && typeof resolve == "function") {
                     self._fulfills.push([wrapper(resolve, promise), null]);
@@ -2354,11 +2386,11 @@ if (typeof global != "undefined") {
             var self    = this,
                 state   = self._state;
 
-            if (state == PENDING) {
-                self._dones.push([fn, fnScope]);
-            }
-            else {
+            if (state == FULFILLED && self._wait == 0) {
                 fn.call(fnScope || null, self._value);
+            }
+            else if (state == PENDING) {
+                self._dones.push([fn, fnScope]);
             }
 
             return self;
@@ -2385,11 +2417,11 @@ if (typeof global != "undefined") {
             var self    = this,
                 state   = self._state;
 
-            if (state == PENDING) {
-                self._fails.push([fn, fnScope]);
-            }
-            else {
+            if (state == REJECTED && self._wait == 0) {
                 fn.call(fnScope || null, self._reason);
+            }
+            else if (state == PENDING) {
+                self._fails.push([fn, fnScope]);
             }
 
             return self;
@@ -2417,6 +2449,34 @@ if (typeof global != "undefined") {
                 fail: bind(self.fail, self),
                 always: bind(self.always, self)
             };
+        },
+
+        after: function(value) {
+
+            var self = this;
+
+            if (isThenable(value)) {
+
+                self._wait++;
+
+                var done = function() {
+                    self._wait--;
+                    if (self._wait == 0 && self._state != PENDING) {
+                        self._state == FULFILLED ?
+                            self._callResolveHandlers() :
+                            self._callRejectHandlers();
+                    }
+                };
+
+                if (typeof value.done == "function") {
+                    value.done(done);
+                }
+                else {
+                    value.then(done);
+                }
+            }
+
+            return self;
         }
     });
 
@@ -3372,6 +3432,18 @@ if (typeof global != "undefined") {
         return true;
     };
 
+    var isNativeString = function(str) {
+        if (typeof str != "string") {
+            return false;
+        }
+        var first = str.substr(0,1);
+        return !(first == '"' || first == "'" || first == ".");
+    };
+
+    var toExpression = function(str) {
+        return isNativeString(str) ? "'" + str + "'" : str;
+    };
+
     Watchable.create = create;
     Watchable.unsubscribeAndDestroy = unsubscribeAndDestroy;
     Watchable.normalizeExpr = normalizeExpr;
@@ -3381,6 +3453,8 @@ if (typeof global != "undefined") {
     Watchable.createFunc = createFunc;
     Watchable.eval = evaluate;
     Watchable.isExpression = isExpression;
+    Watchable.isNativeString = isNativeString;
+    Watchable.toExpression = toExpression;
 
     if (window.MetaphorJs && MetaphorJs.r) {
         MetaphorJs.r("MetaphorJs.lib.Watchable", Watchable);
@@ -7979,7 +8053,9 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
 
             if (isThenable(res)) {
                 res.done(function(response){
-                    nodeChildren(response, el, fn, fnScope, async);
+                    if (response !== false) {
+                        nodeChildren(response, el, fn, fnScope, async);
+                    }
                 });
             }
             else {
@@ -8389,18 +8465,237 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
 }());
 
 
+
+
+(function(){
+
+
+    var m               = window.MetaphorJs,
+        dataFn          = m.data,
+        toFragment      = m.toFragment,
+        Watchable       = m.lib.Watchable,
+        createWatchable = Watchable.create,
+        isExpression    = Watchable.isExpression,
+        evaluate        = Watchable.eval,
+        getTemplate     = m.getTemplate,
+        Renderer        = m.view.Renderer,
+        cloneFn         = m.clone,
+        Scope           = m.view.Scope,
+        animate         = m.animate,
+        Promise         = m.lib.Promise,
+        extend          = m.apply;
+
+    m.define("MetaphorJs.view.Template", {
+
+        _watcher:           null,
+        _tpl:               null,
+        _renderer:          null,
+        _initial:           true,
+        _fragment:          null,
+
+        scope:              null,
+        node:               null,
+        tpl:                null,
+        ownRenderer:        false,
+        initPromise:        null,
+        parentRenderer:     null,
+        deferRendering:     false,
+        replace:            false,
+
+        initialize: function(cfg) {
+
+            var self    = this;
+
+            extend(self, cfg, true);
+
+            var node    = self.node;
+
+            node.removeAttribute("mjs-include");
+
+            if (self.tpl) {
+
+                if (node.firstChild) {
+                    dataFn(node, "mjs-transclude", toFragment(node.childNodes));
+                }
+
+                if (isExpression(self.tpl) && !self.replace) {
+                    self.ownRenderer        = true;
+                    self._watcher           = createWatchable(self.scope, self.tpl, self.onChange, self);
+                }
+
+                if (self.replace) {
+                    self.ownRenderer        = false;
+                }
+
+                self.initPromise = self.resolveTemplate();
+
+                if (!self.deferRendering || !self.ownRenderer) {
+                    self.initPromise.done(self.applyTemplate, self);
+                }
+
+                if (self.ownRenderer && self.parentRenderer) {
+                    self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
+                }
+            }
+            else {
+                if (!self.deferRendering && self.ownRenderer) {
+                    self.doRender();
+                }
+            }
+
+            if (self.scope instanceof Scope) {
+                self.scope.$on("destroy", self.onScopeDestroy, self);
+            }
+        },
+
+        doRender: function() {
+            var self = this;
+            if (!self._renderer) {
+                self._renderer   = new Renderer(self.node, self.scope);
+                self._renderer.render();
+            }
+        },
+
+        startRendering: function() {
+
+            var self    = this,
+                tpl     = self.tpl;
+
+            if (self.deferRendering) {
+
+                self.deferRendering = false;
+                if (self.initPromise) {
+                    self.initPromise.done(tpl ? self.applyTemplate : self.doRender, self);
+                }
+                else {
+                    tpl ? self.applyTemplate() : self.doRender();
+                }
+            }
+        },
+
+        resolveTemplate: function() {
+
+            var self    = this,
+                tplId   = self._watcher ? self._watcher.getLastResult() : evaluate(self.tpl, self.scope);
+
+            var returnPromise = new Promise;
+
+            new Promise(function(resolve, reject){
+                    resolve(getTemplate(tplId));
+                })
+                .done(function(fragment){
+                    self._fragment = fragment;
+                    returnPromise.resolve(!self.ownRenderer);
+                })
+                .fail(returnPromise.reject, returnPromise);
+
+            return returnPromise;
+        },
+
+        onChange: function() {
+
+            var self    = this;
+
+            if (self._renderer) {
+                self._renderer.destroy();
+                self._renderer = null;
+            }
+
+            self.resolveTemplate()
+                .done(self.applyTemplate, self);
+        },
+
+        doApplyTemplate: function() {
+
+            var self    = this,
+                el      = self.node;
+
+            while (el.firstChild) {
+                el.removeChild(el.firstChild);
+            }
+
+            if (self.replace) {
+                el.parentNode.replaceChild(cloneFn(self._fragment), el);
+            }
+            else {
+                el.appendChild(cloneFn(self._fragment));
+            }
+
+            if (self.ownRenderer) {
+                self.doRender();
+            }
+        },
+
+        applyTemplate: function() {
+
+            var self        = this,
+                el          = self.node,
+                deferred    = new Promise;
+
+            if (!self._initial) {
+                animate(el, "leave")
+                    .done(self.doApplyTemplate, self)
+                    .done(deferred.resolve, deferred);
+                animate(el, "enter");
+            }
+            else {
+                self.doApplyTemplate();
+                deferred.resolve();
+            }
+
+            self._initial = false;
+
+            return deferred;
+        },
+
+        onParentRendererDestroy: function() {
+
+            this._renderer.destroy();
+            this.destroy();
+
+            delete this._renderer;
+        },
+
+        onScopeDestroy: function() {
+            this.destroy();
+
+            // renderer itself subscribes to scope's destroy event
+            delete this._renderer;
+        },
+
+        destroy: function() {
+
+            var self    = this;
+
+            delete self.node;
+            delete self.scope;
+            delete self.initPromise;
+
+            if (self._watcher) {
+                self._watcher.unsubscribeAndDestroy(self.onChange, self);
+                delete self._watcher;
+            }
+
+            delete self.tpl;
+        }
+
+    });
+
+}());
+
 (function(){
 
     "use strict";
 
     var cmps        = {},
         nextUid     = MetaphorJs.nextUid,
-        getTemplate = MetaphorJs.getTemplate,
-        Renderer    = MetaphorJs.view.Renderer,
-        dataFn      = MetaphorJs.data,
-        toFragment  = MetaphorJs.toFragment,
-        isThenable  = MetaphorJs.isThenable,
-        emptyFn     = MetaphorJs.emptyFn;
+        emptyFn     = MetaphorJs.emptyFn,
+        g           = MetaphorJs.ns.get,
+        Promise     = MetaphorJs.lib.Promise,
+        Template    = MetaphorJs.view.Template,
+        trim        = MetaphorJs.trim,
+        toExpression    = MetaphorJs.lib.Watchable.toExpression;
+
 
     var getCmpId    = function(cmp) {
         return cmp.id || "cmp-" + nextUid();
@@ -8446,6 +8741,11 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
         renderTo:       null,
 
         /**
+         * @var {boolean}
+         */
+        autoRender:     true,
+
+        /**
          * @var bool
          * @access protected
          */
@@ -8464,17 +8764,12 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
         destroyEl:      true,
 
         /**
-         * @var MetaphorJs.view.Renderer
-         */
-        renderer:      null,
-
-        /**
-         * @var MetaphorJs.view.Scope
+         * @var {MetaphorJs.view.Scope}
          */
         scope:          null,
 
         /**
-         * @var string
+         * @var {MetaphorJs.view.Template}
          */
         template:       null,
 
@@ -8483,7 +8778,6 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
          */
         tag:            null,
 
-        initPromise:    null,
 
         /**
          * @constructor
@@ -8516,97 +8810,45 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
 
             registerCmp(self);
 
-            var promise = self.initComponent.apply(self, arguments);
+            self.initComponent.apply(self, arguments);
 
-            if (isThenable(promise)) {
-                self.initPromise = promise;
-                if (self.node) {
-                    self.node.style.visibility = "hidden";
-                }
-                promise.done(self.finishInitialize, self);
-            }
-            else {
-                self.finishInitialize();
-            }
-        },
-
-        finishInitialize: function() {
-
-            var self = this;
-
-            self.initPromise = null;
-
-            if (self.node) {
-                self.node.style.visibility = "";
-            }
 
             if (!self.node) {
                 self._createNode();
             }
-            else if (self.template) {
-                self._applyTemplate();
+
+            var tpl = self.template;
+
+            if (!tpl || !(tpl instanceof Template)) {
+                self.template = tpl = new Template({
+                    scope: self.scope,
+                    node: self.node,
+                    deferRendering: true,
+                    ownRenderer: true,
+                    tpl: toExpression(trim(tpl))
+                });
+            }
+
+            if (self.parentRenderer) {
+                self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
             }
 
             self._initElement();
 
-            if (!self.node.parentNode && self.renderTo) {
-                self.render(self.renderTo);
-            }
-            else if (self.node) {
-                self.render();
+            if (self.autoRender) {
+                if (tpl.initPromise) {
+                    tpl.initPromise.done(self.render, self);
+                }
+                else {
+                    self.render();
+                }
             }
         },
 
         _createNode: function() {
 
-            var self    = this,
-                tmp, tpl;
-
-            if (self.tag) {
-                self.node   = document.createElement(self.tag);
-            }
-            else {
-
-                tpl     = getTemplate(self.template) || self.template;
-
-                if (typeof tpl == "string") {
-                    tmp = document.createElement("div");
-                    tmp.innerHTML = tpl;
-                    tpl = toFragment(tmp.childNodes);
-                }
-
-                if (tpl.childNodes.length == 1) {
-                    self.node   = tpl.firstChild.cloneNode(true);
-                }
-                else {
-                    self.node = document.createElement('div');
-                    self.node.appendChild(tpl.cloneNode(true));
-                }
-            }
-        },
-
-        _applyTemplate: function() {
-
-            var self        = this,
-                node        = self.node,
-                tpl         = getTemplate(self.template) || self.template,
-                clone,
-                tmp;
-
-            if (typeof tpl == "string") {
-                tmp = document.createElement("div");
-                tmp.innerHTML = tpl;
-                clone = toFragment(tmp.childNodes);
-            }
-            else {
-                clone   = MetaphorJs.clone(tpl);
-            }
-
-            if (node.firstChild) {
-                dataFn(self.node, "mjs-transclude", toFragment(node.childNodes));
-            }
-
-            node.appendChild(clone);
+            var self    = this;
+            self.node   = document.createElement(self.tag || 'div');
         },
 
         _initElement: function() {
@@ -8620,15 +8862,9 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
             if (self.hidden) {
                 node.style.display = "none";
             }
-
-            self.renderer   = new Renderer(self.node, self.scope);
-            self.renderer.render();
         },
 
-        /**
-         * @param {string|Element} to
-         */
-        render: function(to) {
+        render: function() {
 
             var self        = this;
 
@@ -8636,12 +8872,14 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                 return;
             }
 
-            if (to) {
-                to.appendChild(self.node);
+            if (self.renderTo) {
+                self.renderTo.appendChild(self.node);
             }
 
             self.hidden     = !MetaphorJs.isVisible(self.node);
             self.rendered   = true;
+
+            self.template.startRendering();
 
             self.trigger('render', self);
             self.afterRender();
@@ -8745,13 +8983,20 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
          */
         onHide:         emptyFn,
 
+        onParentRendererDestroy: function() {
+            this.destroy();
+        },
 
         onDestroy:      function() {
 
             var self    = this;
 
+            if (self.template) {
+                self.template.destroy();
+                delete self.template;
+            }
+
             if (self.destroyEl) {
-                console.log("destroy")
                 if (self.node.parentNode) {
                     self.node.parentNode.removeChild(self.node);
                 }
@@ -8761,11 +9006,6 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                 if (!self.originalId) {
                     self.node.removeAttribute("id");
                 }
-            }
-
-            if (self.rendered) {
-                self.renderer.destroy();
-                delete self.renderer;
             }
 
             self.scope.$destroy();
@@ -8789,75 +9029,55 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
     MetaphorJs.getCmp           = getCmp;
 
 
-    if (window.jQuery) {
+    MetaphorJs.resolveComponent = function(cmp, cfg, scope, node, parentRenderer, args) {
 
+        var constr  = typeof cmp == "string" ? g(cmp) : cmp,
+            i,
+            defers  = [],
+            tpl     = constr.template || cfg.template;
 
-        /**
-         * @namespace
-         * @function $.fn.createCmp
-         * @param {string} name
-         * @param {object} cfg See MetaphorJs.cmp.Component constructor
-         * @returns jQuery
-         */
-        jQuery.fn.createCmp = function(name, cfg) {
+        args        = args || [];
 
-            var cmp = null;
+        if (constr.resolve) {
 
-            if (name && typeof name != "string") {
-                cfg     = name;
-                name    = null;
+            for (i in constr.resolve) {
+                (function(name){
+                    var d = new Promise;
+                    defers.push(d.done(function(value){
+                        cfg[name] = value;
+                    }));
+                    d.resolve(constr.resolve[i](scope, node));
+                }(i));
             }
+        }
+        if (tpl) {
 
-            name    = name || "MetaphorJs.cmp.Component";
-            cfg     = cfg || {};
-
-            this.each(function() {
-
-                var o   = $(this),
-                    id  = o.attr('cmp-id');
-
-                if (id) {
-                    cmp     = getCmp(id);
-                    return false;
-                }
-
-                cfg.node    = this;
-                cmp         = MetaphorJs.create(name, cfg);
-
-                return false;
+            cfg.template = new Template({
+                scope: scope,
+                node: node,
+                deferRendering: true,
+                ownRenderer: true,
+                tpl: toExpression(trim(tpl))
             });
 
-            return cmp;
-        };
+            defers.push(cfg.template.initPromise);
+        }
 
-        /**
-         * @function $.fn.getCmp
-         * @return MetaphorJs.cmp.Component
-         */
-        jQuery.fn.getCmp = function() {
-            return getCmp(this.attr('cmp-id'));
-        };
+        var deferred = defers.length;
 
-        /**
-         * @function $.fn.getParentCmp
-         * @return MetaphorJs.cmp.Component
-         */
-        jQuery.fn.getParentCmp   = function() {
+        if (deferred) {
+            node.style.visibility = 'hidden';
+        }
 
-            if (!this.attr("cmp-id")) {
-                var parent = this.parents("[cmp-id]").eq(0);
-                if (parent.length) {
-                    return MetaphorJs.getCmp(parent.attr("cmp-id"));
-                }
+        args.unshift(cfg);
+
+        return Promise.all(defers).then(function(){
+            if (deferred) {
+                node.style.visibility = 'visible';
             }
-            else {
-                return MetaphorJs.getCmp(this.attr("cmp-id"));
-            }
-
-            return null;
-        };
-
-    }
+            return constr.__instantiate.apply(null, args);
+        });
+    };
 
 
 }());
@@ -8873,7 +9093,8 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
         animate     = MetaphorJs.animate,
         Scope       = MetaphorJs.lib.Scope,
         apply       = MetaphorJs.apply,
-        stop        = MetaphorJs.stopAnimation;
+        stop        = MetaphorJs.stopAnimation,
+        resolveComponent    = MetaphorJs.resolveComponent;
 
     MetaphorJs.define("MetaphorJs.cmp.View", {
 
@@ -8882,6 +9103,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
          *  {
          *      reg: /.../,
          *      cmp: 'Cmp.Name',
+         *      template: '',
          *      isolateScope: bool
          *  }
          * ]
@@ -8896,6 +9118,8 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
 
             var self    = this;
 
+            history.initPushState();
+
             apply(self, cfg, true);
 
             MetaphorJs.on("locationchange", self.onLocationChange, self);
@@ -8906,6 +9130,8 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                 dataFn(node, "mjs-transclude", toFragment(node.childNodes));
             }
 
+            node.removeAttribute("mjs-view");
+
             this.onLocationChange();
         },
 
@@ -8914,6 +9140,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
             var self    = this,
                 url     = currentUrl(),
                 routes  = self.route,
+                def,
                 i, len,
                 r, matches;
 
@@ -8925,15 +9152,24 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                     self.changeComponent(r, matches);
                     return;
                 }
+                if (r['default'] && !def) {
+                    def = r;
+                }
             }
 
-            self.clearComponent();
+            if (def) {
+                self.changeComponent(def, []);
+            }
+            else {
+                self.clearComponent();
+            }
         },
 
         changeComponent: function(route, matches) {
-            stop(this.node);
-            this.clearComponent();
-            this.setComponent(route, matches);
+            var self = this;
+            stop(self.node);
+            self.clearComponent();
+            self.setComponent(route, matches);
         },
 
         clearComponent: function() {
@@ -8941,14 +9177,18 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                 node    = self.node;
 
             if (self.currentComponent) {
+
                 animate(node, "leave").done(function(){
+
                     self.currentComponent.destroy();
                     self.currentComponent = null;
+
                     while (node.firstChild) {
                         node.removeChild(node.firstChild);
                     }
                 });
             }
+
         },
 
         setComponent: function(route, matches) {
@@ -8958,22 +9198,34 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
 
             animate(node, "enter", function(){
 
-                var constr  = g(route.cmp || "MetaphorJs.cmp.Component"),
-                    args    = matches,
+                var args    = matches || [],
                     cfg     = {
                         destroyEl: false,
                         node: node,
                         scope: route.isolateScope ? new Scope : self.scope.$new()
                     };
 
+                if (route.as) {
+                    cfg.as = route.as;
+                }
                 if (route.template) {
                     cfg.template = route.template;
                 }
 
                 args.shift();
-                args.unshift(cfg);
-                self.currentComponent = constr.__instantiate.apply(null, args);
-                return self.currentComponent.initPromise;
+
+                return resolveComponent(
+                        route.cmp || "MetaphorJs.cmp.Component",
+                        cfg,
+                        cfg.scope,
+                        node,
+                        null,
+                        args
+                    )
+                    .done(function(newCmp){
+                        self.currentComponent = newCmp;
+                    });
+
             });
         }
     });
@@ -9007,13 +9259,15 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
         createGetter    = Watchable.createGetter,
         animate         = MetaphorJs.animate,
         isExpression    = Watchable.isExpression,
-        ajax            = MetaphorJs.ajax,
         evaluate        = Watchable.eval,
         addClass        = MetaphorJs.addClass,
         removeClass     = MetaphorJs.removeClass,
         hasClass        = MetaphorJs.hasClass,
         stopAnimation   = MetaphorJs.stopAnimation,
-        isArray         = MetaphorJs.isArray;
+        isArray         = MetaphorJs.isArray,
+        isThenable      = MetaphorJs.isThenable,
+        Template        = MetaphorJs.view.Template,
+        resolveComponent;
 
 
     var parentData  = function(node, key) {
@@ -9383,18 +9637,11 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
 
     registerAttr("mjs-show", 500, d(null, "MetaphorJs.view.AttributeHandler", {
 
-        display: null,
         initial: true,
 
         initialize: function(scope, node, expr) {
 
             var self    = this;
-
-            self.display    = node.style.display || "block";
-
-            if (self.display == "none") {
-                self.display = "block";
-            }
 
             self.supr(scope, node, expr);
         },
@@ -9403,13 +9650,12 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
 
             var self    = this,
                 style   = self.node.style,
-                display = self.display,
                 done    = function() {
                     if (!show) {
                         style.display = "none";
                     }
                     else {
-                        style.display = display;
+                        style.display = "";
                     }
                 };
 
@@ -9418,7 +9664,7 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
                 show ? "show" : "hide",
                 function() {
                     if (show) {
-                        style.display = display;
+                        style.display = "";
                     }
                 })
                 .done(done);
@@ -9862,175 +10108,35 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
     }));
 
 
-    var getTemplate = MetaphorJs.getTemplate;
+    registerAttr("mjs-include", 900, function(scope, node, tplExpr, parentRenderer){
 
-    registerAttr("mjs-include", 900, d(null, {
+        var tpl = new Template({
+            scope: scope,
+            node: node,
+            tpl: tplExpr,
+            parentRenderer: parentRenderer
+        });
 
-        watcher: null,
-        scope: null,
-        node: null,
-        expr: null,
-        tpl: null,
-        renderer: null,
-        $stopRenderer: false,
-        initial: true,
-
-        initialize: function(scope, node, tplExpr, parentRenderer) {
-
-            var self    = this,
-                tpl;
-
-            self.node   = node;
-            self.scope  = scope;
-
-            if (node.firstChild) {
-                dataFn(node, "mjs-transclude", toFragment(node.childNodes));
-            }
-
-            node.removeAttribute("mjs-include");
-
-            if (isExpression(tplExpr)) {
-                self.watcher            = createWatchable(scope, tplExpr, self.onChange, self);
-                self.$stopRenderer      = true;
-                self.$returnToRenderer  = self.onChange();
-
-                parentRenderer.on("destroy", self.onParentRendererDestroy, self);
-            }
-            else {
-                tplExpr = evaluate(tplExpr);
-                tpl = getTemplate(tplExpr);
-                if (tpl) {
-                    self.$returnToRenderer = self.applyTemplate(node, tpl);
-                }
-                else {
-                    self.$returnToRenderer = ajax(tplExpr, {dataType: "fragment"}).then(function(fragment){
-                        return self.applyTemplate(node, fragment);
-                    });
-                }
-            }
-
-            if (scope instanceof Scope) {
-                scope.$on("destroy", self.onScopeDestroy, self);
-            }
-        },
-
-        onChange: function() {
-
-            var self    = this,
-                tplId   = self.watcher.getLastResult();
-
-            if (self.renderer) {
-                self.renderer.destroy();
-            }
-
-            return self.applyTemplate(self.node, getTemplate(tplId))
-                .done(function(){
-                    self.renderer   = new Renderer(self.node, self.scope);
-                    self.renderer.render();
-                });
-        },
-
-        applyTemplate: function(el, tpl) {
-
-            var self        = this,
-                deferred    = new Promise,
-
-                applyNext   = function() {
-
-                    while (el.firstChild) {
-                        el.removeChild(el.firstChild);
-                    }
-
-                    if (tpl) {
-                        el.appendChild(MetaphorJs.clone(tpl));
-
-                    }
-
-                    deferred.resolve();
-                };
-
-            if (!self.initial) {
-                animate(el, "leave").done(applyNext);
-                animate(el, "enter");
-            }
-            else {
-                applyNext();
-            }
-
-            self.initial = false;
-
-            return deferred.promise();
-        },
-
-        onParentRendererDestroy: function() {
-
-            this.renderer.destroy();
-            this.destroy();
-
-            delete this.renderer;
-        },
-
-        onScopeDestroy: function() {
-            this.destroy();
-
-            // renderer itself subscribes to scope's destroy event
-            delete this.renderer;
-        },
-
-        destroy: function() {
-
-            var self    = this;
-
-            delete self.node;
-            delete self.scope;
-
-            if (self.watcher) {
-                self.watcher.unsubscribeAndDestroy(self.onChange, self);
-                delete self.watcher;
-            }
-
-            delete self.tpl;
-        }
-
-    }));
-
-    registerTag("mjs-include", 900, function(scope, node) {
-
-        var tplExpr     = node.getAttribute("src"),
-            tplId       = evaluate(tplExpr, scope),
-            tpl         = getTemplate(tplId);
-
-        if (node.firstChild) {
-            dataFn(node, "mjs-transclude", toFragment(node.childNodes));
-        }
-
-        var applyTemplate = function() {
-            var parent      = node.parentNode,
-                next        = node.nextSibling,
-                clone       = MetaphorJs.clone(tpl),
-                children    = toArray(clone.childNodes),
-                deferred    = new Promise;
-
-            parent.removeChild(node);
-            parent.insertBefore(clone, next);
-
-            animate(node, "enter")
-                .done(function(){
-                    deferred.resolve(children);
-                });
-
-            return deferred.promise();
-        };
-
-        if (tpl) {
-            return applyTemplate();
+        if (tpl.ownRenderer) {
+            return false;
         }
         else {
-            return ajax(tplId, {dataType: "fragment"}).then(function(fragment){
-                tpl = fragment;
-                return applyTemplate();
-            });
+            return tpl.initPromise;
         }
+    });
+
+    registerTag("mjs-include", 900, function(scope, node, value, parentRenderer) {
+
+        var tpl = new Template({
+            scope: scope,
+            node: node,
+            tpl: node.getAttribute("src"),
+            parentRenderer: parentRenderer,
+            replace: true
+        });
+
+        return tpl.initPromise;
+
     });
 
 
@@ -10177,7 +10283,12 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
 
                     scope.$event = e;
 
-                    fn(scope);
+                    try {
+                        fn(scope);
+                    }
+                    catch (e) {
+                        MetaphorJs.asyncError(e);
+                    }
 
                     delete scope.$event;
 
@@ -10219,14 +10330,17 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
         }(boolAttrs[i]));
     }
 
-    var cmpAttribute = function(scope, node, expr){
+    var cmpAttribute = function(scope, node, expr, parentRenderer){
+
+        if (!resolveComponent) {
+            resolveComponent = MetaphorJs.resolveComponent;
+        }
 
         var cmpName,
             as,
             tmp,
             i, len,
             part,
-            constr,
             cmp;
 
         node.removeAttribute("mjs-cmp");
@@ -10249,14 +10363,15 @@ MetaphorJs.d("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
             }
         }
 
-        constr      = g(cmpName);
-        cmp         = new constr({
-            scope: scope,
-            node: node,
-            as: as
-        });
+        var cfg     = {
+                scope: scope,
+                node: node,
+                as: as,
+                parentRenderer: parentRenderer
+            };
 
-        return cmp.$returnToRenderer || false;
+        resolveComponent(cmpName, cfg, scope, node, parentRenderer);
+        return false;
     };
 
     cmpAttribute.$breakScope = true;
