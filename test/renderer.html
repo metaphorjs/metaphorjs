@@ -169,9 +169,15 @@
                 <span>{{ .num | numeral:'0,00.0000'}}</span>
                 <span>{{ .date | moment:'LLL'}}</span>
             </p>
+
+            <hr>
+
             <p mjs-class="{cls1: .bool, cls2: .a == 0}" mjs-animate>
                 {{ .a + .b }}
             </p>
+
+            <hr>
+
             <a href="http://{{.text}}.com" mjs-click=".bool = !.bool">{{.subtext | limitTo:.a}}</a><br>
             <input mjs-bind=".a * .b"/>
             <input mjs-model=".a" type="number" mjs-input-type="number"/>
@@ -181,6 +187,9 @@
             <input type="radio" name="r" value="header2"/>3
 
             <br><br>
+            <hr>
+
+
             <input mjs-model=".newItem" mjs-enter="if (.newItem) {.list.push({bool: false, txt: .newItem}); .newItem = '';}"/>
             <input type="button"
                    mjs-disabled="!.newItem"
@@ -206,11 +215,17 @@
             <a href="#" mjs-click=".sortBy='asc'">asc</a>
             <a href="#" mjs-click=".sortBy='desc'">desc</a>
 
+            <hr>
+
             <div mjs-include="test-template" mjs-hide="!.bool" mjs-animate>
                 <p>transcluded text</p>
             </div>
 
+            <hr>
+
             <div mjs-include="test-template"></div>
+
+            <hr>
 
             <form name="myForm" mjs-validate mjs-class="{error: .myForm.$invalid}" mjs-animate>
                 <h2>Test form</h2>
@@ -260,7 +275,7 @@
 
             <div mjs-cmp="Test.TplComponent as ctrl" mjs-if=".$parent.bool" mjs-animate>
                 <h2>{{ .title }}</h2>
-                change template:
+                mjs-include change template:
                 <a href="#" mjs-click=".tpl='a+b'">a + b</a> |
                 <a href="#" mjs-click=".tpl='a*b'">a * b</a>
 
@@ -270,6 +285,14 @@
             <hr>
 
             <div mjs-cmp="Test.StringTemplate"></div>
+
+            <hr>
+
+            <div mjs-cmp="Test.ChangeTemplate">
+                mjs-cmp change template:
+                <a href="#" mjs-click=".tpl=.tpl1">tpl1</a> |
+                <a href="#" mjs-click=".tpl=.tpl2">tpl2</a>
+            </div>
 
             <hr>
 
@@ -398,6 +421,22 @@
 
             MetaphorJs.d("Test.StringTemplate", "MetaphorJs.cmp.Component", {}, {
                 template: '<p>This template is inlined in components definition ({{.$root.a}})</p>'
+            });
+
+            MetaphorJs.d("Test.ChangeTemplate", "MetaphorJs.cmp.Component", {
+
+                template: '.tpl',
+
+                initComponent: function() {
+
+                    var scope = this.scope;
+
+                    scope.tpl1 = '<p>Template 1</p><div mjs-transclude></div>';
+                    scope.tpl2 = '<p>Template 2</p><div mjs-transclude></div>';
+
+                    scope.tpl = scope.tpl1;
+                }
+
             });
 
             var dataObj     = {

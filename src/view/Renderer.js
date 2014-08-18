@@ -23,7 +23,7 @@
         }();
 
 
-    var nodeChildren = function(res, el, fn, fnScope, async, finish, cnt) {
+    var nodeChildren = function(res, el, fn, fnScope, finish, cnt) {
 
             var children = [],
                 i, len;
@@ -31,7 +31,7 @@
             if (res && res !== true) {
                 if (res.nodeType) {
                     cnt.countdown += 1;
-                    eachNode(res, fn, fnScope, async, finish, cnt);
+                    eachNode(res, fn, fnScope, finish, cnt);
                     return;
                 }
                 else {
@@ -49,13 +49,13 @@
 
             for(i = -1;
                 ++i < len;
-                eachNode(children[i], fn, fnScope, async, finish, cnt)){}
+                eachNode(children[i], fn, fnScope, finish, cnt)){}
         },
 
 
         rSkipTag = /^(script|template|mjs-template|style)$/i,
 
-        eachNode = function(el, fn, fnScope, async, finish, cnt) {
+        eachNode = function(el, fn, fnScope, finish, cnt) {
 
             var res,
                 tag = el.nodeName;
@@ -66,7 +66,7 @@
             }
 
             try {
-                res = fn.call(fnScope, el, async);
+                res = fn.call(fnScope, el);
             }
             catch (e) {
                 MetaphorJs.error(e);
@@ -75,17 +75,23 @@
             if (res !== false) {
 
                 if (isThenable(res)) {
+
+                    //el.style.visibility = 'hidden';
+
                     res.done(function(response){
 
                         if (response !== false) {
-                            nodeChildren(response, el, fn, fnScope, async, finish, cnt);
+                            nodeChildren(response, el, fn, fnScope, finish, cnt);
                         }
+
+                        //el.style.visibility = '';
+
                         --cnt.countdown == 0 && finish && finish.call(fnScope);
                     });
                     return; // prevent countdown
                 }
                 else {
-                    nodeChildren(res, el, fn, fnScope, async, finish, cnt);
+                    nodeChildren(res, el, fn, fnScope, finish, cnt);
                 }
             }
 
@@ -178,7 +184,7 @@
             }
         },
 
-        processNode: function(node, async) {
+        processNode: function(node) {
 
             var self        = this,
                 nodeType    = node.nodeType,
@@ -202,9 +208,7 @@
 
                 if (txt.watchers.length > 0) {
                     texts.push(txt);
-                    if (async) {
-                        self.renderText(inx);
-                    }
+                    self.renderText(inx);
                 }
             }
 
@@ -261,9 +265,7 @@
 
                         if (txt.watchers.length > 0) {
                             texts.push(txt);
-                            if (async) {
-                                self.renderText(inx);
-                            }
+                            self.renderText(inx);
                         }
                     }
                 }
@@ -274,12 +276,12 @@
 
         process: function() {
             var self    = this;
-            eachNode(self.el, self.processNode, self, false, self.onProcessingFinished, {countdown: 1});
+            eachNode(self.el, self.processNode, self, self.onProcessingFinished, {countdown: 1});
         },
 
         onProcessingFinished: function() {
             var self = this;
-            self.render();
+            //self.render();
             observer.trigger("rendered-" + self.id, self);
         },
 

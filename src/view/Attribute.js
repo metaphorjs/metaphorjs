@@ -63,9 +63,7 @@
             self.node       = node;
             self.expr       = expr;
             self.scope      = scope;
-            self.watcher    = createWatchable(scope, expr);
-
-            self.watcher.addListener(self.onChange, self);
+            self.watcher    = createWatchable(scope, expr, self.onChange, self);
 
             self.onChange();
 

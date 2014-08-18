@@ -2,15 +2,15 @@
 
     "use strict";
 
-    var cmps        = {},
-        extend      = MetaphorJs.extend,
-        nextUid     = MetaphorJs.nextUid,
-        emptyFn     = MetaphorJs.emptyFn,
-        g           = MetaphorJs.ns.get,
-        Promise     = MetaphorJs.lib.Promise,
-        Template    = MetaphorJs.view.Template,
-        trim        = MetaphorJs.trim,
-        toExpression    = MetaphorJs.lib.Watchable.toExpression;
+    var m           = window.MetaphorJs,
+        extend      = m.extend,
+        nextUid     = m.nextUid,
+        emptyFn     = m.emptyFn,
+        g           = m.ns.get,
+        Promise     = m.lib.Promise,
+        Template    = m.view.Template,
+        toFragment  = m.toFragment,
+        dataFn      = m.data;
 
 
     var getCmpId    = function(cmp) {
@@ -129,7 +129,7 @@
                 self.template = tpl = new Template({
                     scope: self.scope,
                     node: self.node,
-                    deferRendering: true,
+                    deferRendering: !tpl,
                     ownRenderer: true,
                     tpl: tpl,
                     url: url
@@ -183,8 +183,6 @@
                 self.renderTo.appendChild(self.node);
             }
 
-            self.hidden     = !MetaphorJs.isVisible(self.node);
-
             self.trigger('render', self);
 
             self.template.on("rendered", self.onRenderingFinished, self);
@@ -194,6 +192,7 @@
         onRenderingFinished: function() {
             var self = this;
             self.rendered   = true;
+            //self.hidden     = !MetaphorJs.isVisible(self.node);
             self.afterRender();
             self.trigger('afterrender', self);
         },
@@ -384,25 +383,30 @@
             });
 
             defers.push(cfg.template.initPromise);
-        }
 
-        var deferred = defers.length;
-
-        if (deferred) {
-            node.style.visibility = 'hidden';
+            if (node.firstChild) {
+                dataFn(node, "mjs-transclude", toFragment(node.childNodes));
+            }
         }
 
         args.unshift(cfg);
 
-        return Promise.all(defers).then(function(){
-            if (deferred) {
-                node.style.visibility = 'visible';
-            }
+        if (defers.length) {
+            var p = new Promise;
 
+            // if there are no defers, we avoid nextTick
+            // by using done instead of then
+            Promise.all(defers).done(function(){
+                cfg.$config = cfg;
+                p.resolve(app.inject(constr, null, true, cfg, args));
+            });
+
+            return p;
+        }
+        else {
             cfg.$config = cfg;
-
-            return app.inject(constr, null, true, cfg, args);
-        });
+            return Promise.resolve(app.inject(constr, null, true, cfg, args))
+        }
     };
 
 
