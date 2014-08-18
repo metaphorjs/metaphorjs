@@ -315,29 +315,16 @@
             }, 0);
         },
 
-        Scope,
-        Renderer,
+        appFn = function(node, cls, data) {
 
-        appFn = function(node, scope) {
+            cls = cls || "MetaphorJs.cmp.App";
 
-            if (!Scope) {
-                Scope = MetaphorJs.view.Scope;
-                Renderer = MetaphorJs.view.Renderer;
+            try {
+                return MetaphorJs.create(cls, node, data);
             }
-
-            if (!scope) {
-                scope   = new Scope;
+            catch (e) {
+                MetaphorJs.error(e);
             }
-            else {
-                if (!(scope instanceof Scope)) {
-                    scope   = new Scope(scope);
-                }
-            }
-
-            var renderer    = new Renderer(node, scope);
-            renderer.render();
-
-            return renderer;
         };
 
 
@@ -375,6 +362,10 @@
             return any && //(typeof any == "object" || typeof any == "function") &&
                    typeof (then = any.then) == "function" ?
                     then : false;
+        },
+
+        isInjectable: function(any) {
+            return any.length && typeof any[any.length - 1] == "function";
         },
 
         async: async,
@@ -1637,12 +1628,12 @@
         self._dones      = [];
         self._fails      = [];
 
-        if (fn) {
+        if (typeof fn != "undefined") {
 
-            if (isThenable(fn)) {
+            if (isThenable(fn) || typeof fn != "function") {
                 self.resolve(fn);
             }
-            else if (typeof fn == "function") {
+            else {
                 try {
                     fn.call(fnScope,
                             bind(self.resolve, self),
@@ -1651,9 +1642,6 @@
                 catch (e) {
                     self.reject(e);
                 }
-            }
-            else {
-                throw "Cannot construct Promise with given value";
             }
         }
     };
@@ -2013,14 +2001,13 @@
          * @returns {Promise}
          */
         resolve: function(value) {
-            if (isThenable(value) || typeof value == "function") {
+            return new Promise(value);
+            /*if (isThenable(value) || typeof value == "function") {
                 return new Promise(value);
             }
             else {
-                var p = new Promise;
-                p.resolve(value);
-                return p;
-            }
+                return (new Promise).resolve(value);
+            }*/
         },
 
         /**
@@ -2045,12 +2032,12 @@
 
             var p       = new Promise,
                 len     = promises.length,
-                values  = [],
+                values  = new Array(len),
                 cnt     = len,
                 i,
                 item,
-                done    = function(value) {
-                    values.push(value);
+                done    = function(value, inx) {
+                    values[inx] = value;
                     cnt--;
 
                     if (cnt == 0) {
@@ -2059,17 +2046,27 @@
                 };
 
             for (i = 0; i < len; i++) {
-                item = promises[i];
 
-                if (item instanceof Promise) {
-                    item.done(done).fail(p.reject, p);
-                }
-                else if (isThenable(item) || typeof item == "function") {
-                    (new Promise(item)).done(done).fail(p.reject, p);
-                }
-                else {
-                    done(item);
-                }
+                (function(inx){
+                    item = promises[i];
+
+                    if (item instanceof Promise) {
+                        item.done(function(value){
+                                done(value, inx);
+                            })
+                            .fail(p.reject, p);
+                    }
+                    else if (isThenable(item) || typeof item == "function") {
+                        (new Promise(item))
+                            .done(function(value){
+                                done(value, inx);
+                            })
+                            .fail(p.reject, p);
+                    }
+                    else {
+                        done(item, inx);
+                    }
+                })(i);
             }
 
             return p;
@@ -3781,7 +3778,10 @@ if (typeof global != "undefined") {
 
         fnBodyStart = 'try {',
 
-        fnBodyEnd   = ';} catch (e) { error(e); }';
+        fnBodyEnd   = ';} catch (e) { watchableError(e); }';
+
+    typeof window != "undefined" && (window.watchableError = error);
+    typeof global != "undefined" && (global.watchableError = error);
 
     var prepareCode = function prepareCode(expr) {
         return expr.replace(REG_REPLACE_EXPR, '$1____.$3');
@@ -5482,6 +5482,7 @@ if (typeof global != "undefined") {
 
     Scope = MetaphorJs.d("MetaphorJs.view.Scope", {
 
+        $app: null,
         $parent: null,
         $root: null,
         $isRoot: false,
@@ -5496,7 +5497,7 @@ if (typeof global != "undefined") {
 
             self.$$observable    = new Observable;
 
-            extend(self, cfg);
+            extend(self, cfg, true);
 
             if (self.$parent) {
                 self.$parent.$on("check", self.$$onParentCheck, self);
@@ -5512,7 +5513,8 @@ if (typeof global != "undefined") {
             var self = this;
             return new Scope({
                 $parent: self,
-                $root: self.$root
+                $root: self.$root,
+                $app: self.$app
             });
         },
 
@@ -5582,6 +5584,9 @@ if (typeof global != "undefined") {
 
             self.$$observable.destroy();
             delete self.$$observable;
+            delete self.$app;
+            delete self.$root;
+            delete self.$parent;
 
             if (self.$$watchers) {
                 self.$$watchers.$destroyAll();
@@ -5658,14 +5663,15 @@ if (typeof global != "undefined") {
         }();
 
 
-    var nodeChildren = function(res, el, fn, fnScope, async) {
+    var nodeChildren = function(res, el, fn, fnScope, async, finish, cnt) {
 
             var children = [],
                 i, len;
 
             if (res && res !== true) {
                 if (res.nodeType) {
-                    eachNode(res, fn, fnScope, async);
+                    cnt.countdown += 1;
+                    eachNode(res, fn, fnScope, async, finish, cnt);
                     return;
                 }
                 else {
@@ -5677,20 +5683,25 @@ if (typeof global != "undefined") {
                 children    = toArray(el.childNodes);
             }
 
-            for(i =- 1, len = children.length>>>0;
-                ++i !== len;
-                eachNode(children[i], fn, fnScope, async)){}
+            len = children.length;
+
+            cnt.countdown += len;
+
+            for(i = -1;
+                ++i < len;
+                eachNode(children[i], fn, fnScope, async, finish, cnt)){}
         },
 
 
         rSkipTag = /^(script|template|mjs-template|style)$/i,
 
-        eachNode = function(el, fn, fnScope, async) {
+        eachNode = function(el, fn, fnScope, async, finish, cnt) {
 
             var res,
                 tag = el.nodeName;
 
             if (tag.match(rSkipTag)) {
+                --cnt.countdown == 0 && finish && finish.call(fnScope);
                 return;
             }
 
@@ -5705,15 +5716,20 @@ if (typeof global != "undefined") {
 
                 if (isThenable(res)) {
                     res.done(function(response){
+
                         if (response !== false) {
-                            nodeChildren(response, el, fn, fnScope, async);
+                            nodeChildren(response, el, fn, fnScope, async, finish, cnt);
                         }
+                        --cnt.countdown == 0 && finish && finish.call(fnScope);
                     });
+                    return; // prevent countdown
                 }
                 else {
-                    nodeChildren(res, el, fn, fnScope, async);
+                    nodeChildren(res, el, fn, fnScope, async, finish, cnt);
                 }
             }
+
+            --cnt.countdown == 0 && finish && finish.call(fnScope);
         },
 
         observer = new Observable;
@@ -5746,25 +5762,20 @@ if (typeof global != "undefined") {
             if (parent) {
                 parent.on("destroy", self.destroy, self);
             }
-
-            self.process();
         },
 
-        on: function(event, fn, fnScope) {
-            return observer.on(event + '-' + this.id, fn, fnScope);
+        on: function(event, fn, context) {
+            return observer.on(event + '-' + this.id, fn, context);
         },
 
-        un: function(event, fn, fnScope) {
-            return observer.un(event + '-' + this.id, fn, fnScope);
+        un: function(event, fn, context) {
+            return observer.un(event + '-' + this.id, fn, context);
         },
 
         createChild: function(node) {
             return new Renderer(node, this.scope, this);
         },
 
-        reset: function() {
-
-        },
 
         getEl: function() {
             return this.el;
@@ -5772,44 +5783,38 @@ if (typeof global != "undefined") {
 
         runHandler: function(f, parentScope, node, value) {
 
-            var scope, inst,
-                self    = this;
+            var self    = this,
+                scope   = f.$isolateScope ?
+                            new Scope({$app: parentScope.$app}) :
+                            (f.$breakScope  ?
+                                parentScope.$new() :
+                                parentScope),
+                app     = parentScope.$app,
+                inject  = {
+                    $scope: scope,
+                    $node: node,
+                    $attrValue: value,
+                    $renderer: self
+                },
+                args    = [scope, node, value, self],
+                inst;
 
-            if (f.$breakRenderer) {
-                var r = self.createChild(node);
-                r.render();
-                return false;
-            }
-
-            if (f.$isolateScope) {
-                scope = new Scope;
-            }
-            else if (f.$breakScope) {
-                if (parentScope instanceof Scope) {
-                    scope       = parentScope.$new();
-                }
-                else {
-                    scope           = {};
-                    scope.$parent   = parentScope;
-                    scope.$root     = parentScope.$root;
-                }
-            }
-            else {
-                scope = parentScope;
-            }
 
             if (f.__isMetaphorClass) {
-                inst = new f(scope, node, value, self);
 
-                if (f.$stopRenderer || inst.$stopRenderer) {
+                inst = app.inject(f, null, true, inject, args);
+
+                if (f.$stopRenderer) {
                     return false;
                 }
                 else {
-                    return inst.$returnToRenderer;
+                    return isThenable(inst) ? inst.then(function(inst){
+                        return inst.$returnToRenderer;
+                    }) : inst.$returnToRenderer;
                 }
             }
             else {
-                return f(scope, node, value, self);
+                return app.inject(f, null, false, inject, args);
             }
         },
 
@@ -5871,7 +5876,7 @@ if (typeof global != "undefined") {
                     name    = handlers[i].name;
 
                     // ie6 doesn't have hasAttribute()
-                    if ((attr = node.getAttribute(name)) !== null && typeof attr != "undefined") {
+                    if ((attr = node.getAttribute(name)) !== null) {
                         res     = self.runHandler(handlers[i].handler, scope, node, attr);
                         node.removeAttribute(name);
 
@@ -5882,9 +5887,6 @@ if (typeof global != "undefined") {
                 }
 
                 for (i = 0, len = attrs.length; i < len; i++) {
-
-                    //name    = attrs[i].name;
-                    //n       = "attr." + name;
 
                     if (!g(n, true)) {
                         txt = {
@@ -5912,7 +5914,13 @@ if (typeof global != "undefined") {
 
         process: function() {
             var self    = this;
-            eachNode(self.el, self.processNode, self);
+            eachNode(self.el, self.processNode, self, false, self.onProcessingFinished, {countdown: 1});
+        },
+
+        onProcessingFinished: function() {
+            var self = this;
+            self.render();
+            observer.trigger("rendered-" + self.id, self);
         },
 
         processText: function(txtObj, text) {
@@ -6054,16 +6062,18 @@ if (typeof global != "undefined") {
 
     var initApps = function() {
 
-        var app = MetaphorJs.app;
+        var app = MetaphorJs.app,
+            appCls;
 
         if (document.querySelectorAll) {
             var appNodes = document.querySelectorAll("[mjs-app]");
-            for (var i = -1, l = appNodes.length; ++i < l; app(appNodes[i])){}
+            for (var i = -1, l = appNodes.length; ++i < l; app(appNodes[i]).run()){}
         }
         else {
             eachNode(document.documentElement, function(el) {
-                if (el.hasAttribute("mjs-app")) {
-                    app(el);
+                appCls = el.getAttribute("mjs-app");
+                if (appCls !== null) {
+                    app(el, appCls);
                     return false;
                 }
             });
@@ -6093,8 +6103,11 @@ if (typeof global != "undefined") {
         animate         = m.animate,
         Promise         = m.lib.Promise,
         extend          = m.extend,
+        nextUid         = m.nextUid,
 
         tplCache        = {},
+
+        observable      = new m.lib.Observable,
 
         getTemplate     = function(tplId) {
 
@@ -6139,6 +6152,7 @@ if (typeof global != "undefined") {
         _renderer:          null,
         _initial:           true,
         _fragment:          null,
+        _id:                null,
 
         scope:              null,
         node:               null,
@@ -6154,6 +6168,8 @@ if (typeof global != "undefined") {
             var self    = this;
 
             extend(self, cfg, true);
+
+            self.id     = nextUid();
 
             var node    = self.node;
 
@@ -6199,8 +6215,21 @@ if (typeof global != "undefined") {
             var self = this;
             if (!self._renderer) {
                 self._renderer   = new Renderer(self.node, self.scope);
-                self._renderer.render();
+                self._renderer.on("rendered", self.onRendered, self);
+                self._renderer.process();
             }
+        },
+
+        onRendered: function() {
+            observable.trigger("rendered-" + this.id, this);
+        },
+
+        on: function(event, fn, context) {
+            return observable.on(event + "-" + this.id, fn, context);
+        },
+
+        un: function(event, fn, context) {
+            return observable.un(event + "-" + this.id, fn, context);
         },
 
         startRendering: function() {
@@ -6213,11 +6242,14 @@ if (typeof global != "undefined") {
                 self.deferRendering = false;
                 if (self.initPromise) {
                     self.initPromise.done(tpl ? self.applyTemplate : self.doRender, self);
+                    return self.initPromise;
                 }
                 else {
                     tpl ? self.applyTemplate() : self.doRender();
                 }
             }
+
+            return null;
         },
 
         resolveTemplate: function() {
@@ -6338,6 +6370,7 @@ if (typeof global != "undefined") {
     "use strict";
 
     var cmps        = {},
+        extend      = MetaphorJs.extend,
         nextUid     = MetaphorJs.nextUid,
         emptyFn     = MetaphorJs.emptyFn,
         g           = MetaphorJs.ns.get,
@@ -6349,18 +6382,6 @@ if (typeof global != "undefined") {
 
     var getCmpId    = function(cmp) {
         return cmp.id || "cmp-" + nextUid();
-    };
-
-    var registerCmp = function(cmp) {
-        cmps[cmp.id]   = cmp;
-    };
-
-    var destroyCmp  = function(cmp) {
-        delete cmps[cmp.id];
-    };
-
-    var getCmp      = function(id) {
-        return cmps[id] || null;
     };
 
     /**
@@ -6458,10 +6479,9 @@ if (typeof global != "undefined") {
 
             self.id         = getCmpId(self);
 
-            registerCmp(self);
-
             self.initComponent.apply(self, arguments);
 
+            self.scope.$app.registerCmp(self);
 
             if (!self.node) {
                 self._createNode();
@@ -6527,11 +6547,16 @@ if (typeof global != "undefined") {
             }
 
             self.hidden     = !MetaphorJs.isVisible(self.node);
-            self.rendered   = true;
-
-            self.template.startRendering();
 
             self.trigger('render', self);
+
+            self.template.on("rendered", self.onRenderingFinished, self);
+            self.template.startRendering();
+        },
+
+        onRenderingFinished: function() {
+            var self = this;
+            self.rendered   = true;
             self.afterRender();
             self.trigger('afterrender', self);
         },
@@ -6663,7 +6688,6 @@ if (typeof global != "undefined") {
             delete self.node;
 
             self.supr();
-            destroyCmp(self);
         }
 
     });
@@ -6672,19 +6696,18 @@ if (typeof global != "undefined") {
      * @md-end-class
      */
 
-    /**
-     * @function MetaphorJs.getCmp
-     * @param string id
-     */
-    MetaphorJs.getCmp           = getCmp;
-
-
-    MetaphorJs.resolveComponent = function(cmp, cfg, scope, node, parentRenderer, args) {
+    MetaphorJs.resolveComponent = function(cmp, cfg, scope, node, args) {
 
         var constr  = typeof cmp == "string" ? g(cmp) : cmp,
             i,
             defers  = [],
-            tpl     = constr.template || cfg.template;
+            tpl     = constr.template || cfg.template,
+            app     = scope.$app,
+            inject  = {
+                $node: node,
+                $scope: scope,
+                $app: app
+            };
 
         args        = args || [];
 
@@ -6692,11 +6715,22 @@ if (typeof global != "undefined") {
 
             for (i in constr.resolve) {
                 (function(name){
-                    var d = new Promise;
+                    var d = new Promise,
+                        fn;
+
                     defers.push(d.done(function(value){
                         cfg[name] = value;
                     }));
-                    d.resolve(constr.resolve[i](scope, node));
+
+                    fn = constr.resolve[i];
+
+                    if (typeof fn == "function") {
+                        d.resolve(fn(scope, node));
+                    }
+                    else {
+                        d.resolve(app.inject(fn, null, false, extend({}, inject, cfg)));
+                    }
+
                 }(i));
             }
         }
@@ -6725,7 +6759,10 @@ if (typeof global != "undefined") {
             if (deferred) {
                 node.style.visibility = 'visible';
             }
-            return constr.__instantiate.apply(null, args);
+
+            cfg.$config = cfg;
+
+            return app.inject(constr, null, true, cfg, args);
         });
     };
 
@@ -6752,6 +6789,7 @@ if (typeof global != "undefined") {
          *  {
          *      reg: /.../,
          *      cmp: 'Cmp.Name',
+         *      params: [name, name...], // param index in array is the same as reg match number - 1
          *      template: '',
          *      isolateScope: bool
          *  }
@@ -6843,7 +6881,8 @@ if (typeof global != "undefined") {
         setComponent: function(route, matches) {
 
             var self    = this,
-                node    = self.node;
+                node    = self.node,
+                params  = route.params;
 
             animate(node, "enter", function(){
 
@@ -6851,8 +6890,11 @@ if (typeof global != "undefined") {
                     cfg     = {
                         destroyEl: false,
                         node: node,
-                        scope: route.isolateScope ? new Scope : self.scope.$new()
-                    };
+                        scope: route.isolateScope ?
+                               new Scope({$app: self.scope.$app}) :
+                               self.scope.$new()
+                    },
+                    i, l;
 
                 if (route.as) {
                     cfg.as = route.as;
@@ -6862,6 +6904,10 @@ if (typeof global != "undefined") {
                 }
 
                 args.shift();
+
+                if (params) {
+                    for (i = -1, l = params.length; ++i < l; cfg[params[i]] = args[i]){}
+                }
 
                 return resolveComponent(
                         route.cmp || "MetaphorJs.cmp.Component",
@@ -6912,6 +6958,7 @@ if (typeof global != "undefined") {
         isArray         = MetaphorJs.isArray,
         Template        = MetaphorJs.view.Template,
         Input           = MetaphorJs.lib.Input,
+        isThenable      = MetaphorJs.isThenable,
         resolveComponent;
 
 
@@ -7268,7 +7315,7 @@ if (typeof global != "undefined") {
 
                 if (!r.renderer) {
                     r.renderer  = new Renderer(r.el, r.scope);
-                    r.renderer.render();
+                    r.renderer.process();
                 }
                 else {
                     scope.$check();
@@ -7303,20 +7350,10 @@ if (typeof global != "undefined") {
 
         createItem: function(el, list, index) {
 
-            var self    = this,
-                iname   = self.itemName,
-                scope   = self.scope,
-                itemScope;
-
-            if (scope instanceof Scope) {
-                itemScope       = scope.$new();
-            }
-            else {
-                itemScope           = {
-                    $parent:        scope,
-                    $root:          scope.$root
-                };
-            }
+            var self        = this,
+                iname       = self.itemName,
+                scope       = self.scope,
+                itemScope   = scope.$new();
 
             itemScope[iname]    = list[index];
 
@@ -7806,7 +7843,7 @@ if (typeof global != "undefined") {
                 parentRenderer: parentRenderer
             };
 
-        resolveComponent(cmpName, cfg, scope, node, parentRenderer);
+        resolveComponent(cmpName, cfg, scope, node);
         return false;
     };
 
@@ -7815,27 +7852,12 @@ if (typeof global != "undefined") {
     registerAttr("mjs-cmp", 200, cmpAttribute);
 
 
-    var getCmp = MetaphorJs.getCmp;
+    registerAttr("mjs-cmp-prop", 200, ['$parentCmp', '$node', '$attrValue', function(parentCmp, node, expr){
 
-    registerAttr("mjs-cmp-prop", 200, function(scope, node, expr){
-
-        var parent = node.parentNode,
-            id,
-            cmp;
-
-        while (parent) {
-
-            if (id = parent.getAttribute("cmp-id")) {
-                cmp = getCmp(id);
-                if (cmp) {
-                    cmp[expr] = node;
-                }
-                return;
-            }
-
-            parent = parent.parentNode;
+        if (parentCmp) {
+            parentCmp[expr] = node;
         }
-    });
+    }]);
 
     registerAttr("mjs-view", 200, function(scope, node, expr) {
 
@@ -7844,10 +7866,14 @@ if (typeof global != "undefined") {
         var constr = g(expr);
 
         if (constr) {
-            var view = new constr({
-                scope: scope,
-                node: node
-            });
+            scope.$app.inject(constr, null, true,
+                {
+                    $scope: scope,
+                    $node: node,
+                    $app: scope.$app
+                },
+                [{scope: scope, node: node}]
+            );
         }
         else {
             throw "View '" + expr + "' not found";
@@ -7862,7 +7888,9 @@ if (typeof global != "undefined") {
         createFn(expr)(scope);
     });
 
-
+    registerAttr("mjs-app", 0, function(){
+        return false;
+    });
 
 }());
 
