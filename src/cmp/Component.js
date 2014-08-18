@@ -77,6 +77,8 @@
          */
         template:       null,
 
+        templateUrl:    null,
+
         /**
          * @var string
          */
@@ -120,7 +122,8 @@
                 self._createNode();
             }
 
-            var tpl = self.template;
+            var tpl = self.template,
+                url = self.templateUrl;
 
             if (!tpl || !(tpl instanceof Template)) {
                 self.template = tpl = new Template({
@@ -128,7 +131,8 @@
                     node: self.node,
                     deferRendering: true,
                     ownRenderer: true,
-                    tpl: toExpression(trim(tpl))
+                    tpl: tpl,
+                    url: url
                 });
             }
 
@@ -334,7 +338,8 @@
         var constr  = typeof cmp == "string" ? g(cmp) : cmp,
             i,
             defers  = [],
-            tpl     = constr.template || cfg.template,
+            tpl     = constr.template || cfg.template || null,
+            tplUrl  = constr.templateUrl || cfg.templateUrl || null,
             app     = scope.$app,
             inject  = {
                 $node: node,
@@ -367,14 +372,15 @@
                 }(i));
             }
         }
-        if (tpl) {
+        if (tpl || tplUrl) {
 
             cfg.template = new Template({
                 scope: scope,
                 node: node,
                 deferRendering: true,
                 ownRenderer: true,
-                tpl: toExpression(trim(tpl))
+                tpl: tpl,
+                url: tplUrl
             });
 
             defers.push(cfg.template.initPromise);

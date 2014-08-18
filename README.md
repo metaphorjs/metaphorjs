@@ -5,8 +5,6 @@ v.0.1 beta
 An app framework similar to AngularJs. It doesn't have so many features but the point is
 that it should be slimmer and faster than Angular (at least 3x times faster and less
 than 100kb minified.)
-There is no dependency injector and code parser: adding one dot before variable names in templates {{.var}}
-removes the need in parser.
 
 MetaphorJs and all of its modules do not depend on jQuery or any other dom helper.
 

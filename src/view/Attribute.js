@@ -655,7 +655,7 @@
         var tpl = new Template({
             scope: scope,
             node: node,
-            tpl: tplExpr,
+            url: tplExpr,
             parentRenderer: parentRenderer
         });
 

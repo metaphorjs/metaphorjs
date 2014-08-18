@@ -8,7 +8,6 @@
         toFragment      = m.toFragment,
         Watchable       = m.lib.Watchable,
         createWatchable = Watchable.create,
-        isExpression    = Watchable.isExpression,
         evaluate        = Watchable.eval,
         Renderer        = m.view.Renderer,
         cloneFn         = m.clone,
@@ -17,10 +16,11 @@
         Promise         = m.lib.Promise,
         extend          = m.extend,
         nextUid         = m.nextUid,
-
-        tplCache        = {},
+        trim            = m.trim,
 
         observable      = new m.lib.Observable,
+
+        tplCache        = {},
 
         getTemplate     = function(tplId) {
 
@@ -46,16 +46,24 @@
                         }
                     }
                 }
-                else {
-                    return tplCache[tplId] = MetaphorJs.ajax(tplId, {dataType: 'fragment'})
-                        .then(function(fragment){
-                            tplCache[tplId] = fragment;
-                            return fragment;
-                        });
-                }
             }
 
             return tplCache[tplId];
+        },
+
+        loadTemplate = function(tplUrl) {
+            if (!tplCache[tplUrl]) {
+                return tplCache[tplUrl] = MetaphorJs.ajax(tplUrl, {dataType: 'fragment'})
+                    .then(function(fragment){
+                        tplCache[tplUrl] = fragment;
+                        return fragment;
+                    });
+            }
+            return tplCache[tplUrl];
+        },
+
+        isExpression = function(str) {
+            return str.substr(0,1) == '.';
         };
 
     m.define("MetaphorJs.view.Template", {
@@ -70,6 +78,7 @@
         scope:              null,
         node:               null,
         tpl:                null,
+        url:                null,
         ownRenderer:        false,
         initPromise:        null,
         parentRenderer:     null,
@@ -84,19 +93,23 @@
 
             self.id     = nextUid();
 
-            var node    = self.node;
+            self.tpl && (self.tpl = trim(self.tpl));
+            self.url && (self.url = trim(self.url));
+
+            var node    = self.node,
+                tpl     = self.tpl || self.url;
 
             node.removeAttribute("mjs-include");
 
-            if (self.tpl) {
+            if (tpl) {
 
                 if (node.firstChild) {
                     dataFn(node, "mjs-transclude", toFragment(node.childNodes));
                 }
 
-                if (isExpression(self.tpl) && !self.replace) {
+                if (isExpression(tpl) && !self.replace) {
                     self.ownRenderer        = true;
-                    self._watcher           = createWatchable(self.scope, self.tpl, self.onChange, self);
+                    self._watcher           = createWatchable(self.scope, tpl, self.onChange, self);
                 }
 
                 if (self.replace) {
@@ -148,7 +161,7 @@
         startRendering: function() {
 
             var self    = this,
-                tpl     = self.tpl;
+                tpl     = self.tpl || self.url;
 
             if (self.deferRendering) {
 
@@ -168,12 +181,20 @@
         resolveTemplate: function() {
 
             var self    = this,
-                tplId   = self._watcher ? self._watcher.getLastResult() : evaluate(self.tpl, self.scope);
+                url     = self.url,
+                tpl     = self._watcher ?
+                            self._watcher.getLastResult() :
+                            (self.tpl || url);
 
             var returnPromise = new Promise;
 
-            new Promise(function(resolve, reject){
-                    resolve(getTemplate(tplId));
+            new Promise(function(resolve){
+                    if (url) {
+                        resolve(getTemplate(tpl) || loadTemplate(url));
+                    }
+                    else {
+                        resolve(getTemplate(tpl) || toFragment(tpl));
+                    }
                 })
                 .done(function(fragment){
                     self._fragment = fragment;
@@ -273,7 +294,8 @@
 
     }, {
 
-        getTemplate: getTemplate
+        getTemplate: getTemplate,
+        loadTemplate: loadTemplate
     });
 
 }());

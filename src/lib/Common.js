@@ -40,6 +40,12 @@
 
             var fragment = document.createDocumentFragment();
 
+            if (typeof nodes == "string") {
+                var tmp = document.createElement('div');
+                tmp.innerHTML = nodes;
+                nodes = tmp.childNodes;
+            }
+
             if (nodes.nodeType) {
                 fragment.appendChild(nodes);
             }

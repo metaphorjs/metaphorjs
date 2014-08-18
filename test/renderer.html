@@ -206,11 +206,11 @@
             <a href="#" mjs-click=".sortBy='asc'">asc</a>
             <a href="#" mjs-click=".sortBy='desc'">desc</a>
 
-            <div mjs-include="'test-template'" mjs-hide="!.bool" mjs-animate>
+            <div mjs-include="test-template" mjs-hide="!.bool" mjs-animate>
                 <p>transcluded text</p>
             </div>
 
-            <div mjs-include="'test-template'"></div>
+            <div mjs-include="test-template"></div>
 
             <form name="myForm" mjs-validate mjs-class="{error: .myForm.$invalid}" mjs-animate>
                 <h2>Test form</h2>
@@ -232,9 +232,11 @@
 
         <div class="article">
 
-            <div mjs-include="'template.html'">
+            <div mjs-include="template.html">
                 <p>Transcluded text</p>
             </div>
+
+            <hr>
 
             <div mjs-cmp="Test.MyComponent as ctrl">
                 <p mjs-cmp-prop="para">Component's transcluded text + {{ .$root.a}}</p>
@@ -248,9 +250,13 @@
                 </ul>
             </div>
 
+            <hr>
+
             <div id="myComponent1" mjs-cmp="Test.MyComponent as ctrl">
                 <p>This is another instance with deferred value: {{ .deferred }}</p>
             </div>
+
+            <hr>
 
             <div mjs-cmp="Test.TplComponent as ctrl" mjs-if=".$parent.bool" mjs-animate>
                 <h2>{{ .title }}</h2>
@@ -260,6 +266,12 @@
 
                 <div mjs-include=".tpl" mjs-animate></div>
             </div>
+
+            <hr>
+
+            <div mjs-cmp="Test.StringTemplate"></div>
+
+            <hr>
 
             <div mjs-view="Test.MyView" mjs-animate>
                 <p>This component controller by View</p>
@@ -378,10 +390,14 @@
                     self.scope.tpl  = "a+b";
 
                     self.scope.$app.onAvailable("myComponent1").done(function(cmp){
-                        console.log("got component myComponent1");
+                        console.log("on available myComponent1");
                     });
                 }
 
+            });
+
+            MetaphorJs.d("Test.StringTemplate", "MetaphorJs.cmp.Component", {}, {
+                template: '<p>This template is inlined in components definition ({{.$root.a}})</p>'
             });
 
             var dataObj     = {

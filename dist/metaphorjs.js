@@ -199,6 +199,12 @@
 
             var fragment = document.createDocumentFragment();
 
+            if (typeof nodes == "string") {
+                var tmp = document.createElement('div');
+                tmp.innerHTML = nodes;
+                nodes = tmp.childNodes;
+            }
+
             if (nodes.nodeType) {
                 fragment.appendChild(nodes);
             }
@@ -3826,29 +3832,6 @@ if (typeof global != "undefined") {
         return createGetter(expr)(scope);
     };
 
-    var isExpression = function(str) {
-        var first = str.substr(0,1);
-
-        if ((first == '"' || first == "'") && str.substr(str.length-1) == first) {
-            return false;
-        }
-        if (""+parseInt(str, 10) === str) {
-            return false;
-        }
-        return true;
-    };
-
-    var isNativeString = function(str) {
-        if (typeof str != "string") {
-            return false;
-        }
-        var first = str.substr(0,1);
-        return !(first == '"' || first == "'" || first == ".");
-    };
-
-    var toExpression = function(str) {
-        return isNativeString(str) ? "'" + str + "'" : str;
-    };
 
     Watchable.create = create;
     Watchable.unsubscribeAndDestroy = unsubscribeAndDestroy;
@@ -3858,9 +3841,6 @@ if (typeof global != "undefined") {
     Watchable.createSetter = createSetter;
     Watchable.createFunc = createFunc;
     Watchable.eval = evaluate;
-    Watchable.isExpression = isExpression;
-    Watchable.isNativeString = isNativeString;
-    Watchable.toExpression = toExpression;
 
     if (window.MetaphorJs && MetaphorJs.r) {
         MetaphorJs.r("MetaphorJs.lib.Watchable", Watchable);
@@ -6095,7 +6075,6 @@ if (typeof global != "undefined") {
         toFragment      = m.toFragment,
         Watchable       = m.lib.Watchable,
         createWatchable = Watchable.create,
-        isExpression    = Watchable.isExpression,
         evaluate        = Watchable.eval,
         Renderer        = m.view.Renderer,
         cloneFn         = m.clone,
@@ -6104,10 +6083,11 @@ if (typeof global != "undefined") {
         Promise         = m.lib.Promise,
         extend          = m.extend,
         nextUid         = m.nextUid,
-
-        tplCache        = {},
+        trim            = m.trim,
 
         observable      = new m.lib.Observable,
+
+        tplCache        = {},
 
         getTemplate     = function(tplId) {
 
@@ -6133,16 +6113,24 @@ if (typeof global != "undefined") {
                         }
                     }
                 }
-                else {
-                    return tplCache[tplId] = MetaphorJs.ajax(tplId, {dataType: 'fragment'})
-                        .then(function(fragment){
-                            tplCache[tplId] = fragment;
-                            return fragment;
-                        });
-                }
             }
 
             return tplCache[tplId];
+        },
+
+        loadTemplate = function(tplUrl) {
+            if (!tplCache[tplUrl]) {
+                return tplCache[tplUrl] = MetaphorJs.ajax(tplUrl, {dataType: 'fragment'})
+                    .then(function(fragment){
+                        tplCache[tplUrl] = fragment;
+                        return fragment;
+                    });
+            }
+            return tplCache[tplUrl];
+        },
+
+        isExpression = function(str) {
+            return str.substr(0,1) == '.';
         };
 
     m.define("MetaphorJs.view.Template", {
@@ -6157,6 +6145,7 @@ if (typeof global != "undefined") {
         scope:              null,
         node:               null,
         tpl:                null,
+        url:                null,
         ownRenderer:        false,
         initPromise:        null,
         parentRenderer:     null,
@@ -6171,19 +6160,23 @@ if (typeof global != "undefined") {
 
             self.id     = nextUid();
 
-            var node    = self.node;
+            self.tpl && (self.tpl = trim(self.tpl));
+            self.url && (self.url = trim(self.url));
+
+            var node    = self.node,
+                tpl     = self.tpl || self.url;
 
             node.removeAttribute("mjs-include");
 
-            if (self.tpl) {
+            if (tpl) {
 
                 if (node.firstChild) {
                     dataFn(node, "mjs-transclude", toFragment(node.childNodes));
                 }
 
-                if (isExpression(self.tpl) && !self.replace) {
+                if (isExpression(tpl) && !self.replace) {
                     self.ownRenderer        = true;
-                    self._watcher           = createWatchable(self.scope, self.tpl, self.onChange, self);
+                    self._watcher           = createWatchable(self.scope, tpl, self.onChange, self);
                 }
 
                 if (self.replace) {
@@ -6235,7 +6228,7 @@ if (typeof global != "undefined") {
         startRendering: function() {
 
             var self    = this,
-                tpl     = self.tpl;
+                tpl     = self.tpl || self.url;
 
             if (self.deferRendering) {
 
@@ -6255,12 +6248,20 @@ if (typeof global != "undefined") {
         resolveTemplate: function() {
 
             var self    = this,
-                tplId   = self._watcher ? self._watcher.getLastResult() : evaluate(self.tpl, self.scope);
+                url     = self.url,
+                tpl     = self._watcher ?
+                            self._watcher.getLastResult() :
+                            (self.tpl || url);
 
             var returnPromise = new Promise;
 
-            new Promise(function(resolve, reject){
-                    resolve(getTemplate(tplId));
+            new Promise(function(resolve){
+                    if (url) {
+                        resolve(getTemplate(tpl) || loadTemplate(url));
+                    }
+                    else {
+                        resolve(getTemplate(tpl) || toFragment(tpl));
+                    }
                 })
                 .done(function(fragment){
                     self._fragment = fragment;
@@ -6360,7 +6361,8 @@ if (typeof global != "undefined") {
 
     }, {
 
-        getTemplate: getTemplate
+        getTemplate: getTemplate,
+        loadTemplate: loadTemplate
     });
 
 }());
@@ -6444,6 +6446,8 @@ if (typeof global != "undefined") {
          */
         template:       null,
 
+        templateUrl:    null,
+
         /**
          * @var string
          */
@@ -6487,7 +6491,8 @@ if (typeof global != "undefined") {
                 self._createNode();
             }
 
-            var tpl = self.template;
+            var tpl = self.template,
+                url = self.templateUrl;
 
             if (!tpl || !(tpl instanceof Template)) {
                 self.template = tpl = new Template({
@@ -6495,7 +6500,8 @@ if (typeof global != "undefined") {
                     node: self.node,
                     deferRendering: true,
                     ownRenderer: true,
-                    tpl: toExpression(trim(tpl))
+                    tpl: tpl,
+                    url: url
                 });
             }
 
@@ -6701,7 +6707,8 @@ if (typeof global != "undefined") {
         var constr  = typeof cmp == "string" ? g(cmp) : cmp,
             i,
             defers  = [],
-            tpl     = constr.template || cfg.template,
+            tpl     = constr.template || cfg.template || null,
+            tplUrl  = constr.templateUrl || cfg.templateUrl || null,
             app     = scope.$app,
             inject  = {
                 $node: node,
@@ -6734,14 +6741,15 @@ if (typeof global != "undefined") {
                 }(i));
             }
         }
-        if (tpl) {
+        if (tpl || tplUrl) {
 
             cfg.template = new Template({
                 scope: scope,
                 node: node,
                 deferRendering: true,
                 ownRenderer: true,
-                tpl: toExpression(trim(tpl))
+                tpl: tpl,
+                url: tplUrl
             });
 
             defers.push(cfg.template.initPromise);
@@ -7586,7 +7594,7 @@ if (typeof global != "undefined") {
         var tpl = new Template({
             scope: scope,
             node: node,
-            tpl: tplExpr,
+            url: tplExpr,
             parentRenderer: parentRenderer
         });
 
