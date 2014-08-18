@@ -16,8 +16,11 @@
         animate         = m.animate,
         Promise         = m.lib.Promise,
         extend          = m.extend,
+        nextUid         = m.nextUid,
 
         tplCache        = {},
+
+        observable      = new m.lib.Observable,
 
         getTemplate     = function(tplId) {
 
@@ -62,6 +65,7 @@
         _renderer:          null,
         _initial:           true,
         _fragment:          null,
+        _id:                null,
 
         scope:              null,
         node:               null,
@@ -77,6 +81,8 @@
             var self    = this;
 
             extend(self, cfg, true);
+
+            self.id     = nextUid();
 
             var node    = self.node;
 
@@ -122,8 +128,21 @@
             var self = this;
             if (!self._renderer) {
                 self._renderer   = new Renderer(self.node, self.scope);
-                self._renderer.render();
+                self._renderer.on("rendered", self.onRendered, self);
+                self._renderer.process();
             }
+        },
+
+        onRendered: function() {
+            observable.trigger("rendered-" + this.id, this);
+        },
+
+        on: function(event, fn, context) {
+            return observable.on(event + "-" + this.id, fn, context);
+        },
+
+        un: function(event, fn, context) {
+            return observable.un(event + "-" + this.id, fn, context);
         },
 
         startRendering: function() {
@@ -136,11 +155,14 @@
                 self.deferRendering = false;
                 if (self.initPromise) {
                     self.initPromise.done(tpl ? self.applyTemplate : self.doRender, self);
+                    return self.initPromise;
                 }
                 else {
                     tpl ? self.applyTemplate() : self.doRender();
                 }
             }
+
+            return null;
         },
 
         resolveTemplate: function() {

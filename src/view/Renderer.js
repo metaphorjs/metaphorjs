@@ -23,14 +23,15 @@
         }();
 
 
-    var nodeChildren = function(res, el, fn, fnScope, async) {
+    var nodeChildren = function(res, el, fn, fnScope, async, finish, cnt) {
 
             var children = [],
                 i, len;
 
             if (res && res !== true) {
                 if (res.nodeType) {
-                    eachNode(res, fn, fnScope, async);
+                    cnt.countdown += 1;
+                    eachNode(res, fn, fnScope, async, finish, cnt);
                     return;
                 }
                 else {
@@ -42,20 +43,25 @@
                 children    = toArray(el.childNodes);
             }
 
-            for(i =- 1, len = children.length>>>0;
-                ++i !== len;
-                eachNode(children[i], fn, fnScope, async)){}
+            len = children.length;
+
+            cnt.countdown += len;
+
+            for(i = -1;
+                ++i < len;
+                eachNode(children[i], fn, fnScope, async, finish, cnt)){}
         },
 
 
         rSkipTag = /^(script|template|mjs-template|style)$/i,
 
-        eachNode = function(el, fn, fnScope, async) {
+        eachNode = function(el, fn, fnScope, async, finish, cnt) {
 
             var res,
                 tag = el.nodeName;
 
             if (tag.match(rSkipTag)) {
+                --cnt.countdown == 0 && finish && finish.call(fnScope);
                 return;
             }
 
@@ -70,15 +76,20 @@
 
                 if (isThenable(res)) {
                     res.done(function(response){
+
                         if (response !== false) {
-                            nodeChildren(response, el, fn, fnScope, async);
+                            nodeChildren(response, el, fn, fnScope, async, finish, cnt);
                         }
+                        --cnt.countdown == 0 && finish && finish.call(fnScope);
                     });
+                    return; // prevent countdown
                 }
                 else {
-                    nodeChildren(res, el, fn, fnScope, async);
+                    nodeChildren(res, el, fn, fnScope, async, finish, cnt);
                 }
             }
+
+            --cnt.countdown == 0 && finish && finish.call(fnScope);
         },
 
         observer = new Observable;
@@ -111,25 +122,20 @@
             if (parent) {
                 parent.on("destroy", self.destroy, self);
             }
-
-            self.process();
         },
 
-        on: function(event, fn, fnScope) {
-            return observer.on(event + '-' + this.id, fn, fnScope);
+        on: function(event, fn, context) {
+            return observer.on(event + '-' + this.id, fn, context);
         },
 
-        un: function(event, fn, fnScope) {
-            return observer.un(event + '-' + this.id, fn, fnScope);
+        un: function(event, fn, context) {
+            return observer.un(event + '-' + this.id, fn, context);
         },
 
         createChild: function(node) {
             return new Renderer(node, this.scope, this);
         },
 
-        reset: function() {
-
-        },
 
         getEl: function() {
             return this.el;
@@ -137,44 +143,38 @@
 
         runHandler: function(f, parentScope, node, value) {
 
-            var scope, inst,
-                self    = this;
+            var self    = this,
+                scope   = f.$isolateScope ?
+                            new Scope({$app: parentScope.$app}) :
+                            (f.$breakScope  ?
+                                parentScope.$new() :
+                                parentScope),
+                app     = parentScope.$app,
+                inject  = {
+                    $scope: scope,
+                    $node: node,
+                    $attrValue: value,
+                    $renderer: self
+                },
+                args    = [scope, node, value, self],
+                inst;
 
-            if (f.$breakRenderer) {
-                var r = self.createChild(node);
-                r.render();
-                return false;
-            }
-
-            if (f.$isolateScope) {
-                scope = new Scope;
-            }
-            else if (f.$breakScope) {
-                if (parentScope instanceof Scope) {
-                    scope       = parentScope.$new();
-                }
-                else {
-                    scope           = {};
-                    scope.$parent   = parentScope;
-                    scope.$root     = parentScope.$root;
-                }
-            }
-            else {
-                scope = parentScope;
-            }
 
             if (f.__isMetaphorClass) {
-                inst = new f(scope, node, value, self);
 
-                if (f.$stopRenderer || inst.$stopRenderer) {
+                inst = app.inject(f, null, true, inject, args);
+
+                if (f.$stopRenderer) {
                     return false;
                 }
                 else {
-                    return inst.$returnToRenderer;
+                    return isThenable(inst) ? inst.then(function(inst){
+                        return inst.$returnToRenderer;
+                    }) : inst.$returnToRenderer;
                 }
             }
             else {
-                return f(scope, node, value, self);
+                return app.inject(f, null, false, inject, args);
             }
         },
 
@@ -236,7 +236,7 @@
                     name    = handlers[i].name;
 
                     // ie6 doesn't have hasAttribute()
-                    if ((attr = node.getAttribute(name)) !== null && typeof attr != "undefined") {
+                    if ((attr = node.getAttribute(name)) !== null) {
                         res     = self.runHandler(handlers[i].handler, scope, node, attr);
                         node.removeAttribute(name);
 
@@ -247,9 +247,6 @@
                 }
 
                 for (i = 0, len = attrs.length; i < len; i++) {
-
-                    //name    = attrs[i].name;
-                    //n       = "attr." + name;
 
                     if (!g(n, true)) {
                         txt = {
@@ -277,7 +274,13 @@
 
         process: function() {
             var self    = this;
-            eachNode(self.el, self.processNode, self);
+            eachNode(self.el, self.processNode, self, false, self.onProcessingFinished, {countdown: 1});
+        },
+
+        onProcessingFinished: function() {
+            var self = this;
+            self.render();
+            observer.trigger("rendered-" + self.id, self);
         },
 
         processText: function(txtObj, text) {
@@ -419,16 +422,18 @@
 
     var initApps = function() {
 
-        var app = MetaphorJs.app;
+        var app = MetaphorJs.app,
+            appCls;
 
         if (document.querySelectorAll) {
             var appNodes = document.querySelectorAll("[mjs-app]");
-            for (var i = -1, l = appNodes.length; ++i < l; app(appNodes[i])){}
+            for (var i = -1, l = appNodes.length; ++i < l; app(appNodes[i]).run()){}
         }
         else {
             eachNode(document.documentElement, function(el) {
-                if (el.hasAttribute("mjs-app")) {
-                    app(el);
+                appCls = el.getAttribute("mjs-app");
+                if (appCls !== null) {
+                    app(el, appCls);
                     return false;
                 }
             });

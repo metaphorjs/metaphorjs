@@ -8,6 +8,7 @@
 
     Scope = MetaphorJs.d("MetaphorJs.view.Scope", {
 
+        $app: null,
         $parent: null,
         $root: null,
         $isRoot: false,
@@ -22,7 +23,7 @@
 
             self.$$observable    = new Observable;
 
-            extend(self, cfg);
+            extend(self, cfg, true);
 
             if (self.$parent) {
                 self.$parent.$on("check", self.$$onParentCheck, self);
@@ -38,7 +39,8 @@
             var self = this;
             return new Scope({
                 $parent: self,
-                $root: self.$root
+                $root: self.$root,
+                $app: self.$app
             });
         },
 
@@ -108,6 +110,9 @@
 
             self.$$observable.destroy();
             delete self.$$observable;
+            delete self.$app;
+            delete self.$root;
+            delete self.$parent;
 
             if (self.$$watchers) {
                 self.$$watchers.$destroyAll();

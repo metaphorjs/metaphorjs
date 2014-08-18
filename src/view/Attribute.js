@@ -27,6 +27,7 @@
         isArray         = MetaphorJs.isArray,
         Template        = MetaphorJs.view.Template,
         Input           = MetaphorJs.lib.Input,
+        isThenable      = MetaphorJs.isThenable,
         resolveComponent;
 
 
@@ -383,7 +384,7 @@
 
                 if (!r.renderer) {
                     r.renderer  = new Renderer(r.el, r.scope);
-                    r.renderer.render();
+                    r.renderer.process();
                 }
                 else {
                     scope.$check();
@@ -418,20 +419,10 @@
 
         createItem: function(el, list, index) {
 
-            var self    = this,
-                iname   = self.itemName,
-                scope   = self.scope,
-                itemScope;
-
-            if (scope instanceof Scope) {
-                itemScope       = scope.$new();
-            }
-            else {
-                itemScope           = {
-                    $parent:        scope,
-                    $root:          scope.$root
-                };
-            }
+            var self        = this,
+                iname       = self.itemName,
+                scope       = self.scope,
+                itemScope   = scope.$new();
 
             itemScope[iname]    = list[index];
 
@@ -921,7 +912,7 @@
                 parentRenderer: parentRenderer
             };
 
-        resolveComponent(cmpName, cfg, scope, node, parentRenderer);
+        resolveComponent(cmpName, cfg, scope, node);
         return false;
     };
 
@@ -930,27 +921,12 @@
     registerAttr("mjs-cmp", 200, cmpAttribute);
 
 
-    var getCmp = MetaphorJs.getCmp;
+    registerAttr("mjs-cmp-prop", 200, ['$parentCmp', '$node', '$attrValue', function(parentCmp, node, expr){
 
-    registerAttr("mjs-cmp-prop", 200, function(scope, node, expr){
-
-        var parent = node.parentNode,
-            id,
-            cmp;
-
-        while (parent) {
-
-            if (id = parent.getAttribute("cmp-id")) {
-                cmp = getCmp(id);
-                if (cmp) {
-                    cmp[expr] = node;
-                }
-                return;
-            }
-
-            parent = parent.parentNode;
+        if (parentCmp) {
+            parentCmp[expr] = node;
         }
-    });
+    }]);
 
     registerAttr("mjs-view", 200, function(scope, node, expr) {
 
@@ -959,10 +935,14 @@
         var constr = g(expr);
 
         if (constr) {
-            var view = new constr({
-                scope: scope,
-                node: node
-            });
+            scope.$app.inject(constr, null, true,
+                {
+                    $scope: scope,
+                    $node: node,
+                    $app: scope.$app
+                },
+                [{scope: scope, node: node}]
+            );
         }
         else {
             throw "View '" + expr + "' not found";
@@ -977,6 +957,8 @@
         createFn(expr)(scope);
     });
 
-
+    registerAttr("mjs-app", 0, function(){
+        return false;
+    });
 
 }());

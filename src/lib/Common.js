@@ -156,29 +156,16 @@
             }, 0);
         },
 
-        Scope,
-        Renderer,
+        appFn = function(node, cls, data) {
 
-        appFn = function(node, scope) {
+            cls = cls || "MetaphorJs.cmp.App";
 
-            if (!Scope) {
-                Scope = MetaphorJs.view.Scope;
-                Renderer = MetaphorJs.view.Renderer;
+            try {
+                return MetaphorJs.create(cls, node, data);
             }
-
-            if (!scope) {
-                scope   = new Scope;
+            catch (e) {
+                MetaphorJs.error(e);
             }
-            else {
-                if (!(scope instanceof Scope)) {
-                    scope   = new Scope(scope);
-                }
-            }
-
-            var renderer    = new Renderer(node, scope);
-            renderer.render();
-
-            return renderer;
         };
 
 
@@ -216,6 +203,10 @@
             return any && //(typeof any == "object" || typeof any == "function") &&
                    typeof (then = any.then) == "function" ?
                     then : false;
+        },
+
+        isInjectable: function(any) {
+            return any.length && typeof any[any.length - 1] == "function";
         },
 
         async: async,

@@ -18,6 +18,7 @@
          *  {
          *      reg: /.../,
          *      cmp: 'Cmp.Name',
+         *      params: [name, name...], // param index in array is the same as reg match number - 1
          *      template: '',
          *      isolateScope: bool
          *  }
@@ -109,7 +110,8 @@
         setComponent: function(route, matches) {
 
             var self    = this,
-                node    = self.node;
+                node    = self.node,
+                params  = route.params;
 
             animate(node, "enter", function(){
 
@@ -117,8 +119,11 @@
                     cfg     = {
                         destroyEl: false,
                         node: node,
-                        scope: route.isolateScope ? new Scope : self.scope.$new()
-                    };
+                        scope: route.isolateScope ?
+                               new Scope({$app: self.scope.$app}) :
+                               self.scope.$new()
+                    },
+                    i, l;
 
                 if (route.as) {
                     cfg.as = route.as;
@@ -128,6 +133,10 @@
                 }
 
                 args.shift();
+
+                if (params) {
+                    for (i = -1, l = params.length; ++i < l; cfg[params[i]] = args[i]){}
+                }
 
                 return resolveComponent(
                         route.cmp || "MetaphorJs.cmp.Component",

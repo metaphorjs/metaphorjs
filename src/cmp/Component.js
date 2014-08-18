@@ -3,6 +3,7 @@
     "use strict";
 
     var cmps        = {},
+        extend      = MetaphorJs.extend,
         nextUid     = MetaphorJs.nextUid,
         emptyFn     = MetaphorJs.emptyFn,
         g           = MetaphorJs.ns.get,
@@ -14,18 +15,6 @@
 
     var getCmpId    = function(cmp) {
         return cmp.id || "cmp-" + nextUid();
-    };
-
-    var registerCmp = function(cmp) {
-        cmps[cmp.id]   = cmp;
-    };
-
-    var destroyCmp  = function(cmp) {
-        delete cmps[cmp.id];
-    };
-
-    var getCmp      = function(id) {
-        return cmps[id] || null;
     };
 
     /**
@@ -123,10 +112,9 @@
 
             self.id         = getCmpId(self);
 
-            registerCmp(self);
-
             self.initComponent.apply(self, arguments);
 
+            self.scope.$app.registerCmp(self);
 
             if (!self.node) {
                 self._createNode();
@@ -192,11 +180,16 @@
             }
 
             self.hidden     = !MetaphorJs.isVisible(self.node);
-            self.rendered   = true;
-
-            self.template.startRendering();
 
             self.trigger('render', self);
+
+            self.template.on("rendered", self.onRenderingFinished, self);
+            self.template.startRendering();
+        },
+
+        onRenderingFinished: function() {
+            var self = this;
+            self.rendered   = true;
             self.afterRender();
             self.trigger('afterrender', self);
         },
@@ -328,7 +321,6 @@
             delete self.node;
 
             self.supr();
-            destroyCmp(self);
         }
 
     });
@@ -337,19 +329,18 @@
      * @md-end-class
      */
 
-    /**
-     * @function MetaphorJs.getCmp
-     * @param string id
-     */
-    MetaphorJs.getCmp           = getCmp;
-
-
-    MetaphorJs.resolveComponent = function(cmp, cfg, scope, node, parentRenderer, args) {
+    MetaphorJs.resolveComponent = function(cmp, cfg, scope, node, args) {
 
         var constr  = typeof cmp == "string" ? g(cmp) : cmp,
             i,
             defers  = [],
-            tpl     = constr.template || cfg.template;
+            tpl     = constr.template || cfg.template,
+            app     = scope.$app,
+            inject  = {
+                $node: node,
+                $scope: scope,
+                $app: app
+            };
 
         args        = args || [];
 
@@ -357,11 +348,22 @@
 
             for (i in constr.resolve) {
                 (function(name){
-                    var d = new Promise;
+                    var d = new Promise,
+                        fn;
+
                     defers.push(d.done(function(value){
                         cfg[name] = value;
                     }));
-                    d.resolve(constr.resolve[i](scope, node));
+
+                    fn = constr.resolve[i];
+
+                    if (typeof fn == "function") {
+                        d.resolve(fn(scope, node));
+                    }
+                    else {
+                        d.resolve(app.inject(fn, null, false, extend({}, inject, cfg)));
+                    }
+
                 }(i));
             }
         }
@@ -390,7 +392,10 @@
             if (deferred) {
                 node.style.visibility = 'visible';
             }
-            return constr.__instantiate.apply(null, args);
+
+            cfg.$config = cfg;
+
+            return app.inject(constr, null, true, cfg, args);
         });
     };
 

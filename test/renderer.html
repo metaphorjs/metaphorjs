@@ -19,7 +19,7 @@
     <script src="../../metaphorjs-history/metaphorjs.history.js"></script>
     <script src="../../metaphorjs-validator/metaphorjs.validator.js"></script>
 
-
+    <script src="../src/lib/Provider.js"></script>
     <script src="../src/cmp/Base.js"></script>
     <script src="../../metaphorjs-model/src/Model.js"></script>
     <script src="../../metaphorjs-model/src/Record.js"></script>
@@ -31,6 +31,7 @@
     <script src="../src/view/Renderer.js"></script>
     <script src="../src/view/Template.js"></script>
     <script src="../src/cmp/Component.js"></script>
+    <script src="../src/cmp/App.js"></script>
     <script src="../src/cmp/View.js"></script>
     <script src="../src/view/Attribute.js"></script>
     <script src="../src/view/Filter.js"></script>
@@ -247,7 +248,7 @@
                 </ul>
             </div>
 
-            <div mjs-cmp="Test.MyComponent as ctrl">
+            <div id="myComponent1" mjs-cmp="Test.MyComponent as ctrl">
                 <p>This is another instance with deferred value: {{ .deferred }}</p>
             </div>
 
@@ -281,6 +282,7 @@
                     },
                     {
                         reg: /^\/2\/(\d+)$/,
+                        params: ["param"],
                         cmp: "Test.MyComponent2"
                     },
                     {
@@ -321,6 +323,13 @@
                     self.scope.deferred = self.deferred;
                 },
 
+                afterRender: function() {
+
+                    if (this.para) {
+                        console.log("got child property 'para': ", this.para);
+                    }
+                },
+
                 reverse: function() {
                     var title   = this.scope.title;
                     this.scope.title    = title.split("").reverse().join('');
@@ -334,13 +343,14 @@
             }, {
                 template: "cmp1-template",
                 resolve: {
-                    deferred: function() {
+                    deferred: ['$node', '$scope', 'test', function(node, scope, test) {
+
                         return new MetaphorJs.lib.Promise(function(resolve, reject){
                             setTimeout(function(){
                                 resolve((new Date).getTime());
                             }, 1000);
                         });
-                    }
+                    }]
                 }
             });
 
@@ -351,8 +361,8 @@
                 initComponent: function(cfg, param) {
                     var self    = this;
 
-                    if (param) {
-                        alert("received param: " + param);
+                    if (cfg.param) {
+                        alert("received param: " + cfg.param);
                     }
                     self.scope.title = "My Component2 " + (new Date).getTime();
                 }
@@ -366,6 +376,10 @@
 
                     self.scope.title= "Tpl Component";
                     self.scope.tpl  = "a+b";
+
+                    self.scope.$app.onAvailable("myComponent1").done(function(cmp){
+                        console.log("got component myComponent1");
+                    });
                 }
 
             });
@@ -390,7 +404,9 @@
             var start  = (new Date).getTime();
 
             //console.profile();
-            MetaphorJs.app(document.documentElement, dataObj);
+            var app = MetaphorJs.app(document.documentElement, null, dataObj);
+            app.value("test", "123");
+            app.run();
             //console.profileEnd();
 
             var end  = (new Date).getTime();
