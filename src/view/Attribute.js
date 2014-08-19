@@ -876,7 +876,7 @@
         }(boolAttrs[i]));
     }
 
-    var cmpAttribute = function(scope, node, expr, parentRenderer){
+    var cmpAttr = function(scope, node, expr, parentRenderer){
 
         if (!resolveComponent) {
             resolveComponent = MetaphorJs.resolveComponent;
@@ -910,20 +910,20 @@
         }
 
         var cfg     = {
-                scope: scope,
-                node: node,
-                as: as,
-                parentRenderer: parentRenderer,
-                destroyScope: true
-            };
+            scope: scope,
+            node: node,
+            as: as,
+            parentRenderer: parentRenderer,
+            destroyScope: true
+        };
 
         resolveComponent(cmpName, cfg, scope, node);
         return false;
     };
 
-    cmpAttribute.$breakScope = true;
+    cmpAttr.$breakScope = true;
 
-    registerAttr("mjs-cmp", 200, cmpAttribute);
+    registerAttr("mjs-cmp", 200, cmpAttr);
 
 
     registerAttr("mjs-cmp-prop", 200, ['$parentCmp', '$node', '$attrValue', function(parentCmp, node, expr){
@@ -933,31 +933,28 @@
         }
     }]);
 
-    registerAttr("mjs-view", 200, function(scope, node, expr) {
+    var viewAttr = function(scope, node, expr) {
 
         node.removeAttribute("mjs-view");
 
-        var constr = g(expr);
+        var constr = g(expr || "MetaphorJs.cmp.View");
 
-        if (constr) {
-            scope.$app.inject(constr, null, true,
-                {
-                    $scope: scope,
-                    $node: node,
-                    $app: scope.$app
-                },
-                [{scope: scope, node: node}]
-            );
-        }
-        else {
-            throw "View '" + expr + "' not found";
-        }
+        scope.$app.inject(constr, null, true,
+            {
+                $scope: scope,
+                $node: node,
+                $app: scope.$app
+            },
+            [{scope: scope, node: node}]
+        );
 
         return false;
-    });
+    };
+
+    registerAttr("mjs-view", 200, viewAttr);
 
 
-    registerAttr("mjs-init", 150, function(scope, node, expr){
+    registerAttr("mjs-init", 250, function(scope, node, expr){
         node.removeAttribute("mjs-init");
         createFn(expr)(scope);
     });

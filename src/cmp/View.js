@@ -2,14 +2,16 @@
 
 (function(){
 
-    var dataFn      = MetaphorJs.data,
-        currentUrl  = MetaphorJs.currentUrl,
-        toFragment  = MetaphorJs.toFragment,
-        animate     = MetaphorJs.animate,
-        Scope       = MetaphorJs.lib.Scope,
-        extend      = MetaphorJs.extend,
-        stop        = MetaphorJs.stopAnimation,
-        resolveComponent    = MetaphorJs.resolveComponent;
+    var m                   = window.MetaphorJs,
+        dataFn              = m.data,
+        currentUrl          = m.currentUrl,
+        toFragment          = m.toFragment,
+        animate             = m.animate,
+        Scope               = m.lib.Scope,
+        extend              = m.extend,
+        stop                = m.stopAnimation,
+        resolveComponent    = m.resolveComponent,
+        createWatchable     = m.lib.Watchable.create;
 
     MetaphorJs.define("MetaphorJs.cmp.View", {
 
@@ -27,28 +29,55 @@
         route: null,
         node: null,
         scope: null,
+        cmp: null,
 
         currentComponent: null,
+        watchable: null,
+        defaultCmp: null,
 
         initialize: function(cfg)  {
 
             var self    = this;
 
-            history.initPushState();
-
             extend(self, cfg, true);
-
-            MetaphorJs.on("locationchange", self.onLocationChange, self);
 
             var node = self.node;
 
-            if (node.firstChild) {
+            if (node && node.firstChild) {
                 dataFn(node, "mjs-transclude", toFragment(node.childNodes));
             }
 
-            node.removeAttribute("mjs-view");
+            if (!self.cmp) {
+                self.cmp = node.getAttribute("mjs-view-cmp");
+            }
 
-            this.onLocationChange();
+            self.defaultCmp = node.getAttribute("mjs-view-default");
+
+            node.removeAttribute("mjs-view");
+            node.removeAttribute("mjs-view-cmp");
+            node.removeAttribute("mjs-view-default");
+
+            if (self.route) {
+                history.initPushState();
+                MetaphorJs.on("locationchange", self.onLocationChange, self);
+                self.onLocationChange();
+            }
+            else if (self.cmp) {
+                self.watchable = createWatchable(self.scope, self.cmp, self.onCmpChange, self);
+                self.onCmpChange();
+            }
+        },
+
+        onCmpChange: function() {
+
+            var self    = this,
+                cmp     = self.watchable.getLastResult() || self.defaultCmp;
+
+            self.clearComponent();
+
+            if (cmp) {
+                self.setComponent(cmp);
+            }
         },
 
         onLocationChange: function() {
@@ -65,7 +94,7 @@
                 matches = url.match(r.reg);
 
                 if (matches) {
-                    self.changeComponent(r, matches);
+                    self.changeRouteComponent(r, matches);
                     return;
                 }
                 if (r['default'] && !def) {
@@ -74,18 +103,22 @@
             }
 
             if (def) {
-                self.changeComponent(def, []);
+                self.setRouteComponent(def, []);
             }
             else {
                 self.clearComponent();
             }
+
+            if (!def && self.defaultCmp) {
+                self.setComponent(self.defaultCmp);
+            }
         },
 
-        changeComponent: function(route, matches) {
+        changeRouteComponent: function(route, matches) {
             var self = this;
             stop(self.node);
             self.clearComponent();
-            self.setComponent(route, matches);
+            self.setRouteComponent(route, matches);
         },
 
         clearComponent: function() {
@@ -107,7 +140,7 @@
 
         },
 
-        setComponent: function(route, matches) {
+        setRouteComponent: function(route, matches) {
 
             var self    = this,
                 node    = self.node,
@@ -151,6 +184,46 @@
                     });
 
             }, true);
+        },
+
+        setComponent: function(cmp) {
+
+            var self    = this,
+                node    = self.node;
+
+            animate(node, "enter", function(){
+
+                var cfg     = typeof cmp == "object" ? cmp : {},
+                    cls     = (typeof cmp == "string" ? cmp : null) || "MetaphorJs.cmp.Component",
+                    scope   = cfg.scope || self.scope.$new();
+
+                cfg.destroyEl = false;
+
+                return resolveComponent(cls, cfg, scope, node).done(function(newCmp){
+                    self.currentComponent = newCmp;
+                });
+
+            }, true);
+        },
+
+        destroy: function() {
+
+            var self    = this;
+
+            self.clearComponent();
+
+            if (self.route) {
+                MetaphorJs.un("locationchange", self.onLocationChange, self);
+                delete self.route;
+            }
+
+            if (self.watchable) {
+                self.watchable.unsubscribeAndDestroy(self.onCmpChange, self);
+                delete self.watchable;
+            }
+
+            delete self.scope;
+            delete self.currentComponent;
         }
     });
 
