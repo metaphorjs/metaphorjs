@@ -2,32 +2,33 @@
 
 (function(){
 
-    var Scope           = MetaphorJs.view.Scope,
-        trim            = MetaphorJs.trim,
-        bind            = MetaphorJs.bind,
-        d               = MetaphorJs.define,
-        g               = MetaphorJs.ns.get,
-        Watchable       = MetaphorJs.lib.Watchable,
-        Renderer        = MetaphorJs.view.Renderer,
-        dataFn          = MetaphorJs.data,
-        toArray         = MetaphorJs.toArray,
-        toFragment      = MetaphorJs.toFragment,
-        addListener     = MetaphorJs.addListener,
-        normalizeEvent  = MetaphorJs.normalizeEvent,
-        registerAttr    = MetaphorJs.registerAttributeHandler,
-        registerTag     = MetaphorJs.registerTagHandler,
-        async           = MetaphorJs.async,
+    var m               = window.MetaphorJs,
+        Scope           = m.view.Scope,
+        trim            = m.trim,
+        bind            = m.bind,
+        d               = m.define,
+        g               = m.ns.get,
+        Watchable       = m.lib.Watchable,
+        Renderer        = m.view.Renderer,
+        dataFn          = m.data,
+        toArray         = m.toArray,
+        toFragment      = m.toFragment,
+        cloneFn         = m.clone,
+        addListener     = m.addListener,
+        normalizeEvent  = m.normalizeEvent,
+        registerAttr    = m.registerAttributeHandler,
+        registerTag     = m.registerTagHandler,
+        async           = m.async,
         createWatchable = Watchable.create,
         createGetter    = Watchable.createGetter,
-        animate         = MetaphorJs.animate,
-        addClass        = MetaphorJs.addClass,
-        removeClass     = MetaphorJs.removeClass,
-        hasClass        = MetaphorJs.hasClass,
-        stopAnimation   = MetaphorJs.stopAnimation,
-        isArray         = MetaphorJs.isArray,
-        Template        = MetaphorJs.view.Template,
-        Input           = MetaphorJs.lib.Input,
-        isThenable      = MetaphorJs.isThenable,
+        animate         = m.animate,
+        addClass        = m.addClass,
+        removeClass     = m.removeClass,
+        hasClass        = m.hasClass,
+        stopAnimation   = m.stopAnimation,
+        isArray         = m.isArray,
+        Template        = m.view.Template,
+        Input           = m.lib.Input,
         resolveComponent;
 
 
@@ -210,7 +211,8 @@
                     if (show) {
                         style.display = "";
                     }
-                })
+                },
+                true)
                 .done(done);
         },
 
@@ -284,12 +286,12 @@
 
             if (val) {
                 if (!node.parentNode) {
-                    self.initial ? show() : animate(node, "enter", show);
+                    self.initial ? show() : animate(node, "enter", show, true);
                 }
             }
             else {
                 if (node.parentNode) {
-                    self.initial ? hide() : animate(node, "leave").done(hide);
+                    self.initial ? hide() : animate(node, "leave", null, true).done(hide);
                 }
             }
 
@@ -470,7 +472,7 @@
 
                     r.renderer.destroy();
 
-                    animate(r.el, "leave")
+                    animate(r.el, "leave", null, true)
                         .done(function(el){
                             if (el.parentNode) {
                                 el.parentNode.removeChild(el);
@@ -499,7 +501,7 @@
                                 }
                             }
                         }
-                    }(index));
+                    }(index), true);
 
                     if (action == 'R') {
                         renderers[i] = self.createItem(el, list, index);
@@ -693,7 +695,7 @@
 
             var parent      = node.parentNode,
                 next        = node.nextSibling,
-                clone       = MetaphorJs.clone(transclude),
+                clone       = cloneFn(transclude),
                 children    = toArray(clone.childNodes);
 
             parent.removeChild(node);
@@ -701,6 +703,8 @@
 
             return children;
         }
+
+        return null;
     });
 
     registerTag("mjs-transclude", 900, function(scope, node) {
@@ -715,7 +719,7 @@
 
             var parent      = node.parentNode,
                 next        = node.nextSibling,
-                clone       = MetaphorJs.clone(transclude),
+                clone       = cloneFn(transclude),
                 children    = toArray(clone.childNodes);
 
             parent.removeChild(node);
@@ -723,6 +727,8 @@
 
             return children;
         }
+
+        return null;
     });
 
 
@@ -743,7 +749,7 @@
 
         if (has) {
             if (doAnim) {
-                animate(node, [cls + "-remove"]).done(function(){
+                animate(node, [cls + "-remove"], null, true).done(function(){
                     removeClass(node, cls);
                 });
             }
@@ -753,7 +759,7 @@
         }
         else {
             if (doAnim) {
-                animate(node, [cls + "-add"]).done(function(){
+                animate(node, [cls + "-add"], null, true).done(function(){
                     addClass(node, cls);
                 });
             }
@@ -907,7 +913,8 @@
                 scope: scope,
                 node: node,
                 as: as,
-                parentRenderer: parentRenderer
+                parentRenderer: parentRenderer,
+                destroyScope: true
             };
 
         resolveComponent(cmpName, cfg, scope, node);

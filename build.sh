@@ -25,7 +25,7 @@ manifest=(
     "../metaphorjs-ajax/metaphorjs.ajax.js"
     "../metaphorjs-history/metaphorjs.history.js"
     "src/cmp/Base.js"
-    "src/view/Animate.js"
+    "src/lib/Animate.js"
     "src/view/Scope.js"
     "src/view/Browser.js"
     "src/view/Renderer.js"

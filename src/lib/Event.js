@@ -13,18 +13,28 @@
         },
 
         NormalizedEvent = function(src) {
+
+            if (src instanceof NormalizedEvent) {
+                return src;
+            }
+
             // Allow instantiation without the 'new' keyword
             if (!(this instanceof NormalizedEvent)) {
                 return new NormalizedEvent(src);
             }
 
+
             var self    = this;
 
             for (var i in src) {
-                if ((!src.hasOwnProperty || !src.hasOwnProperty(i)) && !self[i]) {
-                    self[i] = src[i];
+                if (!self[i]) {
+                    try {
+                        self[i] = src[i];
+                    }
+                    catch (e){}
                 }
             }
+
 
             // Event object
             self.originalEvent = src;
@@ -32,6 +42,30 @@
 
             if (!self.target && src.srcElement) {
                 self.target = src.srcElement;
+            }
+
+
+            var eventDoc, doc, body,
+                button = src.button;
+
+            // Calculate pageX/Y if missing and clientX/Y available
+            if (typeof self.pageX == "undefined" && src.clientX != null ) {
+                eventDoc = self.target ? self.target.ownerDocument || document : document;
+                doc = eventDoc.documentElement;
+                body = eventDoc.body;
+
+                self.pageX = src.clientX +
+                              ( doc && doc.scrollLeft || body && body.scrollLeft || 0 ) -
+                              ( doc && doc.clientLeft || body && body.clientLeft || 0 );
+                self.pageY = src.clientY +
+                              ( doc && doc.scrollTop  || body && body.scrollTop  || 0 ) -
+                              ( doc && doc.clientTop  || body && body.clientTop  || 0 );
+            }
+
+            // Add which for click: 1 === left; 2 === middle; 3 === right
+            // Note: button is not normalized, so don't use it
+            if ( !self.which && button !== undefined ) {
+                self.which = ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
             }
 
             // Events bubbling up the document may have been marked as prevented

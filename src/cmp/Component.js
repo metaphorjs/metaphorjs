@@ -10,7 +10,8 @@
         Promise     = m.lib.Promise,
         Template    = m.view.Template,
         toFragment  = m.toFragment,
-        dataFn      = m.data;
+        dataFn      = m.data,
+        Scope       = m.view.Scope;
 
 
     var getCmpId    = function(cmp) {
@@ -67,6 +68,8 @@
          */
         destroyEl:      true,
 
+        destroyScope:   false,
+
         /**
          * @var {MetaphorJs.view.Scope}
          */
@@ -99,6 +102,10 @@
 
             var self    = this;
 
+            if (!self.scope) {
+                self.scope = new Scope;
+            }
+
             self.supr(cfg);
 
             if (cfg.as) {
@@ -114,12 +121,14 @@
 
             self.id         = getCmpId(self);
 
-            self.initComponent.apply(self, arguments);
-
-            self.scope.$app.registerCmp(self);
-
             if (!self.node) {
                 self._createNode();
+            }
+
+            self.initComponent.apply(self, arguments);
+
+            if (self.scope.$app){
+                self.scope.$app.registerCmp(self);
             }
 
             var tpl = self.template,
@@ -134,6 +143,10 @@
                     tpl: tpl,
                     url: url
                 });
+            }
+            else if (tpl instanceof Template) {
+                // it may have just been created
+                self.template.node = self.node;
             }
 
             if (self.parentRenderer) {
@@ -179,10 +192,6 @@
                 return;
             }
 
-            if (self.renderTo) {
-                self.renderTo.appendChild(self.node);
-            }
-
             self.trigger('render', self);
 
             self.template.on("rendered", self.onRenderingFinished, self);
@@ -191,8 +200,15 @@
 
         onRenderingFinished: function() {
             var self = this;
+
+            if (self.renderTo) {
+                self.renderTo.appendChild(self.node);
+            }
+            else if (!self.node.parentNode) {
+                document.body.appendChild(self.node);
+            }
+
             self.rendered   = true;
-            //self.hidden     = !MetaphorJs.isVisible(self.node);
             self.afterRender();
             self.trigger('afterrender', self);
         },
@@ -208,7 +224,7 @@
                 return;
             }
             if (self.trigger('beforeshow', self) === false) {
-                return;
+                return false;
             }
 
             self.node.style.display = "block";
@@ -228,7 +244,7 @@
                 return;
             }
             if (self.trigger('beforehide', self) === false) {
-                return;
+                return false;
             }
 
             self.node.style.display = "none";
@@ -319,7 +335,10 @@
                 }
             }
 
-            self.scope.$destroy();
+            if (self.destroyScope && self.scope) {
+                self.scope.$destroy();
+            }
+
             delete self.scope;
             delete self.node;
 
@@ -334,6 +353,19 @@
 
     MetaphorJs.resolveComponent = function(cmp, cfg, scope, node, args) {
 
+        cfg         = cfg || {};
+        args        = args || [];
+
+        scope       = scope || cfg.scope || new Scope;
+        node        = node || cfg.node;
+
+        cfg.scope   = cfg.scope || scope;
+        cfg.node    = cfg.node || node;
+
+        if (!scope.$app) {
+            throw "Cannot resolve component outside app's scope";
+        }
+
         var constr  = typeof cmp == "string" ? g(cmp) : cmp,
             i,
             defers  = [],
@@ -345,8 +377,6 @@
                 $scope: scope,
                 $app: app
             };
-
-        args        = args || [];
 
         if (constr.resolve) {
 
@@ -384,7 +414,7 @@
 
             defers.push(cfg.template.initPromise);
 
-            if (node.firstChild) {
+            if (node && node.firstChild) {
                 dataFn(node, "mjs-transclude", toFragment(node.childNodes));
             }
         }

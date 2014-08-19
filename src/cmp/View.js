@@ -94,7 +94,7 @@
 
             if (self.currentComponent) {
 
-                animate(node, "leave").done(function(){
+                animate(node, "leave", null, true).done(function(){
 
                     self.currentComponent.destroy();
                     self.currentComponent = null;
@@ -150,7 +150,7 @@
                         self.currentComponent = newCmp;
                     });
 
-            });
+            }, true);
         }
     });
 

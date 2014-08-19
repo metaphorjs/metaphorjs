@@ -25,7 +25,7 @@
     <script src="../../metaphorjs-model/src/Record.js"></script>
     <script src="../../metaphorjs-model/src/Store.js"></script>
 
-    <script src="../src/view/Animate.js"></script>
+    <script src="../src/lib/Animate.js"></script>
     <script src="../src/view/Scope.js"></script>
     <script src="../src/view/Browser.js"></script>
     <script src="../src/view/Renderer.js"></script>
@@ -37,6 +37,8 @@
     <script src="../src/view/Filter.js"></script>
     <script src="../src/view/Validator.js"></script>
 
+    <script src="../../metaphorjs-dialog/metaphorjs.dialog.js"></script>
+    <script src="../src/cmp/Dialog.js"></script>
 
     <style>
 
@@ -129,6 +131,22 @@
             -moz-transition:  border-width 0.4s;
             -o-transition:   border-width 0.4s;
             transition:  border-width 0.4s;
+        }
+
+
+        .dialog {
+
+            max-width: 400px;
+            position: absolute;
+            box-shadow: rgba(0,0,0,0.2) 2px 2px 10px;
+            background-color: #000;
+            padding: 20px;
+            color: #fff;
+
+        }
+
+        .dialog a {
+            color: #fff;
         }
 
     </style>
@@ -255,7 +273,11 @@
 
             <div mjs-cmp="Test.MyComponent as ctrl">
                 <p mjs-cmp-prop="para">Component's transcluded text + {{ .$root.a}}</p>
-                <a href="#" mjs-click=".ctrl.reverse()">reverse</a><br><br>
+                <a href="#" mjs-click=".ctrl.reverse()">reverse</a> |
+                <a href="#" mjs-click=".ctrl.createNew()">create new component on existing element</a> |
+                <a href="#" mjs-click=".ctrl.createRender()">create new component and render to</a> |
+                <a href="#" mjs-click=".ctrl.createDialog()">create new dialog</a>
+                <br><br>
                 <button mjs-click=".store.load()">Load store</button>
                 <button mjs-click=".store.clear()">Clear store</button>
                 <ul>
@@ -299,8 +321,28 @@
             <div mjs-view="Test.MyView" mjs-animate>
                 <p>This component controller by View</p>
             </div>
+
+            <hr>
+
+            <div id="newComponent">
+                Dynamically created component on existing element will go here
+            </div>
+
+            <hr>
+
+            <div id="renderToComponent">
+                Dynamically created component with renderTo will go here
+            </div>
+
+            <hr>
+
+            pushUrl: <a href="/1">/1</a> |
+            <a href="/2">/2</a> |
+            <a href="/3">/3</a> |
+            <a href="http://www.kuindji.com">outside</a><br><br>
         </div>
     </div>
+
 
     <script>
 
@@ -370,6 +412,47 @@
                     this.scope.title    = title.split("").reverse().join('');
                 },
 
+                createNew: function() {
+
+                    var node    = document.getElementById("newComponent");
+                    MetaphorJs.resolveComponent("Test.DynamicComponent", {}, this.scope, node);
+                },
+
+                createRender: function() {
+
+                    var to  = document.getElementById("renderToComponent");
+                    MetaphorJs.resolveComponent("Test.DynamicComponent", {renderTo: to}, this.scope);
+                },
+
+                createDialog: function() {
+
+
+                    try {
+                        var dialog = new MetaphorJs.cmp.Dialog({
+                            dialogCfg: {
+                                cls: {
+                                     dialog: "dialog"
+                                },
+                                position: "wc",
+                                show: {
+                                      animate: true
+                                },
+                                hide: {
+                                      destroy: true
+                                }
+                            },
+                            as: "dlg",
+                            scope: this.scope,
+                            template: '<p>This is a dialog. <a href="#" mjs-click=".dlg.hide()">close</a></p>'
+                        });
+                        dialog.show();
+                    }
+                    catch(e) {
+                        MetaphorJs.error(e)
+                    }
+
+                },
+
                 loadStore: function() {
                     this.scope.store.load().done(function(){
                         this.scope.$check();
@@ -421,6 +504,10 @@
 
             MetaphorJs.d("Test.StringTemplate", "MetaphorJs.cmp.Component", {}, {
                 template: '<p>This template is inlined in components definition ({{.$root.a}})</p>'
+            });
+
+            MetaphorJs.d("Test.DynamicComponent", "MetaphorJs.cmp.Component", {}, {
+                template: '<p>This component was created dynamically</p><div mjs-transclude></div>'
             });
 
             MetaphorJs.d("Test.ChangeTemplate", "MetaphorJs.cmp.Component", {
@@ -478,10 +565,7 @@
     </script>
 
 
-    pushUrl: <a href="/1">/1</a> |
-    <a href="/2">/2</a> |
-    <a href="/3">/3</a> |
-    <a href="http://www.kuindji.com">outside</a><br><br>
+
 
 </body>
 </html>

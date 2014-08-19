@@ -22,7 +22,6 @@
 
             var self        = this,
                 scope       = data instanceof Scope ? data : new Scope(data),
-                renderer,
                 provider,
                 observable;
 

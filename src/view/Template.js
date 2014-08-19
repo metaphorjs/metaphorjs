@@ -99,11 +99,15 @@
             var node    = self.node,
                 tpl     = self.tpl || self.url;
 
-            node.removeAttribute("mjs-include");
+            node && node.removeAttribute("mjs-include");
+
+            if (!node) {
+                self.deferRendering = true;
+            }
 
             if (tpl) {
 
-                if (node.firstChild) {
+                if (node && node.firstChild) {
                     dataFn(node, "mjs-transclude", toFragment(node.childNodes));
                 }
 
@@ -163,7 +167,7 @@
             var self    = this,
                 tpl     = self.tpl || self.url;
 
-            if (self.deferRendering) {
+            if (self.deferRendering && self.node) {
 
                 self.deferRendering = false;
                 if (self.initPromise) {
@@ -246,10 +250,10 @@
                 deferred    = new Promise;
 
             if (!self._initial) {
-                animate(el, "leave")
+                animate(el, "leave", null, true)
                     .done(self.doApplyTemplate, self)
                     .done(deferred.resolve, deferred);
-                animate(el, "enter");
+                animate(el, "enter", null, true);
             }
             else {
                 self.doApplyTemplate();

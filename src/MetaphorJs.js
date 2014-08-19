@@ -30,32 +30,65 @@
             }
         },
 
+        isPlainObject = function(obj) {
+            return obj && obj.constructor === Object;
+        },
+
+        /**
+         * @param {object} dst
+         * @param {object} src
+         * @param {object} ... more srcs
+         * @param {boolean} override = false
+         * @param {boolean} deep = true
+         */
         apply   = function() {
 
+
             var override    = false,
+                deep        = true,
                 args        = slice.call(arguments),
                 dst         = args.shift(),
                 src,
-                k;
+                k,
+                value;
 
             if (typeof args[args.length - 1] == "boolean") {
-                override = args.pop();
+                override    = args.pop();
+            }
+            if (typeof args[args.length - 1] == "boolean") {
+                deep        = override;
+                override    = args.pop();
             }
 
             while (src = args.shift()) {
                 for (k in src) {
-                    if (src.hasOwnProperty(k)) {
-                        if (dst[k] && typeof dst[k] == "object" && typeof src[k] == "object") {
-                            apply(dst[k], src[k], override);
+                    if (src.hasOwnProperty(k) && typeof (value = src[k]) != "undefined") {
+
+                        if (deep) {
+                            if (dst[k] && isPlainObject(dst[k]) && isPlainObject(value)) {
+                                apply(dst[k], value, override, deep);
+                            }
+                            else {
+                                if (override === true || typeof dst[k] == "undefined" || dst[k] === null) {
+                                    if (isPlainObject(value)) {
+                                        dst[k] = {};
+                                        apply(dst[k], value, override, false);
+                                    }
+                                    else {
+                                        dst[k] = value;
+                                    }
+                                }
+                            }
                         }
                         else {
                             if (override === true || typeof dst[k] == "undefined" || dst[k] === null) {
-                                dst[k] = src[k];
+                                dst[k] = value;
                             }
                         }
                     }
                 }
             }
+
             return dst;
         },
 
@@ -71,6 +104,10 @@
                 return typeof value == "string" ? value.trim() : value;
             };
         })(),
+
+        aIndexOf    = Array.prototype.indexOf,
+
+        toString    = Object.prototype.toString,
 
         inArray     = function(val, arr) {
             return arr ? aIndexOf.call(arr, val) : -1;
@@ -93,19 +130,19 @@
         },
 
         hasClass    = function(el, cls) {
-            var reg = getClsReg(cls);
-            return reg.test(el.className);
+            return cls ? getClsReg(cls).test(el.className) : false;
         },
 
         addClass    = function(el, cls) {
-            if (!hasClass(el, cls)) {
+            if (cls && !hasClass(el, cls)) {
                 el.className += " " + cls;
             }
         },
 
         removeClass = function(el, cls) {
-            var reg = getClsReg(cls);
-            el.className = el.className.replace(reg, '');
+            if (cls) {
+                el.className = el.className.replace(getClsReg(cls), '');
+            }
         },
 
 
@@ -132,7 +169,37 @@
             }
             uid.unshift('0');
             return uid.join('');
+        },
+
+        dataCache   = {},
+
+        getNodeId   = function(el) {
+            return el._mjsId || (el._mjsId = nextUid());
+        },
+
+        dataFn      = function(el, key, value) {
+            var id  = getNodeId(el),
+                obj = dataCache[id];
+
+            if (typeof value != "undefined") {
+                if (!obj) {
+                    obj = dataCache[id] = {};
+                }
+                obj[key] = value;
+                return value;
+            }
+            else {
+                return obj ? obj[key] : undefined;
+            }
+        },
+
+        isThenable = function(any) {
+            var then;
+            return any && //(typeof any == "object" || typeof any == "function") &&
+                   typeof (then = any.then) == "function" ?
+                   then : false;
         };
+
 
 
     if (typeof window != "undefined") {
@@ -155,4 +222,7 @@
     MetaphorJs.removeClass = removeClass;
     MetaphorJs.hasClass = hasClass;
     MetaphorJs.nextUid = nextUid;
+    MetaphorJs.data = dataFn;
+    MetaphorJs.isPlainObject = isPlainObject;
+    MetaphorJs.isThenable = isThenable;
 }());

@@ -8,33 +8,12 @@
 
     "use strict";
 
-    var undef       = {}.undefined,
+    var m               = window.MetaphorJs,
+        extend          = m.extend,
+        addListener     = m.addListener,
+        removeListener  = m.removeListener,
+        isArray         = m.isArray,
 
-        extend      = MetaphorJs.extend,
-        nextUid     = MetaphorJs.nextUid,
-
-        addListener     = MetaphorJs.addListener,
-        removeListener  = MetaphorJs.removeListener,
-
-        isArray     = MetaphorJs.isArray,
-
-        dataCache   = {},
-
-        dataFn      = function(el, key, value) {
-            var id  = getNodeId(el),
-                obj = dataCache[id];
-
-            if (typeof value != "undefined") {
-                if (!obj) {
-                    obj = dataCache[id] = {};
-                }
-                obj[key] = value;
-                return value;
-            }
-            else {
-                return obj ? obj[key] : undef;
-            }
-        },
 
         toFragment = function(nodes) {
 
@@ -56,9 +35,7 @@
             return fragment;
         },
 
-        getNodeId = function(el) {
-            return el._mjsId || (el._mjsId = nextUid());
-        },
+
 
         attributeHandlers   = [],
         tagHandlers         = [],
@@ -176,7 +153,7 @@
 
 
 
-    extend(MetaphorJs, {
+    extend(m, {
 
         VERSION:    "0.1",
 
@@ -188,9 +165,6 @@
         numberFormats: {},
         dateFormats: {},
 
-        getNodeId: getNodeId,
-
-        data: dataFn,
 
         /**
          * Empty function. Used for callback placeholders
@@ -202,13 +176,6 @@
 
         isVisible: function(el) {
             return !(el.offsetWidth <= 0 || el.offsetHeight <= 0);
-        },
-
-        isThenable: function(any) {
-            var then;
-            return any && //(typeof any == "object" || typeof any == "function") &&
-                   typeof (then = any.then) == "function" ?
-                    then : false;
         },
 
         isInjectable: function(any) {
