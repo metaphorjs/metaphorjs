@@ -34,6 +34,10 @@ This one watches for changes in objects and scopes.
 [MetaphorJs.ajax](https://github.com/kuindji/metaphorjs-ajax)
 AJAX implementation similar to jQuery's.
 
+[MetaphorJs.lib.Dialog](https://github.com/kuindji/metaphorjs-dialog)
+Tooltip/Dialog library. (Reworked version of [jquery-dialog](https://github.com/kuindji/jquery-dialog) -- without
+jquery dependency.
+
 [MetaphorJs.lib.Validator](https://github.com/kuindji/metaphorjs-validator)
 Form validation.
 
