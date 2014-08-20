@@ -157,6 +157,7 @@
             self._initElement();
 
             if (self.autoRender) {
+
                 if (tpl.initPromise) {
                     tpl.initPromise.done(self.render, self);
                 }
@@ -425,8 +426,6 @@
         if (defers.length) {
             var p = new Promise;
 
-            // if there are no defers, we avoid nextTick
-            // by using done instead of then
             Promise.all(defers).done(function(){
                 cfg.$config = cfg;
                 p.resolve(app.inject(constr, null, true, cfg, args));

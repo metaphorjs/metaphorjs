@@ -9,17 +9,21 @@
 
         validators      = {},
 
-        getValue        = MetaphorJs.getValue,
-        extend          = MetaphorJs.extend,
-        isArray         = MetaphorJs.isArray,
-        trim            = MetaphorJs.trim,
-        bind            = MetaphorJs.bind,
-        addListener     = MetaphorJs.addListener,
-        removeListener  = MetaphorJs.removeListener,
-        hasClass        = MetaphorJs.hasClass,
-        addClass        = MetaphorJs.addClass,
-        removeClass     = MetaphorJs.removeClass,
-        Input           = MetaphorJs.lib.Input,
+        m               = window.MetaphorJs,
+
+        getValue        = m.getValue,
+        extend          = m.extend,
+        isArray         = m.isArray,
+        trim            = m.trim,
+        bind            = m.bind,
+        addListener     = m.addListener,
+        removeListener  = m.removeListener,
+        addClass        = m.addClass,
+        removeClass     = m.removeClass,
+        Input           = m.lib.Input,
+        select          = m.select,
+
+        normalizeEvent  = m.normalizeEvent,
 
         eachNode        = function(el, fn, fnScope) {
             var i, len,
@@ -439,7 +443,7 @@
         self.elem           = elem;
         self.vldr           = vldr;
         self.callbackScope  = scope = cfg.callback.scope;
-        self.enabled        = elem.getAttribute("disabled") === null;
+        self.enabled        = !elem.disabled;
         self.id             = elem.getAttribute('name') || elem.getAttribute.attr('id');
         self.data           = options.data;
         self.rules			= {};
@@ -1058,9 +1062,14 @@
 
         onInputSubmit: function(e) {
 
+            e = normalizeEvent(e);
+
             if (!e.isDefaultPrevented || !e.isDefaultPrevented()) {
-                this.trigger("submit", this, e);
-                e.preventDefault && e.preventDefault();
+                var res = this.trigger("submit", this, e);
+                if (res === false) {
+                    e.preventDefault();
+                    return false;
+                }
             }
         },
 
@@ -2252,21 +2261,8 @@
                 self.add(el);
                 return self;
             }
-            if (self.isForm) {
-                els = el.elements;
-            }
-            else if (el.querySelectorAll) {
-                els = el.querySelectorAll('input, textarea, select');
-            }
-            else {
-                els = [];
-                eachNode(el, function(node){
-                    var tag = node.nodeName.toLowerCase();
-                    if (tag == "input" || tag == "textarea" || tag == "select") {
-                        els.push(node);
-                    }
-                });
-            }
+
+            els = select("input, textarea, select", el);
 
             for (i = -1, l = els.length; ++i < l; self.add(els[i])){}
 
@@ -2278,8 +2274,8 @@
             var self    = this,
                 el      = self.el,
                 nodes   = el.getElementsByTagName("input"),
-                submits = el.getElementsByClassName("submit"),
-                resets  = el.getElementsByClassName("reset"),
+                submits = select(".submit", el),
+                resets  = select(".reset", el),
                 fn      = mode == "bind" ? addListener : removeListener,
                 i, l,
                 type,
@@ -2298,12 +2294,12 @@
 
             for (i = -1, l = submits.length;
                  ++i < l;
-                 !hasClass(submits[i], "submit") && fn(submits[i], "click", self.onSubmitClickDelegate)
+                 submits[i].type != "submit" && fn(submits[i], "click", self.onSubmitClickDelegate)
                 ){}
 
             for (i = -1, l = resets.length;
                  ++i < l;
-                 !hasClass(resets[i], "reset") && fn(resets[i], "click", self.resetDelegate)
+                 resets[i].type != "reset" && fn(resets[i], "click", self.resetDelegate)
                 ){}
 
             if (self.isForm) {
@@ -2312,17 +2308,22 @@
         },
 
         onRealSubmitClick: function(e) {
-            e = e || window.event;
+            e = normalizeEvent(e || window.event);
             this.submitButton  = e.target || e.srcElement;
             return this.onSubmit(e);
         },
 
         onSubmitClick: function(e) {
-            return this.onSubmit(e || window.event);
+            return this.onSubmit(normalizeEvent(e || window.event));
         },
 
         onFormSubmit: function(e) {
-            return this.onSubmit(e || window.event);
+            e = normalizeEvent(e);
+            if (!this.isValid()) {
+                e.preventDefault();
+                return false;
+            }
+            //return this.onSubmit(normalizeEvent(e || window.event));
         },
 
         onFieldSubmit: function(fapi, e) {
@@ -2342,7 +2343,7 @@
             self.enableDisplayState();
 
             if (self.pending) {
-                e && e.preventDefault && e.preventDefault();
+                e && e.preventDefault();
                 return false;
             }
 
@@ -2374,7 +2375,7 @@
                 self.onFieldStateChange();
 
                 if (self.pending) {
-                    e && e.preventDefault && e.preventDefault();
+                    e && e.preventDefault();
                     return false;
                 }
             }
@@ -2382,8 +2383,9 @@
             if (self.trigger('beforesubmit', self) === false || !self.isValid()) {
 
                 if (e) {
-                    e.preventDefault && e.preventDefault();
-                    e.stopPropagation && e.stopPropagation();
+
+                    e.preventDefault();
+                    e.stopPropagation();
                 }
 
                 if (!self.pending) {
@@ -2696,8 +2698,8 @@
                         try {
                             fn(scope);
                         }
-                        catch(e) {
-                            MetaphorJs.error(e);
+                        catch(thrownError) {
+                            MetaphorJs.error(thrownError);
                         }
                     }
                 }(createFn(submit), self.scope);
@@ -2857,7 +2859,7 @@
             constr  = g(cls);
 
         if (!constr) {
-            MetaphorJs.asyncError(new Error("Class '"+cls+"' not found"));
+            MetaphorJs.error(new Error("Class '"+cls+"' not found"));
         }
         else {
             new constr(node, scope);

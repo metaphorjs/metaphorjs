@@ -90,8 +90,11 @@
 
         registerCmp: function(cmp) {
             var self = this;
-            self.onAvailable(cmp.id).resolve(cmp);
+
             self.components[cmp.id] = cmp;
+
+            self.onAvailable(cmp.id).resolve(cmp);
+
             cmp.on("destroy", function(cmp){
                 delete self.cmpListeners[cmp.id];
                 delete self.components[cmp.id];

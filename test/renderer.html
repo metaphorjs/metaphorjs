@@ -2,6 +2,7 @@
 <html>
 <head>
 
+
     <script src="numeral.min.js"></script>
     <script src="moment.min.js"></script>
     <script src="../src/lib/Polyfill.js"></script>
@@ -414,7 +415,7 @@
 
                 afterRender: function() {
 
-                    if (this.para) {
+                    if (this.para && window.console && window.console.log) {
                         console.log("got child property 'para': ", this.para);
                     }
                 },
@@ -508,7 +509,9 @@
                     self.scope.tpl  = "a+b";
 
                     self.scope.$app.onAvailable("myComponent1").done(function(cmp){
-                        console.log("on available myComponent1");
+                        if (window.console && window.console.log) {
+                            console.log("on available myComponent1");
+                        }
                     });
                 }
 

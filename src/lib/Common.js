@@ -167,11 +167,6 @@
         numberFormats:  {},
         dateFormats:    {},
 
-        /**
-         * Empty function. Used for callback placeholders
-         * @function MetaphorJs.emptyFn
-         */
-        emptyFn:        function() {},
         clone:          cloneFn,
         async:          async,
         toFragment:     toFragment,

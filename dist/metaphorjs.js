@@ -1,3 +1,68 @@
+if (!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function (searchElement, fromIndex) {
+
+        var k;
+
+        // 1. Let O be the result of calling ToObject passing
+        //    the this value as the argument.
+        if (this == null) {
+            throw new TypeError('"this" is null or not defined');
+        }
+
+        var O = Object(this);
+
+        // 2. Let lenValue be the result of calling the Get
+        //    internal method of O with the argument "length".
+        // 3. Let len be ToUint32(lenValue).
+        var len = O.length >>> 0;
+
+        // 4. If len is 0, return -1.
+        if (len === 0) {
+            return -1;
+        }
+
+        // 5. If argument fromIndex was passed let n be
+        //    ToInteger(fromIndex); else let n be 0.
+        var n = +fromIndex || 0;
+
+        if (Math.abs(n) === Infinity) {
+            n = 0;
+        }
+
+        // 6. If n >= len, return -1.
+        if (n >= len) {
+            return -1;
+        }
+
+        // 7. If n >= 0, then Let k be n.
+        // 8. Else, n<0, Let k be len - abs(n).
+        //    If k is less than 0, then let k be 0.
+        k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+
+        // 9. Repeat, while k < len
+        while (k < len) {
+            var kValue;
+            // a. Let Pk be ToString(k).
+            //   This is implicit for LHS operands of the in operator
+            // b. Let kPresent be the result of calling the
+            //    HasProperty internal method of O with argument Pk.
+            //   This step can be combined with c
+            // c. If kPresent is true, then
+            //    i.  Let elementK be the result of calling the Get
+            //        internal method of O with the argument ToString(k).
+            //   ii.  Let same be the result of applying the
+            //        Strict Equality Comparison Algorithm to
+            //        searchElement and elementK.
+            //  iii.  If same is true, return k.
+            if (k in O && O[k] === searchElement) {
+                return k;
+            }
+            k++;
+        }
+        return -1;
+    };
+}
+
 
 
 (function(){
@@ -10,7 +75,7 @@
                       } :
                       function(fn, context) {
                           return function() {
-                              fn.apply(context, arguments);
+                              return fn.apply(context, arguments);
                           };
                       },
 
@@ -198,6 +263,11 @@
             return any && //(typeof any == "object" || typeof any == "function") &&
                    typeof (then = any.then) == "function" ?
                    then : false;
+        },
+
+        isAttached  = function(node) {
+            var body = document.body;
+            return node === body ? true : body.contains(node);
         };
 
 
@@ -225,6 +295,7 @@
     MetaphorJs.data = dataFn;
     MetaphorJs.isPlainObject = isPlainObject;
     MetaphorJs.isThenable = isThenable;
+    MetaphorJs.isAttached = isAttached;
 }());
 
 /**
@@ -344,7 +415,7 @@
                 }
                 return clone;
             }
-            else {
+            else if (node) {
                 switch (node.nodeType) {
                     // element
                     case 1:
@@ -360,9 +431,13 @@
                         return null;
                 }
             }
+
+            return null;
         },
 
         async = function(fn, fnScope, args) {
+            fn.apply(fnScope, args || []);
+            return;
             setTimeout(function(){
                 fn.apply(fnScope, args || []);
             }, 0);
@@ -375,8 +450,8 @@
             try {
                 return MetaphorJs.create(cls, node, data);
             }
-            catch (e) {
-                MetaphorJs.error(e);
+            catch (thrownError) {
+                MetaphorJs.error(thrownError);
             }
         };
 
@@ -384,42 +459,33 @@
 
     extend(m, {
 
-        VERSION:    "0.1",
+        registerAttributeHandler:   registerAttributeHandler,
+        registerTagHandler:         registerTagHandler,
+        getAttributeHandlers:       getAttributeHandlers,
+        getTagHandlers:             getTagHandlers,
 
-        registerAttributeHandler: registerAttributeHandler,
-        registerTagHandler: registerTagHandler,
-        getAttributeHandlers: getAttributeHandlers,
-        getTagHandlers: getTagHandlers,
-
-        numberFormats: {},
-        dateFormats: {},
-
+        numberFormats:  {},
+        dateFormats:    {},
 
         /**
          * Empty function. Used for callback placeholders
          * @function MetaphorJs.emptyFn
          */
-        emptyFn:    function() {},
+        emptyFn:        function() {},
+        clone:          cloneFn,
+        async:          async,
+        toFragment:     toFragment,
+        app:            appFn,
 
-        clone: cloneFn,
-
-        isVisible: function(el) {
+        isVisible:      function(el) {
             return !(el.offsetWidth <= 0 || el.offsetHeight <= 0);
         },
 
-        isInjectable: function(any) {
+        isInjectable:   function(any) {
             return any.length && typeof any[any.length - 1] == "function";
         },
 
-        async: async,
-
-        asyncError: function(e) {
-            async(function(){
-                throw e;
-            });
-        },
-
-        onReady: function(fn) {
+        onReady:        function(fn) {
 
             var done    = false,
                 top     = true,
@@ -442,7 +508,7 @@
                 poll = function() {
                     try {
                         root.doScroll('left');
-                    } catch(e) {
+                    } catch(thrownError) {
                         setTimeout(poll, 50);
                         return;
                     }
@@ -457,7 +523,7 @@
                 if (doc.createEventObject && root.doScroll) {
                     try {
                         top = !win.frameElement;
-                    } catch(e) {}
+                    } catch(thrownError) {}
 
                     top && poll();
                 }
@@ -468,12 +534,11 @@
 
         },
 
-        toFragment: toFragment,
-        app: appFn,
-
-        error: function(e) {
+        error:          function(e) {
 
             var stack = e.stack || (new Error).stack;
+
+            throw e;
 
             setTimeout(function(){
                 if (typeof console != "undefined" && console.log) {
@@ -486,6 +551,588 @@
         }
     });
 
+
+}());
+
+/**
+ * Modified version of YASS (http://yass.webo.in)
+ */
+
+(function(){
+
+    var rGeneric    = /^[\w[:#.][\w\]*^|=!]*$/,
+        rQuote      = /=([^\]]+)/,
+        rGrpSplit   = / *, */,
+        rRepPlus    = /(\([^)]*)\+/,
+        rRepTild    = /(\[[^\]]+)~/,
+        rRepAll     = /(~|>|\+)/,
+        rSplitPlus  = / +/,
+        rSingleMatch= /([^[:.#]+)?(?:#([^[:.#]+))?(?:\.([^[:.]+))?(?:\[([^!&^*|$[:=]+)([!$^*|&]?=)?([^:\]]+)?\])?(?::([^(]+)(?:\(([^)]+)\))?)?/,
+        rNthNum     = /(?:(-?\d*)n)?(?:(%|-)(\d*))?/,
+        rNonDig     = /\D/,
+        rRepPrnth   = /[^(]*\(([^)]*)\)/,
+        rRepAftPrn  = /\(.*/,
+        rGetSquare  = /\[([^!~^*|$ [:=]+)([$^*|]?=)?([^ :\]]+)?\]/,
+
+        toArray     = MetaphorJs.toArray,
+
+        doc         = document,
+        bcn         = !!doc.getElementsByClassName,
+        qsa         = !!doc.querySelectorAll,
+
+        /*
+         function calls for CSS2/3 modificatos. Specification taken from
+         http://www.w3.org/TR/2005/WD-css3-selectors-20051215/
+         on success return negative result.
+         */
+        mods        = {
+            /* W3C: "an E element, first child of its parent" */
+            'first-child': function (child) {
+                /* implementation was taken from jQuery.1.2.6, line 1394 */
+                return child.parentNode.getElementsByTagName('*')[0] !== child;
+            },
+            /* W3C: "an E element, last child of its parent" */
+            'last-child': function (child) {
+                var brother = child;
+                /* loop in lastChilds while nodeType isn't element */
+                while ((brother = brother.nextSibling) && brother.nodeType != 1) {}
+                /* Check for node's existence */
+                return !!brother;
+            },
+            /* W3C: "an E element, root of the document" */
+            root: function (child) {
+                return child.nodeName.toLowerCase() !== 'html';
+            },
+            /* W3C: "an E element, the n-th child of its parent" */
+            'nth-child': function (child, ind) {
+                var i = child.nodeIndex || 0,
+                    a = ind[3] = ind[3] ? (ind[2] === '%' ? -1 : 1) * ind[3] : 0,
+                    b = ind[1];
+                /* check if we have already looked into siblings, using exando - very bad */
+                if (i) {
+                    return !( (i + a) % b);
+                } else {
+                    /* in the other case just reverse logic for n and loop siblings */
+                    var brother = child.parentNode.firstChild;
+                    i++;
+                    /* looping in child to find if nth expression is correct */
+                    do {
+                        /* nodeIndex expando used from Peppy / Sizzle/ jQuery */
+                        if (brother.nodeType == 1 && (brother.nodeIndex = ++i) && child === brother && ((i + a) % b)) {
+                            return 0;
+                        }
+                    } while (brother = brother.nextSibling);
+                    return 1;
+                }
+            },
+            /*
+             W3C: "an E element, the n-th child of its parent,
+             counting from the last one"
+             */
+            'nth-last-child': function (child, ind) {
+                /* almost the same as the previous one */
+                var i = child.nodeIndexLast || 0,
+                    a = ind[3] ? (ind[2] === '%' ? -1 : 1) * ind[3] : 0,
+                    b = ind[1];
+                if (i) {
+                    return !( (i + a) % b);
+                } else {
+                    var brother = child.parentNode.lastChild;
+                    i++;
+                    do {
+                        if (brother.nodeType == 1 && (brother.nodeLastIndex = i++) && child === brother && ((i + a) % b)) {
+                            return 0;
+                        }
+                    } while (brother = brother.previousSibling);
+                    return 1;
+                }
+            },
+            /*
+             Rrom w3.org: "an E element that has no children (including text nodes)".
+             Thx to John, from Sizzle, 2008-12-05, line 416
+             */
+            empty: function (child) {
+                return !!child.firstChild;
+            },
+            /* thx to John, stolen from Sizzle, 2008-12-05, line 413 */
+            parent: function (child) {
+                return !child.firstChild;
+            },
+            /* W3C: "an E element, only child of its parent" */
+            'only-child': function (child) {
+                return child.parentNode.getElementsByTagName('*').length != 1;
+            },
+            /*
+             W3C: "a user interface element E which is checked
+             (for instance a radio-button or checkbox)"
+             */
+            checked: function (child) {
+                return !child.checked;
+            },
+            /*
+             W3C: "an element of type E in language "fr"
+             (the document language specifies how language is determined)"
+             */
+            lang: function (child, ind) {
+                return child.lang !== ind && doc.documentElement.lang !== ind;
+            },
+            /* thx to John, from Sizzle, 2008-12-05, line 398 */
+            enabled: function (child) {
+                return child.disabled || child.type === 'hidden';
+            },
+            /* thx to John, from Sizzle, 2008-12-05, line 401 */
+            disabled: function (child) {
+                return !child.disabled;
+            },
+            /* thx to John, from Sizzle, 2008-12-05, line 407 */
+            selected: function(elem){
+                /*
+                 Accessing this property makes selected-by-default
+                 options in Safari work properly.
+                 */
+                elem.parentNode.selectedIndex;
+                return !elem.selected;
+            }
+        },
+
+        attrRegCache = {},
+
+        getAttrReg  = function(value) {
+            return attrRegCache[value] || (attrRegCache[value] = new RegExp('(^| +)' + value + '($| +)'));
+        },
+
+        attrMods    = {
+            /* W3C "an E element with a "attr" attribute" */
+            '': function (child, attr) {
+                return !!child.getAttribute(attr);
+            },
+            /*
+             W3C "an E element whose "attr" attribute value is
+             exactly equal to "value"
+             */
+            '=': function (child, attr, value) {
+                return (attr = child.getAttribute(attr)) && attr === value;
+            },
+            /*
+             from w3.prg "an E element whose "attr" attribute value is
+             a list of space-separated values, one of which is exactly
+             equal to "value"
+             */
+            '&=': function (child, attr, value) {
+                return (attr = child.getAttribute(attr)) && getAttrReg(value).test(attr);
+            },
+            /*
+             from w3.prg "an E element whose "attr" attribute value
+             begins exactly with the string "value"
+             */
+            '^=': function (child, attr, value) {
+                return (attr = child.getAttribute(attr) + '') && !attr.indexOf(value);
+            },
+            /*
+             W3C "an E element whose "attr" attribute value
+             ends exactly with the string "value"
+             */
+            '$=': function (child, attr, value) {
+                return (attr = child.getAttribute(attr) + '') && attr.indexOf(value) == attr.length - value.length;
+            },
+            /*
+             W3C "an E element whose "attr" attribute value
+             contains the substring "value"
+             */
+            '*=': function (child, attr, value) {
+                return (attr = child.getAttribute(attr) + '') && attr.indexOf(value) != -1;
+            },
+            /*
+             W3C "an E element whose "attr" attribute has
+             a hyphen-separated list of values beginning (from the
+             left) with "value"
+             */
+            '|=': function (child, attr, value) {
+                return (attr = child.getAttribute(attr) + '') && (attr === value || !!attr.indexOf(value + '-'));
+            },
+            /* attr doesn't contain given value */
+            '!=': function (child, attr, value) {
+                return !(attr = child.getAttribute(attr)) || !getAttrReg(value).test(attr);
+            }
+        };
+
+    /**
+     * Returns number of nodes or an empty array
+     * @param {String} selector
+     * @param {Element} root to look into
+     */
+    var select = function (selector, root) {
+
+        /* clean root with document */
+        root = root || doc;
+
+        /* sets of nodes, to handle comma-separated selectors */
+        var sets    = [],
+            qsaErr  = null,
+            idx, cls, nodes,
+            i, node, ind, mod,
+            attrs, attr, eql, value;
+
+        if (qsa) {
+            /* replace not quoted args with quoted one -- Safari doesn't understand either */
+            try {
+                sets = toArray(root.querySelectorAll(selector.replace(rQuote, '="$1"')));
+            }
+            catch (thrownError) {
+                qsaErr = true;
+            }
+        }
+
+        if (!qsa || qsaErr) {
+
+            /* quick return or generic call, missed ~ in attributes selector */
+            if (rGeneric.test(selector)) {
+
+                /*
+                 some simple cases - only ID or only CLASS for the very first occurence
+                 - don't need additional checks. Switch works as a hash.
+                 */
+                idx = 0;
+
+                /* the only call -- no cache, thx to GreLI */
+                switch (selector.charAt(0)) {
+
+                    case '#':
+                        idx = selector.slice(1);
+                        sets = doc.getElementById(idx);
+
+                        /*
+                         workaround with IE bug about returning element by name not by ID.
+                         Solution completely changed, thx to deerua.
+                         Get all matching elements with this id
+                         */
+                        if (sets.id !== idx) {
+                            sets = doc.all[idx];
+                        }
+
+                        sets = sets ? [sets] : [];
+                        break;
+
+                    case '.':
+
+                        cls = selector.slice(1);
+
+                        if (bcn) {
+
+                            sets = toArray((idx = (sets = root.getElementsByClassName(cls)).length) ? sets : []);
+
+                        } else {
+
+                            /* no RegExp, thx to DenVdmj */
+                            cls = ' ' + cls + ' ';
+
+                            nodes = root.getElementsByTagName('*');
+                            i = 0;
+
+                            while (node = nodes[i++]) {
+                                if ((' ' + node.className + ' ').indexOf(cls) != -1) {
+                                    sets[idx++] = node;
+                                }
+
+                            }
+                            sets = idx ? sets : [];
+                        }
+                        break;
+
+                    case ':':
+
+                        nodes   = root.getElementsByTagName('*');
+                        i       = 0;
+                        ind     = selector.replace(rRepPrnth,"$1");
+                        mod     = selector.replace(rRepAftPrn,'');
+
+                        while (node = nodes[i++]) {
+                            if (mods[mod] && !mods[mod](node, ind)) {
+                                sets[idx++] = node;
+                            }
+                        }
+                        sets = idx ? sets : [];
+                        break;
+
+                    case '[':
+
+                        nodes   = root.getElementsByTagName('*');
+                        i       = 0;
+                        attrs   = rGetSquare.exec(selector);
+                        attr    = attrs[1];
+                        eql     = attrs[2] || '';
+                        value   = attrs[3];
+
+                        while (node = nodes[i++]) {
+                            /* check either attr is defined for given node or it's equal to given value */
+                            if (attrMods[eql] && (attrMods[eql](node, attr, value) ||
+                                              (attr === 'class' && attrMods[eql](node, 'className', value)))) {
+                                sets[idx++] = node;
+                            }
+                        }
+                        sets = idx ? sets : [];
+                        break;
+
+                    default:
+                        sets = toArray((idx = (sets = root.getElementsByTagName(selector)).length) ? sets : []);
+                        break;
+                }
+
+            } else {
+
+                /* number of groups to merge or not result arrays */
+                /*
+                 groups of selectors separated by commas.
+                 Split by RegExp, thx to tenshi.
+                 */
+                var groups  = selector.split(rGrpSplit),
+                    gl      = groups.length - 1, /* group counter */
+                    concat  = !!gl, /* if we need to concat several groups */
+                    group,
+                    singles,
+                    singles_length,
+                    single, /* to handle RegExp for single selector */
+                    ancestor, /* to remember ancestor call for next childs, default is " " */
+                    /* for inner looping */
+                    tag, id, klass, newNodes, J, child, last, childs, item, h;
+
+                /* loop in groups, maybe the fastest way */
+                while (group = groups[gl--]) {
+
+                    /*
+                     Split selectors by space - to form single group tag-id-class,
+                     or to get heredity operator. Replace + in child modificators
+                     to % to avoid collisions. Additional replace is required for IE.
+                     Replace ~ in attributes to & to avoid collisions.
+                     */
+                    singles_length = (singles = group
+                        .replace(rRepPlus,"$1%")
+                        .replace(rRepTild,"$1&")
+                        .replace(rRepAll," $1 ").split(rSplitPlus)).length;
+
+                    i = 0;
+                    ancestor = ' ';
+                    /* is cleanded up with DOM root */
+                    nodes = [root];
+
+                    /*
+                     John's Resig fast replace works a bit slower than
+                     simple exec. Thx to GreLI for 'greed' RegExp
+                     */
+                    while (single = singles[i++]) {
+
+                        /* simple comparison is faster than hash */
+                        if (single !== ' ' && single !== '>' && single !== '~' && single !== '+' && nodes) {
+
+                            single = single.match(rSingleMatch);
+
+                            /*
+                             Get all required matches from exec:
+                             tag, id, class, attribute, value, modificator, index.
+                             */
+                            tag     = single[1] || '*';
+                            id      = single[2];
+                            klass   = single[3] ? ' ' + single[3] + ' ' : '';
+                            attr    = single[4];
+                            eql     = single[5] || '';
+                            mod     = single[7];
+
+                            /*
+                             for nth-childs modificator already transformed into array.
+                             Example used from Sizzle, rev. 2008-12-05, line 362.
+                             */
+                            ind = mod === 'nth-child' || mod === 'nth-last-child' ?
+                                  rNthNum.exec(
+                                      single[8] === 'even' && '2n' ||
+                                      single[8] === 'odd' && '2n%1' ||
+                                      !rNonDig.test(single[8]) && '0n%' + single[8] ||
+                                      single[8]
+                                  ) :
+                                  single[8];
+
+                            /* new nodes array */
+                            newNodes = [];
+
+                            /*
+                             cached length of new nodes array
+                             and length of root nodes
+                             */
+                            idx = J = 0;
+
+                            /* if we need to mark node with expando yeasss */
+                            last = i == singles_length;
+
+                            /* loop in all root nodes */
+                            while (child = nodes[J++]) {
+                                /*
+                                 find all TAGs or just return all possible neibours.
+                                 Find correct 'children' for given node. They can be
+                                 direct childs, neighbours or something else.
+                                 */
+                                switch (ancestor) {
+                                    case ' ':
+                                        childs = child.getElementsByTagName(tag);
+                                        h = 0;
+                                        while (item = childs[h++]) {
+                                            /*
+                                             check them for ID or Class. Also check for expando 'yeasss'
+                                             to filter non-selected elements. Typeof 'string' not added -
+                                             if we get element with name="id" it won't be equal to given ID string.
+                                             Also check for given attributes selector.
+                                             Modificator is either not set in the selector, or just has been nulled
+                                             by modificator functions hash.
+                                             */
+                                            if ((!id || item.id === id) &&
+                                                (!klass || (' ' + item.className + ' ').indexOf(klass) != -1) &&
+                                                (!attr || (attrMods[eql] &&
+                                                           (attrMods[eql](item, attr, single[6]) ||
+                                                            (attr === 'class' &&
+                                                             attrMods[eql](item, 'className', single[6]))))) &&
+                                                !item.yeasss && !(mods[mod] ? mods[mod](item, ind) : mod)) {
+
+                                                /*
+                                                 Need to define expando property to true for the last step.
+                                                 Then mark selected element with expando
+                                                 */
+                                                if (last) {
+                                                    item.yeasss = 1;
+                                                }
+                                                newNodes[idx++] = item;
+                                            }
+                                        }
+                                        break;
+                                    /* W3C: "an F element preceded by an E element" */
+                                    case '~':
+
+                                        tag = tag.toLowerCase();
+
+                                        /* don't touch already selected elements */
+                                        while ((child = child.nextSibling) && !child.yeasss) {
+                                            if (child.nodeType == 1 &&
+                                                (tag === '*' || child.nodeName.toLowerCase() === tag) &&
+                                                (!id || child.id === id) &&
+                                                (!klass || (' ' + child.className + ' ').indexOf(klass) != -1) &&
+                                                (!attr || (attrMods[eql] &&
+                                                           (attrMods[eql](item, attr, single[6]) ||
+                                                            (attr === 'class' &&
+                                                             attrMods[eql](item, 'className', single[6]))))) &&
+                                                !child.yeasss &&
+                                                !(mods[mod] ? mods[mod](child, ind) : mod)) {
+
+                                                if (last) {
+                                                    child.yeasss = 1;
+                                                }
+                                                newNodes[idx++] = child;
+                                            }
+                                        }
+                                        break;
+
+                                    /* W3C: "an F element immediately preceded by an E element" */
+                                    case '+':
+                                        while ((child = child.nextSibling) && child.nodeType != 1) {}
+                                        if (child &&
+                                            (child.nodeName.toLowerCase() === tag.toLowerCase() || tag === '*') &&
+                                            (!id || child.id === id) &&
+                                            (!klass || (' ' + item.className + ' ').indexOf(klass) != -1) &&
+                                            (!attr ||
+                                             (attrMods[eql] && (attrMods[eql](item, attr, single[6]) ||
+                                                                (attr === 'class' &&
+                                                                 attrMods[eql](item, 'className', single[6]))))) &&
+                                            !child.yeasss && !(mods[mod] ? mods[mod](child, ind) : mod)) {
+
+                                            if (last) {
+                                                child.yeasss = 1;
+                                            }
+                                            newNodes[idx++] = child;
+                                        }
+                                        break;
+
+                                    /* W3C: "an F element child of an E element" */
+                                    case '>':
+                                        childs = child.getElementsByTagName(tag);
+                                        i = 0;
+                                        while (item = childs[i++]) {
+                                            if (item.parentNode === child &&
+                                                (!id || item.id === id) &&
+                                                (!klass || (' ' + item.className + ' ').indexOf(klass) != -1) &&
+                                                (!attr || (attrMods[eql] &&
+                                                           (attrMods[eql](item, attr, single[6]) ||
+                                                            (attr === 'class' &&
+                                                             attrMods[eql](item, 'className', single[6]))))) &&
+                                                !item.yeasss &&
+                                                !(mods[mod] ? mods[mod](item, ind) : mod)) {
+
+                                                if (last) {
+                                                    item.yeasss = 1;
+                                                }
+                                                newNodes[idx++] = item;
+                                            }
+                                        }
+                                        break;
+                                }
+                            }
+
+                            /* put selected nodes in local nodes' set */
+                            nodes = newNodes;
+
+                        } else {
+
+                            /* switch ancestor ( , > , ~ , +) */
+                            ancestor = single;
+                        }
+                    }
+
+                    if (concat) {
+                        /* if sets isn't an array - create new one */
+                        if (!nodes.concat) {
+                            newNodes = [];
+                            h = 0;
+                            while (item = nodes[h]) {
+                                newNodes[h++] = item;
+                            }
+                            nodes = newNodes;
+                            /* concat is faster than simple looping */
+                        }
+                        sets = nodes.concat(sets.length == 1 ? sets[0] : sets);
+
+                    } else {
+
+                        /* inialize sets with nodes */
+                        sets = nodes;
+                    }
+                }
+
+                /* define sets length to clean up expando */
+                idx = sets.length;
+
+                /*
+                 Need this looping as far as we also have expando 'yeasss'
+                 that must be nulled. Need this only to generic case
+                 */
+                while (idx--) {
+                    sets[idx].yeasss = sets[idx].nodeIndex = sets[idx].nodeIndexLast = null;
+                }
+            }
+        }
+
+        /* return and cache results */
+        return sets;
+    };
+
+    MetaphorJs.select = select;
+
+    MetaphorJs.select.is = function(el, selector) {
+
+        var els = select(selector, el.parentNode),
+            i, l;
+
+        for (i = -1, l = els.length; ++i < l;) {
+            if (els[i] === el) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 }());
 
@@ -666,7 +1313,7 @@
                     try {
                         self[i] = src[i];
                     }
-                    catch (e){}
+                    catch (thrownError){}
                 }
             }
 
@@ -728,6 +1375,7 @@
             var e = this.originalEvent;
 
             this.isDefaultPrevented = returnTrue;
+            e.returnValue = false;
 
             if ( e && e.preventDefault ) {
                 e.preventDefault();
@@ -947,7 +1595,7 @@
                     var key = event.keyCode;
 
                     if (key == 13 && self.submittable && self.scb) {
-                        return self.scb.call(self.callbackContext, event);
+                        return self.scb.call(self.cbContext, event);
                     }
 
                     // ignore
@@ -1224,7 +1872,7 @@
         try {
             namespace = require("metaphorjs-namespace");
         }
-        catch (e) {
+        catch (thrownError) {
             namespace = global.MetaphorJs.ns;
         }
     }
@@ -1260,7 +1908,7 @@
                 try {
                     ret     = fn.apply(this, arguments);
                 }
-                catch(e) {}
+                catch(thrownError) {}
 
                 this.supr   = prev;
                 return ret;
@@ -1597,7 +2245,7 @@
                       } :
                       function(fn, fnScope) {
                           return function() {
-                              fn.apply(fnScope, arguments);
+                              return fn.apply(fnScope, arguments);
                           };
                       },
 
@@ -1675,8 +2323,8 @@
                 try {
                     promise.resolve(fn(value));
                 }
-                catch (e) {
-                    promise.reject(e);
+                catch (thrownError) {
+                    promise.reject(thrownError);
                 }
             };
         };
@@ -1716,8 +2364,8 @@
                             bind(self.resolve, self),
                             bind(self.reject, self));
                 }
-                catch (e) {
-                    self.reject(e);
+                catch (thrownError) {
+                    self.reject(thrownError);
                 }
             }
         }
@@ -1789,9 +2437,9 @@
                     return;
                 }
             }
-            catch (e) {
+            catch (thrownError) {
                 if (self._state == PENDING) {
-                    self._doReject(e);
+                    self._doReject(thrownError);
                 }
                 return;
             }
@@ -2319,7 +2967,7 @@ var bind        = Function.prototype.bind ?
                     } :
                   function(fn, fnScope) {
                         return function() {
-                            fn.apply(fnScope, arguments);
+                            return fn.apply(fnScope, arguments);
                         };
                     };
 
@@ -2980,8 +3628,8 @@ extend(Event.prototype, {
                     try {
                         resolve(l.fn.apply(l.scope, args));
                     }
-                    catch (e) {
-                        reject(e);
+                    catch (thrownError) {
+                        reject(thrownError);
                     }
 
                     l.called++;
@@ -3095,9 +3743,9 @@ extend(Event.prototype, {
 
 var mjs = window.MetaphorJs;
 
-if (mjs && mjs.VERSION) {
+if (mjs) {
     var globalObservable    = new Observable;
-    extend(MetaphorJs, globalObservable.getApi());
+    extend(mjs, globalObservable.getApi());
 }
 
 if (mjs && mjs.r) {
@@ -3132,7 +3780,7 @@ if (typeof global != "undefined") {
         try {
             Observable = require("metaphorjs-observable");
         }
-        catch (e) {
+        catch (thrownError) {
             if (global.Observable) {
                 Observable = global.Observable;
             }
@@ -3585,9 +4233,9 @@ if (typeof global != "undefined") {
                     try {
                         val = self.getterFn(self.obj);
                     }
-                    catch (e) {
+                    catch (thrownError) {
                         if (window.MetaphorJs) {
-                            MetaphorJs.asyncError(e);
+                            MetaphorJs.error(thrownError);
                         }
                         else {
                             throw e;
@@ -3845,23 +4493,10 @@ if (typeof global != "undefined") {
         return expr;
     };
 
-    var f = Function,
-
-        error = function(e) {
-
-            var stack = e.stack || (new Error).stack;
-
-            if (typeof console != "undefined" && console.log) {
-                console.log(e);
-                if (stack) {
-                    console.log(stack);
-                }
-            }
-        },
-
+    var f           = Function,
+        error       = MetaphorJs.error,
         fnBodyStart = 'try {',
-
-        fnBodyEnd   = ';} catch (e) { watchableError(e); }';
+        fnBodyEnd   = ';} catch (thrownError) { watchableError(thrownError); }';
 
     typeof window != "undefined" && (window.watchableError = error);
     typeof global != "undefined" && (global.watchableError = error);
@@ -3945,7 +4580,7 @@ if (typeof global != "undefined") {
             Promise     = require("metaphorjs-promise");
             Observable  = require("metaphorjs-observable");
         }
-        catch (e) {
+        catch (thrownError) {
             Promise     = global.MetaphorJs.lib.Promise;
             Observable  = global.MetaphorJs.lib.Observable;
         }
@@ -4018,7 +4653,7 @@ if (typeof global != "undefined") {
             try {
                 tmp = new DOMParser();
                 xml = tmp.parseFromString(data, type || "text/xml");
-            } catch ( e ) {
+            } catch (thrownError) {
                 xml = undefined;
             }
 
@@ -4210,7 +4845,7 @@ if (typeof global != "undefined") {
                 return (!r.status && typeof location != "undefined" && location.protocol == "file:")
                            || (r.status >= 200 && r.status < 300)
                            || r.status === 304 || r.status === 1223; // || r.status === 0;
-            } catch(e){}
+            } catch(thrownError){}
             return false;
         },
 
@@ -4423,8 +5058,8 @@ if (typeof global != "undefined") {
             try {
                 self._deferred.resolve(self.processResponseData(data));
             }
-            catch (e) {
-                self._deferred.reject(e);
+            catch (thrownError) {
+                self._deferred.reject(thrownError);
             }
         },
 
@@ -4455,8 +5090,8 @@ if (typeof global != "undefined") {
                 try {
                     deferred.resolve(self.processResponseData(data, contentType));
                 }
-                catch (e) {
-                    deferred.reject(e);
+                catch (thrownError) {
+                    deferred.reject(thrownError);
                 }
             }
             else {
@@ -4468,8 +5103,8 @@ if (typeof global != "undefined") {
                 try {
                     globalEval(data);
                 }
-                catch (e) {
-                    deferred.reject(e);
+                catch (thrownError) {
+                    deferred.reject(thrownError);
                 }
 
                 if (deferred.isPending()) {
@@ -4651,7 +5286,7 @@ if (typeof global != "undefined") {
             for (i in opt.headers) {
                 xhr.setRequestHeader(i, opt.headers[i]);
             }
-        } catch(e){}
+        } catch(thrownError){}
 
         xhr.onreadystatechange = bind(self.onReadyStateChange, self);
     };
@@ -4705,8 +5340,8 @@ if (typeof global != "undefined") {
                 self._xhr.open(opt.method, opt.url, true, opt.username, opt.password);
                 self._xhr.send(opt.data);
             }
-            catch (e) {
-                self._deferred.reject(e);
+            catch (thrownError) {
+                self._deferred.reject(thrownError);
             }
         },
 
@@ -4834,8 +5469,8 @@ if (typeof global != "undefined") {
             try {
                 form.submit();
             }
-            catch (e) {
-                self._deferred.reject(e);
+            catch (thrownError) {
+                self._deferred.reject(thrownError);
             }
         },
 
@@ -6045,21 +6680,24 @@ if (typeof global != "undefined") {
 
 (function(){
 
-    var startSymbol             = '{{',
+    var m                       = window.MetaphorJs,
+        startSymbol             = '{{',
         endSymbol               = '}}',
         startSymbolLength       = 2,
         endSymbolLength         = 2,
-        nextUid                 = MetaphorJs.nextUid,
-        Scope                   = MetaphorJs.view.Scope,
-        Watchable               = MetaphorJs.lib.Watchable,
-        Observable              = MetaphorJs.lib.Observable,
-        isThenable              = MetaphorJs.isThenable,
-        toArray                 = MetaphorJs.toArray,
-        getAttributeHandlers    = MetaphorJs.getAttributeHandlers,
+        nextUid                 = m.nextUid,
+        isArray                 = m.isArray,
+        Scope                   = m.view.Scope,
+        Watchable               = m.lib.Watchable,
+        Observable              = m.lib.Observable,
+        isThenable              = m.isThenable,
+        toArray                 = m.toArray,
+        getAttributeHandlers    = m.getAttributeHandlers,
         handlers                = null,
-        g                       = MetaphorJs.g,
+        g                       = m.g,
         createWatchable         = Watchable.create,
         unsubscribeAndDestroy   = Watchable.unsubscribeAndDestroy,
+        Promise                 = m.lib.Promise,
         Renderer,
         textProp                = function(){
             var node    = document.createTextNode("");
@@ -6097,38 +6735,56 @@ if (typeof global != "undefined") {
         },
 
 
+        collectNodes    = function(coll, add) {
+
+            if (add) {
+                if (add.nodeType) {
+                    coll.push(add);
+                }
+                else if (isArray(add)) {
+                    for (var i = -1, l = add.length; ++i < l; collectNodes(coll, add[i])){}
+                }
+            }
+        },
+
         rSkipTag = /^(script|template|mjs-template|style)$/i,
 
         eachNode = function(el, fn, fnScope, finish, cnt) {
 
+            if (!el) {
+                return;
+            }
+
             var res,
                 tag = el.nodeName;
 
-            if (tag.match(rSkipTag)) {
+            if (!cnt) {
+                cnt = {countdown: 1};
+            }
+
+            if (tag && tag.match(rSkipTag)) {
                 --cnt.countdown == 0 && finish && finish.call(fnScope);
                 return;
             }
 
-            try {
+            //try {
+            if (el.nodeType) {
                 res = fn.call(fnScope, el);
             }
-            catch (e) {
-                MetaphorJs.error(e);
-            }
+            //}
+            //catch (thrownError) {
+            //    MetaphorJs.error(thrownError);
+            //}
 
             if (res !== false) {
 
                 if (isThenable(res)) {
-
-                    //el.style.visibility = 'hidden';
 
                     res.done(function(response){
 
                         if (response !== false) {
                             nodeChildren(response, el, fn, fnScope, finish, cnt);
                         }
-
-                        //el.style.visibility = '';
 
                         --cnt.countdown == 0 && finish && finish.call(fnScope);
                     });
@@ -6209,19 +6865,10 @@ if (typeof global != "undefined") {
                 args    = [scope, node, value, self],
                 inst;
 
-
             if (f.__isMetaphorClass) {
 
                 inst = app.inject(f, null, true, inject, args);
-
-                if (f.$stopRenderer) {
-                    return false;
-                }
-                else {
-                    return isThenable(inst) ? inst.then(function(inst){
-                        return inst.$returnToRenderer;
-                    }) : inst.$returnToRenderer;
-                }
+                return f.$stopRenderer ? false : inst;
             }
             else {
                 return app.inject(f, null, false, inject, args);
@@ -6265,6 +6912,8 @@ if (typeof global != "undefined") {
 
                 var attrs   = node.attributes,
                     tag     = node.tagName.toLowerCase(),
+                    defers  = [],
+                    nodes   = [],
                     i, f, len,
                     attr,
                     name,
@@ -6275,8 +6924,14 @@ if (typeof global != "undefined") {
 
                     res = self.runHandler(f, scope, node);
 
-                    if (res || res === false) {
-                        return res;
+                    if (res === false) {
+                        return false;
+                    }
+                    if (isThenable(res)) {
+                        defers.push(res);
+                    }
+                    else {
+                        collectNodes(nodes, res);
                     }
                 }
 
@@ -6288,10 +6943,25 @@ if (typeof global != "undefined") {
                         res     = self.runHandler(handlers[i].handler, scope, node, attr);
                         node.removeAttribute(name);
 
-                        if (res || res === false) {
-                            return res;
+                        if (res === false) {
+                            return false;
+                        }
+                        if (isThenable(res)) {
+                            defers.push(res);
+                        }
+                        else {
+                            collectNodes(nodes, res);
                         }
                     }
+                }
+
+                if (defers.length) {
+                    var deferred = new Promise;
+                    Promise.all(defers).done(function(values){
+                        collectNodes(nodes, values);
+                        deferred.resolve(nodes);
+                    });
+                    return deferred;
                 }
 
                 for (i = 0, len = attrs.length; i < len; i++) {
@@ -6313,6 +6983,8 @@ if (typeof global != "undefined") {
                         }
                     }
                 }
+
+                return nodes.length ? nodes : true;
             }
 
             return true;
@@ -6477,7 +7149,7 @@ if (typeof global != "undefined") {
         }
         else {
             eachNode(document.documentElement, function(el) {
-                appCls = el.getAttribute("mjs-app");
+                appCls = el.getAttribute && el.getAttribute("mjs-app");
                 if (appCls !== null) {
                     app(el, appCls);
                     return false;
@@ -6695,7 +7367,7 @@ if (typeof global != "undefined") {
                 })
                 .done(function(fragment){
                     self._fragment = fragment;
-                    returnPromise.resolve(!self.ownRenderer);
+                    returnPromise.resolve(!self.ownRenderer ? self.node : false);
                 })
                 .fail(returnPromise.reject, returnPromise);
 
@@ -6809,6 +7481,7 @@ if (typeof global != "undefined") {
         Promise     = m.lib.Promise,
         Template    = m.view.Template,
         toFragment  = m.toFragment,
+        isAttached  = m.isAttached,
         dataFn      = m.data,
         Scope       = m.view.Scope;
 
@@ -7003,7 +7676,7 @@ if (typeof global != "undefined") {
             if (self.renderTo) {
                 self.renderTo.appendChild(self.node);
             }
-            else if (!self.node.parentNode) {
+            else if (!isAttached(self.node)) {
                 document.body.appendChild(self.node);
             }
 
@@ -7123,7 +7796,7 @@ if (typeof global != "undefined") {
             }
 
             if (self.destroyEl) {
-                if (self.node.parentNode) {
+                if (isAttached(self.node)) {
                     self.node.parentNode.removeChild(self.node);
                 }
             }
@@ -7624,6 +8297,7 @@ if (typeof global != "undefined") {
         hasClass        = m.hasClass,
         stopAnimation   = m.stopAnimation,
         isArray         = m.isArray,
+        isAttached      = m.isAttached,
         Template        = m.view.Template,
         Input           = m.lib.Input,
         resolveComponent;
@@ -7880,14 +8554,13 @@ if (typeof global != "undefined") {
                 parent.removeChild(node);
             };
 
-
             if (val) {
-                if (!node.parentNode) {
+                if (!isAttached(node)) {
                     self.initial ? show() : animate(node, "enter", show, true);
                 }
             }
             else {
-                if (node.parentNode) {
+                if (isAttached(node)) {
                     self.initial ? hide() : animate(node, "leave", null, true).done(hide);
                 }
             }
@@ -7928,8 +8601,8 @@ if (typeof global != "undefined") {
             try {
                 self.watcher    = createWatchable(scope, self.model, self.onChange, self);
             }
-            catch (e) {
-                MetaphorJs.error(e);
+            catch (thrownError) {
+                MetaphorJs.error(thrownError);
             }
 
             self.parentEl.removeChild(node);
@@ -8045,7 +8718,6 @@ if (typeof global != "undefined") {
                 action;
 
 
-
             for (i = 0, len = prs.length; i < len; i++) {
                 action = prs[i];
 
@@ -8071,7 +8743,7 @@ if (typeof global != "undefined") {
 
                     animate(r.el, "leave", null, true)
                         .done(function(el){
-                            if (el.parentNode) {
+                            if (isAttached(el)) {
                                 el.parentNode.removeChild(el);
                             }
                         });
@@ -8086,6 +8758,7 @@ if (typeof global != "undefined") {
 
                     animate(el, "enter", function(inx) {
                         return function(el){
+
                             if (inx > 0) {
                                 parent.insertBefore(el, renderers[inx - 1].el.nextSibling);
                             }
@@ -8094,7 +8767,7 @@ if (typeof global != "undefined") {
                                     parent.insertBefore(el, self.prevEl.nextSibling);
                                 }
                                 else {
-                                    parent.appendChild(el);
+                                    parent.insertBefore(el, parent.firstChild);
                                 }
                             }
                         }
@@ -8180,6 +8853,7 @@ if (typeof global != "undefined") {
             self.render(self.watcher.getValue());
 
             async(self.bindStore, self, [store, "on"]);
+            self.bindStore(store, "on");
         },
 
         onScopeDestroy: function() {
@@ -8411,7 +9085,7 @@ if (typeof global != "undefined") {
                 eventName = "keyup";
             }
 
-            registerAttr("mjs-" + name, 1000, function(scope, node, expr){
+            registerAttr("mjs-" + name, 1000, function(scope, node, expr, parentRenderer){
 
                 var fn  = createFn(expr);
 
@@ -8426,12 +9100,12 @@ if (typeof global != "undefined") {
 
                     scope.$event = e;
 
-                    try {
+                    //try {
                         fn(scope);
-                    }
-                    catch (e) {
-                        MetaphorJs.error(e);
-                    }
+                    //}
+                    //catch (thrownError) {
+                    //    MetaphorJs.error(thrownError);
+                    //}
 
                     delete scope.$event;
 
@@ -8515,6 +9189,7 @@ if (typeof global != "undefined") {
         };
 
         resolveComponent(cmpName, cfg, scope, node);
+
         return false;
     };
 
@@ -8750,17 +9425,28 @@ if (typeof global != "undefined") {
 
         ret.sort(function(a, b) {
             var typeA = typeof a,
-                typeB = typeof b;
+                typeB = typeof b,
+                valueA  = a,
+                valueB  = b;
 
             if (typeA != typeB) {
                 return 0;
             }
 
             if (typeA == "object") {
-                return a[field] > b[field] ? 1 : (a[field] < b[field] ? -1 : 0);
+                valueA = a[field];
+                valueB = b[field];
+            }
+
+            if (typeof valueA == "number") {
+                return valueA - valueB;
             }
             else {
-                return a > b ? 1 : (a < b ? -1 : 0);
+                valueA = ("" + valueA).toLowerCase();
+                valueB = ("" + valueB).toLowerCase();
+
+                if (valueA === valueB) return 0;
+                return valueA > valueB ? 1 : -1;
             }
         });
 

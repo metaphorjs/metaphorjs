@@ -214,7 +214,7 @@
         global.MetaphorJs || (global.MetaphorJs = {});
     }
 
-
+    MetaphorJs.emptyFn = function(){};
     MetaphorJs.bind = bind;
     MetaphorJs.addListener = addListener;
     MetaphorJs.removeListener = removeListener;
