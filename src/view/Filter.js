@@ -185,17 +185,28 @@
 
         ret.sort(function(a, b) {
             var typeA = typeof a,
-                typeB = typeof b;
+                typeB = typeof b,
+                valueA  = a,
+                valueB  = b;
 
             if (typeA != typeB) {
                 return 0;
             }
 
             if (typeA == "object") {
-                return a[field] > b[field] ? 1 : (a[field] < b[field] ? -1 : 0);
+                valueA = a[field];
+                valueB = b[field];
+            }
+
+            if (typeof valueA == "number") {
+                return valueA - valueB;
             }
             else {
-                return a > b ? 1 : (a < b ? -1 : 0);
+                valueA = ("" + valueA).toLowerCase();
+                valueB = ("" + valueB).toLowerCase();
+
+                if (valueA === valueB) return 0;
+                return valueA > valueB ? 1 : -1;
             }
         });
 

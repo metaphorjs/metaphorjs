@@ -180,7 +180,7 @@
                     var key = event.keyCode;
 
                     if (key == 13 && self.submittable && self.scb) {
-                        return self.scb.call(self.callbackContext, event);
+                        return self.scb.call(self.cbContext, event);
                     }
 
                     // ignore

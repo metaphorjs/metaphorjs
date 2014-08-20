@@ -31,7 +31,7 @@
                     try {
                         self[i] = src[i];
                     }
-                    catch (e){}
+                    catch (thrownError){}
                 }
             }
 
@@ -93,6 +93,7 @@
             var e = this.originalEvent;
 
             this.isDefaultPrevented = returnTrue;
+            e.returnValue = false;
 
             if ( e && e.preventDefault ) {
                 e.preventDefault();

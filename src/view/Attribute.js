@@ -27,6 +27,7 @@
         hasClass        = m.hasClass,
         stopAnimation   = m.stopAnimation,
         isArray         = m.isArray,
+        isAttached      = m.isAttached,
         Template        = m.view.Template,
         Input           = m.lib.Input,
         resolveComponent;
@@ -283,14 +284,13 @@
                 parent.removeChild(node);
             };
 
-
             if (val) {
-                if (!node.parentNode) {
+                if (!isAttached(node)) {
                     self.initial ? show() : animate(node, "enter", show, true);
                 }
             }
             else {
-                if (node.parentNode) {
+                if (isAttached(node)) {
                     self.initial ? hide() : animate(node, "leave", null, true).done(hide);
                 }
             }
@@ -331,8 +331,8 @@
             try {
                 self.watcher    = createWatchable(scope, self.model, self.onChange, self);
             }
-            catch (e) {
-                MetaphorJs.error(e);
+            catch (thrownError) {
+                MetaphorJs.error(thrownError);
             }
 
             self.parentEl.removeChild(node);
@@ -448,7 +448,6 @@
                 action;
 
 
-
             for (i = 0, len = prs.length; i < len; i++) {
                 action = prs[i];
 
@@ -474,7 +473,7 @@
 
                     animate(r.el, "leave", null, true)
                         .done(function(el){
-                            if (el.parentNode) {
+                            if (isAttached(el)) {
                                 el.parentNode.removeChild(el);
                             }
                         });
@@ -489,6 +488,7 @@
 
                     animate(el, "enter", function(inx) {
                         return function(el){
+
                             if (inx > 0) {
                                 parent.insertBefore(el, renderers[inx - 1].el.nextSibling);
                             }
@@ -497,7 +497,7 @@
                                     parent.insertBefore(el, self.prevEl.nextSibling);
                                 }
                                 else {
-                                    parent.appendChild(el);
+                                    parent.insertBefore(el, parent.firstChild);
                                 }
                             }
                         }
@@ -583,6 +583,7 @@
             self.render(self.watcher.getValue());
 
             async(self.bindStore, self, [store, "on"]);
+            self.bindStore(store, "on");
         },
 
         onScopeDestroy: function() {
@@ -814,7 +815,7 @@
                 eventName = "keyup";
             }
 
-            registerAttr("mjs-" + name, 1000, function(scope, node, expr){
+            registerAttr("mjs-" + name, 1000, function(scope, node, expr, parentRenderer){
 
                 var fn  = createFn(expr);
 
@@ -829,12 +830,12 @@
 
                     scope.$event = e;
 
-                    try {
+                    //try {
                         fn(scope);
-                    }
-                    catch (e) {
-                        MetaphorJs.error(e);
-                    }
+                    //}
+                    //catch (thrownError) {
+                    //    MetaphorJs.error(thrownError);
+                    //}
 
                     delete scope.$event;
 
@@ -918,6 +919,7 @@
         };
 
         resolveComponent(cmpName, cfg, scope, node);
+
         return false;
     };
 

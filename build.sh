@@ -12,8 +12,10 @@ if [ -f $trgMin ]; then
 fi
 
 manifest=(
+    "src/lib/Polyfill.js"
     "src/MetaphorJs.js"
     "src/lib/Common.js"
+    "src/lib/Selector.js"
     "src/lib/Value.js"
     "src/lib/Event.js"
     "src/lib/Input.js"
@@ -24,6 +26,7 @@ manifest=(
     "../metaphorjs-watchable/metaphorjs.watchable.js"
     "../metaphorjs-ajax/metaphorjs.ajax.js"
     "../metaphorjs-history/metaphorjs.history.js"
+    "src/lib/Provider.js"
     "src/cmp/Base.js"
     "src/lib/Animate.js"
     "src/view/Scope.js"
@@ -31,6 +34,7 @@ manifest=(
     "src/view/Renderer.js"
     "src/view/Template.js"
     "src/cmp/Component.js"
+    "src/cmp/App.js"
     "src/cmp/View.js"
     "src/view/Attribute.js"
     "src/view/Filter.js"

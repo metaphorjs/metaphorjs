@@ -60,8 +60,8 @@
                         try {
                             fn(scope);
                         }
-                        catch(e) {
-                            MetaphorJs.error(e);
+                        catch(thrownError) {
+                            MetaphorJs.error(thrownError);
                         }
                     }
                 }(createFn(submit), self.scope);
@@ -221,7 +221,7 @@
             constr  = g(cls);
 
         if (!constr) {
-            MetaphorJs.asyncError(new Error("Class '"+cls+"' not found"));
+            MetaphorJs.error(new Error("Class '"+cls+"' not found"));
         }
         else {
             new constr(node, scope);

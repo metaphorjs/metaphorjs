@@ -1,21 +1,24 @@
 
 (function(){
 
-    var startSymbol             = '{{',
+    var m                       = window.MetaphorJs,
+        startSymbol             = '{{',
         endSymbol               = '}}',
         startSymbolLength       = 2,
         endSymbolLength         = 2,
-        nextUid                 = MetaphorJs.nextUid,
-        Scope                   = MetaphorJs.view.Scope,
-        Watchable               = MetaphorJs.lib.Watchable,
-        Observable              = MetaphorJs.lib.Observable,
-        isThenable              = MetaphorJs.isThenable,
-        toArray                 = MetaphorJs.toArray,
-        getAttributeHandlers    = MetaphorJs.getAttributeHandlers,
+        nextUid                 = m.nextUid,
+        isArray                 = m.isArray,
+        Scope                   = m.view.Scope,
+        Watchable               = m.lib.Watchable,
+        Observable              = m.lib.Observable,
+        isThenable              = m.isThenable,
+        toArray                 = m.toArray,
+        getAttributeHandlers    = m.getAttributeHandlers,
         handlers                = null,
-        g                       = MetaphorJs.g,
+        g                       = m.g,
         createWatchable         = Watchable.create,
         unsubscribeAndDestroy   = Watchable.unsubscribeAndDestroy,
+        Promise                 = m.lib.Promise,
         Renderer,
         textProp                = function(){
             var node    = document.createTextNode("");
@@ -53,38 +56,56 @@
         },
 
 
+        collectNodes    = function(coll, add) {
+
+            if (add) {
+                if (add.nodeType) {
+                    coll.push(add);
+                }
+                else if (isArray(add)) {
+                    for (var i = -1, l = add.length; ++i < l; collectNodes(coll, add[i])){}
+                }
+            }
+        },
+
         rSkipTag = /^(script|template|mjs-template|style)$/i,
 
         eachNode = function(el, fn, fnScope, finish, cnt) {
 
+            if (!el) {
+                return;
+            }
+
             var res,
                 tag = el.nodeName;
 
-            if (tag.match(rSkipTag)) {
+            if (!cnt) {
+                cnt = {countdown: 1};
+            }
+
+            if (tag && tag.match(rSkipTag)) {
                 --cnt.countdown == 0 && finish && finish.call(fnScope);
                 return;
             }
 
-            try {
+            //try {
+            if (el.nodeType) {
                 res = fn.call(fnScope, el);
             }
-            catch (e) {
-                MetaphorJs.error(e);
-            }
+            //}
+            //catch (thrownError) {
+            //    MetaphorJs.error(thrownError);
+            //}
 
             if (res !== false) {
 
                 if (isThenable(res)) {
-
-                    //el.style.visibility = 'hidden';
 
                     res.done(function(response){
 
                         if (response !== false) {
                             nodeChildren(response, el, fn, fnScope, finish, cnt);
                         }
-
-                        //el.style.visibility = '';
 
                         --cnt.countdown == 0 && finish && finish.call(fnScope);
                     });
@@ -165,19 +186,10 @@
                 args    = [scope, node, value, self],
                 inst;
 
-
             if (f.__isMetaphorClass) {
 
                 inst = app.inject(f, null, true, inject, args);
-
-                if (f.$stopRenderer) {
-                    return false;
-                }
-                else {
-                    return isThenable(inst) ? inst.then(function(inst){
-                        return inst.$returnToRenderer;
-                    }) : inst.$returnToRenderer;
-                }
+                return f.$stopRenderer ? false : inst;
             }
             else {
                 return app.inject(f, null, false, inject, args);
@@ -221,6 +233,8 @@
 
                 var attrs   = node.attributes,
                     tag     = node.tagName.toLowerCase(),
+                    defers  = [],
+                    nodes   = [],
                     i, f, len,
                     attr,
                     name,
@@ -231,8 +245,14 @@
 
                     res = self.runHandler(f, scope, node);
 
-                    if (res || res === false) {
-                        return res;
+                    if (res === false) {
+                        return false;
+                    }
+                    if (isThenable(res)) {
+                        defers.push(res);
+                    }
+                    else {
+                        collectNodes(nodes, res);
                     }
                 }
 
@@ -244,10 +264,25 @@
                         res     = self.runHandler(handlers[i].handler, scope, node, attr);
                         node.removeAttribute(name);
 
-                        if (res || res === false) {
-                            return res;
+                        if (res === false) {
+                            return false;
+                        }
+                        if (isThenable(res)) {
+                            defers.push(res);
+                        }
+                        else {
+                            collectNodes(nodes, res);
                         }
                     }
+                }
+
+                if (defers.length) {
+                    var deferred = new Promise;
+                    Promise.all(defers).done(function(values){
+                        collectNodes(nodes, values);
+                        deferred.resolve(nodes);
+                    });
+                    return deferred;
                 }
 
                 for (i = 0, len = attrs.length; i < len; i++) {
@@ -269,6 +304,8 @@
                         }
                     }
                 }
+
+                return nodes.length ? nodes : true;
             }
 
             return true;
@@ -433,7 +470,7 @@
         }
         else {
             eachNode(document.documentElement, function(el) {
-                appCls = el.getAttribute("mjs-app");
+                appCls = el.getAttribute && el.getAttribute("mjs-app");
                 if (appCls !== null) {
                     app(el, appCls);
                     return false;

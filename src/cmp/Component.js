@@ -10,6 +10,7 @@
         Promise     = m.lib.Promise,
         Template    = m.view.Template,
         toFragment  = m.toFragment,
+        isAttached  = m.isAttached,
         dataFn      = m.data,
         Scope       = m.view.Scope;
 
@@ -204,7 +205,7 @@
             if (self.renderTo) {
                 self.renderTo.appendChild(self.node);
             }
-            else if (!self.node.parentNode) {
+            else if (!isAttached(self.node)) {
                 document.body.appendChild(self.node);
             }
 
@@ -324,7 +325,7 @@
             }
 
             if (self.destroyEl) {
-                if (self.node.parentNode) {
+                if (isAttached(self.node)) {
                     self.node.parentNode.removeChild(self.node);
                 }
             }

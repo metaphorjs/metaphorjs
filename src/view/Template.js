@@ -202,7 +202,7 @@
                 })
                 .done(function(fragment){
                     self._fragment = fragment;
-                    returnPromise.resolve(!self.ownRenderer);
+                    returnPromise.resolve(!self.ownRenderer ? self.node : false);
                 })
                 .fail(returnPromise.reject, returnPromise);
 

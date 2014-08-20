@@ -10,7 +10,7 @@
                       } :
                       function(fn, context) {
                           return function() {
-                              fn.apply(context, arguments);
+                              return fn.apply(context, arguments);
                           };
                       },
 
@@ -198,6 +198,11 @@
             return any && //(typeof any == "object" || typeof any == "function") &&
                    typeof (then = any.then) == "function" ?
                    then : false;
+        },
+
+        isAttached  = function(node) {
+            var body = document.body;
+            return node === body ? true : body.contains(node);
         };
 
 
@@ -225,4 +230,5 @@
     MetaphorJs.data = dataFn;
     MetaphorJs.isPlainObject = isPlainObject;
     MetaphorJs.isThenable = isThenable;
+    MetaphorJs.isAttached = isAttached;
 }());

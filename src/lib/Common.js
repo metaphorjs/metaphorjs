@@ -115,7 +115,7 @@
                 }
                 return clone;
             }
-            else {
+            else if (node) {
                 switch (node.nodeType) {
                     // element
                     case 1:
@@ -131,9 +131,13 @@
                         return null;
                 }
             }
+
+            return null;
         },
 
         async = function(fn, fnScope, args) {
+            fn.apply(fnScope, args || []);
+            return;
             setTimeout(function(){
                 fn.apply(fnScope, args || []);
             }, 0);
@@ -146,8 +150,8 @@
             try {
                 return MetaphorJs.create(cls, node, data);
             }
-            catch (e) {
-                MetaphorJs.error(e);
+            catch (thrownError) {
+                MetaphorJs.error(thrownError);
             }
         };
 
@@ -155,42 +159,33 @@
 
     extend(m, {
 
-        VERSION:    "0.1",
+        registerAttributeHandler:   registerAttributeHandler,
+        registerTagHandler:         registerTagHandler,
+        getAttributeHandlers:       getAttributeHandlers,
+        getTagHandlers:             getTagHandlers,
 
-        registerAttributeHandler: registerAttributeHandler,
-        registerTagHandler: registerTagHandler,
-        getAttributeHandlers: getAttributeHandlers,
-        getTagHandlers: getTagHandlers,
-
-        numberFormats: {},
-        dateFormats: {},
-
+        numberFormats:  {},
+        dateFormats:    {},
 
         /**
          * Empty function. Used for callback placeholders
          * @function MetaphorJs.emptyFn
          */
-        emptyFn:    function() {},
+        emptyFn:        function() {},
+        clone:          cloneFn,
+        async:          async,
+        toFragment:     toFragment,
+        app:            appFn,
 
-        clone: cloneFn,
-
-        isVisible: function(el) {
+        isVisible:      function(el) {
             return !(el.offsetWidth <= 0 || el.offsetHeight <= 0);
         },
 
-        isInjectable: function(any) {
+        isInjectable:   function(any) {
             return any.length && typeof any[any.length - 1] == "function";
         },
 
-        async: async,
-
-        asyncError: function(e) {
-            async(function(){
-                throw e;
-            });
-        },
-
-        onReady: function(fn) {
+        onReady:        function(fn) {
 
             var done    = false,
                 top     = true,
@@ -213,7 +208,7 @@
                 poll = function() {
                     try {
                         root.doScroll('left');
-                    } catch(e) {
+                    } catch(thrownError) {
                         setTimeout(poll, 50);
                         return;
                     }
@@ -228,7 +223,7 @@
                 if (doc.createEventObject && root.doScroll) {
                     try {
                         top = !win.frameElement;
-                    } catch(e) {}
+                    } catch(thrownError) {}
 
                     top && poll();
                 }
@@ -239,12 +234,11 @@
 
         },
 
-        toFragment: toFragment,
-        app: appFn,
-
-        error: function(e) {
+        error:          function(e) {
 
             var stack = e.stack || (new Error).stack;
+
+            throw e;
 
             setTimeout(function(){
                 if (typeof console != "undefined" && console.log) {

@@ -30,32 +30,65 @@
             }
         },
 
+        isPlainObject = function(obj) {
+            return obj && obj.constructor === Object;
+        },
+
+        /**
+         * @param {object} dst
+         * @param {object} src
+         * @param {object} ... more srcs
+         * @param {boolean} override = false
+         * @param {boolean} deep = true
+         */
         apply   = function() {
 
+
             var override    = false,
+                deep        = true,
                 args        = slice.call(arguments),
                 dst         = args.shift(),
                 src,
-                k;
+                k,
+                value;
 
             if (typeof args[args.length - 1] == "boolean") {
-                override = args.pop();
+                override    = args.pop();
+            }
+            if (typeof args[args.length - 1] == "boolean") {
+                deep        = override;
+                override    = args.pop();
             }
 
             while (src = args.shift()) {
                 for (k in src) {
-                    if (src.hasOwnProperty(k)) {
-                        if (dst[k] && typeof dst[k] == "object" && typeof src[k] == "object") {
-                            apply(dst[k], src[k], override);
+                    if (src.hasOwnProperty(k) && typeof (value = src[k]) != "undefined") {
+
+                        if (deep) {
+                            if (dst[k] && isPlainObject(dst[k]) && isPlainObject(value)) {
+                                apply(dst[k], value, override, deep);
+                            }
+                            else {
+                                if (override === true || typeof dst[k] == "undefined" || dst[k] === null) {
+                                    if (isPlainObject(value)) {
+                                        dst[k] = {};
+                                        apply(dst[k], value, override, false);
+                                    }
+                                    else {
+                                        dst[k] = value;
+                                    }
+                                }
+                            }
                         }
                         else {
                             if (override === true || typeof dst[k] == "undefined" || dst[k] === null) {
-                                dst[k] = src[k];
+                                dst[k] = value;
                             }
                         }
                     }
                 }
             }
+
             return dst;
         },
 
@@ -71,6 +104,10 @@
                 return typeof value == "string" ? value.trim() : value;
             };
         })(),
+
+        aIndexOf    = Array.prototype.indexOf,
+
+        toString    = Object.prototype.toString,
 
         inArray     = function(val, arr) {
             return arr ? aIndexOf.call(arr, val) : -1;
@@ -93,19 +130,19 @@
         },
 
         hasClass    = function(el, cls) {
-            var reg = getClsReg(cls);
-            return reg.test(el.className);
+            return cls ? getClsReg(cls).test(el.className) : false;
         },
 
         addClass    = function(el, cls) {
-            if (!hasClass(el, cls)) {
+            if (cls && !hasClass(el, cls)) {
                 el.className += " " + cls;
             }
         },
 
         removeClass = function(el, cls) {
-            var reg = getClsReg(cls);
-            el.className = el.className.replace(reg, '');
+            if (cls) {
+                el.className = el.className.replace(getClsReg(cls), '');
+            }
         },
 
 
@@ -132,7 +169,37 @@
             }
             uid.unshift('0');
             return uid.join('');
+        },
+
+        dataCache   = {},
+
+        getNodeId   = function(el) {
+            return el._mjsId || (el._mjsId = nextUid());
+        },
+
+        dataFn      = function(el, key, value) {
+            var id  = getNodeId(el),
+                obj = dataCache[id];
+
+            if (typeof value != "undefined") {
+                if (!obj) {
+                    obj = dataCache[id] = {};
+                }
+                obj[key] = value;
+                return value;
+            }
+            else {
+                return obj ? obj[key] : undefined;
+            }
+        },
+
+        isThenable = function(any) {
+            var then;
+            return any && //(typeof any == "object" || typeof any == "function") &&
+                   typeof (then = any.then) == "function" ?
+                   then : false;
         };
+
 
 
     if (typeof window != "undefined") {
@@ -155,6 +222,9 @@
     MetaphorJs.removeClass = removeClass;
     MetaphorJs.hasClass = hasClass;
     MetaphorJs.nextUid = nextUid;
+    MetaphorJs.data = dataFn;
+    MetaphorJs.isPlainObject = isPlainObject;
+    MetaphorJs.isThenable = isThenable;
 }());
 
 /**
@@ -167,33 +237,12 @@
 
     "use strict";
 
-    var undef       = {}.undefined,
+    var m               = window.MetaphorJs,
+        extend          = m.extend,
+        addListener     = m.addListener,
+        removeListener  = m.removeListener,
+        isArray         = m.isArray,
 
-        extend      = MetaphorJs.extend,
-        nextUid     = MetaphorJs.nextUid,
-
-        addListener     = MetaphorJs.addListener,
-        removeListener  = MetaphorJs.removeListener,
-
-        isArray     = MetaphorJs.isArray,
-
-        dataCache   = {},
-
-        dataFn      = function(el, key, value) {
-            var id  = getNodeId(el),
-                obj = dataCache[id];
-
-            if (typeof value != "undefined") {
-                if (!obj) {
-                    obj = dataCache[id] = {};
-                }
-                obj[key] = value;
-                return value;
-            }
-            else {
-                return obj ? obj[key] : undef;
-            }
-        },
 
         toFragment = function(nodes) {
 
@@ -215,9 +264,7 @@
             return fragment;
         },
 
-        getNodeId = function(el) {
-            return el._mjsId || (el._mjsId = nextUid());
-        },
+
 
         attributeHandlers   = [],
         tagHandlers         = [],
@@ -335,7 +382,7 @@
 
 
 
-    extend(MetaphorJs, {
+    extend(m, {
 
         VERSION:    "0.1",
 
@@ -347,9 +394,6 @@
         numberFormats: {},
         dateFormats: {},
 
-        getNodeId: getNodeId,
-
-        data: dataFn,
 
         /**
          * Empty function. Used for callback placeholders
@@ -361,13 +405,6 @@
 
         isVisible: function(el) {
             return !(el.offsetWidth <= 0 || el.offsetHeight <= 0);
-        },
-
-        isThenable: function(any) {
-            var then;
-            return any && //(typeof any == "object" || typeof any == "function") &&
-                   typeof (then = any.then) == "function" ?
-                    then : false;
         },
 
         isInjectable: function(any) {
@@ -611,18 +648,28 @@
         },
 
         NormalizedEvent = function(src) {
+
+            if (src instanceof NormalizedEvent) {
+                return src;
+            }
+
             // Allow instantiation without the 'new' keyword
             if (!(this instanceof NormalizedEvent)) {
                 return new NormalizedEvent(src);
             }
 
+
             var self    = this;
 
             for (var i in src) {
-                if ((!src.hasOwnProperty || !src.hasOwnProperty(i)) && !self[i]) {
-                    self[i] = src[i];
+                if (!self[i]) {
+                    try {
+                        self[i] = src[i];
+                    }
+                    catch (e){}
                 }
             }
+
 
             // Event object
             self.originalEvent = src;
@@ -630,6 +677,30 @@
 
             if (!self.target && src.srcElement) {
                 self.target = src.srcElement;
+            }
+
+
+            var eventDoc, doc, body,
+                button = src.button;
+
+            // Calculate pageX/Y if missing and clientX/Y available
+            if (typeof self.pageX == "undefined" && src.clientX != null ) {
+                eventDoc = self.target ? self.target.ownerDocument || document : document;
+                doc = eventDoc.documentElement;
+                body = eventDoc.body;
+
+                self.pageX = src.clientX +
+                              ( doc && doc.scrollLeft || body && body.scrollLeft || 0 ) -
+                              ( doc && doc.clientLeft || body && body.clientLeft || 0 );
+                self.pageY = src.clientY +
+                              ( doc && doc.scrollTop  || body && body.scrollTop  || 0 ) -
+                              ( doc && doc.clientTop  || body && body.clientTop  || 0 );
+            }
+
+            // Add which for click: 1 === left; 2 === middle; 3 === right
+            // Note: button is not normalized, so don't use it
+            if ( !self.which && button !== undefined ) {
+                self.which = ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
             }
 
             // Events bubbling up the document may have been marked as prevented
@@ -2174,7 +2245,13 @@
             window.Promise = Promise;
         }
         if (window.MetaphorJs) {
-            window.MetaphorJs.r("MetaphorJs.lib.Promise", Promise);
+            if (MetaphorJs.r) {
+                MetaphorJs.r("MetaphorJs.lib.Promise", Promise);
+            }
+            else {
+                MetaphorJs.lib = MetaphorJs.lib || {};
+                MetaphorJs.lib.Promise = Promise;
+            }
         }
     }
     else {
@@ -5083,6 +5160,249 @@ if (typeof global != "undefined") {
 
 }());
 
+
+(function(){
+
+    var m           = window.MetaphorJs,
+        extend      = m.extend,
+        Promise     = m.lib.Promise,
+        isThenable  = m.isThenable,
+        slice       = Array.prototype.slice,
+        bind        = m.bind,
+        VALUE       = 1,
+        CONSTANT    = 2,
+        FACTORY     = 3,
+        SERVICE     = 4,
+        PROVIDER    = 5,
+        globalProvider;
+
+    var Provider = function(scope) {
+
+        var self    = this;
+
+        if (scope) {
+            self.store  = {
+                '$rootScope': {
+                    type: VALUE,
+                    value: scope.$root
+                },
+                '$app': {
+                    type: VALUE,
+                    value: scope.$app
+                }
+            };
+        }
+    };
+
+    extend(Provider.prototype, {
+
+        store: null,
+
+        getApi: function() {
+
+            var self = this;
+
+            return {
+                value: bind(self.value, self),
+                constant: bind(self.constant, self),
+                factory: bind(self.factory, self),
+                service: bind(self.service, self),
+                provider: bind(self.provider, self),
+                resolve: bind(self.resolve, self),
+                inject: bind(self.inject, self)
+            };
+        },
+
+        instantiate: function(fn, args) {
+            var Temp = function(){},
+                inst, ret;
+
+            Temp.prototype  = fn.prototype;
+            inst            = new Temp;
+            ret             = fn.prototype.constructor.apply(inst, args);
+
+            // If an object has been returned then return it otherwise
+            // return the original instance.
+            // (consistent with behaviour of the new operator)
+            return typeof ret == "object" ? ret : inst;
+        },
+
+        inject: function(injectable, context, returnInstance, currentValues, callArgs) {
+
+            currentValues   = currentValues || {};
+            callArgs        = callArgs || [];
+
+            if (typeof injectable == "function") {
+
+                if (injectable.inject) {
+                    var tmp = slice.call(injectable.inject);
+                    tmp.push(injectable);
+                    injectable = tmp;
+                }
+                else {
+                    return returnInstance || injectable.__isMetaphorClass ?
+                        this.instantiate(injectable, callArgs) :
+                        injectable.apply(context, callArgs);
+                }
+            }
+
+            injectable  = slice.call(injectable);
+
+            var self    = this,
+                values  = [],
+                fn      = injectable.pop(),
+                i, l;
+
+            for (i = -1, l = injectable.length; ++i < l;
+                 values.push(self.resolve(injectable[i], currentValues))) {}
+
+            return Promise.all(values).then(function(values){
+                return returnInstance || fn.__isMetaphorClass ?
+                    self.instantiate(fn, values) :
+                    fn.apply(context, values);
+            });
+        },
+
+        value: function(name, value) {
+            this.store[name] = {
+                type: VALUE,
+                value: value
+            };
+        },
+
+        constant: function(name, value) {
+            var store = this.store;
+            if (!store[name]) {
+                store[name] = {
+                    type: CONSTANT,
+                    value: value
+                };
+            }
+        },
+
+        factory: function(name, fn, context, singleton) {
+
+            if (typeof context == "boolean") {
+                singleton = context;
+                context = null;
+            }
+
+            this.store[name] = {
+                type: FACTORY,
+                singleton: singleton,
+                fn: fn,
+                context: context
+            };
+        },
+
+        service: function(name, constr, singleton) {
+            this.store[name] = {
+                type: SERVICE,
+                singleton: singleton,
+                fn: constr
+            };
+        },
+
+        provider: function(name, constr) {
+
+            this.store[name + "Provider"] = {
+                name: name,
+                type: PROVIDER,
+                fn: constr,
+                instance: null
+            };
+        },
+
+
+        resolve: function(name, currentValues) {
+
+            var self    = this,
+                store   = self.store,
+                type,
+                item,
+                res;
+
+            if (currentValues[name]) {
+                return currentValues[name];
+            }
+
+            if (item = store[name]) {
+
+                type    = item.type;
+
+                if (type == VALUE || type == CONSTANT) {
+                    return item.value;
+                }
+                else if (type == FACTORY) {
+                    res = self.inject(item.fn, item.context, false, currentValues);
+                }
+                else if (type == SERVICE) {
+                    res = self.inject(item.fn, null, true, currentValues);
+                }
+                else if (type == PROVIDER) {
+
+                    if (!item.instance) {
+
+                        item.instance = Promise.resolve(self.inject(item.fn, null, true, currentValues))
+                            .done(function(instance){
+                                item.instance = instance;
+                                store[item.name] = {
+                                    type: FACTORY,
+                                    fn: instance.$get,
+                                    context: instance
+                                };
+                            });
+                    }
+
+                    return item.instance;
+                }
+
+                if (item.singleton) {
+                    item.type = VALUE;
+                    item.value = res;
+
+                    if (type == FACTORY && isThenable(res)) {
+                        res.done(function(value){
+                            item.value = value;
+                        });
+                    }
+                }
+
+                return currentValues[name] = res;
+            }
+            else {
+
+                if (store[name + "Provider"]) {
+                    self.resolve(name + "Provider", currentValues);
+                    return self.resolve(name, currentValues);
+                }
+
+                if (self === globalProvider) {
+                    throw "Could not provide value for " + name;
+                }
+                else {
+                    return globalProvider.resolve(name);
+                }
+            }
+        },
+
+        destroy: function() {
+            delete this.store;
+            delete this.scope;
+        }
+
+    });
+
+    m.r("MetaphorJs.lib.Provider", Provider);
+
+    Provider.global = function() {
+        return globalProvider;
+    };
+
+    globalProvider = new Provider;
+
+}());
+
 (function(){
 
     var Observable  = MetaphorJs.lib.Observable,
@@ -5174,9 +5494,19 @@ if (typeof global != "undefined") {
 
 
 
-(function(){
+(function() {
 
-    var types   = {
+    "use strict";
+
+    var m               = window.MetaphorJs,
+        g               = m.g,
+        Promise         = m.lib.Promise,
+        dataFn          = m.data,
+        isThenable      = m.isThenable,
+        isArray         = m.isArray,
+        extend          = m.extend,
+
+        types           = {
             "show": ["mjs-show"],
             "hide": ["mjs-hide"],
             "enter": ["mjs-enter"],
@@ -5189,6 +5519,7 @@ if (typeof global != "undefined") {
         transitionDelay     = "transitionDelay",
         transitionDuration  = "transitionDuration",
         animId              = 0,
+
         detectCssPrefixes   = function() {
 
             var el = document.createElement("div"),
@@ -5196,7 +5527,7 @@ if (typeof global != "undefined") {
                 pfx,
                 i, len;
 
-            if (el.style.animationName !== undefined) {
+            if (el.style['animationName'] !== undefined) {
                 animation = true;
             }
             else {
@@ -5216,16 +5547,10 @@ if (typeof global != "undefined") {
             return animation;
         },
         cssAnimations   = detectCssPrefixes(),
+
         animFrame       = window.requestAnimationFrame ? window.requestAnimationFrame : function(cb) {
             window.setTimeout(cb, 0);
         },
-        g               = MetaphorJs.g,
-
-        Promise         = MetaphorJs.lib.Promise,
-
-        dataFn          = MetaphorJs.data,
-
-        isThenable      = MetaphorJs.isThenable,
 
         dataParam       = "mjsAnimationQueue",
 
@@ -5241,6 +5566,7 @@ if (typeof global != "undefined") {
             };
             animFrame(tick);
         },
+
         parseTime       = function(str) {
             if (!str) {
                 return 0;
@@ -5251,6 +5577,7 @@ if (typeof global != "undefined") {
             }
             return time;
         },
+
         getMaxTimeFromPair = function(max, dur, delay) {
 
             var i, sum, len = dur.length;
@@ -5262,9 +5589,10 @@ if (typeof global != "undefined") {
 
             return max;
         },
+
         getAnimationDuration = function(el) {
 
-            var style       = window.getComputedStyle ? window.getComputedStyle(el) : el.style,
+            var style       = window.getComputedStyle ? window.getComputedStyle(el, null) : el.style,
                 duration    = 0,
                 animDur     = (style[animationDuration] || '').split(','),
                 animDelay   = (style[animationDelay] || '').split(','),
@@ -5378,7 +5706,7 @@ if (typeof global != "undefined") {
             position,
             stages;
 
-        if (queue && queue.length) {
+        if (isArray(queue) && queue.length) {
             current = queue[0];
 
             if (current && current.stages) {
@@ -5388,68 +5716,164 @@ if (typeof global != "undefined") {
                 removeClass(el, stages[position] + "-active");
             }
         }
+        else if (typeof queue == "function") {
+            queue(el);
+        }
+        else if (queue == "stop") {
+            $(el).stop(true, true);
+        }
 
         dataFn(el, dataParam, null);
     };
 
-    MetaphorJs.animate = function animate(el, stages, startCallback) {
+    MetaphorJs.animate = function animate(el, animation, startCallback, checkIfEnabled) {
 
-        var animate     = el.getAttribute('mjs-animate'),
-            js          = el.getAttribute('mjs-animate-js'),
-            deferred    = new Promise,
+        var deferred    = new Promise,
             queue       = dataFn(el, dataParam) || [],
             id          = ++animId,
-            jsName,
-            jsFn;
+            attr        = el.getAttribute("mjs-animate"),
+            stages,
+            jsFn,
+            before, after,
+            options, context,
+            duration;
 
-        if (stages && typeof stages == "string") {
-            stages  = types[stages];
+        animation       = animation || attr;
+
+        if (checkIfEnabled && attr === null) {
+            animation   = null;
         }
 
-        if (typeof animate == "string" && animate && animate.substr(0,1) == '[') {
-            stages  = (new Function('', 'return ' + animate))();
-            animate = null;
-        }
+        if (animation) {
 
-        queue.push({
-            el: el,
-            stages: stages,
-            start: startCallback,
-            deferred: deferred,
-            position: 0,
-            id: id
-        });
-        dataFn(el, dataParam, queue);
-
-        if (animate != undefined && cssAnimations && stages) {
-            if (queue.length == 1) {
-                animationStage(el, stages, 0, startCallback, deferred, true, id);
-            }
-        }
-        else if ((jsName = js || animate) && (jsFn = g("animate." + jsName, true))) {
-            jsFn(el, startCallback, deferred);
-        }
-        else  {
-            if (startCallback) {
-                var promise = startCallback(el);
-                if (isThenable(promise)) {
-                    promise.done(function(){
-                        deferred.resolve(el);
-                    });
+            if (typeof animation == "string") {
+                if (animation.substr(0,1) == '[') {
+                    stages  = (new Function('', 'return ' + animation))();
                 }
                 else {
-                    deferred.resolve(el);
+                    stages      = types[animation];
+                    animation   = g && g("animate." + animation, true);
                 }
+            }
+            else if (typeof animation == "function") {
+                jsFn = animation;
+            }
+            else if (isArray(animation)) {
+                if (typeof animation[0] == "string") {
+                    stages = animation;
+                }
+                else {
+                    before = animation[0];
+                    after = animation[1];
+                }
+            }
+
+            if (animation && animation.constructor === Object) {
+                stages      = animation.stages;
+                jsFn        = animation.fn;
+                before      = animation.before;
+                after       = animation.after;
+                options     = animation.options || {};
+                context     = animation.context || null;
+                duration    = animation.duration || null;
+                startCallback   = startCallback || options.start;
+            }
+
+
+            if (cssAnimations && stages) {
+
+                queue.push({
+                    el: el,
+                    stages: stages,
+                    start: startCallback,
+                    deferred: deferred,
+                    position: 0,
+                    id: id
+                });
+                dataFn(el, dataParam, queue);
+
+                if (queue.length == 1) {
+                    animationStage(el, stages, 0, startCallback, deferred, true, id);
+                }
+
+                return deferred;
+            }
+            else {
+
+                if (jsFn && typeof jsFn == "function") {
+                    if (before) {
+                        extend(el.style, before, true);
+                    }
+                    startCallback && startCallback(el);
+                    dataFn(el, dataParam, jsFn.call(context, el, function(){
+                        deferred.resolve(el);
+                    }));
+                    return deferred;
+                }
+                else if (window.jQuery) {
+                    if (jsFn && typeof jsFn == "string") {
+
+                        startCallback && startCallback(el);
+
+                        $(el)[jsFn](duration, function(){
+                            deferred.resolve(el);
+                        });
+
+                        dataFn(el, dataParam, "stop");
+
+                        return deferred;
+                    }
+                    else if (after) {
+
+                        var j = $(el);
+
+                        if (before) {
+                            j.css(before);
+                        }
+
+                        startCallback && (options.start = function(){
+                            startCallback(el);
+                        });
+
+                        options.complete = function() {
+                            deferred.resolve(el);
+                        };
+
+                        j.animate(after, options);
+
+                        dataFn(el, dataParam, "stop");
+
+                        return deferred;
+                    }
+                }
+            }
+        }
+
+        // no animation happened
+
+        if (startCallback) {
+            var promise = startCallback(el);
+            if (isThenable(promise)) {
+                promise.done(function(){
+                    deferred.resolve(el);
+                });
             }
             else {
                 deferred.resolve(el);
             }
         }
+        else {
+            deferred.resolve(el);
+        }
 
-        return deferred.promise();
+
+        return deferred;
     };
 
-
+    MetaphorJs.animate.getAnimationDuration = getAnimationDuration;
+    MetaphorJs.animate.addAnimationType     = function(name, stages) {
+        types[name] = stages;
+    };
 }());
 
 
@@ -5643,7 +6067,7 @@ if (typeof global != "undefined") {
         }();
 
 
-    var nodeChildren = function(res, el, fn, fnScope, async, finish, cnt) {
+    var nodeChildren = function(res, el, fn, fnScope, finish, cnt) {
 
             var children = [],
                 i, len;
@@ -5651,7 +6075,7 @@ if (typeof global != "undefined") {
             if (res && res !== true) {
                 if (res.nodeType) {
                     cnt.countdown += 1;
-                    eachNode(res, fn, fnScope, async, finish, cnt);
+                    eachNode(res, fn, fnScope, finish, cnt);
                     return;
                 }
                 else {
@@ -5669,13 +6093,13 @@ if (typeof global != "undefined") {
 
             for(i = -1;
                 ++i < len;
-                eachNode(children[i], fn, fnScope, async, finish, cnt)){}
+                eachNode(children[i], fn, fnScope, finish, cnt)){}
         },
 
 
         rSkipTag = /^(script|template|mjs-template|style)$/i,
 
-        eachNode = function(el, fn, fnScope, async, finish, cnt) {
+        eachNode = function(el, fn, fnScope, finish, cnt) {
 
             var res,
                 tag = el.nodeName;
@@ -5686,7 +6110,7 @@ if (typeof global != "undefined") {
             }
 
             try {
-                res = fn.call(fnScope, el, async);
+                res = fn.call(fnScope, el);
             }
             catch (e) {
                 MetaphorJs.error(e);
@@ -5695,17 +6119,23 @@ if (typeof global != "undefined") {
             if (res !== false) {
 
                 if (isThenable(res)) {
+
+                    //el.style.visibility = 'hidden';
+
                     res.done(function(response){
 
                         if (response !== false) {
-                            nodeChildren(response, el, fn, fnScope, async, finish, cnt);
+                            nodeChildren(response, el, fn, fnScope, finish, cnt);
                         }
+
+                        //el.style.visibility = '';
+
                         --cnt.countdown == 0 && finish && finish.call(fnScope);
                     });
                     return; // prevent countdown
                 }
                 else {
-                    nodeChildren(res, el, fn, fnScope, async, finish, cnt);
+                    nodeChildren(res, el, fn, fnScope, finish, cnt);
                 }
             }
 
@@ -5798,7 +6228,7 @@ if (typeof global != "undefined") {
             }
         },
 
-        processNode: function(node, async) {
+        processNode: function(node) {
 
             var self        = this,
                 nodeType    = node.nodeType,
@@ -5822,9 +6252,7 @@ if (typeof global != "undefined") {
 
                 if (txt.watchers.length > 0) {
                     texts.push(txt);
-                    if (async) {
-                        self.renderText(inx);
-                    }
+                    self.renderText(inx);
                 }
             }
 
@@ -5881,9 +6309,7 @@ if (typeof global != "undefined") {
 
                         if (txt.watchers.length > 0) {
                             texts.push(txt);
-                            if (async) {
-                                self.renderText(inx);
-                            }
+                            self.renderText(inx);
                         }
                     }
                 }
@@ -5894,12 +6320,12 @@ if (typeof global != "undefined") {
 
         process: function() {
             var self    = this;
-            eachNode(self.el, self.processNode, self, false, self.onProcessingFinished, {countdown: 1});
+            eachNode(self.el, self.processNode, self, self.onProcessingFinished, {countdown: 1});
         },
 
         onProcessingFinished: function() {
             var self = this;
-            self.render();
+            //self.render();
             observer.trigger("rendered-" + self.id, self);
         },
 
@@ -6166,11 +6592,15 @@ if (typeof global != "undefined") {
             var node    = self.node,
                 tpl     = self.tpl || self.url;
 
-            node.removeAttribute("mjs-include");
+            node && node.removeAttribute("mjs-include");
+
+            if (!node) {
+                self.deferRendering = true;
+            }
 
             if (tpl) {
 
-                if (node.firstChild) {
+                if (node && node.firstChild) {
                     dataFn(node, "mjs-transclude", toFragment(node.childNodes));
                 }
 
@@ -6230,7 +6660,7 @@ if (typeof global != "undefined") {
             var self    = this,
                 tpl     = self.tpl || self.url;
 
-            if (self.deferRendering) {
+            if (self.deferRendering && self.node) {
 
                 self.deferRendering = false;
                 if (self.initPromise) {
@@ -6313,10 +6743,10 @@ if (typeof global != "undefined") {
                 deferred    = new Promise;
 
             if (!self._initial) {
-                animate(el, "leave")
+                animate(el, "leave", null, true)
                     .done(self.doApplyTemplate, self)
                     .done(deferred.resolve, deferred);
-                animate(el, "enter");
+                animate(el, "enter", null, true);
             }
             else {
                 self.doApplyTemplate();
@@ -6371,15 +6801,16 @@ if (typeof global != "undefined") {
 
     "use strict";
 
-    var cmps        = {},
-        extend      = MetaphorJs.extend,
-        nextUid     = MetaphorJs.nextUid,
-        emptyFn     = MetaphorJs.emptyFn,
-        g           = MetaphorJs.ns.get,
-        Promise     = MetaphorJs.lib.Promise,
-        Template    = MetaphorJs.view.Template,
-        trim        = MetaphorJs.trim,
-        toExpression    = MetaphorJs.lib.Watchable.toExpression;
+    var m           = window.MetaphorJs,
+        extend      = m.extend,
+        nextUid     = m.nextUid,
+        emptyFn     = m.emptyFn,
+        g           = m.ns.get,
+        Promise     = m.lib.Promise,
+        Template    = m.view.Template,
+        toFragment  = m.toFragment,
+        dataFn      = m.data,
+        Scope       = m.view.Scope;
 
 
     var getCmpId    = function(cmp) {
@@ -6436,6 +6867,8 @@ if (typeof global != "undefined") {
          */
         destroyEl:      true,
 
+        destroyScope:   false,
+
         /**
          * @var {MetaphorJs.view.Scope}
          */
@@ -6468,6 +6901,10 @@ if (typeof global != "undefined") {
 
             var self    = this;
 
+            if (!self.scope) {
+                self.scope = new Scope;
+            }
+
             self.supr(cfg);
 
             if (cfg.as) {
@@ -6483,12 +6920,14 @@ if (typeof global != "undefined") {
 
             self.id         = getCmpId(self);
 
-            self.initComponent.apply(self, arguments);
-
-            self.scope.$app.registerCmp(self);
-
             if (!self.node) {
                 self._createNode();
+            }
+
+            self.initComponent.apply(self, arguments);
+
+            if (self.scope.$app){
+                self.scope.$app.registerCmp(self);
             }
 
             var tpl = self.template,
@@ -6498,11 +6937,15 @@ if (typeof global != "undefined") {
                 self.template = tpl = new Template({
                     scope: self.scope,
                     node: self.node,
-                    deferRendering: true,
+                    deferRendering: !tpl,
                     ownRenderer: true,
                     tpl: tpl,
                     url: url
                 });
+            }
+            else if (tpl instanceof Template) {
+                // it may have just been created
+                self.template.node = self.node;
             }
 
             if (self.parentRenderer) {
@@ -6548,12 +6991,6 @@ if (typeof global != "undefined") {
                 return;
             }
 
-            if (self.renderTo) {
-                self.renderTo.appendChild(self.node);
-            }
-
-            self.hidden     = !MetaphorJs.isVisible(self.node);
-
             self.trigger('render', self);
 
             self.template.on("rendered", self.onRenderingFinished, self);
@@ -6562,6 +6999,14 @@ if (typeof global != "undefined") {
 
         onRenderingFinished: function() {
             var self = this;
+
+            if (self.renderTo) {
+                self.renderTo.appendChild(self.node);
+            }
+            else if (!self.node.parentNode) {
+                document.body.appendChild(self.node);
+            }
+
             self.rendered   = true;
             self.afterRender();
             self.trigger('afterrender', self);
@@ -6578,7 +7023,7 @@ if (typeof global != "undefined") {
                 return;
             }
             if (self.trigger('beforeshow', self) === false) {
-                return;
+                return false;
             }
 
             self.node.style.display = "block";
@@ -6598,7 +7043,7 @@ if (typeof global != "undefined") {
                 return;
             }
             if (self.trigger('beforehide', self) === false) {
-                return;
+                return false;
             }
 
             self.node.style.display = "none";
@@ -6689,7 +7134,10 @@ if (typeof global != "undefined") {
                 }
             }
 
-            self.scope.$destroy();
+            if (self.destroyScope && self.scope) {
+                self.scope.$destroy();
+            }
+
             delete self.scope;
             delete self.node;
 
@@ -6704,6 +7152,19 @@ if (typeof global != "undefined") {
 
     MetaphorJs.resolveComponent = function(cmp, cfg, scope, node, args) {
 
+        cfg         = cfg || {};
+        args        = args || [];
+
+        scope       = scope || cfg.scope || new Scope;
+        node        = node || cfg.node;
+
+        cfg.scope   = cfg.scope || scope;
+        cfg.node    = cfg.node || node;
+
+        if (!scope.$app) {
+            throw "Cannot resolve component outside app's scope";
+        }
+
         var constr  = typeof cmp == "string" ? g(cmp) : cmp,
             i,
             defers  = [],
@@ -6715,8 +7176,6 @@ if (typeof global != "undefined") {
                 $scope: scope,
                 $app: app
             };
-
-        args        = args || [];
 
         if (constr.resolve) {
 
@@ -6753,25 +7212,30 @@ if (typeof global != "undefined") {
             });
 
             defers.push(cfg.template.initPromise);
-        }
 
-        var deferred = defers.length;
-
-        if (deferred) {
-            node.style.visibility = 'hidden';
+            if (node && node.firstChild) {
+                dataFn(node, "mjs-transclude", toFragment(node.childNodes));
+            }
         }
 
         args.unshift(cfg);
 
-        return Promise.all(defers).then(function(){
-            if (deferred) {
-                node.style.visibility = 'visible';
-            }
+        if (defers.length) {
+            var p = new Promise;
 
+            // if there are no defers, we avoid nextTick
+            // by using done instead of then
+            Promise.all(defers).done(function(){
+                cfg.$config = cfg;
+                p.resolve(app.inject(constr, null, true, cfg, args));
+            });
+
+            return p;
+        }
+        else {
             cfg.$config = cfg;
-
-            return app.inject(constr, null, true, cfg, args);
-        });
+            return Promise.resolve(app.inject(constr, null, true, cfg, args))
+        }
     };
 
 
@@ -6781,14 +7245,137 @@ if (typeof global != "undefined") {
 
 (function(){
 
-    var dataFn      = MetaphorJs.data,
-        currentUrl  = MetaphorJs.currentUrl,
-        toFragment  = MetaphorJs.toFragment,
-        animate     = MetaphorJs.animate,
-        Scope       = MetaphorJs.lib.Scope,
-        extend      = MetaphorJs.extend,
-        stop        = MetaphorJs.stopAnimation,
-        resolveComponent    = MetaphorJs.resolveComponent;
+    var m           = window.MetaphorJs,
+        Scope       = m.view.Scope,
+        Renderer    = m.view.Renderer,
+        Provider    = m.lib.Provider,
+        Observable  = m.lib.Observable,
+        Promise     = m.lib.Promise,
+        bind        = m.bind,
+        extend      = m.extend;
+
+    MetaphorJs.define("MetaphorJs.cmp.App", "MetaphorJs.cmp.Base", {
+
+        scope: null,
+        renderer: null,
+        cmpListeners: null,
+        components: null,
+
+        initialize: function(node, data) {
+
+            var self        = this,
+                scope       = data instanceof Scope ? data : new Scope(data),
+                provider,
+                observable;
+
+            scope.$app      = self;
+            self.supr();
+
+            provider        = new Provider(scope);
+            observable      = new Observable;
+
+            // provider's storage is hidden from everyone
+            extend(self, provider.getApi());
+            self.destroyProvider    = bind(provider.destroy, provider);
+
+            extend(self, observable.getApi());
+            self.destroyObservable  = bind(observable.destroy, observable);
+
+            self.scope          = scope;
+            self.cmpListeners   = {};
+            self.components     = {};
+
+            self.renderer       = new Renderer(node, scope);
+
+            self.factory('$parentCmp', ['$node', self.getParentCmp], self);
+        },
+
+        run: function() {
+            this.renderer.process();
+        },
+
+        getParentCmp: function(node) {
+
+            var self    = this,
+                parent  = node.parentNode,
+                id;
+
+            while (parent) {
+
+                if (id = parent.getAttribute("cmp-id")) {
+                    return self.getCmp(id);
+                }
+
+                parent = parent.parentNode;
+            }
+
+            return null;
+        },
+
+        onAvailable: function(cmpId, fn, context) {
+
+            var cmpListeners = this.cmpListeners;
+
+            if (!cmpListeners[cmpId]) {
+                cmpListeners[cmpId] = new Promise;
+            }
+
+            if (fn) {
+                cmpListeners[cmpId].done(fn, context);
+            }
+
+            return cmpListeners[cmpId];
+        },
+
+        getCmp: function(id) {
+            return this.components[id] || null;
+        },
+
+        registerCmp: function(cmp) {
+            var self = this;
+            self.onAvailable(cmp.id).resolve(cmp);
+            self.components[cmp.id] = cmp;
+            cmp.on("destroy", function(cmp){
+                delete self.cmpListeners[cmp.id];
+                delete self.components[cmp.id];
+            });
+        },
+
+        destroy: function() {
+
+            var self    = this,
+                i;
+
+            self.destroyObservable();
+            self.destroyProvider();
+            self.renderer.destroy();
+            self.scope.$destroy();
+
+            for (i in self) {
+                if (self.hasOwnProperty(i)) {
+                    delete self[i];
+                }
+            }
+        }
+
+    });
+
+}());
+
+
+
+(function(){
+
+    var m                   = window.MetaphorJs,
+        dataFn              = m.data,
+        currentUrl          = m.currentUrl,
+        toFragment          = m.toFragment,
+        animate             = m.animate,
+        Scope               = m.lib.Scope,
+        extend              = m.extend,
+        stop                = m.stopAnimation,
+        resolveComponent    = m.resolveComponent,
+        createWatchable     = m.lib.Watchable.create;
 
     MetaphorJs.define("MetaphorJs.cmp.View", {
 
@@ -6806,28 +7393,55 @@ if (typeof global != "undefined") {
         route: null,
         node: null,
         scope: null,
+        cmp: null,
 
         currentComponent: null,
+        watchable: null,
+        defaultCmp: null,
 
         initialize: function(cfg)  {
 
             var self    = this;
 
-            history.initPushState();
-
             extend(self, cfg, true);
-
-            MetaphorJs.on("locationchange", self.onLocationChange, self);
 
             var node = self.node;
 
-            if (node.firstChild) {
+            if (node && node.firstChild) {
                 dataFn(node, "mjs-transclude", toFragment(node.childNodes));
             }
 
-            node.removeAttribute("mjs-view");
+            if (!self.cmp) {
+                self.cmp = node.getAttribute("mjs-view-cmp");
+            }
 
-            this.onLocationChange();
+            self.defaultCmp = node.getAttribute("mjs-view-default");
+
+            node.removeAttribute("mjs-view");
+            node.removeAttribute("mjs-view-cmp");
+            node.removeAttribute("mjs-view-default");
+
+            if (self.route) {
+                history.initPushState();
+                MetaphorJs.on("locationchange", self.onLocationChange, self);
+                self.onLocationChange();
+            }
+            else if (self.cmp) {
+                self.watchable = createWatchable(self.scope, self.cmp, self.onCmpChange, self);
+                self.onCmpChange();
+            }
+        },
+
+        onCmpChange: function() {
+
+            var self    = this,
+                cmp     = self.watchable.getLastResult() || self.defaultCmp;
+
+            self.clearComponent();
+
+            if (cmp) {
+                self.setComponent(cmp);
+            }
         },
 
         onLocationChange: function() {
@@ -6844,7 +7458,7 @@ if (typeof global != "undefined") {
                 matches = url.match(r.reg);
 
                 if (matches) {
-                    self.changeComponent(r, matches);
+                    self.changeRouteComponent(r, matches);
                     return;
                 }
                 if (r['default'] && !def) {
@@ -6853,18 +7467,22 @@ if (typeof global != "undefined") {
             }
 
             if (def) {
-                self.changeComponent(def, []);
+                self.setRouteComponent(def, []);
             }
             else {
                 self.clearComponent();
             }
+
+            if (!def && self.defaultCmp) {
+                self.setComponent(self.defaultCmp);
+            }
         },
 
-        changeComponent: function(route, matches) {
+        changeRouteComponent: function(route, matches) {
             var self = this;
             stop(self.node);
             self.clearComponent();
-            self.setComponent(route, matches);
+            self.setRouteComponent(route, matches);
         },
 
         clearComponent: function() {
@@ -6873,7 +7491,7 @@ if (typeof global != "undefined") {
 
             if (self.currentComponent) {
 
-                animate(node, "leave").done(function(){
+                animate(node, "leave", null, true).done(function(){
 
                     self.currentComponent.destroy();
                     self.currentComponent = null;
@@ -6886,7 +7504,7 @@ if (typeof global != "undefined") {
 
         },
 
-        setComponent: function(route, matches) {
+        setRouteComponent: function(route, matches) {
 
             var self    = this,
                 node    = self.node,
@@ -6929,7 +7547,47 @@ if (typeof global != "undefined") {
                         self.currentComponent = newCmp;
                     });
 
-            });
+            }, true);
+        },
+
+        setComponent: function(cmp) {
+
+            var self    = this,
+                node    = self.node;
+
+            animate(node, "enter", function(){
+
+                var cfg     = typeof cmp == "object" ? cmp : {},
+                    cls     = (typeof cmp == "string" ? cmp : null) || "MetaphorJs.cmp.Component",
+                    scope   = cfg.scope || self.scope.$new();
+
+                cfg.destroyEl = false;
+
+                return resolveComponent(cls, cfg, scope, node).done(function(newCmp){
+                    self.currentComponent = newCmp;
+                });
+
+            }, true);
+        },
+
+        destroy: function() {
+
+            var self    = this;
+
+            self.clearComponent();
+
+            if (self.route) {
+                MetaphorJs.un("locationchange", self.onLocationChange, self);
+                delete self.route;
+            }
+
+            if (self.watchable) {
+                self.watchable.unsubscribeAndDestroy(self.onCmpChange, self);
+                delete self.watchable;
+            }
+
+            delete self.scope;
+            delete self.currentComponent;
         }
     });
 
@@ -6941,32 +7599,33 @@ if (typeof global != "undefined") {
 
 (function(){
 
-    var Scope           = MetaphorJs.view.Scope,
-        trim            = MetaphorJs.trim,
-        bind            = MetaphorJs.bind,
-        d               = MetaphorJs.define,
-        g               = MetaphorJs.ns.get,
-        Watchable       = MetaphorJs.lib.Watchable,
-        Renderer        = MetaphorJs.view.Renderer,
-        dataFn          = MetaphorJs.data,
-        toArray         = MetaphorJs.toArray,
-        toFragment      = MetaphorJs.toFragment,
-        addListener     = MetaphorJs.addListener,
-        normalizeEvent  = MetaphorJs.normalizeEvent,
-        registerAttr    = MetaphorJs.registerAttributeHandler,
-        registerTag     = MetaphorJs.registerTagHandler,
-        async           = MetaphorJs.async,
+    var m               = window.MetaphorJs,
+        Scope           = m.view.Scope,
+        trim            = m.trim,
+        bind            = m.bind,
+        d               = m.define,
+        g               = m.ns.get,
+        Watchable       = m.lib.Watchable,
+        Renderer        = m.view.Renderer,
+        dataFn          = m.data,
+        toArray         = m.toArray,
+        toFragment      = m.toFragment,
+        cloneFn         = m.clone,
+        addListener     = m.addListener,
+        normalizeEvent  = m.normalizeEvent,
+        registerAttr    = m.registerAttributeHandler,
+        registerTag     = m.registerTagHandler,
+        async           = m.async,
         createWatchable = Watchable.create,
         createGetter    = Watchable.createGetter,
-        animate         = MetaphorJs.animate,
-        addClass        = MetaphorJs.addClass,
-        removeClass     = MetaphorJs.removeClass,
-        hasClass        = MetaphorJs.hasClass,
-        stopAnimation   = MetaphorJs.stopAnimation,
-        isArray         = MetaphorJs.isArray,
-        Template        = MetaphorJs.view.Template,
-        Input           = MetaphorJs.lib.Input,
-        isThenable      = MetaphorJs.isThenable,
+        animate         = m.animate,
+        addClass        = m.addClass,
+        removeClass     = m.removeClass,
+        hasClass        = m.hasClass,
+        stopAnimation   = m.stopAnimation,
+        isArray         = m.isArray,
+        Template        = m.view.Template,
+        Input           = m.lib.Input,
         resolveComponent;
 
 
@@ -7002,9 +7661,7 @@ if (typeof global != "undefined") {
             self.node       = node;
             self.expr       = expr;
             self.scope      = scope;
-            self.watcher    = createWatchable(scope, expr);
-
-            self.watcher.addListener(self.onChange, self);
+            self.watcher    = createWatchable(scope, expr, self.onChange, self);
 
             self.onChange();
 
@@ -7151,7 +7808,8 @@ if (typeof global != "undefined") {
                     if (show) {
                         style.display = "";
                     }
-                })
+                },
+                true)
                 .done(done);
         },
 
@@ -7225,12 +7883,12 @@ if (typeof global != "undefined") {
 
             if (val) {
                 if (!node.parentNode) {
-                    self.initial ? show() : animate(node, "enter", show);
+                    self.initial ? show() : animate(node, "enter", show, true);
                 }
             }
             else {
                 if (node.parentNode) {
-                    self.initial ? hide() : animate(node, "leave").done(hide);
+                    self.initial ? hide() : animate(node, "leave", null, true).done(hide);
                 }
             }
 
@@ -7411,7 +8069,7 @@ if (typeof global != "undefined") {
 
                     r.renderer.destroy();
 
-                    animate(r.el, "leave")
+                    animate(r.el, "leave", null, true)
                         .done(function(el){
                             if (el.parentNode) {
                                 el.parentNode.removeChild(el);
@@ -7440,7 +8098,7 @@ if (typeof global != "undefined") {
                                 }
                             }
                         }
-                    }(index));
+                    }(index), true);
 
                     if (action == 'R') {
                         renderers[i] = self.createItem(el, list, index);
@@ -7634,7 +8292,7 @@ if (typeof global != "undefined") {
 
             var parent      = node.parentNode,
                 next        = node.nextSibling,
-                clone       = MetaphorJs.clone(transclude),
+                clone       = cloneFn(transclude),
                 children    = toArray(clone.childNodes);
 
             parent.removeChild(node);
@@ -7642,6 +8300,8 @@ if (typeof global != "undefined") {
 
             return children;
         }
+
+        return null;
     });
 
     registerTag("mjs-transclude", 900, function(scope, node) {
@@ -7656,7 +8316,7 @@ if (typeof global != "undefined") {
 
             var parent      = node.parentNode,
                 next        = node.nextSibling,
-                clone       = MetaphorJs.clone(transclude),
+                clone       = cloneFn(transclude),
                 children    = toArray(clone.childNodes);
 
             parent.removeChild(node);
@@ -7664,6 +8324,8 @@ if (typeof global != "undefined") {
 
             return children;
         }
+
+        return null;
     });
 
 
@@ -7684,7 +8346,7 @@ if (typeof global != "undefined") {
 
         if (has) {
             if (doAnim) {
-                animate(node, [cls + "-remove"]).done(function(){
+                animate(node, [cls + "-remove"], null, true).done(function(){
                     removeClass(node, cls);
                 });
             }
@@ -7694,7 +8356,7 @@ if (typeof global != "undefined") {
         }
         else {
             if (doAnim) {
-                animate(node, [cls + "-add"]).done(function(){
+                animate(node, [cls + "-add"], null, true).done(function(){
                     addClass(node, cls);
                 });
             }
@@ -7811,7 +8473,7 @@ if (typeof global != "undefined") {
         }(boolAttrs[i]));
     }
 
-    var cmpAttribute = function(scope, node, expr, parentRenderer){
+    var cmpAttr = function(scope, node, expr, parentRenderer){
 
         if (!resolveComponent) {
             resolveComponent = MetaphorJs.resolveComponent;
@@ -7845,19 +8507,20 @@ if (typeof global != "undefined") {
         }
 
         var cfg     = {
-                scope: scope,
-                node: node,
-                as: as,
-                parentRenderer: parentRenderer
-            };
+            scope: scope,
+            node: node,
+            as: as,
+            parentRenderer: parentRenderer,
+            destroyScope: true
+        };
 
         resolveComponent(cmpName, cfg, scope, node);
         return false;
     };
 
-    cmpAttribute.$breakScope = true;
+    cmpAttr.$breakScope = true;
 
-    registerAttr("mjs-cmp", 200, cmpAttribute);
+    registerAttr("mjs-cmp", 200, cmpAttr);
 
 
     registerAttr("mjs-cmp-prop", 200, ['$parentCmp', '$node', '$attrValue', function(parentCmp, node, expr){
@@ -7867,31 +8530,28 @@ if (typeof global != "undefined") {
         }
     }]);
 
-    registerAttr("mjs-view", 200, function(scope, node, expr) {
+    var viewAttr = function(scope, node, expr) {
 
         node.removeAttribute("mjs-view");
 
-        var constr = g(expr);
+        var constr = g(expr || "MetaphorJs.cmp.View");
 
-        if (constr) {
-            scope.$app.inject(constr, null, true,
-                {
-                    $scope: scope,
-                    $node: node,
-                    $app: scope.$app
-                },
-                [{scope: scope, node: node}]
-            );
-        }
-        else {
-            throw "View '" + expr + "' not found";
-        }
+        scope.$app.inject(constr, null, true,
+            {
+                $scope: scope,
+                $node: node,
+                $app: scope.$app
+            },
+            [{scope: scope, node: node}]
+        );
 
         return false;
-    });
+    };
+
+    registerAttr("mjs-view", 200, viewAttr);
 
 
-    registerAttr("mjs-init", 150, function(scope, node, expr){
+    registerAttr("mjs-init", 250, function(scope, node, expr){
         node.removeAttribute("mjs-init");
         createFn(expr)(scope);
     });
