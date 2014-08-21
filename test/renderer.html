@@ -289,7 +289,7 @@
             <textarea mjs-model="toList:.sep >> .dynamicList | fromList"></textarea>
 
             <ul>
-                <li mjs-each="item in .dynamicList">
+                <li mjs-each="item in .dynamicList" mjs-recursive>
                     {{.item}}
                 </li>
             </ul>

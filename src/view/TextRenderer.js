@@ -16,16 +16,16 @@
 
         observer                = new Observable,
 
-        factory                 = function(scope, origin, parent, userData) {
+        factory                 = function(scope, origin, parent, userData, recursive) {
 
             if (!origin || typeof origin != "string" || origin.indexOf(startSymbol) == -1) {
                 return null;
             }
 
-            return new TextRenderer(scope, origin, parent, userData);
+            return new TextRenderer(scope, origin, parent, userData, recursive);
         };
 
-    var TextRenderer = function(scope, origin, parent, userData) {
+    var TextRenderer = function(scope, origin, parent, userData, recursive) {
 
         var self        = this;
 
@@ -35,6 +35,10 @@
         self.parent     = parent;
         self.isRoot     = !parent;
         self.data       = userData;
+
+        if (recursive === true || recursive === false) {
+            self.recursive = recursive;
+        }
 
         self.watchers   = [];
         self.children   = [];
@@ -55,6 +59,7 @@
         watchers: null,
         children: null,
         data: null,
+        recursive: false,
 
         subscribe: function(fn, context) {
             return observer.on(this.id, fn, context);
@@ -113,7 +118,10 @@
                     ((endIndex = text.indexOf(endSymbol, startIndex + startSymbolLength)) != -1)) {
 
                     separators.push(text.substring(index, startIndex));
-                    separators.push(self.watcherMatch(text.substring(startIndex + startSymbolLength, endIndex)));
+
+                    if (endIndex != startIndex + startSymbolLength) {
+                        separators.push(self.watcherMatch(text.substring(startIndex + startSymbolLength, endIndex)));
+                    }
 
                     index = endIndex + endSymbolLength;
 
@@ -172,12 +180,13 @@
                 ws      = self.watchers,
                 ch      = self.children,
                 scope   = self.scope,
+                rec     = self.recursive,
                 i, l,
                 val;
 
             for (i = -1, l = ws.length; ++i < l; ){
                 val     = ws[i].getLastResult();
-                ch.push(factory(scope, val, self) || val);
+                ch.push((rec && factory(scope, val, self)) || val);
             }
         },
 

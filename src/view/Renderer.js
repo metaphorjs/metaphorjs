@@ -168,7 +168,7 @@
 
             var self    = this,
                 scope   = f.$isolateScope ?
-                            new Scope({$app: parentScope.$app}) :
+                            parentScope.$newIsolated() :
                             (f.$breakScope  ?
                                 parentScope.$new() :
                                 parentScope),
@@ -199,14 +199,14 @@
                 texts       = self.texts,
                 scope       = self.scope,
                 textRenderer,
+                recursive,
                 n;
 
             // text node
             if (nodeType == 3) {
 
-
-
-                textRenderer = createText(scope, node[textProp], null, texts.length);
+                recursive       = node.parentNode.getAttribute("mjs-recursive") !== null;
+                textRenderer    = createText(scope, node[textProp], null, texts.length, recursive);
 
                 if (textRenderer) {
                     textRenderer.subscribe(self.onTextChange, self);
@@ -280,11 +280,13 @@
                     return deferred;
                 }
 
+                recursive = node.getAttribute("mjs-recursive") !== null;
+
                 for (i = 0, len = attrs.length; i < len; i++) {
 
                     if (!g(n, true)) {
 
-                        textRenderer = createText(scope, attrs[i].value, null, texts.length);
+                        textRenderer = createText(scope, attrs[i].value, null, texts.length, recursive);
 
                         if (textRenderer) {
                             textRenderer.subscribe(self.onTextChange, self);
@@ -352,18 +354,18 @@
             }
             self.destroyed  = true;
 
-            for (i = -1, len = texts.length; ++i < len; texts[i].destroy()) {}
+            for (i = -1, len = texts.length; ++i < len; texts[i].tr.destroy()) {}
 
             if (self.parent) {
                 self.parent.un("destroy", self.destroy, self);
             }
 
-            observer.trigger("destroy-" + self.id);
-
             delete self.texts;
             delete self.el;
             delete self.scope;
             delete self.parent;
+
+            observer.trigger("destroy-" + self.id);
         }
 
 

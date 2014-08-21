@@ -469,17 +469,12 @@
 
                     r = renderers[index];
 
-                    if (r.scope instanceof Scope) {
-                        r.scope.$destroy();
-                    }
-
-                    r.renderer.destroy();
+                    r.scope.$destroy();
+                    // renderer will destroy itself
 
                     animate(r.el, "leave", null, true)
                         .done(function(el){
-                            if (isAttached(el)) {
-                                el.parentNode.removeChild(el);
-                            }
+                            isAttached(el) && el.parentNode.removeChild(el);
                         });
                 }
 
@@ -508,11 +503,11 @@
                     }(index), true);
 
                     if (action == 'R') {
-                        renderers[i] = self.createItem(el, list, index);
+                        renderers[index] = self.createItem(el, list, index);
                     }
                     else if (action == 'I') {
                         if (i < renderers.length) {
-                            renderers.splice(i, 0, self.createItem(el, list, index));
+                            renderers.splice(index, 0, self.createItem(el, list, index));
                         }
                         else {
                             renderers.push(self.createItem(el, list, index));
@@ -603,7 +598,7 @@
         initWatcher: function() {
             var self        = this;
             self.watcher    = createWatchable(self.store, ".items", null);
-            self.watcher.addListener(self.onChange, self);
+            self.watcher.subscribe(self.onChange, self);
         },
 
         resetWatcher: function() {

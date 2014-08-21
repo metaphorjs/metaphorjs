@@ -14,22 +14,8 @@
         PROVIDER    = 5,
         globalProvider;
 
-    var Provider = function(scope) {
-
-        var self    = this;
-
-        if (scope) {
-            self.store  = {
-                '$rootScope': {
-                    type: VALUE,
-                    value: scope.$root
-                },
-                '$app': {
-                    type: VALUE,
-                    value: scope.$app
-                }
-            };
-        }
+    var Provider = function() {
+        this.store  = {};
     };
 
     extend(Provider.prototype, {

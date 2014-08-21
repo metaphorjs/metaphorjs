@@ -153,7 +153,7 @@
                         destroyEl: false,
                         node: node,
                         scope: route.isolateScope ?
-                               new Scope({$app: self.scope.$app}) :
+                               self.scope.$newIsolated() :
                                self.scope.$new()
                     },
                     i, l;

@@ -210,7 +210,7 @@
     };
 
 
-    MetaphorJs.r("MetaphorJs.lib.Text", Text);
+    m.r("MetaphorJs.lib.Text", Text);
 
 
     var replacer	= function(match, vars) {

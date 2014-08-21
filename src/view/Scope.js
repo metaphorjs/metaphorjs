@@ -23,7 +23,7 @@
 
             self.$$observable    = new Observable;
 
-            extend(self, cfg, true);
+            extend(self, cfg, true, false);
 
             if (self.$parent) {
                 self.$parent.$on("check", self.$$onParentCheck, self);
@@ -44,6 +44,12 @@
             });
         },
 
+        $newIsolated: function() {
+            return new Scope({
+                $app: this.$app
+            });
+        },
+
         $on: function(event, fn, fnScope) {
             return this.$$observable.on(event, fn, fnScope);
         },
@@ -53,11 +59,11 @@
         },
 
         $watch: function(expr, fn, fnScope) {
-            Watchable.create(this, expr, fn, fnScope, null);
+            return Watchable.create(this, expr, fn, fnScope, null);
         },
 
         $unwatch: function(expr, fn, fnScope) {
-            Watchable.unsubscribeAndDestroy(this, expr, fn, fnScope);
+            return Watchable.unsubscribeAndDestroy(this, expr, fn, fnScope);
         },
 
         $get: function(key) {
@@ -107,8 +113,8 @@
             var self    = this;
 
             self.$$observable.trigger("destroy");
-
             self.$$observable.destroy();
+
             delete self.$$observable;
             delete self.$app;
             delete self.$root;

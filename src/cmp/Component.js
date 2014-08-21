@@ -367,8 +367,17 @@
         cfg.scope   = cfg.scope || scope;
         cfg.node    = cfg.node || node;
 
-        var constr      = typeof cmp == "string" ? g(cmp) : cmp,
-            i,
+        var constr      = typeof cmp == "string" ? g(cmp) : cmp;
+
+        if (!constr) {
+            throw "Component " + cmp + " not found";
+        }
+
+        if (scope && constr.isolateScope) {
+            cfg.scope   = scope = scope.$newIsolated();
+        }
+
+        var i,
             defers      = [],
             tpl         = constr.template || cfg.template || null,
             tplUrl      = constr.templateUrl || cfg.templateUrl || null,
@@ -379,7 +388,6 @@
             inject      = {
                 $node: node || null,
                 $scope: scope || null,
-                $app: app || null,
                 $config: cfg || null,
                 $args: args || null
             };

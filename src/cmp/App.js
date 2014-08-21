@@ -47,6 +47,8 @@
             self.renderer       = new Renderer(node, scope);
 
             self.factory('$parentCmp', ['$node', self.getParentCmp], self);
+            self.value('$app', self);
+            self.value('$rootScope', scope.$root);
 
             args = slice.call(arguments);
             args[1] = scope;
