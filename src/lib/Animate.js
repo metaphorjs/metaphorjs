@@ -279,7 +279,7 @@
                 jsFn        = animation.fn;
                 before      = animation.before;
                 after       = animation.after;
-                options     = animation.options || {};
+                options     = animation.options ? extend({}, animation.options) : {};
                 context     = animation.context || null;
                 duration    = animation.duration || null;
                 startCallback   = startCallback || options.start;
@@ -306,6 +306,16 @@
             }
             else {
 
+                startCallback && (options.start = function(){
+                    startCallback(el);
+                });
+
+                options.complete = function() {
+                    deferred.resolve(el);
+                };
+
+                duration && (options.duration = duration);
+
                 if (jsFn && typeof jsFn == "function") {
                     if (before) {
                         extend(el.style, before, true);
@@ -317,38 +327,17 @@
                     return deferred;
                 }
                 else if (window.jQuery) {
+
+                    var j = $(el);
+                    before && j.css(before);
+                    dataFn(el, dataParam, "stop");
+
                     if (jsFn && typeof jsFn == "string") {
-
-                        startCallback && startCallback(el);
-
-                        $(el)[jsFn](duration, function(){
-                            deferred.resolve(el);
-                        });
-
-                        dataFn(el, dataParam, "stop");
-
+                        j[jsFn](options);
                         return deferred;
                     }
                     else if (after) {
-
-                        var j = $(el);
-
-                        if (before) {
-                            j.css(before);
-                        }
-
-                        startCallback && (options.start = function(){
-                            startCallback(el);
-                        });
-
-                        options.complete = function() {
-                            deferred.resolve(el);
-                        };
-
                         j.animate(after, options);
-
-                        dataFn(el, dataParam, "stop");
-
                         return deferred;
                     }
                 }
