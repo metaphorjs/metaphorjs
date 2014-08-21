@@ -118,9 +118,17 @@
                    toString.call(value) == '[object Array]' || false;
         },
 
-        toArray = function(list) {
-            for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]){}
-            return a;
+        toArray     = function(list) {
+            if (list && list.length != undefined) {
+                for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]){}
+                return a;
+            }
+            else if (list) {
+                return [list];
+            }
+            else {
+                return [];
+            }
         },
 
         clsRegCache = {},
@@ -203,6 +211,22 @@
         isAttached  = function(node) {
             var body = document.body;
             return node === body ? true : body.contains(node);
+        },
+
+        error       = function(e) {
+
+            var stack = e.stack || (new Error).stack;
+
+            //throw e;
+
+            setTimeout(function(){
+                if (typeof console != "undefined" && console.log) {
+                    console.log(e);
+                    if (stack) {
+                        console.log(stack);
+                    }
+                }
+            }, 0);
         };
 
 
@@ -231,4 +255,5 @@
     MetaphorJs.isPlainObject = isPlainObject;
     MetaphorJs.isThenable = isThenable;
     MetaphorJs.isAttached = isAttached;
+    MetaphorJs.error = error;
 }());

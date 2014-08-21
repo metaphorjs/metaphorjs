@@ -62,6 +62,7 @@
             var self        = this;
 
             expr            = trim(expr);
+
             self.node       = node;
             self.expr       = expr;
             self.scope      = scope;
@@ -340,7 +341,7 @@
             }
 
             self.parentEl.removeChild(node);
-            self.render(self.watcher.getValue());
+            self.render(toArray(self.watcher.getValue()));
         },
 
         onScopeDestroy: function() {
@@ -411,7 +412,7 @@
 
             for (i = 0, len = list.length; i < len; i++) {
 
-                el          = tpl.cloneNode(true);
+                el = tpl.cloneNode(true);
                 fragment.appendChild(el);
                 renderers.push(self.createItem(el, list, i));
             }
@@ -440,17 +441,16 @@
 
             var self        = this,
                 renderers   = self.renderers,
-                prs         = changes.prescription,
+                prs         = changes.prescription || [],
                 tpl         = self.tpl,
                 index       = 0,
                 parent      = self.parentEl,
-                list        = self.watcher.getValue(),
+                list        = toArray(self.watcher.getValue()),
                 updateStart = null,
                 el,
                 i, len,
                 r,
                 action;
-
 
             for (i = 0, len = prs.length; i < len; i++) {
                 action = prs[i];

@@ -45,6 +45,15 @@
 
     <style>
 
+
+        body {
+            padding-bottom: 100px;
+        }
+
+        #render {
+            overflow: hidden;
+        }
+
         mjs-template {
             display:none;
         }
@@ -263,6 +272,17 @@
                     <input type="reset" value="Reset"/>
                 </div>
             </form>
+
+
+            <hr>
+
+            <textarea mjs-model="toList >> .dynamicList | fromList"></textarea>
+
+            <ul>
+                <li mjs-each="item in .dynamicList">
+                    {{.item}}
+                </li>
+            </ul>
 
         </div>
 

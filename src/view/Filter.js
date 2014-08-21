@@ -3,7 +3,10 @@
 
     var add     = MetaphorJs.add,
         nf      = MetaphorJs.numberFormats,
-        df      = MetaphorJs.dateFormats;
+        df      = MetaphorJs.dateFormats,
+        trim    = MetaphorJs.trim,
+        toArray = MetaphorJs.toArray,
+        isArray = MetaphorJs.isArray;
 
     add("filter.uppercase", function(val){
         return val.toUpperCase();
@@ -11,7 +14,7 @@
     add("filter.lowercase", function(val){
         return val.toLowerCase();
     });
-    add("filter.limitTo", function(input, limit){
+    add("filter.limitTo", function(input, scope, limit){
 
         var type = typeof input;
 
@@ -61,7 +64,7 @@
 
     var numberFormats = MetaphorJs.numberFormats;
 
-    add("filter.numeral", function(val, format) {
+    add("filter.numeral", function(val, scope, format) {
         format  = numberFormats[format] || format;
         format  = nf[format] || format;
         return numeral(val).format(format);
@@ -69,7 +72,7 @@
 
     var dateFormats = MetaphorJs.dateFormats;
 
-    add("filter.moment", function(val, format) {
+    add("filter.moment", function(val, scope, format) {
         format  = dateFormats[format] || format;
         format  = df[format] || format;
         return moment(val).format(format);
@@ -161,7 +164,7 @@
 
 
 
-    add("filter.filter", function(val, by, opt, scope) {
+    add("filter.filter", function(val, scope, by, opt) {
 
         if (opt && !scope) {
             opt = null;
@@ -175,7 +178,7 @@
 
 
 
-    add("filter.sortBy", function(val, field, dir, scope) {
+    add("filter.sortBy", function(val, scope, field, dir) {
 
         if (dir && !scope) {
             dir = "asc";
@@ -213,13 +216,58 @@
         return dir == "desc" ? ret.reverse() : ret;
     });
 
-    add("filter.linkify", function(input, target){
+    add("filter.linkify", function(input, scope, target){
         target = target ? ' target="'+target+'"' : "";
         if (input) {
             var exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
             return input.replace(exp, '<a href="$1"'+target+'>$1</a>');
         }
         return "";
+    });
+
+
+    var regCache = {},
+        getReg = function(reg) {
+            return regCache[reg] || (regCache[reg] = new RegExp(reg));
+        };
+
+    add("filter.toList", function(input, scope, sep, limit) {
+
+        limit       = limit || undefined;
+        sep         = sep || "/\\n|,/";
+        input       = "" + input;
+
+        if (!input) {
+            return [];
+        }
+
+        if (sep.substr(0,1) == '/' && sep.substr(sep.length - 1) == "/") {
+            sep = getReg(sep.substring(1, sep.length-1));
+        }
+        var list    = input.split(sep, limit),
+            i, l;
+
+        for (i = -1, l = list.length; ++i < l; list[i] = trim(list[i])){}
+
+        return list;
+    });
+
+    add("filter.fromList", function(input, scope, separator) {
+
+        separator = separator || ", ";
+
+        if (input && input.length) {
+            if (!isArray(input)){
+                input = toArray(input);
+            }
+            return input.join(separator);
+        }
+
+        return "";
+    });
+
+    add("filter.toArray", function(input){
+        return toArray(input);
     });
 
 
