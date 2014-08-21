@@ -2,22 +2,17 @@
 (function(){
 
     var m                       = window.MetaphorJs,
-        startSymbol             = '{{',
-        endSymbol               = '}}',
-        startSymbolLength       = 2,
-        endSymbolLength         = 2,
         nextUid                 = m.nextUid,
         isArray                 = m.isArray,
         Scope                   = m.view.Scope,
-        Watchable               = m.lib.Watchable,
         Observable              = m.lib.Observable,
+        TextRenderer            = m.view.TextRenderer,
         isThenable              = m.isThenable,
         toArray                 = m.toArray,
         getAttributeHandlers    = m.getAttributeHandlers,
         handlers                = null,
         g                       = m.g,
-        createWatchable         = Watchable.create,
-        unsubscribeAndDestroy   = Watchable.unsubscribeAndDestroy,
+        createText              = TextRenderer.create,
         Promise                 = m.lib.Promise,
         select                  = m.select,
         Renderer,
@@ -203,26 +198,25 @@
                 nodeType    = node.nodeType,
                 texts       = self.texts,
                 scope       = self.scope,
-                txt,
-                inx,
+                textRenderer,
                 n;
 
             // text node
             if (nodeType == 3) {
 
-                txt = {
-                    watchers:   [],
-                    node:       node,
-                    text:       "",
-                    inx:        inx = texts.length
-                };
 
-                self.processText(txt, node[textProp]);
 
-                if (txt.watchers.length > 0) {
-                    texts.push(txt);
-                    self.renderText(inx);
+                textRenderer = createText(scope, node[textProp], null, texts.length);
+
+                if (textRenderer) {
+                    textRenderer.subscribe(self.onTextChange, self);
+                    texts.push({
+                        node: node,
+                        tr: textRenderer
+                    });
+                    self.renderText(texts.length - 1);
                 }
+
             }
 
             // element node
@@ -289,19 +283,17 @@
                 for (i = 0, len = attrs.length; i < len; i++) {
 
                     if (!g(n, true)) {
-                        txt = {
-                            watchers:   [],
-                            node:       node,
-                            attr:       attrs[i].name,
-                            text:       "",
-                            inx:        inx = texts.length
-                        };
 
-                        self.processText(txt, attrs[i].value);
+                        textRenderer = createText(scope, attrs[i].value, null, texts.length);
 
-                        if (txt.watchers.length > 0) {
-                            texts.push(txt);
-                            self.renderText(inx);
+                        if (textRenderer) {
+                            textRenderer.subscribe(self.onTextChange, self);
+                            texts.push({
+                                node: node,
+                                attr: attrs[i].name,
+                                tr: textRenderer
+                            });
+                            self.renderText(texts.length - 1);
                         }
                     }
                 }
@@ -321,95 +313,30 @@
             observer.trigger("rendered-" + this.id, this);
         },
 
-        processText: function(txtObj, text) {
 
-            var self    = this,
-                index   = 0,
-                textLength  = text.length,
-                startIndex,
-                endIndex,
-                separators = [];
-
-            while(index < textLength) {
-                if ( ((startIndex = text.indexOf(startSymbol, index)) != -1) &&
-                     ((endIndex = text.indexOf(endSymbol, startIndex + startSymbolLength)) != -1) ) {
-
-                    separators.push(text.substring(index, startIndex));
-                    separators.push(self.watcherMatch(txtObj, text.substring(startIndex + startSymbolLength, endIndex)));
-
-                    index = endIndex + endSymbolLength;
-
-                } else {
-                    // we did not find an interpolation, so we have to add the remainder to the separators array
-                    if (index !== textLength) {
-                        separators.push(text.substring(index));
-                    }
-                    break;
-                }
-            }
-
-            return txtObj.text = separators.join("");
-        },
-
-        watcherMatch: function(txtObj, expr) {
-
-            var self    = this,
-                ws      = txtObj.watchers;
-
-            ws.push({
-                watcher: createWatchable(
-                    self.scope,
-                    expr,
-                    self.onDataChange,
-                    self,
-                    txtObj.inx
-                )
-            });
-
-            return '---'+ (ws.length-1) +'---';
-        },
-
-        onDataChange: function(val, prev, textInx) {
-            this.renderText(textInx);
-        },
-
-        render: function() {
-
-            var self    = this,
-                len     = self.texts.length,
-                i;
-
-            for (i = 0; i < len; i++) {
-                self.renderText(i);
-            }
+        onTextChange: function(textRenderer, inx) {
+            this.renderText(inx);
         },
 
         renderText: function(inx) {
 
             var self    = this,
                 text    = self.texts[inx],
-                tpl     = text.text,
-                ws      = text.watchers,
-                len     = ws.length,
-                attr    = text.attr,
-                i, val;
+                res     = text.tr.toString(),
+                attr    = text.attr;
 
-            for (i = 0; i < len; i++) {
-                val     = ws[i].watcher.getLastResult();
-                tpl     = tpl.replace('---' + i + '---', val);
-            }
 
             if (attr) {
-                text.node.setAttribute(attr, tpl);
+                text.node.setAttribute(attr, res);
                 if (attr == "value") {
-                    text.node.value = tpl;
+                    text.node.value = res;
                 }
                 if (attr == "class") {
-                    text.node.className = tpl;
+                    text.node.className = res;
                 }
             }
             else {
-                text.node[textProp] = tpl;
+                text.node[textProp] = res;
             }
         },
 
@@ -418,38 +345,25 @@
 
             var self    = this,
                 texts   = self.texts,
-                ws,
-                i, len,
-                j, jlen;
+                i, len;
 
             if (self.destroyed) {
                 return;
             }
             self.destroyed  = true;
 
-            for (i = 0, len = texts.length; i < len; i++) {
-
-                ws  = texts[i].watchers;
-
-                for (j = 0, jlen = ws.length; j < jlen; j++) {
-                    unsubscribeAndDestroy(self.scope, ws[j].watcher.code, self.onDataChange, self);
-                }
-            }
+            for (i = -1, len = texts.length; ++i < len; texts[i].destroy()) {}
 
             if (self.parent) {
                 self.parent.un("destroy", self.destroy, self);
             }
 
-            //self._observable.trigger("destroy");
             observer.trigger("destroy-" + self.id);
 
-            self.texts      = null;
-            self.el         = null;
-            self.scope      = null;
-            self.parent     = null;
-
-            //self._observable.destroy();
-            //self._observable = null;
+            delete self.texts;
+            delete self.el;
+            delete self.scope;
+            delete self.parent;
         }
 
 

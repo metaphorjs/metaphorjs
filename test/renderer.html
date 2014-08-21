@@ -31,6 +31,7 @@
     <script src="../src/lib/Animate.js"></script>
     <script src="../src/view/Scope.js"></script>
     <script src="../src/view/Browser.js"></script>
+    <script src="../src/view/TextRenderer.js"></script>
     <script src="../src/view/Renderer.js"></script>
     <script src="../src/view/Template.js"></script>
     <script src="../src/cmp/Component.js"></script>
@@ -42,6 +43,8 @@
 
     <script src="../../metaphorjs-dialog/metaphorjs.dialog.js"></script>
     <script src="../src/cmp/Dialog.js"></script>
+
+    <script src="../src/lib/Text.js"></script>
 
     <style>
 
@@ -396,13 +399,43 @@
         <h1>Another app</h1>
         <p>a = {{.a}}</p>
         <p>resolved = {{.resolved}}</p>
+        <p>The following utilizes recursive text renderer:</p>
+        <p>This is level 1: {{.level1}}</p>
+        <p>
+            <a href="#" mjs-click=".changeLevel2()">Change level 2</a> |
+            <a href="#" mjs-click=".increaseB()">Increase B</a>
+        </p>
     </div>
 
     <script>
         MetaphorJs.d("Test.MyApp2", "MetaphorJs.cmp.App", {
 
             initApp: function(node, scope, someValue) {
-                this.scope.resolved = someValue;
+
+                var self    = this;
+                var level2Inx = 0;
+                var level2  = [
+                    '(level 3 value: {{.b}})',
+                    '(level 3 value: {{.c}})'
+                ];
+
+                self.scope.resolved = someValue;
+
+                self.scope.level1   = '[ and here comes level 2: {{.level2}} ]';
+                self.scope.level2   = level2[level2Inx];
+
+                self.scope.b        = 1;
+                self.scope.c        = "variable c";
+
+                self.scope.changeLevel2 = function(inx) {
+                    level2Inx = level2Inx == 0 ? 1 : 0;
+                    self.scope.level2 = level2[level2Inx];
+                };
+
+                self.scope.increaseB = function() {
+                    self.scope.b++;
+                };
+
             }
 
         },{
