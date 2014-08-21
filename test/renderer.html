@@ -187,6 +187,9 @@
 
 
     <div id="render" mjs-init=".header = 'new header'; .text = 'new text'">
+
+        <h1>App 1</h1>
+
         <div class="header">{{.header}}</div>
         <div class="article">
 
@@ -274,9 +277,13 @@
             </form>
 
 
-            <hr>
+            <hr mjs-init='.sep = "/\\n|,/"'>
 
-            <textarea mjs-model="toList >> .dynamicList | fromList"></textarea>
+            <label><input type="radio" name="sep" value="/\n|,/" mjs-model=".sep"/> /\n|,/</label>
+            <label><input type="radio" name="sep" value="/\n/"/> /\n/</label>
+            <label><input type="radio" name="sep" value=","/> ,</label><br>
+
+            <textarea mjs-model="toList:.sep >> .dynamicList | fromList"></textarea>
 
             <ul>
                 <li mjs-each="item in .dynamicList">
@@ -382,9 +389,34 @@
         </div>
     </div>
 
+    <hr>
+
+
+    <div mjs-app="Test.MyApp2" mjs-init=".a = 100">
+        <h1>Another app</h1>
+        <p>a = {{.a}}</p>
+        <p>resolved = {{.resolved}}</p>
+    </div>
 
     <script>
+        MetaphorJs.d("Test.MyApp2", "MetaphorJs.cmp.App", {
 
+            initApp: function(node, scope, someValue) {
+                this.scope.resolved = someValue;
+            }
+
+        },{
+            inject: ['$node', '$scope', 'someValue'],
+            resolve: {
+                someValue: function() {
+                    var p = new MetaphorJs.lib.Promise;
+                    setTimeout(function(){
+                        p.resolve((new Date).getTime());
+                    }, 100);
+                    return p;
+                }
+            }
+        });
 
 
         MetaphorJs.onReady(function(){
@@ -573,6 +605,9 @@
                 template: '<p>View template 2</p><div mjs-transclude></div>'
             });
 
+
+
+
             var dataObj     = {
                 header: "header",
                 text: "text",
@@ -593,9 +628,12 @@
             var start  = (new Date).getTime();
 
             //console.profile();
-            var app = MetaphorJs.app(document.documentElement, null, dataObj);
-            app.value("test", "123");
-            app.run();
+            MetaphorJs.app(document.getElementById("render"), null, dataObj)
+            .done(function(app){
+                app.value("test", "123");
+                app.run();
+            });
+
             //console.profileEnd();
 
             var end  = (new Date).getTime();

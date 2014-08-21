@@ -12,7 +12,8 @@
         toFragment  = m.toFragment,
         isAttached  = m.isAttached,
         dataFn      = m.data,
-        Scope       = m.view.Scope;
+        Scope       = m.view.Scope,
+        Provider    = m.lib.Provider;
 
 
     var getCmpId    = function(cmp) {
@@ -355,29 +356,32 @@
 
     MetaphorJs.resolveComponent = function(cmp, cfg, scope, node, args) {
 
+        var hasCfg  = cfg !== false;
+
         cfg         = cfg || {};
         args        = args || [];
 
-        scope       = scope || cfg.scope || new Scope;
+        scope       = scope || cfg.scope; // || new Scope;
         node        = node || cfg.node;
 
         cfg.scope   = cfg.scope || scope;
         cfg.node    = cfg.node || node;
 
-        if (!scope.$app) {
-            throw "Cannot resolve component outside app's scope";
-        }
-
-        var constr  = typeof cmp == "string" ? g(cmp) : cmp,
+        var constr      = typeof cmp == "string" ? g(cmp) : cmp,
             i,
-            defers  = [],
-            tpl     = constr.template || cfg.template || null,
-            tplUrl  = constr.templateUrl || cfg.templateUrl || null,
-            app     = scope.$app,
-            inject  = {
-                $node: node,
-                $scope: scope,
-                $app: app
+            defers      = [],
+            tpl         = constr.template || cfg.template || null,
+            tplUrl      = constr.templateUrl || cfg.templateUrl || null,
+            app         = scope ? scope.$app : null,
+            gProvider   = Provider.global(),
+            injectFn    = app ? app.inject : gProvider.inject,
+            injectCt    = app ? app : gProvider,
+            inject      = {
+                $node: node || null,
+                $scope: scope || null,
+                $app: app || null,
+                $config: cfg || null,
+                $args: args || null
             };
 
         if (constr.resolve) {
@@ -388,7 +392,9 @@
                         fn;
 
                     defers.push(d.done(function(value){
+                        inject[name] = value;
                         cfg[name] = value;
+                        args.push(value);
                     }));
 
                     fn = constr.resolve[i];
@@ -397,13 +403,14 @@
                         d.resolve(fn(scope, node));
                     }
                     else {
-                        d.resolve(app.inject(fn, null, false, extend({}, inject, cfg)));
+                        d.resolve(injectFn.call(injectCt, fn, null, false, extend({}, inject, cfg, false, false)));
                     }
 
                 }(i));
             }
         }
-        if (tpl || tplUrl) {
+
+        if (hasCfg && (tpl || tplUrl)) {
 
             cfg.template = new Template({
                 scope: scope,
@@ -421,21 +428,21 @@
             }
         }
 
-        args.unshift(cfg);
+        hasCfg && args.unshift(cfg);
 
         if (defers.length) {
             var p = new Promise;
 
             Promise.all(defers).done(function(){
-                cfg.$config = cfg;
-                p.resolve(app.inject(constr, null, true, cfg, args));
+                p.resolve(injectFn.call(injectCt, constr, null, true, extend({}, inject, cfg, false, false), args));
             });
 
             return p;
         }
         else {
-            cfg.$config = cfg;
-            return Promise.resolve(app.inject(constr, null, true, cfg, args))
+            return Promise.resolve(
+                injectFn.call(injectCt, constr, null, true, extend({}, inject, cfg, false, false), args)
+            );
         }
     };
 

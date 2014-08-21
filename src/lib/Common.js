@@ -147,8 +147,11 @@
 
             cls = cls || "MetaphorJs.cmp.App";
 
+            node.removeAttribute("mjs-app");
+
             try {
-                return MetaphorJs.create(cls, node, data);
+                //return MetaphorJs.create(cls, node, data);
+                return MetaphorJs.resolveComponent(cls, false, data, node, [node, data]);
             }
             catch (thrownError) {
                 MetaphorJs.error(thrownError);

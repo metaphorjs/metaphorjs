@@ -9,7 +9,8 @@
         Observable  = m.lib.Observable,
         Promise     = m.lib.Promise,
         bind        = m.bind,
-        extend      = m.extend;
+        extend      = m.extend,
+        slice       = Array.prototype.slice;
 
     MetaphorJs.define("MetaphorJs.cmp.App", "MetaphorJs.cmp.Base", {
 
@@ -23,7 +24,8 @@
             var self        = this,
                 scope       = data instanceof Scope ? data : new Scope(data),
                 provider,
-                observable;
+                observable,
+                args;
 
             scope.$app      = self;
             self.supr();
@@ -45,6 +47,15 @@
             self.renderer       = new Renderer(node, scope);
 
             self.factory('$parentCmp', ['$node', self.getParentCmp], self);
+
+            args = slice.call(arguments);
+            args[1] = scope;
+
+            self.initApp.apply(self, args);
+        },
+
+        initApp: function() {
+
         },
 
         run: function() {

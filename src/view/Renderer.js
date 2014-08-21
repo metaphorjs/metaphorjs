@@ -19,6 +19,7 @@
         createWatchable         = Watchable.create,
         unsubscribeAndDestroy   = Watchable.unsubscribeAndDestroy,
         Promise                 = m.lib.Promise,
+        select                  = m.select,
         Renderer,
         textProp                = function(){
             var node    = document.createTextNode("");
@@ -317,9 +318,7 @@
         },
 
         onProcessingFinished: function() {
-            var self = this;
-            //self.render();
-            observer.trigger("rendered-" + self.id, self);
+            observer.trigger("rendered-" + this.id, this);
         },
 
         processText: function(txtObj, text) {
@@ -461,22 +460,21 @@
 
     var initApps = function() {
 
-        var app = MetaphorJs.app,
-            appCls;
+        var appFn       = MetaphorJs.app,
+            appNodes    = select("[mjs-app]"),
+            appCls,
+            i, l, el;
 
-        if (document.querySelectorAll) {
-            var appNodes = document.querySelectorAll("[mjs-app]");
-            for (var i = -1, l = appNodes.length; ++i < l; app(appNodes[i]).run()){}
+
+        for (i = -1, l = appNodes.length; ++i < l;){
+            el      = appNodes[i]
+            appCls  = el.getAttribute && el.getAttribute("mjs-app");
+            appFn(el, appCls)
+                .done(function(app){
+                    app.run();
+                });
         }
-        else {
-            eachNode(document.documentElement, function(el) {
-                appCls = el.getAttribute && el.getAttribute("mjs-app");
-                if (appCls !== null) {
-                    app(el, appCls);
-                    return false;
-                }
-            });
-        }
+
     };
 
     MetaphorJs.onReady(initApps);

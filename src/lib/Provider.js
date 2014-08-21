@@ -160,7 +160,7 @@
                 item,
                 res;
 
-            if (currentValues[name]) {
+            if (typeof currentValues[name] != "undefined") {
                 return currentValues[name];
             }
 

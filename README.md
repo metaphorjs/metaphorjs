@@ -1,6 +1,6 @@
 #MetaphorJs
 
-v.0.1 beta
+v.0.2
 
 An app framework similar to AngularJs. It doesn't have so many features but the point is
 that it should be slimmer and faster than Angular (at least 3x times faster and less
