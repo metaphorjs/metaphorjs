@@ -970,4 +970,8 @@
         return false;
     });
 
+    registerAttr("mjs-ignore", 0, function() {
+        return false;
+    });
+
 }());
