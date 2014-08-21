@@ -5,10 +5,10 @@
         nf      = MetaphorJs.numberFormats,
         df      = MetaphorJs.dateFormats;
 
-    add("filter.toUpper", function(val){
+    add("filter.uppercase", function(val){
         return val.toUpperCase();
     });
-    add("filter.toLower", function(val){
+    add("filter.lowercase", function(val){
         return val.toLowerCase();
     });
     add("filter.limitTo", function(input, limit){
@@ -211,6 +211,15 @@
         });
 
         return dir == "desc" ? ret.reverse() : ret;
+    });
+
+    add("filter.linkify", function(input, target){
+        target = target ? ' target="'+target+'"' : "";
+        if (input) {
+            var exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+            return input.replace(exp, '<a href="$1"'+target+'>$1</a>');
+        }
+        return "";
     });
 
 

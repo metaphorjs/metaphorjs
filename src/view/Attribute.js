@@ -140,6 +140,10 @@
             self.input          = new Input(node, self.onInputChange, self);
 
             self.supr(scope, node, expr);
+
+            if (self.watcher && self.watcher.hasInputPipes()) {
+                self.onInputChange(self.input.getValue());
+            }
         },
 
         onInputChange: function(val) {
@@ -799,6 +803,7 @@
             self.initial = false;
         }
     }));
+
 
     var events = ('click dblclick mousedown mouseup mouseover mouseout mousemove mouseenter ' +
                   'mouseleave keydown keyup keypress submit focus blur copy cut paste enter').split(' '),
