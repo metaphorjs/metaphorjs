@@ -57,7 +57,6 @@
     var valHooks = {
             option: {
                 get: function( elem ) {
-                    //var val = jQuery.find.attr( elem, "value" );
                     var val = elem.getAttribute("value");
 
                     return val != null ?
@@ -83,14 +82,12 @@
                         option = options[ i ];
 
                         disabled = option.disabled || option.getAttribute("disabled") !== null ||
-                                   options.parentNode.disabled;
+                                   option.parentNode.disabled;
 
                         // IE6-9 doesn't update selected after form reset (#2551)
                         if ( ( option.selected || i === index ) && !disabled ) {
-
                             // Get the specific value for the option
                             value = getValue(option);
-
                             // We don't need an array for one selects
                             if ( one ) {
                                 return value;
@@ -106,20 +103,24 @@
 
                 set: function( elem, value ) {
                     var optionSet, option,
-                        options = elem.options,
-                        values = toArray( value ),
-                        i = options.length;
+                        options     = elem.options,
+                        values      = toArray( value ),
+                        i           = options.length,
+                        emptyIndex  = -1;
 
                     while ( i-- ) {
                         option = options[i];
                         if ((option.selected = inArray(option.value, values))) {
                             optionSet = true;
                         }
+                        else if (option.getAttribute("mjs-default-option") !== null) {
+                            emptyIndex = i;
+                        }
                     }
 
                     // Force browsers to behave consistently when non-matching value is set
                     if ( !optionSet ) {
-                        elem.selectedIndex = -1;
+                        elem.selectedIndex = emptyIndex;
                     }
                     return values;
                 }
