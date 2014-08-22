@@ -83,16 +83,12 @@
             return observer.un(this.id, fn, context);
         },
 
-        toString: function() {
+        getString: function() {
             var self = this;
             if (self.text === null) {
                 self.render();
             }
             return self.text;
-        },
-
-        toSource: function() {
-            return this.origin;
         },
 
 
@@ -110,7 +106,10 @@
             ch = self.children;
 
             for (i = -1, l = ch.length; ++i < l;
-                 text = text.replace('---' + i + '---', ch[i].toString())) {}
+                 text = text.replace(
+                     '---' + i + '---',
+                     ch[i] instanceof TextRenderer ? ch[i].getString() : ch[i]
+                 )) {}
 
             self.text = text;
 

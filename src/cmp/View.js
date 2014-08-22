@@ -58,7 +58,7 @@
 
             if (self.route) {
                 history.initPushState();
-                MetaphorJs.on("locationchange", self.onLocationChange, self);
+                MetaphorJs.on("locationChange", self.onLocationChange, self);
                 self.onLocationChange();
             }
             else if (self.cmp) {

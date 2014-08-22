@@ -32,6 +32,7 @@
         Input           = m.lib.Input,
         getValue        = m.getValue,
         setValue        = m.setValue,
+        msie            = m.browser.msie,
         resolveComponent;
 
 
@@ -380,6 +381,9 @@
             option  = document.createElement("option");
             option.setAttribute("value", config.value);
             option.text = config.name;
+            if (msie && msie < 9) {
+                option.innerHTML = config.name;
+            }
             if (config.disabled) {
                 option.setAttribute("disabled", "disabled");
             }

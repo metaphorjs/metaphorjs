@@ -324,7 +324,7 @@
 
             var self    = this,
                 text    = self.texts[inx],
-                res     = text.tr.toString(),
+                res     = text.tr.getString(),
                 attr    = text.attr;
 
 

@@ -306,6 +306,8 @@
             }
             else {
 
+                options = options || {};
+
                 startCallback && (options.start = function(){
                     startCallback(el);
                 });
@@ -360,7 +362,6 @@
         else {
             deferred.resolve(el);
         }
-
 
         return deferred;
     };

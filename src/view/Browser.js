@@ -7,11 +7,11 @@
      */
     var ua      = navigator.userAgent.toLowerCase(),
         msie    = parseInt((/msie (\d+)/.exec(ua) || [])[1], 10),
-        android = parseInt((/android (\d+)/.exec(ua) || [])[1], 10),
+        android = parseInt((/android (\d+)/.exec(ua) || [])[1], 10) || false,
         eventSupport    = {};
 
     if (isNaN(msie)) {
-        msie    = parseInt((/trident\/.*; rv:(\d+)/.exec(ua) || [])[1], 10);
+        msie    = parseInt((/trident\/.*; rv:(\d+)/.exec(ua) || [])[1], 10) || false;
     }
 
     window.MetaphorJs || (window.MetaphorJs = {});
@@ -19,6 +19,8 @@
     MetaphorJs.browser  = {
 
         android: android,
+
+        msie: msie,
 
         hasEvent: function(event) {
             // IE9 implements 'input' event it's so fubared that we rather pretend that it doesn't have
