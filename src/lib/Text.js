@@ -2,8 +2,10 @@
 
 (function(){
 
-    var m           = window.MetaphorJs,
-        extend      = m.extend,
+    var m               = window.MetaphorJs,
+        extend          = m.extend,
+        isArray         = m.isArray,
+        isPlainObject   = m.isPlainObject,
 
         pluralDef   = function($number, $locale) {
 
@@ -176,19 +178,30 @@
         };
 
 
-    var Text = function() {
+    var Text = function(locale) {
 
         var self    = this;
-
-
         self.store  = {};
-
-
+        if (locale) {
+            self.locale = locale;
+        }
     };
 
     extend(Text.prototype, {
 
         store: null,
+        locale: "en",
+
+        setLocale: function(locale) {
+            this.locale = locale;
+        },
+
+        set: function(key, value) {
+            var store = this.store;
+            if (typeof store[key] == "undefined") {
+                store[key] = value;
+            }
+        },
 
         load: function(keys) {
             extend(this.store, keys, false, false);
@@ -198,6 +211,33 @@
             var self    = this;
             return self.store[key] ||
                    (self === globalText ? '-- ' + key + ' --' : globalText.get(key));
+        },
+
+        plural: function(key, number) {
+            var self    = this,
+                strings = self.get(key),
+                def     = pluralDef(number, self.locale);
+
+            if (!isArray(strings)) {
+                if (isPlainObject(strings)) {
+                    if (strings[number]) {
+                        return strings[number];
+                    }
+                    if (number == 1 && strings.one != undefined) {
+                        return strings.one;
+                    }
+                    else if (number < 0 && strings.negative != undefined) {
+                        return strings.negative;
+                    }
+                    else {
+                        return strings.other;
+                    }
+                }
+                return strings;
+            }
+            else {
+                return strings[def];
+            }
         }
 
     }, false, false);
@@ -212,48 +252,11 @@
 
     m.r("MetaphorJs.lib.Text", Text);
 
+    m.r("filter.l", function(key, scope) {
+        return scope.$app.lang.get(key);
+    });
+    m.r("filter.p", function(key, scope, number) {
+        return scope.$app.lang.plural(key, parseInt(number, 10) || 0);
+    });
 
-    var replacer	= function(match, vars) {
-
-        var parts	= match.split(':'),
-            len		= parts.length,
-            type	= parts.shift(),
-            key		= parts.shift();
-
-        if (len == 1) {
-            key		= type;
-            type	= null;
-        }
-
-        if (type == 'this' || type === '') {
-            return vars[key] != undefined ? vars[key] :'{' + key + '}';
-        }
-        else {
-            return table[key] != undefined ? table[key] :'{' + key + '}';
-        }
-    };
-
-    var replace		= function(text, vars) {
-        return text.replace(/{([\w\-]*:[^\{\}]+)}/gim, function(match, key){
-            return replacer(key, vars);
-        });
-    };
-    var replace2	= function(text, vars) {
-        return text.replace(/\[([\w\-]*:[^\[\]]+)\]/gim, function(match, key){
-            return replacer(key, vars);
-        });
-    };
-
-
-    var plural	= function(key, num, vars) {
-        var strings	= getValue(key);
-        var str = strings[getPluralDefinition(num, 'en')];
-
-        if (vars) {
-            return replace(str, vars);
-        }
-        else {
-            return str;
-        }
-    };
 }());

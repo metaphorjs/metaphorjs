@@ -10,10 +10,12 @@
         Promise     = m.lib.Promise,
         bind        = m.bind,
         extend      = m.extend,
-        slice       = Array.prototype.slice;
+        slice       = Array.prototype.slice,
+        Text        = m.lib.Text;
 
     MetaphorJs.define("MetaphorJs.cmp.App", "MetaphorJs.cmp.Base", {
 
+        lang: null,
         scope: null,
         renderer: null,
         cmpListeners: null,
@@ -30,8 +32,9 @@
             scope.$app      = self;
             self.supr();
 
-            provider        = new Provider(scope);
+            provider        = new Provider;
             observable      = new Observable;
+            self.lang       = new Text;
 
             // provider's storage is hidden from everyone
             extend(self, provider.getApi());
@@ -44,21 +47,19 @@
             self.cmpListeners   = {};
             self.components     = {};
 
-            self.renderer       = new Renderer(node, scope);
-
             self.factory('$parentCmp', ['$node', self.getParentCmp], self);
             self.value('$app', self);
             self.value('$rootScope', scope.$root);
+            self.value('$lang', self.lang);
+
+            self.renderer       = new Renderer(node, scope);
 
             args = slice.call(arguments);
             args[1] = scope;
-
             self.initApp.apply(self, args);
         },
 
-        initApp: function() {
-
-        },
+        initApp: m.emptyFn,
 
         run: function() {
             this.renderer.process();

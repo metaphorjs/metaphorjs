@@ -1,12 +1,13 @@
 
 (function(){
 
-    var add     = MetaphorJs.add,
-        nf      = MetaphorJs.numberFormats,
-        df      = MetaphorJs.dateFormats,
-        trim    = MetaphorJs.trim,
-        toArray = MetaphorJs.toArray,
-        isArray = MetaphorJs.isArray;
+    var m       = window.MetaphorJs,
+        add     = m.add,
+        nf      = m.numberFormats,
+        df      = m.dateFormats,
+        trim    = m.trim,
+        toArray = m.toArray,
+        isArray = m.isArray;
 
     add("filter.uppercase", function(val){
         return val.toUpperCase();
@@ -165,11 +166,6 @@
 
 
     add("filter.filter", function(val, scope, by, opt) {
-
-        if (opt && !scope) {
-            opt = null;
-        }
-
         return filterArray(val, by, opt);
     });
 
@@ -180,7 +176,7 @@
 
     add("filter.sortBy", function(val, scope, field, dir) {
 
-        if (dir && !scope) {
+        if (!dir) {
             dir = "asc";
         }
 

@@ -183,9 +183,17 @@ if (!Array.prototype.indexOf) {
                    toString.call(value) == '[object Array]' || false;
         },
 
-        toArray = function(list) {
-            for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]){}
-            return a;
+        toArray     = function(list) {
+            if (list && list.length != undefined) {
+                for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]){}
+                return a;
+            }
+            else if (list) {
+                return [list];
+            }
+            else {
+                return [];
+            }
         },
 
         clsRegCache = {},
@@ -268,6 +276,22 @@ if (!Array.prototype.indexOf) {
         isAttached  = function(node) {
             var body = document.body;
             return node === body ? true : body.contains(node);
+        },
+
+        error       = function(e) {
+
+            var stack = e.stack || (new Error).stack;
+
+            //throw e;
+
+            setTimeout(function(){
+                if (typeof console != "undefined" && console.log) {
+                    console.log(e);
+                    if (stack) {
+                        console.log(stack);
+                    }
+                }
+            }, 0);
         };
 
 
@@ -279,7 +303,7 @@ if (!Array.prototype.indexOf) {
         global.MetaphorJs || (global.MetaphorJs = {});
     }
 
-
+    MetaphorJs.emptyFn = function(){};
     MetaphorJs.bind = bind;
     MetaphorJs.addListener = addListener;
     MetaphorJs.removeListener = removeListener;
@@ -296,6 +320,7 @@ if (!Array.prototype.indexOf) {
     MetaphorJs.isPlainObject = isPlainObject;
     MetaphorJs.isThenable = isThenable;
     MetaphorJs.isAttached = isAttached;
+    MetaphorJs.error = error;
 }());
 
 /**
@@ -447,8 +472,11 @@ if (!Array.prototype.indexOf) {
 
             cls = cls || "MetaphorJs.cmp.App";
 
+            node.removeAttribute("mjs-app");
+
             try {
-                return MetaphorJs.create(cls, node, data);
+                //return MetaphorJs.create(cls, node, data);
+                return MetaphorJs.resolveComponent(cls, false, data, node, [node, data]);
             }
             catch (thrownError) {
                 MetaphorJs.error(thrownError);
@@ -467,11 +495,6 @@ if (!Array.prototype.indexOf) {
         numberFormats:  {},
         dateFormats:    {},
 
-        /**
-         * Empty function. Used for callback placeholders
-         * @function MetaphorJs.emptyFn
-         */
-        emptyFn:        function() {},
         clone:          cloneFn,
         async:          async,
         toFragment:     toFragment,
@@ -532,22 +555,6 @@ if (!Array.prototype.indexOf) {
                 addListener(win, 'load', init);
             }
 
-        },
-
-        error:          function(e) {
-
-            var stack = e.stack || (new Error).stack;
-
-            throw e;
-
-            setTimeout(function(){
-                if (typeof console != "undefined" && console.log) {
-                    console.log(e);
-                    if (stack) {
-                        console.log(stack);
-                    }
-                }
-            }, 0);
         }
     });
 
@@ -3160,6 +3167,7 @@ extend(Observable.prototype, {
         return events[name].hasListener(fn, scope);
     },
 
+
     /**
     * Remove all listeners from all events
     * @method removeAllListeners
@@ -3513,7 +3521,7 @@ extend(Event.prototype, {
 
             scope   = scope || fn;
 
-            if (fn == parseInt(fn)) {
+            if (typeof fn != "function") {
                 id  = fn;
             }
             else {
@@ -3536,6 +3544,7 @@ extend(Event.prototype, {
             return listeners.length > 0;
         }
     },
+
 
     /**
      * @method
@@ -3678,19 +3687,15 @@ extend(Event.prototype, {
         }
 
         var ret     = returnResult == "all" ? [] : null,
-            q       = [],
-            i, len, l,
+            q, l,
             res;
 
-
         if (returnResult == "first") {
-            q.push(listeners[0]);
+            q = [listeners[0]];
         }
         else {
             // create a snapshot of listeners list
-            for (i = 0, len = listeners.length; i < len; i++) {
-                q.push(listeners[i]);
-            }
+            q = slice.call(listeners);
         }
 
         // now if during triggering someone unsubscribes
@@ -3774,7 +3779,9 @@ if (typeof global != "undefined") {
         global.window = global;
     }
 
-    var Observable;
+    var Observable,
+        hasProvider,
+        g;
 
     if (typeof global != "undefined") {
         try {
@@ -3786,8 +3793,13 @@ if (typeof global != "undefined") {
             }
         }
     }
-    else if (window.MetaphorJs && MetaphorJs.lib && MetaphorJs.lib.Observable) {
-        Observable = MetaphorJs.lib.Observable;
+
+    if (typeof MetaphorJs != "undefined") {
+        if (!Observable) {
+            Observable  = MetaphorJs.lib.Observable;
+            hasProvider = !!MetaphorJs.lib.Provider;
+            g           = MetaphorJs.g;
+        }
     }
 
 
@@ -3820,6 +3832,23 @@ if (typeof global != "undefined") {
         },
         isWindow    = function(obj) {
             return obj && obj.document && obj.location && obj.alert && obj.setInterval;
+        },
+        isStatic    = function(val) {
+
+            if (typeof val != "string") {
+                return true;
+            }
+
+            var first   = val.substr(0, 1),
+                last    = val.length - 1;
+
+            if (first == '"' || first == "'") {
+                if (val.indexOf(first, 1) == last) {
+                    return val.substring(1, last);
+                }
+            }
+
+            return false;
         },
         extend      = function(trg, src) {
             for (var i in src) {
@@ -4015,9 +4044,7 @@ if (typeof global != "undefined") {
             };
         })(),
 
-        observable,
-
-        g = window.MetaphorJs ? MetaphorJs.ns.get : null;
+        observable;
 
 
 
@@ -4030,6 +4057,8 @@ if (typeof global != "undefined") {
         var self    = this,
             id      = nextHash(),
             type;
+
+        self.origCode = code;
 
         if (isArray(dataObj) && code === null) {
             type    = "array";
@@ -4064,19 +4093,37 @@ if (typeof global != "undefined") {
             });
         }
 
-        code            = self._processPipes(code, dataObj);
+        if (type == "expr") {
+            code        = self._processInputPipes(code, dataObj);
+            code        = self._processPipes(code, dataObj);
 
+            if (self.inputPipes || self.pipes) {
+                code    = normalizeExpr(dataObj, code);
+                type    = dataObj.hasOwnProperty(code) ? "attr" : "expr";
+            }
+
+            if (self.staticValue = isStatic(code)) {
+                type    = "static";
+            }
+        }
+
+        self.userData   = userData;
         self.code       = code;
-        self.getterFn   = type == "expr" ? createGetter(code) : null;
         self.id         = id;
         self.type       = type;
         self.obj        = dataObj;
-        self.itv        = null;
+
+        if (type == "expr") {
+            self.getterFn   = createGetter(code);
+        }
+
         self.curr       = self._getValue();
     };
 
     extend(Watchable.prototype, {
 
+        staticValue: null,
+        origCode: null,
         code: null,
         getterFn: null,
         setterFn: null,
@@ -4085,33 +4132,77 @@ if (typeof global != "undefined") {
         obj: null,
         itv: null,
         curr: null,
-        arraySlice: false,
         pipes: null,
+        inputPipes: null,
+        lastSetValue: null,
+        userData: null,
 
-        _addPipe: function(pipes, pipe, dataObj) {
 
-            var name    = pipe.shift(),
+        _processInputPipes: function(text, dataObj) {
+
+            if (text.indexOf('>>') == -1) {
+                return text;
+            }
+
+            var self        = this,
+                index       = 0,
+                textLength  = text.length,
+                pipes       = [],
+                pIndex,
+                prev, next, pipe,
+                ret         = text;
+
+            while(index < textLength && (pIndex  = text.indexOf('>>', index)) != -1) {
+
+                    prev = text.charAt(pIndex -1);
+                    next = text.charAt(pIndex + 2);
+
+                    if (prev != '\\' && prev != "'" && prev != '"' && next != "'" && next != '"') {
+                        pipe = trim(text.substring(index, pIndex)).split(":");
+                        ret = text.substr(pIndex + 2);
+                        self._addPipe(pipes, pipe, dataObj, self.onInputParamChange);
+                    }
+
+                    index = pIndex + 2;
+            }
+
+            if (pipes.length) {
+                self.inputPipes = pipes;
+            }
+
+            return trim(ret);
+        },
+
+
+        _addPipe: function(pipes, pipe, dataObj, onParamChange) {
+
+            var self    = this,
+                name    = pipe.shift(),
                 fn      = null,
                 ws      = [],
                 i, l;
 
             if (g) {
-                fn = g("filter." + name, true);
+                fn      = g("filter." + name, true);
             }
             if (!fn) {
-                fn = window[name] || dataObj[name];
+                fn      = window[name] || dataObj[name];
             }
 
             if (typeof fn == "function") {
 
                 for (i = -1, l = pipe.length; ++i < l;
-                     ws.push(create(dataObj, pipe[i], self.check, self))) {}
+                     ws.push(create(dataObj, pipe[i], onParamChange, self))) {}
 
                 pipes.push([fn, pipe, ws]);
             }
         },
 
         _processPipes: function(text, dataObj) {
+
+            if (text.indexOf('|') == -1) {
+                return text;
+            }
 
             var self        = this,
                 index       = 0,
@@ -4136,7 +4227,6 @@ if (typeof global != "undefined") {
                         }
                         else {
                             pipe = trim(text.substring(index, pIndex)).split(":");
-
                             self._addPipe(pipes, pipe, dataObj);
                         }
                     }
@@ -4145,7 +4235,7 @@ if (typeof global != "undefined") {
                 else {
                     if (found) {
                         pipe = trim(text.substr(index)).split(":");
-                        self._addPipe(pipes, pipe, dataObj);
+                        self._addPipe(pipes, pipe, dataObj, self.onPipeParamChange);
                     }
                     break;
                 }
@@ -4226,21 +4316,15 @@ if (typeof global != "undefined") {
                 val;
 
             switch (self.type) {
+                case "static":
+                    val = self.staticValue;
+                    break;
+
                 case "attr":
                     val = self.obj[self.code];
                     break;
                 case "expr":
-                    try {
-                        val = self.getterFn(self.obj);
-                    }
-                    catch (thrownError) {
-                        if (window.MetaphorJs) {
-                            MetaphorJs.error(thrownError);
-                        }
-                        else {
-                            throw e;
-                        }
-                    }
+                    val = self.getterFn(self.obj);
                     if (typeof val == "undefined") {
                         val = "";
                     }
@@ -4257,12 +4341,18 @@ if (typeof global != "undefined") {
                 val = val.slice();
             }
 
-            var pipes   = self.pipes;
+            val = self._runThroughPipes(val, self.pipes);
+
+            return val;
+        },
+
+        _runThroughPipes: function(val, pipes) {
 
             if (pipes) {
                 var j,
                     args,
                     exprs,
+                    self    = this,
                     jlen    = pipes.length,
                     dataObj = self.obj,
                     z, zl;
@@ -4271,28 +4361,33 @@ if (typeof global != "undefined") {
                     exprs   = pipes[j][1];
                     args    = [];
                     for (z = -1, zl = exprs.length; ++z < zl;
-                        args.push(evaluate(exprs[z], dataObj))){}
+                         args.push(evaluate(exprs[z], dataObj))){}
 
+                    args.unshift(dataObj);
                     args.unshift(val);
-                    args.push(dataObj);
+
                     val     = pipes[j][0].apply(null, args);
                 }
-
             }
-
 
             return val;
         },
 
-
-        addListener: function(fn, fnScope, options) {
-            return observable.on(this.id, fn, fnScope, options);
+        subscribe: function(fn, fnScope, options) {
+            observable.on(this.id, fn, fnScope, options);
         },
 
-        removeListener: function(fn, fnScope) {
+        unsubscribe: function(fn, fnScope) {
             return observable.un(this.id, fn, fnScope);
         },
 
+        hasPipes: function() {
+            return this.pipes !== null;
+        },
+
+        hasInputPipes: function() {
+            return this.inputPipes != null;
+        },
 
         getValue: function() {
             return this._getValue();
@@ -4302,6 +4397,10 @@ if (typeof global != "undefined") {
 
             var self    = this,
                 type    = self.type;
+
+            self.lastSetValue = val;
+
+            val = self._runThroughPipes(val, self.inputPipes);
 
             if (type == "attr") {
                 self.obj[self.code] = val;
@@ -4322,6 +4421,14 @@ if (typeof global != "undefined") {
             }
         },
 
+        onInputParamChange: function() {
+            this.setValue(this.lastSetValue);
+        },
+
+        onPipeParamChange: function() {
+            this.check();
+        },
+
         check: function() {
 
             var self    = this;
@@ -4329,6 +4436,7 @@ if (typeof global != "undefined") {
             switch (self.type) {
                 case "expr":
                 case "attr":
+                case "static":
                     return self._checkCode();
 
                 case "object":
@@ -4385,6 +4493,7 @@ if (typeof global != "undefined") {
 
             var self    = this,
                 pipes   = self.pipes,
+                ipipes  = self.inputPipes,
                 i, il,
                 j, jl,
                 ws;
@@ -4401,149 +4510,257 @@ if (typeof global != "undefined") {
                     }
                 }
             }
+            if (ipipes) {
+                for (i = -1, il = ipipes.length; ++i < il;) {
+                    ws = ipipes[i][2];
+                    for (j = -1, jl = ws.length; ++j < jl;) {
+                        ws[j].unsubscribeAndDestroy(self.onInputParamChange, self);
+                    }
+                }
+            }
 
-            self.curr   = null;
-            self.obj    = null;
-            self.pipes  = null;
+            if (self.obj) {
+                delete self.obj.$$watchers[self.origCode];
+            }
+
+            delete self.id;
+            delete self.curr;
+            delete self.obj;
+            delete self.pipes;
+            delete self.inputPipes;
+            delete self.origCode;
+            delete self.code;
+            delete self.getterFn;
+            delete self.setterFn;
+            delete self.lastSetValue;
+            delete self.staticValue;
+            delete self.userData;
 
             observable.destroyEvent(self.id);
 
-            if (self.obj) {
-                delete self.obj.$$watchers[self.code];
-            }
         }
     });
 
 
     var create = function(obj, code, fn, fnScope, userData) {
 
-        code = normalizeExpr(obj, trim(code));
+            code = normalizeExpr(obj, trim(code));
 
-        if (obj) {
-            if (!obj.$$watchers) {
-                obj.$$watchers = {
-                    $checkAll: function() {
+            if (obj) {
+                if (!obj.$$watchers) {
+                    obj.$$watchers = {
+                        $checkAll: function() {
 
-                        var self    = this,
-                            i,
-                            changes = 0;
+                            var self    = this,
+                                i,
+                                changes = 0;
 
-                        for (i in self) {
+                            for (i in self) {
 
-                            if (i.charAt(0) != '$' && self[i].check()) {
-                                changes++;
+                                if (i.charAt(0) != '$' && self[i].check()) {
+                                    changes++;
+                                }
+                                else if (i.charAt(0) == '$' && self[i] instanceof Watchable && self[i].check()) {
+                                    changes++;
+                                }
                             }
-                            else if (i.charAt(0) == '$' && self[i] instanceof Watchable && self[i].check()) {
-                                changes++;
+
+                            return changes;
+                        },
+                        $destroyAll: function() {
+
+                            var self    = this,
+                                i;
+
+                            for (i in self) {
+                                if (i.charAt(0) != '$' || self[i] instanceof Watchable) {
+                                    self[i].destroy();
+                                    delete self[i];
+                                }
                             }
                         }
+                    };
+                }
 
-                        return changes;
-                    },
-                    $destroyAll: function() {
+                if (obj.$$watchers[code]) {
+                    obj.$$watchers[code].subscribe(fn, fnScope, {append: [userData], allowDupes: true});
+                }
+                else {
+                    obj.$$watchers[code] = new Watchable(obj, code, fn, fnScope, userData);
+                }
 
-                        var self    = this,
-                            i;
-
-                        for (i in self) {
-                            if (i.charAt(0) != '$' || self[i] instanceof Watchable) {
-                                self[i].destroy();
-                                delete self[i];
-                            }
-                        }
-                    }
-                };
-            }
-            if (obj.$$watchers[code]) {
-                obj.$$watchers[code].addListener(fn, fnScope, {append: [userData], allowDupes: true});
+                return obj.$$watchers[code];
             }
             else {
-                obj.$$watchers[code] = new Watchable(obj, code, fn, fnScope, userData);
+                return new Watchable(obj, code, fn, fnScope, userData);
             }
-            return obj.$$watchers[code];
-        }
-        else {
-            return new Watchable(obj, code, fn, fnScope, userData);
-        }
-    };
+        },
 
-    var unsubscribeAndDestroy = function(obj, code, fn, fnScope) {
-        code = trim(code);
+        unsubscribeAndDestroy = function(obj, code, fn, fnScope) {
+            code = trim(code);
 
-        var ws = obj.$$watchers;
+            var ws = obj.$$watchers;
 
-        if (ws && ws[code] && ws[code].unsubscribeAndDestroy(fn, fnScope)) {
-            delete ws[code];
-        }
-    };
-
-    var normalizeExpr = function(dataObj, expr) {
-        if (dataObj && expr) {
-            if (dataObj.hasOwnProperty(expr)) {
-                return expr;
+            if (ws && ws[code] && ws[code].unsubscribeAndDestroy(fn, fnScope)) {
+                delete ws[code];
             }
-            var prop;
-            if (expr.charAt(0) == '.') {
-                prop = expr.substr(1);
-                if (dataObj.hasOwnProperty(prop)) {
-                    return prop;
+        },
+
+        normalizeExpr = function(dataObj, expr) {
+            if (dataObj && expr) {
+                if (dataObj.hasOwnProperty(expr)) {
+                    return expr;
+                }
+                var prop;
+                if (expr.charAt(0) == '.') {
+                    prop = expr.substr(1);
+                    if (dataObj.hasOwnProperty(prop)) {
+                        return prop;
+                    }
                 }
             }
-        }
-        return expr;
-    };
+            return expr;
+        },
 
-    var f           = Function,
-        error       = MetaphorJs.error,
-        fnBodyStart = 'try {',
-        fnBodyEnd   = ';} catch (thrownError) { watchableError(thrownError); }';
 
-    typeof window != "undefined" && (window.watchableError = error);
-    typeof global != "undefined" && (global.watchableError = error);
+        f               = Function,
+        fnBodyStart     = 'try {',
+        getterBodyEnd   = ';} catch (thrownError) { return $$interceptor(thrownError, $$itself, ____); }',
+        setterBodyEnd   = ';} catch (thrownError) { return $$interceptor(thrownError, $$itself, ____, $$$$); }',
 
-    var prepareCode = function prepareCode(expr) {
-        return expr.replace(REG_REPLACE_EXPR, '$1____.$3');
-    };
+        emptyFunc       = MetaphorJs.emptyFn,
 
-    var getterCache = {};
-    var createGetter = function createGetter(expr) {
-        if (!getterCache[expr]) {
-            return getterCache[expr] = new f(
-                '____',
-                "".concat(fnBodyStart, 'return ', expr.replace(REG_REPLACE_EXPR, '$1____.$3'), fnBodyEnd)
-            );
-        }
-        return getterCache[expr];
-    };
+        prepareCode     = function prepareCode(expr) {
+            return expr.replace(REG_REPLACE_EXPR, '$1____.$3');
+        },
 
-    var setterCache = {};
-    var createSetter = function createSetter(expr) {
-        if (!setterCache[expr]) {
-            var code = expr.replace(REG_REPLACE_EXPR, '$1____.$3');
-            return setterCache[expr] = new f(
-                '____',
-                '$$$$',
-                "".concat(fnBodyStart, code, ' = $$$$', fnBodyEnd)
-            );
-        }
-        return setterCache[expr];
-    };
+        slice           = Array.prototype.slice,
 
-    var funcCache = {};
-    var createFunc = function createFunc(expr) {
-        if (!funcCache[expr]) {
-            return funcCache[expr] = new f(
-                '____',
-                "".concat(fnBodyStart, expr.replace(REG_REPLACE_EXPR, '$1____.$3'), fnBodyEnd)
-            );
-        }
-        return funcCache[expr];
-    };
+        interceptor     = function(thrownError, func, scope, value) {
 
-    var evaluate = function(expr, scope) {
-        return createGetter(expr)(scope);
-    };
+            while (scope && !scope.$isRoot) {
 
+                scope = scope.$parent;
+
+                if (scope) {
+
+                    try {
+                        if (arguments.length == 4) {
+                            return func.call(null, scope, value, emptyFunc, func);
+                        }
+                        else {
+                            return func.call(null, scope, emptyFunc, func);
+                        }
+                    }
+                    catch (newError) {}
+                }
+            }
+
+            return undefined;
+        },
+
+        wrapFunc        = function(func) {
+            return function() {
+                var args = slice.call(arguments),
+                    val;
+
+                args.push(interceptor);
+                args.push(func);
+
+                val = func.apply(null, args);
+
+                if (val == undefined || (!val && typeof val == "number" && isNaN(val))) {
+                    args = slice.call(arguments);
+                    args.unshift(func);
+                    args.unshift(null);
+                    return interceptor.apply(null, args);
+                }
+                else {
+                    return val;
+                }
+            };
+        },
+
+        getterCache     = {},
+        getterCacheCnt  = 0,
+
+        createGetter    = function createGetter(expr) {
+            try {
+                if (!getterCache[expr]) {
+                    getterCacheCnt++;
+                    return getterCache[expr] = wrapFunc(new f(
+                        '____',
+                        '$$interceptor',
+                        '$$itself',
+                        "".concat(fnBodyStart, 'return ', expr.replace(REG_REPLACE_EXPR, '$1____.$3'), getterBodyEnd)
+                    ));
+                }
+                return getterCache[expr];
+            }
+            catch (thrownError){
+                return emptyFunc;
+            }
+        },
+
+        setterCache     = {},
+        setterCacheCnt  = 0,
+
+        createSetter    = function createSetter(expr) {
+            try {
+                if (!setterCache[expr]) {
+                    setterCacheCnt++;
+                    var code = expr.replace(REG_REPLACE_EXPR, '$1____.$3');
+                    return setterCache[expr] = wrapFunc(new f(
+                        '____',
+                        '$$$$',
+                        '$$interceptor',
+                        '$$itself',
+                        "".concat(fnBodyStart, code, ' = $$$$', setterBodyEnd)
+                    ));
+                }
+                return setterCache[expr];
+            }
+            catch (thrownError) {
+                return emptyFunc;
+            }
+        },
+
+        funcCache       = {},
+        funcCacheCnt    = 0,
+
+        createFunc      = function createFunc(expr) {
+            try {
+                if (!funcCache[expr]) {
+                    funcCacheCnt++;
+                    return funcCache[expr] = wrapFunc(new f(
+                        '____',
+                        '$$interceptor',
+                        '$$itself',
+                        "".concat(fnBodyStart, expr.replace(REG_REPLACE_EXPR, '$1____.$3'), getterBodyEnd)
+                    ));
+                }
+                return funcCache[expr];
+            }
+            catch (thrownError) {
+                return emptyFunc;
+            }
+        },
+
+        evaluate    = function(expr, scope) {
+            var val;
+            if (val = isStatic(expr)) {
+                return val;
+            }
+            return createGetter(expr)(scope);
+        },
+
+        resetCache  = function() {
+            getterCacheCnt >= 1000 && (getterCache = {});
+            setterCacheCnt >= 1000 && (setterCache = {});
+            funcCacheCnt >= 1000 && (funcCache = {});
+        };
+
+    setTimeout(resetCache, 10000);
 
     Watchable.create = create;
     Watchable.unsubscribeAndDestroy = unsubscribeAndDestroy;
@@ -4553,6 +4770,10 @@ if (typeof global != "undefined") {
     Watchable.createSetter = createSetter;
     Watchable.createFunc = createFunc;
     Watchable.eval = evaluate;
+
+    window.showGetterCache = function() {
+        return getterCache;
+    }
 
     if (window.MetaphorJs && MetaphorJs.r) {
         MetaphorJs.r("MetaphorJs.lib.Watchable", Watchable);
@@ -4632,7 +4853,12 @@ if (typeof global != "undefined") {
         jsonpCb     = 0,
 
         parseJson   = function(data) {
-            return JSON.parse(data);
+            if (window.JSON) {
+                return JSON.parse(data);
+            }
+            else {
+                return (new Function("return " + data))();
+            }
         },
 
         async       = function(fn, fnScope) {
@@ -4981,12 +5207,10 @@ if (typeof global != "undefined") {
         if (!self._promise) {
             async(transport.send, transport);
 
-            var promise = deferred.promise();
-            promise.abort = bind(self.abort, self);
-
+            deferred.abort = bind(self.abort, self);
             deferred.always(self.destroy, self);
 
-            self._promise = promise;
+            self._promise = deferred;
         }
     };
 
@@ -5550,9 +5774,9 @@ if (typeof global != "undefined") {
 
     var listeners       = [],
         windowLoaded    = false,
-        rURL            = /(?:(\w+\:))?(?:\/\/(?:[^@]*@)?([^\/:\?#]+)(?::([0-9]+))?)?([^\?#]*)(?:(\?[^#]+)|\?)?(?:(#.*))?/;
+        rURL            = /(?:(\w+\:))?(?:\/\/(?:[^@]*@)?([^\/:\?#]+)(?::([0-9]+))?)?([^\?#]*)(?:(\?[^#]+)|\?)?(?:(#.*))?/,
 
-    var addListener         = function(el, event, func) {
+        addListener         = function(el, event, func) {
             if (el.attachEvent) {
                 el.attachEvent('on' + event, func);
             } else {
@@ -5599,6 +5823,35 @@ if (typeof global != "undefined") {
         }
 
         return true;
+    };
+
+    var getPathFromUrl  = function(url) {
+
+        var url     = "" + url,
+            matches = url.match(rURL),
+            path,
+            hash;
+
+        if (!pushStateSupported) {
+            hash    = matches[6];
+            if (hash.substr(0,1) == "!") {
+                path    = hash.substr(1);
+            }
+        }
+
+        if (!path) {
+            path    = matches[4];
+
+            if (matches[5]) {
+                path    += "?" + matches[5];
+            }
+        }
+
+        return path;
+    };
+
+    var samePathLink = function(url) {
+        return getPathFromUrl(url) == getPathFromUrl(window.location);
     };
 
     var setHash = function(hash) {
@@ -5756,13 +6009,18 @@ if (typeof global != "undefined") {
 
                 href = a.getAttribute("href");
 
-                if (href && href.substr(0,1) != "#" && sameHostLink(href) && !a.getAttribute("target")) {
-                    history.pushState(null, null, a.getAttribute('href'));
+
+                if (href && href.substr(0,1) != "#" && !a.getAttribute("target") &&
+                    sameHostLink(href) && !samePathLink(href)) {
+
+                    history.pushState(null, null, getPathFromUrl(href));
                     e.preventDefault && e.preventDefault();
                     e.stopPropagation && e.stopPropagation();
                     return false;
                 }
+
             }
+
         });
 
         history.initPushState = function(){};
@@ -5796,6 +6054,269 @@ if (typeof global != "undefined") {
 }());
 
 
+
+(function(){
+
+    var m               = window.MetaphorJs,
+        extend          = m.extend,
+        isArray         = m.isArray,
+        isPlainObject   = m.isPlainObject,
+
+        pluralDef   = function($number, $locale) {
+
+            if ($locale == "pt_BR") {
+                // temporary set a locale for brasilian
+                $locale = "xbr";
+            }
+
+            if ($locale.length > 3) {
+                $locale = $locale.substr(0, -$locale.lastIndexOf('_'));
+            }
+
+            switch($locale) {
+                case 'bo':
+                case 'dz':
+                case 'id':
+                case 'ja':
+                case 'jv':
+                case 'ka':
+                case 'km':
+                case 'kn':
+                case 'ko':
+                case 'ms':
+                case 'th':
+                case 'tr':
+                case 'vi':
+                case 'zh':
+                    return 0;
+                    break;
+
+                case 'af':
+                case 'az':
+                case 'bn':
+                case 'bg':
+                case 'ca':
+                case 'da':
+                case 'de':
+                case 'el':
+                case 'en':
+                case 'eo':
+                case 'es':
+                case 'et':
+                case 'eu':
+                case 'fa':
+                case 'fi':
+                case 'fo':
+                case 'fur':
+                case 'fy':
+                case 'gl':
+                case 'gu':
+                case 'ha':
+                case 'he':
+                case 'hu':
+                case 'is':
+                case 'it':
+                case 'ku':
+                case 'lb':
+                case 'ml':
+                case 'mn':
+                case 'mr':
+                case 'nah':
+                case 'nb':
+                case 'ne':
+                case 'nl':
+                case 'nn':
+                case 'no':
+                case 'om':
+                case 'or':
+                case 'pa':
+                case 'pap':
+                case 'ps':
+                case 'pt':
+                case 'so':
+                case 'sq':
+                case 'sv':
+                case 'sw':
+                case 'ta':
+                case 'te':
+                case 'tk':
+                case 'ur':
+                case 'zu':
+                    return ($number == 1) ? 0 : 1;
+
+                case 'am':
+                case 'bh':
+                case 'fil':
+                case 'fr':
+                case 'gun':
+                case 'hi':
+                case 'ln':
+                case 'mg':
+                case 'nso':
+                case 'xbr':
+                case 'ti':
+                case 'wa':
+                    return (($number == 0) || ($number == 1)) ? 0 : 1;
+
+                case 'be':
+                case 'bs':
+                case 'hr':
+                case 'ru':
+                case 'sr':
+                case 'uk':
+                    return (($number % 10 == 1) && ($number % 100 != 11)) ?
+                           0 :
+                           ((($number % 10 >= 2) && ($number % 10 <= 4) &&
+                             (($number % 100 < 10) || ($number % 100 >= 20))) ? 1 : 2);
+
+                case 'cs':
+                case 'sk':
+                    return ($number == 1) ? 0 : ((($number >= 2) && ($number <= 4)) ? 1 : 2);
+
+                case 'ga':
+                    return ($number == 1) ? 0 : (($number == 2) ? 1 : 2);
+
+                case 'lt':
+                    return (($number % 10 == 1) && ($number % 100 != 11)) ?
+                           0 :
+                           ((($number % 10 >= 2) &&
+                             (($number % 100 < 10) || ($number % 100 >= 20))) ? 1 : 2);
+
+                case 'sl':
+                    return ($number % 100 == 1) ?
+                           0 :
+                           (($number % 100 == 2) ?
+                                1 :
+                                ((($number % 100 == 3) || ($number % 100 == 4)) ? 2 : 3));
+
+                case 'mk':
+                    return ($number % 10 == 1) ? 0 : 1;
+
+                case 'mt':
+                    return ($number == 1) ?
+                           0 :
+                           ((($number == 0) || (($number % 100 > 1) && ($number % 100 < 11))) ?
+                                1 :
+                                ((($number % 100 > 10) && ($number % 100 < 20)) ? 2 : 3));
+
+                case 'lv':
+                    return ($number == 0) ? 0 : ((($number % 10 == 1) && ($number % 100 != 11)) ? 1 : 2);
+
+                case 'pl':
+                    return ($number == 1) ?
+                           0 :
+                           ((($number % 10 >= 2) && ($number % 10 <= 4) &&
+                             (($number % 100 < 12) || ($number % 100 > 14))) ? 1 : 2);
+
+                case 'cy':
+                    return ($number == 1) ? 0 : (($number == 2) ? 1 : ((($number == 8) || ($number == 11)) ? 2 : 3));
+
+                case 'ro':
+                    return ($number == 1) ?
+                           0 :
+                           ((($number == 0) || (($number % 100 > 0) && ($number % 100 < 20))) ? 1 : 2);
+
+                case 'ar':
+                    return ($number == 0) ?
+                           0 :
+                           (($number == 1) ?
+                                1 :
+                                (($number == 2) ?
+                                    2 :
+                                    ((($number >= 3) && ($number <= 10)) ?
+                                        3 :
+                                        ((($number >= 11) && ($number <= 99)) ? 4 : 5))));
+
+                default:
+                    return 0;
+            }
+        };
+
+
+    var Text = function(locale) {
+
+        var self    = this;
+        self.store  = {};
+        if (locale) {
+            self.locale = locale;
+        }
+    };
+
+    extend(Text.prototype, {
+
+        store: null,
+        locale: "en",
+
+        setLocale: function(locale) {
+            this.locale = locale;
+        },
+
+        set: function(key, value) {
+            var store = this.store;
+            if (typeof store[key] == "undefined") {
+                store[key] = value;
+            }
+        },
+
+        load: function(keys) {
+            extend(this.store, keys, false, false);
+        },
+
+        get: function(key) {
+            var self    = this;
+            return self.store[key] ||
+                   (self === globalText ? '-- ' + key + ' --' : globalText.get(key));
+        },
+
+        plural: function(key, number) {
+            var self    = this,
+                strings = self.get(key),
+                def     = pluralDef(number, self.locale);
+
+            if (!isArray(strings)) {
+                if (isPlainObject(strings)) {
+                    if (strings[number]) {
+                        return strings[number];
+                    }
+                    if (number == 1 && strings.one != undefined) {
+                        return strings.one;
+                    }
+                    else if (number < 0 && strings.negative != undefined) {
+                        return strings.negative;
+                    }
+                    else {
+                        return strings.other;
+                    }
+                }
+                return strings;
+            }
+            else {
+                return strings[def];
+            }
+        }
+
+    }, false, false);
+
+
+    var globalText  = new Text;
+
+    Text.global     = function() {
+        return globalText;
+    };
+
+
+    m.r("MetaphorJs.lib.Text", Text);
+
+    m.r("filter.l", function(key, scope) {
+        return scope.$app.lang.get(key);
+    });
+    m.r("filter.p", function(key, scope, number) {
+        return scope.$app.lang.plural(key, parseInt(number, 10) || 0);
+    });
+
+}());
+
+
 (function(){
 
     var m           = window.MetaphorJs,
@@ -5811,22 +6332,8 @@ if (typeof global != "undefined") {
         PROVIDER    = 5,
         globalProvider;
 
-    var Provider = function(scope) {
-
-        var self    = this;
-
-        if (scope) {
-            self.store  = {
-                '$rootScope': {
-                    type: VALUE,
-                    value: scope.$root
-                },
-                '$app': {
-                    type: VALUE,
-                    value: scope.$app
-                }
-            };
-        }
+    var Provider = function() {
+        this.store  = {};
     };
 
     extend(Provider.prototype, {
@@ -5957,7 +6464,7 @@ if (typeof global != "undefined") {
                 item,
                 res;
 
-            if (currentValues[name]) {
+            if (typeof currentValues[name] != "undefined") {
                 return currentValues[name];
             }
 
@@ -6408,7 +6915,7 @@ if (typeof global != "undefined") {
                 jsFn        = animation.fn;
                 before      = animation.before;
                 after       = animation.after;
-                options     = animation.options || {};
+                options     = animation.options ? extend({}, animation.options) : {};
                 context     = animation.context || null;
                 duration    = animation.duration || null;
                 startCallback   = startCallback || options.start;
@@ -6435,6 +6942,16 @@ if (typeof global != "undefined") {
             }
             else {
 
+                startCallback && (options.start = function(){
+                    startCallback(el);
+                });
+
+                options.complete = function() {
+                    deferred.resolve(el);
+                };
+
+                duration && (options.duration = duration);
+
                 if (jsFn && typeof jsFn == "function") {
                     if (before) {
                         extend(el.style, before, true);
@@ -6446,38 +6963,17 @@ if (typeof global != "undefined") {
                     return deferred;
                 }
                 else if (window.jQuery) {
+
+                    var j = $(el);
+                    before && j.css(before);
+                    dataFn(el, dataParam, "stop");
+
                     if (jsFn && typeof jsFn == "string") {
-
-                        startCallback && startCallback(el);
-
-                        $(el)[jsFn](duration, function(){
-                            deferred.resolve(el);
-                        });
-
-                        dataFn(el, dataParam, "stop");
-
+                        j[jsFn](options);
                         return deferred;
                     }
                     else if (after) {
-
-                        var j = $(el);
-
-                        if (before) {
-                            j.css(before);
-                        }
-
-                        startCallback && (options.start = function(){
-                            startCallback(el);
-                        });
-
-                        options.complete = function() {
-                            deferred.resolve(el);
-                        };
-
                         j.animate(after, options);
-
-                        dataFn(el, dataParam, "stop");
-
                         return deferred;
                     }
                 }
@@ -6536,7 +7032,7 @@ if (typeof global != "undefined") {
 
             self.$$observable    = new Observable;
 
-            extend(self, cfg, true);
+            extend(self, cfg, true, false);
 
             if (self.$parent) {
                 self.$parent.$on("check", self.$$onParentCheck, self);
@@ -6557,6 +7053,12 @@ if (typeof global != "undefined") {
             });
         },
 
+        $newIsolated: function() {
+            return new Scope({
+                $app: this.$app
+            });
+        },
+
         $on: function(event, fn, fnScope) {
             return this.$$observable.on(event, fn, fnScope);
         },
@@ -6566,11 +7068,11 @@ if (typeof global != "undefined") {
         },
 
         $watch: function(expr, fn, fnScope) {
-            Watchable.create(this, expr, fn, fnScope, null);
+            return Watchable.create(this, expr, fn, fnScope, null);
         },
 
         $unwatch: function(expr, fn, fnScope) {
-            Watchable.unsubscribeAndDestroy(this, expr, fn, fnScope);
+            return Watchable.unsubscribeAndDestroy(this, expr, fn, fnScope);
         },
 
         $get: function(key) {
@@ -6620,8 +7122,8 @@ if (typeof global != "undefined") {
             var self    = this;
 
             self.$$observable.trigger("destroy");
-
             self.$$observable.destroy();
+
             delete self.$$observable;
             delete self.$app;
             delete self.$root;
@@ -6681,23 +7183,351 @@ if (typeof global != "undefined") {
 (function(){
 
     var m                       = window.MetaphorJs,
+        extend                  = m.extend,
+        nextUid                 = m.nextUid,
+        bind                    = m.bind,
+        trim                    = m.trim,
+        Observable              = m.lib.Observable,
+        Watchable               = m.lib.Watchable,
+
+        createWatchable         = Watchable.create,
+
         startSymbol             = '{{',
         endSymbol               = '}}',
         startSymbolLength       = 2,
         endSymbolLength         = 2,
+
+        langStartSymbol         = '{[',
+        langEndSymbol           = ']}',
+        langStartLength         = 2,
+        langEndLength           = 2,
+
+        observer                = new Observable,
+
+        factory                 = function(scope, origin, parent, userData, recursive) {
+
+            if (!origin || typeof origin != "string" ||
+                (origin.indexOf(startSymbol) == -1 &&
+                 origin.indexOf(langStartSymbol) == -1)) {
+                return null;
+            }
+
+            return new TextRenderer(scope, origin, parent, userData, recursive);
+        };
+
+    var TextRenderer = function(scope, origin, parent, userData, recursive) {
+
+        var self        = this;
+
+        self.id         = nextUid();
+        self.origin     = origin;
+        self.scope      = scope;
+        self.parent     = parent;
+        self.isRoot     = !parent;
+        self.data       = userData;
+        self.lang       = scope.$app.lang;
+
+        if (recursive === true || recursive === false) {
+            self.recursive = recursive;
+        }
+
+        self.watchers   = [];
+        self.children   = [];
+
+        self.dataChangeDelegate = bind(self.doDataChange, self);
+        self.processed  = self.processText(origin);
+        self.render();
+    };
+
+    extend(TextRenderer.prototype, {
+
+        id: null,
+        parent: null,
+        isRoot: null,
+        scope: null,
+        origin: "",
+        template: null,
+        text: null,
+        watchers: null,
+        children: null,
+        data: null,
+        recursive: false,
+        dataChangeDelegate: null,
+        changeTmt: null,
+        lang: null,
+
+        subscribe: function(fn, context) {
+            return observer.on(this.id, fn, context);
+        },
+
+        unsubscribe: function(fn, context) {
+            return observer.un(this.id, fn, context);
+        },
+
+        toString: function() {
+            var self = this;
+            if (self.text === null) {
+                self.render();
+            }
+            return self.text;
+        },
+
+        toSource: function() {
+            return this.origin;
+        },
+
+
+        render: function() {
+
+            var self    = this,
+                text    = self.processed,
+                i, l,
+                ch;
+
+            if (!self.children.length) {
+                self.createChildren();
+            }
+
+            ch = self.children;
+
+            for (i = -1, l = ch.length; ++i < l;
+                 text = text.replace('---' + i + '---', ch[i].toString())) {}
+
+            self.text = text;
+
+            return text;
+        },
+
+
+
+        processText: function(text) {
+
+            /*
+            arguably, str += "" is faster than separators.push() + separators.join()
+            well, at least in my Firefox it is so.
+             */
+
+            var self        = this,
+                index       = 0,
+                textLength  = text.length,
+                startIndex,
+                endIndex,
+                result      = "";
+                //separators  = [];
+
+            // regular keys
+            while(index < textLength) {
+                if (((startIndex = text.indexOf(startSymbol, index)) != -1) &&
+                    ((endIndex = text.indexOf(endSymbol, startIndex + startSymbolLength)) != -1)) {
+
+                    result += text.substring(index, startIndex);
+
+                    if (endIndex != startIndex + startSymbolLength) {
+                        result += self.watcherMatch(
+                            text.substring(startIndex + startSymbolLength, endIndex)
+                        );
+                    }
+
+                    index = endIndex + endSymbolLength;
+
+                } else {
+                    // we did not find an interpolation
+                    if (index !== textLength) {
+                        result += text.substring(index);
+                    }
+                    break;
+                }
+            }
+
+            index       = 0;
+            text        = result;
+            textLength  = text.length;
+            result      = "";
+            //separators  = [];
+
+            // lang keys
+            while(index < textLength) {
+
+                if (((startIndex = text.indexOf(langStartSymbol, index)) != -1) &&
+                    ((endIndex = text.indexOf(langEndSymbol, startIndex + langStartLength)) != -1)) {
+
+                    result += text.substring(index, startIndex);
+
+                    if (endIndex != startIndex + langStartLength) {
+                        result += self.watcherMatch(
+                            text.substring(startIndex + langStartLength, endIndex),
+                            true
+                        );
+                    }
+
+                    index = endIndex + langEndLength;
+
+                } else {
+                    // we did not find an interpolation
+                    if (index !== textLength) {
+                        result += text.substring(index);
+                    }
+                    break;
+                }
+            }
+
+            return result;
+        },
+
+        watcherMatch: function(expr, isLang) {
+
+            var self    = this,
+                ws      = self.watchers;
+
+            if (isLang) {
+                expr        = trim(expr);
+                var tmp     = expr.split("|"),
+                    key     = trim(tmp[0]);
+                if (key.substr(0, 1) != ".") {
+                    tmp[0]  = "'" + key + "'";
+                }
+                if (tmp.length == 1) {
+                    tmp.push("l");
+                }
+                expr        = tmp.join(" | ");
+            }
+
+            ws.push(createWatchable(
+                self.scope,
+                expr,
+                self.onDataChange,
+                self
+            ));
+
+            return '---'+ (ws.length-1) +'---';
+        },
+
+        onDataChange: function() {
+
+            var self    = this;
+
+            if (!self.changeTmt) {
+                self.changeTmt = setTimeout(self.dataChangeDelegate, 0);
+            }
+        },
+
+        doDataChange: function() {
+            var self = this;
+            self.destroyChildren();
+            self.triggerChange();
+            self.changeTmt = null;
+        },
+
+        triggerChange: function() {
+
+            var self    = this;
+            self.text   = null;
+
+            if (self.isRoot) {
+                observer.trigger(self.id, self, self.data);
+            }
+            else {
+                self.parent.triggerChange();
+            }
+        },
+
+
+        createChildren: function() {
+
+            var self    = this,
+                ws      = self.watchers,
+                ch      = self.children,
+                scope   = self.scope,
+                rec     = self.recursive,
+                i, l,
+                val;
+
+            for (i = -1, l = ws.length; ++i < l; ){
+                val     = ws[i].getLastResult();
+                ch.push((rec && factory(scope, val, self, null, true)) || val);
+            }
+        },
+
+        destroyChildren: function() {
+
+            var self    = this,
+                ch      = self.children,
+                i, l;
+
+            for (i = -1, l = ch.length; ++i < l; ){
+                if (ch[i] instanceof TextRenderer) {
+                    ch[i].destroy();
+                }
+            }
+
+            self.children = [];
+        },
+
+        destroyWatchers: function() {
+
+            var self    = this,
+                ws      = self.watchers,
+                i, l;
+
+            for (i = -1, l = ws.length; ++i < l;
+                 ws[i].unsubscribeAndDestroy(self.onDataChange, self)){}
+
+            self.watchers = [];
+        },
+
+        destroy: function() {
+
+            var self    = this;
+
+            self.destroyChildren();
+            self.destroyWatchers();
+
+            observer.destroyEvent(self.id);
+
+            delete self.watchers;
+            delete self.children;
+            delete self.origin;
+            delete self.template;
+            delete self.text;
+            delete self.scope;
+            delete self.data;
+            delete self.dataChangeDelegate;
+            delete self.lang;
+
+            if (self.changeTmt) {
+                clearTimeout(self.changeTmt);
+            }
+            delete self.changeTmt;
+
+        }
+
+    }, true, false);
+
+
+
+    TextRenderer.create = factory;
+
+    m.r("MetaphorJs.view.TextRenderer", TextRenderer);
+
+}());
+
+
+(function(){
+
+    var m                       = window.MetaphorJs,
         nextUid                 = m.nextUid,
         isArray                 = m.isArray,
         Scope                   = m.view.Scope,
-        Watchable               = m.lib.Watchable,
         Observable              = m.lib.Observable,
+        TextRenderer            = m.view.TextRenderer,
         isThenable              = m.isThenable,
         toArray                 = m.toArray,
         getAttributeHandlers    = m.getAttributeHandlers,
         handlers                = null,
         g                       = m.g,
-        createWatchable         = Watchable.create,
-        unsubscribeAndDestroy   = Watchable.unsubscribeAndDestroy,
+        createText              = TextRenderer.create,
         Promise                 = m.lib.Promise,
+        select                  = m.select,
         Renderer,
         textProp                = function(){
             var node    = document.createTextNode("");
@@ -6851,7 +7681,7 @@ if (typeof global != "undefined") {
 
             var self    = this,
                 scope   = f.$isolateScope ?
-                            new Scope({$app: parentScope.$app}) :
+                            parentScope.$newIsolated() :
                             (f.$breakScope  ?
                                 parentScope.$new() :
                                 parentScope),
@@ -6881,26 +7711,25 @@ if (typeof global != "undefined") {
                 nodeType    = node.nodeType,
                 texts       = self.texts,
                 scope       = self.scope,
-                txt,
-                inx,
+                textRenderer,
+                recursive,
                 n;
 
             // text node
             if (nodeType == 3) {
 
-                txt = {
-                    watchers:   [],
-                    node:       node,
-                    text:       "",
-                    inx:        inx = texts.length
-                };
+                recursive       = node.parentNode.getAttribute("mjs-recursive") !== null;
+                textRenderer    = createText(scope, node[textProp], null, texts.length, recursive);
 
-                self.processText(txt, node[textProp]);
-
-                if (txt.watchers.length > 0) {
-                    texts.push(txt);
-                    self.renderText(inx);
+                if (textRenderer) {
+                    textRenderer.subscribe(self.onTextChange, self);
+                    texts.push({
+                        node: node,
+                        tr: textRenderer
+                    });
+                    self.renderText(texts.length - 1);
                 }
+
             }
 
             // element node
@@ -6964,22 +7793,22 @@ if (typeof global != "undefined") {
                     return deferred;
                 }
 
+                recursive = node.getAttribute("mjs-recursive") !== null;
+
                 for (i = 0, len = attrs.length; i < len; i++) {
 
                     if (!g(n, true)) {
-                        txt = {
-                            watchers:   [],
-                            node:       node,
-                            attr:       attrs[i].name,
-                            text:       "",
-                            inx:        inx = texts.length
-                        };
 
-                        self.processText(txt, attrs[i].value);
+                        textRenderer = createText(scope, attrs[i].value, null, texts.length, recursive);
 
-                        if (txt.watchers.length > 0) {
-                            texts.push(txt);
-                            self.renderText(inx);
+                        if (textRenderer) {
+                            textRenderer.subscribe(self.onTextChange, self);
+                            texts.push({
+                                node: node,
+                                attr: attrs[i].name,
+                                tr: textRenderer
+                            });
+                            self.renderText(texts.length - 1);
                         }
                     }
                 }
@@ -6996,100 +7825,33 @@ if (typeof global != "undefined") {
         },
 
         onProcessingFinished: function() {
-            var self = this;
-            //self.render();
-            observer.trigger("rendered-" + self.id, self);
+            observer.trigger("rendered-" + this.id, this);
         },
 
-        processText: function(txtObj, text) {
 
-            var self    = this,
-                index   = 0,
-                textLength  = text.length,
-                startIndex,
-                endIndex,
-                separators = [];
-
-            while(index < textLength) {
-                if ( ((startIndex = text.indexOf(startSymbol, index)) != -1) &&
-                     ((endIndex = text.indexOf(endSymbol, startIndex + startSymbolLength)) != -1) ) {
-
-                    separators.push(text.substring(index, startIndex));
-                    separators.push(self.watcherMatch(txtObj, text.substring(startIndex + startSymbolLength, endIndex)));
-
-                    index = endIndex + endSymbolLength;
-
-                } else {
-                    // we did not find an interpolation, so we have to add the remainder to the separators array
-                    if (index !== textLength) {
-                        separators.push(text.substring(index));
-                    }
-                    break;
-                }
-            }
-
-            return txtObj.text = separators.join("");
-        },
-
-        watcherMatch: function(txtObj, expr) {
-
-            var self    = this,
-                ws      = txtObj.watchers;
-
-            ws.push({
-                watcher: createWatchable(
-                    self.scope,
-                    expr,
-                    self.onDataChange,
-                    self,
-                    txtObj.inx
-                )
-            });
-
-            return '---'+ (ws.length-1) +'---';
-        },
-
-        onDataChange: function(val, prev, textInx) {
-            this.renderText(textInx);
-        },
-
-        render: function() {
-
-            var self    = this,
-                len     = self.texts.length,
-                i;
-
-            for (i = 0; i < len; i++) {
-                self.renderText(i);
-            }
+        onTextChange: function(textRenderer, inx) {
+            this.renderText(inx);
         },
 
         renderText: function(inx) {
 
             var self    = this,
                 text    = self.texts[inx],
-                tpl     = text.text,
-                ws      = text.watchers,
-                len     = ws.length,
-                attr    = text.attr,
-                i, val;
+                res     = text.tr.toString(),
+                attr    = text.attr;
 
-            for (i = 0; i < len; i++) {
-                val     = ws[i].watcher.getLastResult();
-                tpl     = tpl.replace('---' + i + '---', val);
-            }
 
             if (attr) {
-                text.node.setAttribute(attr, tpl);
+                text.node.setAttribute(attr, res);
                 if (attr == "value") {
-                    text.node.value = tpl;
+                    text.node.value = res;
                 }
                 if (attr == "class") {
-                    text.node.className = tpl;
+                    text.node.className = res;
                 }
             }
             else {
-                text.node[textProp] = tpl;
+                text.node[textProp] = res;
             }
         },
 
@@ -7098,38 +7860,25 @@ if (typeof global != "undefined") {
 
             var self    = this,
                 texts   = self.texts,
-                ws,
-                i, len,
-                j, jlen;
+                i, len;
 
             if (self.destroyed) {
                 return;
             }
             self.destroyed  = true;
 
-            for (i = 0, len = texts.length; i < len; i++) {
-
-                ws  = texts[i].watchers;
-
-                for (j = 0, jlen = ws.length; j < jlen; j++) {
-                    unsubscribeAndDestroy(self.scope, ws[j].watcher.code, self.onDataChange, self);
-                }
-            }
+            for (i = -1, len = texts.length; ++i < len; texts[i].tr.destroy()) {}
 
             if (self.parent) {
                 self.parent.un("destroy", self.destroy, self);
             }
 
-            //self._observable.trigger("destroy");
+            delete self.texts;
+            delete self.el;
+            delete self.scope;
+            delete self.parent;
+
             observer.trigger("destroy-" + self.id);
-
-            self.texts      = null;
-            self.el         = null;
-            self.scope      = null;
-            self.parent     = null;
-
-            //self._observable.destroy();
-            //self._observable = null;
         }
 
 
@@ -7140,22 +7889,21 @@ if (typeof global != "undefined") {
 
     var initApps = function() {
 
-        var app = MetaphorJs.app,
-            appCls;
+        var appFn       = MetaphorJs.app,
+            appNodes    = select("[mjs-app]"),
+            appCls,
+            i, l, el;
 
-        if (document.querySelectorAll) {
-            var appNodes = document.querySelectorAll("[mjs-app]");
-            for (var i = -1, l = appNodes.length; ++i < l; app(appNodes[i]).run()){}
+
+        for (i = -1, l = appNodes.length; ++i < l;){
+            el      = appNodes[i]
+            appCls  = el.getAttribute && el.getAttribute("mjs-app");
+            appFn(el, appCls)
+                .done(function(app){
+                    app.run();
+                });
         }
-        else {
-            eachNode(document.documentElement, function(el) {
-                appCls = el.getAttribute && el.getAttribute("mjs-app");
-                if (appCls !== null) {
-                    app(el, appCls);
-                    return false;
-                }
-            });
-        }
+
     };
 
     MetaphorJs.onReady(initApps);
@@ -7483,7 +8231,8 @@ if (typeof global != "undefined") {
         toFragment  = m.toFragment,
         isAttached  = m.isAttached,
         dataFn      = m.data,
-        Scope       = m.view.Scope;
+        Scope       = m.view.Scope,
+        Provider    = m.lib.Provider;
 
 
     var getCmpId    = function(cmp) {
@@ -7628,6 +8377,7 @@ if (typeof global != "undefined") {
             self._initElement();
 
             if (self.autoRender) {
+
                 if (tpl.initPromise) {
                     tpl.initPromise.done(self.render, self);
                 }
@@ -7825,29 +8575,40 @@ if (typeof global != "undefined") {
 
     MetaphorJs.resolveComponent = function(cmp, cfg, scope, node, args) {
 
+        var hasCfg  = cfg !== false;
+
         cfg         = cfg || {};
         args        = args || [];
 
-        scope       = scope || cfg.scope || new Scope;
+        scope       = scope || cfg.scope; // || new Scope;
         node        = node || cfg.node;
 
         cfg.scope   = cfg.scope || scope;
         cfg.node    = cfg.node || node;
 
-        if (!scope.$app) {
-            throw "Cannot resolve component outside app's scope";
+        var constr      = typeof cmp == "string" ? g(cmp) : cmp;
+
+        if (!constr) {
+            throw "Component " + cmp + " not found";
         }
 
-        var constr  = typeof cmp == "string" ? g(cmp) : cmp,
-            i,
-            defers  = [],
-            tpl     = constr.template || cfg.template || null,
-            tplUrl  = constr.templateUrl || cfg.templateUrl || null,
-            app     = scope.$app,
-            inject  = {
-                $node: node,
-                $scope: scope,
-                $app: app
+        if (scope && constr.isolateScope) {
+            cfg.scope   = scope = scope.$newIsolated();
+        }
+
+        var i,
+            defers      = [],
+            tpl         = constr.template || cfg.template || null,
+            tplUrl      = constr.templateUrl || cfg.templateUrl || null,
+            app         = scope ? scope.$app : null,
+            gProvider   = Provider.global(),
+            injectFn    = app ? app.inject : gProvider.inject,
+            injectCt    = app ? app : gProvider,
+            inject      = {
+                $node: node || null,
+                $scope: scope || null,
+                $config: cfg || null,
+                $args: args || null
             };
 
         if (constr.resolve) {
@@ -7858,7 +8619,9 @@ if (typeof global != "undefined") {
                         fn;
 
                     defers.push(d.done(function(value){
+                        inject[name] = value;
                         cfg[name] = value;
+                        args.push(value);
                     }));
 
                     fn = constr.resolve[i];
@@ -7867,13 +8630,14 @@ if (typeof global != "undefined") {
                         d.resolve(fn(scope, node));
                     }
                     else {
-                        d.resolve(app.inject(fn, null, false, extend({}, inject, cfg)));
+                        d.resolve(injectFn.call(injectCt, fn, null, false, extend({}, inject, cfg, false, false)));
                     }
 
                 }(i));
             }
         }
-        if (tpl || tplUrl) {
+
+        if (hasCfg && (tpl || tplUrl)) {
 
             cfg.template = new Template({
                 scope: scope,
@@ -7891,23 +8655,21 @@ if (typeof global != "undefined") {
             }
         }
 
-        args.unshift(cfg);
+        hasCfg && args.unshift(cfg);
 
         if (defers.length) {
             var p = new Promise;
 
-            // if there are no defers, we avoid nextTick
-            // by using done instead of then
             Promise.all(defers).done(function(){
-                cfg.$config = cfg;
-                p.resolve(app.inject(constr, null, true, cfg, args));
+                p.resolve(injectFn.call(injectCt, constr, null, true, extend({}, inject, cfg, false, false), args));
             });
 
             return p;
         }
         else {
-            cfg.$config = cfg;
-            return Promise.resolve(app.inject(constr, null, true, cfg, args))
+            return Promise.resolve(
+                injectFn.call(injectCt, constr, null, true, extend({}, inject, cfg, false, false), args)
+            );
         }
     };
 
@@ -7925,10 +8687,13 @@ if (typeof global != "undefined") {
         Observable  = m.lib.Observable,
         Promise     = m.lib.Promise,
         bind        = m.bind,
-        extend      = m.extend;
+        extend      = m.extend,
+        slice       = Array.prototype.slice,
+        Text        = m.lib.Text;
 
     MetaphorJs.define("MetaphorJs.cmp.App", "MetaphorJs.cmp.Base", {
 
+        lang: null,
         scope: null,
         renderer: null,
         cmpListeners: null,
@@ -7939,13 +8704,15 @@ if (typeof global != "undefined") {
             var self        = this,
                 scope       = data instanceof Scope ? data : new Scope(data),
                 provider,
-                observable;
+                observable,
+                args;
 
             scope.$app      = self;
             self.supr();
 
-            provider        = new Provider(scope);
+            provider        = new Provider;
             observable      = new Observable;
+            self.lang       = new Text;
 
             // provider's storage is hidden from everyone
             extend(self, provider.getApi());
@@ -7958,10 +8725,19 @@ if (typeof global != "undefined") {
             self.cmpListeners   = {};
             self.components     = {};
 
+            self.factory('$parentCmp', ['$node', self.getParentCmp], self);
+            self.value('$app', self);
+            self.value('$rootScope', scope.$root);
+            self.value('$lang', self.lang);
+
             self.renderer       = new Renderer(node, scope);
 
-            self.factory('$parentCmp', ['$node', self.getParentCmp], self);
+            args = slice.call(arguments);
+            args[1] = scope;
+            self.initApp.apply(self, args);
         },
+
+        initApp: m.emptyFn,
 
         run: function() {
             this.renderer.process();
@@ -8006,8 +8782,11 @@ if (typeof global != "undefined") {
 
         registerCmp: function(cmp) {
             var self = this;
-            self.onAvailable(cmp.id).resolve(cmp);
+
             self.components[cmp.id] = cmp;
+
+            self.onAvailable(cmp.id).resolve(cmp);
+
             cmp.on("destroy", function(cmp){
                 delete self.cmpListeners[cmp.id];
                 delete self.components[cmp.id];
@@ -8190,7 +8969,7 @@ if (typeof global != "undefined") {
                         destroyEl: false,
                         node: node,
                         scope: route.isolateScope ?
-                               new Scope({$app: self.scope.$app}) :
+                               self.scope.$newIsolated() :
                                self.scope.$new()
                     },
                     i, l;
@@ -8332,6 +9111,7 @@ if (typeof global != "undefined") {
             var self        = this;
 
             expr            = trim(expr);
+
             self.node       = node;
             self.expr       = expr;
             self.scope      = scope;
@@ -8410,6 +9190,10 @@ if (typeof global != "undefined") {
             self.input          = new Input(node, self.onInputChange, self);
 
             self.supr(scope, node, expr);
+
+            if (self.watcher && self.watcher.hasInputPipes()) {
+                self.onInputChange(self.input.getValue());
+            }
         },
 
         onInputChange: function(val) {
@@ -8606,7 +9390,7 @@ if (typeof global != "undefined") {
             }
 
             self.parentEl.removeChild(node);
-            self.render(self.watcher.getValue());
+            self.render(toArray(self.watcher.getValue()));
         },
 
         onScopeDestroy: function() {
@@ -8677,7 +9461,7 @@ if (typeof global != "undefined") {
 
             for (i = 0, len = list.length; i < len; i++) {
 
-                el          = tpl.cloneNode(true);
+                el = tpl.cloneNode(true);
                 fragment.appendChild(el);
                 renderers.push(self.createItem(el, list, i));
             }
@@ -8706,17 +9490,16 @@ if (typeof global != "undefined") {
 
             var self        = this,
                 renderers   = self.renderers,
-                prs         = changes.prescription,
+                prs         = changes.prescription || [],
                 tpl         = self.tpl,
                 index       = 0,
                 parent      = self.parentEl,
-                list        = self.watcher.getValue(),
+                list        = toArray(self.watcher.getValue()),
                 updateStart = null,
                 el,
                 i, len,
                 r,
                 action;
-
 
             for (i = 0, len = prs.length; i < len; i++) {
                 action = prs[i];
@@ -8735,17 +9518,12 @@ if (typeof global != "undefined") {
 
                     r = renderers[index];
 
-                    if (r.scope instanceof Scope) {
-                        r.scope.$destroy();
-                    }
-
-                    r.renderer.destroy();
+                    r.scope.$destroy();
+                    // renderer will destroy itself
 
                     animate(r.el, "leave", null, true)
                         .done(function(el){
-                            if (isAttached(el)) {
-                                el.parentNode.removeChild(el);
-                            }
+                            isAttached(el) && el.parentNode.removeChild(el);
                         });
                 }
 
@@ -8774,11 +9552,11 @@ if (typeof global != "undefined") {
                     }(index), true);
 
                     if (action == 'R') {
-                        renderers[i] = self.createItem(el, list, index);
+                        renderers[index] = self.createItem(el, list, index);
                     }
                     else if (action == 'I') {
                         if (i < renderers.length) {
-                            renderers.splice(i, 0, self.createItem(el, list, index));
+                            renderers.splice(index, 0, self.createItem(el, list, index));
                         }
                         else {
                             renderers.push(self.createItem(el, list, index));
@@ -8869,7 +9647,7 @@ if (typeof global != "undefined") {
         initWatcher: function() {
             var self        = this;
             self.watcher    = createWatchable(self.store, ".items", null);
-            self.watcher.addListener(self.onChange, self);
+            self.watcher.subscribe(self.onChange, self);
         },
 
         resetWatcher: function() {
@@ -9070,6 +9848,7 @@ if (typeof global != "undefined") {
         }
     }));
 
+
     var events = ('click dblclick mousedown mouseup mouseover mouseout mousemove mouseenter ' +
                   'mouseleave keydown keyup keypress submit focus blur copy cut paste enter').split(' '),
         i, len,
@@ -9235,23 +10014,31 @@ if (typeof global != "undefined") {
         return false;
     });
 
+    registerAttr("mjs-ignore", 0, function() {
+        return false;
+    });
+
 }());
 
 
 
 (function(){
 
-    var add     = MetaphorJs.add,
-        nf      = MetaphorJs.numberFormats,
-        df      = MetaphorJs.dateFormats;
+    var m       = window.MetaphorJs,
+        add     = m.add,
+        nf      = m.numberFormats,
+        df      = m.dateFormats,
+        trim    = m.trim,
+        toArray = m.toArray,
+        isArray = m.isArray;
 
-    add("filter.toUpper", function(val){
+    add("filter.uppercase", function(val){
         return val.toUpperCase();
     });
-    add("filter.toLower", function(val){
+    add("filter.lowercase", function(val){
         return val.toLowerCase();
     });
-    add("filter.limitTo", function(input, limit){
+    add("filter.limitTo", function(input, scope, limit){
 
         var type = typeof input;
 
@@ -9301,7 +10088,7 @@ if (typeof global != "undefined") {
 
     var numberFormats = MetaphorJs.numberFormats;
 
-    add("filter.numeral", function(val, format) {
+    add("filter.numeral", function(val, scope, format) {
         format  = numberFormats[format] || format;
         format  = nf[format] || format;
         return numeral(val).format(format);
@@ -9309,7 +10096,7 @@ if (typeof global != "undefined") {
 
     var dateFormats = MetaphorJs.dateFormats;
 
-    add("filter.moment", function(val, format) {
+    add("filter.moment", function(val, scope, format) {
         format  = dateFormats[format] || format;
         format  = df[format] || format;
         return moment(val).format(format);
@@ -9401,12 +10188,7 @@ if (typeof global != "undefined") {
 
 
 
-    add("filter.filter", function(val, by, opt, scope) {
-
-        if (opt && !scope) {
-            opt = null;
-        }
-
+    add("filter.filter", function(val, scope, by, opt) {
         return filterArray(val, by, opt);
     });
 
@@ -9415,9 +10197,9 @@ if (typeof global != "undefined") {
 
 
 
-    add("filter.sortBy", function(val, field, dir, scope) {
+    add("filter.sortBy", function(val, scope, field, dir) {
 
-        if (dir && !scope) {
+        if (!dir) {
             dir = "asc";
         }
 
@@ -9451,6 +10233,60 @@ if (typeof global != "undefined") {
         });
 
         return dir == "desc" ? ret.reverse() : ret;
+    });
+
+    add("filter.linkify", function(input, scope, target){
+        target = target ? ' target="'+target+'"' : "";
+        if (input) {
+            var exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+            return input.replace(exp, '<a href="$1"'+target+'>$1</a>');
+        }
+        return "";
+    });
+
+
+    var regCache = {},
+        getReg = function(reg) {
+            return regCache[reg] || (regCache[reg] = new RegExp(reg));
+        };
+
+    add("filter.toList", function(input, scope, sep, limit) {
+
+        limit       = limit || undefined;
+        sep         = sep || "/\\n|,/";
+        input       = "" + input;
+
+        if (!input) {
+            return [];
+        }
+
+        if (sep.substr(0,1) == '/' && sep.substr(sep.length - 1) == "/") {
+            sep = getReg(sep.substring(1, sep.length-1));
+        }
+        var list    = input.split(sep, limit),
+            i, l;
+
+        for (i = -1, l = list.length; ++i < l; list[i] = trim(list[i])){}
+
+        return list;
+    });
+
+    add("filter.fromList", function(input, scope, separator) {
+
+        separator = separator || ", ";
+
+        if (input && input.length) {
+            if (!isArray(input)){
+                input = toArray(input);
+            }
+            return input.join(separator);
+        }
+
+        return "";
+    });
+
+    add("filter.toArray", function(input){
+        return toArray(input);
     });
 
 

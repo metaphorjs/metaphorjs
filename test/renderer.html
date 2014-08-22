@@ -22,6 +22,7 @@
     <script src="../../metaphorjs-history/metaphorjs.history.js"></script>
     <script src="../../metaphorjs-validator/metaphorjs.validator.js"></script>
 
+    <script src="../src/lib/Text.js"></script>
     <script src="../src/lib/Provider.js"></script>
     <script src="../src/cmp/Base.js"></script>
     <script src="../../metaphorjs-model/src/Model.js"></script>
@@ -44,7 +45,7 @@
     <script src="../../metaphorjs-dialog/metaphorjs.dialog.js"></script>
     <script src="../src/cmp/Dialog.js"></script>
 
-    <script src="../src/lib/Text.js"></script>
+
 
     <style>
 
@@ -400,11 +401,18 @@
         <p>a = {{.a}}</p>
         <p>resolved = {{.resolved}}</p>
         <p>The following utilizes recursive text renderer:</p>
-        <p>This is level 1: {{.level1}}</p>
+        <p mjs-recursive>This is level 1: {{.level1}}</p>
         <p>
             <a href="#" mjs-click=".changeLevel2()">Change level 2</a> |
             <a href="#" mjs-click=".increaseB()">Increase B</a>
         </p>
+        <p>using normal expression with filter: {{ 'key' | l}}</p>
+        <p>{{.b}} {{ 'plr' | p:.b}}</p>
+        <p mjs-recursive>{{'subkey1' | l}}</p>
+        <p>using lang expression: {[ key ]} {{.b}} {[ plr | p:.b]}</p>
+        <p mjs-bind-html=".linkified | linkify"></p>
+        <p><input type="number" mjs-input-type="number" mjs-model=".people"/></p>
+        <p mjs-recursive>{[ viewing | p:.people]}</p>
     </div>
 
     <script>
@@ -436,6 +444,23 @@
                     self.scope.b++;
                 };
 
+                self.scope.linkified = 'Linkified text aaa http://www.kuindji.com bbb';
+
+                self.scope.people = 0;
+
+                self.lang.setLocale("ru");
+                self.lang.set("key", "text value");
+                self.lang.set("plr", ["котик", "котика", "котиков"]);
+                self.lang.set("subkey1", 'subkey: {{\'subkey2\' | l}}');
+                self.lang.set('subkey2', 'text value');
+
+                self.lang.set("viewing", {
+                    '0': 'Nobody is viewing',
+                    '1': 'One person is viewing',
+                    '2': 'Two people are viewing',
+                    other: '{{.people}} people are viewing',
+                    negative: ""
+                });
             }
 
         },{
