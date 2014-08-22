@@ -7,7 +7,6 @@
         currentUrl          = m.currentUrl,
         toFragment          = m.toFragment,
         animate             = m.animate,
-        Scope               = m.lib.Scope,
         extend              = m.extend,
         stop                = m.stopAnimation,
         resolveComponent    = m.resolveComponent,

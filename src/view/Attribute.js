@@ -919,7 +919,6 @@
         };
 
         resolveComponent(cmpName, cfg, scope, node);
-
         return false;
     };
 
@@ -929,32 +928,16 @@
 
 
     registerAttr("mjs-cmp-prop", 200, ['$parentCmp', '$node', '$attrValue', function(parentCmp, node, expr){
-
         if (parentCmp) {
             parentCmp[expr] = node;
         }
     }]);
 
-    var viewAttr = function(scope, node, expr) {
-
+    registerAttr("mjs-view", 200, function(scope, node, cls) {
         node.removeAttribute("mjs-view");
-
-        var constr = g(expr || "MetaphorJs.cmp.View");
-
-        scope.$app.inject(constr, null, true,
-            {
-                $scope: scope,
-                $node: node,
-                $app: scope.$app
-            },
-            [{scope: scope, node: node}]
-        );
-
+        resolveComponent(cls || "MetaphorJs.cmp.View", {scope: scope, node: node}, scope, node)
         return false;
-    };
-
-    registerAttr("mjs-view", 200, viewAttr);
-
+    });
 
     registerAttr("mjs-init", 250, function(scope, node, expr){
         node.removeAttribute("mjs-init");

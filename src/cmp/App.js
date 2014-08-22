@@ -11,7 +11,8 @@
         bind        = m.bind,
         extend      = m.extend,
         slice       = Array.prototype.slice,
-        Text        = m.lib.Text;
+        Text        = m.lib.Text,
+        resolve     = m.resolveComponent;
 
     MetaphorJs.define("MetaphorJs.cmp.App", "MetaphorJs.cmp.Base", {
 
@@ -133,5 +134,18 @@
         }
 
     });
+
+    MetaphorJs.app = function(node, cls, data) {
+
+        node.removeAttribute("mjs-app");
+
+        try {
+            return resolve(cls || "MetaphorJs.cmp.App", false, data, node, [node, data]);
+        }
+        catch (thrownError) {
+            MetaphorJs.error(thrownError);
+            return Promise.reject(thrownError);
+        }
+    };
 
 }());

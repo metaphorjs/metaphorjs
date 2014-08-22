@@ -378,17 +378,14 @@
 
         var appFn       = MetaphorJs.app,
             appNodes    = select("[mjs-app]"),
-            appCls,
-            i, l, el;
-
+            i, l, el,
+            done        = function(app) {
+                app.run();
+            };
 
         for (i = -1, l = appNodes.length; ++i < l;){
-            el      = appNodes[i]
-            appCls  = el.getAttribute && el.getAttribute("mjs-app");
-            appFn(el, appCls)
-                .done(function(app){
-                    app.run();
-                });
+            el      = appNodes[i];
+            appFn(el, el.getAttribute && el.getAttribute("mjs-app")).done(done);
         }
 
     };

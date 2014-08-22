@@ -136,28 +136,10 @@
         },
 
         async = function(fn, fnScope, args) {
-            fn.apply(fnScope, args || []);
-            return;
             setTimeout(function(){
                 fn.apply(fnScope, args || []);
             }, 0);
-        },
-
-        appFn = function(node, cls, data) {
-
-            cls = cls || "MetaphorJs.cmp.App";
-
-            node.removeAttribute("mjs-app");
-
-            try {
-                //return MetaphorJs.create(cls, node, data);
-                return MetaphorJs.resolveComponent(cls, false, data, node, [node, data]);
-            }
-            catch (thrownError) {
-                MetaphorJs.error(thrownError);
-            }
         };
-
 
 
     extend(m, {
@@ -173,7 +155,6 @@
         clone:          cloneFn,
         async:          async,
         toFragment:     toFragment,
-        app:            appFn,
 
         isVisible:      function(el) {
             return !(el.offsetWidth <= 0 || el.offsetHeight <= 0);

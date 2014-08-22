@@ -13,7 +13,9 @@
         isAttached  = m.isAttached,
         dataFn      = m.data,
         Scope       = m.view.Scope,
-        Provider    = m.lib.Provider;
+        Provider    = m.lib.Provider,
+        addClass    = m.addClass,
+        removeClass = m.removeClass;
 
 
     var getCmpId    = function(cmp) {
@@ -385,6 +387,7 @@
             gProvider   = Provider.global(),
             injectFn    = app ? app.inject : gProvider.inject,
             injectCt    = app ? app : gProvider,
+            cloak       = node ? node.getAttribute("mjs-cloak") : null,
             inject      = {
                 $node: node || null,
                 $scope: scope || null,
@@ -438,20 +441,29 @@
 
         hasCfg && args.unshift(cfg);
 
+        var p;
+
         if (defers.length) {
-            var p = new Promise;
+            p = new Promise;
 
             Promise.all(defers).done(function(){
                 p.resolve(injectFn.call(injectCt, constr, null, true, extend({}, inject, cfg, false, false), args));
             });
-
-            return p;
         }
         else {
-            return Promise.resolve(
+            p = Promise.resolve(
                 injectFn.call(injectCt, constr, null, true, extend({}, inject, cfg, false, false), args)
             );
         }
+
+        if (node && p.isPending() && cloak !== null) {
+            cloak ? addClass(node, cloak) : node.style.visibility = "hidden";
+            p.done(function() {
+                cloak ? removeClass(node, cloak) : node.style.visibility = "";
+            });
+        }
+
+        return p;
     };
 
 
