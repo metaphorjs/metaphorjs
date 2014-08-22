@@ -110,7 +110,7 @@
         toString    = Object.prototype.toString,
 
         inArray     = function(val, arr) {
-            return arr ? aIndexOf.call(arr, val) : -1;
+            return arr ? (aIndexOf.call(arr, val) != -1) : false;
         },
 
         isArray     = function(value) {

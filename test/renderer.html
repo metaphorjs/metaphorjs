@@ -218,11 +218,19 @@
             <a href="http://{{.text}}.com" mjs-click=".bool = !.bool">{{.subtext | limitTo:.a}}</a><br>
             <input mjs-bind=".a * .b"/>
             <input mjs-model=".a" type="number" mjs-input-type="number"/>
+            <br>
+
             <input type="checkbox" mjs-model="bool"/>
             <input type="radio" name="r" value="header" mjs-model="header"/>1
             <label><input type="radio" name="r" value="header1"/>2</label>
             <input type="radio" name="r" value="header2"/>3
+            <br><br>
 
+            <select mjs-model=".a" mjs-input-type="number">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+            </select>
             <br><br>
             <hr>
 

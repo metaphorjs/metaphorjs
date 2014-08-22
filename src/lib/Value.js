@@ -47,7 +47,7 @@
             var hooks = valHooks[ el.type ] || valHooks[ el.nodeName.toLowerCase() ];
 
             // If set returns undefined, fall back to normal setting
-            if ( !hooks || !("set" in hooks) || hooks.set( this, val, "value" ) === undefined ) {
+            if ( !hooks || !("set" in hooks) || hooks.set( el, val, "value" ) === undefined ) {
                 el.value = val;
             }
         };
@@ -111,8 +111,8 @@
                         i = options.length;
 
                     while ( i-- ) {
-                        option = options[ i ];
-                        if ( (option.selected = inArray( option.value, values )) ) {
+                        option = options[i];
+                        if ((option.selected = inArray(option.value, values))) {
                             optionSet = true;
                         }
                     }
@@ -129,7 +129,7 @@
     valHooks["radio"] = valHooks["checkbox"] = {
         set: function( elem, value ) {
             if (isArray( value ) ) {
-                return ( elem.checked = inArray( getValue(elem), value ) >= 0 );
+                return ( elem.checked = inArray( getValue(elem), value ) );
             }
         },
         get: function( elem ) {
