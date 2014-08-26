@@ -5,14 +5,15 @@
  */
 var getValue = MetaphorJs.getValue = function(){
 
+
     var rreturn = /\r/,
 
         hooks = {
 
         option: function(elem) {
-            var val = elem.getAttribute("value");
+            var val = elem.getAttribute("value") || elem.value;
 
-            return val != null ?
+            return val != null && typeof val != "undefined" ?
                    val :
                    trim( elem.innerText || elem.textContent );
         },
@@ -34,13 +35,14 @@ var getValue = MetaphorJs.getValue = function(){
             for ( ; i < max; i++ ) {
                 option = options[ i ];
 
-                disabled = option.disabled || option.getAttribute("disabled") !== null ||
+                disabled = option.disabled ||
                            option.parentNode.disabled;
 
                 // IE6-9 doesn't update selected after form reset (#2551)
                 if ((option.selected || i === index) && !disabled ) {
                     // Get the specific value for the option
                     value = getValue(option);
+
                     // We don't need an array for one selects
                     if ( one ) {
                         return value;

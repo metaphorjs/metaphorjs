@@ -18,7 +18,7 @@
         self.cb             = changeFn;
         self.scb            = submitFn;
         self.cbContext      = changeFnContext;
-        self.inputType      = type = el.getAttribute("mjs-input-type") || el.type.toLowerCase();
+        self.inputType      = type = (el.getAttribute("mjs-input-type") || el.type.toLowerCase());
         self.listeners      = [];
         self.submittable    = isSubmittable(el);
 
@@ -212,6 +212,9 @@
             switch (this.inputType) {
                 case "number":
                     val     = parseInt(val, 10);
+                    if (isNaN(val)) {
+                        val = 0;
+                    }
                     break;
             }
 

@@ -16,21 +16,23 @@ var setValue = MetaphorJs.setValue = function() {
                 options     = elem.options,
                 values      = toArray(value),
                 i           = options.length,
-                emptyIndex  = -1;
+                setIndex    = -1;
 
             while ( i-- ) {
                 option = options[i];
+
                 if ((option.selected = inArray(option.value, values))) {
                     optionSet = true;
                 }
                 else if (option.getAttribute("mjs-default-option") !== null) {
-                    emptyIndex = i;
+                    setIndex = i;
                 }
             }
 
             // Force browsers to behave consistently when non-matching value is set
             if ( !optionSet ) {
-                elem.selectedIndex = emptyIndex;
+
+                elem.selectedIndex = setIndex;
             }
             return values;
         }
