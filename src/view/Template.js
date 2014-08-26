@@ -1,24 +1,21 @@
-
+//#require ../func/dom/data.js
+//#require ../func/dom/toFragment.js
+//#require ../func/dom/clone.js
+//#require ../func/animation/animate.js
+//#require ../func/extend.js
+//#require ../func/nextUid.js
+//#require ../func/trim.js
+//#require ../func/createWatchable.js
+//#require ../func/nsRegister.js
+//#require ../vars/Renderer.js
+//#require ../vars/Scope.js
+//#require ../vars/Promise.js
+//#require ../vars/Observable.js
 
 (function(){
 
 
-    var m               = window.MetaphorJs,
-        dataFn          = m.data,
-        toFragment      = m.toFragment,
-        Watchable       = m.lib.Watchable,
-        createWatchable = Watchable.create,
-        evaluate        = Watchable.eval,
-        Renderer        = m.view.Renderer,
-        cloneFn         = m.clone,
-        Scope           = m.view.Scope,
-        animate         = m.animate,
-        Promise         = m.lib.Promise,
-        extend          = m.extend,
-        nextUid         = m.nextUid,
-        trim            = m.trim,
-
-        observable      = new m.lib.Observable,
+    var observable      = new Observable,
 
         tplCache        = {},
 
@@ -66,7 +63,65 @@
             return str.substr(0,1) == '.';
         };
 
-    m.define("MetaphorJs.view.Template", {
+
+
+    var Template = function(cfg) {
+
+        var self    = this;
+
+        extend(self, cfg, true, false);
+
+        self.id     = nextUid();
+
+        self.tpl && (self.tpl = trim(self.tpl));
+        self.url && (self.url = trim(self.url));
+
+        var node    = self.node,
+            tpl     = self.tpl || self.url;
+
+        node && node.removeAttribute("mjs-include");
+
+        if (!node) {
+            self.deferRendering = true;
+        }
+
+        if (tpl) {
+
+            if (node && node.firstChild) {
+                data(node, "mjs-transclude", toFragment(node.childNodes));
+            }
+
+            if (isExpression(tpl) && !self.replace) {
+                self.ownRenderer        = true;
+                self._watcher           = createWatchable(self.scope, tpl, self.onChange, self);
+            }
+
+            if (self.replace) {
+                self.ownRenderer        = false;
+            }
+
+            self.initPromise = self.resolveTemplate();
+
+            if (!self.deferRendering || !self.ownRenderer) {
+                self.initPromise.done(self.applyTemplate, self);
+            }
+
+            if (self.ownRenderer && self.parentRenderer) {
+                self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
+            }
+        }
+        else {
+            if (!self.deferRendering && self.ownRenderer) {
+                self.doRender();
+            }
+        }
+
+        if (self.scope instanceof Scope) {
+            self.scope.$on("destroy", self.onScopeDestroy, self);
+        }
+    };
+
+    Template.prototype = {
 
         _watcher:           null,
         _tpl:               null,
@@ -84,62 +139,6 @@
         parentRenderer:     null,
         deferRendering:     false,
         replace:            false,
-
-        initialize: function(cfg) {
-
-            var self    = this;
-
-            extend(self, cfg, true);
-
-            self.id     = nextUid();
-
-            self.tpl && (self.tpl = trim(self.tpl));
-            self.url && (self.url = trim(self.url));
-
-            var node    = self.node,
-                tpl     = self.tpl || self.url;
-
-            node && node.removeAttribute("mjs-include");
-
-            if (!node) {
-                self.deferRendering = true;
-            }
-
-            if (tpl) {
-
-                if (node && node.firstChild) {
-                    dataFn(node, "mjs-transclude", toFragment(node.childNodes));
-                }
-
-                if (isExpression(tpl) && !self.replace) {
-                    self.ownRenderer        = true;
-                    self._watcher           = createWatchable(self.scope, tpl, self.onChange, self);
-                }
-
-                if (self.replace) {
-                    self.ownRenderer        = false;
-                }
-
-                self.initPromise = self.resolveTemplate();
-
-                if (!self.deferRendering || !self.ownRenderer) {
-                    self.initPromise.done(self.applyTemplate, self);
-                }
-
-                if (self.ownRenderer && self.parentRenderer) {
-                    self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
-                }
-            }
-            else {
-                if (!self.deferRendering && self.ownRenderer) {
-                    self.doRender();
-                }
-            }
-
-            if (self.scope instanceof Scope) {
-                self.scope.$on("destroy", self.onScopeDestroy, self);
-            }
-        },
 
         doRender: function() {
             var self = this;
@@ -232,10 +231,10 @@
             }
 
             if (self.replace) {
-                el.parentNode.replaceChild(cloneFn(self._fragment), el);
+                el.parentNode.replaceChild(clone(self._fragment), el);
             }
             else {
-                el.appendChild(cloneFn(self._fragment));
+                el.appendChild(clone(self._fragment));
             }
 
             if (self.ownRenderer) {
@@ -296,10 +295,11 @@
             delete self.tpl;
         }
 
-    }, {
+    };
 
-        getTemplate: getTemplate,
-        loadTemplate: loadTemplate
-    });
+    Template.getTemplate = getTemplate;
+    Template.loadTemplate = loadTemplate;
+
+    nsRegister("MetaphorJs.view.Template", Template);
 
 }());

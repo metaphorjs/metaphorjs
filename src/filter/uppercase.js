@@ -1,0 +1,5 @@
+//#require ../func/nsAdd.js
+
+nsAdd("filter.uppercase", function(val){
+    return val.toUpperCase();
+});

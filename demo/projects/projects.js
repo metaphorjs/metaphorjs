@@ -1,23 +1,39 @@
 
 (function(){
 
-    var firebase;
     var projects;
     var getFirebase = function() {
-        if (!firebase) {
-            firebase   = new Firebase("https://vivid-heat-3129.firebaseio.com");
-            firebase.on("value", function(data){
-                projects = data;
-            });
-        }
+        var firebase   = new Firebase("https://vivid-heat-3129.firebaseio.com");
+        firebase.on("value", function(data){
+            projects = data;
+        });
         return firebase;
     };
+
+    var getProjects = ['$firebase', function(firebase) {
+        var promise    = new MetaphorJs.lib.Promise;
+
+        firebase.on("value", function(projects){
+            promise.resolve(projects);
+        });
+
+        return promise;
+    }];
+
+    MetaphorJs.define("My.App", "MetaphorJs.cmp.App", {
+
+        initApp: function() {
+            this.factory("$firebase", getFirebase, true);
+            this.factory("$projects", getProjects);
+        }
+
+    });
 
     MetaphorJs.define("My.ProjectsView", "MetaphorJs.cmp.View", {
 
         route: [
             {
-                reg: /\/list/,
+                reg: new RegExp('/list'),
                 cmp: "My.ProjectsList",
                 default: true,
                 as: "ctrl"
@@ -29,6 +45,7 @@
             },
             {
                 reg: new RegExp('/edit/([^/]+)'),
+                params: ['projectId'],
                 cmp: "My.EditProject",
                 as: "ctrl"
             }
@@ -38,15 +55,13 @@
 
     MetaphorJs.define("My.ProjectsList", "MetaphorJs.cmp.Component", {
 
-        projects: null,
-
         // instance properties and methods
-        initComponent: function() {
+        initComponent: function(cfg, fProjects) {
 
             var self    = this,
                 projects    = [];
 
-            self.projects.forEach(function(p){
+            fProjects.forEach(function(p){
                 var record = p.val();
                 record.$id = p.name();
                 record.$ref = p;
@@ -57,45 +72,35 @@
         }
 
     }, {
-        // static properties
-        template: "/metaphorjs/demo/projects/list.html",
-        resolve: {
-            projects: function() {
-
-                var firebase   = getFirebase();
-                var promise    = new MetaphorJs.lib.Promise;
-
-                firebase.on("value", function(projects){
-                    promise.resolve(projects);
-                });
-
-                return promise;
-            }
-        }
+        templateUrl: "/metaphorjs/demo/projects/list.html",
+        inject: ['$config', '$projects']
     });
+
 
     MetaphorJs.define("My.NewProject", "MetaphorJs.cmp.Component", {
 
-        template: '/metaphorjs/demo/projects/detail.html',
+        firebase: null,
+        templateUrl: '/metaphorjs/demo/projects/detail.html',
 
-        initComponent: function() {
+        initComponent: function(cfg, firebase) {
+
+            this.firebase = firebase;
             this.scope.project = {};
         },
 
         save: function() {
-            var firebase = getFirebase();
-            firebase.push(this.scope.project, function(){
+            this.firebase.push(this.scope.project, function(){
                 MetaphorJs.pushUrl('/metaphorjs/demo/projects.html');
             });
             return false;
         }
+    }, {
+        inject: ['$config', '$firebase']
     });
 
     MetaphorJs.define("My.EditProject", "MetaphorJs.cmp.Component", {
 
-        template: '/metaphorjs/demo/projects/detail.html',
-
-        initComponent: function(cfg, projectId) {
+        initComponent: function(cfg, projects, projectId) {
 
             var self = this;
 
@@ -107,7 +112,7 @@
                     self.scope.project = record;
                     return false;
                 }
-            })
+            });
 
             if (!self.scope.project) {
                 MetaphorJs.pushUrl("/metaphorjs/demo/projects.html");
@@ -131,8 +136,9 @@
                 MetaphorJs.pushUrl("/metaphorjs/demo/projects.html");
             });
         }
-
-
+    }, {
+        templateUrl: '/metaphorjs/demo/projects/detail.html',
+        inject: ['$config', '$projects', 'projectId']
     });
 
 }());

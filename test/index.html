@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="style.css">
+
+    <script src="numeral.min.js"></script>
+    <script src="moment.min.js"></script>
+
+    <script src="../dist/metaphorjs.all.js"></script>
+    <script src="index.js"></script>
+
+
+</head>
+<body>
+
+    <script type="text/mjs-template" id="test-template">
+        <p>{{.text}}</p>
+        <p>{{.subtext}}</p>
+        <p>{{.a}}</p>
+        <div mjs-transclude></div>
+    </script>
+
+    <script type="text/mjs-template" id="cmp1-template">
+        <h2>{{.title}}</h2>
+        <div mjs-transclude></div>
+    </script>
+
+    <script type="text/mjs-template" id="a+b">
+        <p>a + b = {{ .$root.a + .$root.b }}</p>
+    </script>
+
+    <script type="text/mjs-template" id="a*b">
+        <p>a * b = {{ .$root.a * .$root.b }}</p>
+    </script>
+
+
+    <div id="render" mjs-init=".header = 'new header'; .text = 'new text'; .alist = [0,1,2,3,4]">
+
+        <h1>App 1</h1>
+
+        <div class="header">{{.header}}</div>
+        <div class="article">
+
+            {{.rootText | uppercase }}
+
+            <div class="menu" mjs-bind-html=".subtext"></div>
+            <p>
+                Here is some {{ .text }} <span> and {{.subtext}}</span> <sup>{{ .text }}</sup>
+                <sub> {{ .bool ? "true" : "false" }}</sub>
+                <span>{{ .num | numeral:'0,00.0000'}}</span>
+                <span>{{ .date | moment:'LLL'}}</span>
+            </p>
+
+            <hr>
+
+            <p mjs-class="{cls1: .bool, cls2: .a == 0}" mjs-animate>
+                {{ .a + .b }}
+            </p>
+
+            <hr>
+
+            <a href="http://{{.text}}.com" mjs-click=".bool = !.bool">{{.subtext | limitTo:.a}}</a><br>
+            <input mjs-bind=".a * .b"/>
+            <input mjs-model=".a" type="number" mjs-input-type="number"/>
+            <br>
+
+            <input type="checkbox" mjs-model="bool"/>
+            <input type="radio" name="r" value="header" mjs-model="header"/>1
+            <label><input type="radio" name="r" value="header1"/>2</label>
+            <input type="radio" name="r" value="header2"/>3
+            <br><br>
+
+            <select mjs-model=".a" mjs-input-type="number" mjs-options=".alist">
+                <option>not selected</option>
+            </select>
+            <br><br>
+            <hr>
+
+
+            <input mjs-model=".newItem" mjs-enter="if (.newItem) {.list.push({bool: false, txt: .newItem}); .newItem = '';}"/>
+            <input type="button"
+                   mjs-disabled="!.newItem"
+                   mjs-click=".list.push({bool: false, txt: .newItem}); .newItem = '';"
+                   value="Add item"/>
+
+            <ul mjs-show=".bool" mjs-animate>
+                <li mjs-each="item in .list | filter:.listFilter | sortBy:'txt':.sortBy" mjs-animate>
+                    <label mjs-class="{cls3: .item.bool}">
+                        <input type="checkbox" mjs-model=".item.bool"/>
+                        {{.$index}} -
+                        {{.item.txt}} -
+                        {{ .$first ? "first" : "" }} -
+                        {{ .$last ? "last" : "" }} -
+                        {{ .$even ? "even" : "" }} -
+                        {{ .$odd ? "odd" : "" }}
+                    </label>
+                    <a href="#" mjs-click=".$parent.list.splice(.$index,1);">x</a>
+                </li>
+            </ul>
+
+            <input mjs-model=".listFilter" placeholder="Search"/>
+            <a href="#" mjs-click=".sortBy='asc'">asc</a>
+            <a href="#" mjs-click=".sortBy='desc'">desc</a>
+
+            <hr>
+
+            <div mjs-include="test-template" mjs-hide="!.bool" mjs-animate>
+                <p>transcluded text</p>
+            </div>
+
+            <hr>
+
+            <div mjs-include="test-template"></div>
+
+            <hr>
+
+            <form name="myForm" mjs-validate mjs-class="{error: .myForm.$invalid}" mjs-animate>
+                <h2>Test form</h2>
+                <div>
+                    <input name="field1" data-validate-required mjs-class="{error: .myForm.field1.$invalid}"/>
+                </div>
+                <div mjs-class="{error: .myForm.radio1.$invalid}">
+                    <label><input type="radio" name="radio1" value="1" data-validate-required/> -- 1</label>
+                    <label><input type="radio" name="radio1" value="2"/> -- 2</label>
+                    <label><input type="radio" name="radio1" value="3"/> -- 3</label>
+                </div>
+                <div>
+                    <input type="submit" value="Submit"/>
+                    <input type="reset" value="Reset"/>
+                </div>
+            </form>
+
+
+            <hr mjs-init='.sep = "/\\n|,/"'>
+
+            <label><input type="radio" name="sep" value="/\n|,/" mjs-model=".sep"/> /\n|,/</label>
+            <label><input type="radio" name="sep" value="/\n/"/> /\n/</label>
+            <label><input type="radio" name="sep" value=","/> ,</label><br><br>
+
+
+            <textarea mjs-model="toList:.sep >> .dynamicList | fromList"></textarea>
+
+            <ul>
+                <li mjs-each="item in .dynamicList" mjs-recursive>
+                    {{.item}}
+                </li>
+            </ul>
+
+            <select
+                mjs-options="{
+                    name: .item,
+                    value: .$index,
+                    group: .$index - (.$index % 2),
+                    disabledGroup: .$index == 0,
+                    disabled: .$index == 4
+                    } in .dynamicList">
+                <option>default value</option>
+            </select>
+
+        </div>
+
+        <div class="article">
+
+            <div mjs-include="template.html">
+                <p>Transcluded text</p>
+            </div>
+
+            <hr>
+
+            <div mjs-cmp="Test.MyComponent as ctrl">
+                <p mjs-cmp-prop="para">Component's transcluded text + {{ .$root.a}}</p>
+                <a href="#" mjs-click=".ctrl.reverse()">reverse</a> |
+                <a href="#" mjs-click=".ctrl.createNew()">create new component on existing element</a> |
+                <a href="#" mjs-click=".ctrl.createRender()">create new component and render to</a> |
+                <a href="#" mjs-click=".ctrl.createDialog()">create new dialog</a>
+                <br><br>
+                <button mjs-click=".store.load()">Load store</button>
+                <button mjs-click=".store.clear()">Clear store</button>
+                <ul>
+                    <li mjs-each-in-store="item in .store" mjs-animate>
+                        {{ .item.get("name") }}
+                    </li>
+                </ul>
+            </div>
+
+            <hr>
+
+            <div id="myComponent1" mjs-cmp="Test.MyComponent as ctrl">
+                <p>This is another instance with deferred value: {{ .deferred }}</p>
+            </div>
+
+            <hr>
+
+            <div mjs-cmp="Test.TplComponent as ctrl" mjs-if=".$parent.bool" mjs-animate>
+                <h2>{{ .title }}</h2>
+                mjs-include change template:
+                <a href="#" mjs-click=".tpl='a+b'">a + b</a> |
+                <a href="#" mjs-click=".tpl='a*b'">a * b</a>
+
+                <div mjs-include=".tpl" mjs-animate></div>
+            </div>
+
+            <hr>
+
+            <div mjs-cmp="Test.StringTemplate"></div>
+
+            <hr>
+
+            <div mjs-cmp="Test.ChangeTemplate">
+                mjs-cmp change template:
+                <a href="#" mjs-click=".tpl=.tpl1">tpl1</a> |
+                <a href="#" mjs-click=".tpl=.tpl2">tpl2</a>
+            </div>
+
+            <hr>
+
+            <div mjs-view="Test.MyView" mjs-animate>
+                <p>This component controller by View</p>
+            </div>
+
+            <hr>
+
+            <div id="newComponent">
+                Dynamically created component on existing element will go here
+            </div>
+
+            <hr>
+
+            <div id="renderToComponent">
+                Dynamically created component with renderTo will go here
+            </div>
+
+            <hr>
+
+            pushUrl: <a href="/1">/1</a> |
+            <a href="/2">/2</a> |
+            <a href="/3">/3</a> |
+            <a href="http://www.kuindji.com">outside</a><br><br>
+
+            <hr>
+
+            <div mjs-ignore>
+                This element is ignored by renderer: {{ .$root.a }}
+            </div>
+
+            <hr>
+
+            <div mjs-view mjs-view-cmp=".viewCmp" mjs-view-default="Test.ViewComponent1">
+                <p>
+                    change cmp:
+                    <a href="#" mjs-click=".$parent.viewCmp = 'Test.ViewComponent1'">Cmp1</a> |
+                    <a href="#" mjs-click=".$parent.viewCmp = 'Test.ViewComponent2'">Cmp2</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+
+    <div mjs-app="Test.MyApp2" mjs-init=".a = 100" mjs-cloak>
+        <h1>Another app</h1>
+        <p>a = {{.a}}</p>
+        <p>resolved = {{.resolved}}</p>
+        <p>The following utilizes recursive text renderer:</p>
+        <p mjs-recursive>This is level 1: {{.level1}}</p>
+        <p>
+            <a href="#" mjs-click=".changeLevel2()">Change level 2</a> |
+            <a href="#" mjs-click=".increaseB()">Increase B</a>
+        </p>
+        <p>using normal expression with filter: {{ 'key' | l}}</p>
+        <p>{{.b}} {{ 'plr' | p:.b}}</p>
+        <p mjs-recursive>{{'subkey1' | l}}</p>
+        <p>using lang expression: {[ key ]} {{.b}} {[ plr | p:.b]}</p>
+        <p mjs-bind-html=".linkified | linkify"></p>
+        <p><input type="number" mjs-input-type="number" mjs-model=".people"/></p>
+        <p mjs-recursive>{[ viewing | p:.people]}</p>
+    </div>
+
+
+
+
+</body>
+</html>

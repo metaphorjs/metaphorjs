@@ -51,4 +51,6 @@ Model/Record/Store classes.
 
 A few Angular-like demos:
 
-[Basics](http://kuindji.com/js/metaphorjs/demo/basics.html), [Todo](http://kuindji.com/js/metaphorjs/demo/todo.html)
+[Basics](http://kuindji.com/js/metaphorjs/demo/basics.html),
+[Todo](http://kuindji.com/js/metaphorjs/demo/todo.html),
+[Recursive rendering](http://kuindji.com/js/metaphorjs/demo/recursive.html)

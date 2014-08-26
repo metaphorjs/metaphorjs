@@ -1,13 +1,11 @@
-
+//#require ../func/isPlainObject.js
+//#require ../func/array/isArray.js
+//#require ../func/extend.js
+//#require ../func/nsAdd.js
 
 (function(){
 
-    var m               = window.MetaphorJs,
-        extend          = m.extend,
-        isArray         = m.isArray,
-        isPlainObject   = m.isPlainObject,
-
-        pluralDef   = function($number, $locale) {
+    var pluralDef       = function($number, $locale) {
 
             if ($locale == "pt_BR") {
                 // temporary set a locale for brasilian
@@ -187,7 +185,7 @@
         }
     };
 
-    extend(Text.prototype, {
+    Text.prototype = {
 
         store: null,
         locale: "en",
@@ -240,7 +238,7 @@
             }
         }
 
-    }, false, false);
+    };
 
 
     var globalText  = new Text;
@@ -250,12 +248,13 @@
     };
 
 
-    m.r("MetaphorJs.lib.Text", Text);
+    MetaphorJs.lib.Text = Text;
 
-    m.r("filter.l", function(key, scope) {
+    nsAdd("filter.l", function(key, scope) {
         return scope.$app.lang.get(key);
     });
-    m.r("filter.p", function(key, scope, number) {
+
+    nsAdd("filter.p", function(key, scope, number) {
         return scope.$app.lang.plural(key, parseInt(number, 10) || 0);
     });
 

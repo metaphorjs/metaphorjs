@@ -1,87 +1,86 @@
-(function(){
+//#require ../func/extend.js
+//#require ../func/emptyFn.js
+//#require ../func/class/defineClass.js
+//#require ../vars/Observable.js
 
-    var Observable  = MetaphorJs.lib.Observable,
-        extend       = MetaphorJs.extend;
+
+/**
+ * @namespace MetaphorJs
+ * @class MetaphorJs.cmp.Base
+ */
+defineClass("MetaphorJs.cmp.Base", {
 
     /**
-     * @namespace MetaphorJs
-     * @class MetaphorJs.cmp.Base
+     * @var bool
+     * @access protected
      */
-    MetaphorJs.d("MetaphorJs.cmp.Base", {
+    destroyed:      false,
 
-        /**
-         * @var bool
-         * @access protected
-         */
-        destroyed:      false,
+    /**
+     * @var MetaphorJs.lib.Observable
+     * @access private
+     */
+    _observable:    null,
 
-        /**
-         * @var MetaphorJs.lib.Observable
-         * @access private
-         */
-        _observable:    null,
+    /**
+     * @param {object} cfg
+     */
+    initialize: function(cfg) {
 
-        /**
-         * @param {object} cfg
-         */
-        initialize: function(cfg) {
+        var self    = this;
+        cfg         = cfg || {};
 
-            var self    = this;
-            cfg         = cfg || {};
+        self._observable    = new Observable;
+        extend(self, self._observable.getApi(), true, false);
 
-            self._observable    = new Observable;
-            extend(self, self._observable.getApi());
+        if (cfg.callback) {
 
-            if (cfg.callback) {
+            var cb      = cfg.callback,
+                scope   = cb.scope || self;
+            delete cb.scope;
 
-                var cb      = cfg.callback,
-                    scope   = cb.scope || self;
-                delete cb.scope;
-
-                for (var k in cb) {
-                    if (cb.hasOwnProperty(k)) {
-                        self.on(k, cb[k], scope);
-                    }
+            for (var k in cb) {
+                if (cb.hasOwnProperty(k)) {
+                    self.on(k, cb[k], scope);
                 }
-
-                delete cfg.callback;
             }
 
-            extend(self, cfg, true);
-        },
+            delete cfg.callback;
+        }
 
-        /**
-         * @method
-         */
-        destroy:    function() {
+        extend(self, cfg, true, false);
+    },
 
-            var self    = this;
+    /**
+     * @method
+     */
+    destroy:    function() {
 
-            if (self.destroyed) {
-                return;
-            }
+        var self    = this;
 
-            if (self.trigger('beforedestroy', self) === false) {
-                return false;
-            }
+        if (self.destroyed) {
+            return;
+        }
 
-            self.onDestroy();
-            self.destroyed  = true;
+        if (self.trigger('beforedestroy', self) === false) {
+            return false;
+        }
 
-            self.trigger('destroy', self);
+        self.onDestroy();
+        self.destroyed  = true;
 
-            self._observable.destroy();
-            delete this._observable;
+        self.trigger('destroy', self);
 
-        },
+        self._observable.destroy();
+        delete this._observable;
 
-        /**
-         * @method
-         * @access protected
-         */
-        onDestroy:      MetaphorJs.emptyFn
-    });
+    },
+
+    /**
+     * @method
+     * @access protected
+     */
+    onDestroy:      emptyFn
+});
 
 
-
-}());

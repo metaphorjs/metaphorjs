@@ -1,0 +1,3 @@
+
+
+var numberFormats = MetaphorJs.numberFormats = {};

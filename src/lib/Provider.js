@@ -1,13 +1,12 @@
+//#require ../func/isThenable.js
+//#require ../func/array/slice.js
+//#require ../func/bind.js
+//#require ../vars/Promise.js
+
 
 (function(){
 
-    var m           = window.MetaphorJs,
-        extend      = m.extend,
-        Promise     = m.lib.Promise,
-        isThenable  = m.isThenable,
-        slice       = Array.prototype.slice,
-        bind        = m.bind,
-        VALUE       = 1,
+    var VALUE       = 1,
         CONSTANT    = 2,
         FACTORY     = 3,
         SERVICE     = 4,
@@ -18,7 +17,7 @@
         this.store  = {};
     };
 
-    extend(Provider.prototype, {
+    Provider.prototype = {
 
         store: null,
 
@@ -215,9 +214,9 @@
             delete this.scope;
         }
 
-    });
+    };
 
-    m.r("MetaphorJs.lib.Provider", Provider);
+    MetaphorJs.lib.Provider = Provider;
 
     Provider.global = function() {
         return globalProvider;

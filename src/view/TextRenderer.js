@@ -1,17 +1,13 @@
+//#require ../func/nextUid.js
+//#require ../func/bind.js
+//#require ../func/trim.js
+//#require ../func/createWatchable.js
+//#require ../func/nsRegister.js
+//#require ../vars/Observable.js
 
 (function(){
 
-    var m                       = window.MetaphorJs,
-        extend                  = m.extend,
-        nextUid                 = m.nextUid,
-        bind                    = m.bind,
-        trim                    = m.trim,
-        Observable              = m.lib.Observable,
-        Watchable               = m.lib.Watchable,
-
-        createWatchable         = Watchable.create,
-
-        startSymbol             = '{{',
+    var startSymbol             = '{{',
         endSymbol               = '}}',
         startSymbolLength       = 2,
         endSymbolLength         = 2,
@@ -20,6 +16,8 @@
         langEndSymbol           = ']}',
         langStartLength         = 2,
         langEndLength           = 2,
+
+        rReplaceEscape          = /\\{/g,
 
         observer                = new Observable,
 
@@ -58,14 +56,14 @@
         self.render();
     };
 
-    extend(TextRenderer.prototype, {
+    TextRenderer.prototype = {
 
         id: null,
         parent: null,
         isRoot: null,
         scope: null,
         origin: "",
-        template: null,
+        processed: null,
         text: null,
         watchers: null,
         children: null,
@@ -85,10 +83,18 @@
 
         getString: function() {
             var self = this;
+
             if (self.text === null) {
                 self.render();
             }
-            return self.text;
+
+            var text = self.text;
+
+            if (text.indexOf('\\{') != -1) {
+                return text.replace(rReplaceEscape, '{');
+            }
+
+            return text;
         },
 
 
@@ -136,7 +142,8 @@
             // regular keys
             while(index < textLength) {
                 if (((startIndex = text.indexOf(startSymbol, index)) != -1) &&
-                    ((endIndex = text.indexOf(endSymbol, startIndex + startSymbolLength)) != -1)) {
+                    ((endIndex = text.indexOf(endSymbol, startIndex + startSymbolLength)) != -1) &&
+                    text.substr(startIndex - 1, 1) != '\\') {
 
                     result += text.substring(index, startIndex);
 
@@ -167,7 +174,8 @@
             while(index < textLength) {
 
                 if (((startIndex = text.indexOf(langStartSymbol, index)) != -1) &&
-                    ((endIndex = text.indexOf(langEndSymbol, startIndex + langStartLength)) != -1)) {
+                    ((endIndex = text.indexOf(langEndSymbol, startIndex + langStartLength)) != -1) &&
+                    text.substr(startIndex - 1, 1) != '\\') {
 
                     result += text.substring(index, startIndex);
 
@@ -305,7 +313,7 @@
             delete self.watchers;
             delete self.children;
             delete self.origin;
-            delete self.template;
+            delete self.processed;
             delete self.text;
             delete self.scope;
             delete self.data;
@@ -319,12 +327,10 @@
 
         }
 
-    }, true, false);
-
-
+    };
 
     TextRenderer.create = factory;
 
-    m.r("MetaphorJs.view.TextRenderer", TextRenderer);
+    nsRegister("MetaphorJs.view.TextRenderer", TextRenderer);
 
 }());

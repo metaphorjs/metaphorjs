@@ -1,0 +1,36 @@
+{
+    "metaphorjs": {
+        "wrap": true,
+        "target": "dist/metaphorjs.js",
+        "files": [
+            "src/MetaphorJs.js",
+            "src/cmp/*",
+            "src/directive/attr/*",
+            "src/directive/tag/*",
+            "src/filter/*",
+            "src/bootstrap/apps.js"
+        ]
+    },
+
+    "all": {
+        "auto": true,
+        "wrap": true,
+        "target": "dist/metaphorjs.all.js",
+        "appendFilesFrom": [
+            "metaphorjs",
+            ["../metaphorjs-model/metaphorjs.json", "metaphorjs"],
+            ["../metaphorjs-dialog/metaphorjs.json", "metaphorjs"],
+            ["../metaphorjs-validator/metaphorjs.json", "metaphorjs"]
+        ]
+    },
+
+    "compile-all": {
+        "target": "dist/metaphorjs.all.min.js",
+        "compile": "all"
+    },
+
+    "compile-metaphorjs": {
+        "target": "dist/metaphorjs.min.js",
+        "compile": "metaphorjs"
+    }
+}

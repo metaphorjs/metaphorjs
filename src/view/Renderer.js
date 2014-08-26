@@ -1,28 +1,26 @@
+//#require ../func/nextUid.js
+//#require ../func/array/isArray.js
+//#require ../func/array/toArray.js
+//#require ../func/isThenable.js
+//#require ../func/directive.js
+//#require ../func/nextUid.js
+//#require ../func/nsGet.js
+//#require ../func/dom/select.js
+//#require ../func/error.js
+//#require ../func/nsRegister.js
+//#require ../func/nsGet.js
+//#require ../vars/nodeTextProp.js
+//#require ../vars/Scope.js
+//#require ../vars/Observable.js
+//#require ../vars/TextRenderer.js
+//#require ../vars/Promise.js
 
 (function(){
 
-    var m                       = window.MetaphorJs,
-        nextUid                 = m.nextUid,
-        isArray                 = m.isArray,
-        Scope                   = m.view.Scope,
-        Observable              = m.lib.Observable,
-        TextRenderer            = m.view.TextRenderer,
-        isThenable              = m.isThenable,
-        toArray                 = m.toArray,
-        getAttributeHandlers    = m.getAttributeHandlers,
-        handlers                = null,
-        g                       = m.g,
+    var handlers                = null,
         createText              = TextRenderer.create,
-        Promise                 = m.lib.Promise,
-        select                  = m.select,
-        Renderer,
-        textProp                = function(){
-            var node    = document.createTextNode("");
-            return typeof node.textContent == "string" ? "textContent" : "nodeValue";
-        }();
 
-
-    var nodeChildren = function(res, el, fn, fnScope, finish, cnt) {
+        nodeChildren = function(res, el, fn, fnScope, finish, cnt) {
 
             var children = [],
                 i, len;
@@ -84,14 +82,16 @@
                 return;
             }
 
-            //try {
+
             if (el.nodeType) {
-                res = fn.call(fnScope, el);
+                try {
+                    res = fn.call(fnScope, el);
+                }
+                catch (thrownError) {
+                    error(thrownError);
+                }
             }
-            //}
-            //catch (thrownError) {
-            //    MetaphorJs.error(thrownError);
-            //}
+
 
             if (res !== false) {
 
@@ -117,8 +117,26 @@
 
         observer = new Observable;
 
+    var Renderer = function(el, scope, parent) {
 
-    Renderer = MetaphorJs.d("MetaphorJs.view.Renderer", {
+        var self            = this;
+
+        self.id             = nextUid();
+        self.el             = el;
+        self.scope          = scope;
+        self.texts          = [];
+        self.parent         = parent;
+
+        if (scope instanceof Scope) {
+            scope.$on("destroy", self.destroy, self);
+        }
+
+        if (parent) {
+            parent.on("destroy", self.destroy, self);
+        }
+    };
+
+    Renderer.prototype = {
 
         id: null,
         el: null,
@@ -127,25 +145,6 @@
         parent: null,
         destroyed: false,
         _observable: null,
-
-        initialize: function(el, scope, parent) {
-
-            var self            = this;
-
-            self.id             = nextUid();
-            self.el             = el;
-            self.scope          = scope;
-            self.texts          = [];
-            self.parent         = parent;
-
-            if (scope instanceof Scope) {
-                scope.$on("destroy", self.destroy, self);
-            }
-
-            if (parent) {
-                parent.on("destroy", self.destroy, self);
-            }
-        },
 
         on: function(event, fn, context) {
             return observer.on(event + '-' + this.id, fn, context);
@@ -158,7 +157,6 @@
         createChild: function(node) {
             return new Renderer(node, this.scope, this);
         },
-
 
         getEl: function() {
             return this.el;
@@ -206,7 +204,7 @@
             if (nodeType == 3) {
 
                 recursive       = node.parentNode.getAttribute("mjs-recursive") !== null;
-                textRenderer    = createText(scope, node[textProp], null, texts.length, recursive);
+                textRenderer    = createText(scope, node[nodeTextProp], null, texts.length, recursive);
 
                 if (textRenderer) {
                     textRenderer.subscribe(self.onTextChange, self);
@@ -236,7 +234,7 @@
                     res;
 
                 n = "tag." + tag;
-                if (f = g(n, true)) {
+                if (f = nsGet(n, true)) {
 
                     res = self.runHandler(f, scope, node);
 
@@ -284,7 +282,7 @@
 
                 for (i = 0, len = attrs.length; i < len; i++) {
 
-                    if (!g(n, true)) {
+                    if (!nsGet(n, true)) {
 
                         textRenderer = createText(scope, attrs[i].value, null, texts.length, recursive);
 
@@ -338,7 +336,7 @@
                 }
             }
             else {
-                text.node[textProp] = res;
+                text.node[nodeTextProp] = res;
             }
         },
 
@@ -367,29 +365,10 @@
 
             observer.trigger("destroy-" + self.id);
         }
-
-
-    }, {
-        eachNode: eachNode
-    });
-
-
-    var initApps = function() {
-
-        var appFn       = MetaphorJs.app,
-            appNodes    = select("[mjs-app]"),
-            i, l, el,
-            done        = function(app) {
-                app.run();
-            };
-
-        for (i = -1, l = appNodes.length; ++i < l;){
-            el      = appNodes[i];
-            appFn(el, el.getAttribute && el.getAttribute("mjs-app")).done(done);
-        }
-
     };
 
-    MetaphorJs.onReady(initApps);
+
+    nsRegister("MetaphorJs.view.Renderer", Renderer);
+
 
 }());

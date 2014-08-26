@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html mjs-app>
+<head>
+    <script src="metaphorjs.min.js"></script>
+</head>
+<body>
+.a = <input type="number" mjs-input-type="number" mjs-model=".a" value="1"/> (number)<br>
+.b = <input type="number" mjs-input-type="number" mjs-model=".b" value="2"/> (number)<br>
+.c = <input mjs-model=".c" value="\{{.a}} + \{{.b}}"/> (string)<br>
+.d = <input mjs-model=".d" value="\{{.c}} = \{{.a + .b}}"/> (string)<br><br>
+<p class="well" mjs-recursive>
+    <b>.d</b> via mjs-bind: <span mjs-recursive mjs-bind=".d"></span><br>
+    <b>.d</b> via mjs-bind-html: <span mjs-recursive mjs-bind-html=".d"></span><br>
+    <b>.d</b> via curlies: {{.d}}
+</p>
+<p>Enter list items:</p>
+<textarea mjs-model="toList:.sep >> .list" mjs-data-binding="input" style="width:100%;" rows="5">first line, second line
+\{{.c}}
+\{{.d}}</textarea>
+<p>Use this separator:</p>
+<label><input type="radio" name="sep" value="/\n|,/" mjs-model=".sep" checked/> /\n|,/</label> |
+<label><input type="radio" name="sep" value="/\n/"/> /\n/</label> |
+<label><input type="radio" name="sep" value=","/> ,</label><br><br>
+<ul class="well">
+    <li mjs-each="item in .list" mjs-recursive>
+        {{.item}}
+    </li>
+</ul>
+</body>
+</html>

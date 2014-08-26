@@ -1,18 +1,13 @@
-
+//#require ../func/bind.js
+//#require ../func/event/addListener.js
+//#require ../func/event/removeListener.js
+//#require ../func/dom/getValue.js
+//#require ../func/dom/setValue.js
+//#require ../func/dom/isSubmittable.js
+//#require ../func/browser/isAndroid.js
+//#require ../func/browser/browserHasEvent.js
 
 (function(){
-
-    var extend          = MetaphorJs.extend,
-        bind            = MetaphorJs.bind,
-        addListener     = MetaphorJs.addListener,
-        removeListener  = MetaphorJs.removeListener,
-        getValue        = MetaphorJs.getValue,
-        setValue        = MetaphorJs.setValue,
-
-        isSubmittable	= function(elem) {
-            var type	= elem.type ? elem.type.toLowerCase() : '';
-            return elem.nodeName.toLowerCase() == 'input' && type != 'radio' && type != 'checkbox';
-        };
 
     var Input   = function(el, changeFn, changeFnContext, submitFn) {
 
@@ -38,7 +33,7 @@
         }
     };
 
-    extend(Input.prototype, {
+    Input.prototype = {
 
         el: null,
         inputType: null,
@@ -123,8 +118,7 @@
 
         initTextInput: function() {
 
-            var browser     = MetaphorJs.browser,
-                composing   = false,
+            var composing   = false,
                 self        = this,
                 node        = self.el,
                 listeners   = self.listeners,
@@ -133,7 +127,7 @@
             // In composition mode, users are still inputing intermediate text buffer,
             // hold the listener until composition is done.
             // More about composition events: https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent
-            if (!browser.android) {
+            if (!isAndroid()) {
 
                 var compositionStart    = function() {
                     composing = true;
@@ -160,7 +154,7 @@
 
             // if the browser does support "input" event, we are fine - except on IE9 which doesn't fire the
             // input event on backspace, delete or cut
-            if (browser.hasEvent('input')) {
+            if (browserHasEvent('input')) {
                 listeners.push(["input", listener]);
                 addListener(node, "input", listener);
 
@@ -196,7 +190,7 @@
                 addListener(node, "keydown", keydown);
 
                 // if user modifies input value using context menu in IE, we need "paste" and "cut" events to catch it
-                if (browser.hasEvent('paste')) {
+                if (browserHasEvent('paste')) {
 
                     listeners.push(["paste", deferListener]);
                     listeners.push(["cut", deferListener]);
@@ -213,16 +207,21 @@
             addListener(node, "change", listener);
         },
 
-        onTextInputChange: function() {
+        processValue: function(val) {
 
-            var self    = this,
-                val     = self.el.value;
-
-            switch (self.inputType) {
+            switch (this.inputType) {
                 case "number":
                     val     = parseInt(val, 10);
                     break;
             }
+
+            return val;
+        },
+
+        onTextInputChange: function() {
+
+            var self    = this,
+                val     = self.getValue();
 
             self.cb.call(self.cbContext, val);
         },
@@ -292,17 +291,11 @@
                 return self.el.checked ? (self.el.getAttribute("value") || true) : false;
             }
             else {
-                return getValue(self.el);
+                return self.processValue(getValue(self.el));
             }
         }
-    });
+    };
 
-    window.MetaphorJs || (window.MetaphorJs = {});
-
-    if (!MetaphorJs.lib) {
-        MetaphorJs.lib = {};
-    }
-
-    MetaphorJs.lib.Input = Input;
+   MetaphorJs.lib.Input = Input;
 
 }());
