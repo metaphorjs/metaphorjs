@@ -1,8 +1,14 @@
-var parseJSON   = function(data) {
-    if (typeof JSON != "undefined") {
-        return JSON.parse(data);
-    }
-    else {
-        return (new Function("return " + data))();
-    }
-};
+
+var isUndefined = require("./isUndefined.js");
+
+module.exports = function() {
+
+    return isUndefined(JSON) ?
+           function(data) {
+               return JSON.parse(data);
+           } :
+           function(data) {
+               return (new Function("return " + data))();
+           };
+}();
+

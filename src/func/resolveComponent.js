@@ -1,13 +1,17 @@
-//#require dom/toFragment.js
-//#require dom/data.js
-//#require dom/addClass.js
-//#require dom/removeClass.js
-//#require nsGet.js
-//#require ../vars/Template.js
-//#require ../vars/Promise.js
-//#require ../vars/Provider.js
 
-var resolveComponent = MetaphorJs.resolveComponent = function(cmp, cfg, scope, node, args) {
+
+var toFragment = require("./dom/toFragment.js"),
+    data = require("./dom/data.js"),
+    addClass = require("./dom/addClass.js"),
+    removeClass = require("./dom/removeClass.js"),
+    nsGet = require("../../../metaphorjs-namespace/src/func/nsGet.js"),
+    Template = require("../view/Template.js"),
+    Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
+    Provider = require("../lib/Provider.js"),
+    isString = require("./isString.js"),
+    isFunction = require("./isFunction.js");
+
+module.exports = function(cmp, cfg, scope, node, args) {
 
     var hasCfg  = cfg !== false;
 
@@ -20,7 +24,7 @@ var resolveComponent = MetaphorJs.resolveComponent = function(cmp, cfg, scope, n
     cfg.scope   = cfg.scope || scope;
     cfg.node    = cfg.node || node;
 
-    var constr      = typeof cmp == "string" ? nsGet(cmp) : cmp;
+    var constr      = isString(cmp) ? nsGet(cmp) : cmp;
 
     if (!constr) {
         throw "Component " + cmp + " not found";
@@ -61,14 +65,18 @@ var resolveComponent = MetaphorJs.resolveComponent = function(cmp, cfg, scope, n
 
                 fn = constr.resolve[i];
 
-                if (typeof fn == "function") {
+                if (isFunction(fn)) {
                     d.resolve(fn(scope, node));
                 }
-                else if (typeof fn == "string") {
+                else if (isString(fn)) {
                     d.resolve(injectFn.resolve(fn));
                 }
                 else {
-                    d.resolve(injectFn.call(injectCt, fn, null, false, extend({}, inject, cfg, false, false)));
+                    d.resolve(
+                        injectFn.call(
+                            injectCt, fn, null, false, extend({}, inject, cfg, false, false)
+                        )
+                    );
                 }
 
             }(i));
@@ -101,12 +109,18 @@ var resolveComponent = MetaphorJs.resolveComponent = function(cmp, cfg, scope, n
         p = new Promise;
 
         Promise.all(defers).done(function(){
-            p.resolve(injectFn.call(injectCt, constr, null, true, extend({}, inject, cfg, false, false), args));
+            p.resolve(
+                injectFn.call(
+                    injectCt, constr, null, true, extend({}, inject, cfg, false, false), args
+                )
+            );
         });
     }
     else {
         p = Promise.resolve(
-            injectFn.call(injectCt, constr, null, true, extend({}, inject, cfg, false, false), args)
+            injectFn.call(
+                injectCt, constr, null, true, extend({}, inject, cfg, false, false), args
+            )
         );
     }
 

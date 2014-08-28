@@ -1,8 +1,11 @@
-var parseXML = function(data, type) {
+
+var isString = require("./isString.js");
+
+module.exports = function(data, type) {
 
     var xml, tmp;
 
-    if (!data || typeof data !== "string") {
+    if (!data || !isString(data)) {
         return null;
     }
 

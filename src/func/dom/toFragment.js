@@ -1,9 +1,11 @@
 
-var toFragment = MetaphorJs.toFragment = function(nodes) {
+var isString = require("../isString.js");
+
+module.exports = function(nodes) {
 
     var fragment = document.createDocumentFragment();
 
-    if (typeof nodes == "string") {
+    if (isString(nodes)) {
         var tmp = document.createElement('div');
         tmp.innerHTML = nodes;
         nodes = tmp.childNodes;

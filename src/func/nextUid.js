@@ -1,8 +1,9 @@
 
+
 /**
- * @return {String}
+ * @returns {String}
  */
-var nextUid = MetaphorJs.nextUid = function(){
+module.exports = function(){
     var uid = ['0', '0', '0'];
 
     // from AngularJs

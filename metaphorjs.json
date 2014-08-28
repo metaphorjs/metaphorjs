@@ -1,6 +1,7 @@
 {
     "metaphorjs": {
         "wrap": true,
+        "global": true,
         "target": "dist/metaphorjs.js",
         "files": [
             "src/MetaphorJs.js",
@@ -15,13 +16,15 @@
     "all": {
         "auto": true,
         "wrap": true,
+        "global": true,
         "target": "dist/metaphorjs.all.js",
         "appendFilesFrom": [
             "metaphorjs",
             ["../metaphorjs-model/metaphorjs.json", "metaphorjs"],
             ["../metaphorjs-dialog/metaphorjs.json", "metaphorjs"],
             ["../metaphorjs-validator/metaphorjs.json", "metaphorjs"]
-        ]
+        ],
+        "expose": ["onReady", "initApp", "cs", "resolveComponent", "animate", "stopAnimation"]
     },
 
     "compile-all": {

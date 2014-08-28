@@ -1,6 +1,9 @@
-//#require ../../func/directive.js
-//#require ../../func/class/defineClass.js
-//#require show.js
+
+
+var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
+    defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js");
+
+require("./show.js");
 
 registerAttributeHandler("mjs-hide", 500, defineClass(null, "attr.mjs-show", {
 

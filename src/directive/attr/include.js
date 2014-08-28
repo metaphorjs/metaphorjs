@@ -1,5 +1,7 @@
-//#require ../../func/directive.js
-//#require ../../vars/Template.js
+
+
+var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
+    Template = require("../../view/Template.js");
 
 registerAttributeHandler("mjs-include", 900, function(scope, node, tplExpr, parentRenderer){
 

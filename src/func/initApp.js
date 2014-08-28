@@ -1,8 +1,9 @@
-//#require resolveComponent.js
-//#require error.js
-//#require ../vars/Promise.js
 
-var initApp = MetaphorJs.initApp = function(node, cls, data) {
+var error = require("./error.js"),
+    resolveComponent = require("./resolveComponent.js"),
+    Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js");
+
+module.exports = function(node, cls, data) {
 
     node.removeAttribute("mjs-app");
 

@@ -1,5 +1,6 @@
-//#require ../../func/directive.js
-//#require ../../vars/Template.js
+
+var registerTagHandler = require("../../func/directive/registerTagHandler.js"),
+    Template = require("../../view/Template.js");
 
 registerTagHandler("mjs-include", 900, function(scope, node, value, parentRenderer) {
 

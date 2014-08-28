@@ -1,5 +1,8 @@
-//#require ../func/nsAdd.js
-//#require ../vars/numberFormats.js
+
+
+var nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
+    numberFormats = require("../var/numberFormats.js");
+
 
 nsAdd("filter.numeral",  function(val, scope, format) {
     format  = numberFormats[format] || format;

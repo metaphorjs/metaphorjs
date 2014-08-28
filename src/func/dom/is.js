@@ -1,11 +1,12 @@
-//#require select.js
+
+var select = require("./select.js");
 
 /**
  * @param {Element} el
  * @param {String} selector
  * @returns {boolean}
  */
-var is = MetaphorJs.is = function(el, selector) {
+module.exports = function(el, selector) {
 
     var els = select(selector, el.parentNode),
         i, l;

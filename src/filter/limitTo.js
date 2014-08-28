@@ -1,11 +1,13 @@
-//#require ../func/nsAdd.js
-//#require ../func/array/isArray.js
+
+var nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
+    isArray = require("../func/isArray.js"),
+    isString = require("../func/isString.js");
 
 nsAdd("filter.limitTo", function(input, scope, limit){
 
-    var type = typeof input;
+    var isS = isString(input);
 
-    if (!isArray(input) && type != "string") {
+    if (!isArray(input) && !isS) {
         return input;
     }
 
@@ -15,7 +17,7 @@ nsAdd("filter.limitTo", function(input, scope, limit){
         limit = parseInt(limit, 10);
     }
 
-    if (type == "string") {
+    if (isS) {
         //NaN check on limit
         if (limit) {
             return limit >= 0 ? input.slice(0, limit) : input.slice(limit, input.length);

@@ -1,8 +1,9 @@
+
 /**
  * @param {Function} fn
  * @param {*} context
  */
-var bind = MetaphorJs.bind = Function.prototype.bind ?
+module.exports = Function.prototype.bind ?
               function(fn, context){
                   return fn.bind(context);
               } :
@@ -11,3 +12,4 @@ var bind = MetaphorJs.bind = Function.prototype.bind ?
                       return fn.apply(context, arguments);
                   };
               };
+

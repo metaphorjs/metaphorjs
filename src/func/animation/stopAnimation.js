@@ -1,6 +1,9 @@
-//#require ../dom/data.js
 
-var stopAnimation = MetaphorJs.stopAnimation = function(el) {
+var data = require("../dom/data.js"),
+    removeClass = require("../dom/removeClass.js"),
+    isFunction = require("../isFunction.js");
+
+module.exports = function(el) {
 
     var queue = data(el, "mjsAnimationQueue"),
         current,
@@ -17,7 +20,7 @@ var stopAnimation = MetaphorJs.stopAnimation = function(el) {
             removeClass(el, stages[position] + "-active");
         }
     }
-    else if (typeof queue == "function") {
+    else if (isFunction(queue)) {
         queue(el);
     }
     else if (queue == "stop") {

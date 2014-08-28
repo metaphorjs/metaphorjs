@@ -1,5 +1,5 @@
 
-var eachNode    = function(el, fn, context) {
+var eachNode = function(el, fn, context) {
     var i, len,
         children = el.childNodes;
 
@@ -9,3 +9,5 @@ var eachNode    = function(el, fn, context) {
             eachNode(children[i], fn, context)){}
     }
 };
+
+module.exports = eachNode;

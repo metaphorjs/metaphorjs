@@ -1,12 +1,18 @@
-//#require ../../func/directive.js
-//#require ../../func/class/defineClass.js
-//#require ../../view/AttributeHandler.js
-//#require ../../func/createWatchable.js
-//#require ../../func/array/toArray.js
-//#require ../../func/error.js
-//#require ../../func/dom/isAttached.js
-//#require ../../func/animation/animate.js
-//#require ../../vars/Renderer.js
+
+
+
+var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
+    defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
+    createWatchable = require("../../../../metaphorjs-watchable/src/func/createWatchable.js"),
+    toArray = require("../../func/array/toArray.js"),
+    error = require("../../func/error.js"),
+    isAttached = require("../../func/dom/isAttached.js"),
+    animate = require("../../func/animation/animate.js"),
+    Renderer = require("../../view/Renderer.js"),
+    isNull = require("../../func/isNull.js"),
+    ns = require("../../../../metaphorjs-namespace/src/var/ns.js");
+
+require("../../view/AttributeHandler.js");
 
 registerAttributeHandler("mjs-each", 100, defineClass(null, "MetaphorJs.view.AttributeHandler", {
 
@@ -37,7 +43,7 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, "MetaphorJs.view.Att
         self.scope      = scope;
 
         try {
-            self.watcher    = createWatchable(scope, self.model, self.onChange, self);
+            self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
         }
         catch (thrownError) {
             error(thrownError);
@@ -164,7 +170,7 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, "MetaphorJs.view.Att
                 continue;
             }
 
-            if (updateStart === null) {
+            if (isNull(updateStart)) {
                 updateStart = i > 0 ? i - 1 : 0;
             }
 

@@ -1,5 +1,9 @@
-//#require array/slice.js
-//#require isPlainObject.js
+var slice   = require("./array/slice.js"),
+    isPlainObject = require("./isPlainObject.js"),
+    isBool = require("./isBool.js"),
+    isUndefined = require("./isUndefined.js"),
+    isNull = require('./isNull.js');
+
 
 /**
  * @param {Object} dst
@@ -9,7 +13,7 @@
  * @param {boolean} deep = false
  * @returns {*}
  */
-var extend = MetaphorJs.extend = function extend() {
+var extend = function extend() {
 
 
     var override    = false,
@@ -20,10 +24,10 @@ var extend = MetaphorJs.extend = function extend() {
         k,
         value;
 
-    if (typeof args[args.length - 1] == "boolean") {
+    if (isBool(args[args.length - 1])) {
         override    = args.pop();
     }
-    if (typeof args[args.length - 1] == "boolean") {
+    if (isBool(args[args.length - 1])) {
         deep        = override;
         override    = args.pop();
     }
@@ -32,14 +36,14 @@ var extend = MetaphorJs.extend = function extend() {
         if (src = args.shift()) {
             for (k in src) {
 
-                if (src.hasOwnProperty(k) && typeof (value = src[k]) != "undefined") {
+                if (src.hasOwnProperty(k) && !isUndefined((value = src[k]))) {
 
                     if (deep) {
                         if (dst[k] && isPlainObject(dst[k]) && isPlainObject(value)) {
                             extend(dst[k], value, override, deep);
                         }
                         else {
-                            if (override === true || typeof dst[k] == "undefined" || dst[k] === null) {
+                            if (override === true || isUndefined(dst[k]) || isNull(dst[k])) {
                                 if (isPlainObject(value)) {
                                     dst[k] = {};
                                     extend(dst[k], value, override, true);
@@ -51,7 +55,7 @@ var extend = MetaphorJs.extend = function extend() {
                         }
                     }
                     else {
-                        if (override === true || typeof dst[k] == "undefined" || dst[k] === null) {
+                        if (override === true || isUndefined(dst[k]) || isNull(dst[k])) {
                             dst[k] = value;
                         }
                     }
@@ -62,3 +66,5 @@ var extend = MetaphorJs.extend = function extend() {
 
     return dst;
 };
+
+module.exports = extend;

@@ -1,21 +1,21 @@
-//#require ../func/nextUid.js
-//#require ../func/array/isArray.js
-//#require ../func/array/toArray.js
-//#require ../func/isThenable.js
-//#require ../func/directive.js
-//#require ../func/nextUid.js
-//#require ../func/nsGet.js
-//#require ../func/dom/select.js
-//#require ../func/error.js
-//#require ../func/nsRegister.js
-//#require ../func/nsGet.js
-//#require ../vars/nodeTextProp.js
-//#require ../vars/Scope.js
-//#require ../vars/Observable.js
-//#require ../vars/TextRenderer.js
-//#require ../vars/Promise.js
 
-(function(){
+
+var nextUid = require("../func/nextUid.js"),
+    isArray = require("../func/isArray.js"),
+    toArray = require("../func/array/toArray.js"),
+    isThenable = require("../func/isThenable.js"),
+    nsGet = require("../../../metaphorjs-namespace/src/func/nsGet.js"),
+    nsRegister = require("../../../metaphorjs-namespace/src/func/nsRegister.js"),
+    error = require("../func/error.js"),
+    select = require("../func/dom/select.js"),
+    nodeTextProp = require("../var/nodeTextProp.js"),
+    Scope = require("../lib/Scope.js"),
+    Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
+    TextRenderer = require("./TextRenderer.js"),
+    Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
+    getAttributeHandlers = require("../func/directive/getAttributeHandlers.js");
+
+module.exports = function(){
 
     var handlers                = null,
         createText              = TextRenderer.create,
@@ -367,8 +367,8 @@
         }
     };
 
-
     nsRegister("MetaphorJs.view.Renderer", Renderer);
 
+    return Renderer;
+}();
 
-}());

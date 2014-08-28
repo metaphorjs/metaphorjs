@@ -1,10 +1,13 @@
-//#require ../../func/directive.js
-//#require ../../func/dom/isField.js
-//#require ../../func/dom/setValue.js
-//#require ../../func/class/defineClass.js
-//#require ../../vars/nodeTextProp.js
-//#require ../../view/AttributeHandler.js
-//#require ../../vars/TextRenderer.js
+
+
+var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
+    defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
+    isField = require("../../func/dom/isField.js"),
+    setValue = require("../../func/dom/setValue.js"),
+    nodeTextProp = require("../../var/nodeTextProp.js"),
+    TextRenderer = require("../../view/TextRenderer.js");
+
+require("../../view/AttributeHandler.js");
 
 registerAttributeHandler("mjs-bind", 1000, defineClass(null, "MetaphorJs.view.AttributeHandler", {
 

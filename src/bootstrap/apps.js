@@ -1,5 +1,7 @@
-//#require ../func/initApp.js
-//#require ../func/dom/onReady.js
+
+
+var onReady = require("../func/dom/onReady.js"),
+    initApp = require("../func/initApp.js");
 
 onReady(function() {
 

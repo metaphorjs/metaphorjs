@@ -1,17 +1,20 @@
 
+var isFunction = require("./isFunction.js"),
+    isObject = require("./isObject.js");
+
 /**
  * Returns 'then' function or false
  * @param {*} any
- * @returns {Function|false}
+ * @returns {Function|boolean}
  */
-var isThenable = MetaphorJs.isThenable = function(any) {
+module.exports = function(any) {
     var then;
     if (!any) {
         return false;
     }
-    if (typeof any != "object" && typeof any != "function") {
+    if (!isObject(any) && !isFunction(any)) {
         return false;
     }
-    return typeof (then = any.then) == "function" ?
+    return isFunction((then = any.then)) ?
            then : false;
 };

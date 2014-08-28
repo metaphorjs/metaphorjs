@@ -1,4 +1,4 @@
 
-var isFunction = function(value) {
+module.exports = function(value) {
     return typeof value === 'function';
 };

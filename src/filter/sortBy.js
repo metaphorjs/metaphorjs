@@ -1,4 +1,5 @@
-//#require ../func/nsAdd.js
+
+var nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js");
 
 nsAdd("filter.sortBy", function(val, scope, field, dir) {
 

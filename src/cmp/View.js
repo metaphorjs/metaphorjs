@@ -1,13 +1,17 @@
-//#require ../func/class/defineClass.js
-//#require ../func/animation/animate.js
-//#require ../func/animation/stopAnimation.js
-//#require ../func/extend.js
-//#require ../func/dom/data.js
-//#require ../func/dom/toFragment.js
-//#require ../func/resolveComponent.js
-//#require ../func/createWatchable.js
-//#require ../func/currentUrl.js
 
+
+var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
+    animate = require("../func/animation/animate.js"),
+    stopAnimation = require("../func/animation/stopAnimation.js"),
+    extend = require("../func/extend.js"),
+    data = require("../func/dom/data.js"),
+    toFragment = require("../func/dom/toFragment.js"),
+    resolveComponent = require("../func/resolveComponent.js"),
+    createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
+    currentUrl = require("../../../metaphorjs-history/src/func/currentUrl.js"),
+    isObject = require("../func/isObject.js"),
+    isString = require("../func/isString.js"),
+    ns = require("../../../metaphorjs-namespace/src/var/ns.js");
 
 
 defineClass("MetaphorJs.cmp.View", {
@@ -60,7 +64,7 @@ defineClass("MetaphorJs.cmp.View", {
             self.onLocationChange();
         }
         else if (self.cmp) {
-            self.watchable = createWatchable(self.scope, self.cmp, self.onCmpChange, self);
+            self.watchable = createWatchable(self.scope, self.cmp, self.onCmpChange, self, null, ns);
             self.onCmpChange();
         }
     },
@@ -190,8 +194,8 @@ defineClass("MetaphorJs.cmp.View", {
 
         animate(node, "enter", function(){
 
-            var cfg     = typeof cmp == "object" ? cmp : {},
-                cls     = (typeof cmp == "string" ? cmp : null) || "MetaphorJs.cmp.Component",
+            var cfg     = isObject(cmp) ? cmp : {},
+                cls     = (isString(cmp) ? cmp : null) || "MetaphorJs.cmp.Component",
                 scope   = cfg.scope || self.scope.$new();
 
             cfg.destroyEl = false;

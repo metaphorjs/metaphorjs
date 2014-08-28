@@ -1,5 +1,7 @@
-//#require ../func/nsAdd.js
-//#require ../func/getRegExp.js
+
+
+var nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
+    getRegExp = require("../func/getRegExp.js");
 
 nsAdd("filter.toList", function(input, scope, sep, limit) {
 

@@ -1,6 +1,8 @@
-//#require ../func/nsAdd.js
-//#require ../func/array/toArray.js
-//#require ../func/array/isArray.js
+
+
+var nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
+    toArray = require("../func/array/toArray.js"),
+    isArray = require("../func/isArray.js");
 
 nsAdd("filter.fromList", function(input, scope, separator) {
 

@@ -1,7 +1,7 @@
 /**
  * @param {String} expr
  */
-var getRegExp = function(){
+module.exports = function(){
 
     var cache = {};
 

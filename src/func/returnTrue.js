@@ -1,5 +1,5 @@
 
 
-var returnTrue = MetaphorJs.returnTrue = function() {
+module.exports = function() {
     return true;
 };

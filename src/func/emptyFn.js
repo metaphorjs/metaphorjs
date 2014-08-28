@@ -1,3 +1,3 @@
 
 
-var emptyFn = MetaphorJs.emptyFn = function(){};
+module.exports = function(){};

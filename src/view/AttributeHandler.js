@@ -1,7 +1,12 @@
-//#require ../func/createWatchable.js
-//#require ../func/trim.js
-//#require ../func/class/defineClass.js
-//#require ../vars/Scope.js
+
+
+var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
+    trim = require("../func/trim.js"),
+    createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
+    Scope = require("../lib/Scope.js"),
+    ns = require("../../../metaphorjs-namespace/src/var/ns.js");
+
+
 
 defineClass("MetaphorJs.view.AttributeHandler", {
 
@@ -19,7 +24,7 @@ defineClass("MetaphorJs.view.AttributeHandler", {
         self.node       = node;
         self.expr       = expr;
         self.scope      = scope;
-        self.watcher    = createWatchable(scope, expr, self.onChange, self);
+        self.watcher    = createWatchable(scope, expr, self.onChange, self, null, ns);
 
         if (self.watcher.getLastResult()) {
             self.onChange();

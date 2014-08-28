@@ -1,6 +1,7 @@
-//#require getAnimationPrefixes.js
 
-var getAnimationDuration = MetaphorJs.getAnimationDuration = function(){
+var getAnimationPrefixes = require("./getAnimationPrefixes.js");
+
+module.exports = function(){
 
     var parseTime       = function(str) {
             if (!str) {

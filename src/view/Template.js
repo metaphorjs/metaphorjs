@@ -1,19 +1,25 @@
-//#require ../func/dom/data.js
-//#require ../func/dom/toFragment.js
-//#require ../func/dom/clone.js
-//#require ../func/animation/animate.js
-//#require ../func/extend.js
-//#require ../func/nextUid.js
-//#require ../func/trim.js
-//#require ../func/createWatchable.js
-//#require ../func/nsRegister.js
-//#require ../vars/Renderer.js
-//#require ../vars/Scope.js
-//#require ../vars/Promise.js
-//#require ../vars/Observable.js
 
-(function(){
 
+var data = require("../func/dom/data.js"),
+    toFragment = require("../func/dom/toFragment.js"),
+    clone = require("../func/dom/clone.js"),
+    animate = require("../func/animation/animate.js"),
+    extend = require("../func/extend.js"),
+    nextUid = require("../func/nextUid.js"),
+    trim = require("../func/trim.js"),
+    createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
+    nsRegister = require("../../../metaphorjs-namespace/src/func/nsRegister.js"),
+    Renderer = require("./Renderer.js"),
+    Scope = require("../lib/Scope.js"),
+    Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
+    Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
+    ajax = require("../../../metaphorjs-ajax/src/metaphorjs.ajax.js"),
+    ns = require("../../../metaphorjs-namespace/src/var/ns.js");
+
+
+
+
+module.exports = function(){
 
     var observable      = new Observable,
 
@@ -50,7 +56,7 @@
 
         loadTemplate = function(tplUrl) {
             if (!tplCache[tplUrl]) {
-                return tplCache[tplUrl] = MetaphorJs.ajax(tplUrl, {dataType: 'fragment'})
+                return tplCache[tplUrl] = ajax(tplUrl, {dataType: 'fragment'})
                     .then(function(fragment){
                         tplCache[tplUrl] = fragment;
                         return fragment;
@@ -93,7 +99,7 @@
 
             if (isExpression(tpl) && !self.replace) {
                 self.ownRenderer        = true;
-                self._watcher           = createWatchable(self.scope, tpl, self.onChange, self);
+                self._watcher           = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
             }
 
             if (self.replace) {
@@ -302,4 +308,6 @@
 
     nsRegister("MetaphorJs.view.Template", Template);
 
-}());
+    return Template;
+}();
+

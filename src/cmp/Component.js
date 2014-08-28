@@ -1,11 +1,13 @@
-//#require ../func/class/defineClass.js
-//#require ../func/nextUid.js
-//#require ../func/emptyFn.js
-//#require ../func/dom/isAttached.js
-//#require ../vars/Template.js
-//#require ../vars/Scope.js
-//#require Base.js
 
+
+var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
+    emptyFn = require("../func/emptyFn.js"),
+    nextUid = require("../func/nextUid.js"),
+    isAttached = require("../func/dom/isAttached.js"),
+    Template = require("../view/Template.js"),
+    Scope = require("../lib/Scope.js");
+
+require("./Base.js");
 
 /**
  * @namespace MetaphorJs

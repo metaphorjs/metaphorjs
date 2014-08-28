@@ -1,8 +1,14 @@
-//#require ../../func/directive.js
-//#require ../../func/class/defineClass.js
-//#require ../../vars/Input.js
-//#require ../../vars/Scope.js
-//#require ../../view/AttributeHandler.js
+
+
+
+
+var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
+    defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
+    Input = require("../../lib/Input.js"),
+    Scope = require("../../lib/Scope.js"),
+    isString = require("../../func/isString.js");
+
+require("../../view/AttributeHandler.js");
 
 
 registerAttributeHandler("mjs-model", 1000, defineClass(null, "MetaphorJs.view.AttributeHandler", {
@@ -39,7 +45,7 @@ registerAttributeHandler("mjs-model", 1000, defineClass(null, "MetaphorJs.view.A
 
         if (self.binding != "scope") {
 
-            if (val && typeof val == "string" && val.indexOf('\\{') != -1) {
+            if (val && isString(val) && val.indexOf('\\{') != -1) {
                 val = val.replace(/\\{/g, '{');
             }
 

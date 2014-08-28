@@ -1,4 +1,5 @@
-//#require ../array/toArray.js
+
+var toArray = require("../array/toArray.js");
 
 /**
  * Modified version of YASS (http://yass.webo.in)
@@ -9,7 +10,7 @@
  * @param {String} selector
  * @param {Element} root to look into
  */
-var select = MetaphorJs.select = function() {
+module.exports = function() {
 
     var rGeneric    = /^[\w[:#.][\w\]*^|=!]*$/,
         rQuote      = /=([^\]]+)/,

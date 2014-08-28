@@ -1,5 +1,5 @@
 
-var getAnimationPrefixes = function(){
+module.exports = function(){
 
     var domPrefixes         = ['Moz', 'Webkit', 'ms', 'O', 'Khtml'],
         animationDelay      = "animationDelay",

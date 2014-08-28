@@ -1,9 +1,12 @@
-//#require ../func/isPlainObject.js
-//#require ../func/array/isArray.js
-//#require ../func/extend.js
-//#require ../func/nsAdd.js
 
-(function(){
+
+var isPlainObject = require("../func/isPlainObject.js"),
+    isArray = require("../func/isArray.js"),
+    extend = require("../func/extend.js"),
+    nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
+    isUndefined = require("../func/isUndefined.js");
+
+module.exports = function(){
 
     var pluralDef       = function($number, $locale) {
 
@@ -196,7 +199,7 @@
 
         set: function(key, value) {
             var store = this.store;
-            if (typeof store[key] == "undefined") {
+            if (isUndefined(store[key])) {
                 store[key] = value;
             }
         },
@@ -247,15 +250,7 @@
         return globalText;
     };
 
-
     MetaphorJs.lib.Text = Text;
 
-    nsAdd("filter.l", function(key, scope) {
-        return scope.$app.lang.get(key);
-    });
-
-    nsAdd("filter.p", function(key, scope, number) {
-        return scope.$app.lang.plural(key, parseInt(number, 10) || 0);
-    });
-
-}());
+    return Text;
+}();

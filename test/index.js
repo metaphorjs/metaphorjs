@@ -1,5 +1,5 @@
 
-var defineClass = MetaphorJs.define;
+var defineClass = MetaphorJs.cs.define;
 
 defineClass("Test.MyApp2", "MetaphorJs.cmp.App", {
 

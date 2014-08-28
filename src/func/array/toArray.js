@@ -1,9 +1,13 @@
+
+var isUndefined = require("../isUndefined.js"),
+    isString = require("../isString.js");
+
 /**
  * @param {*} list
  * @returns {[]}
  */
-var toArray = MetaphorJs.toArray = function(list) {
-    if (list && list.length != undefined && typeof list != "string") {
+module.exports = function(list) {
+    if (list && !isUndefined(list.length) && !isString(list)) {
         for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]){}
         return a;
     }

@@ -1,304 +1,307 @@
-//#require ../func/bind.js
-//#require ../func/event/addListener.js
-//#require ../func/event/removeListener.js
-//#require ../func/dom/getValue.js
-//#require ../func/dom/setValue.js
-//#require ../func/dom/isSubmittable.js
-//#require ../func/browser/isAndroid.js
-//#require ../func/browser/browserHasEvent.js
 
-(function(){
+var bind    = require("../func/bind.js"),
+    addListener = require("../func/event/addListener.js"),
+    removeListener = require("../func/event/removeListener.js"),
+    getValue = require("../func/dom/getValue.js"),
+    setValue = require("../func/dom/setValue.js"),
+    isSubmittable = require("../func/dom/isSubmittable.js"),
+    isAndroid = require("../func/browser/isAndroid.js"),
+    browserHasEvent = require("../func/browser/browserHasEvent.js");
 
-    var Input   = function(el, changeFn, changeFnContext, submitFn) {
+
+var Input = function(el, changeFn, changeFnContext, submitFn) {
+
+    var self    = this,
+        type;
+
+    self.el             = el;
+    self.cb             = changeFn;
+    self.scb            = submitFn;
+    self.cbContext      = changeFnContext;
+    self.inputType      = type = (el.getAttribute("mjs-input-type") || el.type.toLowerCase());
+    self.listeners      = [];
+    self.submittable    = isSubmittable(el);
+
+    if (type == "radio") {
+        self.initRadioInput();
+    }
+    else if (type == "checkbox") {
+        self.initCheckboxInput();
+    }
+    else {
+        self.initTextInput();
+    }
+};
+
+Input.prototype = {
+
+    el: null,
+    inputType: null,
+    cb: null,
+    scb: null,
+    cbContext: null,
+    listeners: [],
+    radio: null,
+    submittable: false,
+
+    destroy: function() {
+
+        var self        = this,
+            type        = self.inputType,
+            listeners   = self.listeners,
+            radio       = self.radio,
+            el          = self.el,
+            i, ilen,
+            j, jlen;
+
+        for (i = 0, ilen = listeners.length; i < ilen; i++) {
+            if (type == "radio") {
+                for (j = 0, jlen = radio.length; j < jlen; j++) {
+                    removeListener(radio[j], listeners[i][0], listeners[i][1]);
+                }
+            }
+            else {
+                removeListener(el, listeners[i][0], listeners[i][1]);
+            }
+        }
+
+        delete self.radio;
+        delete self.el;
+        delete self.cb;
+        delete self.cbContext;
+    },
+
+    initRadioInput: function() {
 
         var self    = this,
-            type;
+            el      = self.el,
+            type    = el.type,
+            name    = el.name,
+            radio,
+            i, len;
 
-        self.el             = el;
-        self.cb             = changeFn;
-        self.scb            = submitFn;
-        self.cbContext      = changeFnContext;
-        self.inputType      = type = (el.getAttribute("mjs-input-type") || el.type.toLowerCase());
-        self.listeners      = [];
-        self.submittable    = isSubmittable(el);
+        self.onRadioInputChangeDelegate = bind(self.onRadioInputChange, self);
 
-        if (type == "radio") {
-            self.initRadioInput();
-        }
-        else if (type == "checkbox") {
-            self.initCheckboxInput();
+        if (document.querySelectorAll) {
+            radio = document.querySelectorAll("input[name="+name+"]");
         }
         else {
-            self.initTextInput();
+            var nodes = document.getElementsByTagName("input"),
+                node;
+
+            radio = [];
+            for (i = 0, len = nodes.length; i < len; i++) {
+                node = nodes[i];
+                if (node.type == type && node.name == name) {
+                    radio.push(node);
+                }
+            }
         }
-    };
 
-    Input.prototype = {
+        self.radio  = radio;
+        self.listeners.push(["click", self.onRadioInputChangeDelegate]);
 
-        el: null,
-        inputType: null,
-        cb: null,
-        scb: null,
-        cbContext: null,
-        listeners: [],
-        radio: null,
-        submittable: false,
+        for (i = 0, len = radio.length; i < len; i++) {
+            addListener(radio[i], "click", self.onRadioInputChangeDelegate);
+        }
+    },
 
-        destroy: function() {
+    initCheckboxInput: function() {
 
-            var self        = this,
-                type        = self.inputType,
-                listeners   = self.listeners,
-                radio       = self.radio,
-                el          = self.el,
-                i, ilen,
-                j, jlen;
+        var self    = this;
 
-            for (i = 0, ilen = listeners.length; i < ilen; i++) {
-                if (type == "radio") {
-                    for (j = 0, jlen = radio.length; j < jlen; j++) {
-                        removeListener(radio[j], listeners[i][0], listeners[i][1]);
-                    }
-                }
-                else {
-                    removeListener(el, listeners[i][0], listeners[i][1]);
-                }
-            }
+        self.onCheckboxInputChangeDelegate = bind(self.onCheckboxInputChange, self);
 
-            delete self.radio;
-            delete self.el;
-            delete self.cb;
-            delete self.cbContext;
-        },
+        self.listeners.push(["click", self.onCheckboxInputChangeDelegate]);
+        addListener(self.el, "click", self.onCheckboxInputChangeDelegate);
+    },
 
-        initRadioInput: function() {
+    initTextInput: function() {
 
-            var self    = this,
-                el      = self.el,
-                type    = el.type,
-                name    = el.name,
-                radio,
-                i, len;
+        var composing   = false,
+            self        = this,
+            node        = self.el,
+            listeners   = self.listeners,
+            timeout;
 
-            self.onRadioInputChangeDelegate = bind(self.onRadioInputChange, self);
+        // In composition mode, users are still inputing intermediate text buffer,
+        // hold the listener until composition is done.
+        // More about composition events:
+        // https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent
+        if (!isAndroid()) {
 
-            if (document.querySelectorAll) {
-                radio = document.querySelectorAll("input[name="+name+"]");
-            }
-            else {
-                var nodes = document.getElementsByTagName("input"),
-                    node;
-
-                radio = [];
-                for (i = 0, len = nodes.length; i < len; i++) {
-                    node = nodes[i];
-                    if (node.type == type && node.name == name) {
-                        radio.push(node);
-                    }
-                }
-            }
-
-            self.radio  = radio;
-            self.listeners.push(["click", self.onRadioInputChangeDelegate]);
-
-            for (i = 0, len = radio.length; i < len; i++) {
-                addListener(radio[i], "click", self.onRadioInputChangeDelegate);
-            }
-        },
-
-        initCheckboxInput: function() {
-
-            var self    = this;
-
-            self.onCheckboxInputChangeDelegate = bind(self.onCheckboxInputChange, self);
-
-            self.listeners.push(["click", self.onCheckboxInputChangeDelegate]);
-            addListener(self.el, "click", self.onCheckboxInputChangeDelegate);
-        },
-
-        initTextInput: function() {
-
-            var composing   = false,
-                self        = this,
-                node        = self.el,
-                listeners   = self.listeners,
-                timeout;
-
-            // In composition mode, users are still inputing intermediate text buffer,
-            // hold the listener until composition is done.
-            // More about composition events: https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent
-            if (!isAndroid()) {
-
-                var compositionStart    = function() {
-                    composing = true;
-                };
-
-                var compositionEnd  = function() {
-                    composing = false;
-                    listener();
-                };
-
-                listeners.push(["compositionstart", compositionStart]);
-                listeners.push(["compositionend", compositionEnd]);
-
-                addListener(node, "compositionstart", compositionStart);
-                addListener(node, "compositionend", compositionEnd);
-            }
-
-            var listener = self.onTextInputChangeDelegate = function() {
-                if (composing) {
-                    return;
-                }
-                self.onTextInputChange();
+            var compositionStart    = function() {
+                composing = true;
             };
 
-            // if the browser does support "input" event, we are fine - except on IE9 which doesn't fire the
-            // input event on backspace, delete or cut
-            if (browserHasEvent('input')) {
-                listeners.push(["input", listener]);
-                addListener(node, "input", listener);
+            var compositionEnd  = function() {
+                composing = false;
+                listener();
+            };
 
-            } else {
+            listeners.push(["compositionstart", compositionStart]);
+            listeners.push(["compositionend", compositionEnd]);
 
-                var deferListener = function(ev) {
-                    if (!timeout) {
-                        timeout = window.setTimeout(function() {
-                            listener(ev);
-                            timeout = null;
-                        }, 0);
-                    }
-                };
+            addListener(node, "compositionstart", compositionStart);
+            addListener(node, "compositionend", compositionEnd);
+        }
 
-                var keydown = function(event) {
-                    event = event || window.event;
-                    var key = event.keyCode;
+        var listener = self.onTextInputChangeDelegate = function() {
+            if (composing) {
+                return;
+            }
+            self.onTextInputChange();
+        };
 
-                    if (key == 13 && self.submittable && self.scb) {
-                        return self.scb.call(self.cbContext, event);
-                    }
+        // if the browser does support "input" event, we are fine - except on
+        // IE9 which doesn't fire the
+        // input event on backspace, delete or cut
+        if (browserHasEvent('input')) {
+            listeners.push(["input", listener]);
+            addListener(node, "input", listener);
 
-                    // ignore
-                    //    command            modifiers                   arrows
-                    if (key === 91 || (15 < key && key < 19) || (37 <= key && key <= 40)) {
-                        return;
-                    }
+        } else {
 
-                    deferListener(event);
-                };
-
-                listeners.push(["keydown", keydown]);
-                addListener(node, "keydown", keydown);
-
-                // if user modifies input value using context menu in IE, we need "paste" and "cut" events to catch it
-                if (browserHasEvent('paste')) {
-
-                    listeners.push(["paste", deferListener]);
-                    listeners.push(["cut", deferListener]);
-
-                    addListener(node, "paste", deferListener);
-                    addListener(node, "cut", deferListener);
+            var deferListener = function(ev) {
+                if (!timeout) {
+                    timeout = window.setTimeout(function() {
+                        listener(ev);
+                        timeout = null;
+                    }, 0);
                 }
-            }
+            };
 
-            // if user paste into input using mouse on older browser
-            // or form autocomplete on newer browser, we need "change" event to catch it
+            var keydown = function(event) {
+                event = event || window.event;
+                var key = event.keyCode;
 
-            listeners.push(["change", listener]);
-            addListener(node, "change", listener);
-        },
-
-        processValue: function(val) {
-
-            switch (this.inputType) {
-                case "number":
-                    val     = parseInt(val, 10);
-                    if (isNaN(val)) {
-                        val = 0;
-                    }
-                    break;
-            }
-
-            return val;
-        },
-
-        onTextInputChange: function() {
-
-            var self    = this,
-                val     = self.getValue();
-
-            self.cb.call(self.cbContext, val);
-        },
-
-        onCheckboxInputChange: function() {
-
-            var self    = this,
-                node    = self.el;
-
-            self.cb.call(self.cbContext, node.checked ? (node.getAttribute("value") || true) : false);
-        },
-
-        onRadioInputChange: function(e) {
-
-            e = e || window.event;
-
-            var self    = this,
-                trg     = e.target || e.srcElement;
-
-            self.cb.call(self.cbContext, trg.value);
-        },
-
-        setValue: function(val) {
-
-            var self    = this,
-                type    = self.inputType,
-                radio,
-                i, len;
-
-            if (type == "radio") {
-
-                radio = self.radio;
-
-                for (i = 0, len = radio.length; i < len; i++) {
-                    if (radio[i].value == val) {
-                        radio[i].checked = true;
-                        break;
-                    }
+                if (key == 13 && self.submittable && self.scb) {
+                    return self.scb.call(self.cbContext, event);
                 }
-            }
-            else if (type == "checkbox") {
-                var node        = self.el;
-                node.checked    = val === true || val == node.value;
-            }
-            else {
-                setValue(self.el, val);
-            }
-        },
 
-        getValue: function() {
-
-            var self    = this,
-                type    = self.inputType,
-                radio,
-                i, l;
-
-            if (type == "radio") {
-                radio = self.radio;
-                for (i = 0, l = radio.length; i < l; i++) {
-                    if (radio[i].checked) {
-                        return radio[i].value;
-                    }
+                // ignore
+                //    command            modifiers                   arrows
+                if (key === 91 || (15 < key && key < 19) || (37 <= key && key <= 40)) {
+                    return;
                 }
-                return null;
-            }
-            else if (type == "checkbox") {
-                return self.el.checked ? (self.el.getAttribute("value") || true) : false;
-            }
-            else {
-                return self.processValue(getValue(self.el));
+
+                deferListener(event);
+            };
+
+            listeners.push(["keydown", keydown]);
+            addListener(node, "keydown", keydown);
+
+            // if user modifies input value using context menu in IE,
+            // we need "paste" and "cut" events to catch it
+            if (browserHasEvent('paste')) {
+
+                listeners.push(["paste", deferListener]);
+                listeners.push(["cut", deferListener]);
+
+                addListener(node, "paste", deferListener);
+                addListener(node, "cut", deferListener);
             }
         }
-    };
 
-   MetaphorJs.lib.Input = Input;
+        // if user paste into input using mouse on older browser
+        // or form autocomplete on newer browser, we need "change" event to catch it
 
-}());
+        listeners.push(["change", listener]);
+        addListener(node, "change", listener);
+    },
+
+    processValue: function(val) {
+
+        switch (this.inputType) {
+            case "number":
+                val     = parseInt(val, 10);
+                if (isNaN(val)) {
+                    val = 0;
+                }
+                break;
+        }
+
+        return val;
+    },
+
+    onTextInputChange: function() {
+
+        var self    = this,
+            val     = self.getValue();
+
+        self.cb.call(self.cbContext, val);
+    },
+
+    onCheckboxInputChange: function() {
+
+        var self    = this,
+            node    = self.el;
+
+        self.cb.call(self.cbContext, node.checked ? (node.getAttribute("value") || true) : false);
+    },
+
+    onRadioInputChange: function(e) {
+
+        e = e || window.event;
+
+        var self    = this,
+            trg     = e.target || e.srcElement;
+
+        self.cb.call(self.cbContext, trg.value);
+    },
+
+    setValue: function(val) {
+
+        var self    = this,
+            type    = self.inputType,
+            radio,
+            i, len;
+
+        if (type == "radio") {
+
+            radio = self.radio;
+
+            for (i = 0, len = radio.length; i < len; i++) {
+                if (radio[i].value == val) {
+                    radio[i].checked = true;
+                    break;
+                }
+            }
+        }
+        else if (type == "checkbox") {
+            var node        = self.el;
+            node.checked    = val === true || val == node.value;
+        }
+        else {
+            setValue(self.el, val);
+        }
+    },
+
+    getValue: function() {
+
+        var self    = this,
+            type    = self.inputType,
+            radio,
+            i, l;
+
+        if (type == "radio") {
+            radio = self.radio;
+            for (i = 0, l = radio.length; i < l; i++) {
+                if (radio[i].checked) {
+                    return radio[i].value;
+                }
+            }
+            return null;
+        }
+        else if (type == "checkbox") {
+            return self.el.checked ? (self.el.getAttribute("value") || true) : false;
+        }
+        else {
+            return self.processValue(getValue(self.el));
+        }
+    }
+};
+
+MetaphorJs.lib.Input = Input;
+
+module.exports = Input;

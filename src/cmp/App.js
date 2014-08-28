@@ -1,16 +1,19 @@
-//#require ../func/class/defineClass.js
-//#require ../func/bind.js
-//#require ../func/extend.js
-//#require ../func/emptyFn.js
-//#require ../func/array/slice.js
-//#require ../func/resolveComponent.js
-//#require ../vars/Scope.js
-//#require ../vars/Renderer.js
-//#require ../vars/Observable.js
-//#require ../vars/Provider.js
-//#require ../vars/Promise.js
-//#require ../vars/Text.js
-//#require Base.js
+
+
+var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
+    bind = require("../func/bind.js"),
+    extend = require("../func/extend.js"),
+    emptyFn = require("../func/emptyFn.js"),
+    slice = require("../func/array/slice.js"),
+    resolveComponent = require("../func/resolveComponent.js"),
+    Scope = require("../lib/Scope.js"),
+    Renderer = require("../view/Renderer.js"),
+    Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
+    Provider = require("../lib/Provider.js"),
+    Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
+    Text = require("../lib/Text.js");
+
+require("./Base.js");
 
 
 defineClass("MetaphorJs.cmp.App", "MetaphorJs.cmp.Base", {
@@ -133,3 +136,4 @@ defineClass("MetaphorJs.cmp.App", "MetaphorJs.cmp.Base", {
     }
 
 });
+

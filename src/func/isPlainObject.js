@@ -1,7 +1,8 @@
+
 /**
  * @param {*} obj
  * @returns {boolean}
  */
-var isPlainObject = MetaphorJs.isPlainObject = function(obj) {
+module.exports = function(obj) {
     return !!(obj && obj.constructor === Object);
 };

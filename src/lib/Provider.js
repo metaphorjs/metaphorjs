@@ -1,10 +1,16 @@
-//#require ../func/isThenable.js
-//#require ../func/array/slice.js
-//#require ../func/bind.js
-//#require ../vars/Promise.js
 
 
-(function(){
+var bind = require("../func/bind.js"),
+    isThenable = require("../func/isThenable.js"),
+    slice = require("../func/array/slice.js"),
+    Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
+    isObject = require("../func/isObject.js"),
+    isFunction = require("../func/isFunction.js"),
+    isUndefined = require("../func/isUndefined.js"),
+    isBool = require("../func/isBool.js");
+
+
+module.exports = function(){
 
     var VALUE       = 1,
         CONSTANT    = 2,
@@ -47,7 +53,7 @@
             // If an object has been returned then return it otherwise
             // return the original instance.
             // (consistent with behaviour of the new operator)
-            return typeof ret == "object" ? ret : inst;
+            return isObject(ret) ? ret : inst;
         },
 
         inject: function(injectable, context, returnInstance, currentValues, callArgs) {
@@ -55,7 +61,7 @@
             currentValues   = currentValues || {};
             callArgs        = callArgs || [];
 
-            if (typeof injectable == "function") {
+            if (isFunction(injectable)) {
 
                 if (injectable.inject) {
                     var tmp = slice.call(injectable.inject);
@@ -105,7 +111,7 @@
 
         factory: function(name, fn, context, singleton) {
 
-            if (typeof context == "boolean") {
+            if (isBool(context)) {
                 singleton = context;
                 context = null;
             }
@@ -145,7 +151,7 @@
                 item,
                 res;
 
-            if (typeof currentValues[name] != "undefined") {
+            if (!isUndefined(currentValues[name])) {
                 return currentValues[name];
             }
 
@@ -166,7 +172,9 @@
 
                     if (!item.instance) {
 
-                        item.instance = Promise.resolve(self.inject(item.fn, null, true, currentValues))
+                        item.instance = Promise.resolve(
+                                self.inject(item.fn, null, true, currentValues)
+                            )
                             .done(function(instance){
                                 item.instance = instance;
                                 store[item.name] = {
@@ -216,12 +224,14 @@
 
     };
 
-    MetaphorJs.lib.Provider = Provider;
-
     Provider.global = function() {
         return globalProvider;
     };
 
     globalProvider = new Provider;
 
-}());
+    MetaphorJs.lib.Provider = Provider;
+
+    return Provider;
+}();
+

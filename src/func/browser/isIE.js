@@ -1,6 +1,7 @@
-//#require ../../vars/uaString.js
 
-var isIE = function(){
+var uaString = require("../../var/uaString.js");
+
+module.exports = function(){
 
     var msie    = parseInt((/msie (\d+)/.exec(uaString) || [])[1], 10);
 

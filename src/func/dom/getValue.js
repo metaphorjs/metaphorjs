@@ -1,9 +1,12 @@
 
+var isNull = require("../isNull.js"),
+    isUndefined = require("../isUndefined.js"),
+    isString = require("../isString.js");
 
 /**
  * @param {Element} elem
  */
-var getValue = MetaphorJs.getValue = function(){
+module.exports = function(){
 
 
     var rreturn = /\r/,
@@ -13,7 +16,7 @@ var getValue = MetaphorJs.getValue = function(){
         option: function(elem) {
             var val = elem.getAttribute("value") || elem.value;
 
-            return val != null && typeof val != "undefined" ?
+            return !isNull(val) && !isUndefined(val) ?
                    val :
                    trim( elem.innerText || elem.textContent );
         },
@@ -57,11 +60,11 @@ var getValue = MetaphorJs.getValue = function(){
         },
 
         radio: function( elem ) {
-            return elem.getAttribute("value") === null ? "on" : elem.value;
+            return isNull(elem.getAttribute("value")) ? "on" : elem.value;
         },
 
         checkbox: function( elem ) {
-            return elem.getAttribute("value") === null ? "on" : elem.value;
+            return isNull(elem.getAttribute("value")) ? "on" : elem.value;
         }
     };
 
@@ -71,13 +74,13 @@ var getValue = MetaphorJs.getValue = function(){
 
         hook = hooks[elem.type] || hooks[elem.nodeName.toLowerCase()];
 
-        if (hook && (ret = hook(elem, "value")) !== undefined ) {
+        if (hook && !isUndefined((ret = hook(elem, "value")))) {
             return ret;
         }
 
         ret = elem.value;
 
-        return typeof ret === "string" ?
+        return isString(ret) ?
             // Handle most common string cases
                ret.replace(rreturn, "") :
             // Handle cases where value is null/undef or number

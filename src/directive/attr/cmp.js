@@ -1,4 +1,6 @@
-//#require ../../func/directive.js
+
+var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
+    resolveComponent = require("../../func/resolveComponent.js");
 
 (function(){
 

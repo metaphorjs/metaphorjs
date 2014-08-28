@@ -1,4 +1,4 @@
 
-var isObject = function(value) {
+module.exports = function(value) {
     return value != null && typeof value === 'object';
 };

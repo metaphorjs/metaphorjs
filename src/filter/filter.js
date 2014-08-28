@@ -1,17 +1,20 @@
-//#require ../func/nsAdd.js
-//#require ../func/array/aIndexOf.js
+
+var nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
+    isUndefined = require("../func/isUndefined.js"),
+    isBool = require("../func/isBool.js"),
+    isObject = require("../func/isObject.js");
 
 (function(){
 
     var filterArrayCompareValues = function(value, to, opt) {
 
-            if (to === "" || typeof to == "undefined") {
+            if (to === "" || isUndefined(to)) {
                 return true;
             }
-            else if (typeof value == "undefined") {
+            else if (isUndefined(value)) {
                 return false;
             }
-            else if (typeof value == "boolean") {
+            else if (isBool(value)) {
                 return value === to;
             }
             else if (opt instanceof RegExp) {
@@ -20,7 +23,7 @@
             else if (opt == "strict") {
                 return ""+value === ""+to;
             }
-            else if (opt === true || opt === null || typeof opt == "undefined") {
+            else if (opt === true || opt === null || isUndefined(opt)) {
                 return ""+value.indexOf(to) != -1;
             }
             else if (opt === false) {
@@ -31,8 +34,8 @@
 
         filterArrayCompare = function(value, by, opt) {
 
-            if (typeof value != "object") {
-                if (typeof by.$ == "undefined") {
+            if (!isObject(value)) {
+                if (isUndefined(by.$)) {
                     return true;
                 }
                 else {
@@ -65,7 +68,7 @@
 
         filterArray = function(a, by, compare) {
 
-            if (typeof by != "object") {
+            if (!isObject(by)) {
                 by = {$: by};
             }
 

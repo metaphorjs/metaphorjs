@@ -1,7 +1,8 @@
-//#require ../../func/directive.js
-//#require ../../func/createFunc.js
-//#require ../../func/event/normalizeEvent.js
-//#require ../../vars/Scope.js
+
+var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
+    createFunc = require("../../../../metaphorjs-watchable/src/func/createFunc.js"),
+    normalizeEvent = require("../../func/event/normalizeEvent.js"),
+    Scope = require("../../lib/Scope.js");
 
 (function(){
 

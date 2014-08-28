@@ -65,3 +65,5 @@ if (!aIndexOf) {
         return -1;
     };
 }
+
+module.exports = aIndexOf;

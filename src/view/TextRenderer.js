@@ -1,11 +1,17 @@
-//#require ../func/nextUid.js
-//#require ../func/bind.js
-//#require ../func/trim.js
-//#require ../func/createWatchable.js
-//#require ../func/nsRegister.js
-//#require ../vars/Observable.js
 
-(function(){
+
+var nextUid = require("../func/nextUid.js"),
+    bind = require("../func/bind.js"),
+    trim = require("../func/trim.js"),
+    createWatchable = require("../../../metaphorjs-watchable/src/metaphorjs.watchable.js"),
+    nsRegister = require("../../../metaphorjs-namespace/src/func/nsRegister.js"),
+    Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
+    isString = require("../func/isString.js"),
+    isNull = require("../func/isNull.js"),
+    ns = require("../../../metaphorjs-namespace/src/var/ns.js");
+
+
+module.exports = function(){
 
     var startSymbol             = '{{',
         endSymbol               = '}}',
@@ -23,7 +29,7 @@
 
         factory                 = function(scope, origin, parent, userData, recursive) {
 
-            if (!origin || typeof origin != "string" ||
+            if (!origin || !isString(origin) ||
                 (origin.indexOf(startSymbol) == -1 &&
                  origin.indexOf(langStartSymbol) == -1)) {
                 return null;
@@ -84,7 +90,7 @@
         getString: function() {
             var self = this;
 
-            if (self.text === null) {
+            if (isNull(self.text)) {
                 self.render();
             }
 
@@ -222,7 +228,9 @@
                 self.scope,
                 expr,
                 self.onDataChange,
-                self
+                self,
+                null,
+                ns
             ));
 
             return '---'+ (ws.length-1) +'---';
@@ -333,4 +341,8 @@
 
     nsRegister("MetaphorJs.view.TextRenderer", TextRenderer);
 
-}());
+    return TextRenderer;
+}();
+
+
+

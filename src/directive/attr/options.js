@@ -1,13 +1,18 @@
-//#require ../../func/directive.js
-//#require ../../func/class/defineClass.js
-//#require ../../view/AttributeHandler.js
-//#require ../../func/createWatchable.js
-//#require ../../func/array/toArray.js
-//#require ../../func/dom/getValue.js
-//#require ../../func/dom/setValue.js
-//#require ../../func/error.js
-//#require ../../func/browser/isIE.js
-//#require ../../func/createGetter.js
+
+
+
+var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
+    defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
+    createWatchable = require("../../../../metaphorjs-watchable/src/func/createWatchable.js"),
+    toArray = require("../../func/array/toArray.js"),
+    getValue = require("../../func/dom/getValue.js"),
+    setValue = require("../../func/dom/setValue.js"),
+    error = require("../../func/error.js"),
+    isIE = require("../../func/browser/isIE.js"),
+    createGetter = require("../../../../metaphorjs-watchable/src/func/createGetter.js"),
+    ns = require("../../../../metaphorjs-namespace/src/var/ns.js");
+
+require("../../view/AttributeHandler.js");
 
 registerAttributeHandler("mjs-options", 100, defineClass(null, "MetaphorJs.view.AttributeHandler", {
 
@@ -37,7 +42,7 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, "MetaphorJs.view.
         self.defOption && self.defOption.setAttribute("mjs-default-option", "");
 
         try {
-            self.watcher    = createWatchable(scope, self.model, self.onChange, self);
+            self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
         }
         catch (thrownError) {
             error(thrownError);

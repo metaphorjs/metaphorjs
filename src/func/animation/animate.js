@@ -1,13 +1,21 @@
-//#require getAnimationPrefixes.js
-//#require getAnimationDuration.js
-//#require ../array/isArray.js
-//#require ../isThenable.js
-//#require ../extend.js
-//#require ../dom/data.js
-//#require ../nsGet.js
-//#require ../../vars/Promise.js
 
-var animate = MetaphorJs.animate = function(){
+var getAnimationPrefixes    = require("./getAnimationPrefixes.js"),
+    getAnimationDuration    = require("./getAnimationDuration.js"),
+    isArray                 = require("../isArray.js"),
+    isThenable              = require("../isThenable.js"),
+    extend                  = require("../extend.js"),
+    data                    = require("../dom/data.js"),
+    nsGet                   = require("../../../../metaphorjs-namespace/src/func/nsGet.js"),
+    Promise                 = require("../../../../metaphorjs-promise/src/metaphorjs.promise.js"),
+    addClass                = require("../dom/addClass.js"),
+    removeClass             = require("../dom/removeClass.js"),
+    isString                = require("../isString.js"),
+    isFunction              = require("../isFunction.js"),
+    isPlainObject           = require("../isPlainObject.js"),
+    isNull                  = require('../isNull.js');
+
+
+module.exports = function(){
 
     var types           = {
             "show":     ["mjs-show"],
@@ -148,13 +156,13 @@ var animate = MetaphorJs.animate = function(){
 
         animation       = animation || attr;
 
-        if (checkIfEnabled && attr === null) {
+        if (checkIfEnabled && isNull(attr)) {
             animation   = null;
         }
 
         if (animation) {
 
-            if (typeof animation == "string") {
+            if (isString(animation)) {
                 if (animation.substr(0,1) == '[') {
                     stages  = (new Function('', 'return ' + animation))();
                 }
@@ -163,11 +171,11 @@ var animate = MetaphorJs.animate = function(){
                     animation   = nsGet && nsGet("animate." + animation, true);
                 }
             }
-            else if (typeof animation == "function") {
+            else if (isFunction(animation)) {
                 jsFn = animation;
             }
             else if (isArray(animation)) {
-                if (typeof animation[0] == "string") {
+                if (isString(animation[0])) {
                     stages = animation;
                 }
                 else {
@@ -176,7 +184,7 @@ var animate = MetaphorJs.animate = function(){
                 }
             }
 
-            if (animation && animation.constructor === Object) {
+            if (isPlainObject(animation)) {
                 stages      = animation.stages;
                 jsFn        = animation.fn;
                 before      = animation.before;
@@ -220,7 +228,7 @@ var animate = MetaphorJs.animate = function(){
 
                 duration && (options.duration = duration);
 
-                if (jsFn && typeof jsFn == "function") {
+                if (jsFn && isFunction(jsFn)) {
                     if (before) {
                         extend(el.style, before, true, false);
                     }
@@ -236,7 +244,7 @@ var animate = MetaphorJs.animate = function(){
                     before && j.css(before);
                     data(el, dataParam, "stop");
 
-                    if (jsFn && typeof jsFn == "string") {
+                    if (jsFn && isString(jsFn)) {
                         j[jsFn](options);
                         return deferred;
                     }

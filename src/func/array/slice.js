@@ -1,3 +1,3 @@
 
 
-var slice = Array.prototype.slice;
+module.exports = Array.prototype.slice;

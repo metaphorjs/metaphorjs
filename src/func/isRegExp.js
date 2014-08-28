@@ -1,5 +1,6 @@
-//#require toString.js
 
-var isRegExp = function(value) {
+var toString = require("./toString.js");
+
+module.exports = function(value) {
     return toString.call(value) === '[object RegExp]';
 };

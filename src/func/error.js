@@ -1,16 +1,17 @@
 
-var error = MetaphorJs.error = function(e) {
+var async = require("./async.js"),
+    isUndefined = require("./isUndefined.js");
+
+module.exports = function(e) {
 
     var stack = e.stack || (new Error).stack;
 
-    //throw e;
-
-    setTimeout(function(){
-        if (typeof console != "undefined" && console.log) {
+    async(function(){
+        if (!isUndefined(console) && console.log) {
             console.log(e);
             if (stack) {
                 console.log(stack);
             }
         }
-    }, 0);
+    });
 };

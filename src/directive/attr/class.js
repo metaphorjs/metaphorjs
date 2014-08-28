@@ -1,12 +1,15 @@
-//#require ../../func/directive.js
-//#require ../../func/class/defineClass.js
-//#require ../../view/AttributeHandler.js
-//#require ../../func/animation/animate.js
-//#require ../../func/animation/stopAnimation.js
-//#require ../../func/dom/addClass.js
-//#require ../../func/dom/removeClass.js
-//#require ../../func/dom/hasClass.js
-//#require ../../func/array/isArray.js
+
+
+var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
+    defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
+    animate = require("../../func/animation/animate.js"),
+    stopAnimation = require("../../func/animation/stopAnimation.js"),
+    addClass = require("../../func/dom/addClass.js"),
+    removeClass = require("../../func/dom/removeClass.js"),
+    hasClass = require("../../func/dom/hasClass.js"),
+    isArray = require("../../func/isArray.js"),
+    isString = require("../../func/isString.js");
+
 
 (function(){
 
@@ -59,7 +62,7 @@
 
             stopAnimation(node);
 
-            if (typeof clss == "string") {
+            if (isString(clss)) {
                 toggleClass(node, clss, null, !self.initial);
             }
             else if (isArray(clss)) {

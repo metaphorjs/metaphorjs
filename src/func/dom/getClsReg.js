@@ -1,9 +1,10 @@
-//#require ../getRegExp.js
+
+var getRegExp = require("../getRegExp.js");
 
 /**
  * @param {String} cls
  * @returns {RegExp}
  */
-var getClsReg   = function(cls) {
+module.exports = function(cls) {
     return getRegExp('(?:^|\\s)'+cls+'(?!\\S)');
 };

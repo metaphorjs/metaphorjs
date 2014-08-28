@@ -1,6 +1,7 @@
-//#require ../vars/Observable.js
-//#require ../vars/Watchable.js
-//#require ../func/extend.js
+
+var Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
+    Watchable = require("../../../metaphorjs-watchable/src/metaphorjs.watchable.js"),
+    extend = require("../func/extend.js");
 
 var Scope = function(cfg) {
     var self    = this;
@@ -126,3 +127,5 @@ Scope.prototype = {
 };
 
 MetaphorJs.lib.Scope = Scope;
+
+module.exports = Scope;

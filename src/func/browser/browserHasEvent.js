@@ -1,10 +1,12 @@
 //#require isIE.js
 
+var isIE = require("./isIE.js");
+
 /**
  * @param {String} event
  * @return {boolean}
  */
-var browserHasEvent = function(){
+module.exports = function(){
 
     var eventSupport = {};
 

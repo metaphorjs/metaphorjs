@@ -1,2 +1,2 @@
 
-var toString    = Object.prototype.toString;
+module.exports = Object.prototype.toString;

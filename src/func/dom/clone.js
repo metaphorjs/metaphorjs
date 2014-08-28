@@ -1,10 +1,11 @@
-//#require ../array/isArray.js
+
+var isArray = require("../isArray.js");
 
 /**
  * @param {[]|Element} node
  * @returns {[]|Element}
  */
-var clone = MetaphorJs.clone = function(node) {
+var clone = function(node) {
 
     var i, len, cloned;
 
@@ -34,3 +35,5 @@ var clone = MetaphorJs.clone = function(node) {
 
     return null;
 };
+
+module.exports = clone;

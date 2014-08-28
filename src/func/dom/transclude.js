@@ -1,14 +1,15 @@
-//#require ../dom/parentData.js
-//#require ../dom/data.js
-//#require ../dom/toFragment.js
-//#require ../dom/clone.js
-//#require ../array/toArray.js
 
-var transclude = function(node) {
+var parentData = require("../dom/parentData.js"),
+    data = require("../dom/data.js"),
+    toFragment = require("../dom/toFragment.js"),
+    clone = require("../dom/clone.js"),
+    toArray = require("../array/toArray.js");
 
-    var transclude  = parentData(node, 'mjs-transclude');
+module.exports = function(node) {
 
-    if (transclude) {
+    var contents  = parentData(node, 'mjs-transclude');
+
+    if (contents) {
 
         if (node.firstChild) {
             data(node, "mjs-transclude", toFragment(node.childNodes));
@@ -16,7 +17,7 @@ var transclude = function(node) {
 
         var parent      = node.parentNode,
             next        = node.nextSibling,
-            cloned      = clone(transclude),
+            cloned      = clone(contents),
             children    = toArray(cloned.childNodes);
 
         parent.removeChild(node);

@@ -1,13 +1,17 @@
-//#require ../array/toArray.js
-//#require ../array/inArray.js
-//#require ../array/isArray.js
-//#require getValue.js
+
+var getValue    = require("./getValue.js"),
+    toArray     = require("../array/toArray.js"),
+    inArray     = require("../array/inArray.js"),
+    isArray     = require("../isArray.js"),
+    isNumber    = require("../isNumber.js"),
+    isUndefined = require("../isUndefined.js"),
+    isNull      = require("../isNull.js");
 
 /**
  * @param {Element} el
  * @param {*} val
  */
-var setValue = MetaphorJs.setValue = function() {
+module.exports = function() {
 
     var hooks = {
         select:  function(elem, value) {
@@ -24,7 +28,7 @@ var setValue = MetaphorJs.setValue = function() {
                 if ((option.selected = inArray(option.value, values))) {
                     optionSet = true;
                 }
-                else if (option.getAttribute("mjs-default-option") !== null) {
+                else if (!isNull(option.getAttribute("mjs-default-option"))) {
                     setIndex = i;
                 }
             }
@@ -52,17 +56,17 @@ var setValue = MetaphorJs.setValue = function() {
         }
 
         // Treat null/undefined as ""; convert numbers to string
-        if (val === null) {
+        if (isNull(val)) {
             val = "";
         }
-        else if (typeof val === "number") {
+        else if (isNumber(val)) {
             val += "";
         }
 
         var hook = hooks[el.type] || hooks[el.nodeName.toLowerCase()];
 
         // If set returns undefined, fall back to normal setting
-        if (!hook || hook(el, val, "value") === undefined ) {
+        if (!hook || isUndefined(hook(el, val, "value"))) {
             el.value = val;
         }
     };

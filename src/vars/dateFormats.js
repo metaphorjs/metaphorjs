@@ -1,2 +1,0 @@
-
-var dateFormats = MetaphorJs.dateFormats = {};

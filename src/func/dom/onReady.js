@@ -1,10 +1,11 @@
-//#require ../event/removeListener.js
-//#require ../event/addListener.js
+
+var removeListener = require("../event/removeListener.js"),
+    addListener = require("../event/addListener.js");
 
 /**
  * @param {Function} fn
  */
-var onReady = MetaphorJs.onReady = function(fn) {
+module.exports = function(fn) {
 
     var done    = false,
         top     = true,

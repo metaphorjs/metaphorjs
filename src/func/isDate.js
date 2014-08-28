@@ -1,5 +1,5 @@
-//#require toString.js
+var toString = require("./toString.js");
 
-var isDate = function(value) {
+module.exports = function(value) {
     return toString.call(value) === '[object Date]';
 };

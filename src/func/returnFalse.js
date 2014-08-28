@@ -1,4 +1,4 @@
 
-var returnFalse = MetaphorJs.returnFalse = function() {
+module.exports = function() {
     return false;
 };

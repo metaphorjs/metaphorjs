@@ -1,6 +1,6 @@
 
 
-var removeListener = MetaphorJs.removeListener = function(el, event, func) {
+module.exports = function(el, event, func) {
     if (el.detachEvent) {
         el.detachEvent('on' + event, func);
     } else {

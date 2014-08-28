@@ -1,8 +1,11 @@
+
+var isFunction = require("./isFunction.js");
+
 /**
  * @param {*} any
  * @returns {boolean}
  */
-var isInjectable = MetaphorJs.isInjectable = function(any) {
-    return any && ((any.length && typeof any[any.length - 1] == "function") ||
+module.exports = function(any) {
+    return any && ((any.length && isFunction(any[any.length - 1])) ||
                     any.inject);
 };

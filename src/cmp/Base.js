@@ -1,7 +1,10 @@
-//#require ../func/extend.js
-//#require ../func/emptyFn.js
-//#require ../func/class/defineClass.js
-//#require ../vars/Observable.js
+
+
+
+var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
+    extend = require("../func/extend.js"),
+    emptyFn = require("../func/emptyFn.js"),
+    Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js");
 
 
 /**

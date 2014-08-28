@@ -1,6 +1,7 @@
-//#require data.js
 
-var parentData  = MetaphorJs.parentData = function(node, key) {
+var data = require("./data.js");
+
+module.exports = function(node, key) {
 
     var val;
 
