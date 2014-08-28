@@ -1,4 +1,4 @@
-MetaphorJs.define("My.Todo", "MetaphorJs.cmp.Component", {
+MetaphorJs.cs.define("My.Todo", "MetaphorJs.cmp.Component", {
     initComponent: function() {
         this.scope.todos = [
             {text:'learn MetaphorJs', done:true},

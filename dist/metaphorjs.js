@@ -10214,6 +10214,6 @@ onReady(function() {
         initApp(el, el.getAttribute && el.getAttribute("mjs-app")).done(done);
     }
 });
-typeof global != "undefined" ? (global.MetaphorJs = MetaphorJs) : (window.MetaphorJs = MetaphorJs);
+typeof global != "undefined" ? (global['MetaphorJs'] = MetaphorJs) : (window['MetaphorJs'] = MetaphorJs);
 
 }());

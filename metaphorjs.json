@@ -14,7 +14,6 @@
     },
 
     "all": {
-        "auto": true,
         "wrap": true,
         "global": true,
         "target": "dist/metaphorjs.all.js",
@@ -24,12 +23,41 @@
             ["../metaphorjs-dialog/metaphorjs.json", "metaphorjs"],
             ["../metaphorjs-validator/metaphorjs.json", "metaphorjs"]
         ],
-        "expose": ["onReady", "initApp", "cs", "resolveComponent", "animate", "stopAnimation"]
+        "files": [
+           "../metaphorjs-history/src/func/*"
+        ],
+        "expose": ["onReady", "initApp", "cs", "resolveComponent",
+                   "animate", "stopAnimation", "ajax",
+                   "pushUrl", "currentUrl"]
+    },
+
+    "test": {
+        "auto": true,
+        "wrap": true,
+        "global": true,
+        "target": "test/metaphorjs.all.js",
+        "appendFilesFrom": [
+            "metaphorjs",
+            ["../metaphorjs-model/metaphorjs.json", "metaphorjs"],
+            ["../metaphorjs-dialog/metaphorjs.json", "metaphorjs"],
+            ["../metaphorjs-validator/metaphorjs.json", "metaphorjs"]
+        ],
+        "files": [
+            "../metaphorjs-history/src/func/*"
+        ],
+        "expose": ["onReady", "initApp", "cs", "resolveComponent",
+                   "animate", "stopAnimation", "ajax",
+                   "trim", "pushUrl", "currentUrl"]
     },
 
     "compile-all": {
         "target": "dist/metaphorjs.all.min.js",
         "compile": "all"
+    },
+
+    "compile-test": {
+        "target": "test/metaphorjs.all.min.js",
+        "compile": "test"
     },
 
     "compile-metaphorjs": {

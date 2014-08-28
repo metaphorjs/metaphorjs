@@ -19034,6 +19034,7 @@ MetaphorJs['resolveComponent'] = resolveComponent;
 MetaphorJs['animate'] = animate;
 MetaphorJs['stopAnimation'] = stopAnimation;
 MetaphorJs['ajax'] = ajax;
+MetaphorJs['trim'] = trim;
 MetaphorJs['pushUrl'] = pushUrl;
 MetaphorJs['currentUrl'] = currentUrl;
 

@@ -20,7 +20,7 @@
         return promise;
     }];
 
-    MetaphorJs.define("My.App", "MetaphorJs.cmp.App", {
+    MetaphorJs.cs.define("My.App", "MetaphorJs.cmp.App", {
 
         initApp: function() {
             this.factory("$firebase", getFirebase, true);
@@ -29,7 +29,7 @@
 
     });
 
-    MetaphorJs.define("My.ProjectsView", "MetaphorJs.cmp.View", {
+    MetaphorJs.cs.define("My.ProjectsView", "MetaphorJs.cmp.View", {
 
         route: [
             {
@@ -53,7 +53,7 @@
 
     });
 
-    MetaphorJs.define("My.ProjectsList", "MetaphorJs.cmp.Component", {
+    MetaphorJs.cs.define("My.ProjectsList", "MetaphorJs.cmp.Component", {
 
         // instance properties and methods
         initComponent: function(cfg, fProjects) {
@@ -77,7 +77,7 @@
     });
 
 
-    MetaphorJs.define("My.NewProject", "MetaphorJs.cmp.Component", {
+    MetaphorJs.cs.define("My.NewProject", "MetaphorJs.cmp.Component", {
 
         firebase: null,
         templateUrl: '/metaphorjs/demo/projects/detail.html',
@@ -98,7 +98,7 @@
         inject: ['$config', '$firebase']
     });
 
-    MetaphorJs.define("My.EditProject", "MetaphorJs.cmp.Component", {
+    MetaphorJs.cs.define("My.EditProject", "MetaphorJs.cmp.Component", {
 
         initComponent: function(cfg, projects, projectId) {
 
