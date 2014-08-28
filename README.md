@@ -2,15 +2,38 @@
 
 v.0.2
 
-An app framework similar to AngularJs. It doesn't have so many features but the point is
-that it should be slimmer and faster than Angular (at least 3x times faster and less
-than 100kb minified.)
+An app framework similar to AngularJs (directives, scopes, dependency injection, etc)
+and ExtJs (class system, event system, data model).
+
+Features:
+
+* attribute and tag directives
+* event system (not attached to DOM)
+* promises
+* recursive rendering
+* i18n
+* output and input filters
+* namespace and class system
+* form validation
+* tooltips and dialogs
+* animation (css/js/jquery)
+* build system that integrates your project into MetaphorJs
+* dependency injection
+* global and encapsulated modes
+* data store and active record
+* ajax (with jsonp)
+* cross browser pushState implementation
+* > input, < scope or <-> two way data binding
+* no dependencies
+* cross browser
+* < 50kb minified and gzipped (without modules < 30kb)
+
 
 MetaphorJs and all of its modules do not depend on jQuery or any other dom helper.
 
 // Some of the code in the library and its modules is taken from Angular and jQuery.
 
-IE6+, Chrome, Safari, Firefox, Opera
+IE6+, Chrome, Safari, Firefox, Opera, Android Chrome
 
 ###Modules that can be used separately (in browser or/and as node modules)
 
@@ -48,6 +71,10 @@ Stateless pushState wrapper/polyfill.
 
 [MetaphorJs.data.Model](https://github.com/kuindji/metaphorjs-model)
 Model/Record/Store classes.
+
+####Build system
+
+https://github.com/kuindji/metaphorjs-build
 
 ###Demo
 
