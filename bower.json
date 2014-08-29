@@ -1,0 +1,26 @@
+{
+  "name": "metaphorjs",
+  "version": "0.3.0",
+  "authors": [
+    "kuindji <kuindji@gmail.com>"
+  ],
+  "description": "Javascript app framework",
+  "main": "dist/metaphorjs.amd.min.js",
+  "moduleType": [
+    "amd"
+  ],
+  "keywords": [
+    "framework",
+    "angularjs",
+    "angular",
+    "app"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/kuindji/metaphorjs",
+  "ignore": [
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

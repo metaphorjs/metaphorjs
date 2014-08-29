@@ -1,6 +1,6 @@
 #MetaphorJs
 
-v.0.2
+v.0.3
 
 An app framework similar to AngularJs (directives, scopes, dependency injection, etc)
 and ExtJs (class system, event system, data model).
@@ -35,35 +35,35 @@ MetaphorJs and all of its modules do not depend on jQuery or any other dom helpe
 
 IE6+, Chrome, Safari, Firefox, Opera, Android (Chrome/Native), iOS Safari, Blackberry
 
-###Modules that can be used separately (in browser or/and as node modules)
+###Modules that can be used separately (standalone/amd/node modules)
 
 ####Stable
 
-[MetaphorJs.lib.Namespace](https://github.com/kuindji/metaphorjs-namespace)
+[Namespace](https://github.com/kuindji/metaphorjs-namespace)
 The namespace system similar to one from ExtJs.
 
-[MetaphorJs.lib.Class](https://github.com/kuindji/metaphorjs-class)
+[Class](https://github.com/kuindji/metaphorjs-class)
 The class system is based on klass, although i’ve rewritten in quite heavily.
 
-[MetaphorJs.lib.Observable](https://github.com/kuindji/metaphorjs-observable)
+[Observable](https://github.com/kuindji/metaphorjs-observable)
 Event system.
 
-[MetaphorJs.lib.Promise](https://github.com/kuindji/metaphorjs-promise)
+[Promise](https://github.com/kuindji/metaphorjs-promise)
 Promise/A+ compliant library / ES6 Promise polyfill.
 
-####Beta
-
-[MetaphorJs.lib.Watchable](https://github.com/kuindji/metaphorjs-watchable)
-This one watches for changes in objects and scopes.
-
-[MetaphorJs.ajax](https://github.com/kuindji/metaphorjs-ajax)
-AJAX implementation similar to jQuery's.
-
-[MetaphorJs.lib.Dialog](https://github.com/kuindji/metaphorjs-dialog)
+[Dialog](https://github.com/kuindji/metaphorjs-dialog)
 Tooltip/Dialog library. (Reworked version of [jquery-dialog](https://github.com/kuindji/jquery-dialog) -- without
 jquery dependency.
 
-[MetaphorJs.lib.Validator](https://github.com/kuindji/metaphorjs-validator)
+####Beta
+
+[Watchable](https://github.com/kuindji/metaphorjs-watchable)
+This one watches for changes in objects and scopes.
+
+[ajax](https://github.com/kuindji/metaphorjs-ajax)
+AJAX implementation similar to jQuery's.
+
+[Validator](https://github.com/kuindji/metaphorjs-validator)
 Form validation.
 
 [history.pushState](https://github.com/kuindji/metaphorjs-history)
@@ -71,6 +71,15 @@ Stateless pushState wrapper/polyfill.
 
 [MetaphorJs.data.Model](https://github.com/kuindji/metaphorjs-model)
 Model/Record/Store classes.
+
+[select](https://github.com/kuindji/metaphorjs-select)
+Selector engine (modified YASS)
+
+[animate](https://github.com/kuindji/metaphorjs-animate)
+Animation engine
+
+[Input](https://github.com/kuindji/metaphorjs-input)
+Input field class
 
 ####Build system
 
