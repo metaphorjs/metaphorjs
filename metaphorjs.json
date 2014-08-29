@@ -36,6 +36,61 @@
         ]
     },
 
+    "npm": {
+        "target": "dist/metaphorjs.npm.js",
+        "prependFilesFrom": [
+            "standalone"
+        ],
+        "files": [
+            ["src/func/run.js", {"as": "run"}],
+            "../metaphorjs-model/src/directive/*",
+            "../metaphorjs-dialog/src/cmp/Dialog.js",
+            "../metaphorjs-validator/src/view/Validator.js"
+        ],
+        "omit": [
+            "src/bootstrap/apps.js",
+            "../metaphorjs-observable/src/metaphorjs.observable.js",
+            "../metaphorjs-promise/src/metaphorjs.promise.js",
+            "../metaphorjs-ajax/src/metaphorjs.ajax.js",
+            "../metaphorjs-animate/src/metaphorjs.animate.js",
+            "../metaphorjs-input/src/metaphorjs.input.js",
+            "../metaphorjs-input/src/func/getValue.js",
+            "../metaphorjs-input/src/func/setValue.js",
+            "../metaphorjs-class/src/metaphorjs.class.js",
+            "../metaphorjs-namespace/src/metaphorjs.namespace.js",
+            "../metaphorjs-model/src/metaphorjs.model.js",
+            "../metaphorjs-select/src/metaphorjs.select.js",
+            "../metaphorjs-validator/src/metaphorjs.validator.js",
+            "../metaphorjs-watchable/src/metaphorjs.watchable.js",
+            "../metaphorjs-dialog/src/metaphorjs.dialog.js",
+            "../metaphorjs-history/src/metaphorjs.history.js"
+        ],
+        "require": {
+            "metaphorjs-observable": "Observable",
+            "metaphorjs-promise": "Promise",
+            "metaphorjs-ajax": "ajax",
+            "metaphorjs-animate": "animate",
+            "metaphorjs-input": "Input",
+            "metaphorjs-class": "Class",
+            "metaphorjs-namespace": "Namespace",
+            "metaphorjs-model": "model",
+            "metaphorjs-select": "select",
+            "metaphorjs-validator": "Validator",
+            "metaphorjs-watchable": "Watchable",
+            "metaphorjs-dialog": "Dialog",
+            "metaphorjs-history": "history"
+        },
+        "exports": "MetaphorJs",
+        "expose": ["onReady", "initApp", "ns", "cs", "resolveComponent",
+                   "animate", "stopAnimation", "ajax",
+                   "select", "bind", "extend",
+                   "trim", "pushUrl", "currentUrl",
+                   "history", "run",
+                   ["MetaphorJs.lib", "Promise"],
+                   ["MetaphorJs.lib", "Observable"]
+        ]
+    },
+
     "amd": {
         "target": "dist/metaphorjs.amd.js",
         "prependFilesFrom": [
