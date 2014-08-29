@@ -22,5 +22,20 @@
     "bower_components",
     "test",
     "tests"
-  ]
+  ],
+  "devDependencies": {
+      "metaphorjs-observable": "*",
+      "metaphorjs-promise": "*",
+      "metaphorjs-ajax": "*",
+      "metaphorjs-animate": "*",
+      "metaphorjs-input": "*",
+      "metaphorjs-class": "*",
+      "metaphorjs-namespace": "*",
+      "metaphorjs-model": "*",
+      "metaphorjs-select": "*",
+      "metaphorjs-validator": "*",
+      "metaphorjs-watchable": "*",
+      "metaphorjs-dialog": "*",
+      "metaphorjs-history": "*"
+  }
 }
