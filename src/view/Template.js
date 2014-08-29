@@ -3,12 +3,11 @@
 var data = require("../func/dom/data.js"),
     toFragment = require("../func/dom/toFragment.js"),
     clone = require("../func/dom/clone.js"),
-    animate = require("../func/animation/animate.js"),
+    animate = require("../../../metaphorjs-animate/src/metaphorjs.animate.js"),
     extend = require("../func/extend.js"),
     nextUid = require("../func/nextUid.js"),
     trim = require("../func/trim.js"),
     createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
-    nsRegister = require("../../../metaphorjs-namespace/src/func/nsRegister.js"),
     Renderer = require("./Renderer.js"),
     Scope = require("../lib/Scope.js"),
     Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
@@ -305,8 +304,6 @@ module.exports = function(){
 
     Template.getTemplate = getTemplate;
     Template.loadTemplate = loadTemplate;
-
-    nsRegister("MetaphorJs.view.Template", Template);
 
     return Template;
 }();

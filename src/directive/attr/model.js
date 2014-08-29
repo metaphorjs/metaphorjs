@@ -4,14 +4,14 @@
 
 var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
     defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
-    Input = require("../../lib/Input.js"),
+    Input = require("../../../../metaphorjs-input/src/metaphorjs.input.js"),
     Scope = require("../../lib/Scope.js"),
-    isString = require("../../func/isString.js");
+    isString = require("../../func/isString.js"),
+    AttributeHandler = require("../../view/AttributeHandler.js");
 
-require("../../view/AttributeHandler.js");
 
 
-registerAttributeHandler("mjs-model", 1000, defineClass(null, "MetaphorJs.view.AttributeHandler", {
+registerAttributeHandler("mjs-model", 1000, defineClass(null, AttributeHandler, {
 
     inProg: false,
     input: null,

@@ -33,7 +33,7 @@ MetaphorJs and all of its modules do not depend on jQuery or any other dom helpe
 
 // Some of the code in the library and its modules is taken from Angular and jQuery.
 
-IE6+, Chrome, Safari, Firefox, Opera, Android Chrome
+IE6+, Chrome, Safari, Firefox, Opera, Android (Chrome/Native), iOS Safari, Blackberry
 
 ###Modules that can be used separately (in browser or/and as node modules)
 

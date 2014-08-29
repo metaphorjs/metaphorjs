@@ -2,11 +2,11 @@
 
 var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
     defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
-    animate = require("../../func/animation/animate.js");
+    animate = require("../../../../metaphorjs-animate/src/metaphorjs.animate.js"),
+    AttributeHandler = require("../../view/AttributeHandler.js");
 
-require("../../view/AttributeHandler.js");
 
-registerAttributeHandler("mjs-show", 500, defineClass(null, "MetaphorJs.view.AttributeHandler", {
+registerAttributeHandler("mjs-show", 500, defineClass(null, AttributeHandler, {
 
     initial: true,
 

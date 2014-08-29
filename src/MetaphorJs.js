@@ -1,6 +1,6 @@
 
-var MetaphorJs = {
-    lib: {}
+module.exports = {
+    lib: {},
+    cmp: {},
+    view: {}
 };
-
-module.exports = MetaphorJs;

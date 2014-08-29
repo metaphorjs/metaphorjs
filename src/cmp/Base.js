@@ -11,7 +11,7 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
  * @namespace MetaphorJs
  * @class MetaphorJs.cmp.Base
  */
-defineClass("MetaphorJs.cmp.Base", {
+module.exports = defineClass("MetaphorJs.cmp.Base", {
 
     /**
      * @var bool

@@ -7,14 +7,14 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
     toArray = require("../../func/array/toArray.js"),
     error = require("../../func/error.js"),
     isAttached = require("../../func/dom/isAttached.js"),
-    animate = require("../../func/animation/animate.js"),
+    animate = require("../../../../metaphorjs-animate/src/metaphorjs.animate.js"),
     Renderer = require("../../view/Renderer.js"),
     isNull = require("../../func/isNull.js"),
-    ns = require("../../../../metaphorjs-namespace/src/var/ns.js");
+    ns = require("../../../../metaphorjs-namespace/src/var/ns.js"),
+    AttributeHandler = require("../../view/AttributeHandler.js");
 
-require("../../view/AttributeHandler.js");
 
-registerAttributeHandler("mjs-each", 100, defineClass(null, "MetaphorJs.view.AttributeHandler", {
+registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
 
     model: null,
     itemName: null,

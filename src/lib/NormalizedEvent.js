@@ -116,6 +116,4 @@ NormalizedEvent.prototype = {
     }
 };
 
-MetaphorJs.lib.NormalizedEvent = NormalizedEvent;
-
 module.exports = NormalizedEvent;

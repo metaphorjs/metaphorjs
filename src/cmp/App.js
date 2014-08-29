@@ -5,7 +5,6 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     extend = require("../func/extend.js"),
     emptyFn = require("../func/emptyFn.js"),
     slice = require("../func/array/slice.js"),
-    resolveComponent = require("../func/resolveComponent.js"),
     Scope = require("../lib/Scope.js"),
     Renderer = require("../view/Renderer.js"),
     Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
@@ -15,8 +14,7 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
 
 require("./Base.js");
 
-
-defineClass("MetaphorJs.cmp.App", "MetaphorJs.cmp.Base", {
+module.exports = defineClass("MetaphorJs.cmp.App", "MetaphorJs.cmp.Base", {
 
     lang: null,
     scope: null,

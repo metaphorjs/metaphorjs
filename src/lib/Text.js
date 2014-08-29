@@ -250,7 +250,5 @@ module.exports = function(){
         return globalText;
     };
 
-    MetaphorJs.lib.Text = Text;
-
     return Text;
 }();

@@ -14,7 +14,7 @@ require("./Base.js");
  * @class MetaphorJs.cmp.Component
  * @extends MetaphorJs.cmp.Observable
  */
-defineClass("MetaphorJs.cmp.Component", "MetaphorJs.cmp.Base", {
+module.exports = defineClass("MetaphorJs.cmp.Component", "MetaphorJs.cmp.Base", {
 
     /**
      * @access protected

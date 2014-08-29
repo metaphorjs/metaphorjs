@@ -230,8 +230,6 @@ module.exports = function(){
 
     globalProvider = new Provider;
 
-    MetaphorJs.lib.Provider = Provider;
-
     return Provider;
 }();
 

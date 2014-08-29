@@ -126,6 +126,5 @@ Scope.prototype = {
 
 };
 
-MetaphorJs.lib.Scope = Scope;
 
 module.exports = Scope;

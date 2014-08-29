@@ -5,9 +5,8 @@ var nextUid = require("../func/nextUid.js"),
     toArray = require("../func/array/toArray.js"),
     isThenable = require("../func/isThenable.js"),
     nsGet = require("../../../metaphorjs-namespace/src/func/nsGet.js"),
-    nsRegister = require("../../../metaphorjs-namespace/src/func/nsRegister.js"),
     error = require("../func/error.js"),
-    select = require("../func/dom/select.js"),
+    select = require("../../../metaphorjs-select/src/metaphorjs.select.js"),
     nodeTextProp = require("../var/nodeTextProp.js"),
     Scope = require("../lib/Scope.js"),
     Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
@@ -367,7 +366,6 @@ module.exports = function(){
         }
     };
 
-    nsRegister("MetaphorJs.view.Renderer", Renderer);
 
     return Renderer;
 }();

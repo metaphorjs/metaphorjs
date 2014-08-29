@@ -1,14 +1,13 @@
 
 
-var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
-    trim = require("../func/trim.js"),
+var trim = require("../func/trim.js"),
     createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
     Scope = require("../lib/Scope.js"),
-    ns = require("../../../metaphorjs-namespace/src/var/ns.js");
+    ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
+    defineClass = require("../../../metaphorjs-class/src/func/defineClass.js");
 
 
-
-defineClass("MetaphorJs.view.AttributeHandler", {
+module.exports = defineClass("MetaphorJs.view.AttributeHandler", {
 
     watcher: null,
     scope: null,
@@ -16,7 +15,6 @@ defineClass("MetaphorJs.view.AttributeHandler", {
     expr: null,
 
     initialize: function(scope, node, expr) {
-
         var self        = this;
 
         expr            = trim(expr);
@@ -52,5 +50,6 @@ defineClass("MetaphorJs.view.AttributeHandler", {
             delete self.watcher;
         }
     }
-
 });
+
+

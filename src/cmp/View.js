@@ -1,8 +1,8 @@
 
 
 var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
-    animate = require("../func/animation/animate.js"),
-    stopAnimation = require("../func/animation/stopAnimation.js"),
+    animate = require("../../../metaphorjs-animate/src/metaphorjs.animate.js"),
+    stopAnimation = require("../../../metaphorjs-animate/src/func/stopAnimation.js"),
     extend = require("../func/extend.js"),
     data = require("../func/dom/data.js"),
     toFragment = require("../func/dom/toFragment.js"),
@@ -11,10 +11,11 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     currentUrl = require("../../../metaphorjs-history/src/func/currentUrl.js"),
     isObject = require("../func/isObject.js"),
     isString = require("../func/isString.js"),
-    ns = require("../../../metaphorjs-namespace/src/var/ns.js");
+    ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
+    history = require("../../../metaphorjs-history/src/metaphorjs.history.js");
 
 
-defineClass("MetaphorJs.cmp.View", {
+module.exports = defineClass("MetaphorJs.cmp.View", {
 
     /**
      * [
@@ -60,7 +61,7 @@ defineClass("MetaphorJs.cmp.View", {
 
         if (self.route) {
             history.initPushState();
-            MetaphorJs.on("locationChange", self.onLocationChange, self);
+            history.on("locationChange", self.onLocationChange, self);
             self.onLocationChange();
         }
         else if (self.cmp) {
@@ -214,7 +215,7 @@ defineClass("MetaphorJs.cmp.View", {
         self.clearComponent();
 
         if (self.route) {
-            MetaphorJs.un("locationchange", self.onLocationChange, self);
+            history.un("locationchange", self.onLocationChange, self);
             delete self.route;
         }
 

@@ -2,13 +2,14 @@
 
 var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
     defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
-    animate = require("../../func/animation/animate.js"),
-    stopAnimation = require("../../func/animation/stopAnimation.js"),
+    animate = require("../../../../metaphorjs-animate/src/metaphorjs.animate.js"),
+    stopAnimation = require("../../../../metaphorjs-animate/src/func/stopAnimation.js"),
     addClass = require("../../func/dom/addClass.js"),
     removeClass = require("../../func/dom/removeClass.js"),
     hasClass = require("../../func/dom/hasClass.js"),
     isArray = require("../../func/isArray.js"),
-    isString = require("../../func/isString.js");
+    isString = require("../../func/isString.js"),
+    AttributeHandler = require("../../view/AttributeHandler.js");
 
 
 (function(){
@@ -49,7 +50,7 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
         }
     };
 
-    registerAttributeHandler("mjs-class", 1000, defineClass(null, "MetaphorJs.view.AttributeHandler", {
+    registerAttributeHandler("mjs-class", 1000, defineClass(null, AttributeHandler, {
 
         initial: true,
 

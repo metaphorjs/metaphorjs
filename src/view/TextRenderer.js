@@ -4,7 +4,6 @@ var nextUid = require("../func/nextUid.js"),
     bind = require("../func/bind.js"),
     trim = require("../func/trim.js"),
     createWatchable = require("../../../metaphorjs-watchable/src/metaphorjs.watchable.js"),
-    nsRegister = require("../../../metaphorjs-namespace/src/func/nsRegister.js"),
     Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
     isString = require("../func/isString.js"),
     isNull = require("../func/isNull.js"),
@@ -338,8 +337,6 @@ module.exports = function(){
     };
 
     TextRenderer.create = factory;
-
-    nsRegister("MetaphorJs.view.TextRenderer", TextRenderer);
 
     return TextRenderer;
 }();

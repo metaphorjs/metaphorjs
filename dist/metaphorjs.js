@@ -2,10 +2,10 @@
 "use strict";
 
 var MetaphorJs = {
-    lib: {}
+    lib: {},
+    cmp: {},
+    view: {}
 };
-
-
 
 var isFunction = function(value) {
     return typeof value === 'function';
@@ -16,341 +16,6 @@ var isString = function(value) {
 var isObject = function(value) {
     return value != null && typeof value === 'object';
 };
-
-
-/*!
- * inspired by and based on klass
- */
-
-var Class = function(ns){
-
-    if (!ns) {
-        ns = new Namespace;
-    }
-
-
-    /**
-     * @namespace MetaphorJs
-     */
-
-    var proto   = "prototype",
-
-        create  = function(cls, constructor) {
-            return extend(function(){}, cls, constructor);
-        },
-
-        wrap    = function(parent, k, fn) {
-
-            return function() {
-                var ret     = undefined,
-                    prev    = this.supr;
-
-                this.supr   = parent[proto][k] || function(){};
-
-                try {
-                    ret     = fn.apply(this, arguments);
-                }
-                catch(thrownError) {}
-
-                this.supr   = prev;
-                return ret;
-            };
-        },
-
-        process = function(what, o, parent) {
-            for (var k in o) {
-                if (o.hasOwnProperty(k)) {
-                    what[k] = isFunction(o[k]) && parent[proto] && isFunction(parent[proto][k]) ?
-                              wrap(parent, k, o[k]) :
-                              o[k];
-                }
-            }
-        },
-
-        extend  = function(parent, cls, constructorFn) {
-
-            var noop        = function(){};
-            noop[proto]     = parent[proto];
-            var prototype   = new noop;
-
-            var fn          = constructorFn || function() {
-                var self = this;
-                if (self.initialize) {
-                    self.initialize.apply(self, arguments);
-                }
-            };
-
-            process(prototype, cls, parent);
-            fn[proto]   = prototype;
-            fn[proto].constructor = fn;
-            fn[proto].getClass = function() {
-                return this.__proto__.constructor.__class;
-            };
-            fn[proto].getParentClass = function() {
-                return this.__proto__.constructor.__parentClass;
-            };
-            fn.__instantiate = function(fn) {
-
-                return function() {
-                    var Temp = function(){},
-                        inst, ret;
-
-                    Temp.prototype  = fn.prototype;
-                    inst            = new Temp;
-                    ret             = fn.prototype.constructor.apply(inst, arguments);
-
-                    // If an object has been returned then return it otherwise
-                    // return the original instance.
-                    // (consistent with behaviour of the new operator)
-                    return isObject(ret) ? ret : inst;
-                };
-            }(fn);
-
-            return fn;
-        };
-
-
-    /**
-     * Define class
-     * @function MetaphorJs.define
-     * @param {string} name
-     * @param {function} constructor
-     * @param {object} definition (optional)
-     * @param {object} statics (optional)
-     * @param {bool} cacheOnly (optional)
-     * @return function New class constructor
-     * @alias MetaphorJs.d
-     */
-
-    /**
-     * Define class
-     * @function MetaphorJs.define
-     * @param {function} constructor
-     * @param {object} definition (optional)
-     * @param {object} statics (optional)
-     * @param {bool} cacheOnly (optional)
-     * @return function New class constructor
-     * @alias MetaphorJs.d
-     */
-
-    /**
-     * Define class
-     * @function MetaphorJs.define
-     * @param {string} name
-     * @param {object} definition
-     * @param {object} statics (optional)
-     * @param {bool} cacheOnly (optional)
-     * @return function New class constructor
-     * @alias MetaphorJs.d
-     */
-
-    /**
-     * Define class
-     * @function MetaphorJs.define
-     * @param {object} definition
-     * @param {object} statics (optional)
-     * @param {bool} cacheOnly (optional)
-     * @return function New class constructor
-     * @alias MetaphorJs.d
-     */
-
-    /**
-     * Define class
-     * @function MetaphorJs.define
-     * @param {string} name
-     * @param {string} parentClass
-     * @param {function} constructor
-     * @param {object} definition (optional)
-     * @param {object} statics (optional)
-     * @param {bool} cacheOnly (optional)
-     * @return function New class constructor
-     * @alias MetaphorJs.d
-     */
-    var define = function(name, parentClass, constructor, definition, statics, cacheOnly) {
-
-        if (name === null) {
-            name = "";
-        }
-
-        // constructor as first argument
-        if (isFunction(name)) {
-
-            statics         = constructor;
-
-            if (isString(parentClass)) {
-                statics     = definition;
-                definition  = constructor;
-            }
-            else {
-                definition      = parentClass;
-                constructor     = name;
-                parentClass     = null;
-            }
-
-            name              = null;
-        }
-        // definition as first argument
-        else if (!isString(name)) {
-            statics         = parentClass;
-            definition      = name;
-            parentClass     = null;
-            constructor     = null;
-            name            = null;
-        }
-
-        if (!isString(parentClass) && !isFunction(parentClass)) {
-            statics         = definition;
-            definition      = constructor;
-            constructor     = parentClass;
-            parentClass     = null;
-        }
-
-        if (!isFunction(constructor)) {
-            statics         = definition;
-            definition      = constructor;
-            constructor     = null;
-        }
-
-        definition          = definition || {};
-        var pConstructor    = parentClass && isString(parentClass) ?
-                                ns.get(parentClass) :
-                                parentClass;
-
-        if (parentClass && !pConstructor) {
-            throw new Error(parentClass + " not found");
-        }
-
-        var c   = pConstructor ? extend(pConstructor, definition, constructor) : create(definition, constructor);
-
-        c.__isMetaphorClass = true;
-        c.__parent          = pConstructor;
-        c.__parentClass     = pConstructor ? pConstructor.__class : null;
-        c.__class           = ns;
-
-        if (statics) {
-            for (var k in statics) {
-                if (statics.hasOwnProperty(k)) {
-                    c[k] = statics[k];
-                }
-            }
-        }
-
-        if (name) {
-            if (!cacheOnly) {
-                ns.register(name, c);
-            }
-            else {
-                ns.add(name, c);
-            }
-        }
-
-        if (statics && statics.alias) {
-            ns.add(statics.alias, c);
-        }
-
-        return c;
-    };
-
-
-
-    /**
-     * @function MetaphorJs.defineCache
-     * Same as define() but this one only puts object to cache without registering namespace
-     */
-    var defineCache = function(name, parentClass, constructor, definition, statics) {
-        return define(name, parentClass, constructor, definition, statics, true);
-    };
-
-
-
-    /**
-     * Instantiate class
-     * @function MetaphorJs.create
-     * @param {string} name Full name of the class
-     */
-    var instantiate = function(name) {
-
-        var cls     = ns.get(name),
-            args    = slice.call(arguments, 1);
-
-        if (!cls) {
-            throw new Error(name + " not found");
-        }
-
-        return cls.__instantiate.apply(this, args);
-    };
-
-
-
-    /**
-     * Is cmp instance of cls
-     * @function MetaphorJs.is
-     * @param {object} cmp
-     * @param {string|object} cls
-     * @returns boolean
-     */
-    var isInstanceOf = function(cmp, cls) {
-        var _cls    = isString(cls) ? ns.get(cls) : cls;
-        return _cls ? cmp instanceof _cls : false;
-    };
-
-
-
-    /**
-     * Is one class subclass of another class
-     * @function MetaphorJs.isSubclass
-     * @param {object} child
-     * @param {string|object} parent
-     * @return bool
-     * @alias MetaphorJs.iss
-     */
-    var isSubclassOf = function(child, parent) {
-
-        var p   = child,
-            g   = ns.get;
-
-        if (!isString(parent)) {
-            parent  = parent.getClass ? parent.getClass() : parent.prototype.constructor.__class;
-        }
-        if (isString(child)) {
-            p   = g(child);
-        }
-
-        while (p) {
-            if (p.prototype.constructor.__class == parent) {
-                return true;
-            }
-            if (p) {
-                p = p.getParentClass ? g(p.getParentClass()) : p.__parent;
-            }
-        }
-
-        return false;
-    };
-
-    var self    = this;
-
-    self.factory = instantiate;
-    self.isSubclassOf = isSubclassOf;
-    self.isInstanceOf = isInstanceOf;
-    self.define = define;
-    self.defineCache = defineCache;
-
-};
-
-Class.prototype = {
-
-    factory: null,
-    isSubclassOf: null,
-    isInstanceOf: null,
-    define: null,
-    defineCache: null
-
-};
-
-MetaphorJs.lib.Class = Class;
-
-
 var strUndef = "undefined";
 
 
@@ -553,7 +218,346 @@ Namespace.prototype = {
     remove: null
 };
 
-MetaphorJs.lib.Namespace = Namespace;
+
+
+
+
+
+/*!
+ * inspired by and based on klass
+ */
+
+var Class = function(ns){
+
+    if (!ns) {
+        ns = new Namespace;
+    }
+
+
+    /**
+     * @namespace MetaphorJs
+     */
+
+    var proto   = "prototype",
+
+        create  = function(cls, constructor) {
+            return extend(function(){}, cls, constructor);
+        },
+
+        wrap    = function(parent, k, fn) {
+
+            return function() {
+                var ret     = undefined,
+                    prev    = this.supr;
+
+                this.supr   = parent[proto][k] || function(){};
+
+                try {
+                    ret     = fn.apply(this, arguments);
+                }
+                catch(thrownError) {}
+
+                this.supr   = prev;
+                return ret;
+            };
+        },
+
+        process = function(what, o, parent) {
+            for (var k in o) {
+                if (o.hasOwnProperty(k)) {
+                    what[k] = isFunction(o[k]) && parent[proto] && isFunction(parent[proto][k]) ?
+                              wrap(parent, k, o[k]) :
+                              o[k];
+                }
+            }
+        },
+
+        extend  = function(parent, cls, constructorFn) {
+
+            var noop        = function(){};
+            noop[proto]     = parent[proto];
+            var prototype   = new noop;
+
+            var fn          = function() {
+                var self = this;
+                if (constructorFn) {
+                    constructorFn.apply(self, arguments);
+                }
+                if (self.initialize) {
+                    self.initialize.apply(self, arguments);
+                }
+            };
+
+            process(prototype, cls, parent);
+            fn[proto]   = prototype;
+            fn[proto].constructor = fn;
+            fn[proto].getClass = function() {
+                return this.__proto__.constructor.__class;
+            };
+            fn[proto].getParentClass = function() {
+                return this.__proto__.constructor.__parentClass;
+            };
+            fn.__instantiate = function(fn) {
+
+                return function() {
+                    var Temp = function(){},
+                        inst, ret;
+
+                    Temp.prototype  = fn.prototype;
+                    inst            = new Temp;
+                    ret             = fn.prototype.constructor.apply(inst, arguments);
+
+                    // If an object has been returned then return it otherwise
+                    // return the original instance.
+                    // (consistent with behaviour of the new operator)
+                    return isObject(ret) ? ret : inst;
+                };
+            }(fn);
+
+            return fn;
+        };
+
+
+    /**
+     * Define class
+     * @function MetaphorJs.define
+     * @param {string} name
+     * @param {function} constructor
+     * @param {object} definition (optional)
+     * @param {object} statics (optional)
+     * @param {bool} cacheOnly (optional)
+     * @return function New class constructor
+     * @alias MetaphorJs.d
+     */
+
+    /**
+     * Define class
+     * @function MetaphorJs.define
+     * @param {function} constructor
+     * @param {object} definition (optional)
+     * @param {object} statics (optional)
+     * @param {bool} cacheOnly (optional)
+     * @return function New class constructor
+     * @alias MetaphorJs.d
+     */
+
+    /**
+     * Define class
+     * @function MetaphorJs.define
+     * @param {string} name
+     * @param {object} definition
+     * @param {object} statics (optional)
+     * @param {bool} cacheOnly (optional)
+     * @return function New class constructor
+     * @alias MetaphorJs.d
+     */
+
+    /**
+     * Define class
+     * @function MetaphorJs.define
+     * @param {object} definition
+     * @param {object} statics (optional)
+     * @param {bool} cacheOnly (optional)
+     * @return function New class constructor
+     * @alias MetaphorJs.d
+     */
+
+    /**
+     * Define class
+     * @function MetaphorJs.define
+     * @param {string} name
+     * @param {string} parentClass
+     * @param {function} constructor
+     * @param {object} definition (optional)
+     * @param {object} statics (optional)
+     * @param {bool} cacheOnly (optional)
+     * @return function New class constructor
+     * @alias MetaphorJs.d
+     */
+    var define = function(name, parentClass, constructor, definition, statics, cacheOnly) {
+
+        if (name === null) {
+            name = "";
+        }
+
+        // constructor as first argument
+        if (isFunction(name)) {
+
+            statics         = constructor;
+
+            if (isString(parentClass)) {
+                statics     = definition;
+                definition  = constructor;
+            }
+            else {
+                definition      = parentClass;
+                constructor     = name;
+                parentClass     = null;
+            }
+
+            name              = null;
+        }
+
+        // definition as first argument
+        else if (!isString(name)) {
+            statics         = parentClass;
+            definition      = name;
+            parentClass     = null;
+            constructor     = null;
+            name            = null;
+        }
+
+        // if object is second parameter (leads to next check)
+        if (!isString(parentClass) && !isFunction(parentClass)) {
+            statics         = definition;
+            definition      = constructor;
+            constructor     = parentClass;
+            parentClass     = null;
+        }
+
+        // if third parameter is not a function (definition instead of constructor)
+        if (!isFunction(constructor)) {
+            statics         = definition;
+            definition      = constructor;
+            constructor     = null;
+        }
+
+        definition          = definition || {};
+        var pConstructor    = parentClass && isString(parentClass) ?
+                                ns.get(parentClass) :
+                                parentClass;
+
+        if (parentClass && !pConstructor) {
+            throw new Error(parentClass + " not found");
+        }
+
+        var c   = pConstructor ? extend(pConstructor, definition, constructor) : create(definition, constructor);
+
+        c.__isMetaphorClass = true;
+        c.__parent          = pConstructor;
+        c.__parentClass     = pConstructor ? pConstructor.__class : null;
+        c.__class           = ns;
+
+        if (statics) {
+            for (var k in statics) {
+                if (statics.hasOwnProperty(k)) {
+                    c[k] = statics[k];
+                }
+            }
+        }
+
+        if (name) {
+            if (!cacheOnly) {
+                ns.register(name, c);
+            }
+            else {
+                ns.add(name, c);
+            }
+        }
+
+        if (statics && statics.alias) {
+            ns.add(statics.alias, c);
+        }
+
+        return c;
+    };
+
+
+
+    /**
+     * @function MetaphorJs.defineCache
+     * Same as define() but this one only puts object to cache without registering namespace
+     */
+    var defineCache = function(name, parentClass, constructor, definition, statics) {
+        return define(name, parentClass, constructor, definition, statics, true);
+    };
+
+
+
+    /**
+     * Instantiate class
+     * @function MetaphorJs.create
+     * @param {string} name Full name of the class
+     */
+    var instantiate = function(name) {
+
+        var cls     = ns.get(name),
+            args    = slice.call(arguments, 1);
+
+        if (!cls) {
+            throw new Error(name + " not found");
+        }
+
+        return cls.__instantiate.apply(this, args);
+    };
+
+
+
+    /**
+     * Is cmp instance of cls
+     * @function MetaphorJs.is
+     * @param {object} cmp
+     * @param {string|object} cls
+     * @returns boolean
+     */
+    var isInstanceOf = function(cmp, cls) {
+        var _cls    = isString(cls) ? ns.get(cls) : cls;
+        return _cls ? cmp instanceof _cls : false;
+    };
+
+
+
+    /**
+     * Is one class subclass of another class
+     * @function MetaphorJs.isSubclass
+     * @param {object} child
+     * @param {string|object} parent
+     * @return bool
+     * @alias MetaphorJs.iss
+     */
+    var isSubclassOf = function(child, parent) {
+
+        var p   = child,
+            g   = ns.get;
+
+        if (!isString(parent)) {
+            parent  = parent.getClass ? parent.getClass() : parent.prototype.constructor.__class;
+        }
+        if (isString(child)) {
+            p   = g(child);
+        }
+
+        while (p) {
+            if (p.prototype.constructor.__class == parent) {
+                return true;
+            }
+            if (p) {
+                p = p.getParentClass ? g(p.getParentClass()) : p.__parent;
+            }
+        }
+
+        return false;
+    };
+
+    var self    = this;
+
+    self.factory = instantiate;
+    self.isSubclassOf = isSubclassOf;
+    self.isInstanceOf = isInstanceOf;
+    self.define = define;
+    self.defineCache = defineCache;
+
+};
+
+Class.prototype = {
+
+    factory: null,
+    isSubclassOf: null,
+    isInstanceOf: null,
+    define: null,
+    defineCache: null
+
+};
 
 
 
@@ -667,27 +671,6 @@ var extend = function extend() {
 
 var emptyFn = function(){};
 
-
-var toFragment = function(nodes) {
-
-    var fragment = document.createDocumentFragment();
-
-    if (isString(nodes)) {
-        var tmp = document.createElement('div');
-        tmp.innerHTML = nodes;
-        nodes = tmp.childNodes;
-    }
-
-    if (nodes.nodeType) {
-        fragment.appendChild(nodes);
-    }
-    else {
-        for(var i =- 1, l = nodes.length>>>0; ++i !== l; fragment.appendChild(nodes[0])){}
-    }
-
-    return fragment;
-};
-
 /**
  * @returns {String}
  */
@@ -720,90 +703,682 @@ var nextUid = function(){
 
 
 
+
+
 /**
- * @param {Element} el
- * @param {String} key
- * @param {*} value optional
+ * <p>A javascript event system implementing two patterns - observable and collector.</p>
+ *
+ * <p>Observable:</p>
+ * <pre><code class="language-javascript">
+ * var o = new MetaphorJs.lib.Observable;
+ * o.on("event", function(x, y, z){ console.log([x, y, z]) });
+ * o.trigger("event", 1, 2, 3); // [1, 2, 3]
+ * </code></pre>
+ *
+ * <p>Collector:</p>
+ * <pre><code class="language-javascript">
+ * var o = new MetaphorJs.lib.Observable;
+ * o.createEvent("collectStuff", "all");
+ * o.on("collectStuff", function(){ return 1; });
+ * o.on("collectStuff", function(){ return 2; });
+ * var results = o.trigger("collectStuff"); // [1, 2]
+ * </code></pre>
+ *
+ * <p>Although all methods are public there is getApi() method that allows you
+ * extending your own objects without overriding "destroy" (which you probably have)</p>
+ * <pre><code class="language-javascript">
+ * var o = new MetaphorJs.lib.Observable;
+ * $.extend(this, o.getApi());
+ * this.on("event", function(){ alert("ok") });
+ * this.trigger("event");
+ * </code></pre>
+ *
+ * @namespace MetaphorJs
+ * @class MetaphorJs.lib.Observable
+ * @version 1.1
+ * @author johann kuindji
+ * @link https://github.com/kuindji/metaphorjs-observable
  */
-var data = function(){
+var Observable = function() {
 
-    var dataCache   = {},
+    this.events = {};
 
-        getNodeId   = function(el) {
-            return el._mjsid || (el._mjsid = nextUid());
-        };
+};
 
-    return function(el, key, value) {
-        var id  = getNodeId(el),
-            obj = dataCache[id];
 
-        if (!isUndefined(value)) {
-            if (!obj) {
-                obj = dataCache[id] = {};
+Observable.prototype = {
+
+    /**
+    * <p>You don't have to call this function unless you want to pass returnResult param.
+    * This function will be automatically called from on() with
+    * <code class="language-javascript">returnResult = false</code>,
+    * so if you want to receive handler's return values, create event first, then call on().</p>
+    *
+    * <pre><code class="language-javascript">
+    * var observable = new MetaphorJs.lib.Observable;
+    * observable.createEvent("collectStuff", "all");
+    * observable.on("collectStuff", function(){ return 1; });
+    * observable.on("collectStuff", function(){ return 2; });
+    * var results = observable.trigger("collectStuff"); // [1, 2]
+    * </code></pre>
+    *
+    * @method
+    * @access public
+    * @param {string} name {
+    *       Event name
+    *       @required
+    * }
+    * @param {bool|string} returnResult {
+    *   false -- do not return results except if handler returned "false". This is how
+    *   normal observables work.<br>
+    *   "all" -- return all results as array<br>
+    *   "first" -- return result of the first handler<br>
+    *   "last" -- return result of the last handler
+    *   @required
+    * }
+    * @return MetaphorJs.lib.ObservableEvent
+    */
+    createEvent: function(name, returnResult) {
+        name = name.toLowerCase();
+        var events  = this.events;
+        if (!events[name]) {
+            events[name] = new Event(name, returnResult);
+        }
+        return events[name];
+    },
+
+    /**
+    * @method
+    * @access public
+    * @param {string} name Event name
+    * @return MetaphorJs.lib.ObservableEvent|undefined
+    */
+    getEvent: function(name) {
+        name = name.toLowerCase();
+        return this.events[name];
+    },
+
+    /**
+    * Subscribe to an event or register collector function.
+    * @method
+    * @access public
+    * @md-save on
+    * @param {string} name {
+    *       Event name
+    *       @required
+    * }
+    * @param {function} fn {
+    *       Callback function
+    *       @required
+    * }
+    * @param {object} scope "this" object for the callback function
+    * @param {object} options {
+    *       @type bool first {
+    *           True to prepend to the list of handlers
+    *           @default false
+    *       }
+    *       @type number limit {
+    *           Call handler this number of times; 0 for unlimited
+    *           @default 0
+    *       }
+    *       @type number start {
+    *           Start calling handler after this number of calls. Starts from 1
+    *           @default 1
+    *       }
+     *      @type [] append Append parameters
+     *      @type [] prepend Prepend parameters
+     *      @type bool allowDupes allow the same handler twice
+    * }
+    */
+    on: function(name, fn, scope, options) {
+        name = name.toLowerCase();
+        var events  = this.events;
+        if (!events[name]) {
+            events[name] = new Event(name);
+        }
+        return events[name].on(fn, scope, options);
+    },
+
+    /**
+    * Same as on(), but options.limit is forcefully set to 1.
+    * @method
+    * @md-apply on
+    * @access public
+    */
+    once: function(name, fn, scope, options) {
+        options     = options || {};
+        options.limit = 1;
+        return this.on(name, fn, scope, options);
+    },
+
+
+    /**
+    * Unsubscribe from an event
+    * @method
+    * @access public
+    * @param {string} name Event name
+    * @param {function} fn Event handler
+    * @param {object} scope If you called on() with scope you must call un() with the same scope
+    */
+    un: function(name, fn, scope) {
+        name = name.toLowerCase();
+        var events  = this.events;
+        if (!events[name]) {
+            return;
+        }
+        events[name].un(fn, scope);
+    },
+
+    /**
+    * @method hasListener
+    * @access public
+    * @param {string} name Event name { @required }
+    * @return bool
+    */
+
+    /**
+    * @method
+    * @access public
+    * @param {string} name Event name { @required }
+    * @param {function} fn Callback function { @required }
+    * @param {object} scope Function's "this" object
+    * @return bool
+    */
+    hasListener: function(name, fn, scope) {
+        name = name.toLowerCase();
+        var events  = this.events;
+        if (!events[name]) {
+            return false;
+        }
+        return events[name].hasListener(fn, scope);
+    },
+
+
+    /**
+    * Remove all listeners from all events
+    * @method removeAllListeners
+    * @access public
+    */
+
+    /**
+    * Remove all listeners from specific event
+    * @method
+    * @access public
+    * @param {string} name Event name { @required }
+    */
+    removeAllListeners: function(name) {
+        var events  = this.events;
+        if (!events[name]) {
+            return;
+        }
+        events[name].removeAllListeners();
+    },
+
+    /**
+    * Trigger an event -- call all listeners.
+    * @method
+    * @access public
+    * @param {string} name Event name { @required }
+    * @param {*} ... As many other params as needed
+    * @return mixed
+    */
+    trigger: function() {
+
+        var name = arguments[0],
+            events  = this.events;
+
+        name = name.toLowerCase();
+
+        if (!events[name]) {
+            return null;
+        }
+
+        var e = events[name];
+        return e.trigger.apply(e, slice.call(arguments, 1));
+    },
+
+    /**
+    * Suspend an event. Suspended event will not call any listeners on trigger().
+    * @method
+    * @access public
+    * @param {string} name Event name
+    */
+    suspendEvent: function(name) {
+        name = name.toLowerCase();
+        var events  = this.events;
+        if (!events[name]) {
+            return;
+        }
+        events[name].suspend();
+    },
+
+    /**
+    * @method
+    * @access public
+    */
+    suspendAllEvents: function() {
+        var events  = this.events;
+        for (var name in events) {
+            events[name].suspend();
+        }
+    },
+
+    /**
+    * Resume suspended event.
+    * @method
+    * @access public
+    * @param {string} name Event name
+    */
+    resumeEvent: function(name) {
+        name = name.toLowerCase();
+        var events  = this.events;
+        if (!events[name]) {
+            return;
+        }
+        events[name].resume();
+    },
+
+    /**
+    * @method
+    * @access public
+    */
+    resumeAllEvents: function() {
+        var events  = this.events;
+        for (var name in events) {
+            events[name].resume();
+        }
+    },
+
+    /**
+     * @method
+     * @access public
+     * @param {string} name Event name
+     */
+    destroyEvent: function(name) {
+        var events  = this.events;
+        if (events[name]) {
+            events[name].removeAllListeners();
+            events[name].destroy();
+            delete events[name];
+        }
+    },
+
+
+    /**
+    * Destroy specific event
+    * @method
+    * @md-not-inheritable
+    * @access public
+    * @param {string} name Event name
+    */
+    destroy: function(name) {
+        var events  = this.events;
+
+        if (name) {
+            name = name.toLowerCase();
+            if (events[name]) {
+                events[name].destroy();
+                delete events[name];
             }
-            obj[key] = value;
-            return value;
         }
         else {
-            return obj ? obj[key] : undefined;
+            for (var i in events) {
+                events[i].destroy();
+            }
+
+            this.events = {};
         }
-    };
+    },
 
-}();/**
- * @param {String} expr
- */
-var getRegExp = function(){
+    /**
+    * Get object with all functions except "destroy"
+    * @method
+    * @md-not-inheritable
+    * @returns object
+    */
+    getApi: function() {
 
-    var cache = {};
+        var self    = this;
 
-    return function(expr) {
-        return cache[expr] || (cache[expr] = new RegExp(expr));
-    };
-}();
+        if (!self.api) {
 
+            var methods = [
+                    "createEvent", "getEvent", "on", "un", "once", "hasListener", "removeAllListeners",
+                    "trigger", "suspendEvent", "suspendAllEvents", "resumeEvent",
+                    "resumeAllEvents", "destroyEvent"
+                ],
+                api = {},
+                name;
 
-/**
- * @param {String} cls
- * @returns {RegExp}
- */
-var getClsReg = function(cls) {
-    return getRegExp('(?:^|\\s)'+cls+'(?!\\S)');
-};
+            for(var i =- 1, l = methods.length;
+                    ++i < l;
+                    name = methods[i],
+                    api[name] = bind(self[name], self)){}
 
+            self.api = api;
+        }
 
-/**
- * @param {Element} el
- * @param {String} cls
- * @returns {boolean}
- */
-var hasClass = function(el, cls) {
-    return cls ? getClsReg(cls).test(el.className) : false;
-};
-
-
-/**
- * @param {Element} el
- * @param {String} cls
- */
-var addClass = function(el, cls) {
-    if (cls && !hasClass(el, cls)) {
-        el.className += " " + cls;
+        return self.api;
     }
 };
 
 
 /**
- * @param {Element} el
- * @param {String} cls
+ * This class is private - you can't create an event other than via Observable.
+ * See MetaphorJs.lib.Observable reference.
+ * @class MetaphorJs.lib.ObservableEvent
  */
-var removeClass = function(el, cls) {
-    if (cls) {
-        el.className = el.className.replace(getClsReg(cls), '');
+var Event = function(name, returnResult) {
+
+    var self    = this;
+
+    self.name           = name;
+    self.listeners      = [];
+    self.map            = {};
+    self.hash           = nextUid();
+    self.uni            = '$$' + name + '_' + self.hash;
+    self.suspended      = false;
+    self.lid            = 0;
+    self.returnResult   = isUndefined(returnResult) ? null : returnResult; // first|last|all
+};
+
+
+Event.prototype = {
+
+    getName: function() {
+        return this.name;
+    },
+
+    /**
+     * @method
+     */
+    destroy: function() {
+        var self        = this;
+        self.listeners  = null;
+        self.map        = null;
+    },
+
+    /**
+     * @method
+     * @param {function} fn Callback function { @required }
+     * @param {object} scope Function's "this" object
+     * @param {object} options See Observable's on()
+     */
+    on: function(fn, scope, options) {
+
+        if (!fn) {
+            return null;
+        }
+
+        scope       = scope || null;
+        options     = options || {};
+
+        var self        = this,
+            uni         = self.uni,
+            uniScope    = scope || fn;
+
+        if (uniScope[uni] && !options.allowDupes) {
+            return null;
+        }
+
+        var id      = ++self.lid,
+            first   = options.first || false;
+
+        uniScope[uni]  = id;
+
+
+        var e = {
+            fn:         fn,
+            scope:      scope,
+            uniScope:   uniScope,
+            id:         id,
+            called:     0, // how many times the function was triggered
+            limit:      options.limit || 0, // how many times the function is allowed to trigger
+            start:      options.start || 1, // from which attempt it is allowed to trigger the function
+            count:      0, // how many attempts to trigger the function was made
+            append:     options.append, // append parameters
+            prepend:    options.prepend // prepend parameters
+        };
+
+        if (first) {
+            self.listeners.unshift(e);
+        }
+        else {
+            self.listeners.push(e);
+        }
+
+        self.map[id] = e;
+
+        return id;
+    },
+
+    /**
+     * @method
+     * @param {function} fn Callback function { @required }
+     * @param {object} scope Function's "this" object
+     * @param {object} options See Observable's on()
+     */
+    once: function(fn, scope, options) {
+
+        options = options || {};
+        options.once = true;
+
+        return this.on(fn, scope, options);
+    },
+
+    /**
+     * @method
+     * @param {function} fn Callback function { @required }
+     * @param {object} scope Function's "this" object
+     */
+    un: function(fn, scope) {
+
+        var self        = this,
+            inx         = -1,
+            uni         = self.uni,
+            listeners   = self.listeners,
+            id;
+
+        if (fn == parseInt(fn)) {
+            id      = fn;
+        }
+        else {
+            scope   = scope || fn;
+            id      = scope[uni];
+        }
+
+        if (!id) {
+            return false;
+        }
+
+        for (var i = 0, len = listeners.length; i < len; i++) {
+            if (listeners[i].id == id) {
+                inx = i;
+                delete listeners[i].uniScope[uni];
+                break;
+            }
+        }
+
+        if (inx == -1) {
+            return false;
+        }
+
+        listeners.splice(inx, 1);
+        delete self.map[id];
+        return true;
+    },
+
+    /**
+     * @method hasListener
+     * @return bool
+     */
+
+    /**
+     * @method
+     * @param {function} fn Callback function { @required }
+     * @param {object} scope Function's "this" object
+     * @return bool
+     */
+    hasListener: function(fn, scope) {
+
+        var self    = this,
+            listeners   = self.listeners,
+            id;
+
+        if (fn) {
+
+            scope   = scope || fn;
+
+            if (!isFunction(fn)) {
+                id  = fn;
+            }
+            else {
+                id  = scope[self.uni];
+            }
+
+            if (!id) {
+                return false;
+            }
+
+            for (var i = 0, len = listeners.length; i < len; i++) {
+                if (listeners[i].id == id) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        else {
+            return listeners.length > 0;
+        }
+    },
+
+
+    /**
+     * @method
+     */
+    removeAllListeners: function() {
+        var self    = this,
+            listeners = self.listeners,
+            uni     = self.uni,
+            i, len;
+
+        for (i = 0, len = listeners.length; i < len; i++) {
+            delete listeners[i].uniScope[uni];
+        }
+        self.listeners   = [];
+        self.map         = {};
+    },
+
+    /**
+     * @method
+     */
+    suspend: function() {
+        this.suspended = true;
+    },
+
+    /**
+     * @method
+     */
+    resume: function() {
+        this.suspended = false;
+    },
+
+
+    _prepareArgs: function(l, triggerArgs) {
+        var args;
+
+        if (l.append || l.prepend) {
+            args    = slice.call(triggerArgs);
+            if (l.prepend) {
+                args    = l.prepend.concat(args);
+            }
+            if (l.append) {
+                args    = args.concat(l.append);
+            }
+        }
+        else {
+            args = triggerArgs;
+        }
+
+        return args;
+    },
+
+    /**
+     * @method
+     * @return {*}
+     */
+    trigger: function() {
+
+        var self            = this,
+            listeners       = self.listeners,
+            returnResult    = self.returnResult;
+
+        if (self.suspended || listeners.length == 0) {
+            return null;
+        }
+
+        var ret     = returnResult == "all" ? [] : null,
+            q, l,
+            res;
+
+        if (returnResult == "first") {
+            q = [listeners[0]];
+        }
+        else {
+            // create a snapshot of listeners list
+            q = slice.call(listeners);
+        }
+
+        // now if during triggering someone unsubscribes
+        // we won't skip any listener due to shifted
+        // index
+        while (l = q.shift()) {
+
+            // listener may already have unsubscribed
+            if (!l || !self.map[l.id]) {
+                continue;
+            }
+
+            l.count++;
+
+            if (l.count < l.start) {
+                continue;
+            }
+
+            res = l.fn.apply(l.scope, self._prepareArgs(l, arguments));
+
+            l.called++;
+
+            if (l.called == l.limit) {
+                self.un(l.id);
+            }
+
+            if (returnResult == "all") {
+                ret.push(res);
+            }
+
+            if (returnResult == "first") {
+                return res;
+            }
+
+            if (returnResult == "last") {
+                ret = res;
+            }
+
+            if (returnResult == false && res === false) {
+                break;
+            }
+        }
+
+        if (returnResult) {
+            return ret;
+        }
     }
 };
 
 
-var nsGet = ns.get;
+
 var toString = Object.prototype.toString;
 var isNumber = function(value) {
     return typeof value == "number" && !isNaN(value);
@@ -819,1071 +1394,17 @@ var isArray = function(value) {
                 toString.call(value) == '[object Array]' || false);
 };
 
-
-/**
- * @param {[]|Element} node
- * @returns {[]|Element}
- */
-var clone = function(node) {
-
-    var i, len, cloned;
-
-    if (isArray(node)) {
-        cloned = [];
-        for (i = 0, len = node.length; i < len; i++) {
-            cloned.push(clone(node[i]));
-        }
-        return cloned;
-    }
-    else if (node) {
-        switch (node.nodeType) {
-            // element
-            case 1:
-                return node.cloneNode(true);
-            // text node
-            case 3:
-                return document.createTextNode(node.innerText || node.textContent);
-            // document fragment
-            case 11:
-                return node.cloneNode(true);
-
-            default:
-                return null;
-        }
-    }
-
-    return null;
+var isDate = function(value) {
+    return toString.call(value) === '[object Date]';
 };
 
 
-var getAnimationPrefixes = function(){
-
-    var domPrefixes         = ['Moz', 'Webkit', 'ms', 'O', 'Khtml'],
-        animationDelay      = "animationDelay",
-        animationDuration   = "animationDuration",
-        transitionDelay     = "transitionDelay",
-        transitionDuration  = "transitionDuration",
-        prefixes            = null,
-
-
-        detectCssPrefixes   = function() {
-
-            var el = document.createElement("div"),
-                animation = false,
-                pfx,
-                i, len;
-
-            if (el.style['animationName'] !== undefined) {
-                animation = true;
-            }
-            else {
-                for(i = 0, len = domPrefixes.length; i < len; i++) {
-                    pfx = domPrefixes[i];
-                    if (el.style[ pfx + 'AnimationName' ] !== undefined) {
-                        animation           = true;
-                        animationDelay      = pfx + "AnimationDelay";
-                        animationDuration   = pfx + "AnimationDuration";
-                        transitionDelay     = pfx + "TransitionDelay";
-                        transitionDuration  = pfx + "TransitionDuration";
-                        break;
-                    }
-                }
-            }
-
-            return animation;
-        };
-
-    if (detectCssPrefixes()) {
-        prefixes = {
-            animationDelay: animationDelay,
-            animationDuration: animationDuration,
-            transitionDelay: transitionDelay,
-            transitionDuration: transitionDuration
-        };
-    }
-
-    return function() {
-        return prefixes;
-    };
-}();
-
-
-var getAnimationDuration = function(){
-
-    var parseTime       = function(str) {
-            if (!str) {
-                return 0;
-            }
-            var time = parseFloat(str);
-            if (str.indexOf("ms") == -1) {
-                time *= 1000;
-            }
-            return time;
-        },
-
-        getMaxTimeFromPair = function(max, dur, delay) {
-
-            var i, sum, len = dur.length;
-
-            for (i = 0; i < len; i++) {
-                sum = parseTime(dur[i]) + parseTime(delay[i]);
-                max = Math.max(sum, max);
-            }
-
-            return max;
-        },
-
-        pfx                 = getAnimationPrefixes(),
-        animationDuration   = pfx ? pfx.animationDuration : null,
-        animationDelay      = pfx ? pfx.animationDelay : null,
-        transitionDuration  = pfx ? pfx.transitionDuration : null,
-        transitionDelay     = pfx ? pfx.transitionDelay : null;
-
-
-    return function(el) {
-
-        if (!pfx) {
-            return 0;
-        }
-
-        var style       = window.getComputedStyle ? window.getComputedStyle(el, null) : el.style,
-            duration    = 0,
-            animDur     = (style[animationDuration] || '').split(','),
-            animDelay   = (style[animationDelay] || '').split(','),
-            transDur    = (style[transitionDuration] || '').split(','),
-            transDelay  = (style[transitionDelay] || '').split(',');
-
-        duration    = Math.max(duration, getMaxTimeFromPair(duration, animDur, animDelay));
-        duration    = Math.max(duration, getMaxTimeFromPair(duration, transDur, transDelay));
-
-        return duration;
-    };
-
-}();
-
-
-
-
-/**
- * Returns 'then' function or false
- * @param {*} any
- * @returns {Function|boolean}
- */
-var isThenable = function(any) {
-    var then;
-    if (!any) {
-        return false;
-    }
-    if (!isObject(any) && !isFunction(any)) {
-        return false;
-    }
-    return isFunction((then = any.then)) ?
-           then : false;
+var isRegExp = function(value) {
+    return toString.call(value) === '[object RegExp]';
 };
-
-
-
-
-var Promise = function(){
-
-    var PENDING     = 0,
-        FULFILLED   = 1,
-        REJECTED    = 2,
-
-        queue       = [],
-        qRunning    = false,
-
-
-        nextTick    = typeof process != strUndef ?
-                        process.nextTick :
-                        function(fn) {
-                            setTimeout(fn, 0);
-                        },
-
-        // synchronous queue of asynchronous functions:
-        // callbacks must be called in "platform stack"
-        // which means setTimeout/nextTick;
-        // also, they must be called in a strict order.
-        nextInQueue = function() {
-            qRunning    = true;
-            var next    = queue.shift();
-            nextTick(function(){
-                next[0].apply(next[1], next[2]);
-                if (queue.length) {
-                    nextInQueue();
-                }
-                else {
-                    qRunning = false;
-                }
-            }, 0);
-        },
-
-        /**
-         * add to execution queue
-         * @param {Function} fn
-         * @param {Object} scope
-         * @param {[]} args
-         */
-        next        = function(fn, scope, args) {
-            args = args || [];
-            queue.push([fn, scope, args]);
-            if (!qRunning) {
-                nextInQueue();
-            }
-        },
-
-        /**
-         * returns function which receives value from previous promise
-         * and tries to resolve next promise with new value returned from given function(prev value)
-         * or reject on error.
-         * promise1.then(success, failure) -> promise2
-         * wrapper(success, promise2) -> fn
-         * fn(promise1 resolve value) -> new value
-         * promise2.resolve(new value)
-         *
-         * @param {Function} fn
-         * @param {Promise} promise
-         * @returns {Function}
-         */
-        wrapper     = function(fn, promise) {
-            return function(value) {
-                try {
-                    promise.resolve(fn(value));
-                }
-                catch (thrownError) {
-                    promise.reject(thrownError);
-                }
-            };
-        };
-
-
-    /**
-     * @param {Function} fn -- function(resolve, reject)
-     * @param {Object} fnScope
-     * @returns {Promise}
-     * @constructor
-     */
-    var Promise = function(fn, fnScope) {
-
-        if (fn instanceof Promise) {
-            return fn;
-        }
-
-        if (!(this instanceof Promise)) {
-            return new Promise(fn, fnScope);
-        }
-
-        var self = this;
-
-        self._fulfills   = [];
-        self._rejects    = [];
-        self._dones      = [];
-        self._fails      = [];
-
-        if (!isUndefined(fn)) {
-
-            if (isThenable(fn) || !isFunction(fn)) {
-                self.resolve(fn);
-            }
-            else {
-                try {
-                    fn.call(fnScope,
-                            bind(self.resolve, self),
-                            bind(self.reject, self));
-                }
-                catch (thrownError) {
-                    self.reject(thrownError);
-                }
-            }
-        }
-    };
-
-    Promise.prototype = {
-
-        _state: PENDING,
-
-        _fulfills: null,
-        _rejects: null,
-        _dones: null,
-        _fails: null,
-
-        _wait: 0,
-
-        _value: null,
-        _reason: null,
-
-        _triggered: false,
-
-        isPending: function() {
-            return this._state == PENDING;
-        },
-
-        isFulfilled: function() {
-            return this._state == FULFILLED;
-        },
-
-        isRejected: function() {
-            return this._state == REJECTED;
-        },
-
-        _cleanup: function() {
-            var self    = this;
-
-            delete self._fulfills;
-            delete self._rejects;
-            delete self._dones;
-            delete self._fails;
-        },
-
-        _processValue: function(value, cb) {
-
-            var self    = this,
-                then;
-
-            if (self._state != PENDING) {
-                return;
-            }
-
-            if (value === self) {
-                self._doReject(new TypeError("cannot resolve promise with itself"));
-                return;
-            }
-
-            try {
-                if (then = isThenable(value)) {
-                    if (value instanceof Promise) {
-                        value.then(
-                            bind(self._processResolveValue, self),
-                            bind(self._processRejectReason, self));
-                    }
-                    else {
-                        (new Promise(then, value)).then(
-                            bind(self._processResolveValue, self),
-                            bind(self._processRejectReason, self));
-                    }
-                    return;
-                }
-            }
-            catch (thrownError) {
-                if (self._state == PENDING) {
-                    self._doReject(thrownError);
-                }
-                return;
-            }
-
-            cb.call(self, value);
-        },
-
-
-        _callResolveHandlers: function() {
-
-            var self    = this;
-
-            self._done();
-
-            var cbs  = self._fulfills,
-                cb;
-
-            while (cb = cbs.shift()) {
-                next(cb[0], cb[1], [self._value]);
-            }
-
-            self._cleanup();
-        },
-
-
-        _doResolve: function(value) {
-            var self    = this;
-
-            self._value = value;
-            self._state = FULFILLED;
-
-            if (self._wait == 0) {
-                self._callResolveHandlers();
-            }
-        },
-
-        _processResolveValue: function(value) {
-            this._processValue(value, this._doResolve);
-        },
-
-        /**
-         * @param {*} value
-         */
-        resolve: function(value) {
-
-            var self    = this;
-
-            if (self._triggered) {
-                return self;
-            }
-
-            self._triggered = true;
-            self._processResolveValue(value);
-
-            return self;
-        },
-
-
-        _callRejectHandlers: function() {
-
-            var self    = this;
-
-            self._fail();
-
-            var cbs  = self._rejects,
-                cb;
-
-            while (cb = cbs.shift()) {
-                next(cb[0], cb[1], [self._reason]);
-            }
-
-            self._cleanup();
-        },
-
-        _doReject: function(reason) {
-
-            var self        = this;
-
-            self._state     = REJECTED;
-            self._reason    = reason;
-
-            if (self._wait == 0) {
-                self._callRejectHandlers();
-            }
-        },
-
-
-        _processRejectReason: function(reason) {
-            this._processValue(reason, this._doReject);
-        },
-
-        /**
-         * @param {*} reason
-         */
-        reject: function(reason) {
-
-            var self    = this;
-
-            if (self._triggered) {
-                return self;
-            }
-
-            self._triggered = true;
-
-            self._processRejectReason(reason);
-
-            return self;
-        },
-
-        /**
-         * @param {Function} resolve -- called when this promise is resolved; returns new resolve value
-         * @param {Function} reject -- called when this promise is rejects; returns new reject reason
-         * @returns {Promise} new promise
-         */
-        then: function(resolve, reject) {
-
-            var self            = this,
-                promise         = new Promise,
-                state           = self._state;
-
-            if (state == PENDING || self._wait != 0) {
-
-                if (resolve && isFunction(resolve)) {
-                    self._fulfills.push([wrapper(resolve, promise), null]);
-                }
-                else {
-                    self._fulfills.push([promise.resolve, promise])
-                }
-
-                if (reject && isFunction(reject)) {
-                    self._rejects.push([wrapper(reject, promise), null]);
-                }
-                else {
-                    self._rejects.push([promise.reject, promise]);
-                }
-            }
-            else if (state == FULFILLED) {
-
-                if (resolve && isFunction(resolve)) {
-                    next(wrapper(resolve, promise), null, [self._value]);
-                }
-                else {
-                    promise.resolve(self._value);
-                }
-            }
-            else if (state == REJECTED) {
-                if (reject && isFunction(reject)) {
-                    next(wrapper(reject, promise), null, [self._reason]);
-                }
-                else {
-                    promise.reject(self._reason);
-                }
-            }
-
-            return promise;
-        },
-
-        /**
-         * @param {Function} reject -- same as then(null, reject)
-         * @returns {Promise} new promise
-         */
-        "catch": function(reject) {
-            return this.then(null, reject);
-        },
-
-        _done: function() {
-
-            var self    = this,
-                cbs     = self._dones,
-                cb;
-
-            while (cb = cbs.shift()) {
-                cb[0].call(cb[1] || null, self._value);
-            }
-        },
-
-        /**
-         * @param {Function} fn -- function to call when promise is resolved
-         * @param {Object} fnScope -- function's "this" object
-         * @returns {Promise} same promise
-         */
-        done: function(fn, fnScope) {
-            var self    = this,
-                state   = self._state;
-
-            if (state == FULFILLED && self._wait == 0) {
-                fn.call(fnScope || null, self._value);
-            }
-            else if (state == PENDING) {
-                self._dones.push([fn, fnScope]);
-            }
-
-            return self;
-        },
-
-        _fail: function() {
-
-            var self    = this,
-                cbs     = self._fails,
-                cb;
-
-            while (cb = cbs.shift()) {
-                cb[0].call(cb[1] || null, self._reason);
-            }
-        },
-
-        /**
-         * @param {Function} fn -- function to call when promise is rejected.
-         * @param {Object} fnScope -- function's "this" object
-         * @returns {Promise} same promise
-         */
-        fail: function(fn, fnScope) {
-
-            var self    = this,
-                state   = self._state;
-
-            if (state == REJECTED && self._wait == 0) {
-                fn.call(fnScope || null, self._reason);
-            }
-            else if (state == PENDING) {
-                self._fails.push([fn, fnScope]);
-            }
-
-            return self;
-        },
-
-        /**
-         * @param {Function} fn -- function to call when promise resolved or rejected
-         * @param {Object} fnScope -- function's "this" object
-         * @return {Promise} same promise
-         */
-        always: function(fn, fnScope) {
-            this.done(fn, fnScope);
-            this.fail(fn, fnScope);
-            return this;
-        },
-
-        /**
-         * @returns {{then: function, done: function, fail: function, always: function}}
-         */
-        promise: function() {
-            var self = this;
-            return {
-                then: bind(self.then, self),
-                done: bind(self.done, self),
-                fail: bind(self.fail, self),
-                always: bind(self.always, self)
-            };
-        },
-
-        after: function(value) {
-
-            var self = this;
-
-            if (isThenable(value)) {
-
-                self._wait++;
-
-                var done = function() {
-                    self._wait--;
-                    if (self._wait == 0 && self._state != PENDING) {
-                        self._state == FULFILLED ?
-                            self._callResolveHandlers() :
-                            self._callRejectHandlers();
-                    }
-                };
-
-                if (isFunction(value.done)) {
-                    value.done(done);
-                }
-                else {
-                    value.then(done);
-                }
-            }
-
-            return self;
-        }
-    };
-
-    /**
-     * @param {*} value
-     * @returns {Promise}
-     */
-    Promise.resolve = function(value) {
-        return new Promise(value);
-    };
-
-
-    /**
-     * @param {*} reason
-     * @returns {Promise}
-     */
-    Promise.reject = function(reason) {
-        var p = new Promise;
-        p.reject(reason);
-        return p;
-    };
-
-
-    /**
-     * @param {[]} promises -- array of promises or resolve values
-     * @returns {Promise}
-     */
-    Promise.all = function(promises) {
-
-        if (!promises.length) {
-            return Promise.resolve(null);
-        }
-
-        var p       = new Promise,
-            len     = promises.length,
-            values  = new Array(len),
-            cnt     = len,
-            i,
-            item,
-            done    = function(value, inx) {
-                values[inx] = value;
-                cnt--;
-
-                if (cnt == 0) {
-                    p.resolve(values);
-                }
-            };
-
-        for (i = 0; i < len; i++) {
-
-            (function(inx){
-                item = promises[i];
-
-                if (item instanceof Promise) {
-                    item.done(function(value){
-                        done(value, inx);
-                    })
-                        .fail(p.reject, p);
-                }
-                else if (isThenable(item) || isFunction(item)) {
-                    (new Promise(item))
-                        .done(function(value){
-                            done(value, inx);
-                        })
-                        .fail(p.reject, p);
-                }
-                else {
-                    done(item, inx);
-                }
-            })(i);
-        }
-
-        return p;
-    };
-
-    /**
-     * @param {Promise|*} promise1
-     * @param {Promise|*} promise2
-     * @param {Promise|*} promiseN
-     * @returns {Promise}
-     */
-    Promise.when = function() {
-        return Promise.all(arguments);
-    };
-
-    /**
-     * @param {[]} promises -- array of promises or resolve values
-     * @returns {Promise}
-     */
-    Promise.allResolved = function(promises) {
-
-        if (!promises.length) {
-            return Promise.resolve(null);
-        }
-
-        var p       = new Promise,
-            len     = promises.length,
-            values  = [],
-            cnt     = len,
-            i,
-            item,
-            settle  = function(value) {
-                values.push(value);
-                proceed();
-            },
-            proceed = function() {
-                cnt--;
-                if (cnt == 0) {
-                    p.resolve(values);
-                }
-            };
-
-        for (i = 0; i < len; i++) {
-            item = promises[i];
-
-            if (item instanceof Promise) {
-                item.done(settle).fail(proceed);
-            }
-            else if (isThenable(item) || isFunction(item)) {
-                (new Promise(item)).done(settle).fail(proceed);
-            }
-            else {
-                settle(item);
-            }
-        }
-
-        return p;
-    };
-
-    /**
-     * @param {[]} promises -- array of promises or resolve values
-     * @returns {Promise}
-     */
-    Promise.race = function(promises) {
-
-        if (!promises.length) {
-            return Promise.resolve(null);
-        }
-
-        var p   = new Promise,
-            len = promises.length,
-            i,
-            item;
-
-        for (i = 0; i < len; i++) {
-            item = promises[i];
-
-            if (item instanceof Promise) {
-                item.done(p.resolve, p).fail(p.reject, p);
-            }
-            else if (isThenable(item) || isFunction(item)) {
-                (new Promise(item)).done(p.resolve, p).fail(p.reject, p);
-            }
-            else {
-                p.resolve(item);
-            }
-
-            if (!p.isPending()) {
-                break;
-            }
-        }
-
-        return p;
-    };
-
-    return Promise;
-}();
-
-MetaphorJs.lib.Promise = Promise;
-
-
-
-
-
-var animate = function(){
-
-    var types           = {
-            "show":     ["mjs-show"],
-            "hide":     ["mjs-hide"],
-            "enter":    ["mjs-enter"],
-            "leave":    ["mjs-leave"],
-            "move":     ["mjs-move"]
-        },
-
-        animId          = 0,
-
-        cssAnimations   = !!getAnimationPrefixes(),
-
-        animFrame       = window.requestAnimationFrame ? window.requestAnimationFrame : function(cb) {
-            window.setTimeout(cb, 0);
-        },
-
-        dataParam       = "mjsAnimationQueue",
-
-        callTimeout     = function(fn, startTime, duration) {
-            var tick = function(){
-                var time = (new Date).getTime();
-                if (time - startTime >= duration) {
-                    fn();
-                }
-                else {
-                    animFrame(tick);
-                }
-            };
-            animFrame(tick);
-        },
-
-
-
-        nextInQueue     = function(el) {
-            var queue = data(el, dataParam),
-                next;
-            if (queue.length) {
-                next = queue[0];
-                animationStage(next.el, next.stages, 0, next.start, next.deferred, false, next.id);
-            }
-            else {
-                data(el, dataParam, null);
-            }
-        },
-
-        animationStage  = function animationStage(el, stages, position, startCallback, deferred, first, id) {
-
-            var stopped   = function() {
-                var q = data(el, dataParam);
-                if (!q || !q.length || q[0].id != id) {
-                    deferred.reject(el);
-                    return true;
-                }
-                return false;
-            };
-
-            var finishStage = function() {
-
-                if (stopped()) {
-                    return;
-                }
-
-                var thisPosition = position;
-
-                position++;
-
-                if (position == stages.length) {
-                    deferred.resolve(el);
-                    data(el, dataParam).shift();
-                    nextInQueue(el);
-                }
-                else {
-                    data(el, dataParam)[0].position = position;
-                    animationStage(el, stages, position, null, deferred);
-                }
-
-                removeClass(el, stages[thisPosition]);
-                removeClass(el, stages[thisPosition] + "-active");
-            };
-
-            var setStage = function() {
-
-                if (stopped()) {
-                    return;
-                }
-
-                addClass(el, stages[position] + "-active");
-
-                var duration = getAnimationDuration(el);
-
-                if (duration) {
-                    callTimeout(finishStage, (new Date).getTime(), duration);
-                }
-                else {
-                    finishStage();
-                }
-            };
-
-            var start = function(){
-
-                if (stopped()) {
-                    return;
-                }
-
-                addClass(el, stages[position]);
-
-                var promise;
-
-                if (startCallback) {
-                    promise = startCallback(el);
-                    startCallback = null;
-                }
-
-                if (isThenable(promise)) {
-                    promise.done(setStage);
-                }
-                else {
-                    animFrame(setStage);
-                }
-            };
-
-            first ? animFrame(start) : start();
-        };
-
-
-    var animate = function animate(el, animation, startCallback, checkIfEnabled) {
-
-        var deferred    = new Promise,
-            queue       = data(el, dataParam) || [],
-            id          = ++animId,
-            attr        = el.getAttribute("mjs-animate"),
-            stages,
-            jsFn,
-            before, after,
-            options, context,
-            duration;
-
-        animation       = animation || attr;
-
-        if (checkIfEnabled && isNull(attr)) {
-            animation   = null;
-        }
-
-        if (animation) {
-
-            if (isString(animation)) {
-                if (animation.substr(0,1) == '[') {
-                    stages  = (new Function('', 'return ' + animation))();
-                }
-                else {
-                    stages      = types[animation];
-                    animation   = nsGet && nsGet("animate." + animation, true);
-                }
-            }
-            else if (isFunction(animation)) {
-                jsFn = animation;
-            }
-            else if (isArray(animation)) {
-                if (isString(animation[0])) {
-                    stages = animation;
-                }
-                else {
-                    before = animation[0];
-                    after = animation[1];
-                }
-            }
-
-            if (isPlainObject(animation)) {
-                stages      = animation.stages;
-                jsFn        = animation.fn;
-                before      = animation.before;
-                after       = animation.after;
-                options     = animation.options ? extend({}, animation.options) : {};
-                context     = animation.context || null;
-                duration    = animation.duration || null;
-                startCallback   = startCallback || options.start;
-            }
-
-
-            if (cssAnimations && stages) {
-
-                queue.push({
-                    el: el,
-                    stages: stages,
-                    start: startCallback,
-                    deferred: deferred,
-                    position: 0,
-                    id: id
-                });
-                data(el, dataParam, queue);
-
-                if (queue.length == 1) {
-                    animationStage(el, stages, 0, startCallback, deferred, true, id);
-                }
-
-                return deferred;
-            }
-            else {
-
-                options = options || {};
-
-                startCallback && (options.start = function(){
-                    startCallback(el);
-                });
-
-                options.complete = function() {
-                    deferred.resolve(el);
-                };
-
-                duration && (options.duration = duration);
-
-                if (jsFn && isFunction(jsFn)) {
-                    if (before) {
-                        extend(el.style, before, true, false);
-                    }
-                    startCallback && startCallback(el);
-                    data(el, dataParam, jsFn.call(context, el, function(){
-                        deferred.resolve(el);
-                    }));
-                    return deferred;
-                }
-                else if (window.jQuery) {
-
-                    var j = $(el);
-                    before && j.css(before);
-                    data(el, dataParam, "stop");
-
-                    if (jsFn && isString(jsFn)) {
-                        j[jsFn](options);
-                        return deferred;
-                    }
-                    else if (after) {
-                        j.animate(after, options);
-                        return deferred;
-                    }
-                }
-            }
-        }
-
-        // no animation happened
-
-        if (startCallback) {
-            var promise = startCallback(el);
-            if (isThenable(promise)) {
-                promise.done(function(){
-                    deferred.resolve(el);
-                });
-            }
-            else {
-                deferred.resolve(el);
-            }
-        }
-        else {
-            deferred.resolve(el);
-        }
-
-        return deferred;
-    };
-
-    animate.addAnimationType     = function(name, stages) {
-        types[name] = stages;
-    };
-
-    return animate;
-}();
+var isWindow = function(obj) {
+    return obj && obj.document && obj.location && obj.alert && obj.setInterval;
+};
 
 
 /**
@@ -1900,24 +1421,13 @@ var trim = function() {
     return function(value) {
         return isString(value) ? value.trim() : value;
     };
-}();
-
-var isDate = function(value) {
-    return toString.call(value) === '[object Date]';
-};
-
-
-var isRegExp = function(value) {
-    return toString.call(value) === '[object RegExp]';
-};
-var isWindow = function(obj) {
-    return obj && obj.document && obj.location && obj.alert && obj.setInterval;
-};
+}();var Watchable, createWatchable;
 
 
 
 
-var Watchable = function(){
+
+Watchable = createWatchable = function(){
 
     
 
@@ -2863,16 +2373,134 @@ var Watchable = function(){
 }();
 
 
-MetaphorJs.lib.Watchable = Watchable;
-
-var createWatchable = Watchable;
 
 
 
-var createWatchable = Watchable.create;
+var Scope = function(cfg) {
+    var self    = this;
+
+    self.$$observable    = new Observable;
+
+    extend(self, cfg, true, false);
+
+    if (self.$parent) {
+        self.$parent.$on("check", self.$$onParentCheck, self);
+        self.$parent.$on("destroy", self.$$onParentDestroy, self);
+    }
+    else {
+        self.$root  = self;
+        self.$isRoot= true;
+    }
+};
+
+Scope.prototype = {
+
+    $app: null,
+    $parent: null,
+    $root: null,
+    $isRoot: false,
+    $$observable: null,
+    $$watchers: null,
+    $$checking: false,
+    $$destroyed: false,
+
+    $new: function() {
+        var self = this;
+        return new Scope({
+            $parent: self,
+            $root: self.$root,
+            $app: self.$app
+        });
+    },
+
+    $newIsolated: function() {
+        return new Scope({
+            $app: this.$app
+        });
+    },
+
+    $on: function(event, fn, fnScope) {
+        return this.$$observable.on(event, fn, fnScope);
+    },
+
+    $un: function(event, fn, fnScope) {
+        return this.$$observable.un(event, fn, fnScope);
+    },
+
+    $watch: function(expr, fn, fnScope) {
+        return Watchable.create(this, expr, fn, fnScope, null);
+    },
+
+    $unwatch: function(expr, fn, fnScope) {
+        return Watchable.unsubscribeAndDestroy(this, expr, fn, fnScope);
+    },
+
+    $get: function(key) {
+
+        var s       = this;
+
+        while (s) {
+            if (s[key] != undefined) {
+                return s[key];
+            }
+            s       = s.$parent;
+        }
+
+        return undefined;
+    },
+
+    $$onParentDestroy: function() {
+        this.$destroy();
+    },
+
+    $$onParentCheck: function() {
+        this.$check();
+    },
+
+    $check: function() {
+        var self = this,
+            changes;
+
+        if (self.$$checking) {
+            return;
+        }
+        self.$$checking = true;
+
+        if (self.$$watchers) {
+            changes = self.$$watchers.$checkAll();
+        }
+
+        self.$$checking = false;
+
+        if (!self.$$destroyed) {
+            self.$$observable.trigger("check", changes);
+        }
+    },
+
+    $destroy: function() {
+
+        var self    = this;
+
+        self.$$observable.trigger("destroy");
+        self.$$observable.destroy();
+
+        delete self.$$observable;
+        delete self.$app;
+        delete self.$root;
+        delete self.$parent;
+
+        if (self.$$watchers) {
+            self.$$watchers.$destroyAll();
+            delete self.$$watchers;
+        }
+
+        self.$$destroyed = true;
+    }
+
+};
 
 
-var nsRegister = ns.register;
+
 
 
 /**
@@ -2890,7 +2518,28 @@ var toArray = function(list) {
     else {
         return [];
     }
-};/**
+};
+
+
+/**
+ * Returns 'then' function or false
+ * @param {*} any
+ * @returns {Function|boolean}
+ */
+var isThenable = function(any) {
+    var then;
+    if (!any) {
+        return false;
+    }
+    if (!isObject(any) && !isFunction(any)) {
+        return false;
+    }
+    return isFunction((then = any.then)) ?
+           then : false;
+};
+
+
+var nsGet = ns.get;/**
  * @param {Function} fn
  * @param {Object} context
  * @param {[]} args
@@ -2946,11 +2595,11 @@ var select = function() {
         bcn         = !!doc.getElementsByClassName,
         qsa         = !!doc.querySelectorAll,
 
-    /*
-     function calls for CSS2/3 modificatos. Specification taken from
-     http://www.w3.org/TR/2005/WD-css3-selectors-20051215/
-     on success return negative result.
-     */
+        /*
+         function calls for CSS2/3 modificatos. Specification taken from
+         http://www.w3.org/TR/2005/WD-css3-selectors-20051215/
+         on success return negative result.
+         */
         mods        = {
             /* W3C: "an E element, first child of its parent" */
             'first-child': function (child) {
@@ -3123,7 +2772,7 @@ var select = function() {
         };
 
 
-    return function (selector, root) {
+    var select = function (selector, root) {
 
         /* clean root with document */
         root = root || doc;
@@ -3480,6 +3129,21 @@ var select = function() {
         /* return and cache results */
         return sets;
     };
+
+    select.is = function(el, selector) {
+
+        var els = select(selector, el.parentNode),
+            i, l;
+
+        for (i = -1, l = els.length; ++i < l;) {
+            if (els[i] === el) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    return select;
 }();
 
 
@@ -3487,818 +3151,6 @@ var nodeTextProp = function(){
     var node    = document.createTextNode("");
     return isString(node.textContent) ? "textContent" : "nodeValue";
 }();
-
-
-
-
-/**
- * <p>A javascript event system implementing two patterns - observable and collector.</p>
- *
- * <p>Observable:</p>
- * <pre><code class="language-javascript">
- * var o = new MetaphorJs.lib.Observable;
- * o.on("event", function(x, y, z){ console.log([x, y, z]) });
- * o.trigger("event", 1, 2, 3); // [1, 2, 3]
- * </code></pre>
- *
- * <p>Collector:</p>
- * <pre><code class="language-javascript">
- * var o = new MetaphorJs.lib.Observable;
- * o.createEvent("collectStuff", "all");
- * o.on("collectStuff", function(){ return 1; });
- * o.on("collectStuff", function(){ return 2; });
- * var results = o.trigger("collectStuff"); // [1, 2]
- * </code></pre>
- *
- * <p>Although all methods are public there is getApi() method that allows you
- * extending your own objects without overriding "destroy" (which you probably have)</p>
- * <pre><code class="language-javascript">
- * var o = new MetaphorJs.lib.Observable;
- * $.extend(this, o.getApi());
- * this.on("event", function(){ alert("ok") });
- * this.trigger("event");
- * </code></pre>
- *
- * @namespace MetaphorJs
- * @class MetaphorJs.lib.Observable
- * @version 1.1
- * @author johann kuindji
- * @link https://github.com/kuindji/metaphorjs-observable
- */
-var Observable = function() {
-
-    this.events = {};
-
-};
-
-
-Observable.prototype = {
-
-    /**
-    * <p>You don't have to call this function unless you want to pass returnResult param.
-    * This function will be automatically called from on() with
-    * <code class="language-javascript">returnResult = false</code>,
-    * so if you want to receive handler's return values, create event first, then call on().</p>
-    *
-    * <pre><code class="language-javascript">
-    * var observable = new MetaphorJs.lib.Observable;
-    * observable.createEvent("collectStuff", "all");
-    * observable.on("collectStuff", function(){ return 1; });
-    * observable.on("collectStuff", function(){ return 2; });
-    * var results = observable.trigger("collectStuff"); // [1, 2]
-    * </code></pre>
-    *
-    * @method
-    * @access public
-    * @param {string} name {
-    *       Event name
-    *       @required
-    * }
-    * @param {bool|string} returnResult {
-    *   false -- do not return results except if handler returned "false". This is how
-    *   normal observables work.<br>
-    *   "all" -- return all results as array<br>
-    *   "first" -- return result of the first handler<br>
-    *   "last" -- return result of the last handler
-    *   @required
-    * }
-    * @return MetaphorJs.lib.ObservableEvent
-    */
-    createEvent: function(name, returnResult) {
-        name = name.toLowerCase();
-        var events  = this.events;
-        if (!events[name]) {
-            events[name] = new Event(name, returnResult);
-        }
-        return events[name];
-    },
-
-    /**
-    * @method
-    * @access public
-    * @param {string} name Event name
-    * @return MetaphorJs.lib.ObservableEvent|undefined
-    */
-    getEvent: function(name) {
-        name = name.toLowerCase();
-        return this.events[name];
-    },
-
-    /**
-    * Subscribe to an event or register collector function.
-    * @method
-    * @access public
-    * @md-save on
-    * @param {string} name {
-    *       Event name
-    *       @required
-    * }
-    * @param {function} fn {
-    *       Callback function
-    *       @required
-    * }
-    * @param {object} scope "this" object for the callback function
-    * @param {object} options {
-    *       @type bool first {
-    *           True to prepend to the list of handlers
-    *           @default false
-    *       }
-    *       @type number limit {
-    *           Call handler this number of times; 0 for unlimited
-    *           @default 0
-    *       }
-    *       @type number start {
-    *           Start calling handler after this number of calls. Starts from 1
-    *           @default 1
-    *       }
-     *      @type [] append Append parameters
-     *      @type [] prepend Prepend parameters
-     *      @type bool allowDupes allow the same handler twice
-    * }
-    */
-    on: function(name, fn, scope, options) {
-        name = name.toLowerCase();
-        var events  = this.events;
-        if (!events[name]) {
-            events[name] = new Event(name);
-        }
-        return events[name].on(fn, scope, options);
-    },
-
-    /**
-    * Same as on(), but options.limit is forcefully set to 1.
-    * @method
-    * @md-apply on
-    * @access public
-    */
-    once: function(name, fn, scope, options) {
-        options     = options || {};
-        options.limit = 1;
-        return this.on(name, fn, scope, options);
-    },
-
-
-    /**
-    * Unsubscribe from an event
-    * @method
-    * @access public
-    * @param {string} name Event name
-    * @param {function} fn Event handler
-    * @param {object} scope If you called on() with scope you must call un() with the same scope
-    */
-    un: function(name, fn, scope) {
-        name = name.toLowerCase();
-        var events  = this.events;
-        if (!events[name]) {
-            return;
-        }
-        events[name].un(fn, scope);
-    },
-
-    /**
-    * @method hasListener
-    * @access public
-    * @param {string} name Event name { @required }
-    * @return bool
-    */
-
-    /**
-    * @method
-    * @access public
-    * @param {string} name Event name { @required }
-    * @param {function} fn Callback function { @required }
-    * @param {object} scope Function's "this" object
-    * @return bool
-    */
-    hasListener: function(name, fn, scope) {
-        name = name.toLowerCase();
-        var events  = this.events;
-        if (!events[name]) {
-            return false;
-        }
-        return events[name].hasListener(fn, scope);
-    },
-
-
-    /**
-    * Remove all listeners from all events
-    * @method removeAllListeners
-    * @access public
-    */
-
-    /**
-    * Remove all listeners from specific event
-    * @method
-    * @access public
-    * @param {string} name Event name { @required }
-    */
-    removeAllListeners: function(name) {
-        var events  = this.events;
-        if (!events[name]) {
-            return;
-        }
-        events[name].removeAllListeners();
-    },
-
-    /**
-    * Trigger an event -- call all listeners.
-    * @method
-    * @access public
-    * @param {string} name Event name { @required }
-    * @param {*} ... As many other params as needed
-    * @return mixed
-    */
-    trigger: function() {
-
-        var name = arguments[0],
-            events  = this.events;
-
-        name = name.toLowerCase();
-
-        if (!events[name]) {
-            return null;
-        }
-
-        var e = events[name];
-        return e.trigger.apply(e, slice.call(arguments, 1));
-    },
-
-    /**
-    * Suspend an event. Suspended event will not call any listeners on trigger().
-    * @method
-    * @access public
-    * @param {string} name Event name
-    */
-    suspendEvent: function(name) {
-        name = name.toLowerCase();
-        var events  = this.events;
-        if (!events[name]) {
-            return;
-        }
-        events[name].suspend();
-    },
-
-    /**
-    * @method
-    * @access public
-    */
-    suspendAllEvents: function() {
-        var events  = this.events;
-        for (var name in events) {
-            events[name].suspend();
-        }
-    },
-
-    /**
-    * Resume suspended event.
-    * @method
-    * @access public
-    * @param {string} name Event name
-    */
-    resumeEvent: function(name) {
-        name = name.toLowerCase();
-        var events  = this.events;
-        if (!events[name]) {
-            return;
-        }
-        events[name].resume();
-    },
-
-    /**
-    * @method
-    * @access public
-    */
-    resumeAllEvents: function() {
-        var events  = this.events;
-        for (var name in events) {
-            events[name].resume();
-        }
-    },
-
-    /**
-     * @method
-     * @access public
-     * @param {string} name Event name
-     */
-    destroyEvent: function(name) {
-        var events  = this.events;
-        if (events[name]) {
-            events[name].removeAllListeners();
-            events[name].destroy();
-            delete events[name];
-        }
-    },
-
-
-    /**
-    * Destroy specific event
-    * @method
-    * @md-not-inheritable
-    * @access public
-    * @param {string} name Event name
-    */
-    destroy: function(name) {
-        var events  = this.events;
-
-        if (name) {
-            name = name.toLowerCase();
-            if (events[name]) {
-                events[name].destroy();
-                delete events[name];
-            }
-        }
-        else {
-            for (var i in events) {
-                events[i].destroy();
-            }
-
-            this.events = {};
-        }
-    },
-
-    /**
-    * Get object with all functions except "destroy"
-    * @method
-    * @md-not-inheritable
-    * @returns object
-    */
-    getApi: function() {
-
-        var self    = this;
-
-        if (!self.api) {
-
-            var methods = [
-                    "createEvent", "getEvent", "on", "un", "once", "hasListener", "removeAllListeners",
-                    "trigger", "suspendEvent", "suspendAllEvents", "resumeEvent",
-                    "resumeAllEvents", "destroyEvent"
-                ],
-                api = {},
-                name;
-
-            for(var i =- 1, l = methods.length;
-                    ++i < l;
-                    name = methods[i],
-                    api[name] = bind(self[name], self)){}
-
-            self.api = api;
-        }
-
-        return self.api;
-    }
-};
-
-
-/**
- * This class is private - you can't create an event other than via Observable.
- * See MetaphorJs.lib.Observable reference.
- * @class MetaphorJs.lib.ObservableEvent
- */
-var Event = function(name, returnResult) {
-
-    var self    = this;
-
-    self.name           = name;
-    self.listeners      = [];
-    self.map            = {};
-    self.hash           = nextUid();
-    self.uni            = '$$' + name + '_' + self.hash;
-    self.suspended      = false;
-    self.lid            = 0;
-    self.returnResult   = isUndefined(returnResult) ? null : returnResult; // first|last|all
-};
-
-
-Event.prototype = {
-
-    getName: function() {
-        return this.name;
-    },
-
-    /**
-     * @method
-     */
-    destroy: function() {
-        var self        = this;
-        self.listeners  = null;
-        self.map        = null;
-    },
-
-    /**
-     * @method
-     * @param {function} fn Callback function { @required }
-     * @param {object} scope Function's "this" object
-     * @param {object} options See Observable's on()
-     */
-    on: function(fn, scope, options) {
-
-        if (!fn) {
-            return null;
-        }
-
-        scope       = scope || null;
-        options     = options || {};
-
-        var self        = this,
-            uni         = self.uni,
-            uniScope    = scope || fn;
-
-        if (uniScope[uni] && !options.allowDupes) {
-            return null;
-        }
-
-        var id      = ++self.lid,
-            first   = options.first || false;
-
-        uniScope[uni]  = id;
-
-
-        var e = {
-            fn:         fn,
-            scope:      scope,
-            uniScope:   uniScope,
-            id:         id,
-            called:     0, // how many times the function was triggered
-            limit:      options.limit || 0, // how many times the function is allowed to trigger
-            start:      options.start || 1, // from which attempt it is allowed to trigger the function
-            count:      0, // how many attempts to trigger the function was made
-            append:     options.append, // append parameters
-            prepend:    options.prepend // prepend parameters
-        };
-
-        if (first) {
-            self.listeners.unshift(e);
-        }
-        else {
-            self.listeners.push(e);
-        }
-
-        self.map[id] = e;
-
-        return id;
-    },
-
-    /**
-     * @method
-     * @param {function} fn Callback function { @required }
-     * @param {object} scope Function's "this" object
-     * @param {object} options See Observable's on()
-     */
-    once: function(fn, scope, options) {
-
-        options = options || {};
-        options.once = true;
-
-        return this.on(fn, scope, options);
-    },
-
-    /**
-     * @method
-     * @param {function} fn Callback function { @required }
-     * @param {object} scope Function's "this" object
-     */
-    un: function(fn, scope) {
-
-        var self        = this,
-            inx         = -1,
-            uni         = self.uni,
-            listeners   = self.listeners,
-            id;
-
-        if (fn == parseInt(fn)) {
-            id      = fn;
-        }
-        else {
-            scope   = scope || fn;
-            id      = scope[uni];
-        }
-
-        if (!id) {
-            return false;
-        }
-
-        for (var i = 0, len = listeners.length; i < len; i++) {
-            if (listeners[i].id == id) {
-                inx = i;
-                delete listeners[i].uniScope[uni];
-                break;
-            }
-        }
-
-        if (inx == -1) {
-            return false;
-        }
-
-        listeners.splice(inx, 1);
-        delete self.map[id];
-        return true;
-    },
-
-    /**
-     * @method hasListener
-     * @return bool
-     */
-
-    /**
-     * @method
-     * @param {function} fn Callback function { @required }
-     * @param {object} scope Function's "this" object
-     * @return bool
-     */
-    hasListener: function(fn, scope) {
-
-        var self    = this,
-            listeners   = self.listeners,
-            id;
-
-        if (fn) {
-
-            scope   = scope || fn;
-
-            if (!isFunction(fn)) {
-                id  = fn;
-            }
-            else {
-                id  = scope[self.uni];
-            }
-
-            if (!id) {
-                return false;
-            }
-
-            for (var i = 0, len = listeners.length; i < len; i++) {
-                if (listeners[i].id == id) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-        else {
-            return listeners.length > 0;
-        }
-    },
-
-
-    /**
-     * @method
-     */
-    removeAllListeners: function() {
-        var self    = this,
-            listeners = self.listeners,
-            uni     = self.uni,
-            i, len;
-
-        for (i = 0, len = listeners.length; i < len; i++) {
-            delete listeners[i].uniScope[uni];
-        }
-        self.listeners   = [];
-        self.map         = {};
-    },
-
-    /**
-     * @method
-     */
-    suspend: function() {
-        this.suspended = true;
-    },
-
-    /**
-     * @method
-     */
-    resume: function() {
-        this.suspended = false;
-    },
-
-
-    _prepareArgs: function(l, triggerArgs) {
-        var args;
-
-        if (l.append || l.prepend) {
-            args    = slice.call(triggerArgs);
-            if (l.prepend) {
-                args    = l.prepend.concat(args);
-            }
-            if (l.append) {
-                args    = args.concat(l.append);
-            }
-        }
-        else {
-            args = triggerArgs;
-        }
-
-        return args;
-    },
-
-    /**
-     * @method
-     * @return {*}
-     */
-    trigger: function() {
-
-        var self            = this,
-            listeners       = self.listeners,
-            returnResult    = self.returnResult;
-
-        if (self.suspended || listeners.length == 0) {
-            return null;
-        }
-
-        var ret     = returnResult == "all" ? [] : null,
-            q, l,
-            res;
-
-        if (returnResult == "first") {
-            q = [listeners[0]];
-        }
-        else {
-            // create a snapshot of listeners list
-            q = slice.call(listeners);
-        }
-
-        // now if during triggering someone unsubscribes
-        // we won't skip any listener due to shifted
-        // index
-        while (l = q.shift()) {
-
-            // listener may already have unsubscribed
-            if (!l || !self.map[l.id]) {
-                continue;
-            }
-
-            l.count++;
-
-            if (l.count < l.start) {
-                continue;
-            }
-
-            res = l.fn.apply(l.scope, self._prepareArgs(l, arguments));
-
-            l.called++;
-
-            if (l.called == l.limit) {
-                self.un(l.id);
-            }
-
-            if (returnResult == "all") {
-                ret.push(res);
-            }
-
-            if (returnResult == "first") {
-                return res;
-            }
-
-            if (returnResult == "last") {
-                ret = res;
-            }
-
-            if (returnResult == false && res === false) {
-                break;
-            }
-        }
-
-        if (returnResult) {
-            return ret;
-        }
-    }
-};
-
-(function(){
-    var globalObservable    = new Observable;
-    extend(MetaphorJs, globalObservable.getApi(), true, false);
-}());
-
-MetaphorJs.lib.Observable = Observable;
-
-
-
-
-var Scope = function(cfg) {
-    var self    = this;
-
-    self.$$observable    = new Observable;
-
-    extend(self, cfg, true, false);
-
-    if (self.$parent) {
-        self.$parent.$on("check", self.$$onParentCheck, self);
-        self.$parent.$on("destroy", self.$$onParentDestroy, self);
-    }
-    else {
-        self.$root  = self;
-        self.$isRoot= true;
-    }
-};
-
-Scope.prototype = {
-
-    $app: null,
-    $parent: null,
-    $root: null,
-    $isRoot: false,
-    $$observable: null,
-    $$watchers: null,
-    $$checking: false,
-    $$destroyed: false,
-
-    $new: function() {
-        var self = this;
-        return new Scope({
-            $parent: self,
-            $root: self.$root,
-            $app: self.$app
-        });
-    },
-
-    $newIsolated: function() {
-        return new Scope({
-            $app: this.$app
-        });
-    },
-
-    $on: function(event, fn, fnScope) {
-        return this.$$observable.on(event, fn, fnScope);
-    },
-
-    $un: function(event, fn, fnScope) {
-        return this.$$observable.un(event, fn, fnScope);
-    },
-
-    $watch: function(expr, fn, fnScope) {
-        return Watchable.create(this, expr, fn, fnScope, null);
-    },
-
-    $unwatch: function(expr, fn, fnScope) {
-        return Watchable.unsubscribeAndDestroy(this, expr, fn, fnScope);
-    },
-
-    $get: function(key) {
-
-        var s       = this;
-
-        while (s) {
-            if (s[key] != undefined) {
-                return s[key];
-            }
-            s       = s.$parent;
-        }
-
-        return undefined;
-    },
-
-    $$onParentDestroy: function() {
-        this.$destroy();
-    },
-
-    $$onParentCheck: function() {
-        this.$check();
-    },
-
-    $check: function() {
-        var self = this,
-            changes;
-
-        if (self.$$checking) {
-            return;
-        }
-        self.$$checking = true;
-
-        if (self.$$watchers) {
-            changes = self.$$watchers.$checkAll();
-        }
-
-        self.$$checking = false;
-
-        if (!self.$$destroyed) {
-            self.$$observable.trigger("check", changes);
-        }
-    },
-
-    $destroy: function() {
-
-        var self    = this;
-
-        self.$$observable.trigger("destroy");
-        self.$$observable.destroy();
-
-        delete self.$$observable;
-        delete self.$app;
-        delete self.$root;
-        delete self.$parent;
-
-        if (self.$$watchers) {
-            self.$$watchers.$destroyAll();
-            delete self.$$watchers;
-        }
-
-        self.$$destroyed = true;
-    }
-
-};
-
-MetaphorJs.lib.Scope = Scope;
-
-
 
 
 
@@ -4631,12 +3483,642 @@ var TextRenderer = function(){
 
     TextRenderer.create = factory;
 
-    nsRegister("MetaphorJs.view.TextRenderer", TextRenderer);
-
     return TextRenderer;
 }();
 
 
+
+
+
+
+
+
+var Promise = function(){
+
+    var PENDING     = 0,
+        FULFILLED   = 1,
+        REJECTED    = 2,
+
+        queue       = [],
+        qRunning    = false,
+
+
+        nextTick    = typeof process != strUndef ?
+                        process.nextTick :
+                        function(fn) {
+                            setTimeout(fn, 0);
+                        },
+
+        // synchronous queue of asynchronous functions:
+        // callbacks must be called in "platform stack"
+        // which means setTimeout/nextTick;
+        // also, they must be called in a strict order.
+        nextInQueue = function() {
+            qRunning    = true;
+            var next    = queue.shift();
+            nextTick(function(){
+                next[0].apply(next[1], next[2]);
+                if (queue.length) {
+                    nextInQueue();
+                }
+                else {
+                    qRunning = false;
+                }
+            }, 0);
+        },
+
+        /**
+         * add to execution queue
+         * @param {Function} fn
+         * @param {Object} scope
+         * @param {[]} args
+         */
+        next        = function(fn, scope, args) {
+            args = args || [];
+            queue.push([fn, scope, args]);
+            if (!qRunning) {
+                nextInQueue();
+            }
+        },
+
+        /**
+         * returns function which receives value from previous promise
+         * and tries to resolve next promise with new value returned from given function(prev value)
+         * or reject on error.
+         * promise1.then(success, failure) -> promise2
+         * wrapper(success, promise2) -> fn
+         * fn(promise1 resolve value) -> new value
+         * promise2.resolve(new value)
+         *
+         * @param {Function} fn
+         * @param {Promise} promise
+         * @returns {Function}
+         */
+        wrapper     = function(fn, promise) {
+            return function(value) {
+                try {
+                    promise.resolve(fn(value));
+                }
+                catch (thrownError) {
+                    promise.reject(thrownError);
+                }
+            };
+        };
+
+
+    /**
+     * @param {Function} fn -- function(resolve, reject)
+     * @param {Object} fnScope
+     * @returns {Promise}
+     * @constructor
+     */
+    var Promise = function(fn, fnScope) {
+
+        if (fn instanceof Promise) {
+            return fn;
+        }
+
+        if (!(this instanceof Promise)) {
+            return new Promise(fn, fnScope);
+        }
+
+        var self = this;
+
+        self._fulfills   = [];
+        self._rejects    = [];
+        self._dones      = [];
+        self._fails      = [];
+
+        if (!isUndefined(fn)) {
+
+            if (isThenable(fn) || !isFunction(fn)) {
+                self.resolve(fn);
+            }
+            else {
+                try {
+                    fn.call(fnScope,
+                            bind(self.resolve, self),
+                            bind(self.reject, self));
+                }
+                catch (thrownError) {
+                    self.reject(thrownError);
+                }
+            }
+        }
+    };
+
+    Promise.prototype = {
+
+        _state: PENDING,
+
+        _fulfills: null,
+        _rejects: null,
+        _dones: null,
+        _fails: null,
+
+        _wait: 0,
+
+        _value: null,
+        _reason: null,
+
+        _triggered: false,
+
+        isPending: function() {
+            return this._state == PENDING;
+        },
+
+        isFulfilled: function() {
+            return this._state == FULFILLED;
+        },
+
+        isRejected: function() {
+            return this._state == REJECTED;
+        },
+
+        _cleanup: function() {
+            var self    = this;
+
+            delete self._fulfills;
+            delete self._rejects;
+            delete self._dones;
+            delete self._fails;
+        },
+
+        _processValue: function(value, cb) {
+
+            var self    = this,
+                then;
+
+            if (self._state != PENDING) {
+                return;
+            }
+
+            if (value === self) {
+                self._doReject(new TypeError("cannot resolve promise with itself"));
+                return;
+            }
+
+            try {
+                if (then = isThenable(value)) {
+                    if (value instanceof Promise) {
+                        value.then(
+                            bind(self._processResolveValue, self),
+                            bind(self._processRejectReason, self));
+                    }
+                    else {
+                        (new Promise(then, value)).then(
+                            bind(self._processResolveValue, self),
+                            bind(self._processRejectReason, self));
+                    }
+                    return;
+                }
+            }
+            catch (thrownError) {
+                if (self._state == PENDING) {
+                    self._doReject(thrownError);
+                }
+                return;
+            }
+
+            cb.call(self, value);
+        },
+
+
+        _callResolveHandlers: function() {
+
+            var self    = this;
+
+            self._done();
+
+            var cbs  = self._fulfills,
+                cb;
+
+            while (cb = cbs.shift()) {
+                next(cb[0], cb[1], [self._value]);
+            }
+
+            self._cleanup();
+        },
+
+
+        _doResolve: function(value) {
+            var self    = this;
+
+            self._value = value;
+            self._state = FULFILLED;
+
+            if (self._wait == 0) {
+                self._callResolveHandlers();
+            }
+        },
+
+        _processResolveValue: function(value) {
+            this._processValue(value, this._doResolve);
+        },
+
+        /**
+         * @param {*} value
+         */
+        resolve: function(value) {
+
+            var self    = this;
+
+            if (self._triggered) {
+                return self;
+            }
+
+            self._triggered = true;
+            self._processResolveValue(value);
+
+            return self;
+        },
+
+
+        _callRejectHandlers: function() {
+
+            var self    = this;
+
+            self._fail();
+
+            var cbs  = self._rejects,
+                cb;
+
+            while (cb = cbs.shift()) {
+                next(cb[0], cb[1], [self._reason]);
+            }
+
+            self._cleanup();
+        },
+
+        _doReject: function(reason) {
+
+            var self        = this;
+
+            self._state     = REJECTED;
+            self._reason    = reason;
+
+            if (self._wait == 0) {
+                self._callRejectHandlers();
+            }
+        },
+
+
+        _processRejectReason: function(reason) {
+            this._processValue(reason, this._doReject);
+        },
+
+        /**
+         * @param {*} reason
+         */
+        reject: function(reason) {
+
+            var self    = this;
+
+            if (self._triggered) {
+                return self;
+            }
+
+            self._triggered = true;
+
+            self._processRejectReason(reason);
+
+            return self;
+        },
+
+        /**
+         * @param {Function} resolve -- called when this promise is resolved; returns new resolve value
+         * @param {Function} reject -- called when this promise is rejects; returns new reject reason
+         * @returns {Promise} new promise
+         */
+        then: function(resolve, reject) {
+
+            var self            = this,
+                promise         = new Promise,
+                state           = self._state;
+
+            if (state == PENDING || self._wait != 0) {
+
+                if (resolve && isFunction(resolve)) {
+                    self._fulfills.push([wrapper(resolve, promise), null]);
+                }
+                else {
+                    self._fulfills.push([promise.resolve, promise])
+                }
+
+                if (reject && isFunction(reject)) {
+                    self._rejects.push([wrapper(reject, promise), null]);
+                }
+                else {
+                    self._rejects.push([promise.reject, promise]);
+                }
+            }
+            else if (state == FULFILLED) {
+
+                if (resolve && isFunction(resolve)) {
+                    next(wrapper(resolve, promise), null, [self._value]);
+                }
+                else {
+                    promise.resolve(self._value);
+                }
+            }
+            else if (state == REJECTED) {
+                if (reject && isFunction(reject)) {
+                    next(wrapper(reject, promise), null, [self._reason]);
+                }
+                else {
+                    promise.reject(self._reason);
+                }
+            }
+
+            return promise;
+        },
+
+        /**
+         * @param {Function} reject -- same as then(null, reject)
+         * @returns {Promise} new promise
+         */
+        "catch": function(reject) {
+            return this.then(null, reject);
+        },
+
+        _done: function() {
+
+            var self    = this,
+                cbs     = self._dones,
+                cb;
+
+            while (cb = cbs.shift()) {
+                cb[0].call(cb[1] || null, self._value);
+            }
+        },
+
+        /**
+         * @param {Function} fn -- function to call when promise is resolved
+         * @param {Object} fnScope -- function's "this" object
+         * @returns {Promise} same promise
+         */
+        done: function(fn, fnScope) {
+            var self    = this,
+                state   = self._state;
+
+            if (state == FULFILLED && self._wait == 0) {
+                fn.call(fnScope || null, self._value);
+            }
+            else if (state == PENDING) {
+                self._dones.push([fn, fnScope]);
+            }
+
+            return self;
+        },
+
+        _fail: function() {
+
+            var self    = this,
+                cbs     = self._fails,
+                cb;
+
+            while (cb = cbs.shift()) {
+                cb[0].call(cb[1] || null, self._reason);
+            }
+        },
+
+        /**
+         * @param {Function} fn -- function to call when promise is rejected.
+         * @param {Object} fnScope -- function's "this" object
+         * @returns {Promise} same promise
+         */
+        fail: function(fn, fnScope) {
+
+            var self    = this,
+                state   = self._state;
+
+            if (state == REJECTED && self._wait == 0) {
+                fn.call(fnScope || null, self._reason);
+            }
+            else if (state == PENDING) {
+                self._fails.push([fn, fnScope]);
+            }
+
+            return self;
+        },
+
+        /**
+         * @param {Function} fn -- function to call when promise resolved or rejected
+         * @param {Object} fnScope -- function's "this" object
+         * @return {Promise} same promise
+         */
+        always: function(fn, fnScope) {
+            this.done(fn, fnScope);
+            this.fail(fn, fnScope);
+            return this;
+        },
+
+        /**
+         * @returns {{then: function, done: function, fail: function, always: function}}
+         */
+        promise: function() {
+            var self = this;
+            return {
+                then: bind(self.then, self),
+                done: bind(self.done, self),
+                fail: bind(self.fail, self),
+                always: bind(self.always, self)
+            };
+        },
+
+        after: function(value) {
+
+            var self = this;
+
+            if (isThenable(value)) {
+
+                self._wait++;
+
+                var done = function() {
+                    self._wait--;
+                    if (self._wait == 0 && self._state != PENDING) {
+                        self._state == FULFILLED ?
+                            self._callResolveHandlers() :
+                            self._callRejectHandlers();
+                    }
+                };
+
+                if (isFunction(value.done)) {
+                    value.done(done);
+                }
+                else {
+                    value.then(done);
+                }
+            }
+
+            return self;
+        }
+    };
+
+    /**
+     * @param {*} value
+     * @returns {Promise}
+     */
+    Promise.resolve = function(value) {
+        return new Promise(value);
+    };
+
+
+    /**
+     * @param {*} reason
+     * @returns {Promise}
+     */
+    Promise.reject = function(reason) {
+        var p = new Promise;
+        p.reject(reason);
+        return p;
+    };
+
+
+    /**
+     * @param {[]} promises -- array of promises or resolve values
+     * @returns {Promise}
+     */
+    Promise.all = function(promises) {
+
+        if (!promises.length) {
+            return Promise.resolve(null);
+        }
+
+        var p       = new Promise,
+            len     = promises.length,
+            values  = new Array(len),
+            cnt     = len,
+            i,
+            item,
+            done    = function(value, inx) {
+                values[inx] = value;
+                cnt--;
+
+                if (cnt == 0) {
+                    p.resolve(values);
+                }
+            };
+
+        for (i = 0; i < len; i++) {
+
+            (function(inx){
+                item = promises[i];
+
+                if (item instanceof Promise) {
+                    item.done(function(value){
+                        done(value, inx);
+                    })
+                        .fail(p.reject, p);
+                }
+                else if (isThenable(item) || isFunction(item)) {
+                    (new Promise(item))
+                        .done(function(value){
+                            done(value, inx);
+                        })
+                        .fail(p.reject, p);
+                }
+                else {
+                    done(item, inx);
+                }
+            })(i);
+        }
+
+        return p;
+    };
+
+    /**
+     * @param {Promise|*} promise1
+     * @param {Promise|*} promise2
+     * @param {Promise|*} promiseN
+     * @returns {Promise}
+     */
+    Promise.when = function() {
+        return Promise.all(arguments);
+    };
+
+    /**
+     * @param {[]} promises -- array of promises or resolve values
+     * @returns {Promise}
+     */
+    Promise.allResolved = function(promises) {
+
+        if (!promises.length) {
+            return Promise.resolve(null);
+        }
+
+        var p       = new Promise,
+            len     = promises.length,
+            values  = [],
+            cnt     = len,
+            i,
+            item,
+            settle  = function(value) {
+                values.push(value);
+                proceed();
+            },
+            proceed = function() {
+                cnt--;
+                if (cnt == 0) {
+                    p.resolve(values);
+                }
+            };
+
+        for (i = 0; i < len; i++) {
+            item = promises[i];
+
+            if (item instanceof Promise) {
+                item.done(settle).fail(proceed);
+            }
+            else if (isThenable(item) || isFunction(item)) {
+                (new Promise(item)).done(settle).fail(proceed);
+            }
+            else {
+                settle(item);
+            }
+        }
+
+        return p;
+    };
+
+    /**
+     * @param {[]} promises -- array of promises or resolve values
+     * @returns {Promise}
+     */
+    Promise.race = function(promises) {
+
+        if (!promises.length) {
+            return Promise.resolve(null);
+        }
+
+        var p   = new Promise,
+            len = promises.length,
+            i,
+            item;
+
+        for (i = 0; i < len; i++) {
+            item = promises[i];
+
+            if (item instanceof Promise) {
+                item.done(p.resolve, p).fail(p.reject, p);
+            }
+            else if (isThenable(item) || isFunction(item)) {
+                (new Promise(item)).done(p.resolve, p).fail(p.reject, p);
+            }
+            else {
+                p.resolve(item);
+            }
+
+            if (!p.isPending()) {
+                break;
+            }
+        }
+
+        return p;
+    };
+
+    return Promise;
+}();
 
 
 
@@ -5064,12 +4546,1259 @@ var Renderer = function(){
         }
     };
 
-    nsRegister("MetaphorJs.view.Renderer", Renderer);
 
     return Renderer;
 }();
 
 
+
+
+
+
+var Provider = function(){
+
+    var VALUE       = 1,
+        CONSTANT    = 2,
+        FACTORY     = 3,
+        SERVICE     = 4,
+        PROVIDER    = 5,
+        globalProvider;
+
+    var Provider = function() {
+        this.store  = {};
+    };
+
+    Provider.prototype = {
+
+        store: null,
+
+        getApi: function() {
+
+            var self = this;
+
+            return {
+                value: bind(self.value, self),
+                constant: bind(self.constant, self),
+                factory: bind(self.factory, self),
+                service: bind(self.service, self),
+                provider: bind(self.provider, self),
+                resolve: bind(self.resolve, self),
+                inject: bind(self.inject, self)
+            };
+        },
+
+        instantiate: function(fn, args) {
+            var Temp = function(){},
+                inst, ret;
+
+            Temp.prototype  = fn.prototype;
+            inst            = new Temp;
+            ret             = fn.prototype.constructor.apply(inst, args);
+
+            // If an object has been returned then return it otherwise
+            // return the original instance.
+            // (consistent with behaviour of the new operator)
+            return isObject(ret) ? ret : inst;
+        },
+
+        inject: function(injectable, context, returnInstance, currentValues, callArgs) {
+
+            currentValues   = currentValues || {};
+            callArgs        = callArgs || [];
+
+            if (isFunction(injectable)) {
+
+                if (injectable.inject) {
+                    var tmp = slice.call(injectable.inject);
+                    tmp.push(injectable);
+                    injectable = tmp;
+                }
+                else {
+                    return returnInstance || injectable.__isMetaphorClass ?
+                        this.instantiate(injectable, callArgs) :
+                        injectable.apply(context, callArgs);
+                }
+            }
+
+            injectable  = slice.call(injectable);
+
+            var self    = this,
+                values  = [],
+                fn      = injectable.pop(),
+                i, l;
+
+            for (i = -1, l = injectable.length; ++i < l;
+                 values.push(self.resolve(injectable[i], currentValues))) {}
+
+            return Promise.all(values).then(function(values){
+                return returnInstance || fn.__isMetaphorClass ?
+                    self.instantiate(fn, values) :
+                    fn.apply(context, values);
+            });
+        },
+
+        value: function(name, value) {
+            this.store[name] = {
+                type: VALUE,
+                value: value
+            };
+        },
+
+        constant: function(name, value) {
+            var store = this.store;
+            if (!store[name]) {
+                store[name] = {
+                    type: CONSTANT,
+                    value: value
+                };
+            }
+        },
+
+        factory: function(name, fn, context, singleton) {
+
+            if (isBool(context)) {
+                singleton = context;
+                context = null;
+            }
+
+            this.store[name] = {
+                type: FACTORY,
+                singleton: singleton,
+                fn: fn,
+                context: context
+            };
+        },
+
+        service: function(name, constr, singleton) {
+            this.store[name] = {
+                type: SERVICE,
+                singleton: singleton,
+                fn: constr
+            };
+        },
+
+        provider: function(name, constr) {
+
+            this.store[name + "Provider"] = {
+                name: name,
+                type: PROVIDER,
+                fn: constr,
+                instance: null
+            };
+        },
+
+
+        resolve: function(name, currentValues) {
+
+            var self    = this,
+                store   = self.store,
+                type,
+                item,
+                res;
+
+            if (!isUndefined(currentValues[name])) {
+                return currentValues[name];
+            }
+
+            if (item = store[name]) {
+
+                type    = item.type;
+
+                if (type == VALUE || type == CONSTANT) {
+                    return item.value;
+                }
+                else if (type == FACTORY) {
+                    res = self.inject(item.fn, item.context, false, currentValues);
+                }
+                else if (type == SERVICE) {
+                    res = self.inject(item.fn, null, true, currentValues);
+                }
+                else if (type == PROVIDER) {
+
+                    if (!item.instance) {
+
+                        item.instance = Promise.resolve(
+                                self.inject(item.fn, null, true, currentValues)
+                            )
+                            .done(function(instance){
+                                item.instance = instance;
+                                store[item.name] = {
+                                    type: FACTORY,
+                                    fn: instance.$get,
+                                    context: instance
+                                };
+                            });
+                    }
+
+                    return item.instance;
+                }
+
+                if (item.singleton) {
+                    item.type = VALUE;
+                    item.value = res;
+
+                    if (type == FACTORY && isThenable(res)) {
+                        res.done(function(value){
+                            item.value = value;
+                        });
+                    }
+                }
+
+                return currentValues[name] = res;
+            }
+            else {
+
+                if (store[name + "Provider"]) {
+                    self.resolve(name + "Provider", currentValues);
+                    return self.resolve(name, currentValues);
+                }
+
+                if (self === globalProvider) {
+                    throw "Could not provide value for " + name;
+                }
+                else {
+                    return globalProvider.resolve(name);
+                }
+            }
+        },
+
+        destroy: function() {
+            delete this.store;
+            delete this.scope;
+        }
+
+    };
+
+    Provider.global = function() {
+        return globalProvider;
+    };
+
+    globalProvider = new Provider;
+
+    return Provider;
+}();
+
+
+
+
+
+var Text = function(){
+
+    var pluralDef       = function($number, $locale) {
+
+            if ($locale == "pt_BR") {
+                // temporary set a locale for brasilian
+                $locale = "xbr";
+            }
+
+            if ($locale.length > 3) {
+                $locale = $locale.substr(0, -$locale.lastIndexOf('_'));
+            }
+
+            switch($locale) {
+                case 'bo':
+                case 'dz':
+                case 'id':
+                case 'ja':
+                case 'jv':
+                case 'ka':
+                case 'km':
+                case 'kn':
+                case 'ko':
+                case 'ms':
+                case 'th':
+                case 'tr':
+                case 'vi':
+                case 'zh':
+                    return 0;
+                    break;
+
+                case 'af':
+                case 'az':
+                case 'bn':
+                case 'bg':
+                case 'ca':
+                case 'da':
+                case 'de':
+                case 'el':
+                case 'en':
+                case 'eo':
+                case 'es':
+                case 'et':
+                case 'eu':
+                case 'fa':
+                case 'fi':
+                case 'fo':
+                case 'fur':
+                case 'fy':
+                case 'gl':
+                case 'gu':
+                case 'ha':
+                case 'he':
+                case 'hu':
+                case 'is':
+                case 'it':
+                case 'ku':
+                case 'lb':
+                case 'ml':
+                case 'mn':
+                case 'mr':
+                case 'nah':
+                case 'nb':
+                case 'ne':
+                case 'nl':
+                case 'nn':
+                case 'no':
+                case 'om':
+                case 'or':
+                case 'pa':
+                case 'pap':
+                case 'ps':
+                case 'pt':
+                case 'so':
+                case 'sq':
+                case 'sv':
+                case 'sw':
+                case 'ta':
+                case 'te':
+                case 'tk':
+                case 'ur':
+                case 'zu':
+                    return ($number == 1) ? 0 : 1;
+
+                case 'am':
+                case 'bh':
+                case 'fil':
+                case 'fr':
+                case 'gun':
+                case 'hi':
+                case 'ln':
+                case 'mg':
+                case 'nso':
+                case 'xbr':
+                case 'ti':
+                case 'wa':
+                    return (($number == 0) || ($number == 1)) ? 0 : 1;
+
+                case 'be':
+                case 'bs':
+                case 'hr':
+                case 'ru':
+                case 'sr':
+                case 'uk':
+                    return (($number % 10 == 1) && ($number % 100 != 11)) ?
+                           0 :
+                           ((($number % 10 >= 2) && ($number % 10 <= 4) &&
+                             (($number % 100 < 10) || ($number % 100 >= 20))) ? 1 : 2);
+
+                case 'cs':
+                case 'sk':
+                    return ($number == 1) ? 0 : ((($number >= 2) && ($number <= 4)) ? 1 : 2);
+
+                case 'ga':
+                    return ($number == 1) ? 0 : (($number == 2) ? 1 : 2);
+
+                case 'lt':
+                    return (($number % 10 == 1) && ($number % 100 != 11)) ?
+                           0 :
+                           ((($number % 10 >= 2) &&
+                             (($number % 100 < 10) || ($number % 100 >= 20))) ? 1 : 2);
+
+                case 'sl':
+                    return ($number % 100 == 1) ?
+                           0 :
+                           (($number % 100 == 2) ?
+                                1 :
+                                ((($number % 100 == 3) || ($number % 100 == 4)) ? 2 : 3));
+
+                case 'mk':
+                    return ($number % 10 == 1) ? 0 : 1;
+
+                case 'mt':
+                    return ($number == 1) ?
+                           0 :
+                           ((($number == 0) || (($number % 100 > 1) && ($number % 100 < 11))) ?
+                                1 :
+                                ((($number % 100 > 10) && ($number % 100 < 20)) ? 2 : 3));
+
+                case 'lv':
+                    return ($number == 0) ? 0 : ((($number % 10 == 1) && ($number % 100 != 11)) ? 1 : 2);
+
+                case 'pl':
+                    return ($number == 1) ?
+                           0 :
+                           ((($number % 10 >= 2) && ($number % 10 <= 4) &&
+                             (($number % 100 < 12) || ($number % 100 > 14))) ? 1 : 2);
+
+                case 'cy':
+                    return ($number == 1) ? 0 : (($number == 2) ? 1 : ((($number == 8) || ($number == 11)) ? 2 : 3));
+
+                case 'ro':
+                    return ($number == 1) ?
+                           0 :
+                           ((($number == 0) || (($number % 100 > 0) && ($number % 100 < 20))) ? 1 : 2);
+
+                case 'ar':
+                    return ($number == 0) ?
+                           0 :
+                           (($number == 1) ?
+                                1 :
+                                (($number == 2) ?
+                                    2 :
+                                    ((($number >= 3) && ($number <= 10)) ?
+                                        3 :
+                                        ((($number >= 11) && ($number <= 99)) ? 4 : 5))));
+
+                default:
+                    return 0;
+            }
+        };
+
+
+    var Text = function(locale) {
+
+        var self    = this;
+        self.store  = {};
+        if (locale) {
+            self.locale = locale;
+        }
+    };
+
+    Text.prototype = {
+
+        store: null,
+        locale: "en",
+
+        setLocale: function(locale) {
+            this.locale = locale;
+        },
+
+        set: function(key, value) {
+            var store = this.store;
+            if (isUndefined(store[key])) {
+                store[key] = value;
+            }
+        },
+
+        load: function(keys) {
+            extend(this.store, keys, false, false);
+        },
+
+        get: function(key) {
+            var self    = this;
+            return self.store[key] ||
+                   (self === globalText ? '-- ' + key + ' --' : globalText.get(key));
+        },
+
+        plural: function(key, number) {
+            var self    = this,
+                strings = self.get(key),
+                def     = pluralDef(number, self.locale);
+
+            if (!isArray(strings)) {
+                if (isPlainObject(strings)) {
+                    if (strings[number]) {
+                        return strings[number];
+                    }
+                    if (number == 1 && strings.one != undefined) {
+                        return strings.one;
+                    }
+                    else if (number < 0 && strings.negative != undefined) {
+                        return strings.negative;
+                    }
+                    else {
+                        return strings.other;
+                    }
+                }
+                return strings;
+            }
+            else {
+                return strings[def];
+            }
+        }
+
+    };
+
+
+    var globalText  = new Text;
+
+    Text.global     = function() {
+        return globalText;
+    };
+
+    return Text;
+}();
+
+
+
+
+
+
+/**
+ * @namespace MetaphorJs
+ * @class MetaphorJs.cmp.Base
+ */
+ defineClass("MetaphorJs.cmp.Base", {
+
+    /**
+     * @var bool
+     * @access protected
+     */
+    destroyed:      false,
+
+    /**
+     * @var MetaphorJs.lib.Observable
+     * @access private
+     */
+    _observable:    null,
+
+    /**
+     * @param {object} cfg
+     */
+    initialize: function(cfg) {
+
+        var self    = this;
+        cfg         = cfg || {};
+
+        self._observable    = new Observable;
+        extend(self, self._observable.getApi(), true, false);
+
+        if (cfg.callback) {
+
+            var cb      = cfg.callback,
+                scope   = cb.scope || self;
+            delete cb.scope;
+
+            for (var k in cb) {
+                if (cb.hasOwnProperty(k)) {
+                    self.on(k, cb[k], scope);
+                }
+            }
+
+            delete cfg.callback;
+        }
+
+        extend(self, cfg, true, false);
+    },
+
+    /**
+     * @method
+     */
+    destroy:    function() {
+
+        var self    = this;
+
+        if (self.destroyed) {
+            return;
+        }
+
+        if (self.trigger('beforedestroy', self) === false) {
+            return false;
+        }
+
+        self.onDestroy();
+        self.destroyed  = true;
+
+        self.trigger('destroy', self);
+
+        self._observable.destroy();
+        delete this._observable;
+
+    },
+
+    /**
+     * @method
+     * @access protected
+     */
+    onDestroy:      emptyFn
+});
+
+
+
+
+
+
+
+
+ defineClass("MetaphorJs.cmp.App", "MetaphorJs.cmp.Base", {
+
+    lang: null,
+    scope: null,
+    renderer: null,
+    cmpListeners: null,
+    components: null,
+
+    initialize: function(node, data) {
+
+        var self        = this,
+            scope       = data instanceof Scope ? data : new Scope(data),
+            provider,
+            observable,
+            args;
+
+        scope.$app      = self;
+        self.supr();
+
+        provider        = new Provider;
+        observable      = new Observable;
+        self.lang       = new Text;
+
+        // provider's storage is hidden from everyone
+        extend(self, provider.getApi(), true, false);
+        self.destroyProvider    = bind(provider.destroy, provider);
+
+        extend(self, observable.getApi(), true, false);
+        self.destroyObservable  = bind(observable.destroy, observable);
+
+        self.scope          = scope;
+        self.cmpListeners   = {};
+        self.components     = {};
+
+        self.factory('$parentCmp', ['$node', self.getParentCmp], self);
+        self.value('$app', self);
+        self.value('$rootScope', scope.$root);
+        self.value('$lang', self.lang);
+
+        self.renderer       = new Renderer(node, scope);
+
+        args = slice.call(arguments);
+        args[1] = scope;
+        self.initApp.apply(self, args);
+    },
+
+    initApp: emptyFn,
+
+    run: function() {
+        this.renderer.process();
+    },
+
+    getParentCmp: function(node) {
+
+        var self    = this,
+            parent  = node.parentNode,
+            id;
+
+        while (parent) {
+
+            if (id = parent.getAttribute("cmp-id")) {
+                return self.getCmp(id);
+            }
+
+            parent = parent.parentNode;
+        }
+
+        return null;
+    },
+
+    onAvailable: function(cmpId, fn, context) {
+
+        var cmpListeners = this.cmpListeners;
+
+        if (!cmpListeners[cmpId]) {
+            cmpListeners[cmpId] = new Promise;
+        }
+
+        if (fn) {
+            cmpListeners[cmpId].done(fn, context);
+        }
+
+        return cmpListeners[cmpId];
+    },
+
+    getCmp: function(id) {
+        return this.components[id] || null;
+    },
+
+    registerCmp: function(cmp) {
+        var self = this;
+
+        self.components[cmp.id] = cmp;
+
+        self.onAvailable(cmp.id).resolve(cmp);
+
+        cmp.on("destroy", function(cmp){
+            delete self.cmpListeners[cmp.id];
+            delete self.components[cmp.id];
+        });
+    },
+
+    destroy: function() {
+
+        var self    = this,
+            i;
+
+        self.destroyObservable();
+        self.destroyProvider();
+        self.renderer.destroy();
+        self.scope.$destroy();
+
+        for (i in self) {
+            if (self.hasOwnProperty(i)) {
+                delete self[i];
+            }
+        }
+    }
+
+});
+
+
+var isAttached = function(node) {
+    var body = document.body;
+    return node === body ? true : body.contains(node);
+};
+
+
+/**
+ * @param {Element} el
+ * @param {String} key
+ * @param {*} value optional
+ */
+var data = function(){
+
+    var dataCache   = {},
+
+        getNodeId   = function(el) {
+            return el._mjsid || (el._mjsid = nextUid());
+        };
+
+    return function(el, key, value) {
+        var id  = getNodeId(el),
+            obj = dataCache[id];
+
+        if (!isUndefined(value)) {
+            if (!obj) {
+                obj = dataCache[id] = {};
+            }
+            obj[key] = value;
+            return value;
+        }
+        else {
+            return obj ? obj[key] : undefined;
+        }
+    };
+
+}();
+
+
+var toFragment = function(nodes) {
+
+    var fragment = document.createDocumentFragment();
+
+    if (isString(nodes)) {
+        var tmp = document.createElement('div');
+        tmp.innerHTML = nodes;
+        nodes = tmp.childNodes;
+    }
+
+    if (nodes.nodeType) {
+        fragment.appendChild(nodes);
+    }
+    else {
+        for(var i =- 1, l = nodes.length>>>0; ++i !== l; fragment.appendChild(nodes[0])){}
+    }
+
+    return fragment;
+};
+
+
+/**
+ * @param {[]|Element} node
+ * @returns {[]|Element}
+ */
+var clone = function(node) {
+
+    var i, len, cloned;
+
+    if (isArray(node)) {
+        cloned = [];
+        for (i = 0, len = node.length; i < len; i++) {
+            cloned.push(clone(node[i]));
+        }
+        return cloned;
+    }
+    else if (node) {
+        switch (node.nodeType) {
+            // element
+            case 1:
+                return node.cloneNode(true);
+            // text node
+            case 3:
+                return document.createTextNode(node.innerText || node.textContent);
+            // document fragment
+            case 11:
+                return node.cloneNode(true);
+
+            default:
+                return null;
+        }
+    }
+
+    return null;
+};
+
+
+var getAnimationPrefixes = function(){
+
+    var domPrefixes         = ['Moz', 'Webkit', 'ms', 'O', 'Khtml'],
+        animationDelay      = "animationDelay",
+        animationDuration   = "animationDuration",
+        transitionDelay     = "transitionDelay",
+        transitionDuration  = "transitionDuration",
+        prefixes            = null,
+
+
+        detectCssPrefixes   = function() {
+
+            var el = document.createElement("div"),
+                animation = false,
+                pfx,
+                i, len;
+
+            if (el.style['animationName'] !== undefined) {
+                animation = true;
+            }
+            else {
+                for(i = 0, len = domPrefixes.length; i < len; i++) {
+                    pfx = domPrefixes[i];
+                    if (el.style[ pfx + 'AnimationName' ] !== undefined) {
+                        animation           = true;
+                        animationDelay      = pfx + "AnimationDelay";
+                        animationDuration   = pfx + "AnimationDuration";
+                        transitionDelay     = pfx + "TransitionDelay";
+                        transitionDuration  = pfx + "TransitionDuration";
+                        break;
+                    }
+                }
+            }
+
+            return animation;
+        };
+
+    if (detectCssPrefixes()) {
+        prefixes = {
+            animationDelay: animationDelay,
+            animationDuration: animationDuration,
+            transitionDelay: transitionDelay,
+            transitionDuration: transitionDuration
+        };
+    }
+
+    return function() {
+        return prefixes;
+    };
+}();
+
+
+var getAnimationDuration = function(){
+
+    var parseTime       = function(str) {
+            if (!str) {
+                return 0;
+            }
+            var time = parseFloat(str);
+            if (str.indexOf("ms") == -1) {
+                time *= 1000;
+            }
+            return time;
+        },
+
+        getMaxTimeFromPair = function(max, dur, delay) {
+
+            var i, sum, len = dur.length;
+
+            for (i = 0; i < len; i++) {
+                sum = parseTime(dur[i]) + parseTime(delay[i]);
+                max = Math.max(sum, max);
+            }
+
+            return max;
+        },
+
+        pfx                 = getAnimationPrefixes(),
+        animationDuration   = pfx ? pfx.animationDuration : null,
+        animationDelay      = pfx ? pfx.animationDelay : null,
+        transitionDuration  = pfx ? pfx.transitionDuration : null,
+        transitionDelay     = pfx ? pfx.transitionDelay : null;
+
+
+    return function(el) {
+
+        if (!pfx) {
+            return 0;
+        }
+
+        var style       = window.getComputedStyle ? window.getComputedStyle(el, null) : el.style,
+            duration    = 0,
+            animDur     = (style[animationDuration] || '').split(','),
+            animDelay   = (style[animationDelay] || '').split(','),
+            transDur    = (style[transitionDuration] || '').split(','),
+            transDelay  = (style[transitionDelay] || '').split(',');
+
+        duration    = Math.max(duration, getMaxTimeFromPair(duration, animDur, animDelay));
+        duration    = Math.max(duration, getMaxTimeFromPair(duration, transDur, transDelay));
+
+        return duration;
+    };
+
+}();
+
+/**
+ * @param {String} expr
+ */
+var getRegExp = function(){
+
+    var cache = {};
+
+    return function(expr) {
+        return cache[expr] || (cache[expr] = new RegExp(expr));
+    };
+}();
+
+
+/**
+ * @param {String} cls
+ * @returns {RegExp}
+ */
+var getClsReg = function(cls) {
+    return getRegExp('(?:^|\\s)'+cls+'(?!\\S)');
+};
+
+
+/**
+ * @param {Element} el
+ * @param {String} cls
+ */
+var removeClass = function(el, cls) {
+    if (cls) {
+        el.className = el.className.replace(getClsReg(cls), '');
+    }
+};
+
+
+var stopAnimation = function(el) {
+
+    var queue = data(el, "mjsAnimationQueue"),
+        current,
+        position,
+        stages;
+
+    if (isArray(queue) && queue.length) {
+        current = queue[0];
+
+        if (current && current.stages) {
+            position = current.position;
+            stages = current.stages;
+            removeClass(el, stages[position]);
+            removeClass(el, stages[position] + "-active");
+        }
+    }
+    else if (isFunction(queue)) {
+        queue(el);
+    }
+    else if (queue == "stop") {
+        $(el).stop(true, true);
+    }
+
+    data(el, "mjsAnimationQueue", null);
+};
+
+
+
+/**
+ * @param {Element} el
+ * @param {String} cls
+ * @returns {boolean}
+ */
+var hasClass = function(el, cls) {
+    return cls ? getClsReg(cls).test(el.className) : false;
+};
+
+
+/**
+ * @param {Element} el
+ * @param {String} cls
+ */
+var addClass = function(el, cls) {
+    if (cls && !hasClass(el, cls)) {
+        el.className += " " + cls;
+    }
+};
+
+
+
+var animate = function(){
+
+    var types           = {
+            "show":     ["mjs-show"],
+            "hide":     ["mjs-hide"],
+            "enter":    ["mjs-enter"],
+            "leave":    ["mjs-leave"],
+            "move":     ["mjs-move"]
+        },
+
+        animId          = 0,
+
+        cssAnimations   = !!getAnimationPrefixes(),
+
+        animFrame       = window.requestAnimationFrame ? window.requestAnimationFrame : function(cb) {
+            window.setTimeout(cb, 0);
+        },
+
+        dataParam       = "mjsAnimationQueue",
+
+        callTimeout     = function(fn, startTime, duration) {
+            var tick = function(){
+                var time = (new Date).getTime();
+                if (time - startTime >= duration) {
+                    fn();
+                }
+                else {
+                    animFrame(tick);
+                }
+            };
+            animFrame(tick);
+        },
+
+
+
+        nextInQueue     = function(el) {
+            var queue = data(el, dataParam),
+                next;
+            if (queue.length) {
+                next = queue[0];
+                animationStage(next.el, next.stages, 0, next.start, next.deferred, false, next.id);
+            }
+            else {
+                data(el, dataParam, null);
+            }
+        },
+
+        animationStage  = function animationStage(el, stages, position, startCallback, deferred, first, id) {
+
+            var stopped   = function() {
+                var q = data(el, dataParam);
+                if (!q || !q.length || q[0].id != id) {
+                    deferred.reject(el);
+                    return true;
+                }
+                return false;
+            };
+
+            var finishStage = function() {
+
+                if (stopped()) {
+                    return;
+                }
+
+                var thisPosition = position;
+
+                position++;
+
+                if (position == stages.length) {
+                    deferred.resolve(el);
+                    data(el, dataParam).shift();
+                    nextInQueue(el);
+                }
+                else {
+                    data(el, dataParam)[0].position = position;
+                    animationStage(el, stages, position, null, deferred);
+                }
+
+                removeClass(el, stages[thisPosition]);
+                removeClass(el, stages[thisPosition] + "-active");
+            };
+
+            var setStage = function() {
+
+                if (stopped()) {
+                    return;
+                }
+
+                addClass(el, stages[position] + "-active");
+
+                var duration = getAnimationDuration(el);
+
+                if (duration) {
+                    callTimeout(finishStage, (new Date).getTime(), duration);
+                }
+                else {
+                    finishStage();
+                }
+            };
+
+            var start = function(){
+
+                if (stopped()) {
+                    return;
+                }
+
+                addClass(el, stages[position]);
+
+                var promise;
+
+                if (startCallback) {
+                    promise = startCallback(el);
+                    startCallback = null;
+                }
+
+                if (isThenable(promise)) {
+                    promise.done(setStage);
+                }
+                else {
+                    animFrame(setStage);
+                }
+            };
+
+            first ? animFrame(start) : start();
+        };
+
+
+    var animate = function animate(el, animation, startCallback, checkIfEnabled, namespace) {
+
+        var deferred    = new Promise,
+            queue       = data(el, dataParam) || [],
+            id          = ++animId,
+            attr        = el.getAttribute("mjs-animate"),
+            stages,
+            jsFn,
+            before, after,
+            options, context,
+            duration;
+
+        animation       = animation || attr;
+
+        if (checkIfEnabled && isNull(attr)) {
+            animation   = null;
+        }
+
+        if (animation) {
+
+            if (isString(animation)) {
+                if (animation.substr(0,1) == '[') {
+                    stages  = (new Function('', 'return ' + animation))();
+                }
+                else {
+                    stages      = types[animation];
+                    animation   = namespace && namespace.get("animate." + animation, true);
+                }
+            }
+            else if (isFunction(animation)) {
+                jsFn = animation;
+            }
+            else if (isArray(animation)) {
+                if (isString(animation[0])) {
+                    stages = animation;
+                }
+                else {
+                    before = animation[0];
+                    after = animation[1];
+                }
+            }
+
+            if (isPlainObject(animation)) {
+                stages      = animation.stages;
+                jsFn        = animation.fn;
+                before      = animation.before;
+                after       = animation.after;
+                options     = animation.options ? extend({}, animation.options) : {};
+                context     = animation.context || null;
+                duration    = animation.duration || null;
+                startCallback   = startCallback || options.start;
+            }
+
+
+            if (cssAnimations && stages) {
+
+                queue.push({
+                    el: el,
+                    stages: stages,
+                    start: startCallback,
+                    deferred: deferred,
+                    position: 0,
+                    id: id
+                });
+                data(el, dataParam, queue);
+
+                if (queue.length == 1) {
+                    animationStage(el, stages, 0, startCallback, deferred, true, id);
+                }
+
+                return deferred;
+            }
+            else {
+
+                options = options || {};
+
+                startCallback && (options.start = function(){
+                    startCallback(el);
+                });
+
+                options.complete = function() {
+                    deferred.resolve(el);
+                };
+
+                duration && (options.duration = duration);
+
+                if (jsFn && isFunction(jsFn)) {
+                    if (before) {
+                        extend(el.style, before, true, false);
+                    }
+                    startCallback && startCallback(el);
+                    data(el, dataParam, jsFn.call(context, el, function(){
+                        deferred.resolve(el);
+                    }));
+                    return deferred;
+                }
+                else if (window.jQuery) {
+
+                    var j = $(el);
+                    before && j.css(before);
+                    data(el, dataParam, "stop");
+
+                    if (jsFn && isString(jsFn)) {
+                        j[jsFn](options);
+                        return deferred;
+                    }
+                    else if (after) {
+                        j.animate(after, options);
+                        return deferred;
+                    }
+                }
+            }
+        }
+
+        // no animation happened
+
+        if (startCallback) {
+            var promise = startCallback(el);
+            if (isThenable(promise)) {
+                promise.done(function(){
+                    deferred.resolve(el);
+                });
+            }
+            else {
+                deferred.resolve(el);
+            }
+        }
+        else {
+            deferred.resolve(el);
+        }
+
+        return deferred;
+    };
+
+    animate.addAnimationType     = function(name, stages) {
+        types[name] = stages;
+    };
+
+    animate.stop = stopAnimation;
+
+    return animate;
+}();
+
+
+
+var createWatchable = Watchable.create;
 
 
 var parseJSON = function() {
@@ -6284,839 +7013,10 @@ var Template = function(){
     Template.getTemplate = getTemplate;
     Template.loadTemplate = loadTemplate;
 
-    nsRegister("MetaphorJs.view.Template", Template);
-
     return Template;
 }();
 
 
-
-
-
-
-var Provider = function(){
-
-    var VALUE       = 1,
-        CONSTANT    = 2,
-        FACTORY     = 3,
-        SERVICE     = 4,
-        PROVIDER    = 5,
-        globalProvider;
-
-    var Provider = function() {
-        this.store  = {};
-    };
-
-    Provider.prototype = {
-
-        store: null,
-
-        getApi: function() {
-
-            var self = this;
-
-            return {
-                value: bind(self.value, self),
-                constant: bind(self.constant, self),
-                factory: bind(self.factory, self),
-                service: bind(self.service, self),
-                provider: bind(self.provider, self),
-                resolve: bind(self.resolve, self),
-                inject: bind(self.inject, self)
-            };
-        },
-
-        instantiate: function(fn, args) {
-            var Temp = function(){},
-                inst, ret;
-
-            Temp.prototype  = fn.prototype;
-            inst            = new Temp;
-            ret             = fn.prototype.constructor.apply(inst, args);
-
-            // If an object has been returned then return it otherwise
-            // return the original instance.
-            // (consistent with behaviour of the new operator)
-            return isObject(ret) ? ret : inst;
-        },
-
-        inject: function(injectable, context, returnInstance, currentValues, callArgs) {
-
-            currentValues   = currentValues || {};
-            callArgs        = callArgs || [];
-
-            if (isFunction(injectable)) {
-
-                if (injectable.inject) {
-                    var tmp = slice.call(injectable.inject);
-                    tmp.push(injectable);
-                    injectable = tmp;
-                }
-                else {
-                    return returnInstance || injectable.__isMetaphorClass ?
-                        this.instantiate(injectable, callArgs) :
-                        injectable.apply(context, callArgs);
-                }
-            }
-
-            injectable  = slice.call(injectable);
-
-            var self    = this,
-                values  = [],
-                fn      = injectable.pop(),
-                i, l;
-
-            for (i = -1, l = injectable.length; ++i < l;
-                 values.push(self.resolve(injectable[i], currentValues))) {}
-
-            return Promise.all(values).then(function(values){
-                return returnInstance || fn.__isMetaphorClass ?
-                    self.instantiate(fn, values) :
-                    fn.apply(context, values);
-            });
-        },
-
-        value: function(name, value) {
-            this.store[name] = {
-                type: VALUE,
-                value: value
-            };
-        },
-
-        constant: function(name, value) {
-            var store = this.store;
-            if (!store[name]) {
-                store[name] = {
-                    type: CONSTANT,
-                    value: value
-                };
-            }
-        },
-
-        factory: function(name, fn, context, singleton) {
-
-            if (isBool(context)) {
-                singleton = context;
-                context = null;
-            }
-
-            this.store[name] = {
-                type: FACTORY,
-                singleton: singleton,
-                fn: fn,
-                context: context
-            };
-        },
-
-        service: function(name, constr, singleton) {
-            this.store[name] = {
-                type: SERVICE,
-                singleton: singleton,
-                fn: constr
-            };
-        },
-
-        provider: function(name, constr) {
-
-            this.store[name + "Provider"] = {
-                name: name,
-                type: PROVIDER,
-                fn: constr,
-                instance: null
-            };
-        },
-
-
-        resolve: function(name, currentValues) {
-
-            var self    = this,
-                store   = self.store,
-                type,
-                item,
-                res;
-
-            if (!isUndefined(currentValues[name])) {
-                return currentValues[name];
-            }
-
-            if (item = store[name]) {
-
-                type    = item.type;
-
-                if (type == VALUE || type == CONSTANT) {
-                    return item.value;
-                }
-                else if (type == FACTORY) {
-                    res = self.inject(item.fn, item.context, false, currentValues);
-                }
-                else if (type == SERVICE) {
-                    res = self.inject(item.fn, null, true, currentValues);
-                }
-                else if (type == PROVIDER) {
-
-                    if (!item.instance) {
-
-                        item.instance = Promise.resolve(
-                                self.inject(item.fn, null, true, currentValues)
-                            )
-                            .done(function(instance){
-                                item.instance = instance;
-                                store[item.name] = {
-                                    type: FACTORY,
-                                    fn: instance.$get,
-                                    context: instance
-                                };
-                            });
-                    }
-
-                    return item.instance;
-                }
-
-                if (item.singleton) {
-                    item.type = VALUE;
-                    item.value = res;
-
-                    if (type == FACTORY && isThenable(res)) {
-                        res.done(function(value){
-                            item.value = value;
-                        });
-                    }
-                }
-
-                return currentValues[name] = res;
-            }
-            else {
-
-                if (store[name + "Provider"]) {
-                    self.resolve(name + "Provider", currentValues);
-                    return self.resolve(name, currentValues);
-                }
-
-                if (self === globalProvider) {
-                    throw "Could not provide value for " + name;
-                }
-                else {
-                    return globalProvider.resolve(name);
-                }
-            }
-        },
-
-        destroy: function() {
-            delete this.store;
-            delete this.scope;
-        }
-
-    };
-
-    Provider.global = function() {
-        return globalProvider;
-    };
-
-    globalProvider = new Provider;
-
-    MetaphorJs.lib.Provider = Provider;
-
-    return Provider;
-}();
-
-
-
-
-
-var resolveComponent = function(cmp, cfg, scope, node, args) {
-
-    var hasCfg  = cfg !== false;
-
-    cfg         = cfg || {};
-    args        = args || [];
-
-    scope       = scope || cfg.scope; // || new Scope;
-    node        = node || cfg.node;
-
-    cfg.scope   = cfg.scope || scope;
-    cfg.node    = cfg.node || node;
-
-    var constr      = isString(cmp) ? nsGet(cmp) : cmp;
-
-    if (!constr) {
-        throw "Component " + cmp + " not found";
-    }
-
-    if (scope && constr.$isolateScope) {
-        cfg.scope   = scope = scope.$newIsolated();
-    }
-
-    var i,
-        defers      = [],
-        tpl         = constr.template || cfg.template || null,
-        tplUrl      = constr.templateUrl || cfg.templateUrl || null,
-        app         = scope ? scope.$app : null,
-        gProvider   = Provider.global(),
-        injectFn    = app ? app.inject : gProvider.inject,
-        injectCt    = app ? app : gProvider,
-        cloak       = node ? node.getAttribute("mjs-cloak") : null,
-        inject      = {
-            $node: node || null,
-            $scope: scope || null,
-            $config: cfg || null,
-            $args: args || null
-        };
-
-    if (constr.resolve) {
-
-        for (i in constr.resolve) {
-            (function(name){
-                var d = new Promise,
-                    fn;
-
-                defers.push(d.done(function(value){
-                    inject[name] = value;
-                    cfg[name] = value;
-                    args.push(value);
-                }));
-
-                fn = constr.resolve[i];
-
-                if (isFunction(fn)) {
-                    d.resolve(fn(scope, node));
-                }
-                else if (isString(fn)) {
-                    d.resolve(injectFn.resolve(fn));
-                }
-                else {
-                    d.resolve(
-                        injectFn.call(
-                            injectCt, fn, null, false, extend({}, inject, cfg, false, false)
-                        )
-                    );
-                }
-
-            }(i));
-        }
-    }
-
-    if (hasCfg && (tpl || tplUrl)) {
-
-        cfg.template = new Template({
-            scope: scope,
-            node: node,
-            deferRendering: true,
-            ownRenderer: true,
-            tpl: tpl,
-            url: tplUrl
-        });
-
-        defers.push(cfg.template.initPromise);
-
-        if (node && node.firstChild) {
-            data(node, "mjs-transclude", toFragment(node.childNodes));
-        }
-    }
-
-    hasCfg && args.unshift(cfg);
-
-    var p;
-
-    if (defers.length) {
-        p = new Promise;
-
-        Promise.all(defers).done(function(){
-            p.resolve(
-                injectFn.call(
-                    injectCt, constr, null, true, extend({}, inject, cfg, false, false), args
-                )
-            );
-        });
-    }
-    else {
-        p = Promise.resolve(
-            injectFn.call(
-                injectCt, constr, null, true, extend({}, inject, cfg, false, false), args
-            )
-        );
-    }
-
-    if (node && p.isPending() && cloak !== null) {
-        cloak ? addClass(node, cloak) : node.style.visibility = "hidden";
-        p.done(function() {
-            cloak ? removeClass(node, cloak) : node.style.visibility = "";
-        });
-    }
-
-    return p;
-};
-
-
-
-
-
-var Text = function(){
-
-    var pluralDef       = function($number, $locale) {
-
-            if ($locale == "pt_BR") {
-                // temporary set a locale for brasilian
-                $locale = "xbr";
-            }
-
-            if ($locale.length > 3) {
-                $locale = $locale.substr(0, -$locale.lastIndexOf('_'));
-            }
-
-            switch($locale) {
-                case 'bo':
-                case 'dz':
-                case 'id':
-                case 'ja':
-                case 'jv':
-                case 'ka':
-                case 'km':
-                case 'kn':
-                case 'ko':
-                case 'ms':
-                case 'th':
-                case 'tr':
-                case 'vi':
-                case 'zh':
-                    return 0;
-                    break;
-
-                case 'af':
-                case 'az':
-                case 'bn':
-                case 'bg':
-                case 'ca':
-                case 'da':
-                case 'de':
-                case 'el':
-                case 'en':
-                case 'eo':
-                case 'es':
-                case 'et':
-                case 'eu':
-                case 'fa':
-                case 'fi':
-                case 'fo':
-                case 'fur':
-                case 'fy':
-                case 'gl':
-                case 'gu':
-                case 'ha':
-                case 'he':
-                case 'hu':
-                case 'is':
-                case 'it':
-                case 'ku':
-                case 'lb':
-                case 'ml':
-                case 'mn':
-                case 'mr':
-                case 'nah':
-                case 'nb':
-                case 'ne':
-                case 'nl':
-                case 'nn':
-                case 'no':
-                case 'om':
-                case 'or':
-                case 'pa':
-                case 'pap':
-                case 'ps':
-                case 'pt':
-                case 'so':
-                case 'sq':
-                case 'sv':
-                case 'sw':
-                case 'ta':
-                case 'te':
-                case 'tk':
-                case 'ur':
-                case 'zu':
-                    return ($number == 1) ? 0 : 1;
-
-                case 'am':
-                case 'bh':
-                case 'fil':
-                case 'fr':
-                case 'gun':
-                case 'hi':
-                case 'ln':
-                case 'mg':
-                case 'nso':
-                case 'xbr':
-                case 'ti':
-                case 'wa':
-                    return (($number == 0) || ($number == 1)) ? 0 : 1;
-
-                case 'be':
-                case 'bs':
-                case 'hr':
-                case 'ru':
-                case 'sr':
-                case 'uk':
-                    return (($number % 10 == 1) && ($number % 100 != 11)) ?
-                           0 :
-                           ((($number % 10 >= 2) && ($number % 10 <= 4) &&
-                             (($number % 100 < 10) || ($number % 100 >= 20))) ? 1 : 2);
-
-                case 'cs':
-                case 'sk':
-                    return ($number == 1) ? 0 : ((($number >= 2) && ($number <= 4)) ? 1 : 2);
-
-                case 'ga':
-                    return ($number == 1) ? 0 : (($number == 2) ? 1 : 2);
-
-                case 'lt':
-                    return (($number % 10 == 1) && ($number % 100 != 11)) ?
-                           0 :
-                           ((($number % 10 >= 2) &&
-                             (($number % 100 < 10) || ($number % 100 >= 20))) ? 1 : 2);
-
-                case 'sl':
-                    return ($number % 100 == 1) ?
-                           0 :
-                           (($number % 100 == 2) ?
-                                1 :
-                                ((($number % 100 == 3) || ($number % 100 == 4)) ? 2 : 3));
-
-                case 'mk':
-                    return ($number % 10 == 1) ? 0 : 1;
-
-                case 'mt':
-                    return ($number == 1) ?
-                           0 :
-                           ((($number == 0) || (($number % 100 > 1) && ($number % 100 < 11))) ?
-                                1 :
-                                ((($number % 100 > 10) && ($number % 100 < 20)) ? 2 : 3));
-
-                case 'lv':
-                    return ($number == 0) ? 0 : ((($number % 10 == 1) && ($number % 100 != 11)) ? 1 : 2);
-
-                case 'pl':
-                    return ($number == 1) ?
-                           0 :
-                           ((($number % 10 >= 2) && ($number % 10 <= 4) &&
-                             (($number % 100 < 12) || ($number % 100 > 14))) ? 1 : 2);
-
-                case 'cy':
-                    return ($number == 1) ? 0 : (($number == 2) ? 1 : ((($number == 8) || ($number == 11)) ? 2 : 3));
-
-                case 'ro':
-                    return ($number == 1) ?
-                           0 :
-                           ((($number == 0) || (($number % 100 > 0) && ($number % 100 < 20))) ? 1 : 2);
-
-                case 'ar':
-                    return ($number == 0) ?
-                           0 :
-                           (($number == 1) ?
-                                1 :
-                                (($number == 2) ?
-                                    2 :
-                                    ((($number >= 3) && ($number <= 10)) ?
-                                        3 :
-                                        ((($number >= 11) && ($number <= 99)) ? 4 : 5))));
-
-                default:
-                    return 0;
-            }
-        };
-
-
-    var Text = function(locale) {
-
-        var self    = this;
-        self.store  = {};
-        if (locale) {
-            self.locale = locale;
-        }
-    };
-
-    Text.prototype = {
-
-        store: null,
-        locale: "en",
-
-        setLocale: function(locale) {
-            this.locale = locale;
-        },
-
-        set: function(key, value) {
-            var store = this.store;
-            if (isUndefined(store[key])) {
-                store[key] = value;
-            }
-        },
-
-        load: function(keys) {
-            extend(this.store, keys, false, false);
-        },
-
-        get: function(key) {
-            var self    = this;
-            return self.store[key] ||
-                   (self === globalText ? '-- ' + key + ' --' : globalText.get(key));
-        },
-
-        plural: function(key, number) {
-            var self    = this,
-                strings = self.get(key),
-                def     = pluralDef(number, self.locale);
-
-            if (!isArray(strings)) {
-                if (isPlainObject(strings)) {
-                    if (strings[number]) {
-                        return strings[number];
-                    }
-                    if (number == 1 && strings.one != undefined) {
-                        return strings.one;
-                    }
-                    else if (number < 0 && strings.negative != undefined) {
-                        return strings.negative;
-                    }
-                    else {
-                        return strings.other;
-                    }
-                }
-                return strings;
-            }
-            else {
-                return strings[def];
-            }
-        }
-
-    };
-
-
-    var globalText  = new Text;
-
-    Text.global     = function() {
-        return globalText;
-    };
-
-    MetaphorJs.lib.Text = Text;
-
-    return Text;
-}();
-
-
-
-
-
-
-/**
- * @namespace MetaphorJs
- * @class MetaphorJs.cmp.Base
- */
-defineClass("MetaphorJs.cmp.Base", {
-
-    /**
-     * @var bool
-     * @access protected
-     */
-    destroyed:      false,
-
-    /**
-     * @var MetaphorJs.lib.Observable
-     * @access private
-     */
-    _observable:    null,
-
-    /**
-     * @param {object} cfg
-     */
-    initialize: function(cfg) {
-
-        var self    = this;
-        cfg         = cfg || {};
-
-        self._observable    = new Observable;
-        extend(self, self._observable.getApi(), true, false);
-
-        if (cfg.callback) {
-
-            var cb      = cfg.callback,
-                scope   = cb.scope || self;
-            delete cb.scope;
-
-            for (var k in cb) {
-                if (cb.hasOwnProperty(k)) {
-                    self.on(k, cb[k], scope);
-                }
-            }
-
-            delete cfg.callback;
-        }
-
-        extend(self, cfg, true, false);
-    },
-
-    /**
-     * @method
-     */
-    destroy:    function() {
-
-        var self    = this;
-
-        if (self.destroyed) {
-            return;
-        }
-
-        if (self.trigger('beforedestroy', self) === false) {
-            return false;
-        }
-
-        self.onDestroy();
-        self.destroyed  = true;
-
-        self.trigger('destroy', self);
-
-        self._observable.destroy();
-        delete this._observable;
-
-    },
-
-    /**
-     * @method
-     * @access protected
-     */
-    onDestroy:      emptyFn
-});
-
-
-
-
-
-
-
-
-
-defineClass("MetaphorJs.cmp.App", "MetaphorJs.cmp.Base", {
-
-    lang: null,
-    scope: null,
-    renderer: null,
-    cmpListeners: null,
-    components: null,
-
-    initialize: function(node, data) {
-
-        var self        = this,
-            scope       = data instanceof Scope ? data : new Scope(data),
-            provider,
-            observable,
-            args;
-
-        scope.$app      = self;
-        self.supr();
-
-        provider        = new Provider;
-        observable      = new Observable;
-        self.lang       = new Text;
-
-        // provider's storage is hidden from everyone
-        extend(self, provider.getApi(), true, false);
-        self.destroyProvider    = bind(provider.destroy, provider);
-
-        extend(self, observable.getApi(), true, false);
-        self.destroyObservable  = bind(observable.destroy, observable);
-
-        self.scope          = scope;
-        self.cmpListeners   = {};
-        self.components     = {};
-
-        self.factory('$parentCmp', ['$node', self.getParentCmp], self);
-        self.value('$app', self);
-        self.value('$rootScope', scope.$root);
-        self.value('$lang', self.lang);
-
-        self.renderer       = new Renderer(node, scope);
-
-        args = slice.call(arguments);
-        args[1] = scope;
-        self.initApp.apply(self, args);
-    },
-
-    initApp: emptyFn,
-
-    run: function() {
-        this.renderer.process();
-    },
-
-    getParentCmp: function(node) {
-
-        var self    = this,
-            parent  = node.parentNode,
-            id;
-
-        while (parent) {
-
-            if (id = parent.getAttribute("cmp-id")) {
-                return self.getCmp(id);
-            }
-
-            parent = parent.parentNode;
-        }
-
-        return null;
-    },
-
-    onAvailable: function(cmpId, fn, context) {
-
-        var cmpListeners = this.cmpListeners;
-
-        if (!cmpListeners[cmpId]) {
-            cmpListeners[cmpId] = new Promise;
-        }
-
-        if (fn) {
-            cmpListeners[cmpId].done(fn, context);
-        }
-
-        return cmpListeners[cmpId];
-    },
-
-    getCmp: function(id) {
-        return this.components[id] || null;
-    },
-
-    registerCmp: function(cmp) {
-        var self = this;
-
-        self.components[cmp.id] = cmp;
-
-        self.onAvailable(cmp.id).resolve(cmp);
-
-        cmp.on("destroy", function(cmp){
-            delete self.cmpListeners[cmp.id];
-            delete self.components[cmp.id];
-        });
-    },
-
-    destroy: function() {
-
-        var self    = this,
-            i;
-
-        self.destroyObservable();
-        self.destroyProvider();
-        self.renderer.destroy();
-        self.scope.$destroy();
-
-        for (i in self) {
-            if (self.hasOwnProperty(i)) {
-                delete self[i];
-            }
-        }
-    }
-
-});
-
-
-var isAttached = function(node) {
-    var body = document.body;
-    return node === body ? true : body.contains(node);
-};
 
 
 
@@ -7127,7 +7027,7 @@ var isAttached = function(node) {
  * @class MetaphorJs.cmp.Component
  * @extends MetaphorJs.cmp.Observable
  */
-defineClass("MetaphorJs.cmp.Component", "MetaphorJs.cmp.Base", {
+ defineClass("MetaphorJs.cmp.Component", "MetaphorJs.cmp.Base", {
 
     /**
      * @access protected
@@ -7459,38 +7359,269 @@ defineClass("MetaphorJs.cmp.Component", "MetaphorJs.cmp.Base", {
 
 
 
-var stopAnimation = function(el) {
 
-    var queue = data(el, "mjsAnimationQueue"),
-        current,
-        position,
-        stages;
+var resolveComponent = function(cmp, cfg, scope, node, args) {
 
-    if (isArray(queue) && queue.length) {
-        current = queue[0];
+    var hasCfg  = cfg !== false;
 
-        if (current && current.stages) {
-            position = current.position;
-            stages = current.stages;
-            removeClass(el, stages[position]);
-            removeClass(el, stages[position] + "-active");
+    cfg         = cfg || {};
+    args        = args || [];
+
+    scope       = scope || cfg.scope; // || new Scope;
+    node        = node || cfg.node;
+
+    cfg.scope   = cfg.scope || scope;
+    cfg.node    = cfg.node || node;
+
+    var constr      = isString(cmp) ? nsGet(cmp) : cmp;
+
+    if (!constr) {
+        throw "Component " + cmp + " not found";
+    }
+
+    if (scope && constr.$isolateScope) {
+        cfg.scope   = scope = scope.$newIsolated();
+    }
+
+    var i,
+        defers      = [],
+        tpl         = constr.template || cfg.template || null,
+        tplUrl      = constr.templateUrl || cfg.templateUrl || null,
+        app         = scope ? scope.$app : null,
+        gProvider   = Provider.global(),
+        injectFn    = app ? app.inject : gProvider.inject,
+        injectCt    = app ? app : gProvider,
+        cloak       = node ? node.getAttribute("mjs-cloak") : null,
+        inject      = {
+            $node: node || null,
+            $scope: scope || null,
+            $config: cfg || null,
+            $args: args || null
+        };
+
+    if (constr.resolve) {
+
+        for (i in constr.resolve) {
+            (function(name){
+                var d = new Promise,
+                    fn;
+
+                defers.push(d.done(function(value){
+                    inject[name] = value;
+                    cfg[name] = value;
+                    args.push(value);
+                }));
+
+                fn = constr.resolve[i];
+
+                if (isFunction(fn)) {
+                    d.resolve(fn(scope, node));
+                }
+                else if (isString(fn)) {
+                    d.resolve(injectFn.resolve(fn));
+                }
+                else {
+                    d.resolve(
+                        injectFn.call(
+                            injectCt, fn, null, false, extend({}, inject, cfg, false, false)
+                        )
+                    );
+                }
+
+            }(i));
         }
     }
-    else if (isFunction(queue)) {
-        queue(el);
-    }
-    else if (queue == "stop") {
-        $(el).stop(true, true);
+
+    if (hasCfg && (tpl || tplUrl)) {
+
+        cfg.template = new Template({
+            scope: scope,
+            node: node,
+            deferRendering: true,
+            ownRenderer: true,
+            tpl: tpl,
+            url: tplUrl
+        });
+
+        defers.push(cfg.template.initPromise);
+
+        if (node && node.firstChild) {
+            data(node, "mjs-transclude", toFragment(node.childNodes));
+        }
     }
 
-    data(el, "mjsAnimationQueue", null);
+    hasCfg && args.unshift(cfg);
+
+    var p;
+
+    if (defers.length) {
+        p = new Promise;
+
+        Promise.all(defers).done(function(){
+            p.resolve(
+                injectFn.call(
+                    injectCt, constr, null, true, extend({}, inject, cfg, false, false), args
+                )
+            );
+        });
+    }
+    else {
+        p = Promise.resolve(
+            injectFn.call(
+                injectCt, constr, null, true, extend({}, inject, cfg, false, false), args
+            )
+        );
+    }
+
+    if (node && p.isPending() && cloak !== null) {
+        cloak ? addClass(node, cloak) : node.style.visibility = "hidden";
+        p.done(function() {
+            cloak ? removeClass(node, cloak) : node.style.visibility = "";
+        });
+    }
+
+    return p;
+};
+
+
+var returnFalse = function() {
+    return false;
+};
+
+var returnTrue = function() {
+    return true;
+};
+
+
+// from jQuery
+
+var NormalizedEvent = function(src) {
+
+    if (src instanceof NormalizedEvent) {
+        return src;
+    }
+
+    // Allow instantiation without the 'new' keyword
+    if (!(this instanceof NormalizedEvent)) {
+        return new NormalizedEvent(src);
+    }
+
+
+    var self    = this;
+
+    for (var i in src) {
+        if (!self[i]) {
+            try {
+                self[i] = src[i];
+            }
+            catch (thrownError){}
+        }
+    }
+
+
+    // Event object
+    self.originalEvent = src;
+    self.type = src.type;
+
+    if (!self.target && src.srcElement) {
+        self.target = src.srcElement;
+    }
+
+
+    var eventDoc, doc, body,
+        button = src.button;
+
+    // Calculate pageX/Y if missing and clientX/Y available
+    if (isUndefined(self.pageX) && !isNull(src.clientX)) {
+        eventDoc = self.target ? self.target.ownerDocument || document : document;
+        doc = eventDoc.documentElement;
+        body = eventDoc.body;
+
+        self.pageX = src.clientX +
+                      ( doc && doc.scrollLeft || body && body.scrollLeft || 0 ) -
+                      ( doc && doc.clientLeft || body && body.clientLeft || 0 );
+        self.pageY = src.clientY +
+                      ( doc && doc.scrollTop  || body && body.scrollTop  || 0 ) -
+                      ( doc && doc.clientTop  || body && body.clientTop  || 0 );
+    }
+
+    // Add which for click: 1 === left; 2 === middle; 3 === right
+    // Note: button is not normalized, so don't use it
+    if ( !self.which && button !== undefined ) {
+        self.which = ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
+    }
+
+    // Events bubbling up the document may have been marked as prevented
+    // by a handler lower down the tree; reflect the correct value.
+    self.isDefaultPrevented = src.defaultPrevented ||
+                              isUndefined(src.defaultPrevented) &&
+                                  // Support: Android<4.0
+                              src.returnValue === false ?
+                              returnTrue :
+                              returnFalse;
+
+
+    // Create a timestamp if incoming event doesn't have one
+    self.timeStamp = src && src.timeStamp || (new Date).getTime();
+};
+
+// Event is based on DOM3 Events as specified by the ECMAScript Language Binding
+// http://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
+NormalizedEvent.prototype = {
+
+    isDefaultPrevented: returnFalse,
+    isPropagationStopped: returnFalse,
+    isImmediatePropagationStopped: returnFalse,
+
+    preventDefault: function() {
+        var e = this.originalEvent;
+
+        this.isDefaultPrevented = returnTrue;
+        e.returnValue = false;
+
+        if ( e && e.preventDefault ) {
+            e.preventDefault();
+        }
+    },
+    stopPropagation: function() {
+        var e = this.originalEvent;
+
+        this.isPropagationStopped = returnTrue;
+
+        if ( e && e.stopPropagation ) {
+            e.stopPropagation();
+        }
+    },
+    stopImmediatePropagation: function() {
+        var e = this.originalEvent;
+
+        this.isImmediatePropagationStopped = returnTrue;
+
+        if ( e && e.stopImmediatePropagation ) {
+            e.stopImmediatePropagation();
+        }
+
+        this.stopPropagation();
+    }
 };
 
 
 
-var mhistory = function(){
+var normalizeEvent = function(originalEvent) {
+    return new NormalizedEvent(originalEvent);
+};
 
-    var listeners       = {
+
+
+var history = function(){
+
+    var win             = window,
+        history         = win.history,
+        location        = win.location,
+        observable      = new Observable,
+        exports         = {},
+
+        listeners       = {
             locationChange: [],
             beforeLocationChange: []
         },
@@ -7498,7 +7629,9 @@ var mhistory = function(){
         rURL            = /(?:(\w+:))?(?:\/\/(?:[^@]*@)?([^\/:\?#]+)(?::([0-9]+))?)?([^\?#]*)(?:(\?[^#]+)|\?)?(?:(#.*))?/,
 
         pushStateSupported  = !!history.pushState,
-        hashChangeSupported = "onhashchange" in window;
+        hashChangeSupported = "onhashchange" in win;
+
+    extend(exports, observable.getApi());
 
     var preparePath = function(url) {
 
@@ -7562,7 +7695,7 @@ var mhistory = function(){
     };
 
     var samePathLink = function(url) {
-        return getPathFromUrl(url) == getPathFromUrl(window.location);
+        return getPathFromUrl(url) == getPathFromUrl(location);
     };
 
     var setHash = function(hash) {
@@ -7609,7 +7742,7 @@ var mhistory = function(){
             }
         }
 
-        return MetaphorJs.trigger(event, url);
+        return exports.trigger(event, url);
     };
 
     var init = function() {
@@ -7620,7 +7753,7 @@ var mhistory = function(){
             history.origPushState       = history.pushState;
             history.origReplaceState    = history.replaceState;
 
-            addListener(window, "popstate", function(){
+            addListener(win, "popstate", function(){
                 triggerEvent("locationChange");
             });
 
@@ -7651,7 +7784,7 @@ var mhistory = function(){
                     }
                     setHash(preparePath(url));
                 };
-                addListener(window, "hashchange", function(){
+                addListener(win, "hashchange", function(){
                     triggerEvent("locationChange");
                 });
             }
@@ -7668,7 +7801,7 @@ var mhistory = function(){
                     document.body.appendChild(frame);
                 };
 
-                window.onIframeHistoryChange = function(val) {
+                win.onIframeHistoryChange = function(val) {
                     if (!initialUpdate) {
                         setHash(val);
                         triggerEvent("locationChange");
@@ -7719,7 +7852,7 @@ var mhistory = function(){
                     initFrame();
                 }
                 else {
-                    addListener(window, "load", initFrame);
+                    addListener(win, "load", initFrame);
                 }
             }
         }
@@ -7728,9 +7861,9 @@ var mhistory = function(){
 
         addListener(document.documentElement, "click", function(e) {
 
-            e = e || window.event;
+            e = normalizeEvent(e || win.event);
 
-            var a = e.target || e.srcElement,
+            var a = e.target,
                 href;
 
             while (a && a.nodeName.toLowerCase() != "a") {
@@ -7741,13 +7874,13 @@ var mhistory = function(){
 
                 href = a.getAttribute("href");
 
-
                 if (href && href.substr(0,1) != "#" && !a.getAttribute("target") &&
                     sameHostLink(href) && !samePathLink(href)) {
 
                     history.pushState(null, null, getPathFromUrl(href));
-                    e.preventDefault && e.preventDefault();
-                    e.stopPropagation && e.stopPropagation();
+
+                    e.preventDefault();
+                    e.stopPropagation();
                     return false;
                 }
             }
@@ -7755,10 +7888,11 @@ var mhistory = function(){
             return null;
         });
 
-        history.initPushState = function(){};
+        history.initPushState = emptyFn;
+        exports.initPushState = emptyFn;
     };
 
-    addListener(window, "load", function() {
+    addListener(win, "load", function() {
         windowLoaded = true;
     });
 
@@ -7771,27 +7905,30 @@ var mhistory = function(){
         listeners.locationChange.push(fn);
     };
 
-    return {
-        pushUrl: function(url) {
-            history.pushState(null, null, url);
-        },
-        replaceUrl: function(url) {
-            history.replaceState(null, null, url);
-        },
-        currentUrl: function() {
-            return getCurrentUrl();
-        }
+    exports.pushUrl = function(url) {
+        history.pushState(null, null, url);
     };
+    exports.replaceUrl = function(url) {
+        history.replaceState(null, null, url);
+    };
+    exports.currentUrl = function() {
+        return getCurrentUrl();
+    };
+    exports.initPushState = function() {
+        return init();
+    };
+
+    return exports;
 }();
 
 
 
-var currentUrl = mhistory.currentUrl;
+var currentUrl = history.currentUrl;
 
 
 
 
-defineClass("MetaphorJs.cmp.View", {
+ defineClass("MetaphorJs.cmp.View", {
 
     /**
      * [
@@ -7837,7 +7974,7 @@ defineClass("MetaphorJs.cmp.View", {
 
         if (self.route) {
             history.initPushState();
-            MetaphorJs.on("locationChange", self.onLocationChange, self);
+            history.on("locationChange", self.onLocationChange, self);
             self.onLocationChange();
         }
         else if (self.cmp) {
@@ -7991,7 +8128,7 @@ defineClass("MetaphorJs.cmp.View", {
         self.clearComponent();
 
         if (self.route) {
-            MetaphorJs.un("locationchange", self.onLocationChange, self);
+            history.un("locationchange", self.onLocationChange, self);
             delete self.route;
         }
 
@@ -8010,9 +8147,6 @@ defineClass("MetaphorJs.cmp.View", {
 
 
 var registerAttributeHandler = directives.registerAttributeHandler;
-var returnFalse = function() {
-    return false;
-};
 
 
 
@@ -8263,8 +8397,7 @@ var setValue = function() {
 
 
 
-
-defineClass("MetaphorJs.view.AttributeHandler", {
+var AttributeHandler = defineClass("MetaphorJs.view.AttributeHandler", {
 
     watcher: null,
     scope: null,
@@ -8272,7 +8405,6 @@ defineClass("MetaphorJs.view.AttributeHandler", {
     expr: null,
 
     initialize: function(scope, node, expr) {
-
         var self        = this;
 
         expr            = trim(expr);
@@ -8308,7 +8440,6 @@ defineClass("MetaphorJs.view.AttributeHandler", {
             delete self.watcher;
         }
     }
-
 });
 
 
@@ -8316,7 +8447,8 @@ defineClass("MetaphorJs.view.AttributeHandler", {
 
 
 
-registerAttributeHandler("mjs-bind", 1000, defineClass(null, "MetaphorJs.view.AttributeHandler", {
+
+registerAttributeHandler("mjs-bind", 1000, defineClass(null, AttributeHandler, {
 
     isInput: false,
     recursive: false,
@@ -8435,7 +8567,7 @@ registerAttributeHandler("mjs-bind-html", 1000, defineClass(null, "attr.mjs-bind
         }
     };
 
-    registerAttributeHandler("mjs-class", 1000, defineClass(null, "MetaphorJs.view.AttributeHandler", {
+    registerAttributeHandler("mjs-class", 1000, defineClass(null, AttributeHandler, {
 
         initial: true,
 
@@ -8531,8 +8663,7 @@ registerAttributeHandler("mjs-cmp-prop", 200,
 
 
 
-
-registerAttributeHandler("mjs-each", 100, defineClass(null, "MetaphorJs.view.AttributeHandler", {
+registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
 
     model: null,
     itemName: null,
@@ -8783,132 +8914,6 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, "MetaphorJs.view.Att
 
 var createFunc = Watchable.createFunc;
 
-var returnTrue = function() {
-    return true;
-};
-
-
-// from jQuery
-
-var NormalizedEvent = function(src) {
-
-    if (src instanceof NormalizedEvent) {
-        return src;
-    }
-
-    // Allow instantiation without the 'new' keyword
-    if (!(this instanceof NormalizedEvent)) {
-        return new NormalizedEvent(src);
-    }
-
-
-    var self    = this;
-
-    for (var i in src) {
-        if (!self[i]) {
-            try {
-                self[i] = src[i];
-            }
-            catch (thrownError){}
-        }
-    }
-
-
-    // Event object
-    self.originalEvent = src;
-    self.type = src.type;
-
-    if (!self.target && src.srcElement) {
-        self.target = src.srcElement;
-    }
-
-
-    var eventDoc, doc, body,
-        button = src.button;
-
-    // Calculate pageX/Y if missing and clientX/Y available
-    if (isUndefined(self.pageX) && !isNull(src.clientX)) {
-        eventDoc = self.target ? self.target.ownerDocument || document : document;
-        doc = eventDoc.documentElement;
-        body = eventDoc.body;
-
-        self.pageX = src.clientX +
-                      ( doc && doc.scrollLeft || body && body.scrollLeft || 0 ) -
-                      ( doc && doc.clientLeft || body && body.clientLeft || 0 );
-        self.pageY = src.clientY +
-                      ( doc && doc.scrollTop  || body && body.scrollTop  || 0 ) -
-                      ( doc && doc.clientTop  || body && body.clientTop  || 0 );
-    }
-
-    // Add which for click: 1 === left; 2 === middle; 3 === right
-    // Note: button is not normalized, so don't use it
-    if ( !self.which && button !== undefined ) {
-        self.which = ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
-    }
-
-    // Events bubbling up the document may have been marked as prevented
-    // by a handler lower down the tree; reflect the correct value.
-    self.isDefaultPrevented = src.defaultPrevented ||
-                              isUndefined(src.defaultPrevented) &&
-                                  // Support: Android<4.0
-                              src.returnValue === false ?
-                              returnTrue :
-                              returnFalse;
-
-
-    // Create a timestamp if incoming event doesn't have one
-    self.timeStamp = src && src.timeStamp || (new Date).getTime();
-};
-
-// Event is based on DOM3 Events as specified by the ECMAScript Language Binding
-// http://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
-NormalizedEvent.prototype = {
-
-    isDefaultPrevented: returnFalse,
-    isPropagationStopped: returnFalse,
-    isImmediatePropagationStopped: returnFalse,
-
-    preventDefault: function() {
-        var e = this.originalEvent;
-
-        this.isDefaultPrevented = returnTrue;
-        e.returnValue = false;
-
-        if ( e && e.preventDefault ) {
-            e.preventDefault();
-        }
-    },
-    stopPropagation: function() {
-        var e = this.originalEvent;
-
-        this.isPropagationStopped = returnTrue;
-
-        if ( e && e.stopPropagation ) {
-            e.stopPropagation();
-        }
-    },
-    stopImmediatePropagation: function() {
-        var e = this.originalEvent;
-
-        this.isImmediatePropagationStopped = returnTrue;
-
-        if ( e && e.stopImmediatePropagation ) {
-            e.stopImmediatePropagation();
-        }
-
-        this.stopPropagation();
-    }
-};
-
-MetaphorJs.lib.NormalizedEvent = NormalizedEvent;
-
-
-
-var normalizeEvent = function(originalEvent) {
-    return new NormalizedEvent(originalEvent);
-};
-
-
 
 (function(){
 
@@ -8972,8 +8977,7 @@ var normalizeEvent = function(originalEvent) {
 
 
 
-
-registerAttributeHandler("mjs-show", 500, defineClass(null, "MetaphorJs.view.AttributeHandler", {
+registerAttributeHandler("mjs-show", 500, defineClass(null, AttributeHandler, {
 
     initial: true,
 
@@ -9039,8 +9043,7 @@ registerAttributeHandler("mjs-hide", 500, defineClass(null, "attr.mjs-show", {
 
 
 
-
-registerAttributeHandler("mjs-if", 500, defineClass(null, "MetaphorJs.view.AttributeHandler", {
+registerAttributeHandler("mjs-if", 500, defineClass(null, AttributeHandler, {
 
     parentEl: null,
     prevEl: null,
@@ -9499,7 +9502,8 @@ Input.prototype = {
     }
 };
 
-MetaphorJs.lib.Input = Input;
+Input.getValue = getValue;
+Input.setValue = setValue;
 
 
 
@@ -9510,7 +9514,7 @@ MetaphorJs.lib.Input = Input;
 
 
 
-registerAttributeHandler("mjs-model", 1000, defineClass(null, "MetaphorJs.view.AttributeHandler", {
+registerAttributeHandler("mjs-model", 1000, defineClass(null, AttributeHandler, {
 
     inProg: false,
     input: null,
@@ -9592,8 +9596,7 @@ var createGetter = Watchable.createGetter;
 
 
 
-
-registerAttributeHandler("mjs-options", 100, defineClass(null, "MetaphorJs.view.AttributeHandler", {
+registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler, {
 
     model: null,
     getterFn: null,
@@ -9737,7 +9740,6 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, "MetaphorJs.view.
 
 
 
-
 (function(){
 
     var boolAttrs = ['selected', 'checked', 'disabled', 'readonly', 'required', 'open'],
@@ -9747,7 +9749,7 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, "MetaphorJs.view.
 
         (function(name){
 
-            registerAttributeHandler("mjs-" + name, 1000, defineClass(null, "MetaphorJs.view.AttributeHandler", {
+            registerAttributeHandler("mjs-" + name, 1000, defineClass(null, AttributeHandler, {
 
                 onChange: function() {
 
@@ -10200,20 +10202,27 @@ var initApp = function(node, cls, data) {
 };
 
 
+var run = function() {
 
-onReady(function() {
+    onReady(function() {
 
-    var appNodes    = select("[mjs-app]"),
-        i, l, el,
-        done        = function(app) {
-            app.run();
-        };
+        var appNodes    = select("[mjs-app]"),
+            i, l, el,
+            done        = function(app) {
+                app.run();
+            };
 
-    for (i = -1, l = appNodes.length; ++i < l;){
-        el      = appNodes[i];
-        initApp(el, el.getAttribute && el.getAttribute("mjs-app")).done(done);
-    }
-});
-typeof global != "undefined" ? (global['MetaphorJs'] = MetaphorJs) : (window['MetaphorJs'] = MetaphorJs);
+        for (i = -1, l = appNodes.length; ++i < l;){
+            el      = appNodes[i];
+            initApp(el, el.getAttribute && el.getAttribute("mjs-app")).done(done);
+        }
+    });
+
+};
+
+
+
+run();
+
 
 }());
