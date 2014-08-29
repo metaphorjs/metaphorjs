@@ -102,7 +102,7 @@ defineClass("Test.MyComponent", "MetaphorJs.cmp.Component", {
                 data: "record",
                 total: "total",
                 store: {
-                    load: "/metaphorjs/test/data.json"
+                    load: "data.json"
                 }
             });
 
