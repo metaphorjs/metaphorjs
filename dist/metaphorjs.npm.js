@@ -3730,6 +3730,7 @@ var normalizeEvent = function(originalEvent) {
                         fn(scope);
                     }
                     catch (thrownError) {
+                        console.log(thrownError)
                         error(thrownError);
                     }
 

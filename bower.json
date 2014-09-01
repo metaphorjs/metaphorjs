@@ -1,41 +1,41 @@
 {
-  "name": "metaphorjs",
-  "version": "0.3.0",
-  "authors": [
-    "kuindji <kuindji@gmail.com>"
-  ],
-  "description": "Javascript app framework",
-  "main": "dist/metaphorjs.amd.min.js",
-  "moduleType": [
-    "amd"
-  ],
-  "keywords": [
-    "framework",
-    "angularjs",
-    "angular",
-    "app"
-  ],
-  "license": "MIT",
-  "homepage": "https://github.com/kuindji/metaphorjs",
-  "ignore": [
-    "node_modules",
-    "bower_components",
-    "test",
-    "tests"
-  ],
-  "devDependencies": {
-      "metaphorjs-observable": "*",
-      "metaphorjs-promise": "*",
-      "metaphorjs-ajax": "*",
-      "metaphorjs-animate": "*",
-      "metaphorjs-input": "*",
-      "metaphorjs-class": "*",
-      "metaphorjs-namespace": "*",
-      "metaphorjs-model": "*",
-      "metaphorjs-select": "*",
-      "metaphorjs-validator": "*",
-      "metaphorjs-watchable": "*",
-      "metaphorjs-dialog": "*",
-      "metaphorjs-history": "*"
-  }
+    "name": "metaphorjs",
+    "version": "0.3.1",
+    "authors": [
+        "kuindji <kuindji@gmail.com>"
+    ],
+    "description": "Javascript app framework",
+    "main": "dist/metaphorjs.amd.min.js",
+    "moduleType": [
+        "amd"
+    ],
+    "keywords": [
+        "framework",
+        "angularjs",
+        "angular",
+        "app"
+    ],
+    "license": "MIT",
+    "homepage": "https://github.com/kuindji/metaphorjs",
+    "ignore": [
+        "node_modules",
+        "bower_components",
+        "test",
+        "tests"
+    ],
+    "devDependencies": {
+        "metaphorjs-observable": "*",
+        "metaphorjs-promise": "*",
+        "metaphorjs-ajax": "*",
+        "metaphorjs-animate": "*",
+        "metaphorjs-input": "*",
+        "metaphorjs-class": "*",
+        "metaphorjs-namespace": "*",
+        "metaphorjs-model": "*",
+        "metaphorjs-select": "*",
+        "metaphorjs-validator": "*",
+        "metaphorjs-watchable": "*",
+        "metaphorjs-dialog": "*",
+        "metaphorjs-history": "*"
+    }
 }

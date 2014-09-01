@@ -18,9 +18,13 @@ require.config({
     }
 });
 
-require(["metaphorjs"], function(MetaphorJs) {
+require(["metaphorjs", "metaphorjs-model"], function(MetaphorJs) {
 
-    console.log(MetaphorJs);
+    window.MetaphorJs = MetaphorJs;
 
-    MetaphorJs.run();
+    require(['/metaphorjs/test/index.js'], function(){
+        MetaphorJs.run();
+    })
+
+
 });

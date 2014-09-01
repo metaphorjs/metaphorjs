@@ -1,39 +1,39 @@
 {
-  "name": "metaphorjs",
-  "version": "0.3.0",
-  "description": "MetaphorJs app framework",
-  "main": "dist/metaphorjs.npm.js",
-  "directories": {
-    "doc": "docs",
-    "test": "test"
-  },
-  "scripts": {
-    "test": "mocha"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/kuindji/metaphorjs.git"
-  },
-  "author": "kuindji",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/kuindji/metaphorjs/issues"
-  },
-  "homepage": "https://github.com/kuindji/metaphorjs",
-  "devDependencies": {
-      "metaphorjs-observable": "*",
-      "metaphorjs-promise": "*",
-      "metaphorjs-ajax": "*",
-      "metaphorjs-animate": "*",
-      "metaphorjs-input": "*",
-      "metaphorjs-class": "*",
-      "metaphorjs-namespace": "*",
-      "metaphorjs-model": "*",
-      "metaphorjs-select": "*",
-      "metaphorjs-validator": "*",
-      "metaphorjs-watchable": "*",
-      "metaphorjs-dialog": "*",
-      "metaphorjs-history": "*",
-      "metaphorjs-build": "*"
-  }
+    "name": "metaphorjs",
+    "version": "0.3.1",
+    "description": "MetaphorJs app framework",
+    "main": "dist/metaphorjs.npm.js",
+    "directories": {
+        "doc": "docs",
+        "test": "test"
+    },
+    "scripts": {
+        "test": "mocha"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/kuindji/metaphorjs.git"
+    },
+    "author": "kuindji",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/kuindji/metaphorjs/issues"
+    },
+    "homepage": "https://github.com/kuindji/metaphorjs",
+    "devDependencies": {
+        "metaphorjs-observable": "*",
+        "metaphorjs-promise": "*",
+        "metaphorjs-ajax": "*",
+        "metaphorjs-animate": "*",
+        "metaphorjs-input": "*",
+        "metaphorjs-class": "*",
+        "metaphorjs-namespace": "*",
+        "metaphorjs-model": "*",
+        "metaphorjs-select": "*",
+        "metaphorjs-validator": "*",
+        "metaphorjs-watchable": "*",
+        "metaphorjs-dialog": "*",
+        "metaphorjs-history": "*",
+        "metaphorjs-build": "*"
+    }
 }

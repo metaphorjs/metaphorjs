@@ -2,7 +2,8 @@
 var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
     createFunc = require("../../../../metaphorjs-watchable/src/func/createFunc.js"),
     normalizeEvent = require("../../func/event/normalizeEvent.js"),
-    Scope = require("../../lib/Scope.js");
+    Scope = require("../../lib/Scope.js"),
+    error = require("../../func/error.js");
 
 (function(){
 
@@ -41,6 +42,7 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
                         fn(scope);
                     }
                     catch (thrownError) {
+                        console.log(thrownError)
                         error(thrownError);
                     }
 

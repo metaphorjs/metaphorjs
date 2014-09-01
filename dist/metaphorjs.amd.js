@@ -1,4 +1,4 @@
-define("metaphorjs", ['metaphorjs-observable', 'metaphorjs-promise', 'metaphorjs-ajax', 'metaphorjs-animate', 'metaphorjs-input', 'metaphorjs-class', 'metaphorjs-namespace', 'metaphorjs-model', 'metaphorjs-select', 'metaphorjs-validator', 'metaphorjs-watchable', 'metaphorjs-dialog', 'metaphorjs-history'], function(Observable, Promise, ajax, animate, Input, Class, Namespace, model, select, Validator, Watchable, Dialog, history) {
+define("metaphorjs", ['metaphorjs-observable', 'metaphorjs-promise', 'metaphorjs-ajax', 'metaphorjs-animate', 'metaphorjs-input', 'metaphorjs-class', 'metaphorjs-namespace', 'metaphorjs-select', 'metaphorjs-validator', 'metaphorjs-watchable', 'metaphorjs-dialog', 'metaphorjs-history'], function(Observable, Promise, ajax, animate, Input, Class, Namespace, select, Validator, Watchable, Dialog, history) {
 
 var getValue    = Input.getValue,
     setValue    = Input.setValue,
@@ -3722,6 +3722,7 @@ var normalizeEvent = function(originalEvent) {
                         fn(scope);
                     }
                     catch (thrownError) {
+                        console.log(thrownError)
                         error(thrownError);
                     }
 

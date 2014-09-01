@@ -167,9 +167,11 @@ defineClass("Test.MyComponent", "MetaphorJs.cmp.Component", {
         },
 
         loadStore: function() {
-            this.scope.store.load().done(function(){
-                this.scope.$check();
-            }, this);
+            this.scope.store.load()
+                .done(function(){this.scope.$check();}, this)
+                .fail(function(reason){
+                    console.log('failed', reason)
+                });
         }
     }, {
         template: "cmp1-template",
