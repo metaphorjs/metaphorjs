@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html mjs-app>
+<head>
+    <script src="metaphorjs.min.js"></script>
+</head>
+<body>
+<div mjs-init=".tags = ['rock', '90s']; .sortBy = 'asc'; .cls = 'floated'">
+    <input mjs-model=".newTag"/>
+    <button mjs-disable="!.newTag" mjs-click=".tags.push(.newTag); .newTag = '';">Add tag</button><br>
+    Sort:
+    <a href="#" mjs-click=".sortBy = 'asc'">asc</a> |
+    <a href="#" mjs-click=".sortBy = 'desc'">desc</a><br>
+    View:
+    <a href="#" mjs-click=".cls = 'floated'">floated</a> |
+    <a href="#" mjs-click=".cls = 'list'">list</a>
+
+    <br><br>
+    <ul class="tags {{.cls}}">
+        <li class="item"
+            mjs-each="tag in .tags | sortBy:'$':.sortBy"
+            mjs-track-by="$"
+            mjs-click=".$parent.tags.splice(.$parent.tags.indexOf(.tag), 1)"
+            mjs-animate mjs-animate-move>{{.tag}}</li>
+    </ul>
+</div>
+</body>
+</html>

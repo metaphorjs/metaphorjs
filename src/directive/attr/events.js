@@ -2,6 +2,7 @@
 var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
     createFunc = require("../../../../metaphorjs-watchable/src/func/createFunc.js"),
     normalizeEvent = require("../../func/event/normalizeEvent.js"),
+    addListener = require("../../func/event/addListener.js"),
     Scope = require("../../lib/Scope.js"),
     error = require("../../func/error.js");
 
@@ -29,8 +30,7 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
 
                 addListener(node, eventName, function(e){
 
-                    e = e || window.event;
-                    e = normalizeEvent(e);
+                    e = normalizeEvent(e || window.event);
 
                     if (name == "enter" && e.keyCode != 13) {
                         return null;
@@ -38,22 +38,22 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
 
                     scope.$event = e;
 
-                    try {
+                    //try {
                         fn(scope);
-                    }
-                    catch (thrownError) {
-                        console.log(thrownError)
-                        error(thrownError);
-                    }
+                    //}
+                    //catch (thrownError) {
+                    //    error(thrownError);
+                    //}
 
                     delete scope.$event;
 
-                    if (scope instanceof Scope) {
+
+                    //try {
                         scope.$root.$check();
-                    }
-                    else if (scope.$$watchers) {
-                        scope.$$watchers.$checkAll();
-                    }
+                    //}
+                    //catch (thrownError) {
+                    //    error(thrownError);
+                    //}
 
                     e.preventDefault();
                     return false;

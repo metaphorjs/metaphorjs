@@ -4,6 +4,8 @@
 
 var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
     defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
+    async = require("../../func/async.js"),
+    isIE = require("../../func/browser/isIE.js"),
     Input = require("../../../../metaphorjs-input/src/metaphorjs.input.js"),
     Scope = require("../../lib/Scope.js"),
     isString = require("../../func/isString.js"),
@@ -75,10 +77,16 @@ registerAttributeHandler("mjs-model", 1000, defineClass(null, AttributeHandler, 
     onChange: function() {
 
         var self    = this,
-            val     = self.watcher.getLastResult();
+            val     = self.watcher.getLastResult(),
+            ie;
 
         if (self.binding != "input" && !self.inProg) {
-            self.input.setValue(val);
+            if ((ie = isIE()) && ie < 8) {
+                async(self.input.setValue, self.input, [val]);
+            }
+            else {
+                self.input.setValue(val);
+            }
         }
     }
 

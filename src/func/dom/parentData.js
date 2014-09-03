@@ -1,5 +1,6 @@
 
-var data = require("./data.js");
+var data = require("./data.js"),
+    undf = require("../../var/undf.js");
 
 module.exports = function(node, key) {
 
@@ -7,11 +8,11 @@ module.exports = function(node, key) {
 
     while (node) {
         val = data(node ,key);
-        if (val != undefined) {
+        if (val !== undf) {
             return val;
         }
         node  = node.parentNode;
     }
 
-    return undefined;
+    return undf;
 };

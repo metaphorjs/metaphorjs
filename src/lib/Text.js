@@ -4,7 +4,7 @@ var isPlainObject = require("../func/isPlainObject.js"),
     isArray = require("../func/isArray.js"),
     extend = require("../func/extend.js"),
     nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
-    isUndefined = require("../func/isUndefined.js");
+    undf = require("../var/undf.js");
 
 module.exports = function(){
 
@@ -199,7 +199,7 @@ module.exports = function(){
 
         set: function(key, value) {
             var store = this.store;
-            if (isUndefined(store[key])) {
+            if (store[key] === undf) {
                 store[key] = value;
             }
         },
@@ -224,10 +224,10 @@ module.exports = function(){
                     if (strings[number]) {
                         return strings[number];
                     }
-                    if (number == 1 && strings.one != undefined) {
+                    if (number == 1 && strings.one != undf) {
                         return strings.one;
                     }
-                    else if (number < 0 && strings.negative != undefined) {
+                    else if (number < 0 && strings.negative != undf) {
                         return strings.negative;
                     }
                     else {

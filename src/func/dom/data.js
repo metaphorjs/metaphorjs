@@ -1,6 +1,6 @@
 
 var nextUid = require("../nextUid.js"),
-    isUndefined = require("../isUndefined.js");
+    undf = require("../../var/undf.js");
 
 /**
  * @param {Element} el
@@ -19,7 +19,7 @@ module.exports = function(){
         var id  = getNodeId(el),
             obj = dataCache[id];
 
-        if (!isUndefined(value)) {
+        if (value !== undf) {
             if (!obj) {
                 obj = dataCache[id] = {};
             }
@@ -27,7 +27,7 @@ module.exports = function(){
             return value;
         }
         else {
-            return obj ? obj[key] : undefined;
+            return obj ? obj[key] : undf;
         }
     };
 

@@ -1,6 +1,6 @@
 
-var toString = require("./toString.js");
+var varType = require("./varType.js");
 
 module.exports = function(value) {
-    return toString.call(value) === '[object RegExp]';
+    return varType(value) === 9;
 };

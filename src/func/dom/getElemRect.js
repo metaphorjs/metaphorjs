@@ -36,10 +36,9 @@ module.exports = function(el) {
             rect.height = rect.bottom - rect.top;
         }
         else {
-            var style = el.style;
             rect = {
-                left: (parseInt(style.left, 10) || 0) + sl,
-                top: (parseInt(style.top, 10) || 0) + st,
+                left: el.offsetLeft + sl,
+                top: el.offsetTop + st,
                 width: el.offsetWidth,
                 height: el.offsetHeight,
                 right: 0,

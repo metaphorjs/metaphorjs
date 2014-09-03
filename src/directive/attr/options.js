@@ -8,6 +8,7 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
     getValue = require("../../../../metaphorjs-input/src/func/getValue.js"),
     setValue = require("../../../../metaphorjs-input/src/func/setValue.js"),
     error = require("../../func/error.js"),
+    undf = require("../../var/undf.js"),
     isIE = require("../../func/browser/isIE.js"),
     createGetter = require("../../../../metaphorjs-watchable/src/func/createGetter.js"),
     ns = require("../../../../metaphorjs-namespace/src/var/ns.js"),
@@ -67,7 +68,7 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
         scope.$index    = index;
         config          = self.getterFn(scope);
 
-        config.group    != undefined && (config.group = ""+config.group);
+        config.group    != undf && (config.group = ""+config.group);
 
         if (config.group !== self.prevGroup) {
 

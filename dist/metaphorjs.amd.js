@@ -38,24 +38,74 @@ var bind = Function.prototype.bind ?
 
 
 var slice = Array.prototype.slice;
-/**
- * @param {*} obj
- * @returns {boolean}
- */
-var isPlainObject = function(obj) {
-    return !!(obj && obj.constructor === Object);
+var toString = Object.prototype.toString;
+var undf = undefined;
+
+
+
+var varType = function(){
+
+    var types = {
+        '[object String]': 0,
+        '[object Number]': 1,
+        '[object Boolean]': 2,
+        '[object Object]': 3,
+        '[object Function]': 4,
+        '[object Array]': 5,
+        '[object RegExp]': 9,
+        '[object Date]': 10
+    };
+
+
+    /**
+        'string': 0,
+        'number': 1,
+        'boolean': 2,
+        'object': 3,
+        'function': 4,
+        'array': 5,
+        'null': 6,
+        'undefined': 7,
+        'NaN': 8,
+        'regexp': 9,
+        'date': 10
+    */
+
+    return function(val) {
+
+        if (!val) {
+            if (val === null) {
+                return 6;
+            }
+            if (val === undf) {
+                return 7;
+            }
+        }
+
+        var num = types[toString.call(val)];
+
+        if (num === undf) {
+            return -1;
+        }
+
+        if (num == 1 && isNaN(val)) {
+            num = 8;
+        }
+
+        return num;
+    };
+
+}();
+
+
+var isPlainObject = function(value) {
+    return varType(value) === 3;
 };
+
 
 var isBool = function(value) {
-    return typeof value == "boolean";
+    return varType(value) === 2;
 };
-var strUndef = "undefined";
-
-
-var isUndefined = function(any) {
-    return typeof any == strUndef;
-};
-
 var isNull = function(value) {
     return value === null;
 };
@@ -92,14 +142,14 @@ var extend = function extend() {
         if (src = args.shift()) {
             for (k in src) {
 
-                if (src.hasOwnProperty(k) && !isUndefined((value = src[k]))) {
+                if (src.hasOwnProperty(k) && (value = src[k]) !== undf) {
 
                     if (deep) {
                         if (dst[k] && isPlainObject(dst[k]) && isPlainObject(value)) {
                             extend(dst[k], value, override, deep);
                         }
                         else {
-                            if (override === true || isUndefined(dst[k]) || isNull(dst[k])) {
+                            if (override === true || dst[k] == undf) { // == checks for null and undefined
                                 if (isPlainObject(value)) {
                                     dst[k] = {};
                                     extend(dst[k], value, override, true);
@@ -111,7 +161,7 @@ var extend = function extend() {
                         }
                     }
                     else {
-                        if (override === true || isUndefined(dst[k]) || isNull(dst[k])) {
+                        if (override === true || dst[k] == undf) {
                             dst[k] = value;
                         }
                     }
@@ -192,13 +242,13 @@ Scope.prototype = {
         var s       = this;
 
         while (s) {
-            if (s[key] != undefined) {
+            if (s[key] !== undf) {
                 return s[key];
             }
             s       = s.$parent;
         }
 
-        return undefined;
+        return undf;
     },
 
     $$onParentDestroy: function() {
@@ -284,13 +334,6 @@ var nextUid = function(){
     };
 }();
 
-var toString = Object.prototype.toString;
-var isObject = function(value) {
-    return value != null && typeof value === 'object';
-};
-var isNumber = function(value) {
-    return typeof value == "number" && !isNaN(value);
-};
 
 
 /**
@@ -298,11 +341,12 @@ var isNumber = function(value) {
  * @returns {boolean}
  */
 var isArray = function(value) {
-    return !!(value && isObject(value) && isNumber(value.length) &&
-                toString.call(value) == '[object Array]' || false);
+    return varType(value) === 5;
 };
+
+
 var isString = function(value) {
-    return typeof value == "string";
+    return varType(value) === 0;
 };
 
 
@@ -311,7 +355,7 @@ var isString = function(value) {
  * @returns {[]}
  */
 var toArray = function(list) {
-    if (list && !isUndefined(list.length) && !isString(list)) {
+    if (list && !list.length != undf && !isString(list)) {
         for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]){}
         return a;
     }
@@ -323,7 +367,12 @@ var toArray = function(list) {
     }
 };
 var isFunction = function(value) {
-    return typeof value === 'function';
+    return typeof value == 'function';
+};
+
+
+var isObject = function(value) {
+    return value !== null && typeof value == "object" && varType(value) > 2;
 };
 
 
@@ -334,10 +383,7 @@ var isFunction = function(value) {
  */
 var isThenable = function(any) {
     var then;
-    if (!any) {
-        return false;
-    }
-    if (!isObject(any) && !isFunction(any)) {
+    if (!any || (!isObject(any) && !isFunction(any))) {
         return false;
     }
     return isFunction((then = any.then)) ?
@@ -355,20 +401,24 @@ var async = function(fn, context, args) {
         fn.apply(context, args || []);
     }, 0);
 };
+var strUndef = "undefined";
 
 
 var error = function(e) {
 
     var stack = e.stack || (new Error).stack;
 
-    async(function(){
-        if (!isUndefined(console) && console.log) {
+    if (typeof console != strUndef && console.log) {
+        async(function(){
             console.log(e);
             if (stack) {
                 console.log(stack);
             }
-        }
-    });
+        });
+    }
+    else {
+        throw e;
+    }
 };
 
 
@@ -873,12 +923,12 @@ var Renderer = function(){
 
 
             if (el.nodeType) {
-                try {
+                //try {
                     res = fn.call(fnScope, el);
-                }
-                catch (thrownError) {
-                    error(thrownError);
-                }
+                //}
+                //catch (thrownError) {
+                //    error(thrownError);
+                //}
             }
 
 
@@ -1306,7 +1356,7 @@ var Provider = function(){
                 item,
                 res;
 
-            if (!isUndefined(currentValues[name])) {
+            if (currentValues[name] !== undf) {
                 return currentValues[name];
             }
 
@@ -1585,7 +1635,7 @@ var Text = function(){
 
         set: function(key, value) {
             var store = this.store;
-            if (isUndefined(store[key])) {
+            if (store[key] === undf) {
                 store[key] = value;
             }
         },
@@ -1610,10 +1660,10 @@ var Text = function(){
                     if (strings[number]) {
                         return strings[number];
                     }
-                    if (number == 1 && strings.one != undefined) {
+                    if (number == 1 && strings.one != undf) {
                         return strings.one;
                     }
-                    else if (number < 0 && strings.negative != undefined) {
+                    else if (number < 0 && strings.negative != undf) {
                         return strings.negative;
                     }
                     else {
@@ -1852,10 +1902,21 @@ var Text = function(){
 });
 
 
-var isAttached = function(node) {
-    var body = document.body;
-    return node === body ? true : body.contains(node);
-};
+var isAttached = function(){
+    var isAttached = function(node) {
+        if (node.nodeType == 3) {
+            if (node.parentElement) {
+                return isAttached(node.parentElement);
+            }
+            else {
+                return true;
+            }
+        }
+        var html = document.documentElement;
+        return node === html ? true : html.contains(node);
+    };
+    return isAttached;
+}();
 
 
 /**
@@ -1875,7 +1936,7 @@ var data = function(){
         var id  = getNodeId(el),
             obj = dataCache[id];
 
-        if (!isUndefined(value)) {
+        if (value !== undf) {
             if (!obj) {
                 obj = dataCache[id] = {};
             }
@@ -1883,7 +1944,7 @@ var data = function(){
             return value;
         }
         else {
-            return obj ? obj[key] : undefined;
+            return obj ? obj[key] : undf;
         }
     };
 
@@ -2630,11 +2691,16 @@ var stopAnimation = function(el) {
     if (isArray(queue) && queue.length) {
         current = queue[0];
 
-        if (current && current.stages) {
-            position = current.position;
-            stages = current.stages;
-            removeClass(el, stages[position]);
-            removeClass(el, stages[position] + "-active");
+        if (current) {
+            if (current.stages) {
+                position = current.position;
+                stages = current.stages;
+                removeClass(el, stages[position]);
+                removeClass(el, stages[position] + "-active");
+            }
+            if (current.deferred) {
+                current.deferred.reject(current.el);
+            }
         }
     }
     else if (isFunction(queue)) {
@@ -3306,6 +3372,103 @@ registerAttributeHandler("mjs-cmp-prop", 200,
 }());
 
 
+var isNumber = function(value) {
+    return varType(value) === 1;
+};
+
+
+var isPrimitive = function(value) {
+    return varType(value) < 3;
+};
+var uaString = navigator.userAgent.toLowerCase();
+
+
+var isIE = function(){
+
+    var msie    = parseInt((/msie (\d+)/.exec(uaString) || [])[1], 10);
+
+    if (isNaN(msie)) {
+        msie    = parseInt((/trident\/.*; rv:(\d+)/.exec(uaString) || [])[1], 10) || false;
+    }
+
+    return function() {
+        return msie;
+    };
+}();
+var aIndexOf    = Array.prototype.indexOf;
+
+if (!aIndexOf) {
+    aIndexOf = Array.prototype.indexOf = function (searchElement, fromIndex) {
+
+        var k;
+
+        // 1. Let O be the result of calling ToObject passing
+        //    the this value as the argument.
+        if (this == null) {
+            throw new TypeError('"this" is null or not defined');
+        }
+
+        var O = Object(this);
+
+        // 2. Let lenValue be the result of calling the Get
+        //    internal method of O with the argument "length".
+        // 3. Let len be ToUint32(lenValue).
+        var len = O.length >>> 0;
+
+        // 4. If len is 0, return -1.
+        if (len === 0) {
+            return -1;
+        }
+
+        // 5. If argument fromIndex was passed let n be
+        //    ToInteger(fromIndex); else let n be 0.
+        var n = +fromIndex || 0;
+
+        if (Math.abs(n) === Infinity) {
+            n = 0;
+        }
+
+        // 6. If n >= len, return -1.
+        if (n >= len) {
+            return -1;
+        }
+
+        // 7. If n >= 0, then Let k be n.
+        // 8. Else, n<0, Let k be len - abs(n).
+        //    If k is less than 0, then let k be 0.
+        k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+
+        // 9. Repeat, while k < len
+        while (k < len) {
+            var kValue;
+            // a. Let Pk be ToString(k).
+            //   This is implicit for LHS operands of the in operator
+            // b. Let kPresent be the result of calling the
+            //    HasProperty internal method of O with argument Pk.
+            //   This step can be combined with c
+            // c. If kPresent is true, then
+            //    i.  Let elementK be the result of calling the Get
+            //        internal method of O with the argument ToString(k).
+            //   ii.  Let same be the result of applying the
+            //        Strict Equality Comparison Algorithm to
+            //        searchElement and elementK.
+            //  iii.  If same is true, return k.
+            if (k in O && O[k] === searchElement) {
+                return k;
+            }
+            k++;
+        }
+        return -1;
+    };
+}
+
+
+
+
+
+
+
+
 
 
 
@@ -3318,6 +3481,12 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
     parentEl: null,
     prevEl: null,
     nextEl: null,
+    trackBy: null,
+    trackByWatcher: null,
+    animateMove: false,
+
+    trackByFn: null,
+    griDelegate: null,
 
     initialize: function(scope, node, expr) {
 
@@ -3336,6 +3505,8 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
 
         self.node       = node;
         self.scope      = scope;
+        self.animateMove    = node.getAttribute("mjs-animate-move") !== null && animate.cssAnimations;
+        node.removeAttribute("mjs-animate-move");
 
         try {
             self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
@@ -3344,8 +3515,24 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
             error(thrownError);
         }
 
+        self.trackBy    = node.getAttribute("mjs-track-by");
+        if (self.trackBy) {
+            if (self.trackBy != '$') {
+                self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, null, ns);
+            }
+        }
+        else if (!self.watcher.hasInputPipes()) {
+            self.trackBy    = '$$'+self.watcher.id;
+        }
+        node.removeAttribute("mjs-track-by");
+
+
+        self.griDelegate = bind(self.scopeGetRawIndex, self);
+
         self.parentEl.removeChild(node);
         self.render(toArray(self.watcher.getValue()));
+
+
     },
 
     onScopeDestroy: function() {
@@ -3367,7 +3554,60 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
         self.supr();
     },
 
-    doUpdate: function(list, start) {
+    onChangeTrackBy: function(val) {
+        this.trackByFn = null;
+        this.trackBy = val;
+    },
+
+    getTrackByFunction: function() {
+
+        var self = this,
+            trackBy;
+
+        if (!self.trackByFn) {
+
+            trackBy = self.trackBy;
+
+            if (!trackBy || trackBy == '$') {
+                return function(item) {
+                    return isPrimitive(item) ? item : undf;
+                };
+            }
+            else if (isFunction(trackBy)) {
+                self.trackByFn = trackBy;
+            }
+            else {
+                self.trackByFn = function(item){
+                    return item && !isPrimitive(item) ? item[trackBy] : undf;
+                };
+            }
+        }
+
+        return self.trackByFn;
+    },
+
+
+    scopeGetRawIndex: function(id) {
+
+        if (id === undf) {
+            return -1;
+        }
+
+        var self        = this,
+            list        = self.watcher.getUnfilteredValue(),
+            trackByFn   = self.getTrackByFunction(),
+            i, l;
+
+        for (i = 0, l = list.length; i < l; i++) {
+            if (trackByFn(list[i]) === id) {
+                return i;
+            }
+        }
+
+        return -1;
+    },
+
+    doUpdate: function(start) {
 
         var self        = this,
             renderers   = self.renderers,
@@ -3375,8 +3615,12 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
             len         = renderers.length,
             last        = len - 1,
             even        = !(index % 2),
+            list        = self.watcher.getLastResult(),
+            trackByFn   = self.getTrackByFunction(),
+            griDelegate = self.griDelegate,
             r,
             scope;
+
 
         for (; index < len; index++) {
 
@@ -3388,6 +3632,8 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
             scope.$last     = index === last;
             scope.$even     = even;
             scope.$odd      = !even;
+            scope.$trackId  = trackByFn(list[index]);
+            scope.$getRawIndex = griDelegate;
 
             even = !even;
 
@@ -3413,7 +3659,6 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
             el,
             i, len;
 
-
         for (i = 0, len = list.length; i < len; i++) {
 
             el = tpl.cloneNode(true);
@@ -3423,19 +3668,20 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
 
         parent.insertBefore(fragment, next);
 
-        self.doUpdate(list, 0);
+        self.doUpdate(0);
     },
 
     createItem: function(el, list, index) {
 
         var self        = this,
             iname       = self.itemName,
-            scope       = self.scope,
-            itemScope   = scope.$new();
+            itemScope   = self.scope.$new();
 
         itemScope[iname]    = list[index];
 
         return {
+            ready: false,
+            action: "enter",
             el: el,
             scope: itemScope
         };
@@ -3448,80 +3694,363 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
             prs         = changes.prescription || [],
             tpl         = self.tpl,
             index       = 0,
-            parent      = self.parentEl,
             list        = toArray(self.watcher.getValue()),
             updateStart = null,
-            el,
+            animateMove = self.animateMove,
+            trackBy     = self.trackByWatcher ? self.trackByWatcher.getLastResult() : self.trackBy,
+            newrs       = [],
+            promises    = [],
+            oldrs       = renderers.slice(),
+            origrs      = renderers.slice(),
+            prevr,
+            prevrInx,
             i, len,
             r,
-            action;
+            action,
+            translates,
+            doesMove    = false;
 
-        for (i = 0, len = prs.length; i < len; i++) {
-            action = prs[i];
 
-            if (action == '-') {
-                renderers[index].scope.$index = index;
-                index++;
-                continue;
+
+            prs = self.watcher.getMovePrescription(prs, self.getTrackByFunction());
+
+            // redefine renderers
+            for (i = 0, len = prs.length; i < len; i++) {
+
+                action = prs[i];
+
+                if (isNumber(action)) {
+                    prevrInx    = action;
+                    prevr       = renderers[prevrInx];
+
+                    if (prevrInx != index && isNull(updateStart)) {
+                        updateStart = i;
+                    }
+
+                    prevr.action = "move";
+                    prevr.ready = false;
+                    doesMove = animateMove;
+
+                    newrs.push(prevr);
+                    renderers[prevrInx] = null;
+                    index++;
+                }
+                else {
+                    if (isNull(updateStart)) {
+                        updateStart = i;
+                    }
+                    r = self.createItem(tpl.cloneNode(true), list, i);
+                    newrs.push(r);
+                    oldrs.splice(i, 0, r);
+                    // add new elements to old renderers
+                    // so that we could correctly determine positions
+                }
             }
 
-            if (isNull(updateStart)) {
-                updateStart = i > 0 ? i - 1 : 0;
+        /*else {
+            // redefine renderers
+            var a1i = 0,
+                a2i = 0;
+
+            for (i = 0, len = prs.length; i < len; i++) {
+
+                action = prs[i];
+
+                if (action != '-' && isNull(updateStart)) {
+                    updateStart = a1i;
+                }
+
+                if (action == 'D') {
+                    continue;
+                }
+                else if (action == '-') {
+                    newrs.push(renderers[a1i]);
+                    renderers[a1i].action = "move";
+                    renderers[a1i].ready = false;
+                    renderers[a1i] = null;
+                }
+                else if (action == 'I' || action == 'R') {
+                    newrs.push(self.createItem(tpl.cloneNode(true), list, a2i));
+                }
+
+                if (action != 'I') {
+                    a1i++;
+                }
+                a2i++;
             }
+        }*/
 
-            if (action != 'I' && renderers[index]) {
+        self.renderers  = newrs;
+        self.doUpdate(updateStart || 0);
 
-                r = renderers[index];
 
+        if (doesMove) {
+            translates = self.calculateTranslates(newrs, origrs, oldrs);
+        }
+
+
+        // destroy old renderers and remove old elements
+        for (i = 0, len = renderers.length; i < len; i++) {
+            r = renderers[i];
+            if (r) {
                 r.scope.$destroy();
-                // renderer will destroy itself
 
-                animate(r.el, "leave", null, true)
+                stopAnimation(r.el);
+                promises.push(animate(r.el, "leave", null, true, ns)
                     .done(function(el){
                         isAttached(el) && el.parentNode.removeChild(el);
-                    });
+                    }));
             }
+        }
+        renderers = null;
+        r = null;
 
-            if (action == 'D') {
-                renderers.splice(index, 1);
+        for (i = newrs.length - 1; i >= 0; i--) {
+            r = newrs[i];
+            action = r.action;
+
+            if (action == "none") {
+                newrs[i].ready = self.moveEl(r.el, i);
+            }
+            else if (action == "move") {
+                // move elements
+                if (doesMove) {
+
+                    stopAnimation(r.el);
+                    promises.push(self.moveAnimation(r.el, translates[i][0], translates[i][1])
+                        .done(function(inx){
+                            return function(el) {
+                                newrs[inx].ready = self.moveEl(el, inx);
+                            }
+                        }(i)));
+                }
+                else {
+                    newrs[i].ready = self.moveEl(r.el, i);
+                }
+            }
+            else if (action == "enter") {
+                // introduce new elements
+                stopAnimation(r.el);
+                promises.push(animate(r.el, "enter", function(inx) {
+                    return function(el){
+                        newrs[inx].ready = self.moveEl(el, inx, true);
+                    }
+                }(i), true, ns));
             }
             else {
-
-                el  = tpl.cloneNode(true);
-
-                animate(el, "enter", function(inx) {
-                    return function(el){
-
-                        if (inx > 0) {
-                            parent.insertBefore(el, renderers[inx - 1].el.nextSibling);
-                        }
-                        else {
-                            if (self.prevEl) {
-                                parent.insertBefore(el, self.prevEl.nextSibling);
-                            }
-                            else {
-                                parent.insertBefore(el, parent.firstChild);
-                            }
-                        }
-                    }
-                }(index), true);
-
-                if (action == 'R') {
-                    renderers[index] = self.createItem(el, list, index);
-                }
-                else if (action == 'I') {
-                    if (i < renderers.length) {
-                        renderers.splice(index, 0, self.createItem(el, list, index));
-                    }
-                    else {
-                        renderers.push(self.createItem(el, list, index));
-                    }
-                }
-                index++;
+                newrs[i].ready = true;
             }
         }
 
-        self.doUpdate(list, updateStart);
+        Promise.all(promises).always(self.finishAnimations, self);
+    },
+
+    ieFixEl: function(el) {
+        el.style.zoom = 1;
+        el.style.zoom = "";
+    },
+
+    finishAnimations: function() {
+
+        var self    = this,
+            orphans = [],
+            rns     = self.renderers,
+            inf     = 0,
+            fixIE   = isIE() && animate.cssAnimations,
+            i, l, o,
+            max;
+
+        for (i = 0, l = rns.length; i < l; i++) {
+            if (!rns[i].ready) {
+                orphans.push([rns[i].el, i]);
+            }
+            else {
+                // in IE 11 (10 too?) elements disappear
+                // after some animations
+                // what is the most disturbing that
+                // it is those elements that were not animated %)
+                if (fixIE) {
+                    async(self.ieFixEl, self, [rns[i].el]);
+                }
+            }
+        }
+
+        max = l * 5;
+
+        while (orphans.length) {
+            if (inf > max) {
+                error("Orphans got into infinite loop");
+                break;
+            }
+            o = orphans.shift();
+            if (!self.moveEl(o[0], o[1])) {
+                orphans.push(o);
+            }
+            else {
+                // ugly ugly ugly ugly
+                if (fixIE) {
+                    async(self.ieFixEl, self, [o[0]]);
+                }
+            }
+            inf++;
+        }
+    },
+
+    moveEl: function(el, inx, force) {
+        var self = this,
+            cnt = self.renderers.length,
+            parent = self.parentEl,
+            before = self.getInsertBeforeEl(inx, cnt - 1),
+            ready = true;
+
+        if (before === false && force) {
+            before = self.getInsertBeforeEl(inx, cnt - 1, true);
+            ready = false;
+        }
+
+        if (before !== false && (!before || isAttached(before))) {
+            if (!el.nextSibling || el.nextSibling !== before) {
+                parent.insertBefore(el, before);
+            }
+            // remove translateXY transform at the same time as
+            // dom position changed
+            if (self.animateMove) {
+                el.style[animate.prefixes.transform] = null;
+                el.style[animate.prefixes.transform] = "";
+            }
+            return self.renderers[inx].ready = ready;
+        }
+        return false;
+    },
+
+    getInsertBeforeEl: function(inx, lastInx, allowNotReady) {
+
+        var self = this;
+
+        if (inx == 0) {
+            var prevEl = self.prevEl;
+            return prevEl ? prevEl.nextSibling : self.parentEl.firstChild;
+        }
+        else if (inx == lastInx) {
+            return self.nextEl;
+        }
+        else {
+            var r = self.renderers[inx+1];
+            return r.ready || allowNotReady ? r.el : false;
+        }
+    },
+
+    getNodePositions: function(tmp, rs) {
+
+        var nodes = [],
+            i, l, el, r,
+            tmpNode,
+            positions = {};
+
+        while(tmp.firstChild) {
+            tmp.removeChild(tmp.firstChild);
+        }
+        for (i = 0, l = rs.length; i < l; i++) {
+            tmpNode = rs[i].el.cloneNode(true);
+            tmp.appendChild(tmpNode);
+            nodes.push(tmpNode);
+        }
+        for (i = 0, l = nodes.length; i < l; i++) {
+            el = nodes[i];
+            r = rs[i].renderer;
+            if (r) {
+                positions[r.id] = {left: el.offsetLeft, top: el.offsetTop};
+            }
+        }
+
+        return positions;
+    },
+
+    // ugly ugly ugly ugly ugly
+    calculateTranslates: function(newRenderers, oldRenderers, withInserts) {
+
+        var self        = this,
+            parent      = self.parentEl,
+            pp          = parent.parentNode,
+            tmp         = parent.cloneNode(true),
+            ofsW        = parent.offsetWidth,
+            translates  = [],
+            fl          = 0,
+            ft          = 0,
+            oldPositions,
+            insertPositions,
+            newPositions,
+            r, i, len, id,
+            tmpW,
+            style,
+            el;
+
+        style = tmp.style;
+        style.position = "absolute";
+        style.left = "-10000px";
+        style.visibility = "hidden";
+        style.width = ofsW + 'px';
+
+        pp.insertBefore(tmp, parent);
+        tmpW = tmp.offsetWidth;
+        style.width = ofsW - (tmpW - ofsW) + "px";
+
+        oldPositions = self.getNodePositions(tmp, oldRenderers);
+        insertPositions = self.getNodePositions(tmp, withInserts);
+        newPositions = self.getNodePositions(tmp, newRenderers);
+
+        pp.removeChild(tmp);
+        tmp = null;
+
+        for (i = 0, len = newRenderers.length; i < len; i++) {
+            el = newRenderers[i].el;
+            r = newRenderers[i].renderer;
+            id = r.id;
+
+            if (i == 0) {
+                fl = el.offsetLeft;
+                ft = el.offsetTop;
+            }
+
+            translates.push([
+                {
+                    left: (newPositions[id].left - fl) - (insertPositions[id].left - fl),
+                    top: (newPositions[id].top - ft) - (insertPositions[id].top - ft)
+                },
+                insertPositions[id] && oldPositions[id] ?
+                {
+                    left: (oldPositions[id].left - fl) - (insertPositions[id].left - fl),
+                    top: (oldPositions[id].top - ft) - (insertPositions[id].top - ft)
+                } : null
+            ]);
+        }
+
+        return translates;
+    },
+
+    moveAnimation: function(el, to, from) {
+
+        var attr = el.getAttribute("mjs-animate");
+
+        if (attr == undf) {
+            return Promise.resolve(el);
+        }
+
+        if (animate.cssAnimations) {
+            var style = el.style;
+
+            return animate(el, "move", null, false, ns, function(el, position, stage){
+                if (position == 0 && stage == "start" && from) {
+                    style[animate.prefixes.transform] = "translateX("+from.left+"px) translateY("+from.top+"px)";
+                }
+                if (position == 0 && stage != "start") {
+                    style[animate.prefixes.transform] = "translateX("+to.left+"px) translateY("+to.top+"px)";
+                }
+            });
+        }
+        else {
+            return Promise.resolve(el);
+        }
     },
 
     parseExpr: function(expr) {
@@ -3550,6 +4079,18 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
 
         this.model = model;
         this.itemName = name || "item";
+    },
+
+    destroy: function() {
+
+        var self = this;
+
+        if (self.trackByWatcher) {
+            self.trackByWatcher.unsubscribeAndDestroy();
+            delete self.trackByWatcher;
+        }
+
+        self.supr();
     }
 
 }, {
@@ -3604,7 +4145,7 @@ var NormalizedEvent = function(src) {
         button = src.button;
 
     // Calculate pageX/Y if missing and clientX/Y available
-    if (isUndefined(self.pageX) && !isNull(src.clientX)) {
+    if (self.pageX === undf && !isNull(src.clientX)) {
         eventDoc = self.target ? self.target.ownerDocument || document : document;
         doc = eventDoc.documentElement;
         body = eventDoc.body;
@@ -3619,14 +4160,14 @@ var NormalizedEvent = function(src) {
 
     // Add which for click: 1 === left; 2 === middle; 3 === right
     // Note: button is not normalized, so don't use it
-    if ( !self.which && button !== undefined ) {
+    if ( !self.which && button !== undf ) {
         self.which = ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
     }
 
     // Events bubbling up the document may have been marked as prevented
     // by a handler lower down the tree; reflect the correct value.
     self.isDefaultPrevented = src.defaultPrevented ||
-                              isUndefined(src.defaultPrevented) &&
+                              src.defaultPrevented === undf &&
                                   // Support: Android<4.0
                               src.returnValue === false ?
                               returnTrue :
@@ -3683,6 +4224,13 @@ var normalizeEvent = function(originalEvent) {
     return new NormalizedEvent(originalEvent);
 };
 
+var addListener = function(el, event, func) {
+    if (el.attachEvent) {
+        el.attachEvent('on' + event, func);
+    } else {
+        el.addEventListener(event, func, false);
+    }
+};
 
 
 (function(){
@@ -3709,8 +4257,7 @@ var normalizeEvent = function(originalEvent) {
 
                 addListener(node, eventName, function(e){
 
-                    e = e || window.event;
-                    e = normalizeEvent(e);
+                    e = normalizeEvent(e || window.event);
 
                     if (name == "enter" && e.keyCode != 13) {
                         return null;
@@ -3718,22 +4265,22 @@ var normalizeEvent = function(originalEvent) {
 
                     scope.$event = e;
 
-                    try {
+                    //try {
                         fn(scope);
-                    }
-                    catch (thrownError) {
-                        console.log(thrownError)
-                        error(thrownError);
-                    }
+                    //}
+                    //catch (thrownError) {
+                    //    error(thrownError);
+                    //}
 
                     delete scope.$event;
 
-                    if (scope instanceof Scope) {
+
+                    //try {
                         scope.$root.$check();
-                    }
-                    else if (scope.$$watchers) {
-                        scope.$$watchers.$checkAll();
-                    }
+                    //}
+                    //catch (thrownError) {
+                    //    error(thrownError);
+                    //}
 
                     e.preventDefault();
                     return false;
@@ -3978,30 +4525,21 @@ registerAttributeHandler("mjs-model", 1000, defineClass(null, AttributeHandler, 
     onChange: function() {
 
         var self    = this,
-            val     = self.watcher.getLastResult();
+            val     = self.watcher.getLastResult(),
+            ie;
 
         if (self.binding != "input" && !self.inProg) {
-            self.input.setValue(val);
+            if ((ie = isIE()) && ie < 8) {
+                async(self.input.setValue, self.input, [val]);
+            }
+            else {
+                self.input.setValue(val);
+            }
         }
     }
 
 
 }));
-var uaString = navigator.userAgent.toLowerCase();
-
-
-var isIE = function(){
-
-    var msie    = parseInt((/msie (\d+)/.exec(uaString) || [])[1], 10);
-
-    if (isNaN(msie)) {
-        msie    = parseInt((/trident\/.*; rv:(\d+)/.exec(uaString) || [])[1], 10) || false;
-    }
-
-    return function() {
-        return msie;
-    };
-}();
 
 
 
@@ -4064,7 +4602,7 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
         scope.$index    = index;
         config          = self.getterFn(scope);
 
-        config.group    != undefined && (config.group = ""+config.group);
+        config.group    != undf && (config.group = ""+config.group);
 
         if (config.group !== self.prevGroup) {
 
@@ -4192,13 +4730,13 @@ var parentData = function(node, key) {
 
     while (node) {
         val = data(node ,key);
-        if (val != undefined) {
+        if (val !== undf) {
             return val;
         }
         node  = node.parentNode;
     }
 
-    return undefined;
+    return undf;
 };
 
 
@@ -4268,10 +4806,10 @@ registerTagHandler("mjs-transclude", 900, function(scope, node) {
 
     var filterArrayCompareValues = function(value, to, opt) {
 
-            if (to === "" || isUndefined(to)) {
+            if (to === "" || to === undf) {
                 return true;
             }
-            else if (isUndefined(value)) {
+            else if (value === undf) {
                 return false;
             }
             else if (isBool(value)) {
@@ -4283,7 +4821,7 @@ registerTagHandler("mjs-transclude", 900, function(scope, node) {
             else if (opt == "strict") {
                 return ""+value === ""+to;
             }
-            else if (opt === true || opt === null || isUndefined(opt)) {
+            else if (opt === true || opt === null || opt === undf) {
                 return ""+value.indexOf(to) != -1;
             }
             else if (opt === false) {
@@ -4295,7 +4833,7 @@ registerTagHandler("mjs-transclude", 900, function(scope, node) {
         filterArrayCompare = function(value, by, opt) {
 
             if (!isObject(value)) {
-                if (isUndefined(by.$)) {
+                if (by.$ === undf) {
                     return true;
                 }
                 else {
@@ -4517,7 +5055,7 @@ nsAdd("filter.toArray", function(input){
 
 nsAdd("filter.toList", function(input, scope, sep, limit) {
 
-    limit       = limit || undefined;
+    limit       = limit || undf;
     sep         = sep || "/\\n|,/";
 
     if (!input) {
@@ -4555,13 +5093,6 @@ var removeListener = function(el, event, func) {
         el.detachEvent('on' + event, func);
     } else {
         el.removeEventListener(event, func, false);
-    }
-};
-var addListener = function(el, event, func) {
-    if (el.attachEvent) {
-        el.attachEvent('on' + event, func);
-    } else {
-        el.addEventListener(event, func, false);
     }
 };
 

@@ -1,4 +1,6 @@
 
+var varType = require("./varType.js");
+
 module.exports = function(value) {
-    return typeof value == "number" && !isNaN(value);
+    return varType(value) === 1;
 };

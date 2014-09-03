@@ -8,21 +8,76 @@ var MetaphorJs = {
 };
 
 var isFunction = function(value) {
-    return typeof value === 'function';
+    return typeof value == 'function';
 };
+var toString = Object.prototype.toString;
+var undf = undefined;
+
+
+
+var varType = function(){
+
+    var types = {
+        '[object String]': 0,
+        '[object Number]': 1,
+        '[object Boolean]': 2,
+        '[object Object]': 3,
+        '[object Function]': 4,
+        '[object Array]': 5,
+        '[object RegExp]': 9,
+        '[object Date]': 10
+    };
+
+
+    /**
+        'string': 0,
+        'number': 1,
+        'boolean': 2,
+        'object': 3,
+        'function': 4,
+        'array': 5,
+        'null': 6,
+        'undefined': 7,
+        'NaN': 8,
+        'regexp': 9,
+        'date': 10
+    */
+
+    return function(val) {
+
+        if (!val) {
+            if (val === null) {
+                return 6;
+            }
+            if (val === undf) {
+                return 7;
+            }
+        }
+
+        var num = types[toString.call(val)];
+
+        if (num === undf) {
+            return -1;
+        }
+
+        if (num == 1 && isNaN(val)) {
+            num = 8;
+        }
+
+        return num;
+    };
+
+}();
+
+
 var isString = function(value) {
-    return typeof value == "string";
+    return varType(value) === 0;
 };
+
+
 var isObject = function(value) {
-    return value != null && typeof value === 'object';
+    return value !== null && typeof value == "object" && varType(value) > 2;
 };
-var strUndef = "undefined";
-
-
-var isUndefined = function(any) {
-    return typeof any == strUndef;
-};
-
 
 
 
@@ -46,7 +101,7 @@ var Namespace   = function(root, rootName) {
         self    = this;
 
     if (!root) {
-        if (!isUndefined(global)) {
+        if (global) {
             root    = global;
         }
         else {
@@ -83,7 +138,7 @@ var Namespace   = function(root, rootName) {
                     }
                 }
 
-                if (isUndefined(current[name])) {
+                if (current[name] === undf) {
                     current[name]   = {};
                 }
 
@@ -108,16 +163,16 @@ var Namespace   = function(root, rootName) {
      */
     var get       = function(ns, cacheOnly) {
 
-        if (!isUndefined(cache[ns])) {
+        if (cache[ns] !== undf) {
             return cache[ns];
         }
 
-        if (rootName && !isUndefined(cache[rootName + "." + ns])) {
+        if (rootName && cache[rootName + "." + ns] !== undf) {
             return cache[rootName + "." + ns];
         }
 
         if (cacheOnly) {
-            return undefined;
+            return undf;
         }
 
         var tmp     = ns.split("."),
@@ -137,8 +192,8 @@ var Namespace   = function(root, rootName) {
                 }
             }
 
-            if (isUndefined(current[name])) {
-                return undefined;
+            if (current[name] === undf) {
+                return undf;
             }
 
             current = current[name];
@@ -163,8 +218,7 @@ var Namespace   = function(root, rootName) {
             parent  = parse[0],
             name    = parse[1];
 
-        if (isObject(parent) &&
-            isUndefined(parent[name])) {
+        if (isObject(parent) && parent[name] === undf) {
 
             parent[name]        = value;
             cache[parse[2]]     = value;
@@ -180,7 +234,7 @@ var Namespace   = function(root, rootName) {
      * @returns boolean
      */
     var exists      = function(ns) {
-        return !isUndefined(cache[ns]);
+        return cache[ns] !== undf;
     };
 
     /**
@@ -193,7 +247,7 @@ var Namespace   = function(root, rootName) {
         if (rootName && ns.indexOf(rootName) !== 0) {
             ns = rootName + "." + ns;
         }
-        if (isUndefined(cache[ns])) {
+        if (cache[ns] === undf) {
             cache[ns] = value;
         }
         return value;
@@ -222,8 +276,35 @@ Namespace.prototype = {
 
 
 
-var slice = Array.prototype.slice;
+var slice = Array.prototype.slice;/**
+ * @param {Function} fn
+ * @param {Object} context
+ * @param {[]} args
+ */
+var async = function(fn, context, args) {
+    setTimeout(function(){
+        fn.apply(context, args || []);
+    }, 0);
+};
+var strUndef = "undefined";
 
+
+var error = function(e) {
+
+    var stack = e.stack || (new Error).stack;
+
+    if (typeof console != strUndef && console.log) {
+        async(function(){
+            console.log(e);
+            if (stack) {
+                console.log(stack);
+            }
+        });
+    }
+    else {
+        throw e;
+    }
+};
 
 /*!
  * inspired by and based on klass
@@ -249,15 +330,17 @@ var Class = function(ns){
         wrap    = function(parent, k, fn) {
 
             return function() {
-                var ret     = undefined,
+                var ret,
                     prev    = this.supr;
 
                 this.supr   = parent[proto][k] || function(){};
 
-                try {
+                //try {
                     ret     = fn.apply(this, arguments);
-                }
-                catch(thrownError) {}
+                //}
+                //catch(thrownError) {
+                //    error(thrownError);
+                //}
 
                 this.supr   = prev;
                 return ret;
@@ -291,13 +374,14 @@ var Class = function(ns){
             };
 
             process(prototype, cls, parent);
-            fn[proto]   = prototype;
-            fn[proto].constructor = fn;
+            prototype.constructor = fn;
+            fn[proto] = prototype;
+            //fn[proto].constructor = fn;
             fn[proto].getClass = function() {
-                return this.__proto__.constructor.__class;
+                return fn.__class;
             };
             fn[proto].getParentClass = function() {
-                return this.__proto__.constructor.__parentClass;
+                return fn.__parentClass;
             };
             fn.__instantiate = function(fn) {
 
@@ -589,16 +673,15 @@ var bind = Function.prototype.bind ?
               };
 
 
-/**
- * @param {*} obj
- * @returns {boolean}
- */
-var isPlainObject = function(obj) {
-    return !!(obj && obj.constructor === Object);
+
+
+var isPlainObject = function(value) {
+    return varType(value) === 3;
 };
 
+
 var isBool = function(value) {
-    return typeof value == "boolean";
+    return varType(value) === 2;
 };
 var isNull = function(value) {
     return value === null;
@@ -636,14 +719,14 @@ var extend = function extend() {
         if (src = args.shift()) {
             for (k in src) {
 
-                if (src.hasOwnProperty(k) && !isUndefined((value = src[k]))) {
+                if (src.hasOwnProperty(k) && (value = src[k]) !== undf) {
 
                     if (deep) {
                         if (dst[k] && isPlainObject(dst[k]) && isPlainObject(value)) {
                             extend(dst[k], value, override, deep);
                         }
                         else {
-                            if (override === true || isUndefined(dst[k]) || isNull(dst[k])) {
+                            if (override === true || dst[k] == undf) { // == checks for null and undefined
                                 if (isPlainObject(value)) {
                                     dst[k] = {};
                                     extend(dst[k], value, override, true);
@@ -655,7 +738,7 @@ var extend = function extend() {
                         }
                     }
                     else {
-                        if (override === true || isUndefined(dst[k]) || isNull(dst[k])) {
+                        if (override === true || dst[k] == undf) {
                             dst[k] = value;
                         }
                     }
@@ -1079,7 +1162,7 @@ var Event = function(name, returnResult) {
     self.uni            = '$$' + name + '_' + self.hash;
     self.suspended      = false;
     self.lid            = 0;
-    self.returnResult   = isUndefined(returnResult) ? null : returnResult; // first|last|all
+    self.returnResult   = returnResult === undf ? null : returnResult; // first|last|all
 };
 
 
@@ -1379,10 +1462,6 @@ Event.prototype = {
 
 
 
-var toString = Object.prototype.toString;
-var isNumber = function(value) {
-    return typeof value == "number" && !isNaN(value);
-};
 
 
 /**
@@ -1390,20 +1469,7 @@ var isNumber = function(value) {
  * @returns {boolean}
  */
 var isArray = function(value) {
-    return !!(value && isObject(value) && isNumber(value.length) &&
-                toString.call(value) == '[object Array]' || false);
-};
-
-var isDate = function(value) {
-    return toString.call(value) === '[object Date]';
-};
-
-
-var isRegExp = function(value) {
-    return toString.call(value) === '[object RegExp]';
-};
-var isWindow = function(obj) {
-    return obj && obj.document && obj.location && obj.alert && obj.setInterval;
+    return varType(value) === 5;
 };
 
 
@@ -1421,9 +1487,124 @@ var trim = function() {
     return function(value) {
         return isString(value) ? value.trim() : value;
     };
-}();var Watchable, createWatchable;
+}();
 
 
+var isDate = function(value) {
+    return varType(value) === 10;
+};
+
+
+var isRegExp = function(value) {
+    return varType(value) === 9;
+};
+var isWindow = function(obj) {
+    return obj && obj.document && obj.location && obj.alert && obj.setInterval;
+};
+
+
+var equals = function(){
+
+    var equals = function(o1, o2) {
+        if (o1 === o2) return true;
+        if (o1 === null || o2 === null) return false;
+        if (o1 !== o1 && o2 !== o2) return true; // NaN === NaN
+        var t1 = typeof o1, t2 = typeof o2, length, key, keySet;
+        if (t1 == t2) {
+            if (t1 == 'object') {
+                if (isArray(o1)) {
+                    if (!isArray(o2)) return false;
+                    if ((length = o1.length) == o2.length) {
+                        for(key=0; key<length; key++) {
+                            if (!equals(o1[key], o2[key])) return false;
+                        }
+                        return true;
+                    }
+                } else if (isDate(o1)) {
+                    return isDate(o2) && o1.getTime() == o2.getTime();
+                } else if (isRegExp(o1) && isRegExp(o2)) {
+                    return o1.toString() == o2.toString();
+                } else {
+                    if (isWindow(o1) || isWindow(o2) || isArray(o2)) return false;
+                    keySet = {};
+                    for(key in o1) {
+                        if (key.charAt(0) === '$' && typeof o1[key] == "object") {
+                            continue;
+                        }
+                        if (isFunction(o1[key])) {
+                            continue;
+                        }
+                        if (!equals(o1[key], o2[key])) {
+                            return false;
+                        }
+                        keySet[key] = true;
+                    }
+                    for(key in o2) {
+                        if (!keySet.hasOwnProperty(key) &&
+                            key.charAt(0) !== '$' &&
+                            o2[key] !== undf &&
+                            !isFunction(o2[key])) return false;
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    return equals;
+}();
+
+
+var copy = function(){
+
+    var copy = function(source, destination){
+        if (isWindow(source)) {
+            throw new Error("Cannot copy window object");
+        }
+
+        if (!destination) {
+            destination = source;
+            if (source) {
+                if (isArray(source)) {
+                    destination = copy(source, []);
+                } else if (isDate(source)) {
+                    destination = new Date(source.getTime());
+                } else if (isRegExp(source)) {
+                    destination = new RegExp(source.source);
+                } else if (isObject(source)) {
+                    destination = copy(source, {});
+                }
+            }
+        } else {
+            if (source === destination) {
+                throw new Error("Objects are identical");
+            }
+            if (isArray(source)) {
+                destination.length = 0;
+                for ( var i = 0; i < source.length; i++) {
+                    destination.push(copy(source[i]));
+                }
+            } else {
+                var key;
+                for (key in destination) {
+                    delete destination[key];
+                }
+                for (key in source) {
+                    destination[key] = copy(source[key]);
+                }
+            }
+        }
+        return destination;
+    };
+
+    return copy;
+}();
+
+
+var isPrimitive = function(value) {
+    return varType(value) < 3;
+};var Watchable, createWatchable;
 
 
 
@@ -1451,92 +1632,7 @@ Watchable = createWatchable = function(){
             return false;
         },
 
-        copy    = function(source, destination){
-            if (isWindow(source)) {
-                throw new Error("Cannot copy window object");
-            }
 
-            if (!destination) {
-                destination = source;
-                if (source) {
-                    if (isArray(source)) {
-                        destination = copy(source, []);
-                    } else if (isDate(source)) {
-                        destination = new Date(source.getTime());
-                    } else if (isRegExp(source)) {
-                        destination = new RegExp(source.source);
-                    } else if (isObject(source)) {
-                        destination = copy(source, {});
-                    }
-                }
-            } else {
-                if (source === destination) {
-                    throw new Error("Objects are identical");
-                }
-                if (isArray(source)) {
-                    destination.length = 0;
-                    for ( var i = 0; i < source.length; i++) {
-                        destination.push(copy(source[i]));
-                    }
-                } else {
-                    var key;
-                    for (key in destination) {
-                        delete destination[key];
-                    }
-                    for (key in source) {
-                        destination[key] = copy(source[key]);
-                    }
-                }
-            }
-            return destination;
-        },
-
-        equals  = function(o1, o2) {
-            if (o1 === o2) return true;
-            if (o1 === null || o2 === null) return false;
-            if (o1 !== o1 && o2 !== o2) return true; // NaN === NaN
-            var t1 = typeof o1, t2 = typeof o2, length, key, keySet;
-            if (t1 == t2) {
-                if (t1 == 'object') {
-                    if (isArray(o1)) {
-                        if (!isArray(o2)) return false;
-                        if ((length = o1.length) == o2.length) {
-                            for(key=0; key<length; key++) {
-                                if (!equals(o1[key], o2[key])) return false;
-                            }
-                            return true;
-                        }
-                    } else if (isDate(o1)) {
-                        return isDate(o2) && o1.getTime() == o2.getTime();
-                    } else if (isRegExp(o1) && isRegExp(o2)) {
-                        return o1.toString() == o2.toString();
-                    } else {
-                        if (isWindow(o1) || isWindow(o2) || isArray(o2)) return false;
-                        keySet = {};
-                        for(key in o1) {
-                            if (key.charAt(0) === '$' && typeof o1[key] == "object") {
-                                continue;
-                            }
-                            if (isFunction(o1[key])) {
-                                continue;
-                            }
-                            if (!equals(o1[key], o2[key])) {
-                                return false;
-                            }
-                            keySet[key] = true;
-                        }
-                        for(key in o2) {
-                            if (!keySet.hasOwnProperty(key) &&
-                                key.charAt(0) !== '$' &&
-                                o2[key] !== undefined &&
-                                !isFunction(o2[key])) return false;
-                        }
-                        return true;
-                    }
-                }
-            }
-            return false;
-        },
         levenshteinArray = function(S1, S2) {
 
             var m = S1.length,
@@ -1627,6 +1723,45 @@ Watchable = createWatchable = function(){
             };
         },
 
+        prescription2moves = function(a1, a2, prs, getKey) {
+
+            var newPrs = [],
+                i, l, k, action,
+                map1 = {},
+                prsi,
+                a2i,
+                index;
+
+            for (i = 0, l = a1.length; i < l; i++) {
+                map1[getKey(a1[i])] = i;
+            }
+
+            a2i = 0;
+            var used = {};
+
+            for (prsi = 0, l = prs.length; prsi < l; prsi++) {
+
+                action = prs[prsi];
+
+                if (action == 'D') {
+                    continue;
+                }
+
+                k = getKey(a2[a2i]);
+
+                if (k !== undf && used[k] !== true && (index = map1[k]) !== undf) {
+                    newPrs.push(index);
+                    used[k] = true;
+                }
+                else {
+                    newPrs.push(action);
+                }
+                a2i++;
+            }
+
+            return newPrs;
+        },
+
 
         observable;
 
@@ -1707,6 +1842,7 @@ Watchable = createWatchable = function(){
         }
 
         self.curr       = self._getValue();
+
     };
 
     Watchable.prototype = {
@@ -1723,10 +1859,28 @@ Watchable = createWatchable = function(){
         obj: null,
         itv: null,
         curr: null,
+        prev: null,
+        unfiltered: null,
         pipes: null,
         inputPipes: null,
         lastSetValue: null,
         userData: null,
+
+
+        _indexArrayItems: function(a) {
+
+            var key = '$$' + this.id,
+                i, l, item;
+
+            if (a) {
+                for (i = 0, l = a.length; i < l; i++) {
+                    item = a[i];
+                    if (item && !isPrimitive(item) && !item[key]) {
+                        item[key] = nextUid();
+                    }
+                }
+            }
+        },
 
 
         _processInputPipes: function(text, dataObj) {
@@ -1853,7 +2007,9 @@ Watchable = createWatchable = function(){
 
                 if (lev.changes) {
                     self.curr = val.slice();
+                    self.prev = prev;
                     observable.trigger(self.id, lev, val, prev);
+
                     return true;
                 }
 
@@ -1862,6 +2018,7 @@ Watchable = createWatchable = function(){
 
             if (!equals(prev, val)) {
                 self.curr = val;
+                self.prev = prev;
                 observable.trigger(self.id, val, prev);
                 changed = true;
             }
@@ -1877,6 +2034,7 @@ Watchable = createWatchable = function(){
 
             if (!equals(curr, obj)) {
                 self.curr = copy(obj);
+                self.prev = curr;
                 observable.trigger(self.id, obj, curr);
                 return true;
             }
@@ -1893,6 +2051,7 @@ Watchable = createWatchable = function(){
 
             if (lev.changes) {
                 self.curr = obj.slice();
+                self.prev = curr;
                 observable.trigger(self.id, lev, obj, curr);
                 return true;
             }
@@ -1916,7 +2075,7 @@ Watchable = createWatchable = function(){
                     break;
                 case "expr":
                     val = self.getterFn(self.obj);
-                    if (isUndefined(val)) {
+                    if (val === undf) {
                         val = "";
                     }
                     break;
@@ -1929,8 +2088,13 @@ Watchable = createWatchable = function(){
             }
 
             if (isArray(val)) {
+                if (!self.inputPipes) {
+                    self._indexArrayItems(val);
+                }
                 val = val.slice();
             }
+
+            self.unfiltered = val;
 
             val = self._runThroughPipes(val, self.pipes);
 
@@ -1982,6 +2146,24 @@ Watchable = createWatchable = function(){
 
         getValue: function() {
             return this._getValue();
+        },
+
+        getUnfilteredValue: function() {
+            return this.unfiltered || this.curr;
+        },
+
+        getPrevValue: function() {
+            var self = this;
+            if (self.prev === null) {
+                return self._getValue();
+            }
+            else {
+                return self.prev;
+            }
+        },
+
+        getMovePrescription: function(lvshtnPrescription, trackByFn) {
+            return prescription2moves(this.getPrevValue(), this.curr, lvshtnPrescription, trackByFn);
         },
 
         setValue: function(val) {
@@ -2070,7 +2252,9 @@ Watchable = createWatchable = function(){
             var self    = this,
                 id      = self.id;
 
-            observable.un(id, fn, fnScope);
+            if (fn) {
+                observable.un(id, fn, fnScope);
+            }
 
             if (!observable.hasListener(id)) {
                 self.destroy();
@@ -2116,6 +2300,8 @@ Watchable = createWatchable = function(){
 
             delete self.id;
             delete self.curr;
+            delete self.prev;
+            delete self.unfiltered;
             delete self.obj;
             delete self.pipes;
             delete self.inputPipes;
@@ -2246,15 +2432,18 @@ Watchable = createWatchable = function(){
                 }
             }
 
-            return undefined;
+            if (thrownError !== null) {
+                error(thrownError);
+            }
+
+            return undf;
         },
 
         isFailed        = function(value) {
-            return isUndefined(value) ||
-                   (!value && typeof value == "number" && isNaN(value));
+            return value === undf || (!value && typeof value == "number" && isNaN(value));
         },
 
-        wrapFunc        = function(func) {
+        wrapFunc        = function(func, returnsValue) {
             return function() {
                 var args = slice.call(arguments),
                     val;
@@ -2264,7 +2453,7 @@ Watchable = createWatchable = function(){
 
                 val = func.apply(null, args);
 
-                if (isFailed(val)) {
+                if (returnsValue && isFailed(val)) {
                     args = slice.call(arguments);
                     args.unshift(func);
                     args.unshift(null);
@@ -2288,7 +2477,7 @@ Watchable = createWatchable = function(){
                         '$$interceptor',
                         '$$itself',
                         "".concat(fnBodyStart, 'return ', expr.replace(REG_REPLACE_EXPR, '$1____.$3'), getterBodyEnd)
-                    ));
+                    ), true);
                 }
                 return getterCache[expr];
             }
@@ -2440,13 +2629,13 @@ Scope.prototype = {
         var s       = this;
 
         while (s) {
-            if (s[key] != undefined) {
+            if (s[key] !== undf) {
                 return s[key];
             }
             s       = s.$parent;
         }
 
-        return undefined;
+        return undf;
     },
 
     $$onParentDestroy: function() {
@@ -2508,7 +2697,7 @@ Scope.prototype = {
  * @returns {[]}
  */
 var toArray = function(list) {
-    if (list && !isUndefined(list.length) && !isString(list)) {
+    if (list && !list.length != undf && !isString(list)) {
         for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]){}
         return a;
     }
@@ -2528,10 +2717,7 @@ var toArray = function(list) {
  */
 var isThenable = function(any) {
     var then;
-    if (!any) {
-        return false;
-    }
-    if (!isObject(any) && !isFunction(any)) {
+    if (!any || (!isObject(any) && !isFunction(any))) {
         return false;
     }
     return isFunction((then = any.then)) ?
@@ -2539,31 +2725,7 @@ var isThenable = function(any) {
 };
 
 
-var nsGet = ns.get;/**
- * @param {Function} fn
- * @param {Object} context
- * @param {[]} args
- */
-var async = function(fn, context, args) {
-    setTimeout(function(){
-        fn.apply(context, args || []);
-    }, 0);
-};
-
-
-var error = function(e) {
-
-    var stack = e.stack || (new Error).stack;
-
-    async(function(){
-        if (!isUndefined(console) && console.log) {
-            console.log(e);
-            if (stack) {
-                console.log(stack);
-            }
-        }
-    });
-};
+var nsGet = ns.get;
 
 
 /**
@@ -3590,7 +3752,7 @@ var Promise = function(){
         self._dones      = [];
         self._fails      = [];
 
-        if (!isUndefined(fn)) {
+        if (arguments.length > 0) {
 
             if (then = isThenable(fn)) {
                 if (fn instanceof Promise) {
@@ -4322,12 +4484,12 @@ var Renderer = function(){
 
 
             if (el.nodeType) {
-                try {
+                //try {
                     res = fn.call(fnScope, el);
-                }
-                catch (thrownError) {
-                    error(thrownError);
-                }
+                //}
+                //catch (thrownError) {
+                //    error(thrownError);
+                //}
             }
 
 
@@ -4755,7 +4917,7 @@ var Provider = function(){
                 item,
                 res;
 
-            if (!isUndefined(currentValues[name])) {
+            if (currentValues[name] !== undf) {
                 return currentValues[name];
             }
 
@@ -5034,7 +5196,7 @@ var Text = function(){
 
         set: function(key, value) {
             var store = this.store;
-            if (isUndefined(store[key])) {
+            if (store[key] === undf) {
                 store[key] = value;
             }
         },
@@ -5059,10 +5221,10 @@ var Text = function(){
                     if (strings[number]) {
                         return strings[number];
                     }
-                    if (number == 1 && strings.one != undefined) {
+                    if (number == 1 && strings.one != undf) {
                         return strings.one;
                     }
-                    else if (number < 0 && strings.negative != undefined) {
+                    else if (number < 0 && strings.negative != undf) {
                         return strings.negative;
                     }
                     else {
@@ -5301,10 +5463,21 @@ var Text = function(){
 });
 
 
-var isAttached = function(node) {
-    var body = document.body;
-    return node === body ? true : body.contains(node);
-};
+var isAttached = function(){
+    var isAttached = function(node) {
+        if (node.nodeType == 3) {
+            if (node.parentElement) {
+                return isAttached(node.parentElement);
+            }
+            else {
+                return true;
+            }
+        }
+        var html = document.documentElement;
+        return node === html ? true : html.contains(node);
+    };
+    return isAttached;
+}();
 
 
 /**
@@ -5324,7 +5497,7 @@ var data = function(){
         var id  = getNodeId(el),
             obj = dataCache[id];
 
-        if (!isUndefined(value)) {
+        if (value !== undf) {
             if (!obj) {
                 obj = dataCache[id] = {};
             }
@@ -5332,7 +5505,7 @@ var data = function(){
             return value;
         }
         else {
-            return obj ? obj[key] : undefined;
+            return obj ? obj[key] : undf;
         }
     };
 
@@ -5396,6 +5569,8 @@ var clone = function(node) {
 };
 
 
+
+
 var getAnimationPrefixes = function(){
 
     var domPrefixes         = ['Moz', 'Webkit', 'ms', 'O', 'Khtml'],
@@ -5403,6 +5578,7 @@ var getAnimationPrefixes = function(){
         animationDuration   = "animationDuration",
         transitionDelay     = "transitionDelay",
         transitionDuration  = "transitionDuration",
+        transform           = "transform",
         prefixes            = null,
 
 
@@ -5413,18 +5589,19 @@ var getAnimationPrefixes = function(){
                 pfx,
                 i, len;
 
-            if (el.style['animationName'] !== undefined) {
+            if (el.style['animationName'] !== undf) {
                 animation = true;
             }
             else {
                 for(i = 0, len = domPrefixes.length; i < len; i++) {
                     pfx = domPrefixes[i];
-                    if (el.style[ pfx + 'AnimationName' ] !== undefined) {
+                    if (el.style[ pfx + 'AnimationName' ] !== undf) {
                         animation           = true;
                         animationDelay      = pfx + "AnimationDelay";
                         animationDuration   = pfx + "AnimationDuration";
                         transitionDelay     = pfx + "TransitionDelay";
                         transitionDuration  = pfx + "TransitionDuration";
+                        transform           = pfx + "Transform";
                         break;
                     }
                 }
@@ -5438,7 +5615,8 @@ var getAnimationPrefixes = function(){
             animationDelay: animationDelay,
             animationDuration: animationDuration,
             transitionDelay: transitionDelay,
-            transitionDuration: transitionDuration
+            transitionDuration: transitionDuration,
+            transform: transform
         };
     }
 
@@ -5544,11 +5722,16 @@ var stopAnimation = function(el) {
     if (isArray(queue) && queue.length) {
         current = queue[0];
 
-        if (current && current.stages) {
-            position = current.position;
-            stages = current.stages;
-            removeClass(el, stages[position]);
-            removeClass(el, stages[position] + "-active");
+        if (current) {
+            if (current.stages) {
+                position = current.position;
+                stages = current.stages;
+                removeClass(el, stages[position]);
+                removeClass(el, stages[position] + "-active");
+            }
+            if (current.deferred) {
+                current.deferred.reject(current.el);
+            }
         }
     }
     else if (isFunction(queue)) {
@@ -5584,6 +5767,111 @@ var addClass = function(el, cls) {
 };
 
 
+var getScrollTop = function() {
+    if(window.pageYOffset !== undf) {
+        //most browsers except IE before #9
+        return function(){
+            return window.pageYOffset;
+        };
+    }
+    else{
+        var B = document.body; //IE 'quirks'
+        var D = document.documentElement; //IE with doctype
+        if (D.clientHeight) {
+            return function() {
+                return D.scrollTop;
+            };
+        }
+        else {
+            return function() {
+                return B.scrollTop;
+            };
+        }
+    }
+}();
+
+
+var getScrollLeft = function() {
+    if(window.pageXOffset !== undf) {
+        //most browsers except IE before #9
+        return function(){
+            return window.pageXOffset;
+        };
+    }
+    else{
+        var B = document.body; //IE 'quirks'
+        var D = document.documentElement; //IE with doctype
+        if (D.clientWidth) {
+            return function() {
+                return D.scrollLeft;
+            };
+        }
+        else {
+            return function() {
+                return B.scrollLeft;
+            };
+        }
+    }
+}();
+
+
+var getElemRect = function(el) {
+
+    var rect,
+        st = getScrollTop(),
+        sl = getScrollLeft(),
+        bcr;
+
+    if (el === window) {
+
+        var doc = document.documentElement;
+
+        rect = {
+            left: 0,
+            right: doc.clientWidth,
+            top: st,
+            bottom: doc.clientHeight + st,
+            width: doc.clientWidth,
+            height: doc.clientHeight
+        };
+    }
+    else {
+        if (el.getBoundingClientRect) {
+            bcr = el.getBoundingClientRect();
+            rect = {
+                left: bcr.left + sl,
+                top: bcr.top + st,
+                right: bcr.right + sl,
+                bottom: bcr.bottom + st
+            };
+
+            rect.width = rect.right - rect.left;
+            rect.height = rect.bottom - rect.top;
+        }
+        else {
+            rect = {
+                left: el.offsetLeft + sl,
+                top: el.offsetTop + st,
+                width: el.offsetWidth,
+                height: el.offsetHeight,
+                right: 0,
+                bottom: 0
+            };
+        }
+    }
+
+    rect.getCenter = function() {
+        return this.width / 2;
+    };
+
+    rect.getCenterX = function() {
+        return this.left + this.width / 2;
+    };
+
+    return rect;
+};
+
+
 
 var animate = function(){
 
@@ -5597,7 +5885,9 @@ var animate = function(){
 
         animId          = 0,
 
-        cssAnimations   = !!getAnimationPrefixes(),
+        prefixes        = getAnimationPrefixes(),
+
+        cssAnimations   = !!prefixes,
 
         animFrame       = window.requestAnimationFrame ? window.requestAnimationFrame : function(cb) {
             setTimeout(cb, 0);
@@ -5625,14 +5915,15 @@ var animate = function(){
                 next;
             if (queue.length) {
                 next = queue[0];
-                animationStage(next.el, next.stages, 0, next.start, next.deferred, false, next.id);
+                animationStage(next.el, next.stages, 0, next.start, next.deferred, false, next.id, next.step);
             }
             else {
                 data(el, dataParam, null);
             }
         },
 
-        animationStage  = function animationStage(el, stages, position, startCallback, deferred, first, id) {
+        animationStage  = function animationStage(el, stages, position, startCallback,
+                                                  deferred, first, id, stepCallback) {
 
             var stopped   = function() {
                 var q = data(el, dataParam);
@@ -5660,7 +5951,7 @@ var animate = function(){
                 }
                 else {
                     data(el, dataParam)[0].position = position;
-                    animationStage(el, stages, position, null, deferred);
+                    animationStage(el, stages, position, null, deferred, false, id, stepCallback);
                 }
 
                 removeClass(el, stages[thisPosition]);
@@ -5674,6 +5965,8 @@ var animate = function(){
                 }
 
                 addClass(el, stages[position] + "-active");
+
+                stepCallback && stepCallback(el, position, "active");
 
                 var duration = getAnimationDuration(el);
 
@@ -5693,6 +5986,8 @@ var animate = function(){
 
                 addClass(el, stages[position]);
 
+                stepCallback && stepCallback(el, position, "start");
+
                 var promise;
 
                 if (startCallback) {
@@ -5708,11 +6003,13 @@ var animate = function(){
                 }
             };
 
+
+
             first ? animFrame(start) : start();
         };
 
 
-    var animate = function animate(el, animation, startCallback, checkIfEnabled, namespace) {
+    var animate = function animate(el, animation, startCallback, checkIfEnabled, namespace, stepCallback) {
 
         var deferred    = new Promise,
             queue       = data(el, dataParam) || [],
@@ -5772,6 +6069,7 @@ var animate = function(){
                     el: el,
                     stages: stages,
                     start: startCallback,
+                    step: stepCallback,
                     deferred: deferred,
                     position: 0,
                     id: id
@@ -5779,7 +6077,7 @@ var animate = function(){
                 data(el, dataParam, queue);
 
                 if (queue.length == 1) {
-                    animationStage(el, stages, 0, startCallback, deferred, true, id);
+                    animationStage(el, stages, 0, startCallback, deferred, true, id, stepCallback);
                 }
 
                 return deferred;
@@ -5851,6 +6149,8 @@ var animate = function(){
     };
 
     animate.stop = stopAnimation;
+    animate.prefixes = prefixes;
+    animate.cssAnimations = cssAnimations;
 
     return animate;
 }();
@@ -5862,7 +6162,7 @@ var createWatchable = Watchable.create;
 
 var parseJSON = function() {
 
-    return isUndefined(JSON) ?
+    return typeof JSON != strUndef ?
            function(data) {
                return JSON.parse(data);
            } :
@@ -5887,7 +6187,7 @@ var parseXML = function(data, type) {
         tmp = new DOMParser();
         xml = tmp.parseFromString(data, type || "text/xml");
     } catch (thrownError) {
-        xml = undefined;
+        xml = undf;
     }
 
     if (!xml || xml.getElementsByTagName("parsererror").length) {
@@ -6105,7 +6405,7 @@ var ajax = function(){
 
         httpSuccess     = function(r) {
             try {
-                return (!r.status && !isUndefined(location) && location.protocol == "file:")
+                return (!r.status && location && location.protocol == "file:")
                            || (r.status >= 200 && r.status < 300)
                            || r.status === 304 || r.status === 1223; // || r.status === 0;
             } catch(thrownError){}
@@ -6160,7 +6460,7 @@ var ajax = function(){
     var AJAX    = function(opt) {
 
         var self        = this,
-            href        = !isUndefined(window) ? window.location.href : "",
+            href        = window ? window.location.href : "",
             local       = rurl.exec(href.toLowerCase()) || [],
             parts       = rurl.exec(opt.url.toLowerCase());
 
@@ -6180,9 +6480,7 @@ var ajax = function(){
         }
         else if (opt.form) {
             self._form = opt.form;
-            if (opt.method == "POST" && (isUndefined(window) || !window.FormData) &&
-                opt.transport != "iframe") {
-
+            if (opt.method == "POST" && (!window || !window.FormData)) {
                 opt.transport = "iframe";
             }
         }
@@ -6300,10 +6598,10 @@ var ajax = function(){
 
             self._jsonpName = cbName;
 
-            if (!isUndefined(window)) {
+            if (window) {
                 window[cbName] = bind(self.jsonpCallback, self);
             }
-            if (!isUndefined(global)) {
+            if (global) {
                 global[cbName] = bind(self.jsonpCallback, self);
             }
 
@@ -6397,10 +6695,10 @@ var ajax = function(){
             delete self._form;
 
             if (self._jsonpName) {
-                if (!isUndefined(window)) {
+                if (window) {
                     delete window[self._jsonpName];
                 }
-                if (!isUndefined(global)) {
+                if (global) {
                     delete global[self._jsonpName];
                 }
             }
@@ -6528,8 +6826,22 @@ var ajax = function(){
             addListener(xhr.upload, "progress", bind(opt.uploadProgress, opt.callbackScope));
         }
 
-        try {
-            var i;
+        xhr.onreadystatechange = bind(self.onReadyStateChange, self);
+    };
+
+    XHRTransport.prototype = {
+
+        _xhr: null,
+        _deferred: null,
+        _ajax: null,
+
+        setHeaders: function() {
+
+            var self = this,
+                opt = self._opt,
+                xhr = self._xhr,
+                i;
+
             if (opt.xhrFields) {
                 for (i in opt.xhrFields) {
                     xhr[i] = opt.xhrFields[i];
@@ -6547,16 +6859,8 @@ var ajax = function(){
             for (i in opt.headers) {
                 xhr.setRequestHeader(i, opt.headers[i]);
             }
-        } catch(thrownError){}
 
-        xhr.onreadystatechange = bind(self.onReadyStateChange, self);
-    };
-
-    XHRTransport.prototype = {
-
-        _xhr: null,
-        _deferred: null,
-        _ajax: null,
+        },
 
         onReadyStateChange: function() {
 
@@ -6576,7 +6880,7 @@ var ajax = function(){
                 if (httpSuccess(xhr)) {
 
                     self._ajax.processResponse(
-                        isString(xhr.responseText) ? xhr.responseText : undefined,
+                        isString(xhr.responseText) ? xhr.responseText : undf,
                         xhr.getResponseHeader("content-type") || ''
                     );
                 }
@@ -6599,6 +6903,7 @@ var ajax = function(){
 
             try {
                 self._xhr.open(opt.method, opt.url, true, opt.username, opt.password);
+                self.setHeaders();
                 self._xhr.send(opt.data);
             }
             catch (thrownError) {
@@ -7594,7 +7899,7 @@ var NormalizedEvent = function(src) {
         button = src.button;
 
     // Calculate pageX/Y if missing and clientX/Y available
-    if (isUndefined(self.pageX) && !isNull(src.clientX)) {
+    if (self.pageX === undf && !isNull(src.clientX)) {
         eventDoc = self.target ? self.target.ownerDocument || document : document;
         doc = eventDoc.documentElement;
         body = eventDoc.body;
@@ -7609,14 +7914,14 @@ var NormalizedEvent = function(src) {
 
     // Add which for click: 1 === left; 2 === middle; 3 === right
     // Note: button is not normalized, so don't use it
-    if ( !self.which && button !== undefined ) {
+    if ( !self.which && button !== undf ) {
         self.which = ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
     }
 
     // Events bubbling up the document may have been marked as prevented
     // by a handler lower down the tree; reflect the correct value.
     self.isDefaultPrevented = src.defaultPrevented ||
-                              isUndefined(src.defaultPrevented) &&
+                              src.defaultPrevented === undf &&
                                   // Support: Android<4.0
                               src.returnValue === false ?
                               returnTrue :
@@ -8239,7 +8544,7 @@ var getValue = function(){
         option: function(elem) {
             var val = elem.getAttribute("value") || elem.value;
 
-            return !isNull(val) && !isUndefined(val) ?
+            return val != undf ?
                    val :
                    trim( elem.innerText || elem.textContent );
         },
@@ -8297,7 +8602,7 @@ var getValue = function(){
 
         hook = hooks[elem.type] || hooks[elem.nodeName.toLowerCase()];
 
-        if (hook && !isUndefined((ret = hook(elem, "value")))) {
+        if (hook && (ret = hook(elem, "value")) !== undf) {
             return ret;
         }
 
@@ -8391,6 +8696,11 @@ var inArray = function(val, arr) {
 };
 
 
+var isNumber = function(value) {
+    return varType(value) === 1;
+};
+
+
 /**
  * @param {Element} el
  * @param {*} val
@@ -8450,7 +8760,7 @@ var setValue = function() {
         var hook = hooks[el.type] || hooks[el.nodeName.toLowerCase()];
 
         // If set returns undefined, fall back to normal setting
-        if (!hook || isUndefined(hook(el, val, "value"))) {
+        if (!hook || hook(el, val, "value") === undf) {
             el.value = val;
         }
     };
@@ -8720,6 +9030,25 @@ registerAttributeHandler("mjs-cmp-prop", 200,
     registerAttributeHandler("mjs-cmp", 200, cmpAttr);
 
 }());
+var uaString = navigator.userAgent.toLowerCase();
+
+
+var isIE = function(){
+
+    var msie    = parseInt((/msie (\d+)/.exec(uaString) || [])[1], 10);
+
+    if (isNaN(msie)) {
+        msie    = parseInt((/trident\/.*; rv:(\d+)/.exec(uaString) || [])[1], 10) || false;
+    }
+
+    return function() {
+        return msie;
+    };
+}();
+
+
+
+
 
 
 
@@ -8734,6 +9063,12 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
     parentEl: null,
     prevEl: null,
     nextEl: null,
+    trackBy: null,
+    trackByWatcher: null,
+    animateMove: false,
+
+    trackByFn: null,
+    griDelegate: null,
 
     initialize: function(scope, node, expr) {
 
@@ -8752,6 +9087,8 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
 
         self.node       = node;
         self.scope      = scope;
+        self.animateMove    = node.getAttribute("mjs-animate-move") !== null && animate.cssAnimations;
+        node.removeAttribute("mjs-animate-move");
 
         try {
             self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
@@ -8760,8 +9097,24 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
             error(thrownError);
         }
 
+        self.trackBy    = node.getAttribute("mjs-track-by");
+        if (self.trackBy) {
+            if (self.trackBy != '$') {
+                self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, null, ns);
+            }
+        }
+        else if (!self.watcher.hasInputPipes()) {
+            self.trackBy    = '$$'+self.watcher.id;
+        }
+        node.removeAttribute("mjs-track-by");
+
+
+        self.griDelegate = bind(self.scopeGetRawIndex, self);
+
         self.parentEl.removeChild(node);
         self.render(toArray(self.watcher.getValue()));
+
+
     },
 
     onScopeDestroy: function() {
@@ -8783,7 +9136,60 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
         self.supr();
     },
 
-    doUpdate: function(list, start) {
+    onChangeTrackBy: function(val) {
+        this.trackByFn = null;
+        this.trackBy = val;
+    },
+
+    getTrackByFunction: function() {
+
+        var self = this,
+            trackBy;
+
+        if (!self.trackByFn) {
+
+            trackBy = self.trackBy;
+
+            if (!trackBy || trackBy == '$') {
+                return function(item) {
+                    return isPrimitive(item) ? item : undf;
+                };
+            }
+            else if (isFunction(trackBy)) {
+                self.trackByFn = trackBy;
+            }
+            else {
+                self.trackByFn = function(item){
+                    return item && !isPrimitive(item) ? item[trackBy] : undf;
+                };
+            }
+        }
+
+        return self.trackByFn;
+    },
+
+
+    scopeGetRawIndex: function(id) {
+
+        if (id === undf) {
+            return -1;
+        }
+
+        var self        = this,
+            list        = self.watcher.getUnfilteredValue(),
+            trackByFn   = self.getTrackByFunction(),
+            i, l;
+
+        for (i = 0, l = list.length; i < l; i++) {
+            if (trackByFn(list[i]) === id) {
+                return i;
+            }
+        }
+
+        return -1;
+    },
+
+    doUpdate: function(start) {
 
         var self        = this,
             renderers   = self.renderers,
@@ -8791,8 +9197,12 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
             len         = renderers.length,
             last        = len - 1,
             even        = !(index % 2),
+            list        = self.watcher.getLastResult(),
+            trackByFn   = self.getTrackByFunction(),
+            griDelegate = self.griDelegate,
             r,
             scope;
+
 
         for (; index < len; index++) {
 
@@ -8804,6 +9214,8 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
             scope.$last     = index === last;
             scope.$even     = even;
             scope.$odd      = !even;
+            scope.$trackId  = trackByFn(list[index]);
+            scope.$getRawIndex = griDelegate;
 
             even = !even;
 
@@ -8829,7 +9241,6 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
             el,
             i, len;
 
-
         for (i = 0, len = list.length; i < len; i++) {
 
             el = tpl.cloneNode(true);
@@ -8839,19 +9250,20 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
 
         parent.insertBefore(fragment, next);
 
-        self.doUpdate(list, 0);
+        self.doUpdate(0);
     },
 
     createItem: function(el, list, index) {
 
         var self        = this,
             iname       = self.itemName,
-            scope       = self.scope,
-            itemScope   = scope.$new();
+            itemScope   = self.scope.$new();
 
         itemScope[iname]    = list[index];
 
         return {
+            ready: false,
+            action: "enter",
             el: el,
             scope: itemScope
         };
@@ -8864,80 +9276,363 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
             prs         = changes.prescription || [],
             tpl         = self.tpl,
             index       = 0,
-            parent      = self.parentEl,
             list        = toArray(self.watcher.getValue()),
             updateStart = null,
-            el,
+            animateMove = self.animateMove,
+            trackBy     = self.trackByWatcher ? self.trackByWatcher.getLastResult() : self.trackBy,
+            newrs       = [],
+            promises    = [],
+            oldrs       = renderers.slice(),
+            origrs      = renderers.slice(),
+            prevr,
+            prevrInx,
             i, len,
             r,
-            action;
+            action,
+            translates,
+            doesMove    = false;
 
-        for (i = 0, len = prs.length; i < len; i++) {
-            action = prs[i];
 
-            if (action == '-') {
-                renderers[index].scope.$index = index;
-                index++;
-                continue;
+
+            prs = self.watcher.getMovePrescription(prs, self.getTrackByFunction());
+
+            // redefine renderers
+            for (i = 0, len = prs.length; i < len; i++) {
+
+                action = prs[i];
+
+                if (isNumber(action)) {
+                    prevrInx    = action;
+                    prevr       = renderers[prevrInx];
+
+                    if (prevrInx != index && isNull(updateStart)) {
+                        updateStart = i;
+                    }
+
+                    prevr.action = "move";
+                    prevr.ready = false;
+                    doesMove = animateMove;
+
+                    newrs.push(prevr);
+                    renderers[prevrInx] = null;
+                    index++;
+                }
+                else {
+                    if (isNull(updateStart)) {
+                        updateStart = i;
+                    }
+                    r = self.createItem(tpl.cloneNode(true), list, i);
+                    newrs.push(r);
+                    oldrs.splice(i, 0, r);
+                    // add new elements to old renderers
+                    // so that we could correctly determine positions
+                }
             }
 
-            if (isNull(updateStart)) {
-                updateStart = i > 0 ? i - 1 : 0;
+        /*else {
+            // redefine renderers
+            var a1i = 0,
+                a2i = 0;
+
+            for (i = 0, len = prs.length; i < len; i++) {
+
+                action = prs[i];
+
+                if (action != '-' && isNull(updateStart)) {
+                    updateStart = a1i;
+                }
+
+                if (action == 'D') {
+                    continue;
+                }
+                else if (action == '-') {
+                    newrs.push(renderers[a1i]);
+                    renderers[a1i].action = "move";
+                    renderers[a1i].ready = false;
+                    renderers[a1i] = null;
+                }
+                else if (action == 'I' || action == 'R') {
+                    newrs.push(self.createItem(tpl.cloneNode(true), list, a2i));
+                }
+
+                if (action != 'I') {
+                    a1i++;
+                }
+                a2i++;
             }
+        }*/
 
-            if (action != 'I' && renderers[index]) {
+        self.renderers  = newrs;
+        self.doUpdate(updateStart || 0);
 
-                r = renderers[index];
 
+        if (doesMove) {
+            translates = self.calculateTranslates(newrs, origrs, oldrs);
+        }
+
+
+        // destroy old renderers and remove old elements
+        for (i = 0, len = renderers.length; i < len; i++) {
+            r = renderers[i];
+            if (r) {
                 r.scope.$destroy();
-                // renderer will destroy itself
 
-                animate(r.el, "leave", null, true)
+                stopAnimation(r.el);
+                promises.push(animate(r.el, "leave", null, true, ns)
                     .done(function(el){
                         isAttached(el) && el.parentNode.removeChild(el);
-                    });
+                    }));
             }
+        }
+        renderers = null;
+        r = null;
 
-            if (action == 'D') {
-                renderers.splice(index, 1);
+        for (i = newrs.length - 1; i >= 0; i--) {
+            r = newrs[i];
+            action = r.action;
+
+            if (action == "none") {
+                newrs[i].ready = self.moveEl(r.el, i);
+            }
+            else if (action == "move") {
+                // move elements
+                if (doesMove) {
+
+                    stopAnimation(r.el);
+                    promises.push(self.moveAnimation(r.el, translates[i][0], translates[i][1])
+                        .done(function(inx){
+                            return function(el) {
+                                newrs[inx].ready = self.moveEl(el, inx);
+                            }
+                        }(i)));
+                }
+                else {
+                    newrs[i].ready = self.moveEl(r.el, i);
+                }
+            }
+            else if (action == "enter") {
+                // introduce new elements
+                stopAnimation(r.el);
+                promises.push(animate(r.el, "enter", function(inx) {
+                    return function(el){
+                        newrs[inx].ready = self.moveEl(el, inx, true);
+                    }
+                }(i), true, ns));
             }
             else {
-
-                el  = tpl.cloneNode(true);
-
-                animate(el, "enter", function(inx) {
-                    return function(el){
-
-                        if (inx > 0) {
-                            parent.insertBefore(el, renderers[inx - 1].el.nextSibling);
-                        }
-                        else {
-                            if (self.prevEl) {
-                                parent.insertBefore(el, self.prevEl.nextSibling);
-                            }
-                            else {
-                                parent.insertBefore(el, parent.firstChild);
-                            }
-                        }
-                    }
-                }(index), true);
-
-                if (action == 'R') {
-                    renderers[index] = self.createItem(el, list, index);
-                }
-                else if (action == 'I') {
-                    if (i < renderers.length) {
-                        renderers.splice(index, 0, self.createItem(el, list, index));
-                    }
-                    else {
-                        renderers.push(self.createItem(el, list, index));
-                    }
-                }
-                index++;
+                newrs[i].ready = true;
             }
         }
 
-        self.doUpdate(list, updateStart);
+        Promise.all(promises).always(self.finishAnimations, self);
+    },
+
+    ieFixEl: function(el) {
+        el.style.zoom = 1;
+        el.style.zoom = "";
+    },
+
+    finishAnimations: function() {
+
+        var self    = this,
+            orphans = [],
+            rns     = self.renderers,
+            inf     = 0,
+            fixIE   = isIE() && animate.cssAnimations,
+            i, l, o,
+            max;
+
+        for (i = 0, l = rns.length; i < l; i++) {
+            if (!rns[i].ready) {
+                orphans.push([rns[i].el, i]);
+            }
+            else {
+                // in IE 11 (10 too?) elements disappear
+                // after some animations
+                // what is the most disturbing that
+                // it is those elements that were not animated %)
+                if (fixIE) {
+                    async(self.ieFixEl, self, [rns[i].el]);
+                }
+            }
+        }
+
+        max = l * 5;
+
+        while (orphans.length) {
+            if (inf > max) {
+                error("Orphans got into infinite loop");
+                break;
+            }
+            o = orphans.shift();
+            if (!self.moveEl(o[0], o[1])) {
+                orphans.push(o);
+            }
+            else {
+                // ugly ugly ugly ugly
+                if (fixIE) {
+                    async(self.ieFixEl, self, [o[0]]);
+                }
+            }
+            inf++;
+        }
+    },
+
+    moveEl: function(el, inx, force) {
+        var self = this,
+            cnt = self.renderers.length,
+            parent = self.parentEl,
+            before = self.getInsertBeforeEl(inx, cnt - 1),
+            ready = true;
+
+        if (before === false && force) {
+            before = self.getInsertBeforeEl(inx, cnt - 1, true);
+            ready = false;
+        }
+
+        if (before !== false && (!before || isAttached(before))) {
+            if (!el.nextSibling || el.nextSibling !== before) {
+                parent.insertBefore(el, before);
+            }
+            // remove translateXY transform at the same time as
+            // dom position changed
+            if (self.animateMove) {
+                el.style[animate.prefixes.transform] = null;
+                el.style[animate.prefixes.transform] = "";
+            }
+            return self.renderers[inx].ready = ready;
+        }
+        return false;
+    },
+
+    getInsertBeforeEl: function(inx, lastInx, allowNotReady) {
+
+        var self = this;
+
+        if (inx == 0) {
+            var prevEl = self.prevEl;
+            return prevEl ? prevEl.nextSibling : self.parentEl.firstChild;
+        }
+        else if (inx == lastInx) {
+            return self.nextEl;
+        }
+        else {
+            var r = self.renderers[inx+1];
+            return r.ready || allowNotReady ? r.el : false;
+        }
+    },
+
+    getNodePositions: function(tmp, rs) {
+
+        var nodes = [],
+            i, l, el, r,
+            tmpNode,
+            positions = {};
+
+        while(tmp.firstChild) {
+            tmp.removeChild(tmp.firstChild);
+        }
+        for (i = 0, l = rs.length; i < l; i++) {
+            tmpNode = rs[i].el.cloneNode(true);
+            tmp.appendChild(tmpNode);
+            nodes.push(tmpNode);
+        }
+        for (i = 0, l = nodes.length; i < l; i++) {
+            el = nodes[i];
+            r = rs[i].renderer;
+            if (r) {
+                positions[r.id] = {left: el.offsetLeft, top: el.offsetTop};
+            }
+        }
+
+        return positions;
+    },
+
+    // ugly ugly ugly ugly ugly
+    calculateTranslates: function(newRenderers, oldRenderers, withInserts) {
+
+        var self        = this,
+            parent      = self.parentEl,
+            pp          = parent.parentNode,
+            tmp         = parent.cloneNode(true),
+            ofsW        = parent.offsetWidth,
+            translates  = [],
+            fl          = 0,
+            ft          = 0,
+            oldPositions,
+            insertPositions,
+            newPositions,
+            r, i, len, id,
+            tmpW,
+            style,
+            el;
+
+        style = tmp.style;
+        style.position = "absolute";
+        style.left = "-10000px";
+        style.visibility = "hidden";
+        style.width = ofsW + 'px';
+
+        pp.insertBefore(tmp, parent);
+        tmpW = tmp.offsetWidth;
+        style.width = ofsW - (tmpW - ofsW) + "px";
+
+        oldPositions = self.getNodePositions(tmp, oldRenderers);
+        insertPositions = self.getNodePositions(tmp, withInserts);
+        newPositions = self.getNodePositions(tmp, newRenderers);
+
+        pp.removeChild(tmp);
+        tmp = null;
+
+        for (i = 0, len = newRenderers.length; i < len; i++) {
+            el = newRenderers[i].el;
+            r = newRenderers[i].renderer;
+            id = r.id;
+
+            if (i == 0) {
+                fl = el.offsetLeft;
+                ft = el.offsetTop;
+            }
+
+            translates.push([
+                {
+                    left: (newPositions[id].left - fl) - (insertPositions[id].left - fl),
+                    top: (newPositions[id].top - ft) - (insertPositions[id].top - ft)
+                },
+                insertPositions[id] && oldPositions[id] ?
+                {
+                    left: (oldPositions[id].left - fl) - (insertPositions[id].left - fl),
+                    top: (oldPositions[id].top - ft) - (insertPositions[id].top - ft)
+                } : null
+            ]);
+        }
+
+        return translates;
+    },
+
+    moveAnimation: function(el, to, from) {
+
+        var attr = el.getAttribute("mjs-animate");
+
+        if (attr == undf) {
+            return Promise.resolve(el);
+        }
+
+        if (animate.cssAnimations) {
+            var style = el.style;
+
+            return animate(el, "move", null, false, ns, function(el, position, stage){
+                if (position == 0 && stage == "start" && from) {
+                    style[animate.prefixes.transform] = "translateX("+from.left+"px) translateY("+from.top+"px)";
+                }
+                if (position == 0 && stage != "start") {
+                    style[animate.prefixes.transform] = "translateX("+to.left+"px) translateY("+to.top+"px)";
+                }
+            });
+        }
+        else {
+            return Promise.resolve(el);
+        }
     },
 
     parseExpr: function(expr) {
@@ -8966,6 +9661,18 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
 
         this.model = model;
         this.itemName = name || "item";
+    },
+
+    destroy: function() {
+
+        var self = this;
+
+        if (self.trackByWatcher) {
+            self.trackByWatcher.unsubscribeAndDestroy();
+            delete self.trackByWatcher;
+        }
+
+        self.supr();
     }
 
 }, {
@@ -9001,8 +9708,7 @@ var createFunc = Watchable.createFunc;
 
                 addListener(node, eventName, function(e){
 
-                    e = e || window.event;
-                    e = normalizeEvent(e);
+                    e = normalizeEvent(e || window.event);
 
                     if (name == "enter" && e.keyCode != 13) {
                         return null;
@@ -9010,22 +9716,22 @@ var createFunc = Watchable.createFunc;
 
                     scope.$event = e;
 
-                    try {
+                    //try {
                         fn(scope);
-                    }
-                    catch (thrownError) {
-                        console.log(thrownError)
-                        error(thrownError);
-                    }
+                    //}
+                    //catch (thrownError) {
+                    //    error(thrownError);
+                    //}
 
                     delete scope.$event;
 
-                    if (scope instanceof Scope) {
+
+                    //try {
                         scope.$root.$check();
-                    }
-                    else if (scope.$$watchers) {
-                        scope.$$watchers.$checkAll();
-                    }
+                    //}
+                    //catch (thrownError) {
+                    //    error(thrownError);
+                    //}
 
                     e.preventDefault();
                     return false;
@@ -9214,7 +9920,6 @@ var isSubmittable = function(elem) {
     var type	= elem.type ? elem.type.toLowerCase() : '';
     return elem.nodeName.toLowerCase() == 'input' && type != 'radio' && type != 'checkbox';
 };
-var uaString = navigator.userAgent.toLowerCase();
 
 
 var isAndroid = function(){
@@ -9225,20 +9930,6 @@ var isAndroid = function(){
         return android;
     };
 
-}();
-
-
-var isIE = function(){
-
-    var msie    = parseInt((/msie (\d+)/.exec(uaString) || [])[1], 10);
-
-    if (isNaN(msie)) {
-        msie    = parseInt((/trident\/.*; rv:(\d+)/.exec(uaString) || [])[1], 10) || false;
-    }
-
-    return function() {
-        return msie;
-    };
 }();//#require isIE.js
 
 
@@ -9256,7 +9947,7 @@ var browserHasEvent = function(){
         // it. In particular the event is not fired when backspace or delete key are pressed or
         // when cut operation is performed.
 
-        if (eventSupport[event] === undefined) {
+        if (eventSupport[event] === undf) {
 
             if (event == 'input' && isIE() == 9) {
                 return eventSupport[event] = false;
@@ -9641,10 +10332,16 @@ registerAttributeHandler("mjs-model", 1000, defineClass(null, AttributeHandler, 
     onChange: function() {
 
         var self    = this,
-            val     = self.watcher.getLastResult();
+            val     = self.watcher.getLastResult(),
+            ie;
 
         if (self.binding != "input" && !self.inProg) {
-            self.input.setValue(val);
+            if ((ie = isIE()) && ie < 8) {
+                async(self.input.setValue, self.input, [val]);
+            }
+            else {
+                self.input.setValue(val);
+            }
         }
     }
 
@@ -9712,7 +10409,7 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
         scope.$index    = index;
         config          = self.getterFn(scope);
 
-        config.group    != undefined && (config.group = ""+config.group);
+        config.group    != undf && (config.group = ""+config.group);
 
         if (config.group !== self.prevGroup) {
 
@@ -9840,13 +10537,13 @@ var parentData = function(node, key) {
 
     while (node) {
         val = data(node ,key);
-        if (val != undefined) {
+        if (val !== undf) {
             return val;
         }
         node  = node.parentNode;
     }
 
-    return undefined;
+    return undf;
 };
 
 
@@ -9916,10 +10613,10 @@ registerTagHandler("mjs-transclude", 900, function(scope, node) {
 
     var filterArrayCompareValues = function(value, to, opt) {
 
-            if (to === "" || isUndefined(to)) {
+            if (to === "" || to === undf) {
                 return true;
             }
-            else if (isUndefined(value)) {
+            else if (value === undf) {
                 return false;
             }
             else if (isBool(value)) {
@@ -9931,7 +10628,7 @@ registerTagHandler("mjs-transclude", 900, function(scope, node) {
             else if (opt == "strict") {
                 return ""+value === ""+to;
             }
-            else if (opt === true || opt === null || isUndefined(opt)) {
+            else if (opt === true || opt === null || opt === undf) {
                 return ""+value.indexOf(to) != -1;
             }
             else if (opt === false) {
@@ -9943,7 +10640,7 @@ registerTagHandler("mjs-transclude", 900, function(scope, node) {
         filterArrayCompare = function(value, by, opt) {
 
             if (!isObject(value)) {
-                if (isUndefined(by.$)) {
+                if (by.$ === undf) {
                     return true;
                 }
                 else {
@@ -10165,7 +10862,7 @@ nsAdd("filter.toArray", function(input){
 
 nsAdd("filter.toList", function(input, scope, sep, limit) {
 
-    limit       = limit || undefined;
+    limit       = limit || undf;
     sep         = sep || "/\\n|,/";
 
     if (!input) {

@@ -1,7 +1,8 @@
-var isUndefined = require("../isUndefined.js");
+
+var undf = require("../../var/undf.js");
 
 module.exports = function() {
-    if(!isUndefined(window.pageXOffset)) {
+    if(window.pageXOffset !== undf) {
         //most browsers except IE before #9
         return function(){
             return window.pageXOffset;

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+
+<script>
+    var results = "";
+    var log = function() {
+
+        var args = arguments,
+        i, l, str = "";
+
+        for (i = 0, l = args.length; i < l; i++) {
+            str += args[i];
+        }
+
+        results += str + "<br>";
+    };
+
+
+    if (!window.console) {
+        window.console = {
+            log: log
+        };
+    }
+    else {
+        var origLog = console.log;
+        console.log = function() {
+            log.apply(null, arguments);
+            origLog.apply(console, arguments);
+        };
+    }
+</script>
+<script src="types.js"></script>
+
+
+<div id="results"></div>
+
+<script>
+    if (results) {
+        document.getElementById("results").innerHTML = results;
+    }
+</script>
+</body>
+</html>

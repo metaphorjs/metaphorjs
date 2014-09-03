@@ -1,11 +1,12 @@
 
 
 var nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
+    undf = require("../../../metaphorjs/src/var/undf.js"),
     getRegExp = require("../func/getRegExp.js");
 
 nsAdd("filter.toList", function(input, scope, sep, limit) {
 
-    limit       = limit || undefined;
+    limit       = limit || undf;
     sep         = sep || "/\\n|,/";
 
     if (!input) {

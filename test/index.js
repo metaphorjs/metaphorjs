@@ -279,7 +279,6 @@ MetaphorJs.onReady(function(){
             app.value("test", "123");
             app.run();
         });
-
     //console.profileEnd();
 
     var end  = (new Date).getTime();

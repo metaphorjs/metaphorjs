@@ -1,6 +1,7 @@
 //#require isIE.js
 
-var isIE = require("./isIE.js");
+var isIE = require("./isIE.js"),
+    undf = require("../../var/undf.js");
 
 /**
  * @param {String} event
@@ -15,7 +16,7 @@ module.exports = function(){
         // it. In particular the event is not fired when backspace or delete key are pressed or
         // when cut operation is performed.
 
-        if (eventSupport[event] === undefined) {
+        if (eventSupport[event] === undf) {
 
             if (event == 'input' && isIE() == 9) {
                 return eventSupport[event] = false;

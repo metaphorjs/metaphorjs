@@ -6,7 +6,7 @@ var bind = require("../func/bind.js"),
     Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
     isObject = require("../func/isObject.js"),
     isFunction = require("../func/isFunction.js"),
-    isUndefined = require("../func/isUndefined.js"),
+    undf = require("../var/undf.js"),
     isBool = require("../func/isBool.js");
 
 
@@ -151,7 +151,7 @@ module.exports = function(){
                 item,
                 res;
 
-            if (!isUndefined(currentValues[name])) {
+            if (currentValues[name] !== undf) {
                 return currentValues[name];
             }
 

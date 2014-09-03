@@ -1,9 +1,9 @@
 
-var isUndefined = require("./isUndefined.js");
+var strUndef = require("../var/strUndef.js");
 
 module.exports = function() {
 
-    return isUndefined(JSON) ?
+    return typeof JSON != strUndef ?
            function(data) {
                return JSON.parse(data);
            } :

@@ -1,17 +1,20 @@
 
 var async = require("./async.js"),
-    isUndefined = require("./isUndefined.js");
+    strUndef = require("../var/strUndef.js");
 
 module.exports = function(e) {
 
     var stack = e.stack || (new Error).stack;
 
-    async(function(){
-        if (!isUndefined(console) && console.log) {
+    if (typeof console != strUndef && console.log) {
+        async(function(){
             console.log(e);
             if (stack) {
                 console.log(stack);
             }
-        }
-    });
+        });
+    }
+    else {
+        throw e;
+    }
 };

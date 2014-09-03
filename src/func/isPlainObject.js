@@ -1,8 +1,6 @@
 
-/**
- * @param {*} obj
- * @returns {boolean}
- */
-module.exports = function(obj) {
-    return !!(obj && obj.constructor === Object);
+var varType = require("./varType.js");
+
+module.exports = function(value) {
+    return varType(value) === 3;
 };

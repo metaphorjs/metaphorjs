@@ -1,7 +1,8 @@
 
 var Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
     Watchable = require("../../../metaphorjs-watchable/src/metaphorjs.watchable.js"),
-    extend = require("../func/extend.js");
+    extend = require("../func/extend.js"),
+    undf = require("../var/undf.js");
 
 var Scope = function(cfg) {
     var self    = this;
@@ -67,13 +68,13 @@ Scope.prototype = {
         var s       = this;
 
         while (s) {
-            if (s[key] != undefined) {
+            if (s[key] !== undf) {
                 return s[key];
             }
             s       = s.$parent;
         }
 
-        return undefined;
+        return undf;
     },
 
     $$onParentDestroy: function() {

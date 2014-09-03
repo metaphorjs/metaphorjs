@@ -83,12 +83,12 @@ module.exports = function(){
 
 
             if (el.nodeType) {
-                try {
+                //try {
                     res = fn.call(fnScope, el);
-                }
-                catch (thrownError) {
-                    error(thrownError);
-                }
+                //}
+                //catch (thrownError) {
+                //    error(thrownError);
+                //}
             }
 
 

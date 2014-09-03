@@ -9,10 +9,7 @@ var isFunction = require("./isFunction.js"),
  */
 module.exports = function(any) {
     var then;
-    if (!any) {
-        return false;
-    }
-    if (!isObject(any) && !isFunction(any)) {
+    if (!any || (!isObject(any) && !isFunction(any))) {
         return false;
     }
     return isFunction((then = any.then)) ?

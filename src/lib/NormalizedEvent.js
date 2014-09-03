@@ -1,7 +1,7 @@
 
 var returnFalse = require("../func/returnFalse.js"),
     returnTrue = require("../func/returnTrue.js"),
-    isUndefined = require("../func/isUndefined.js"),
+    undf = require("../var/undf.js"),
     isNull = require("../func/isNull.js");
 
 // from jQuery
@@ -43,7 +43,7 @@ var NormalizedEvent = function(src) {
         button = src.button;
 
     // Calculate pageX/Y if missing and clientX/Y available
-    if (isUndefined(self.pageX) && !isNull(src.clientX)) {
+    if (self.pageX === undf && !isNull(src.clientX)) {
         eventDoc = self.target ? self.target.ownerDocument || document : document;
         doc = eventDoc.documentElement;
         body = eventDoc.body;
@@ -58,14 +58,14 @@ var NormalizedEvent = function(src) {
 
     // Add which for click: 1 === left; 2 === middle; 3 === right
     // Note: button is not normalized, so don't use it
-    if ( !self.which && button !== undefined ) {
+    if ( !self.which && button !== undf ) {
         self.which = ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
     }
 
     // Events bubbling up the document may have been marked as prevented
     // by a handler lower down the tree; reflect the correct value.
     self.isDefaultPrevented = src.defaultPrevented ||
-                              isUndefined(src.defaultPrevented) &&
+                              src.defaultPrevented === undf &&
                                   // Support: Android<4.0
                               src.returnValue === false ?
                               returnTrue :

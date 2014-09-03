@@ -1,6 +1,6 @@
 
 var nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
-    isUndefined = require("../func/isUndefined.js"),
+    undf = require("../var/undf.js"),
     isBool = require("../func/isBool.js"),
     isObject = require("../func/isObject.js");
 
@@ -8,10 +8,10 @@ var nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
 
     var filterArrayCompareValues = function(value, to, opt) {
 
-            if (to === "" || isUndefined(to)) {
+            if (to === "" || to === undf) {
                 return true;
             }
-            else if (isUndefined(value)) {
+            else if (value === undf) {
                 return false;
             }
             else if (isBool(value)) {
@@ -23,7 +23,7 @@ var nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
             else if (opt == "strict") {
                 return ""+value === ""+to;
             }
-            else if (opt === true || opt === null || isUndefined(opt)) {
+            else if (opt === true || opt === null || opt === undf) {
                 return ""+value.indexOf(to) != -1;
             }
             else if (opt === false) {
@@ -35,7 +35,7 @@ var nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
         filterArrayCompare = function(value, by, opt) {
 
             if (!isObject(value)) {
-                if (isUndefined(by.$)) {
+                if (by.$ === undf) {
                     return true;
                 }
                 else {

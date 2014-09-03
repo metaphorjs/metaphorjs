@@ -1,5 +1,6 @@
-var toString = require("./toString.js");
+
+var varType = require("./varType.js");
 
 module.exports = function(value) {
-    return toString.call(value) === '[object Date]';
+    return varType(value) === 10;
 };

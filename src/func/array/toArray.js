@@ -1,5 +1,5 @@
 
-var isUndefined = require("../isUndefined.js"),
+var undf = require("../../var/undf.js"),
     isString = require("../isString.js");
 
 /**
@@ -7,7 +7,7 @@ var isUndefined = require("../isUndefined.js"),
  * @returns {[]}
  */
 module.exports = function(list) {
-    if (list && !isUndefined(list.length) && !isString(list)) {
+    if (list && !list.length != undf && !isString(list)) {
         for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]){}
         return a;
     }

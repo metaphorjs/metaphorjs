@@ -1,5 +1,6 @@
 
-var isString = require("./isString.js");
+var isString = require("./isString.js"),
+    undf = require("../var/undf.js");
 
 module.exports = function(data, type) {
 
@@ -14,7 +15,7 @@ module.exports = function(data, type) {
         tmp = new DOMParser();
         xml = tmp.parseFromString(data, type || "text/xml");
     } catch (thrownError) {
-        xml = undefined;
+        xml = undf;
     }
 
     if (!xml || xml.getElementsByTagName("parsererror").length) {
