@@ -372,7 +372,8 @@ var isFunction = function(value) {
 
 
 var isObject = function(value) {
-    return value !== null && typeof value == "object" && varType(value) > 2;
+    var vt = varType(value);
+    return value !== null && typeof value == "object" && (vt > 2 || vt == -1);
 };
 
 
@@ -1063,8 +1064,7 @@ var Renderer = function(){
                     handlers = getAttributeHandlers();
                 }
 
-                var attrs   = node.attributes,
-                    tag     = node.tagName.toLowerCase(),
+                var tag     = node.tagName.toLowerCase(),
                     defers  = [],
                     nodes   = [],
                     i, f, len,
@@ -1119,6 +1119,8 @@ var Renderer = function(){
 
                 recursive = node.getAttribute("mjs-recursive") !== null;
 
+                var attrs   = slice.call(node.attributes);
+
                 for (i = 0, len = attrs.length; i < len; i++) {
 
                     if (!nsGet(n, true)) {
@@ -1126,6 +1128,7 @@ var Renderer = function(){
                         textRenderer = createText(scope, attrs[i].value, null, texts.length, recursive);
 
                         if (textRenderer) {
+                            node.removeAttribute(attrs[i].name);
                             textRenderer.subscribe(self.onTextChange, self);
                             texts.push({
                                 node: node,
@@ -1166,13 +1169,18 @@ var Renderer = function(){
 
 
             if (attr) {
-                text.node.setAttribute(attr, res);
                 if (attr == "value") {
                     text.node.value = res;
                 }
-                if (attr == "class") {
+                else if (attr == "class") {
                     text.node.className = res;
                 }
+                else if (attr == "src") {
+                    text.node.src = res;
+                }
+
+                text.node.setAttribute(attr, res);
+
             }
             else {
                 text.node[nodeTextProp] = res;
@@ -3130,9 +3138,7 @@ var AttributeHandler = defineClass("MetaphorJs.view.AttributeHandler", {
             self.onChange();
         }
 
-        if (scope instanceof Scope) {
-            scope.$on("destroy", self.onScopeDestroy, self);
-        }
+        scope.$on("destroy", self.onScopeDestroy, self);
     },
 
     onScopeDestroy: function() {
@@ -3378,7 +3384,8 @@ var isNumber = function(value) {
 
 
 var isPrimitive = function(value) {
-    return varType(value) < 3;
+    var vt = varType(value);
+    return vt < 3 && vt > -1;
 };
 var uaString = navigator.userAgent.toLowerCase();
 
@@ -4724,6 +4731,76 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
 }());
 
 
+
+var preloadImage = function() {
+
+    var cache = {},
+        cacheCnt = 0;
+
+
+    return function(src) {
+
+        if (cache[src]) {
+            return Promise.resolve(src);
+        }
+
+        if (cacheCnt > 1000) {
+            cache = {};
+            cacheCnt = 0;
+        }
+
+        var img = document.createElement("img"),
+            style = img.style,
+            deferred = new Promise;
+
+        addListener(img, "load", function() {
+            cache[src] = true;
+            cacheCnt++;
+            document.body.removeChild(img);
+            deferred.resolve(src);
+        });
+
+        style.position = "absolute";
+        style.visibility = "hidden";
+        style.left = "-10000px";
+        style.top = "0";
+        img.src = src;
+        document.body.appendChild(img);
+
+        return deferred;
+    };
+
+}();
+
+
+
+registerAttributeHandler("mjs-src", 1000, defineClass(null, AttributeHandler, {
+
+    initialize: function(scope, node, expr) {
+
+        this.supr(scope, node, expr);
+
+        node.removeAttribute("mjs-src");
+
+    },
+
+    onChange: function() {
+
+        var self    = this,
+            src     = self.watcher.getLastResult();
+
+        async(function(){
+            preloadImage(src).done(function(){
+                if (self && self.node) {
+                    self.node.src = src;
+                    self.node.setAttribute("src", src);
+                }
+            });
+        });
+    }
+}));
+
+
 var parentData = function(node, key) {
 
     var val;
@@ -4802,11 +4879,16 @@ registerTagHandler("mjs-transclude", 900, function(scope, node) {
 });
 
 
-(function(){
 
-    var filterArrayCompareValues = function(value, to, opt) {
+var filterArray = function(){
 
-            if (to === "" || to === undf) {
+
+    var compareValues = function(value, to, opt) {
+
+            if (isFunction(to)) {
+                return to(value, opt);
+            }
+            else if (to === "" || to === undf) {
                 return true;
             }
             else if (value === undf) {
@@ -4815,7 +4897,7 @@ registerTagHandler("mjs-transclude", 900, function(scope, node) {
             else if (isBool(value)) {
                 return value === to;
             }
-            else if (opt instanceof RegExp) {
+            else if (to instanceof RegExp) {
                 return to.test("" + value);
             }
             else if (opt == "strict") {
@@ -4830,66 +4912,65 @@ registerTagHandler("mjs-transclude", 900, function(scope, node) {
             return false;
         },
 
-        filterArrayCompare = function(value, by, opt) {
+        compare = function(value, by, opt) {
 
-            if (!isObject(value)) {
+            if (isPrimitive(value)) {
                 if (by.$ === undf) {
                     return true;
                 }
                 else {
-                    return filterArrayCompareValues(value, by.$, opt);
+                    return compareValues(value, by.$, opt);
                 }
             }
-            else {
-                var k, i;
 
-                for (k in by) {
-
-                    if (k == '$') {
-
-                        for (i in value) {
-                            if (filterArrayCompareValues(value[i], by.$, opt)) {
-                                return true;
-                            }
-                        }
-                    }
-                    else {
-                        if (filterArrayCompareValues(value[k], by[k], opt)) {
+            var k, i;
+            for (k in by) {
+                if (k == '$') {
+                    for (i in value) {
+                        if (compareValues(value[i], by.$, opt)) {
                             return true;
                         }
+                    }
+                }
+                else {
+                    if (compareValues(value[k], by[k], opt)) {
+                        return true;
                     }
                 }
             }
 
             return false;
-        },
-
-        filterArray = function(a, by, compare) {
-
-            if (!isObject(by)) {
-                by = {$: by};
-            }
-
-            var ret = [],
-                i, l;
-
-            for (i = -1, l = a.length; ++i < l;) {
-                if (filterArrayCompare(a[i], by, compare)) {
-                    ret.push(a[i]);
-                }
-            }
-
-            return ret;
         };
 
+    var filterArray = function(a, by, opt) {
+
+        if (!isPlainObject(by)) {
+            by = {$: by};
+        }
+
+        var ret = [],
+            i, l;
+
+        for (i = -1, l = a.length; ++i < l;) {
+            if (compare(a[i], by, opt)) {
+                ret.push(a[i]);
+            }
+        }
+
+        return ret;
+    };
+
+    filterArray.compare = compare;
+
+    return filterArray;
+
+}();
 
 
+nsAdd("filter.filter", function(val, scope, by, opt) {
+    return filterArray(val, by, opt);
+});
 
-    nsAdd("filter.filter", function(val, scope, by, opt) {
-        return filterArray(val, by, opt);
-    });
-
-}());
 
 
 
@@ -5007,13 +5088,13 @@ nsAdd("filter.p", function(key, scope, number) {
 });
 
 
-nsAdd("filter.sortBy", function(val, scope, field, dir) {
+var sortArray = function(arr, by, dir) {
 
     if (!dir) {
         dir = "asc";
     }
 
-    var ret = val.slice();
+    var ret = arr.slice();
 
     ret.sort(function(a, b) {
         var typeA = typeof a,
@@ -5026,8 +5107,14 @@ nsAdd("filter.sortBy", function(val, scope, field, dir) {
         }
 
         if (typeA == "object") {
-            valueA = a[field];
-            valueB = b[field];
+            if (isFunction(by)) {
+                valueA = by(a);
+                valueB = by(b);
+            }
+            else {
+                valueA = a[by];
+                valueB = b[by];
+            }
         }
 
         if (typeof valueA == "number") {
@@ -5043,6 +5130,12 @@ nsAdd("filter.sortBy", function(val, scope, field, dir) {
     });
 
     return dir == "desc" ? ret.reverse() : ret;
+
+};
+
+
+nsAdd("filter.sortBy", function(val, scope, field, dir) {
+    return sortArray(val, field, dir);
 });
 
 
@@ -5209,7 +5302,13 @@ registerAttributeHandler("mjs-each-in-store", 100, defineClass(null, "attr.mjs-e
         self.scope      = scope;
         self.store      = store = createGetter(self.model)(scope);
 
+        self.animateMove    = node.getAttribute("mjs-animate-move") !== null && animate.cssAnimations;
+        node.removeAttribute("mjs-animate-move");
+
         self.parentEl.removeChild(node);
+
+        self.trackByFn      = bind(store.getRecordId, store);
+        self.griDelegate    = bind(store.indexOfId, store);
 
         self.initWatcher();
         self.render(self.watcher.getValue());
@@ -5229,8 +5328,7 @@ registerAttributeHandler("mjs-each-in-store", 100, defineClass(null, "attr.mjs-e
 
     initWatcher: function() {
         var self        = this;
-        self.watcher    = createWatchable(self.store, ".items", null);
-        self.watcher.subscribe(self.onChange, self);
+        self.watcher    = createWatchable(self.store, ".current", self.onChange, self, null, ns);
     },
 
     resetWatcher: function() {
@@ -5242,17 +5340,8 @@ registerAttributeHandler("mjs-each-in-store", 100, defineClass(null, "attr.mjs-e
 
         var self    = this;
 
-        store[fn]("load", self.onStoreUpdate, self);
         store[fn]("update", self.onStoreUpdate, self);
-        store[fn]("add", self.onStoreUpdate, self);
-        store[fn]("remove", self.onStoreUpdate, self);
-        store[fn]("replace", self.onStoreUpdate, self);
-
-        store[fn]("filter", self.onStoreFilter, self);
-        store[fn]("clearfilter", self.onStoreFilter, self);
-
-        store[fn]("clear", self.onStoreClear, self);
-
+        store[fn]("clear", self.onStoreUpdate, self);
         store[fn]("destroy", self.onStoreDestroy, self);
     },
 
@@ -5260,19 +5349,10 @@ registerAttributeHandler("mjs-each-in-store", 100, defineClass(null, "attr.mjs-e
         this.watcher.check();
     },
 
-    onStoreFilter: function() {
-        this.resetWatcher();
-        this.onStoreUpdate();
-    },
-
-    onStoreClear: function() {
-        this.resetWatcher();
-        this.onStoreUpdate();
-    },
 
     onStoreDestroy: function() {
         var self = this;
-        self.onStoreClear();
+        self.onStoreUpdate();
         self.watcher.unsubscribeAndDestroy(self.onChange, self);
         delete self.watcher;
     }

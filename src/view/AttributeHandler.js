@@ -28,9 +28,7 @@ module.exports = defineClass("MetaphorJs.view.AttributeHandler", {
             self.onChange();
         }
 
-        if (scope instanceof Scope) {
-            scope.$on("destroy", self.onScopeDestroy, self);
-        }
+        scope.$on("destroy", self.onScopeDestroy, self);
     },
 
     onScopeDestroy: function() {

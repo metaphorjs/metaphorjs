@@ -76,8 +76,10 @@ var isString = function(value) {
 
 
 var isObject = function(value) {
-    return value !== null && typeof value == "object" && varType(value) > 2;
+    var vt = varType(value);
+    return value !== null && typeof value == "object" && (vt > 2 || vt == -1);
 };
+var strUndef = "undefined";
 
 
 
@@ -101,7 +103,7 @@ var Namespace   = function(root, rootName) {
         self    = this;
 
     if (!root) {
-        if (global) {
+        if (typeof global != strUndef) {
             root    = global;
         }
         else {
@@ -118,6 +120,7 @@ var Namespace   = function(root, rootName) {
             len     = tmp.length,
             name,
             current = root;
+
 
         if (cache[parent]) {
             return [cache[parent], last, ns];
@@ -286,7 +289,6 @@ var async = function(fn, context, args) {
         fn.apply(context, args || []);
     }, 0);
 };
-var strUndef = "undefined";
 
 
 var error = function(e) {
@@ -1603,7 +1605,8 @@ var copy = function(){
 
 
 var isPrimitive = function(value) {
-    return varType(value) < 3;
+    var vt = varType(value);
+    return vt < 3 && vt > -1;
 };var Watchable, createWatchable;
 
 
@@ -2440,7 +2443,7 @@ Watchable = createWatchable = function(){
         },
 
         isFailed        = function(value) {
-            return value === undf || (!value && typeof value == "number" && isNaN(value));
+            return value === undf || varType(value) == 8;
         },
 
         wrapFunc        = function(func, returnsValue) {
@@ -2482,6 +2485,8 @@ Watchable = createWatchable = function(){
                 return getterCache[expr];
             }
             catch (thrownError){
+                throw thrownError;
+                error(thrownError);
                 return emptyFn;
             }
         },
@@ -4624,8 +4629,7 @@ var Renderer = function(){
                     handlers = getAttributeHandlers();
                 }
 
-                var attrs   = node.attributes,
-                    tag     = node.tagName.toLowerCase(),
+                var tag     = node.tagName.toLowerCase(),
                     defers  = [],
                     nodes   = [],
                     i, f, len,
@@ -4680,6 +4684,8 @@ var Renderer = function(){
 
                 recursive = node.getAttribute("mjs-recursive") !== null;
 
+                var attrs   = slice.call(node.attributes);
+
                 for (i = 0, len = attrs.length; i < len; i++) {
 
                     if (!nsGet(n, true)) {
@@ -4687,6 +4693,7 @@ var Renderer = function(){
                         textRenderer = createText(scope, attrs[i].value, null, texts.length, recursive);
 
                         if (textRenderer) {
+                            node.removeAttribute(attrs[i].name);
                             textRenderer.subscribe(self.onTextChange, self);
                             texts.push({
                                 node: node,
@@ -4727,13 +4734,18 @@ var Renderer = function(){
 
 
             if (attr) {
-                text.node.setAttribute(attr, res);
                 if (attr == "value") {
                     text.node.value = res;
                 }
-                if (attr == "class") {
+                else if (attr == "class") {
                     text.node.className = res;
                 }
+                else if (attr == "src") {
+                    text.node.src = res;
+                }
+
+                text.node.setAttribute(attr, res);
+
             }
             else {
                 text.node[nodeTextProp] = res;
@@ -6466,10 +6478,12 @@ var ajax = function(){
 
         self._opt       = opt;
 
-        opt.crossDomain = !!(parts &&
-                             (parts[1] !== local[1] || parts[2] !== local[2] ||
-                              (parts[3] || (parts[1] === "http:" ? "80" : "443")) !==
-                              (local[3] || (local[1] === "http:" ? "80" : "443"))));
+        if (opt.crossDomain !== true) {
+            opt.crossDomain = !!(parts &&
+                                 (parts[1] !== local[1] || parts[2] !== local[2] ||
+                                  (parts[3] || (parts[1] === "http:" ? "80" : "443")) !==
+                                  (local[3] || (local[1] === "http:" ? "80" : "443"))));
+        }
 
         var deferred    = new Promise,
             transport;
@@ -6598,10 +6612,10 @@ var ajax = function(){
 
             self._jsonpName = cbName;
 
-            if (window) {
+            if (typeof window != strUndef) {
                 window[cbName] = bind(self.jsonpCallback, self);
             }
-            if (global) {
+            if (typeof global != strUndef) {
                 global[cbName] = bind(self.jsonpCallback, self);
             }
 
@@ -6610,13 +6624,23 @@ var ajax = function(){
 
         jsonpCallback: function(data) {
 
-            var self    = this;
+            var self    = this,
+                res;
 
             try {
-                self._deferred.resolve(self.processResponseData(data));
+                res = self.processResponseData(data);
             }
             catch (thrownError) {
-                self._deferred.reject(thrownError);
+                if (self._deferred) {
+                    self._deferred.reject(thrownError);
+                }
+                else {
+                    error(thrownError);
+                }
+            }
+
+            if (self._deferred) {
+                self._deferred.resolve(res);
             }
         },
 
@@ -6695,10 +6719,10 @@ var ajax = function(){
             delete self._form;
 
             if (self._jsonpName) {
-                if (window) {
+                if (typeof window != strUndef) {
                     delete window[self._jsonpName];
                 }
-                if (global) {
+                if (typeof global != strUndef) {
                     delete global[self._jsonpName];
                 }
             }
@@ -8790,9 +8814,7 @@ var AttributeHandler = defineClass("MetaphorJs.view.AttributeHandler", {
             self.onChange();
         }
 
-        if (scope instanceof Scope) {
-            scope.$on("destroy", self.onScopeDestroy, self);
-        }
+        scope.$on("destroy", self.onScopeDestroy, self);
     },
 
     onScopeDestroy: function() {
@@ -10531,6 +10553,76 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
 }());
 
 
+
+var preloadImage = function() {
+
+    var cache = {},
+        cacheCnt = 0;
+
+
+    return function(src) {
+
+        if (cache[src]) {
+            return Promise.resolve(src);
+        }
+
+        if (cacheCnt > 1000) {
+            cache = {};
+            cacheCnt = 0;
+        }
+
+        var img = document.createElement("img"),
+            style = img.style,
+            deferred = new Promise;
+
+        addListener(img, "load", function() {
+            cache[src] = true;
+            cacheCnt++;
+            document.body.removeChild(img);
+            deferred.resolve(src);
+        });
+
+        style.position = "absolute";
+        style.visibility = "hidden";
+        style.left = "-10000px";
+        style.top = "0";
+        img.src = src;
+        document.body.appendChild(img);
+
+        return deferred;
+    };
+
+}();
+
+
+
+registerAttributeHandler("mjs-src", 1000, defineClass(null, AttributeHandler, {
+
+    initialize: function(scope, node, expr) {
+
+        this.supr(scope, node, expr);
+
+        node.removeAttribute("mjs-src");
+
+    },
+
+    onChange: function() {
+
+        var self    = this,
+            src     = self.watcher.getLastResult();
+
+        async(function(){
+            preloadImage(src).done(function(){
+                if (self && self.node) {
+                    self.node.src = src;
+                    self.node.setAttribute("src", src);
+                }
+            });
+        });
+    }
+}));
+
+
 var parentData = function(node, key) {
 
     var val;
@@ -10609,11 +10701,16 @@ registerTagHandler("mjs-transclude", 900, function(scope, node) {
 });
 
 
-(function(){
 
-    var filterArrayCompareValues = function(value, to, opt) {
+var filterArray = function(){
 
-            if (to === "" || to === undf) {
+
+    var compareValues = function(value, to, opt) {
+
+            if (isFunction(to)) {
+                return to(value, opt);
+            }
+            else if (to === "" || to === undf) {
                 return true;
             }
             else if (value === undf) {
@@ -10622,7 +10719,7 @@ registerTagHandler("mjs-transclude", 900, function(scope, node) {
             else if (isBool(value)) {
                 return value === to;
             }
-            else if (opt instanceof RegExp) {
+            else if (to instanceof RegExp) {
                 return to.test("" + value);
             }
             else if (opt == "strict") {
@@ -10637,66 +10734,65 @@ registerTagHandler("mjs-transclude", 900, function(scope, node) {
             return false;
         },
 
-        filterArrayCompare = function(value, by, opt) {
+        compare = function(value, by, opt) {
 
-            if (!isObject(value)) {
+            if (isPrimitive(value)) {
                 if (by.$ === undf) {
                     return true;
                 }
                 else {
-                    return filterArrayCompareValues(value, by.$, opt);
+                    return compareValues(value, by.$, opt);
                 }
             }
-            else {
-                var k, i;
 
-                for (k in by) {
-
-                    if (k == '$') {
-
-                        for (i in value) {
-                            if (filterArrayCompareValues(value[i], by.$, opt)) {
-                                return true;
-                            }
-                        }
-                    }
-                    else {
-                        if (filterArrayCompareValues(value[k], by[k], opt)) {
+            var k, i;
+            for (k in by) {
+                if (k == '$') {
+                    for (i in value) {
+                        if (compareValues(value[i], by.$, opt)) {
                             return true;
                         }
+                    }
+                }
+                else {
+                    if (compareValues(value[k], by[k], opt)) {
+                        return true;
                     }
                 }
             }
 
             return false;
-        },
-
-        filterArray = function(a, by, compare) {
-
-            if (!isObject(by)) {
-                by = {$: by};
-            }
-
-            var ret = [],
-                i, l;
-
-            for (i = -1, l = a.length; ++i < l;) {
-                if (filterArrayCompare(a[i], by, compare)) {
-                    ret.push(a[i]);
-                }
-            }
-
-            return ret;
         };
 
+    var filterArray = function(a, by, opt) {
+
+        if (!isPlainObject(by)) {
+            by = {$: by};
+        }
+
+        var ret = [],
+            i, l;
+
+        for (i = -1, l = a.length; ++i < l;) {
+            if (compare(a[i], by, opt)) {
+                ret.push(a[i]);
+            }
+        }
+
+        return ret;
+    };
+
+    filterArray.compare = compare;
+
+    return filterArray;
+
+}();
 
 
+nsAdd("filter.filter", function(val, scope, by, opt) {
+    return filterArray(val, by, opt);
+});
 
-    nsAdd("filter.filter", function(val, scope, by, opt) {
-        return filterArray(val, by, opt);
-    });
-
-}());
 
 
 
@@ -10814,13 +10910,13 @@ nsAdd("filter.p", function(key, scope, number) {
 });
 
 
-nsAdd("filter.sortBy", function(val, scope, field, dir) {
+var sortArray = function(arr, by, dir) {
 
     if (!dir) {
         dir = "asc";
     }
 
-    var ret = val.slice();
+    var ret = arr.slice();
 
     ret.sort(function(a, b) {
         var typeA = typeof a,
@@ -10833,8 +10929,14 @@ nsAdd("filter.sortBy", function(val, scope, field, dir) {
         }
 
         if (typeA == "object") {
-            valueA = a[field];
-            valueB = b[field];
+            if (isFunction(by)) {
+                valueA = by(a);
+                valueB = by(b);
+            }
+            else {
+                valueA = a[by];
+                valueB = b[by];
+            }
         }
 
         if (typeof valueA == "number") {
@@ -10850,6 +10952,12 @@ nsAdd("filter.sortBy", function(val, scope, field, dir) {
     });
 
     return dir == "desc" ? ret.reverse() : ret;
+
+};
+
+
+nsAdd("filter.sortBy", function(val, scope, field, dir) {
+    return sortArray(val, field, dir);
 });
 
 
@@ -11010,6 +11118,8 @@ var Model = function(){
         record:         null,
         store:          null,
         plain:          false,
+
+        lastAjaxResponse: null,
 
 
         /**
@@ -11222,11 +11332,13 @@ var Model = function(){
 
             if (what == "record") {
                 cfg.processResponse = function(response, deferred) {
+                    self.lastAjaxResponse = response;
                     self._processRecordResponse(type, response, deferred);
                 }
             }
             else if (what == "store") {
                 cfg.processResponse = function(response, deferred) {
+                    self.lastAjaxResponse = response;
                     self._processStoreResponse(type, response, deferred);
                 };
             }
@@ -12002,10 +12114,9 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
 
 
+
  (function(){
 
-
-    var storeId     = 0;
     var allStores   = {};
 
 
@@ -12069,6 +12180,12 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             items:          null,
 
             /**
+             * @var {[]}
+             * @access protected
+             */
+            current:        null,
+
+            /**
              * @var {object}
              * @access protected
              */
@@ -12078,13 +12195,25 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
              * @var {object}
              * @access protected
              */
-            keys:           null,
+            currentMap:     null,
 
             /**
              * @var {number}
              * @access protected
              */
             length:         0,
+
+            /**
+             * @var {number}
+             * @access protected
+             */
+            currentLength:  0,
+
+            /**
+             * @var {number}
+             * @access protected
+             */
+            maxLength:      0,
 
             /**
              * @var {number}
@@ -12117,31 +12246,47 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             filtered:       false,
 
             /**
-             * @var {object}
+             * @var {bool}
              * @access protected
              */
-            filterBackup:   null,
+            sorted:         false,
+
 
             /**
              * @access protected
-             * @param {MetaphorJs.data.Record|Object} rec
-             * @param {string|int} id
-             * @param {[]} params
+             * @var {{}|string}
              */
-            filterFn:       null,
+            filterBy:       null,
 
             /**
-             * @var {object}
+             * @var {string|boolean}
              * @access protected
              */
-            filterScope:    null,
+            filterOpt:      null,
 
             /**
-             * @var {[]}
+             * @var {string}
              * @access protected
              */
-            filterParams:   null,
+            sortBy:         null,
 
+            /**
+             * @var {string}
+             * @access protected
+             */
+            sortDir:        null,
+
+            /**
+             * @var {boolean}
+             * @access protected
+             */
+            public: true,
+
+            /**
+             * @var {string}
+             * @access protected
+             */
+            idProp: null,
 
             /**
              * @constructor
@@ -12161,8 +12306,8 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
                 var self        = this;
 
                 self.items      = [];
+                self.current    = [];
                 self.map        = {};
-                self.keys       = [];
                 self.loaded     = false;
                 self.extraParams    = self.extraParams || {};
 
@@ -12176,13 +12321,16 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
                 self.supr(options);
 
-                self.id             = self.id || ++storeId;
-                allStores[self.id]  = self;
+                self.id             = self.id || nextUid();
+                
+                if (self.public) {
+                    allStores[self.id]  = self;
+                }
 
                 if (isString(self.model)) {
                     self.model  = factory(self.model);
                 }
-                else if (!isInstanceOf(self.model, Model)) {
+                else if (!(self.model instanceof Model)) {
                     self.model  = factory("MetaphorJs.data.Model", self.model);
                 }
 
@@ -12190,16 +12338,18 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
                     self.model.store.load    = url || options.url;
                 }
 
+                self.createEvent("beforeload", false);
+                self.idProp = self.model.getStoreProp("load", "id");
 
                 if (!self.local && self.autoLoad) {
                     self.load();
                 }
                 else if (initialData) {
                     if (isArray(initialData)) {
-                        self.loadArray(initialData);
+                        self._loadArray(initialData);
                     }
                     else {
-                        self.loadAjaxData(initialData);
+                        self._loadAjaxData(initialData);
                     }
                 }
 
@@ -12251,18 +12401,25 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             },
 
             /**
+             * @returns bool
+             */
+            isSorted: function() {
+                return this.sorted;
+            },
+
+            /**
+             * @param {boolean} unfiltered
              * @returns number
              */
-            getLength: function() {
-                return this.length;
+            getLength: function(unfiltered) {
+                return unfiltered ? this.length : this.currentLength;
             },
 
             /**
              * @returns number
              */
             getTotalLength: function() {
-                return this.filtered ?
-                            this.length : (this.totalLength || this.length);
+                return this.totalLength || this.currentLength;
             },
 
             /**
@@ -12318,9 +12475,10 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             },
 
             /**
+             * @param {boolean} unfiltered
              * @returns bool
              */
-            hasDirty: function() {
+            hasDirty: function(unfiltered) {
                 if (this.model.isPlain()) {
                     return false;
                 }
@@ -12331,14 +12489,15 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
                         return false;
                     }
                     return true;
-                });
+                }, null, unfiltered);
                 return ret;
             },
 
             /**
+             * @param {boolean} unfiltered
              * @returns []
              */
-            getDirty: function() {
+            getDirty: function(unfiltered) {
                 var recs    = [];
                 if (this.model.isPlain()) {
                     return recs;
@@ -12347,7 +12506,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
                     if (rec.isDirty()) {
                         recs.push(rec);
                     }
-                });
+                }, null, unfiltered);
                 return recs;
             },
 
@@ -12358,38 +12517,108 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
                 return this.model;
             },
 
+
+
+
+
+
             /**
-             * @param {[]} recs
+             * initialize store with data from remote sever
+             * @param {object} data
              */
-            importData: function(recs) {
+            _loadAjaxData: function(data, options) {
 
                 var self    = this;
 
-                self.suspendAllEvents();
+                options = options || {};
 
-                for (var i = 0; i < recs.length; i++) {
-                    self.add(recs[i]);
+                if (!options.silent && self.trigger("beforeload", self) === false) {
+                    return;
                 }
 
-                self.resumeAllEvents();
+                self.ajaxData = data;
+
+                self.model._processStoreResponse("load", data, {
+                    resolve: function(response) {
+                        self._onModelLoadSuccess(response, options);
+                    },
+                    reject: function(reason) {
+                        self._onModelLoadFail(reason, options);
+                    }
+                });
+            },
+
+            /**
+             * initialize store with local data
+             * @param {[]} recs
+             * @param {{}} options
+             */
+            _loadArray: function(recs, options) {
+
+                var self    = this;
+
+                options = options || {};
+
+                if (!options.silent && self.trigger("beforeload", self) === false) {
+                    return;
+                }
+
+                if (isArray(recs)) {
+                    self._load(recs, options);
+                    self.totalLength    = self.length;
+                }
+            },
+
+
+
+            /**
+             * load records no matter where they came from
+             * @param {[]} recs
+             * @param {{}} options
+             */
+            _load: function(recs, options) {
+
+                var self    = this,
+                    prepend = options.prepend;
+
+                options = options || {};
+
+                for (var i = 0; i < recs.length; i++) {
+                    if (prepend) {
+                        self.insert(i, recs[i], true, true);
+                    }
+                    else {
+                        self.add(recs[i], true, true);
+                    }
+                }
 
                 self.loaded     = true;
                 self.loading    = false;
 
                 self.onLoad();
-                self.trigger("load", self);
+
+                if (!options.skipUpdate) {
+                    self.update();
+                }
+
+                if (!options.silent) {
+                    self.trigger("load", self);
+                }
             },
 
             /**
              * @param {object} params
              * @returns MetaphorJs.lib.Promise
              */
-            load: function(params) {
+            load: function(params, options) {
 
                 var self    = this,
                     ms      = self.model.store,
                     sp      = ms.start,
-                    lp      = ms.limit;
+                    lp      = ms.limit,
+                    ps      = self.pageSize;
+
+                options = options || {};
 
                 if (self.local) {
                     return null;
@@ -12397,25 +12626,45 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
                 params      = extend({}, self.extraParams, params || {});
 
-                if (self.pageSize !== null && !params[sp] && !params[lp]) {
+                if (ps !== null && !params[sp] && !params[lp]) {
                     params[sp]    = self.start;
-                    params[lp]    = self.pageSize;
+                    params[lp]    = ps;
                 }
 
-                if (self.trigger("beforeload", self) === false) {
+                if (!options.silent && self.trigger("beforeload", self) === false) {
                     return null;
                 }
 
+                self.loading = true;
+
                 return self.model.loadStore(self, params)
-                    .done(function(response) {
-                        self.totalLength    = parseInt(response.total);
-                        self.importData(response.data);
-                        self.totalLength    = parseInt(response.total);
+                    .done(function(response){
+                        self.ajaxData = self.model.lastAjaxResponse;
+                        self._onModelLoadSuccess(response, options);
                     })
-                    .fail(function(reason) {
-                        self.onFailedLoad();
-                        self.trigger("failedload", self, reason);
+                    .fail(function(reason){
+                        self.ajaxData = self.model.lastAjaxResponse;
+                        self._onModelLoadFail(reason, options);
                     });
+            },
+
+            _onModelLoadSuccess: function(response, options) {
+
+                var self = this;
+                if (self.clearOnLoad && self.length > 0) {
+                    self.clear();
+                }
+
+                self.totalLength = parseInt(response.total);
+                self._load(response.data, options);
+            },
+
+            _onModelLoadFail: function(reason, options) {
+                var self = this;
+                self.onFailedLoad();
+                if (!options.silent) {
+                    self.trigger("failedload", self, reason);
+                }
             },
 
             onLoad: emptyFn,
@@ -12424,7 +12673,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             /**
              * @returns MetaphorJs.lib.Promise
              */
-            save: function() {
+            save: function(silent) {
 
                 var self    = this,
                     recs    = {},
@@ -12449,36 +12698,51 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
                     throw new Error("Nothing to save");
                 }
 
-                if (self.trigger("beforesave", self, recs) === false) {
+                if (!silent && self.trigger("beforesave", self, recs) === false) {
                     return null;
                 }
 
                 return self.model.saveStore(self, recs)
-                    .done(function(response) {
-
-                        var i, len,
-                            id, rec,
-                            data = response.data;
-
-                        if (data && data.length) {
-                            for (i = 0, len = data.length; i < len; i++) {
-
-                                id      = self.getRecordId(data[i]);
-                                rec     = self.getById(id);
-
-                                if (rec) {
-                                    rec.importData(data[i]);
-                                }
-                            }
-                        }
-
-                        self.onSave();
-                        self.trigger("save", self);
+                    .done(function(response){
+                        self._onModelSaveSuccess(response, silent);
                     })
-                    .fail(function() {
-                        self.onFailedSave();
-                        self.trigger("failedsave", self);
+                    .fail(function(reason){
+                        self._onModelSaveFail(reason, silent);
                     });
+
+            },
+
+            _onModelSaveSuccess: function(response, silent) {
+
+                var self = this,
+                    i, len,
+                    id, rec,
+                    data = response.data;
+
+                if (data && data.length) {
+                    for (i = 0, len = data.length; i < len; i++) {
+
+                        id      = self.getRecordId(data[i]);
+                        rec     = self.getById(id);
+
+                        if (rec) {
+                            rec.importData(data[i]);
+                        }
+                    }
+                }
+
+                self.onSave();
+                if (!silent) {
+                    self.trigger("save", self);
+                }
+            },
+
+            _onModelSaveFail: function(reason, silent) {
+                var self = this;
+                self.onFailedSave(reason);
+                if (!silent) {
+                    self.trigger("failedsave", self);
+                }
             },
 
             onSave: emptyFn,
@@ -12487,9 +12751,11 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
             /**
              * @param {[]} ids
+             * @param {boolean} silent
+             * @param {boolean} skipUpdate
              * @returns MetaphorJs.lib.Promise
              */
-            deleteById: function(ids) {
+            deleteById: function(ids, silent, skipUpdate) {
 
                 var self    = this,
                     i, len, rec;
@@ -12508,60 +12774,70 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
                 for (i = 0, len = ids.length; i < len; i++){
                     rec = self.getById(ids[i]);
+                    self.remove(rec, silent, skipUpdate);
                     if (rec instanceof Record) {
                         rec.destroy();
                     }
-                    else {
-                        self.removeId(ids[i]);
-                    }
                 }
 
-                if (self.trigger("beforedelete", self, ids) === false) {
+                if (!silent && self.trigger("beforedelete", self, ids) === false) {
                     return null;
                 }
 
                 return self.model.deleteRecords(self, ids)
                     .done(function() {
+                        self.totalLength -= ids.length;
                         self.onDelete();
-                        self.trigger("delete", self, ids);
+                        if (!silent) {
+                            self.trigger("delete", self, ids);
+                        }
                     })
                     .fail(function() {
                         self.onFailedDelete();
-                        self.trigger("faileddelete", self, ids);
+                        if (!silent) {
+                            self.trigger("faileddelete", self, ids);
+                        }
                     });
             },
+
 
             onDelete: emptyFn,
             onFailedDelete: emptyFn,
 
             /**
              * @param {number} inx
+             * @param {boolean} silent
+             * @param {boolean} skipUpdate
              * @returns MetaphorJs.lib.Promise
              */
-            deleteAt: function(inx) {
+            deleteAt: function(inx, silent, skipUpdate) {
                 var self    = this,
                     rec     = self.getAt(inx);
 
                 if (!rec) {
                     throw new Error("Record not found at " + inx);
                 }
-                return self.deleteRecord(rec);
+                return self.delete(rec, silent, skipUpdate);
             },
 
             /**
              * @param {MetaphorJs.data.Record} rec
+             * @param {boolean} silent
+             * @param {boolean} skipUpdate
              * @returns MetaphorJs.lib.Promise
              */
-            "delete": function(rec) {
+            "delete": function(rec, silent, skipUpdate) {
                 var self    = this;
-                return self.deleteById(self.getRecordId(rec));
+                return self.deleteById(self.getRecordId(rec), silent, skipUpdate);
             },
 
             /**
              * @param {MetaphorJs.data.Record[]} recs
+             * @param {boolean} silent
+             * @param {boolean} skipUpdate
              * @returns MetaphorJs.lib.Promise
              */
-            deleteRecords: function(recs) {
+            deleteRecords: function(recs, silent, skipUpdate) {
                 var ids     = [],
                     self    = this,
                     i, len;
@@ -12570,59 +12846,17 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
                     ids.push(self.getRecordId(recs[i]));
                 }
 
-                return self.deleteById(ids);
+                return self.deleteById(ids, silent, skipUpdate);
             },
 
-            /**
-             * @param {object} data
-             */
-            loadAjaxData: function(data) {
-
-                var self    = this;
-
-                if (self.trigger("beforeload", self) === false) {
-                    return;
-                }
-
-                self.model._processStoreResponse("load", data, {
-                    resolve: function(data, total) {
-                        self.importData(data);
-                        self.totalLength    = parseInt(total);
-                    },
-                    reject: function() {
-
-                    }
-                });
-            },
-
-            /**
-             * @param {[]} recs
-             * @param {bool} add
-             */
-            loadArray: function(recs, add) {
-
-                var self    = this;
-
-                if (self.trigger("beforeload", self) === false) {
-                    return;
-                }
-
-                if (!add && self.clearOnLoad && self.length > 0) {
-                    self.clear();
-                }
-
-                if (isArray(recs)) {
-                    self.importData(recs);
-                    self.totalLength    = self.length;
-                }
-            },
 
             /**
              * Load store if not loaded or call provided callback
              * @param {function} cb
              * @param {object} cbScope
+             * @param {object} options
              */
-            loadOr: function(cb, cbScope) {
+            loadOr: function(cb, cbScope, options) {
 
                 var self    = this;
 
@@ -12632,7 +12866,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
                 if (!self.isLoading()) {
                     if (!self.isLoaded()) {
-                        self.load();
+                        self.load(null, options);
                     }
                     else if (cb) {
                         cb.call(cbScope || self);
@@ -12643,7 +12877,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             /**
              * @method
              */
-            addNextPage: function() {
+            addNextPage: function(options) {
 
                 var self    = this;
 
@@ -12651,33 +12885,33 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
                     self.load({
                         start:      self.length,
                         limit:      self.pageSize
-                    }, true);
+                    }, options);
                 }
             },
 
             /**
              * @method
              */
-            loadNextPage: function() {
+            loadNextPage: function(options) {
 
                 var self    = this;
 
                 if (!self.local) {
                     self.start += self.pageSize;
-                    self.load();
+                    self.load(null, options);
                 }
             },
 
             /**
              * @method
              */
-            loadPrevPage: function() {
+            loadPrevPage: function(options) {
 
                 var self    = this;
 
                 if (!self.local) {
                     self.start -= self.pageSize;
-                    self.load();
+                    self.load(null, options);
                 }
             },
 
@@ -12692,7 +12926,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
                     return rec.getId();
                 }
                 else {
-                    return rec[this.model.getStoreProp("load", "id")] || null;
+                    return rec[this.idProp] || null;
                 }
             },
 
@@ -12769,198 +13003,233 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             },
 
 
+
+
+
             /**
-             *
-             * @param {string|int} id
-             * @param {MetaphorJs.data.Record|Object} rec
-             * @param {bool} silent
+             * @param {boolean} silent
+             * @param {boolean} skipUpdate
+             * @param {boolean} unfiltered
+             * @returns {MetaphorJs.data.Record|Object|null}
              */
-            add: function(id, rec, silent) {
+            shift: function(silent, skipUpdate, unfiltered) {
+                return this.removeAt(0, silent, skipUpdate, unfiltered);
+            },
 
-                var self    = this;
+            /**
+             * Works with unfiltered data
+             * @param {{}|MetaphorJs.data.Record} rec
+             * @param {boolean} silent
+             * @param {boolean} skipUpdate
+             * @returns {MetaphorJs.data.Record|Object}
+             */
+            unshift: function(rec, silent, skipUpdate) {
+                return this.insert(0, rec, silent, skipUpdate);
+            },
 
-                if (self.filtered) {
-                    throw "Cannot add to filtered store";
+            /**
+             * @param {boolean} silent
+             * @param {boolean} skipUpdate
+             * @param {boolean} unfiltered
+             * @returns {MetaphorJs.data.Record|Object|null}
+             */
+            pop: function(silent, skipUpdate, unfiltered) {
+                return this.removeAt(this.length - 1, silent, skipUpdate, unfiltered);
+            },
+
+            /**
+             * Works with unfiltered data
+             * @param {[]} recs
+             * @param {boolean} silent
+             * @param {boolean} skipUpdate
+             */
+            addMany: function(recs, silent, skipUpdate) {
+                var i, l, self = this, start = self.length;
+
+                for (i = 0, l = recs.length; i < l; i++) {
+                    self.insert(start + i, recs[i], true, true);
                 }
 
-                if (!isString(id) && !isNumber(id)) {
-
-                    rec = arguments[0];
-
-                    if (isArray(rec)) {
-
-                        if (!rec.length) {
-                            return;
-                        }
-
-                        var prevLength  = self.length;
-
-                        for (var i = 0, len = rec.length; i < len; i++) {
-                            rec[i]  = self.processRawDataItem(rec[i]);
-                            self.add(self.getRecordId(rec[i]), rec[i], true);
-                        }
-
-                        self.onAdd(prevLength, rec);
-
-                        if (!silent) {
-                            self.trigger('add', prevLength, rec);
-                        }
-
-                        return;
-                    }
-                    else {
-                        rec = self.processRawDataItem(rec);
-                        id  = self.getRecordId(rec);
-                    }
+                if (!skipUpdate) {
+                    self.update();
                 }
 
-                if (id != undf){
-                    var old = self.map[id];
-                    if(old != undf){
-                        self.replace(id, rec);
-                        return;
-                    }
-                    self.map[id] = rec;
+                if (l > 0 && !silent) {
+                    self.trigger("add", recs);
                 }
+            },
 
-                self.length++;
-                self.items.push(rec);
-                self.keys.push(id);
-
-                if (rec instanceof Record) {
-                    rec.attachStore(self);
-                    self.bindRecord("on", rec);
-                }
-
-                self.onAdd(self.length - 1, [rec]);
-
-                if (!silent) {
-                    self.trigger('add', self.length - 1, [rec]);
-                }
+            /**
+             * Works with unfiltered data
+             * @param {MetaphorJs.data.Record|Object} rec
+             * @param {boolean} silent
+             * @param {boolean} skipUpdate
+             */
+            add: function(rec, silent, skipUpdate) {
+                return this.insert(this.length, rec, silent, skipUpdate);
             },
 
             onAdd: emptyFn,
 
             /**
+             * Works with both filtered and unfiltered
              * @param {number} index
+             * @param {boolean} silent
+             * @param {boolean} skipUpdate
+             * @param {boolean} unfiltered -- index from unfiltered item list
              * @returns MetaphorJs.data.Record|Object|null
              */
-            removeAt: function(index) {
+            removeAt: function(index, silent, skipUpdate, unfiltered) {
 
                 var self    = this;
 
-                if(index < self.length && index >= 0){
+                if (!unfiltered) {
+                    index   = self.items.indexOf(self.current[index]);
+                }
+
+                if(index < self.length && index >= 0) {
+
                     self.length--;
-                    self.totalLength--;
                     var rec = self.items[index];
                     self.items.splice(index, 1);
-                    var id = self.keys[index];
+                    var id = self.getRecordId(rec);
                     if(id != undf){
                         delete self.map[id];
+                        delete self.currentMap[id];
                     }
-                    self.keys.splice(index, 1);
                     self.onRemove(rec, id);
-                    self.trigger('remove', rec, id);
+
+                    if (!skipUpdate) {
+                        self.update();
+                    }
+
+                    if (!silent) {
+                        self.trigger('remove', rec, id);
+                    }
 
                     if (rec instanceof Record) {
                         self.bindRecord("un", rec);
                         rec.detachStore(self);
-                        return rec = null;
+                        return rec.destroyed ? undf : rec;
                     }
                     else {
                         return rec;
                     }
                 }
-                return false;
+
+                return undf;
             },
 
             onRemove: emptyFn,
 
             /**
+             * Works with unfiltered items
              * @param {number} index
-             * @param {string|int} id
+             * @param {[]} recs
+             * @param {boolean} silent
+             * @param {boolean} skipUpdate
+             */
+            insertMany: function(index, recs, silent, skipUpdate) {
+                var i, l, self = this;
+                for (i = 0, l = recs.length; i < l; i++) {
+                    self.insert(index + i, recs[i], true, true);
+                }
+                if (l > 0 && !skipUpdate) {
+                    self.update();
+                }
+                if (l > 0 && !silent) {
+                    self.trigger("add", recs);
+                }
+            },
+
+            /**
+             * Works with unfiltered items
+             * @param {number} index
              * @param {MetaphorJs.data.Record|Object} rec
-             * @param {bool} silent
+             * @param {boolean} silent
+             * @param {boolean} skipUpdate
              * @returns MetaphorJs.data.Record|Object
              */
-            insert: function(index, id, rec, silent) {
-                var self = this;
+            insert: function(index, rec, silent, skipUpdate) {
 
-                if (self.filtered) {
-                    throw new Error("Cannot insert into filtered store");
-                }
+                var self = this,
+                    id,
+                    last = false;
 
-                if(arguments.length == 2){
-                    rec = arguments[1];
-                    id = self.getRecordId(rec);
-                }
-                rec = self.processRawDataItem(rec);
-                if(self.containsId(id)){
+                rec     = self.processRawDataItem(rec);
+                id      = self.getRecordId(rec);
+
+                if(self.map[id]){
                     self.suspendAllEvents();
                     self.removeId(id);
                     self.resumeAllEvents();
                 }
+
                 if(index >= self.length){
-                    return self.add(id, rec, silent);
+                    self.items.push(rec);
+                    last = true;
                 }
+                else {
+                    self.items.splice(index, 0, rec);
+                }
+
                 self.length++;
-                self.items.splice(index, 0, rec);
+
+                if (self.maxLength && self.length > self.maxLength) {
+                    if (last) {
+                        self.pop(silent, true);
+                    }
+                    else {
+                        self.shift(silent, true);
+                    }
+                }
+
                 if(id != undf){
                     self.map[id] = rec;
                 }
-                self.keys.splice(index, 0, id);
 
                 if (rec instanceof Record) {
                     rec.attachStore(self);
                     self.bindRecord("on", rec);
                 }
 
-                self.onAdd(index, [rec]);
+                self.onAdd(index, rec);
+
+                if (!skipUpdate) {
+                    self.update();
+                }
+
                 if (!silent) {
-                    self.trigger('add', index, [rec]);
+                    self.trigger('add', [rec]);
                 }
 
                 return rec;
             },
 
             /**
-             * @param {string|int} id
+             * @param {MetaphorJs.data.Record|Object} old
              * @param {MetaphorJs.data.Record|Object} rec
+             * @param {boolean} silent
+             * @param {boolean} skipUpdate
              * @returns MetaphorJs.data.Record|Object
              */
-            replace: function(id, rec) {
+            replace: function(old, rec, silent, skipUpdate) {
                 var self    = this,
-                    old,
                     index;
 
-                if(arguments.length == 1){
-                    rec     = arguments[0];
-                    id      = self.getRecordId(rec);
+                index   = self.items.indexOf(old);
+
+                self.remove(old, true, true);
+                self.insert(index, rec, true, true);
+
+                if (!skipUpdate) {
+                    self.update();
                 }
 
-                rec         = self.processRawDataItem(rec);
-                old         = self.map[id];
-
-                if(id == undf || old == undf){
-                    return self.add(id, rec);
+                if (!silent) {
+                    self.trigger('replace', old, rec);
                 }
 
-                if (old instanceof Record) {
-                    self.bindRecord("un", old);
-                    old.detachStore(self);
-                }
-
-                index               = self.indexOfId(id);
-                self.items[index]   = rec;
-                self.map[id]        = rec;
-
-                if (rec instanceof Record) {
-                    self.bindRecord("on", rec);
-                    rec.attachStore(self);
-                }
-
-                self.onReplace(id, old, rec);
-                self.trigger('replace', id, old, rec);
                 return rec;
             },
 
@@ -12968,34 +13237,45 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
             /**
              * @param {MetaphorJs.data.Record|Object} rec
+             * @param {boolean} silent
+             * @param {boolean} skipUpdate
              * @returns MetaphorJs.data.Record|Object|null
              */
-            remove: function(rec) {
-                return this.removeAt(this.indexOf(rec));
+            remove: function(rec, silent, skipUpdate) {
+                return this.removeAt(this.indexOf(rec, true), silent, skipUpdate, true);
             },
 
             /**
              * @param {string|int} id
+             * @param {boolean} silent
+             * @param {boolean} skipUpdate
              * @returns MetaphorJs.data.Record|Object|null
              */
-            removeId: function(id) {
-                return this.removeAt(this.indexOfId(id));
+            removeId: function(id, silent, skipUpdate) {
+                return this.removeAt(this.indexOfId(id, true), silent, skipUpdate, true);
             },
 
             /**
              * @param {MetaphorJs.data.Record|Object} rec
+             * @param {boolean} unfiltered
              * @returns bool
              */
-            contains: function(rec) {
-                return this.indexOf(rec) != -1;
+            contains: function(rec, unfiltered) {
+                return this.indexOf(rec, unfiltered) != -1;
             },
 
             /**
              * @param {string|int} id
+             * @param {boolean} unfiltered
              * @returns bool
              */
-            containsId: function(id) {
-                return this.map[id] !== undf;
+            containsId: function(id, unfiltered) {
+                if (unfiltered) {
+                    return this.map[id] !== undf;
+                }
+                else {
+                    return this.currentMap[id] !== undf;
+                }
             },
 
             /**
@@ -13006,7 +13286,6 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
                 var self    = this,
                     recs    = self.getRange();
 
-                self.clearFilter(true);
                 self._reset();
                 self.onClear();
                 self.trigger('clear', recs);
@@ -13037,140 +13316,57 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
                 self.start          = 0;
                 self.length         = 0;
+                self.currentLength  = 0;
                 self.totalLength    = 0;
                 self.items          = [];
-                self.keys           = [];
+                self.current        = [];
                 self.map            = {};
+                self.currentMap     = {};
                 self.loaded         = self.local;
             },
 
 
             /**
-             * @param {function} fn {
-             *      @param {MetaphorJs.data.Record|Object} rec
-             *      @param {string|int} id
-             *      @param {[]} params
-             * }
-             * @param {object} fnScope
-             * @param {[]} params
-             */
-            filter: function(fn, fnScope, params) {
-
-                var self    = this;
-
-                if (self.filtered) {
-                    self.clearFilter(true);
-                }
-
-                self.filtered       = true;
-                self.filterFn       = fn;
-                self.filterScope    = fnScope;
-                self.filterParams   = params;
-
-                self.trigger("beforefilter", self);
-                self.suspendAllEvents();
-
-                self.filterBackup   = {
-                    length:         self.length,
-                    items:          self.items,
-                    keys:           self.keys,
-                    map:            self.map
-                };
-
-                self._reset(true);
-
-                var k   = self.filterBackup.keys,
-                    it  = self.filterBackup.items;
-
-                for(var i = 0, len = it.length; i < len; i++){
-                    if(self._filterRecord(it[i], k[i])){
-                        self.items.push(it[i]);
-                        self.keys.push(k[i]);
-                        self.length++;
-                        self.map[k[i]] = it[i];
-                    }
-                }
-
-                self.resumeAllEvents();
-                self.onFilter();
-                self.trigger("filter", self);
-            },
-
-            onFilter: emptyFn,
-
-            _filterRecord: function(rec, id) {
-                var self    = this;
-                return self.filtered &&
-                    self.filterFn.call(self.filterScope, rec, id, self.filterParams);
-            },
-
-            /**
-             * @param {bool} silent
-             */
-            clearFilter: function(silent) {
-
-                var self    = this;
-
-                if (!self.filtered) {
-                    return;
-                }
-
-                if (!silent) {
-                    self.trigger("beforeclearfilter", self);
-                }
-
-                self.suspendAllEvents();
-
-                self.filtered       = false;
-                self._reset(true);
-
-                self.length         = self.filterBackup.length;
-                self.items          = self.filterBackup.items;
-                self.keys           = self.filterBackup.keys;
-                self.map            = self.filterBackup.map;
-                self.filterBackup   = null;
-
-                self.resumeAllEvents();
-
-                self.onClearFilter();
-                if (!silent) {
-                    self.trigger("clearfilter", self);
-                }
-            },
-
-            onClearFilter: emptyFn,
-
-
-            /**
              * @param {number} index
+             * @param {boolean} unfiltered
              * @returns MetaphorJs.data.Record|Object|null
              */
-            getAt: function(index) {
-                return this.items[index] || null;
+            getAt: function(index, unfiltered) {
+                return unfiltered ?
+                       (this.items[index] || undf) :
+                       (this.current[index] || undf);
             },
 
             /**
              * @param {string|int} id
+             * @param {boolean} unfiltered
              * @returns MetaphorJs.data.Record|Object|null
              */
-            getById: function(id) {
-                return this.map[id] || null;
+            getById: function(id, unfiltered) {
+                return unfiltered ?
+                       (this.map[id] || undf) :
+                       (this.currentMap[id] || undf);
             },
 
             /**
+             * Works with filtered list unless fromOriginal = true
              * @param {MetaphorJs.data.Record|Object} rec
+             * @param {boolean} unfiltered
              * @returns Number
              */
-            indexOf: function(rec) {
-                return this.items.indexOf(rec);
+            indexOf: function(rec, unfiltered) {
+                return unfiltered ?
+                       this.items.indexOf(rec) :
+                       this.current.indexOf(rec);
             },
 
             /**
              * @param {string|int} id
+             * @param {boolean} unfiltered
              * @returns Number
              */
-            indexOfId: function(id) {
-                return this.keys.indexOf(id);
+            indexOfId: function(id, unfiltered) {
+                return this.indexOf(this.getById(id, unfiltered), unfiltered);
             },
 
             /**
@@ -13179,13 +13375,16 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
              *      @param {number} index
              *      @param {number} length
              * }
-             * @param {object} fnScope
+             * @param {object} context
+             * @param {boolean} unfiltered
              */
-            each: function(fn, fnScope) {
-                var items = [].concat(this.items);
-                fnScope = fnScope || window;
+            each: function(fn, context, unfiltered) {
+                var items = unfiltered ?
+                            this.items.slice() :
+                            this.current.slice();
+
                 for(var i = 0, len = items.length; i < len; i++){
-                    if(fn.call(fnScope, items[i], i, len) === false){
+                    if(fn.call(context, items[i], i, len) === false){
                         break;
                     }
                 }
@@ -13193,25 +13392,28 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
             /**
              * @param {function} fn {
-             *      @param {MetaphorJs.data.Record|Object} rec
+             *      @param {string|number} id
              *      @param {number} index
              *      @param {number} length
              * }
-             * @param {object} fnScope
+             * @param {object} context
+             * @param {boolean} unfiltered
              */
-            eachId: function(fn, fnScope) {
+            eachId: function(fn, context, unfiltered) {
+
                 var self    = this;
-                fnScope = fnScope || window;
-                for(var i = 0, len = self.keys.length; i < len; i++){
-                    fn.call(fnScope, self.keys[i], self.items[i], i, len);
-                }
+
+                self.each(function(rec, i, len){
+                    return fn.call(context, self.getRecordId(rec), i, len);
+                }, null, unfiltered);
             },
 
             /**
              * @param {string} f Field name
+             * @param {boolean} unfiltered
              * @returns []
              */
-            collect: function(f) {
+            collect: function(f, unfiltered) {
 
                 var coll    = [],
                     self    = this,
@@ -13219,59 +13421,59 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
                 self.each(function(rec){
 
-                    var val;
-
-                    if (rt) {
-                        val = rec.get(f);
-                    }
-                    else {
-                        val = rec[f];
-                    }
+                    var val = rt ? rec.get(f) : rec[f];
 
                     if (val) {
                         coll.push(val);
                     }
-                });
+                }, null, unfiltered);
 
                 return coll;
             },
 
             /**
+             * @param {boolean} unfiltered
              * @returns MetaphorJs.data.Record|Object
              */
-            first : function(){
-                return this.items[0];
+            first : function(unfiltered){
+                return unfiltered ? this.items[0] : this.current[0];
             },
 
             /**
+             * @param {boolean} unfiltered
              * @returns MetaphorJs.data.Record|Object
              */
-            last : function(){
-                return this.items[this.length-1];
+            last : function(unfiltered){
+                return unfiltered ? this.items[this.length-1] : this.current[this.current-1];
             },
 
             /**
              *
              * @param {number} start Optional
              * @param {number} end Optional
+             * @param {boolean} unfiltered
              * @returns MetaphorJs.data.Record[]|Object[]
              */
-            getRange : function(start, end){
-                var self    = this;
-                var items   = self.items;
+            getRange : function(start, end, unfiltered){
+                var self    = this,
+                    items   = unfiltered ? self.items : self.current,
+                    r       = [],
+                    i;
+
                 if(items.length < 1){
-                    return [];
+                    return r;
                 }
-                start = start || 0;
-                end = Math.min(end == undf ? self.length-1 : end, self.length-1);
-                var i, r = [];
+
+                start   = start || 0;
+                end     = Math.min(end == undf ? self.length-1 : end, self.length-1);
+
                 if(start <= end){
                     for(i = start; i <= end; i++) {
-                        r[r.length] = items[i];
+                        r.push(items[i]);
                     }
                 }else{
                     for(i = start; i >= end; i--) {
-                        r[r.length] = items[i];
+                        r.push(items[i]);
                     }
                 }
                 return r;
@@ -13283,13 +13485,14 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
              *      @param {MetaphorJs.data.Record|Object} rec
              *      @param {string|int} id
              * }
-             * @param {object} fnScope
+             * @param {object} context
              * @param {number} start { @default 0 }
+             * @param {boolean} unfiltered
              * @returns MetaphorJs.data.Record|Object|null
              */
-            findBy: function(fn, fnScope, start) {
-                var inx = this.findIndexBy(fn, fnScope, start);
-                return inx == -1 ? null : this.getAt(inx);
+            findBy: function(fn, context, start, unfiltered) {
+                var inx = this.findIndexBy(fn, context, start, unfiltered);
+                return inx == -1 ? undf : this.getAt(inx, unfiltered);
             },
 
             /**
@@ -13298,19 +13501,18 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
              *      @param {MetaphorJs.data.Record|Object} rec
              *      @param {string|int} id
              * }
-             * @param {object} fnScope
+             * @param {object} context
              * @param {number} start { @default 0 }
+             * @param {boolean} unfiltered
              * @returns Number
              */
-            findIndexBy : function(fn, fnScope, start) {
+            findIndexBy : function(fn, context, start, unfiltered) {
 
-                fnScope = fnScope || this;
-
-                var k   = this.keys,
-                    it  = this.items;
+                var self = this,
+                    it  = unfiltered ? self.items : self.current;
 
                 for(var i = (start||0), len = it.length; i < len; i++){
-                    if(fn.call(fnScope, it[i], k[i])){
+                    if(fn.call(context, it[i], self.getRecordId(it[i]))){
                         return i;
                     }
                 }
@@ -13322,9 +13524,10 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
              * @param {string} property
              * @param {string|int|bool} value
              * @param {bool} exact
+             * @param {boolean} unfiltered
              * @returns Number
              */
-            find: function(property, value, exact) {
+            find: function(property, value, exact, unfiltered) {
 
                 var self    = this,
                     rt      = !self.model.isPlain(),
@@ -13332,12 +13535,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
                 return self.findIndexBy(function(rec) {
 
-                    if (rt) {
-                        v   = rec.get(property);
-                    }
-                    else {
-                        v   = rec[property];
-                    }
+                    v = rt ? rec.get(property) : rec[property];
 
                     if (exact) {
                         return v === value;
@@ -13346,23 +13544,25 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
                         return v == value;
                     }
 
-                }, self);
+                }, self, 0, unfiltered);
             },
 
             /**
              * @param {string} property
              * @param {string|int|bool} value
+             * @param {boolean} unfiltered
              * @returns number
              */
-            findExact: function(property, value) {
-                return this.find(property, value, true);
+            findExact: function(property, value, unfiltered) {
+                return this.find(property, value, true, unfiltered);
             },
 
             /**
              * @param {object} props
+             * @param {boolean} unfiltered
              * @returns MetaphorJs.data.Record|Object|null
              */
-            findBySet: function(props) {
+            findBySet: function(props, unfiltered) {
 
                 var found   = null,
                     match,
@@ -13385,13 +13585,106 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
                     }
 
                     return true;
-                });
+                }, null, unfiltered);
 
                 return found;
             },
 
 
 
+
+
+            update: function() {
+
+                var self        = this,
+                    filtered    = self.filtered,
+                    sorted      = self.sorted;
+
+                self.currentLength  = self.length;
+                self.currentMap     = self.map;
+                self.current        = self.items;
+
+                if (filtered) {
+
+                    var by              = self.filterBy,
+                        opt             = self.filterOpt,
+                        current,
+                        map;
+
+                    self.current        = current = [];
+                    self.currentMap     = map = {};
+
+                    self.each(function(rec){
+                        if (filterArray.compare(rec.data, by, opt)) {
+                            current.push(rec);
+                            map[self.getRecordId(rec)] = rec;
+                        }
+                    }, null, true);
+
+                    self.currentLength  = self.current.length;
+                }
+
+                if (sorted) {
+                    var sortBy          = self.sortBy,
+                        rt              = !self.model.isPlain(),
+                        getterFn        = function(item) {
+                            return rt ? item.get(sortBy) : item[sortBy];
+                        };
+                    self.current        = sortArray(self.current, getterFn, self.sortDir);
+                }
+
+                self.trigger("update", self);
+            },
+
+
+            /**
+             * @param {{}|string} by
+             * @param {string|boolean} opt
+             */
+            filter: function(by, opt) {
+
+                var self    = this;
+
+                self.filtered       = true;
+                self.filterBy       = by;
+                self.filterOpt      = opt;
+
+                self.update();
+            },
+
+            clearFilter: function() {
+
+                var self    = this;
+
+                if (!self.filtered) {
+                    return;
+                }
+
+                self.filterBy = null;
+                self.filterOpt = null;
+
+                self.update();
+            },
+
+            /**
+             * @param {string} by
+             * @param {string} dir
+             */
+            sort: function(by, dir) {
+                var self = this;
+                self.sorted = true;
+                self.sortBy = by;
+                self.sortDir = dir;
+                self.update();
+            },
+
+            clearSorting: function() {
+                var self = this;
+                self.sorted = false;
+                self.sortBy = null;
+                self.sortDir = null;
+                self.update();
+            },
 
 
             onDestroy: function() {
@@ -13421,7 +13714,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
                     d.push([value, o.text]);
                 }
                 var s   = factory("MetaphorJs.data.Store", {server: {load: {id: 0}}});
-                s.loadArray(d);
+                s._loadArray(d);
                 return s;
             },
 
@@ -13479,7 +13772,13 @@ registerAttributeHandler("mjs-each-in-store", 100, defineClass(null, "attr.mjs-e
         self.scope      = scope;
         self.store      = store = createGetter(self.model)(scope);
 
+        self.animateMove    = node.getAttribute("mjs-animate-move") !== null && animate.cssAnimations;
+        node.removeAttribute("mjs-animate-move");
+
         self.parentEl.removeChild(node);
+
+        self.trackByFn      = bind(store.getRecordId, store);
+        self.griDelegate    = bind(store.indexOfId, store);
 
         self.initWatcher();
         self.render(self.watcher.getValue());
@@ -13499,8 +13798,7 @@ registerAttributeHandler("mjs-each-in-store", 100, defineClass(null, "attr.mjs-e
 
     initWatcher: function() {
         var self        = this;
-        self.watcher    = createWatchable(self.store, ".items", null);
-        self.watcher.subscribe(self.onChange, self);
+        self.watcher    = createWatchable(self.store, ".current", self.onChange, self, null, ns);
     },
 
     resetWatcher: function() {
@@ -13512,17 +13810,8 @@ registerAttributeHandler("mjs-each-in-store", 100, defineClass(null, "attr.mjs-e
 
         var self    = this;
 
-        store[fn]("load", self.onStoreUpdate, self);
         store[fn]("update", self.onStoreUpdate, self);
-        store[fn]("add", self.onStoreUpdate, self);
-        store[fn]("remove", self.onStoreUpdate, self);
-        store[fn]("replace", self.onStoreUpdate, self);
-
-        store[fn]("filter", self.onStoreFilter, self);
-        store[fn]("clearfilter", self.onStoreFilter, self);
-
-        store[fn]("clear", self.onStoreClear, self);
-
+        store[fn]("clear", self.onStoreUpdate, self);
         store[fn]("destroy", self.onStoreDestroy, self);
     },
 
@@ -13530,19 +13819,10 @@ registerAttributeHandler("mjs-each-in-store", 100, defineClass(null, "attr.mjs-e
         this.watcher.check();
     },
 
-    onStoreFilter: function() {
-        this.resetWatcher();
-        this.onStoreUpdate();
-    },
-
-    onStoreClear: function() {
-        this.resetWatcher();
-        this.onStoreUpdate();
-    },
 
     onStoreDestroy: function() {
         var self = this;
-        self.onStoreClear();
+        self.onStoreUpdate();
         self.watcher.unsubscribeAndDestroy(self.onChange, self);
         delete self.watcher;
     }

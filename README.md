@@ -92,3 +92,5 @@ A few Angular-like demos:
 [Basics](http://kuindji.com/js/metaphorjs/demo/basics.html),
 [Todo](http://kuindji.com/js/metaphorjs/demo/todo.html),
 [Recursive rendering](http://kuindji.com/js/metaphorjs/demo/recursive.html)
+[Animated tags](http://kuindji.com/js/metaphorjs/demo/tags.html)
+[Flickr feed](http://kuindji.com/js/metaphorjs/demo/flickr.html)
