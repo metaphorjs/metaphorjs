@@ -54,7 +54,7 @@
 
             <hr>
 
-            <p mjs-class="{cls1: .bool, cls2: .a == 0}" mjs-animate>
+            <p mjs-class="{cls1: .bool, cls2: .a == 0}" mjs-animate id="p1">
                 {{ .a + .b }}
             </p>
 
@@ -62,7 +62,7 @@
 
             <a href="http://{{.text}}.com" mjs-click=".bool = !.bool">{{.subtext | limitTo:.a}}</a><br>
             <input mjs-bind=".a * .b"/>
-            <input mjs-model=".a" type="number" mjs-input-type="number"/>
+            <input mjs-model=".a" type="number" mjs-input-type="number" id="inputA"/>
             <br>
 
             <input type="checkbox" mjs-model="bool"/>

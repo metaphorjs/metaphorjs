@@ -3360,7 +3360,7 @@ var TextRenderer = function(){
         self.parent     = parent;
         self.isRoot     = !parent;
         self.data       = userData;
-        self.lang       = scope.$app.lang;
+        self.lang       = scope.$app ? scope.$app.lang : null;
 
         if (recursive === true || recursive === false) {
             self.recursive = recursive;
@@ -11042,12 +11042,22 @@ var onReady = function(fn) {
 };
 
 
-var initApp = function(node, cls, data) {
+var initApp = function(node, cls, data, autorun) {
 
     node.removeAttribute("mjs-app");
 
     try {
-        return resolveComponent(cls || "MetaphorJs.cmp.App", false, data, node, [node, data]);
+        var p = resolveComponent(cls || "MetaphorJs.cmp.App", false, data, node, [node, data]);
+
+        if (autorun) {
+            return p.then(function(app){
+                app.run();
+                return app;
+            });
+        }
+        else {
+            return p;
+        }
     }
     catch (thrownError) {
         error(thrownError);
@@ -20058,6 +20068,21 @@ registerAttributeHandler("mjs-validate", 250, function(scope, node, expr) {
 
 
 var pushUrl = history.pushUrl;
+
+
+var compile = function(htmlString, scope) {
+
+    var div = document.createElement("div");
+
+    div.innerHTML = htmlString;
+
+    var fragment = toFragment(div.childNodes);
+
+    var renderer = new Renderer(fragment, scope);
+    renderer.process();
+
+    return fragment;
+};
 MetaphorJs['onReady'] = onReady;
 MetaphorJs['initApp'] = initApp;
 MetaphorJs['ns'] = ns;
@@ -20075,8 +20100,10 @@ MetaphorJs['currentUrl'] = currentUrl;
 MetaphorJs['history'] = history;
 MetaphorJs['run'] = run;
 MetaphorJs['async'] = async;
+MetaphorJs['compile'] = compile;
 MetaphorJs.lib['Promise'] = Promise;
 MetaphorJs.lib['Observable'] = Observable;
+MetaphorJs.lib['Scope'] = Scope;
 
 typeof global != "undefined" ? (global['MetaphorJs'] = MetaphorJs) : (window['MetaphorJs'] = MetaphorJs);
 

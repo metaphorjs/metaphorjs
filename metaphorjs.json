@@ -3,6 +3,21 @@
     "push": [
         "github"
     ],
+    "test": [
+        {
+            "service": {
+                "cmd": "webdriver-manager",
+                "args": ["start"],
+                "wait": 10000
+            },
+            "cmd": "protractor",
+            "args": ["protractor.conf.js"]
+        },
+        {
+            "cmd": "karma",
+            "args": ["start"]
+        }
+    ],
     "build": {
         "standalone": {
             "wrap": true,
@@ -232,12 +247,13 @@
             "wrap": true,
             "global": true,
             "compile": false,
-            "target": "test/metaphorjs.test.js",
+            "target": "dev-test/metaphorjs.test.js",
             "prependFilesFrom": [
                 "all"
             ],
             "files": [
-                "../metaphorjs-model/src/FirebaseStore.js"
+                "../metaphorjs-model/src/FirebaseStore.js",
+                ["src/func/compile.js", {"as": "compile"}]
             ],
             "expose": [
                 "onReady",
@@ -257,6 +273,7 @@
                 "history",
                 "run",
                 "async",
+                "compile",
                 [
                     "MetaphorJs.lib",
                     "Promise"
@@ -264,6 +281,10 @@
                 [
                     "MetaphorJs.lib",
                     "Observable"
+                ],
+                [
+                    "MetaphorJs.lib",
+                    "Scope"
                 ]
             ]
         }

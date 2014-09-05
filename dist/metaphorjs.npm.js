@@ -493,7 +493,7 @@ var TextRenderer = function(){
         self.parent     = parent;
         self.isRoot     = !parent;
         self.data       = userData;
-        self.lang       = scope.$app.lang;
+        self.lang       = scope.$app ? scope.$app.lang : null;
 
         if (recursive === true || recursive === false) {
             self.recursive = recursive;
@@ -5235,12 +5235,22 @@ var onReady = function(fn) {
 };
 
 
-var initApp = function(node, cls, data) {
+var initApp = function(node, cls, data, autorun) {
 
     node.removeAttribute("mjs-app");
 
     try {
-        return resolveComponent(cls || "MetaphorJs.cmp.App", false, data, node, [node, data]);
+        var p = resolveComponent(cls || "MetaphorJs.cmp.App", false, data, node, [node, data]);
+
+        if (autorun) {
+            return p.then(function(app){
+                app.run();
+                return app;
+            });
+        }
+        else {
+            return p;
+        }
     }
     catch (thrownError) {
         error(thrownError);

@@ -47,7 +47,7 @@ module.exports = function(){
         self.parent     = parent;
         self.isRoot     = !parent;
         self.data       = userData;
-        self.lang       = scope.$app.lang;
+        self.lang       = scope.$app ? scope.$app.lang : null;
 
         if (recursive === true || recursive === false) {
             self.recursive = recursive;
