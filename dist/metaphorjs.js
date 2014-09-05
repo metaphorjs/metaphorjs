@@ -2485,7 +2485,6 @@ Watchable = createWatchable = function(){
                 return getterCache[expr];
             }
             catch (thrownError){
-                throw thrownError;
                 error(thrownError);
                 return emptyFn;
             }
@@ -2510,6 +2509,7 @@ Watchable = createWatchable = function(){
                 return setterCache[expr];
             }
             catch (thrownError) {
+                error(thrownError);
                 return emptyFn;
             }
         },
@@ -2531,6 +2531,7 @@ Watchable = createWatchable = function(){
                 return funcCache[expr];
             }
             catch (thrownError) {
+                error(thrownError);
                 return emptyFn;
             }
         },
@@ -7866,8 +7867,14 @@ var resolveComponent = function(cmp, cfg, scope, node, args) {
 
     if (node && p.isPending() && cloak !== null) {
         cloak ? addClass(node, cloak) : node.style.visibility = "hidden";
-        p.done(function() {
+        p.then(function() {
             cloak ? removeClass(node, cloak) : node.style.visibility = "";
+        });
+    }
+
+    if (node) {
+        p.then(function(){
+            removeClass(node, "mjs-cloak");
         });
     }
 
@@ -9275,13 +9282,17 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
         self.doUpdate(0);
     },
 
+    getListItem: function(list, index) {
+        return list[index];
+    },
+
     createItem: function(el, list, index) {
 
         var self        = this,
             iname       = self.itemName,
             itemScope   = self.scope.$new();
 
-        itemScope[iname]    = list[index];
+        itemScope[iname]    = self.getListItem(list, index);
 
         return {
             ready: false,
@@ -9301,9 +9312,9 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
             list        = toArray(self.watcher.getValue()),
             updateStart = null,
             animateMove = self.animateMove,
-            trackBy     = self.trackByWatcher ? self.trackByWatcher.getLastResult() : self.trackBy,
             newrs       = [],
             promises    = [],
+            iname       = self.itemName,
             oldrs       = renderers.slice(),
             origrs      = renderers.slice(),
             prevr,
@@ -9313,7 +9324,6 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
             action,
             translates,
             doesMove    = false;
-
 
 
             prs = self.watcher.getMovePrescription(prs, self.getTrackByFunction());
@@ -9333,6 +9343,7 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
 
                     prevr.action = "move";
                     prevr.ready = false;
+                    prevr.scope[iname] = self.getListItem(list, i);
                     doesMove = animateMove;
 
                     newrs.push(prevr);
@@ -9350,39 +9361,6 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
                     // so that we could correctly determine positions
                 }
             }
-
-        /*else {
-            // redefine renderers
-            var a1i = 0,
-                a2i = 0;
-
-            for (i = 0, len = prs.length; i < len; i++) {
-
-                action = prs[i];
-
-                if (action != '-' && isNull(updateStart)) {
-                    updateStart = a1i;
-                }
-
-                if (action == 'D') {
-                    continue;
-                }
-                else if (action == '-') {
-                    newrs.push(renderers[a1i]);
-                    renderers[a1i].action = "move";
-                    renderers[a1i].ready = false;
-                    renderers[a1i] = null;
-                }
-                else if (action == 'I' || action == 'R') {
-                    newrs.push(self.createItem(tpl.cloneNode(true), list, a2i));
-                }
-
-                if (action != 'I') {
-                    a1i++;
-                }
-                a2i++;
-            }
-        }*/
 
         self.renderers  = newrs;
         self.doUpdate(updateStart || 0);
@@ -9727,6 +9705,8 @@ var createFunc = Watchable.createFunc;
             registerAttributeHandler("mjs-" + name, 1000, function(scope, node, expr){
 
                 var fn  = createFunc(expr);
+
+                node.removeAttribute("mjs-" + name);
 
                 addListener(node, eventName, function(e){
 
@@ -10532,6 +10512,12 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
         (function(name){
 
             registerAttributeHandler("mjs-" + name, 1000, defineClass(null, AttributeHandler, {
+
+                initialize: function(scope, node, expr) {
+                    this.supr(scope, node, expr);
+                    node.removeAttribute("mjs-" + name);
+                    this.onChange();
+                },
 
                 onChange: function() {
 

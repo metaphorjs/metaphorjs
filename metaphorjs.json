@@ -1,5 +1,5 @@
 {
-    "version": "0.3.3",
+    "version": "0.3.4",
     "push": [
         "github"
     ],
@@ -236,6 +236,9 @@
             "prependFilesFrom": [
                 "all"
             ],
+            "files": [
+                "../metaphorjs-model/src/FirebaseStore.js"
+            ],
             "expose": [
                 "onReady",
                 "initApp",
@@ -253,6 +256,7 @@
                 "currentUrl",
                 "history",
                 "run",
+                "async",
                 [
                     "MetaphorJs.lib",
                     "Promise"

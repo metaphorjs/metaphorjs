@@ -28,6 +28,8 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
 
                 var fn  = createFunc(expr);
 
+                node.removeAttribute("mjs-" + name);
+
                 addListener(node, eventName, function(e){
 
                     e = normalizeEvent(e || window.event);

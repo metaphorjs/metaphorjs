@@ -2485,7 +2485,6 @@ Watchable = createWatchable = function(){
                 return getterCache[expr];
             }
             catch (thrownError){
-                throw thrownError;
                 error(thrownError);
                 return emptyFn;
             }
@@ -2510,6 +2509,7 @@ Watchable = createWatchable = function(){
                 return setterCache[expr];
             }
             catch (thrownError) {
+                error(thrownError);
                 return emptyFn;
             }
         },
@@ -2531,6 +2531,7 @@ Watchable = createWatchable = function(){
                 return funcCache[expr];
             }
             catch (thrownError) {
+                error(thrownError);
                 return emptyFn;
             }
         },
@@ -7866,8 +7867,14 @@ var resolveComponent = function(cmp, cfg, scope, node, args) {
 
     if (node && p.isPending() && cloak !== null) {
         cloak ? addClass(node, cloak) : node.style.visibility = "hidden";
-        p.done(function() {
+        p.then(function() {
             cloak ? removeClass(node, cloak) : node.style.visibility = "";
+        });
+    }
+
+    if (node) {
+        p.then(function(){
+            removeClass(node, "mjs-cloak");
         });
     }
 
@@ -9275,13 +9282,17 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
         self.doUpdate(0);
     },
 
+    getListItem: function(list, index) {
+        return list[index];
+    },
+
     createItem: function(el, list, index) {
 
         var self        = this,
             iname       = self.itemName,
             itemScope   = self.scope.$new();
 
-        itemScope[iname]    = list[index];
+        itemScope[iname]    = self.getListItem(list, index);
 
         return {
             ready: false,
@@ -9301,9 +9312,9 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
             list        = toArray(self.watcher.getValue()),
             updateStart = null,
             animateMove = self.animateMove,
-            trackBy     = self.trackByWatcher ? self.trackByWatcher.getLastResult() : self.trackBy,
             newrs       = [],
             promises    = [],
+            iname       = self.itemName,
             oldrs       = renderers.slice(),
             origrs      = renderers.slice(),
             prevr,
@@ -9313,7 +9324,6 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
             action,
             translates,
             doesMove    = false;
-
 
 
             prs = self.watcher.getMovePrescription(prs, self.getTrackByFunction());
@@ -9333,6 +9343,7 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
 
                     prevr.action = "move";
                     prevr.ready = false;
+                    prevr.scope[iname] = self.getListItem(list, i);
                     doesMove = animateMove;
 
                     newrs.push(prevr);
@@ -9350,39 +9361,6 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
                     // so that we could correctly determine positions
                 }
             }
-
-        /*else {
-            // redefine renderers
-            var a1i = 0,
-                a2i = 0;
-
-            for (i = 0, len = prs.length; i < len; i++) {
-
-                action = prs[i];
-
-                if (action != '-' && isNull(updateStart)) {
-                    updateStart = a1i;
-                }
-
-                if (action == 'D') {
-                    continue;
-                }
-                else if (action == '-') {
-                    newrs.push(renderers[a1i]);
-                    renderers[a1i].action = "move";
-                    renderers[a1i].ready = false;
-                    renderers[a1i] = null;
-                }
-                else if (action == 'I' || action == 'R') {
-                    newrs.push(self.createItem(tpl.cloneNode(true), list, a2i));
-                }
-
-                if (action != 'I') {
-                    a1i++;
-                }
-                a2i++;
-            }
-        }*/
 
         self.renderers  = newrs;
         self.doUpdate(updateStart || 0);
@@ -9727,6 +9705,8 @@ var createFunc = Watchable.createFunc;
             registerAttributeHandler("mjs-" + name, 1000, function(scope, node, expr){
 
                 var fn  = createFunc(expr);
+
+                node.removeAttribute("mjs-" + name);
 
                 addListener(node, eventName, function(e){
 
@@ -10532,6 +10512,12 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
         (function(name){
 
             registerAttributeHandler("mjs-" + name, 1000, defineClass(null, AttributeHandler, {
+
+                initialize: function(scope, node, expr) {
+                    this.supr(scope, node, expr);
+                    node.removeAttribute("mjs-" + name);
+                    this.onChange();
+                },
 
                 onChange: function() {
 
@@ -12280,7 +12266,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
              * @var {boolean}
              * @access protected
              */
-            public: true,
+            publicStore: false,
 
             /**
              * @var {string}
@@ -12308,6 +12294,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
                 self.items      = [];
                 self.current    = [];
                 self.map        = {};
+                self.currentMap = {};
                 self.loaded     = false;
                 self.extraParams    = self.extraParams || {};
 
@@ -12319,27 +12306,21 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
                 options         = options || {};
 
+                if (url) {
+                    options.url = url;
+                }
+
                 self.supr(options);
 
                 self.id             = self.id || nextUid();
                 
-                if (self.public) {
+                if (self.publicStore) {
                     allStores[self.id]  = self;
                 }
 
-                if (isString(self.model)) {
-                    self.model  = factory(self.model);
-                }
-                else if (!(self.model instanceof Model)) {
-                    self.model  = factory("MetaphorJs.data.Model", self.model);
-                }
-
-                if (url || options.url) {
-                    self.model.store.load    = url || options.url;
-                }
+                self.initModel(options);
 
                 self.createEvent("beforeload", false);
-                self.idProp = self.model.getStoreProp("load", "id");
 
                 if (!self.local && self.autoLoad) {
                     self.load();
@@ -12356,6 +12337,24 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
                 if (self.local) {
                     self.loaded     = true;
                 }
+            },
+
+            initModel: function(options) {
+
+                var self = this;
+
+                if (isString(self.model)) {
+                    self.model  = factory(self.model);
+                }
+                else if (!(self.model instanceof Model)) {
+                    self.model  = factory("MetaphorJs.data.Model", self.model);
+                }
+
+                if (options.url) {
+                    self.model.store.load    = options.url;
+                }
+
+                self.idProp = self.model.getStoreProp("load", "id");
             },
 
             /**
@@ -12817,7 +12816,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
                 if (!rec) {
                     throw new Error("Record not found at " + inx);
                 }
-                return self.delete(rec, silent, skipUpdate);
+                return self["delete"](rec, silent, skipUpdate);
             },
 
             /**
@@ -12928,6 +12927,10 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
                 else {
                     return rec[this.idProp] || null;
                 }
+            },
+
+            getRecordData: function(rec) {
+                return this.model.isPlain() ? rec : rec.data;
             },
 
             /**
@@ -13219,7 +13222,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
                 index   = self.items.indexOf(old);
 
-                self.remove(old, true, true);
+                self.removeAt(index, true, true, true);
                 self.insert(index, rec, true, true);
 
                 if (!skipUpdate) {
@@ -13747,6 +13750,99 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
 
 
+defineClass("MetaphorJs.data.FirebaseStore", "MetaphorJs.data.Store", {
+
+    firebase: null,
+
+    initialize: function(ref) {
+
+        var self    = this;
+
+        self.firebase = isString(ref) ? new Firebase(ref) : ref;
+
+        self.firebase.on("child_added", bind(self.onChildAdded, self));
+        self.firebase.on("child_removed", bind(self.onChildRemoved, self));
+        self.firebase.on("child_changed", bind(self.onChildChanged, self));
+        self.firebase.on("child_moved", bind(self.onChildMoved, self));
+
+        self.supr();
+    },
+
+    initModel: emptyFn,
+
+    ref: function() {
+        return this.firebase.ref ?
+                this.firebase.ref() :
+                this.firebase;
+    },
+
+    load: function() {
+        var self = this;
+        if (!self.loaded) {
+            self.firebase.once("value", bind(self.onSnapshotLoaded, self));
+        }
+    },
+
+    onSnapshotLoaded: function(recordsSnapshot) {
+
+        var self = this;
+
+        recordsSnapshot.forEach(function(snapshot) {
+            self.add(snapshot, true, true);
+        });
+
+        self.update();
+        self.loaded = true;
+        self.trigger("load", self);
+    },
+
+    onChildAdded: function(snapshot, prevName) {
+        var self = this;
+        if (self.loaded) {
+            var index = self.indexOfId(prevName, true);
+            self.insert(index + 1, snapshot);
+        }
+    },
+
+    onChildRemoved: function(snapshot) {
+        var self = this;
+        if (self.loaded) {
+            self.removeId(snapshot.name());
+        }
+    },
+
+    onChildChanged: function(snapshot, prevName) {
+        var self = this;
+        if (self.loaded) {
+            var old = self.getById(snapshot.name(), true);
+            self.replace(old, snapshot);
+        }
+    },
+
+    onChildMoved: function(snapshot, prevName) {
+        // not yet implemented
+    },
+
+    getRecordId: function(item) {
+        return item.name();
+    },
+
+    getRecordData: function(item) {
+        return item.val();
+    },
+
+    processRawDataItem: function(item) {
+        return item;
+    },
+
+    bindRecord: emptyFn
+
+
+});
+
+
+
+
 
 registerAttributeHandler("mjs-each-in-store", 100, defineClass(null, "attr.mjs-each", {
 
@@ -13819,6 +13915,9 @@ registerAttributeHandler("mjs-each-in-store", 100, defineClass(null, "attr.mjs-e
         this.watcher.check();
     },
 
+    getListItem: function(list, index) {
+        return this.store.getRecordData(list[index]);
+    },
 
     onStoreDestroy: function() {
         var self = this;
@@ -18959,6 +19058,9 @@ var Validator = function(){
 
         extend(self, self._observable.getApi());
 
+        self._observable.createEvent("submit", false);
+        self._observable.createEvent("beforesubmit", false);
+
         self.onRealSubmitClickDelegate  = bind(self.onRealSubmitClick, self);
         self.resetDelegate = bind(self.reset, self);
         self.onSubmitClickDelegate = bind(self.onSubmitClick, self);
@@ -19015,6 +19117,8 @@ var Validator = function(){
         submitButton: 	null,
         hidden:			null,
         callbackScope:  null,
+
+        preventFormSubmit: false,
 
         _observable:    null,
 
@@ -19189,6 +19293,7 @@ var Validator = function(){
          * Check form for errors
          */
         check: function() {
+
 
             var self    = this,
                 fields  = self.fields,
@@ -19460,27 +19565,29 @@ var Validator = function(){
         onRealSubmitClick: function(e) {
             e = normalizeEvent(e || window.event);
             this.submitButton  = e.target || e.srcElement;
+            this.preventFormSubmit = false;
             return this.onSubmit(e);
         },
 
         onSubmitClick: function(e) {
+            this.preventFormSubmit = false;
             return this.onSubmit(normalizeEvent(e || window.event));
         },
 
         onFormSubmit: function(e) {
 
             e = normalizeEvent(e);
-            if (!this.isValid()) {
+            if (!this.isValid() || this.preventFormSubmit) {
                 e.preventDefault();
                 return false;
             }
-            //return this.onSubmit(normalizeEvent(e || window.event));
+
         },
 
         onFieldSubmit: function(fapi, e) {
 
             var self    = this;
-
+            self.preventFormSubmit = false;
             self.enableDisplayState();
             self.submitted = true;
 
@@ -19534,7 +19641,6 @@ var Validator = function(){
             if (self.trigger('beforesubmit', self) === false || !self.isValid()) {
 
                 if (e) {
-
                     e.preventDefault();
                     e.stopPropagation();
                 }
@@ -19552,7 +19658,9 @@ var Validator = function(){
                 self.submitted = false;
             }
 
-            return self.trigger('submit', self) !== false;
+            var res = self.trigger('submit', self);
+            self.preventFormSubmit = !res;
+            return res;
         },
 
         onFieldDestroy: function(f) {
@@ -19760,6 +19868,8 @@ defineClass("MetaphorJs.view.Validator", {
         self.initScope();
         self.initScopeState();
         self.initValidatorEvents();
+
+        self.validator.check();
     },
 
     createValidator: function() {
@@ -19780,6 +19890,8 @@ defineClass("MetaphorJs.view.Validator", {
                     }
                 }
             }(createFunc(submit), self.scope);
+
+            node.removeAttribute("mjs-validator-submit")
         }
 
         return new Validator(node, cfg);
@@ -19844,6 +19956,7 @@ defineClass("MetaphorJs.view.Validator", {
         state.$invalid = false;
         state.$pristine = true;
         state.$submit = bind(self.validator.onSubmit, self.validator);
+        state.$reset = bind(self.validator.reset, self.validator);
 
     },
 
@@ -19961,6 +20074,7 @@ MetaphorJs['pushUrl'] = pushUrl;
 MetaphorJs['currentUrl'] = currentUrl;
 MetaphorJs['history'] = history;
 MetaphorJs['run'] = run;
+MetaphorJs['async'] = async;
 MetaphorJs.lib['Promise'] = Promise;
 MetaphorJs.lib['Observable'] = Observable;
 

@@ -16,6 +16,12 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
 
             registerAttributeHandler("mjs-" + name, 1000, defineClass(null, AttributeHandler, {
 
+                initialize: function(scope, node, expr) {
+                    this.supr(scope, node, expr);
+                    node.removeAttribute("mjs-" + name);
+                    this.onChange();
+                },
+
                 onChange: function() {
 
                     var self    = this,

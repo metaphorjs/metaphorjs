@@ -2,6 +2,7 @@
 
 var toFragment = require("./dom/toFragment.js"),
     data = require("./dom/data.js"),
+    extend = require("./extend.js"),
     addClass = require("./dom/addClass.js"),
     removeClass = require("./dom/removeClass.js"),
     nsGet = require("../../../metaphorjs-namespace/src/func/nsGet.js"),
@@ -126,8 +127,14 @@ module.exports = function(cmp, cfg, scope, node, args) {
 
     if (node && p.isPending() && cloak !== null) {
         cloak ? addClass(node, cloak) : node.style.visibility = "hidden";
-        p.done(function() {
+        p.then(function() {
             cloak ? removeClass(node, cloak) : node.style.visibility = "";
+        });
+    }
+
+    if (node) {
+        p.then(function(){
+            removeClass(node, "mjs-cloak");
         });
     }
 
