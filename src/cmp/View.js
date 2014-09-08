@@ -93,9 +93,8 @@ module.exports = defineClass("MetaphorJs.cmp.View", {
 
         for (i = 0, len = routes.length; i < len; i++) {
             r = routes[i];
-            matches = url.match(r.reg);
 
-            if (matches) {
+            if (r.reg && (matches = url.match(r.reg))) {
                 self.changeRouteComponent(r, matches);
                 return;
             }
@@ -104,14 +103,12 @@ module.exports = defineClass("MetaphorJs.cmp.View", {
             }
         }
 
+        self.clearComponent();
+
         if (def) {
             self.setRouteComponent(def, []);
         }
-        else {
-            self.clearComponent();
-        }
-
-        if (!def && self.defaultCmp) {
+        else if (self.defaultCmp) {
             self.setComponent(self.defaultCmp);
         }
     },

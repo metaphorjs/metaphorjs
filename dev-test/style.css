@@ -8,8 +8,56 @@ body {
     overflow: hidden;
 }
 
-mjs-template {
-    display:none;
+.cases {
+    overflow: hidden;
+}
+
+.case {
+    float: left;
+    width: 200px;
+    height: 200px;
+    border: 1px solid #ccc;
+    box-shadow: rgba(0,0,0,0.1) 0 0 4px;
+    padding: 10px;
+    overflow: hidden;
+    margin: 10px 10px 0 0;
+}
+
+.case.double {
+    width: 432px;
+    height: 432px;
+}
+
+.case p {
+    margin: 0;
+}
+
+.test {
+    background-color: #ffff4f;
+}
+
+h4 {
+    margin: 0 0 10px 0;
+}
+
+label.case-label {
+    margin: 0;
+    font-weight: bold;
+    color: #666;
+}
+
+
+.inline1:before {
+    content: "inline1 class";
+}
+.inline2:before {
+    content: "inline2 class";
+}
+.inline3:before {
+    content: "inline3 class";
+}
+.bool:after {
+    content: "bool class";
 }
 
 .cls1 {

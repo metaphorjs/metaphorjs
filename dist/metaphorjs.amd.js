@@ -89,7 +89,7 @@ var varType = function(){
         }
 
         if (num == 1 && isNaN(val)) {
-            num = 8;
+            return 8;
         }
 
         return num;
@@ -99,12 +99,12 @@ var varType = function(){
 
 
 var isPlainObject = function(value) {
-    return varType(value) === 3;
+    return typeof value == "object" && varType(value) === 3;
 };
 
 
 var isBool = function(value) {
-    return varType(value) === 2;
+    return value === true || value === false;
 };
 var isNull = function(value) {
     return value === null;
@@ -341,12 +341,12 @@ var nextUid = function(){
  * @returns {boolean}
  */
 var isArray = function(value) {
-    return varType(value) === 5;
+    return typeof value == "object" && varType(value) === 5;
 };
 
 
 var isString = function(value) {
-    return varType(value) === 0;
+    return typeof value == "string" || varType(value) === 0;
 };
 
 
@@ -372,8 +372,11 @@ var isFunction = function(value) {
 
 
 var isObject = function(value) {
+    if (value === null || typeof value != "object") {
+        return false;
+    }
     var vt = varType(value);
-    return value !== null && typeof value == "object" && (vt > 2 || vt == -1);
+    return vt > 2 || vt == -1;
 };
 
 
@@ -2960,9 +2963,8 @@ var currentUrl = history.currentUrl;
 
         for (i = 0, len = routes.length; i < len; i++) {
             r = routes[i];
-            matches = url.match(r.reg);
 
-            if (matches) {
+            if (r.reg && (matches = url.match(r.reg))) {
                 self.changeRouteComponent(r, matches);
                 return;
             }
@@ -2971,14 +2973,12 @@ var currentUrl = history.currentUrl;
             }
         }
 
+        self.clearComponent();
+
         if (def) {
             self.setRouteComponent(def, []);
         }
-        else {
-            self.clearComponent();
-        }
-
-        if (!def && self.defaultCmp) {
+        else if (self.defaultCmp) {
             self.setComponent(self.defaultCmp);
         }
     },
@@ -3175,6 +3175,8 @@ var AttributeHandler = defineClass("MetaphorJs.view.AttributeHandler", {
 registerAttributeHandler("mjs-bind", 1000, defineClass(null, AttributeHandler, {
 
     isInput: false,
+    input: null,
+    lockInput: null,
     recursive: false,
     textRenderer: null,
 
@@ -3184,6 +3186,14 @@ registerAttributeHandler("mjs-bind", 1000, defineClass(null, AttributeHandler, {
 
         self.isInput    = isField(node);
         self.recursive  = node.getAttribute("mjs-recursive") !== null;
+        self.lockInput  = node.getAttribute("mjs-lock-input") !== null;
+
+        node.removeAttribute("mjs-recursive");
+        node.removeAttribute("mjs-lock-input");
+
+        if (self.isInput) {
+            self.input  = new Input(node, self.onInputChange, self);
+        }
 
         if (self.recursive) {
             self.scope  = scope;
@@ -3198,6 +3208,14 @@ registerAttributeHandler("mjs-bind", 1000, defineClass(null, AttributeHandler, {
         }
         else {
             self.supr(scope, node, expr);
+        }
+    },
+
+    onInputChange: function() {
+
+        var self = this;
+        if (self.lockInput) {
+            self.onChange();
         }
     },
 
@@ -3219,7 +3237,7 @@ registerAttributeHandler("mjs-bind", 1000, defineClass(null, AttributeHandler, {
         var self = this;
 
         if (self.isInput) {
-            setValue(self.node, val);
+            self.input.setValue(val);
         }
         else {
             self.node[nodeTextProp] = val;
@@ -3233,6 +3251,11 @@ registerAttributeHandler("mjs-bind", 1000, defineClass(null, AttributeHandler, {
         if (self.textRenderer) {
             self.textRenderer.destroy();
             delete self.textRenderer;
+        }
+
+        if (self.input) {
+            self.input.destroy();
+            delete self.input;
         }
 
         self.supr();

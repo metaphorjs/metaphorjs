@@ -29,7 +29,7 @@ defineClass("Test.MyApp2", "MetaphorJs.cmp.App", {
             self.scope.b++;
         };
 
-        self.scope.linkified = 'Linkified text aaa http://www.kuindji.com bbb';
+
 
         self.scope.people = 0;
 
@@ -66,6 +66,10 @@ defineClass("Test.MyApp2", "MetaphorJs.cmp.App", {
 defineClass("Test.MyView", "MetaphorJs.cmp.View", {
 
         route: [
+            {
+                template: 'test-template',
+                default: true
+            },
             {
                 reg: /^\/1$/,
                 cmp: "Test.MyComponent"
@@ -255,13 +259,7 @@ defineClass("Test.ViewComponent2", "MetaphorJs.cmp.Component", {
 
 MetaphorJs.onReady(function(){
     var dataObj     = {
-        header: "header",
-        text: "text",
-        subtext: "subtext",
-        rootText: "root text",
-        a: 1,
-        b: 2,
-        bool: true,
+        linkified: 'Linkified text aaa http://www.kuindji.com bbb',
         newItem: "",
         date: new Date,
         num: 10000,
@@ -278,6 +276,7 @@ MetaphorJs.onReady(function(){
         .done(function(app){
             app.value("test", "123");
             app.run();
+            window.mainApp = app;
         });
     //console.profileEnd();
 

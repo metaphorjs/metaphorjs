@@ -6,5 +6,5 @@ var varType = require("./varType.js");
  * @returns {boolean}
  */
 module.exports = function(value) {
-    return varType(value) === 5;
+    return typeof value == "object" && varType(value) === 5;
 };
