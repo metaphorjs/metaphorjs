@@ -75,7 +75,7 @@
                 </p>
                 <label class="case-label">Input field (mjs-bind)</label>
                 <p class="test">
-                    <input id="binding-input-bind" type="text" mjs-bind=".a">
+                    <input id="binding-input-bind" type="text" mjs-bind=".a" mjs-lock-input>
                 </p>
                 <label class="case-label">Checkbox (mjs-bind)</label>
                 <p class="test">
@@ -196,6 +196,14 @@
                     <p id="class-object" mjs-class="{bool: .bool, inline1: .a == 0}">---</p>
                 </div>
             </div>
+
+            <div class="case">
+                <h4>mjs-if, mjs-show, mjs-hide</h4>
+                <div id="if-bool" mjs-if=".bool" class="test" mjs-animate>this should appear if .bool = true</div>
+                <div id="show-bool" mjs-show=".bool" class="test" mjs-animate>this should show if .bool = true</div>
+                <div id="hide-bool" mjs-hide=".bool" class="test" mjs-animate>this should hide if .bool = true</div>
+            </div>
+
 
             <div class="case">
                 <h4>mjs-include</h4>

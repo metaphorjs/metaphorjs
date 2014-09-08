@@ -95,3 +95,6 @@ A few Angular-like demos:
 [Animated tags](http://kuindji.com/js/metaphorjs/demo/tags.html),
 [Flickr feed](http://kuindji.com/js/metaphorjs/demo/flickr.html),
 [Firebase chat](http://kuindji.com/js/metaphorjs/demo/firebase.html)
+
+
+[Dev test page](http://kuindji.com/js/metaphorjs/dev-test/index.html)

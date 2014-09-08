@@ -44,6 +44,15 @@ describe('Bindings (read only) #2', function() {
         expect(element(by.id("radio-bind-1")).isSelected()).to.eventually.equal(false);
     });
 
+    it("shoud not change #radio-bind-1 value", function(){
+        element(by.id("radio-bind-1")).click();
+        expect(element(by.id("radio-bind-1")).isSelected()).to.eventually.equal(false);
+    });
+
+    it("shoud not change #binding-input-bind value", function(){
+        element(by.id("binding-input-bind")).sendKeys("2");
+        expect(element(by.id("binding-input-bind")).getAttribute("value")).to.eventually.equal("1");
+    });
 });
 
 
@@ -162,6 +171,24 @@ describe('mjs-class', function() {
     });
 });
 
+describe('mjs-if, mjs-show, mjs-hide', function() {
+
+    it("shoud set show #if-bool", function(){
+        expect(element(by.id("if-bool")).isPresent())
+            .to.eventually.equal(true);
+    });
+
+    it("shoud set show #show-bool", function(){
+        expect(element(by.id("show-bool")).getCssValue("display"))
+            .to.not.eventually.equal("none");
+    });
+
+    it("shoud set hide #hide-bool", function(){
+        expect(element(by.id("hide-bool")).getCssValue("display"))
+            .to.eventually.equal("none");
+    });
+});
+
 describe('Change value of .a', function() {
 
     it("should change scope .a", function(){
@@ -213,6 +240,22 @@ describe('Change value of .bool', function() {
     it("shoud remove #class-object class 'bool'", function(){
         expect(element(by.id("class-object")).getAttribute("class"))
             .to.not.eventually.string("bool");
+    });
+
+
+    it("shoud set hide #if-bool", function(){
+        expect(element(by.id("if-bool")).isPresent())
+            .to.eventually.equal(false);
+    });
+
+    it("shoud set hide #show-bool", function(){
+        expect(element(by.id("show-bool")).getCssValue("display"))
+            .to.eventually.equal("none");
+    });
+
+    it("shoud set show #hide-bool", function(){
+        expect(element(by.id("hide-bool")).getCssValue("display"))
+            .to.not.eventually.equal("none");
     });
 
 });
