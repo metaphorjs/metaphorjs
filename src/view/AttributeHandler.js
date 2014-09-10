@@ -3,6 +3,7 @@
 var trim = require("../func/trim.js"),
     createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
     Scope = require("../lib/Scope.js"),
+    undf = require("../var/undf.js"),
     ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
     defineClass = require("../../../metaphorjs-class/src/func/defineClass.js");
 
@@ -24,7 +25,7 @@ module.exports = defineClass("MetaphorJs.view.AttributeHandler", {
         self.scope      = scope;
         self.watcher    = createWatchable(scope, expr, self.onChange, self, null, ns);
 
-        if (self.watcher.getLastResult()) {
+        if (self.watcher.getLastResult() != undf) {
             self.onChange();
         }
 

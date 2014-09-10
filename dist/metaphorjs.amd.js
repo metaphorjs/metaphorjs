@@ -99,7 +99,8 @@ var varType = function(){
 
 
 var isPlainObject = function(value) {
-    return typeof value == "object" && varType(value) === 3;
+    // IE < 9 returns [object Object] from toString(htmlElement)
+    return typeof value == "object" && varType(value) === 3 && !value.nodeType;
 };
 
 
@@ -119,61 +120,64 @@ var isNull = function(value) {
  * @param {boolean} deep = false
  * @returns {*}
  */
-var extend = function extend() {
+var extend = function(){
+
+    var extend = function extend() {
 
 
-    var override    = false,
-        deep        = false,
-        args        = slice.call(arguments),
-        dst         = args.shift(),
-        src,
-        k,
-        value;
+        var override    = false,
+            deep        = false,
+            args        = slice.call(arguments),
+            dst         = args.shift(),
+            src,
+            k,
+            value;
 
-    if (isBool(args[args.length - 1])) {
-        override    = args.pop();
-    }
-    if (isBool(args[args.length - 1])) {
-        deep        = override;
-        override    = args.pop();
-    }
+        if (isBool(args[args.length - 1])) {
+            override    = args.pop();
+        }
+        if (isBool(args[args.length - 1])) {
+            deep        = override;
+            override    = args.pop();
+        }
 
-    while (args.length) {
-        if (src = args.shift()) {
-            for (k in src) {
+        while (args.length) {
+            if (src = args.shift()) {
+                for (k in src) {
 
-                if (src.hasOwnProperty(k) && (value = src[k]) !== undf) {
+                    if (src.hasOwnProperty(k) && (value = src[k]) !== undf) {
 
-                    if (deep) {
-                        if (dst[k] && isPlainObject(dst[k]) && isPlainObject(value)) {
-                            extend(dst[k], value, override, deep);
-                        }
-                        else {
-                            if (override === true || dst[k] == undf) { // == checks for null and undefined
-                                if (isPlainObject(value)) {
-                                    dst[k] = {};
-                                    extend(dst[k], value, override, true);
-                                }
-                                else {
-                                    dst[k] = value;
+                        if (deep) {
+                            if (dst[k] && isPlainObject(dst[k]) && isPlainObject(value)) {
+                                extend(dst[k], value, override, deep);
+                            }
+                            else {
+                                if (override === true || dst[k] == undf) { // == checks for null and undefined
+                                    if (isPlainObject(value)) {
+                                        dst[k] = {};
+                                        extend(dst[k], value, override, true);
+                                    }
+                                    else {
+                                        dst[k] = value;
+                                    }
                                 }
                             }
                         }
-                    }
-                    else {
-                        if (override === true || dst[k] == undf) {
-                            dst[k] = value;
+                        else {
+                            if (override === true || dst[k] == undf) {
+                                dst[k] = value;
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
-    return dst;
-};
+        return dst;
+    };
 
-
+    return extend;
+}();
 
 var emptyFn = function(){};
 
@@ -927,12 +931,7 @@ var Renderer = function(){
 
 
             if (el.nodeType) {
-                //try {
-                    res = fn.call(fnScope, el);
-                //}
-                //catch (thrownError) {
-                //    error(thrownError);
-                //}
+                res = fn.call(fnScope, el);
             }
 
 
@@ -1021,16 +1020,9 @@ var Renderer = function(){
                     $renderer: self
                 },
                 args    = [scope, node, value, self],
-                inst;
+                inst    = app.inject(f, null, inject, args);
 
-            if (f.__isMetaphorClass) {
-
-                inst = app.inject(f, null, true, inject, args);
-                return f.$stopRenderer ? false : inst;
-            }
-            else {
-                return app.inject(f, null, false, inject, args);
-            }
+            return f.$stopRenderer ? false : inst;
         },
 
         processNode: function(node) {
@@ -1096,7 +1088,9 @@ var Renderer = function(){
 
                     // ie6 doesn't have hasAttribute()
                     if ((attr = node.getAttribute(name)) !== null) {
+
                         res     = self.runHandler(handlers[i].handler, scope, node, attr);
+
                         node.removeAttribute(name);
 
                         if (res === false) {
@@ -1122,7 +1116,7 @@ var Renderer = function(){
 
                 recursive = node.getAttribute("mjs-recursive") !== null;
 
-                var attrs   = slice.call(node.attributes);
+                var attrs   = toArray(node.attributes);
 
                 for (i = 0, len = attrs.length; i < len; i++) {
 
@@ -1258,24 +1252,34 @@ var Provider = function(){
             };
         },
 
-        instantiate: function(fn, args) {
+        instantiate: function(fn, context, args) {
+
+            if (fn.__instantiate) {
+                return fn.__instantiate.apply(null, args);
+            }
+            else if (context) {
+                return fn.apply(context, args);
+            }
+
             var Temp = function(){},
                 inst, ret;
 
             Temp.prototype  = fn.prototype;
             inst            = new Temp;
-            ret             = fn.prototype.constructor.apply(inst, args);
+            ret             = fn.apply(inst, args);
 
             // If an object has been returned then return it otherwise
             // return the original instance.
             // (consistent with behaviour of the new operator)
-            return isObject(ret) ? ret : inst;
+            return isObject(ret) || ret === false ? ret : inst;
         },
 
-        inject: function(injectable, context, returnInstance, currentValues, callArgs) {
+        inject: function(injectable, context, currentValues, callArgs) {
 
             currentValues   = currentValues || {};
             callArgs        = callArgs || [];
+
+            var self = this;
 
             if (isFunction(injectable)) {
 
@@ -1285,16 +1289,13 @@ var Provider = function(){
                     injectable = tmp;
                 }
                 else {
-                    return returnInstance || injectable.__isMetaphorClass ?
-                        this.instantiate(injectable, callArgs) :
-                        injectable.apply(context, callArgs);
+                    return self.instantiate(injectable, context, callArgs);
                 }
             }
 
             injectable  = slice.call(injectable);
 
-            var self    = this,
-                values  = [],
+            var values  = [],
                 fn      = injectable.pop(),
                 i, l;
 
@@ -1302,9 +1303,7 @@ var Provider = function(){
                  values.push(self.resolve(injectable[i], currentValues))) {}
 
             return Promise.all(values).then(function(values){
-                return returnInstance || fn.__isMetaphorClass ?
-                    self.instantiate(fn, values) :
-                    fn.apply(context, values);
+                return self.instantiate(fn, context, values);
             });
         },
 
@@ -1379,17 +1378,17 @@ var Provider = function(){
                     return item.value;
                 }
                 else if (type == FACTORY) {
-                    res = self.inject(item.fn, item.context, false, currentValues);
+                    res = self.inject(item.fn, item.context, currentValues);
                 }
                 else if (type == SERVICE) {
-                    res = self.inject(item.fn, null, true, currentValues);
+                    res = self.inject(item.fn, null, currentValues);
                 }
                 else if (type == PROVIDER) {
 
                     if (!item.instance) {
 
                         item.instance = Promise.resolve(
-                                self.inject(item.fn, null, true, currentValues)
+                                self.inject(item.fn, null, currentValues)
                             )
                             .done(function(instance){
                                 item.instance = instance;
@@ -2811,7 +2810,7 @@ var resolveComponent = function(cmp, cfg, scope, node, args) {
                 else {
                     d.resolve(
                         injectFn.call(
-                            injectCt, fn, null, false, extend({}, inject, cfg, false, false)
+                            injectCt, fn, null, extend({}, inject, cfg, false, false)
                         )
                     );
                 }
@@ -2848,7 +2847,7 @@ var resolveComponent = function(cmp, cfg, scope, node, args) {
         Promise.all(defers).done(function(){
             p.resolve(
                 injectFn.call(
-                    injectCt, constr, null, true, extend({}, inject, cfg, false, false), args
+                    injectCt, constr, null, extend({}, inject, cfg, false, false), args
                 )
             );
         });
@@ -2856,7 +2855,7 @@ var resolveComponent = function(cmp, cfg, scope, node, args) {
     else {
         p = Promise.resolve(
             injectFn.call(
-                injectCt, constr, null, true, extend({}, inject, cfg, false, false), args
+                injectCt, constr, null, extend({}, inject, cfg, false, false), args
             )
         );
     }
@@ -3120,6 +3119,11 @@ var isField = function(el) {
     return false;
 };
 
+var elemTextProp = function(){
+    var node    = document.createElement("div");
+    return isString(node.textContent) ? "textContent" : "innerText";
+}();
+
 
 
 
@@ -3140,7 +3144,7 @@ var AttributeHandler = defineClass("MetaphorJs.view.AttributeHandler", {
         self.scope      = scope;
         self.watcher    = createWatchable(scope, expr, self.onChange, self, null, ns);
 
-        if (self.watcher.getLastResult()) {
+        if (self.watcher.getLastResult() != undf) {
             self.onChange();
         }
 
@@ -3240,7 +3244,7 @@ registerAttributeHandler("mjs-bind", 1000, defineClass(null, AttributeHandler, {
             self.input.setValue(val);
         }
         else {
-            self.node[nodeTextProp] = val;
+            self.node[elemTextProp] = val;
         }
     },
 
@@ -3431,6 +3435,13 @@ var isIE = function(){
         return msie;
     };
 }();
+
+
+var animFrame = function(){
+
+    return typeof window != strUndef && window.requestAnimationFrame ?
+           window.requestAnimationFrame : async;
+}();
 var aIndexOf    = Array.prototype.indexOf;
 
 if (!aIndexOf) {
@@ -3505,10 +3516,46 @@ if (!aIndexOf) {
 
 
 
+var ListRenderer = function(scope, node, expr) {
+
+    node.removeAttribute("mjs-each");
+    node.removeAttribute("mjs-include");
+
+    var self    = this;
+
+    self.parseExpr(expr);
+
+    self.tpl        = node;
+    self.renderers  = [];
+    self.prevEl     = node.previousSibling;
+    self.nextEl     = node.nextSibling;
+    self.parentEl   = node.parentNode;
+    self.node       = node;
+    self.scope      = scope;
+    self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
+
+    self.animateMove= node.getAttribute("mjs-animate-move") !== null && animate.cssAnimations;
+    self.animate    = node.getAttribute("mjs-animate") !== null;
+    node.removeAttribute("mjs-animate-move");
+
+    self.trackBy    = node.getAttribute("mjs-track-by");
+    if (self.trackBy) {
+        if (self.trackBy != '$') {
+            self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, null, ns);
+        }
+    }
+    else if (!self.watcher.hasInputPipes()) {
+        self.trackBy    = '$$'+self.watcher.id;
+    }
+    node.removeAttribute("mjs-track-by");
 
 
+    self.griDelegate = bind(self.scopeGetRawIndex, self);
+    self.parentEl.removeChild(node);
+    self.render(toArray(self.watcher.getValue()));
+};
 
-registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
+ListRenderer.prototype = {
 
     model: null,
     itemName: null,
@@ -3520,56 +3567,9 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
     trackBy: null,
     trackByWatcher: null,
     animateMove: false,
-
+    animate: false,
     trackByFn: null,
     griDelegate: null,
-
-    initialize: function(scope, node, expr) {
-
-        var self    = this;
-
-        self.parseExpr(expr);
-
-        node.removeAttribute("mjs-each");
-        node.removeAttribute("mjs-include");
-
-        self.tpl        = node;
-        self.renderers  = [];
-        self.prevEl     = node.previousSibling;
-        self.nextEl     = node.nextSibling;
-        self.parentEl   = node.parentNode;
-
-        self.node       = node;
-        self.scope      = scope;
-        self.animateMove    = node.getAttribute("mjs-animate-move") !== null && animate.cssAnimations;
-        node.removeAttribute("mjs-animate-move");
-
-        try {
-            self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
-        }
-        catch (thrownError) {
-            error(thrownError);
-        }
-
-        self.trackBy    = node.getAttribute("mjs-track-by");
-        if (self.trackBy) {
-            if (self.trackBy != '$') {
-                self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, null, ns);
-            }
-        }
-        else if (!self.watcher.hasInputPipes()) {
-            self.trackBy    = '$$'+self.watcher.id;
-        }
-        node.removeAttribute("mjs-track-by");
-
-
-        self.griDelegate = bind(self.scopeGetRawIndex, self);
-
-        self.parentEl.removeChild(node);
-        self.render(toArray(self.watcher.getValue()));
-
-
-    },
 
     onScopeDestroy: function() {
 
@@ -3720,6 +3720,7 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
         itemScope[iname]    = self.getListItem(list, index);
 
         return {
+            index: index,
             ready: false,
             action: "enter",
             el: el,
@@ -3737,119 +3738,134 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
             list        = toArray(self.watcher.getValue()),
             updateStart = null,
             animateMove = self.animateMove,
+            animateAll  = self.animate,
             newrs       = [],
-            promises    = [],
             iname       = self.itemName,
-            oldrs       = renderers.slice(),
             origrs      = renderers.slice(),
+            doesMove    = false,
             prevr,
             prevrInx,
             i, len,
             r,
             action,
-            translates,
-            doesMove    = false;
+            translates;
 
 
-            prs = self.watcher.getMovePrescription(prs, self.getTrackByFunction());
 
-            // redefine renderers
-            for (i = 0, len = prs.length; i < len; i++) {
+        prs = self.watcher.getMovePrescription(prs, self.getTrackByFunction());
 
-                action = prs[i];
+        // redefine renderers
+        for (i = 0, len = prs.length; i < len; i++) {
 
-                if (isNumber(action)) {
-                    prevrInx    = action;
-                    prevr       = renderers[prevrInx];
+            action = prs[i];
 
-                    if (prevrInx != index && isNull(updateStart)) {
-                        updateStart = i;
-                    }
+            if (isNumber(action)) {
+                prevrInx    = action;
+                prevr       = renderers[prevrInx];
 
-                    prevr.action = "move";
-                    prevr.ready = false;
-                    prevr.scope[iname] = self.getListItem(list, i);
-                    doesMove = animateMove;
-
-                    newrs.push(prevr);
-                    renderers[prevrInx] = null;
-                    index++;
+                if (prevrInx != index && isNull(updateStart)) {
+                    updateStart = i;
                 }
-                else {
-                    if (isNull(updateStart)) {
-                        updateStart = i;
-                    }
-                    r = self.createItem(tpl.cloneNode(true), list, i);
-                    newrs.push(r);
-                    oldrs.splice(i, 0, r);
-                    // add new elements to old renderers
-                    // so that we could correctly determine positions
-                }
+
+                prevr.action = "move";
+                prevr.ready = false;
+                prevr.scope[iname] = self.getListItem(list, i);
+                doesMove = animateMove;
+
+                newrs.push(prevr);
+                renderers[prevrInx] = null;
+                index++;
             }
+            else {
+                if (isNull(updateStart)) {
+                    updateStart = i;
+                }
+                r = self.createItem(tpl.cloneNode(true), list, i);
+                newrs.push(r);
+                // add new elements to old renderers
+                // so that we could correctly determine positions
+            }
+        }
 
         self.renderers  = newrs;
         self.doUpdate(updateStart || 0);
 
+        if (animateAll) {
 
-        if (doesMove) {
-            translates = self.calculateTranslates(newrs, origrs, oldrs);
-        }
-
-
-        // destroy old renderers and remove old elements
-        for (i = 0, len = renderers.length; i < len; i++) {
-            r = renderers[i];
-            if (r) {
-                r.scope.$destroy();
-
-                stopAnimation(r.el);
-                promises.push(animate(r.el, "leave", null, true, ns)
-                    .done(function(el){
-                        isAttached(el) && el.parentNode.removeChild(el);
-                    }));
+            if (doesMove) {
+                translates = self.calculateTranslates(newrs, origrs, renderers);
             }
-        }
-        renderers = null;
-        r = null;
 
-        for (i = newrs.length - 1; i >= 0; i--) {
-            r = newrs[i];
-            action = r.action;
+            var animPromises    = [],
+                startAnimation  = new Promise,
+                applyFrom       = new Promise,
+                animReady       = Promise.counter(newrs.length),
+                startCallback   = function(){
+                    animReady.countdown();
+                    return startAnimation;
+                };
 
-            if (action == "none") {
-                newrs[i].ready = self.moveEl(r.el, i);
-            }
-            else if (action == "move") {
-                // move elements
-                if (doesMove) {
+            // destroy old renderers and remove old elements
+            for (i = 0, len = renderers.length; i < len; i++) {
+                r = renderers[i];
+                if (r) {
+                    r.scope.$destroy();
 
                     stopAnimation(r.el);
-                    promises.push(self.moveAnimation(r.el, translates[i][0], translates[i][1])
-                        .done(function(inx){
-                            return function(el) {
-                                newrs[inx].ready = self.moveEl(el, inx);
-                            }
-                        }(i)));
-                }
-                else {
-                    newrs[i].ready = self.moveEl(r.el, i);
+                    animPromises.push(animate(r.el, "leave", null, true, ns)
+                        .done(function(el){
+                            el.style.visibility = "hidden";
+                        }));
                 }
             }
-            else if (action == "enter") {
-                // introduce new elements
-                stopAnimation(r.el);
-                promises.push(animate(r.el, "enter", function(inx) {
-                    return function(el){
-                        newrs[inx].ready = self.moveEl(el, inx, true);
-                    }
-                }(i), true, ns));
-            }
-            else {
-                newrs[i].ready = true;
-            }
-        }
 
-        Promise.all(promises).always(self.finishAnimations, self);
+            for (i = 0, len = newrs.length; i < len; i++) {
+                r = newrs[i];
+                stopAnimation(r.el);
+
+                r.action == "enter" ?
+                    animPromises.push(animate(r.el, "enter", startCallback, true, ns)) :
+                    animPromises.push(
+                        self.moveAnimation(
+                            r.el,
+                            doesMove ? translates[i][0] : null,
+                            doesMove ? translates[i][1] : null,
+                            startCallback,
+                            applyFrom
+                        )
+                    );
+            }
+
+            animReady.done(function(){
+                animFrame(function(){
+                    applyFrom.resolve();
+                    self.applyDomPositions(renderers);
+
+                    animFrame(function(){
+                        startAnimation.resolve();
+                    });
+                });
+            });
+
+            Promise.all(animPromises).always(function(){
+                animFrame(function(){
+                    self.removeOldElements(renderers);
+                    if (animate.cssAnimations) {
+                        for (i = 0, len = newrs.length; i < len; i++) {
+                            r = newrs[i];
+                            r.el.style[animate.prefixes.transform] = null;
+                            r.el.style[animate.prefixes.transform] = "";
+                        }
+                    }
+
+
+                });
+            });
+        }
+        else {
+            self.applyDomPositions();
+            self.removeOldElements(renderers);
+        }
     },
 
     ieFixEl: function(el) {
@@ -3857,97 +3873,51 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
         el.style.zoom = "";
     },
 
-    finishAnimations: function() {
+    removeOldElements: function(rs) {
+        var i, len, r;
+
+        for (i = 0, len = rs.length; i < len; i++) {
+            r = rs[i];
+            if (r) {
+                isAttached(r.el) && r.el.parentNode.removeChild(r.el);
+            }
+        }
+    },
+
+
+    applyDomPositions: function(oldrs) {
 
         var self    = this,
-            orphans = [],
-            rns     = self.renderers,
-            inf     = 0,
-            fixIE   = isIE() && animate.cssAnimations,
-            i, l, o,
-            max;
+            rs      = self.renderers,
+            parent  = self.parentEl,
+            prevEl  = self.prevEl,
+            next,
+            i, l, el;
 
-        for (i = 0, l = rns.length; i < l; i++) {
-            if (!rns[i].ready) {
-                orphans.push([rns[i].el, i]);
+        for (i = 0, l = rs.length; i < l; i++) {
+            el = rs[i].el;
+
+            if (oldrs && oldrs[i]) {
+                next = oldrs[i].el.nextSibling;
             }
             else {
-                // in IE 11 (10 too?) elements disappear
-                // after some animations
-                // what is the most disturbing that
-                // it is those elements that were not animated %)
-                if (fixIE) {
-                    async(self.ieFixEl, self, [rns[i].el]);
-                }
+                next = i > 0 ?
+                       rs[i-1].el.nextSibling :
+                       (prevEl ? prevEl.nextSibling : parent.firstChild);
             }
+            if (next && el.nextSibling !== next) {
+                parent.insertBefore(el, next);
+            }
+            else if (!next) {
+                parent.appendChild(el);
+            }
+
+
         }
 
-        max = l * 5;
-
-        while (orphans.length) {
-            if (inf > max) {
-                error("Orphans got into infinite loop");
-                break;
-            }
-            o = orphans.shift();
-            if (!self.moveEl(o[0], o[1])) {
-                orphans.push(o);
-            }
-            else {
-                // ugly ugly ugly ugly
-                if (fixIE) {
-                    async(self.ieFixEl, self, [o[0]]);
-                }
-            }
-            inf++;
-        }
     },
 
-    moveEl: function(el, inx, force) {
-        var self = this,
-            cnt = self.renderers.length,
-            parent = self.parentEl,
-            before = self.getInsertBeforeEl(inx, cnt - 1),
-            ready = true;
-
-        if (before === false && force) {
-            before = self.getInsertBeforeEl(inx, cnt - 1, true);
-            ready = false;
-        }
-
-        if (before !== false && (!before || isAttached(before))) {
-            if (!el.nextSibling || el.nextSibling !== before) {
-                parent.insertBefore(el, before);
-            }
-            // remove translateXY transform at the same time as
-            // dom position changed
-            if (self.animateMove) {
-                el.style[animate.prefixes.transform] = null;
-                el.style[animate.prefixes.transform] = "";
-            }
-            return self.renderers[inx].ready = ready;
-        }
-        return false;
-    },
-
-    getInsertBeforeEl: function(inx, lastInx, allowNotReady) {
-
-        var self = this;
-
-        if (inx == 0) {
-            var prevEl = self.prevEl;
-            return prevEl ? prevEl.nextSibling : self.parentEl.firstChild;
-        }
-        else if (inx == lastInx) {
-            return self.nextEl;
-        }
-        else {
-            var r = self.renderers[inx+1];
-            return r.ready || allowNotReady ? r.el : false;
-        }
-    },
-
-    getNodePositions: function(tmp, rs) {
+    getNodePositions: function(tmp, rs, oldrs) {
 
         var nodes = [],
             i, l, el, r,
@@ -3958,6 +3928,10 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
             tmp.removeChild(tmp.firstChild);
         }
         for (i = 0, l = rs.length; i < l; i++) {
+            if (oldrs && oldrs[i]) {
+                tmpNode = oldrs[i].el.cloneNode(true);
+                tmp.appendChild(tmpNode);
+            }
             tmpNode = rs[i].el.cloneNode(true);
             tmp.appendChild(tmpNode);
             nodes.push(tmpNode);
@@ -3970,11 +3944,11 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
             }
         }
 
+
         return positions;
     },
 
-    // ugly ugly ugly ugly ugly
-    calculateTranslates: function(newRenderers, oldRenderers, withInserts) {
+    calculateTranslates: function(newRenderers, origRenderers, withDeletes) {
 
         var self        = this,
             parent      = self.parentEl,
@@ -3988,7 +3962,6 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
             insertPositions,
             newPositions,
             r, i, len, id,
-            tmpW,
             style,
             el;
 
@@ -3999,11 +3972,14 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
         style.width = ofsW + 'px';
 
         pp.insertBefore(tmp, parent);
-        tmpW = tmp.offsetWidth;
-        style.width = ofsW - (tmpW - ofsW) + "px";
+        // correct width to compensate for padding and stuff
+        style.width = ofsW - (tmp.offsetWidth - ofsW) + "px";
 
-        oldPositions = self.getNodePositions(tmp, oldRenderers);
-        insertPositions = self.getNodePositions(tmp, withInserts);
+        // positions before change
+        oldPositions = self.getNodePositions(tmp, origRenderers);
+        // positions when items reordered but deleted items are still in place
+        insertPositions = self.getNodePositions(tmp, newRenderers, withDeletes);
+        // positions after old items removed from dom
         newPositions = self.getNodePositions(tmp, newRenderers);
 
         pp.removeChild(tmp);
@@ -4020,11 +3996,13 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
             }
 
             translates.push([
+                // to
                 {
                     left: (newPositions[id].left - fl) - (insertPositions[id].left - fl),
                     top: (newPositions[id].top - ft) - (insertPositions[id].top - ft)
                 },
-                insertPositions[id] && oldPositions[id] ?
+                // from
+                oldPositions[id] ? //insertPositions[id] &&
                 {
                     left: (oldPositions[id].left - fl) - (insertPositions[id].left - fl),
                     top: (oldPositions[id].top - ft) - (insertPositions[id].top - ft)
@@ -4035,29 +4013,28 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
         return translates;
     },
 
-    moveAnimation: function(el, to, from) {
+    moveAnimation: function(el, to, from, startCallback, applyFrom) {
 
-        var attr = el.getAttribute("mjs-animate");
+        var style = el.style;
 
-        if (attr == undf) {
-            return Promise.resolve(el);
-        }
+        applyFrom.done(function(){
+            if (from) {
+                style[animate.prefixes.transform] = "translateX("+from.left+"px) translateY("+from.top+"px)";
+            }
+        });
 
-        if (animate.cssAnimations) {
-            var style = el.style;
-
-            return animate(el, "move", null, false, ns, function(el, position, stage){
-                if (position == 0 && stage == "start" && from) {
-                    style[animate.prefixes.transform] = "translateX("+from.left+"px) translateY("+from.top+"px)";
-                }
-                if (position == 0 && stage != "start") {
+        return animate(
+            el,
+            "move",
+            startCallback,
+            true,
+            ns,
+            function(el, position, stage){
+                if (position == 0 && stage != "start" && to) {
                     style[animate.prefixes.transform] = "translateX("+to.left+"px) translateY("+to.top+"px)";
                 }
-            });
-        }
-        else {
-            return Promise.resolve(el);
-        }
+        });
+
     },
 
     parseExpr: function(expr) {
@@ -4100,9 +4077,17 @@ registerAttributeHandler("mjs-each", 100, defineClass(null, AttributeHandler, {
         self.supr();
     }
 
-}, {
-    $stopRenderer: true
-}));
+};
+
+ListRenderer.$stopRenderer = true;
+
+
+
+
+
+
+
+registerAttributeHandler("mjs-each", 100, ListRenderer);
 
 
 
@@ -5294,13 +5279,11 @@ var run = function() {
 
 
 
+var StoreRenderer = defineClass(
+    null,
+    ListRenderer,
+    function(scope, node, expr) {
 
-
-registerAttributeHandler("mjs-each-in-store", 100, defineClass(null, "attr.mjs-each", {
-
-    store: null,
-
-    initialize: function(scope, node, expr) {
 
         var self    = this,
             store;
@@ -5315,7 +5298,6 @@ registerAttributeHandler("mjs-each-in-store", 100, defineClass(null, "attr.mjs-e
         self.prevEl     = node.previousSibling;
         self.nextEl     = node.nextSibling;
         self.parentEl   = node.parentNode;
-
         self.node       = node;
         self.scope      = scope;
         self.store      = store = createGetter(self.model)(scope);
@@ -5333,54 +5315,68 @@ registerAttributeHandler("mjs-each-in-store", 100, defineClass(null, "attr.mjs-e
 
         self.bindStore(store, "on");
     },
+    {
 
-    onScopeDestroy: function() {
+        store: null,
 
-        var self    = this;
+        onScopeDestroy: function() {
 
-        self.bindStore(self.store, "un");
-        delete self.store;
+            var self    = this;
 
-        self.supr();
+            self.bindStore(self.store, "un");
+            delete self.store;
+
+            self.supr();
+        },
+
+        initWatcher: function() {
+            var self        = this;
+            self.watcher    = createWatchable(self.store, ".current", self.onChange, self, null, ns);
+        },
+
+        resetWatcher: function() {
+            var self        = this;
+            self.watcher.setValue(self.store.items);
+        },
+
+        bindStore: function(store, fn) {
+
+            var self    = this;
+
+            store[fn]("update", self.onStoreUpdate, self);
+            store[fn]("clear", self.onStoreUpdate, self);
+            store[fn]("destroy", self.onStoreDestroy, self);
+        },
+
+        onStoreUpdate: function() {
+            this.watcher.check();
+        },
+
+        getListItem: function(list, index) {
+            return this.store.getRecordData(list[index]);
+        },
+
+        onStoreDestroy: function() {
+            var self = this;
+            self.onStoreUpdate();
+            self.watcher.unsubscribeAndDestroy(self.onChange, self);
+            delete self.watcher;
+        }
+
     },
-
-    initWatcher: function() {
-        var self        = this;
-        self.watcher    = createWatchable(self.store, ".current", self.onChange, self, null, ns);
-    },
-
-    resetWatcher: function() {
-        var self        = this;
-        self.watcher.setValue(self.store.items);
-    },
-
-    bindStore: function(store, fn) {
-
-        var self    = this;
-
-        store[fn]("update", self.onStoreUpdate, self);
-        store[fn]("clear", self.onStoreUpdate, self);
-        store[fn]("destroy", self.onStoreDestroy, self);
-    },
-
-    onStoreUpdate: function() {
-        this.watcher.check();
-    },
-
-    getListItem: function(list, index) {
-        return this.store.getRecordData(list[index]);
-    },
-
-    onStoreDestroy: function() {
-        var self = this;
-        self.onStoreUpdate();
-        self.watcher.unsubscribeAndDestroy(self.onChange, self);
-        delete self.watcher;
+    {
+        $stopRenderer: true
     }
+);
 
-}, {
-    $stopRenderer: true
-}));
+
+
+
+
+
+
+
+registerAttributeHandler("mjs-each-in-store", 100, StoreRenderer);
 
 
 
@@ -5391,6 +5387,7 @@ defineClass("MetaphorJs.cmp.Dialog", "MetaphorJs.cmp.Component", {
     dialogCfg: null,
 
     initComponent: function() {
+
 
         var self    = this;
 
@@ -5404,7 +5401,7 @@ defineClass("MetaphorJs.cmp.Dialog", "MetaphorJs.cmp.Component", {
 
         var self    = this;
 
-        return extend({}, self.dialogCfg || {}, {
+        return extend({}, self.dialogCfg, {
             render: {
                 el: self.node,
                 keepInDOM: true

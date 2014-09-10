@@ -75,7 +75,7 @@ module.exports = function(cmp, cfg, scope, node, args) {
                 else {
                     d.resolve(
                         injectFn.call(
-                            injectCt, fn, null, false, extend({}, inject, cfg, false, false)
+                            injectCt, fn, null, extend({}, inject, cfg, false, false)
                         )
                     );
                 }
@@ -112,7 +112,7 @@ module.exports = function(cmp, cfg, scope, node, args) {
         Promise.all(defers).done(function(){
             p.resolve(
                 injectFn.call(
-                    injectCt, constr, null, true, extend({}, inject, cfg, false, false), args
+                    injectCt, constr, null, extend({}, inject, cfg, false, false), args
                 )
             );
         });
@@ -120,7 +120,7 @@ module.exports = function(cmp, cfg, scope, node, args) {
     else {
         p = Promise.resolve(
             injectFn.call(
-                injectCt, constr, null, true, extend({}, inject, cfg, false, false), args
+                injectCt, constr, null, extend({}, inject, cfg, false, false), args
             )
         );
     }

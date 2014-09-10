@@ -84,12 +84,7 @@ module.exports = function(){
 
 
             if (el.nodeType) {
-                //try {
-                    res = fn.call(fnScope, el);
-                //}
-                //catch (thrownError) {
-                //    error(thrownError);
-                //}
+                res = fn.call(fnScope, el);
             }
 
 
@@ -178,16 +173,9 @@ module.exports = function(){
                     $renderer: self
                 },
                 args    = [scope, node, value, self],
-                inst;
+                inst    = app.inject(f, null, inject, args);
 
-            if (f.__isMetaphorClass) {
-
-                inst = app.inject(f, null, true, inject, args);
-                return f.$stopRenderer ? false : inst;
-            }
-            else {
-                return app.inject(f, null, false, inject, args);
-            }
+            return f.$stopRenderer ? false : inst;
         },
 
         processNode: function(node) {
@@ -253,7 +241,9 @@ module.exports = function(){
 
                     // ie6 doesn't have hasAttribute()
                     if ((attr = node.getAttribute(name)) !== null) {
+
                         res     = self.runHandler(handlers[i].handler, scope, node, attr);
+
                         node.removeAttribute(name);
 
                         if (res === false) {
@@ -279,7 +269,7 @@ module.exports = function(){
 
                 recursive = node.getAttribute("mjs-recursive") !== null;
 
-                var attrs   = slice.call(node.attributes);
+                var attrs   = toArray(node.attributes);
 
                 for (i = 0, len = attrs.length; i < len; i++) {
 

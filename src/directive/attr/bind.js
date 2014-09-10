@@ -4,7 +4,7 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
     defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
     isField = require("../../func/dom/isField.js"),
     setValue = require("../../../../metaphorjs-input/src/func/setValue.js"),
-    nodeTextProp = require("../../var/nodeTextProp.js"),
+    elemTextProp = require("../../var/elemTextProp.js"),
     TextRenderer = require("../../view/TextRenderer.js"),
     Scope = require("../../lib/Scope.js"),
     AttributeHandler = require("../../view/AttributeHandler.js"),
@@ -79,7 +79,7 @@ registerAttributeHandler("mjs-bind", 1000, defineClass(null, AttributeHandler, {
             self.input.setValue(val);
         }
         else {
-            self.node[nodeTextProp] = val;
+            self.node[elemTextProp] = val;
         }
     },
 

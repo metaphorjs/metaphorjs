@@ -302,13 +302,19 @@ describe('Change value of .a via select', function() {
 });
 
 describe('Change value of .text via textarea', function() {
+
     it("should change scope .text", function(){
         element(by.id('model-textarea')).sendKeys("1");
 
         expect(browser.driver.executeScript("return window.mainApp.scope.text"))
             .to.eventually.equal("New Text1");
+    });
+
+    it("should change #model-input value too", function(){
 
         expect(element(by.id("model-input")).getAttribute("value"))
             .to.eventually.equal("New Text1");
+
     });
+
 });

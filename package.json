@@ -1,49 +1,49 @@
 {
-  "name": "metaphorjs",
-  "version": "0.3.4",
-  "description": "MetaphorJs app framework",
-  "main": "dist/metaphorjs.npm.js",
-  "directories": {
-    "doc": "docs",
-    "test": "test"
-  },
-  "scripts": {
-    "test": "mocha"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/kuindji/metaphorjs.git"
-  },
-  "author": "kuindji",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/kuindji/metaphorjs/issues"
-  },
-  "homepage": "https://github.com/kuindji/metaphorjs",
-  "devDependencies": {
-    "chai": "^1.9.1",
-    "chai-as-promised": "^4.1.1",
-    "karma": "^0.12.23",
-    "karma-chai": "^0.1.0",
-    "karma-chrome-launcher": "^0.1.4",
-    "karma-mocha": "^0.1.9",
-    "karma-phantomjs-launcher": "^0.1.4",
-    "karma-webdriver-launcher": "^0.2.0",
-    "metaphorjs-ajax": "*",
-    "metaphorjs-animate": "*",
-    "metaphorjs-build": "*",
-    "metaphorjs-class": "*",
-    "metaphorjs-dialog": "*",
-    "metaphorjs-history": "*",
-    "metaphorjs-input": "*",
-    "metaphorjs-model": "*",
-    "metaphorjs-namespace": "*",
-    "metaphorjs-observable": "*",
-    "metaphorjs-promise": "*",
-    "metaphorjs-select": "*",
-    "metaphorjs-validator": "*",
-    "metaphorjs-watchable": "*",
-    "mocha": "^1.21.4",
-    "selenium-webdriver": "^2.42.1"
-  }
+    "name": "metaphorjs",
+    "version": "0.3.5",
+    "description": "MetaphorJs app framework",
+    "main": "dist/metaphorjs.npm.js",
+    "directories": {
+        "doc": "docs",
+        "test": "test"
+    },
+    "scripts": {
+        "test": "mocha"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/kuindji/metaphorjs.git"
+    },
+    "author": "kuindji",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/kuindji/metaphorjs/issues"
+    },
+    "homepage": "https://github.com/kuindji/metaphorjs",
+    "devDependencies": {
+        "chai": "^1.9.1",
+        "chai-as-promised": "^4.1.1",
+        "karma": "^0.12.23",
+        "karma-chai": "^0.1.0",
+        "karma-chrome-launcher": "^0.1.4",
+        "karma-mocha": "^0.1.9",
+        "karma-phantomjs-launcher": "^0.1.4",
+        "karma-webdriver-launcher": "^0.2.0",
+        "metaphorjs-ajax": "*",
+        "metaphorjs-animate": "*",
+        "metaphorjs-build": "*",
+        "metaphorjs-class": "*",
+        "metaphorjs-dialog": "*",
+        "metaphorjs-history": "*",
+        "metaphorjs-input": "*",
+        "metaphorjs-model": "*",
+        "metaphorjs-namespace": "*",
+        "metaphorjs-observable": "*",
+        "metaphorjs-promise": "*",
+        "metaphorjs-select": "*",
+        "metaphorjs-validator": "*",
+        "metaphorjs-watchable": "*",
+        "mocha": "^1.21.4",
+        "selenium-webdriver": "^2.42.1"
+    }
 }

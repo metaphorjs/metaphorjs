@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+
+<script>
+    var a = function() {
+        alert("a");
+    };
+
+    a.prototype = {
+
+        constructor: function() {
+            alert("constructor");
+        }
+
+    };
+
+    new a;
+
+</script>
+
+</body>
+</html>

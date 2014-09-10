@@ -68,7 +68,7 @@ defineClass("Test.MyView", "MetaphorJs.cmp.View", {
         route: [
             {
                 template: 'test-template',
-                default: true
+                "default": true
             },
             {
                 reg: /^\/1$/,
@@ -143,31 +143,24 @@ defineClass("Test.MyComponent", "MetaphorJs.cmp.Component", {
 
         createDialog: function() {
 
-
-            try {
-                var dialog = new MetaphorJs.cmp.Dialog({
-                    dialogCfg: {
-                        cls: {
-                            dialog: "dialog"
-                        },
-                        position: "wc",
-                        show: {
-                            animate: true
-                        },
-                        hide: {
-                            destroy: true
-                        }
+            var dialog = new MetaphorJs.cmp.Dialog({
+                dialogCfg: {
+                    cls: {
+                        dialog: "dialog"
                     },
-                    as: "dlg",
-                    scope: this.scope,
-                    template: '<p>This is a dialog. <a href="#" mjs-click=".dlg.hide()">close</a></p>'
-                });
-                dialog.show();
-            }
-            catch(e) {
-                MetaphorJs.error(e)
-            }
-
+                    position: "wc",
+                    show: {
+                        animate: true
+                    },
+                    hide: {
+                        destroy: true
+                    }
+                },
+                as: "dlg",
+                scope: this.scope,
+                template: '<p>This is a dialog. <a href="#" mjs-click=".dlg.hide()">close</a></p>'
+            });
+            dialog.show();
         },
 
         loadStore: function() {

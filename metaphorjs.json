@@ -1,5 +1,5 @@
 {
-    "version": "0.3.4",
+    "version": "0.3.5",
     "push": [
         "github"
     ],
@@ -7,15 +7,21 @@
         {
             "service": {
                 "cmd": "webdriver-manager",
-                "args": ["start"],
+                "args": [
+                    "start"
+                ],
                 "wait": 10000
             },
             "cmd": "protractor",
-            "args": ["protractor.conf.js"]
+            "args": [
+                "protractor.conf.js"
+            ]
         },
         {
             "cmd": "karma",
-            "args": ["start"]
+            "args": [
+                "start"
+            ]
         }
     ],
     "build": {
@@ -160,7 +166,6 @@
             ]
         },
         "amd": {
-            "auto": true,
             "target": "dist/metaphorjs.amd.js",
             "prependFilesFrom": [
                 "standalone"
@@ -253,7 +258,12 @@
             ],
             "files": [
                 "../metaphorjs-model/src/FirebaseStore.js",
-                ["src/func/compile.js", {"as": "compile"}]
+                [
+                    "src/func/compile.js",
+                    {
+                        "as": "compile"
+                    }
+                ]
             ],
             "expose": [
                 "onReady",
@@ -274,6 +284,7 @@
                 "run",
                 "async",
                 "compile",
+                "isPlainObject",
                 [
                     "MetaphorJs.lib",
                     "Promise"

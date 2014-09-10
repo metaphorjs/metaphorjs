@@ -42,24 +42,34 @@ module.exports = function(){
             };
         },
 
-        instantiate: function(fn, args) {
+        instantiate: function(fn, context, args) {
+
+            if (fn.__instantiate) {
+                return fn.__instantiate.apply(null, args);
+            }
+            else if (context) {
+                return fn.apply(context, args);
+            }
+
             var Temp = function(){},
                 inst, ret;
 
             Temp.prototype  = fn.prototype;
             inst            = new Temp;
-            ret             = fn.prototype.constructor.apply(inst, args);
+            ret             = fn.apply(inst, args);
 
             // If an object has been returned then return it otherwise
             // return the original instance.
             // (consistent with behaviour of the new operator)
-            return isObject(ret) ? ret : inst;
+            return isObject(ret) || ret === false ? ret : inst;
         },
 
-        inject: function(injectable, context, returnInstance, currentValues, callArgs) {
+        inject: function(injectable, context, currentValues, callArgs) {
 
             currentValues   = currentValues || {};
             callArgs        = callArgs || [];
+
+            var self = this;
 
             if (isFunction(injectable)) {
 
@@ -69,16 +79,13 @@ module.exports = function(){
                     injectable = tmp;
                 }
                 else {
-                    return returnInstance || injectable.__isMetaphorClass ?
-                        this.instantiate(injectable, callArgs) :
-                        injectable.apply(context, callArgs);
+                    return self.instantiate(injectable, context, callArgs);
                 }
             }
 
             injectable  = slice.call(injectable);
 
-            var self    = this,
-                values  = [],
+            var values  = [],
                 fn      = injectable.pop(),
                 i, l;
 
@@ -86,9 +93,7 @@ module.exports = function(){
                  values.push(self.resolve(injectable[i], currentValues))) {}
 
             return Promise.all(values).then(function(values){
-                return returnInstance || fn.__isMetaphorClass ?
-                    self.instantiate(fn, values) :
-                    fn.apply(context, values);
+                return self.instantiate(fn, context, values);
             });
         },
 
@@ -163,17 +168,17 @@ module.exports = function(){
                     return item.value;
                 }
                 else if (type == FACTORY) {
-                    res = self.inject(item.fn, item.context, false, currentValues);
+                    res = self.inject(item.fn, item.context, currentValues);
                 }
                 else if (type == SERVICE) {
-                    res = self.inject(item.fn, null, true, currentValues);
+                    res = self.inject(item.fn, null, currentValues);
                 }
                 else if (type == PROVIDER) {
 
                     if (!item.instance) {
 
                         item.instance = Promise.resolve(
-                                self.inject(item.fn, null, true, currentValues)
+                                self.inject(item.fn, null, currentValues)
                             )
                             .done(function(instance){
                                 item.instance = instance;

@@ -1,7 +1,7 @@
 
 
 var types = ["string", "number", "bool", "object", "array",
-             "function", "undefined", "null", "regexp", "date"],
+             "function", "undefined", "null", "regexp", "date", "dom"],
     i, l, t,
     v1, v2, v3, v4,
     result = "";
@@ -207,6 +207,19 @@ for (i = 0, l = types.length; i < l; i++) {
 
             v1 = new Date;
             type2str("object date", v1);
+
+            break;
+
+
+        case "dom":
+
+            if (typeof document != "undefined") {
+                console.log("");
+                console.log("====== DOM");
+
+                v1 = document.createElement("div");
+                type2str("dom element", v1);
+            }
 
             break;
 
