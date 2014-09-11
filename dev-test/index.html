@@ -339,7 +339,9 @@
                        value="Add item"/>
 
                 <ul mjs-show=".bool" mjs-animate>
-                    <li mjs-each="item in .list | filter:.listFilter | sortBy:'txt':.sortBy" mjs-animate mjs-animate-move >
+                    <li mjs-each="item in .list | filter:.listFilter | sortBy:'txt':.sortBy"
+                        mjs-animate
+                        mjs-config="{animateMove: true}" >
                         <label mjs-class="{cls3: .item.bool}">
                             <input type="checkbox" mjs-model=".item.bool"/>
                             {{.$index}} -

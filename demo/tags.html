@@ -54,7 +54,8 @@
                         mjs-each="tag in .tags | sortBy:'$':.sortBy"
                         mjs-track-by="$"
                         mjs-click=".$parent.tags.splice(.$parent.tags.indexOf(.tag), 1)"
-                        mjs-animate mjs-animate-move>{{.tag}}</li>
+                        mjs-animate
+                        mjs-config="{animateMove: true}">{{.tag}}</li>
                 </ul>
             </div>
         </div>

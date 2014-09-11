@@ -190,6 +190,22 @@ var extend = function(){
 var emptyFn = function(){};
 
 
+var attr = function(el, name, value) {
+    if (!el || !el.getAttribute) {
+        return null;
+    }
+    if (value === undf) {
+        return el.getAttribute(name);
+    }
+    else if (value === null) {
+        return el.removeAttribute(name);
+    }
+    else {
+        return el.setAttribute(name, value);
+    }
+};
+
+
 var Scope = function(cfg) {
     var self    = this;
 
@@ -1046,7 +1062,7 @@ var Renderer = function(){
             // text node
             if (nodeType == 3) {
 
-                recursive       = node.parentNode.getAttribute("mjs-recursive") !== null;
+                recursive       = attr(node.parentNode, "mjs-recursive") !== null;
                 textRenderer    = createText(scope, node[nodeTextProp], null, texts.length, recursive);
 
                 if (textRenderer) {
@@ -1071,7 +1087,7 @@ var Renderer = function(){
                     defers  = [],
                     nodes   = [],
                     i, f, len,
-                    attr,
+                    attrValue,
                     name,
                     res;
 
@@ -1095,11 +1111,11 @@ var Renderer = function(){
                     name    = handlers[i].name;
 
                     // ie6 doesn't have hasAttribute()
-                    if ((attr = node.getAttribute(name)) !== null) {
+                    if ((attrValue = attr(node, name)) !== null) {
 
-                        res     = self.runHandler(handlers[i].handler, scope, node, attr);
+                        res     = self.runHandler(handlers[i].handler, scope, node, attrValue);
 
-                        node.removeAttribute(name);
+                        attr(node, name, null);
 
                         if (res === false) {
                             return false;
@@ -1122,7 +1138,7 @@ var Renderer = function(){
                     return deferred;
                 }
 
-                recursive = node.getAttribute("mjs-recursive") !== null;
+                recursive = attr(node, "mjs-recursive") !== null;
 
                 var attrs   = toArray(node.attributes);
 
@@ -1133,7 +1149,7 @@ var Renderer = function(){
                         textRenderer = createText(scope, attrs[i].value, null, texts.length, recursive);
 
                         if (textRenderer) {
-                            node.removeAttribute(attrs[i].name);
+                            attr(node, attrs[i].name, null);
                             textRenderer.subscribe(self.onTextChange, self);
                             texts.push({
                                 node: node,
@@ -1167,24 +1183,24 @@ var Renderer = function(){
 
         renderText: function(inx) {
 
-            var self    = this,
-                text    = self.texts[inx],
-                res     = text.tr.getString(),
-                attr    = text.attr;
+            var self        = this,
+                text        = self.texts[inx],
+                res         = text.tr.getString(),
+                attrName    = text.attr;
 
 
-            if (attr) {
-                if (attr == "value") {
+            if (attrName) {
+                if (attrName == "value") {
                     text.node.value = res;
                 }
-                else if (attr == "class") {
+                else if (attrName == "class") {
                     text.node.className = res;
                 }
-                else if (attr == "src") {
+                else if (attrName == "src") {
                     text.node.src = res;
                 }
 
-                text.node.setAttribute(attr, res);
+                attr(text.node, attrName, res);
 
             }
             else {
@@ -1858,7 +1874,7 @@ var Text = function(){
 
         while (parent) {
 
-            if (id = parent.getAttribute("cmp-id")) {
+            if (id = attr(parent, "cmp-id")) {
                 return self.getCmp(id);
             }
 
@@ -2102,7 +2118,7 @@ var Template = function(){
         var node    = self.node,
             tpl     = self.tpl || self.url;
 
-        node && node.removeAttribute("mjs-include");
+        node && attr(node, "mjs-include", null);
 
         if (!node) {
             self.deferRendering = true;
@@ -2427,7 +2443,7 @@ var Template = function(){
         }
 
         if (self.node) {
-            self.id     = self.node.getAttribute("id");
+            self.id = attr(self.node, "id");
             if (self.id) {
                 self.originalId = true;
             }
@@ -2491,8 +2507,8 @@ var Template = function(){
         var self    = this,
             node    = self.node;
 
-        node.setAttribute("id", self.id);
-        node.setAttribute("cmp-id", self.id);
+        attr(node, "id", self.id);
+        attr(node, "cmp-id", self.id);
 
         if (self.hidden) {
             node.style.display = "none";
@@ -2644,9 +2660,9 @@ var Template = function(){
             }
         }
         else {
-            self.node.removeAttribute("cmp-id");
+            attr(self.node, "cmp-id", null);
             if (!self.originalId) {
-                self.node.removeAttribute("id");
+                attr(self.node, "id", null);
             }
         }
 
@@ -2786,7 +2802,7 @@ var resolveComponent = function(cmp, cfg, scope, node, args) {
         gProvider   = Provider.global(),
         injectFn    = app ? app.inject : gProvider.inject,
         injectCt    = app ? app : gProvider,
-        cloak       = node ? node.getAttribute("mjs-cloak") : null,
+        cloak       = node ? attr(node, "mjs-cloak") : null,
         inject      = {
             $node: node || null,
             $scope: scope || null,
@@ -2927,14 +2943,15 @@ var currentUrl = history.currentUrl;
         }
 
         if (!self.cmp) {
-            self.cmp = node.getAttribute("mjs-view-cmp");
+            self.cmp = attr(node, "mjs-view-cmp");
         }
 
-        self.defaultCmp = node.getAttribute("mjs-view-default");
+        self.defaultCmp = attr(node, "mjs-view-default");
 
-        node.removeAttribute("mjs-view");
-        node.removeAttribute("mjs-view-cmp");
-        node.removeAttribute("mjs-view-default");
+        attr(node, "mjs-view", null);
+        attr(node, "mjs-view-cmp", null);
+        attr(node, "mjs-view-default", null);
+
 
         if (self.route) {
             history.initPushState();
@@ -3115,7 +3132,7 @@ var returnFalse = function() {
 
 
 
-registerAttributeHandler("mjs-app", 0, returnFalse);
+registerAttributeHandler("mjs-app", 100, returnFalse);
 var isField = function(el) {
     var tag	= el.nodeName.toLowerCase(),
         type = el.type;
@@ -3197,11 +3214,11 @@ registerAttributeHandler("mjs-bind", 1000, defineClass(null, AttributeHandler, {
         var self    = this;
 
         self.isInput    = isField(node);
-        self.recursive  = node.getAttribute("mjs-recursive") !== null;
-        self.lockInput  = node.getAttribute("mjs-lock-input") !== null;
+        self.recursive  = attr(node, "mjs-recursive") !== null;
+        self.lockInput  = attr(node, "mjs-lock-input") !== null;
 
-        node.removeAttribute("mjs-recursive");
-        node.removeAttribute("mjs-lock-input");
+        attr(node, "mjs-recursive", null);
+        attr(node, "mjs-lock-input", null);
 
         if (self.isInput) {
             self.input  = new Input(node, self.onInputChange, self);
@@ -3378,9 +3395,12 @@ registerAttributeHandler("mjs-cmp-prop", 200,
             tmp,
             i, len,
             part,
-            cmp;
+            cmp,
+            nodeCfg;
 
-        node.removeAttribute("mjs-cmp");
+
+        nodeCfg = data(node, "config") || {};
+        attr(node, "mjs-cmp", null);
 
         tmp     = expr.split(' ');
 
@@ -3400,13 +3420,13 @@ registerAttributeHandler("mjs-cmp-prop", 200,
             }
         }
 
-        var cfg     = {
+        var cfg     = extend({
             scope: scope,
             node: node,
             as: as,
             parentRenderer: parentRenderer,
             destroyScope: true
-        };
+        }, nodeCfg, false, false);
 
         resolveComponent(cmpName, cfg, scope, node);
         return false;
@@ -3419,6 +3439,16 @@ registerAttributeHandler("mjs-cmp-prop", 200,
 }());
 
 
+
+var createGetter = Watchable.createGetter;
+
+
+registerAttributeHandler("mjs-config", 50, function(scope, node, expr){
+    attr(node, "mjs-config", null);
+    data(node, "config", createGetter(expr)(scope));
+});
+
+
 var isNumber = function(value) {
     return varType(value) === 1;
 };
@@ -3428,106 +3458,154 @@ var isPrimitive = function(value) {
     var vt = varType(value);
     return vt < 3 && vt > -1;
 };
-var uaString = navigator.userAgent.toLowerCase();
 
 
-var isIE = function(){
+var raf = function() {
 
-    var msie    = parseInt((/msie (\d+)/.exec(uaString) || [])[1], 10);
+    var raf,
+        cancel;
 
-    if (isNaN(msie)) {
-        msie    = parseInt((/trident\/.*; rv:(\d+)/.exec(uaString) || [])[1], 10) || false;
+    if (typeof window != strUndef) {
+        var w   = window;
+        raf     = w.requestAnimationFrame ||
+                    w.webkitRequestAnimationFrame ||
+                    w.mozRequestAnimationFrame;
+        cancel  = w.cancelAnimationFrame ||
+                    w.webkitCancelAnimationFrame ||
+                    w.mozCancelAnimationFrame ||
+                    w.webkitCancelRequestAnimationFrame;
+
+        if (raf) {
+            return function(fn) {
+                var id = raf(fn);
+                return function() {
+                    cancel(id);
+                };
+            };
+        }
     }
 
-    return function() {
-        return msie;
+    return function(fn) {
+        var id = setTimeout(fn, 0);
+        return function() {
+            clearTimeout(id);
+        }
     };
 }();
 
+var getScrollParent = function() {
 
-var animFrame = function(){
+    var rOvf        = /(auto|scroll)/,
+        body,
 
-    return typeof window != strUndef && window.requestAnimationFrame ?
-           window.requestAnimationFrame : async;
-}();
-var aIndexOf    = Array.prototype.indexOf;
+        style       = window.getComputedStyle ?
+                function (node, prop) {
+                    return getComputedStyle(node, null)[prop];
+                }:
+                function(node, prop) {
+                    return node.currentStyle ?
+                            "" + node.currentStyle[prop] :
+                            "" + node.style[prop];
+                },
 
-if (!aIndexOf) {
-    aIndexOf = Array.prototype.indexOf = function (searchElement, fromIndex) {
+        overflow    = function (node) {
+            return style(node, "overflow") + style(node, "overflowY") + style(node, "overflowY");
+        },
 
-        var k;
+        scroll      = function (node) {
+            return rOvf.test(overflow(node));
+        };
 
-        // 1. Let O be the result of calling ToObject passing
-        //    the this value as the argument.
-        if (this == null) {
-            throw new TypeError('"this" is null or not defined');
+    return function(node) {
+
+        if (!body) {
+            body = document.body;
         }
 
-        var O = Object(this);
+        var parent = node;
 
-        // 2. Let lenValue be the result of calling the Get
-        //    internal method of O with the argument "length".
-        // 3. Let len be ToUint32(lenValue).
-        var len = O.length >>> 0;
-
-        // 4. If len is 0, return -1.
-        if (len === 0) {
-            return -1;
-        }
-
-        // 5. If argument fromIndex was passed let n be
-        //    ToInteger(fromIndex); else let n be 0.
-        var n = +fromIndex || 0;
-
-        if (Math.abs(n) === Infinity) {
-            n = 0;
-        }
-
-        // 6. If n >= len, return -1.
-        if (n >= len) {
-            return -1;
-        }
-
-        // 7. If n >= 0, then Let k be n.
-        // 8. Else, n<0, Let k be len - abs(n).
-        //    If k is less than 0, then let k be 0.
-        k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
-
-        // 9. Repeat, while k < len
-        while (k < len) {
-            var kValue;
-            // a. Let Pk be ToString(k).
-            //   This is implicit for LHS operands of the in operator
-            // b. Let kPresent be the result of calling the
-            //    HasProperty internal method of O with argument Pk.
-            //   This step can be combined with c
-            // c. If kPresent is true, then
-            //    i.  Let elementK be the result of calling the Get
-            //        internal method of O with the argument ToString(k).
-            //   ii.  Let same be the result of applying the
-            //        Strict Equality Comparison Algorithm to
-            //        searchElement and elementK.
-            //  iii.  If same is true, return k.
-            if (k in O && O[k] === searchElement) {
-                return k;
+        while (parent) {
+            if (parent === body) {
+                return window;
             }
-            k++;
+            if (scroll(parent)) {
+                return parent;
+            }
+            parent = parent.parentNode;
         }
-        return -1;
+
+        return window;
     };
-}
+}();
 
 
+var getScrollTopOrLeft = function(vertical) {
+
+    var defaultST,
+        wProp = vertical ? "pageYOffset" : "pageXOffset",
+        sProp = vertical ? "scrollTop" : "scrollLeft",
+        doc = document,
+        body = doc.body,
+        html = doc.documentElement;
+
+    if(window[wProp] !== undf) {
+        //most browsers except IE before #9
+        defaultST = function(){
+            return window[wProp];
+        };
+    }
+    else{
+        if (html.clientHeight) {
+            defaultST = function() {
+                return html[sProp];
+            };
+        }
+        else {
+            defaultST = function() {
+                return body[sProp];
+            };
+        }
+    }
+
+    return function(node) {
+        if (node && node.nodeType == 1 &&
+            node !== body && node !== html) {
+
+            return node[sProp];
+        }
+        else {
+            return defaultST();
+        }
+    }
+
+};
 
 
+var getScrollTop = getScrollTopOrLeft(true);
 
 
+var getScrollLeft = getScrollTopOrLeft(false);
+var addListener = function(el, event, func) {
+    if (el.attachEvent) {
+        el.attachEvent('on' + event, func);
+    } else {
+        el.addEventListener(event, func, false);
+    }
+};
+
+var removeListener = function(el, event, func) {
+    if (el.detachEvent) {
+        el.detachEvent('on' + event, func);
+    } else {
+        el.removeEventListener(event, func, false);
+    }
+};
 
 
 var ListRenderer = function(scope, node, expr) {
 
-    node.removeAttribute("mjs-each");
-    node.removeAttribute("mjs-include");
+    attr(node, "mjs-each", null);
+    attr(node, "mjs-include", null);
 
     var self    = this;
 
@@ -3542,11 +3620,12 @@ var ListRenderer = function(scope, node, expr) {
     self.scope      = scope;
     self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
 
-    self.animateMove= node.getAttribute("mjs-animate-move") !== null && animate.cssAnimations;
-    self.animate    = node.getAttribute("mjs-animate") !== null;
-    node.removeAttribute("mjs-animate-move");
+    var cfg         = data(node, "config") || {};
+    self.animateMove= !cfg.buffered && cfg.animateMove && animate.cssAnimations;
+    self.animate    = !cfg.buffered && attr(node, "mjs-animate") !== null;
 
-    self.trackBy    = node.getAttribute("mjs-track-by");
+
+    self.trackBy    = attr(node, "mjs-track-by");
     if (self.trackBy) {
         if (self.trackBy != '$') {
             self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, null, ns);
@@ -3555,12 +3634,18 @@ var ListRenderer = function(scope, node, expr) {
     else if (!self.watcher.hasInputPipes()) {
         self.trackBy    = '$$'+self.watcher.id;
     }
-    node.removeAttribute("mjs-track-by");
+    attr(node, "mjs-track-by", null);
 
 
     self.griDelegate = bind(self.scopeGetRawIndex, self);
     self.parentEl.removeChild(node);
+
+    if (cfg.buffered) {
+        self.initBuffering(cfg);
+    }
+
     self.render(toArray(self.watcher.getValue()));
+
 };
 
 ListRenderer.prototype = {
@@ -3578,6 +3663,17 @@ ListRenderer.prototype = {
     animate: false,
     trackByFn: null,
     griDelegate: null,
+
+    buffered: false,
+    itemSize: null,
+    itemsOffsite: 1,
+    bufferState: null,
+    scrollOffset: 0,
+    horizontal: false,
+    eventTmt: null,
+    scrollBusy: false,
+    onResizeDelegate: null,
+    onScrollDelegate: null,
 
     onScopeDestroy: function() {
 
@@ -3597,6 +3693,7 @@ ListRenderer.prototype = {
 
         self.supr();
     },
+
 
     onChangeTrackBy: function(val) {
         this.trackByFn = null;
@@ -3651,45 +3748,63 @@ ListRenderer.prototype = {
         return -1;
     },
 
-    doUpdate: function(start) {
+    doUpdate: function(start, end, action, renderOnly) {
 
         var self        = this,
             renderers   = self.renderers,
-            index       = start,
-            len         = renderers.length,
-            last        = len - 1,
-            even        = !(index % 2),
+            index       = start || 0,
+            cnt         = renderers.length,
+            x           = end || cnt - 1,
             list        = self.watcher.getLastResult(),
-            trackByFn   = self.getTrackByFunction(),
-            griDelegate = self.griDelegate,
-            r,
-            scope;
+            trackByFn   = self.getTrackByFunction();
 
-
-        for (; index < len; index++) {
-
-            r       = renderers[index];
-            scope   = r.scope;
-
-            scope.$index    = index;
-            scope.$first    = index === 0;
-            scope.$last     = index === last;
-            scope.$even     = even;
-            scope.$odd      = !even;
-            scope.$trackId  = trackByFn(list[index]);
-            scope.$getRawIndex = griDelegate;
-
-            even = !even;
-
-            if (!r.renderer) {
-                r.renderer  = new Renderer(r.el, r.scope);
-                r.renderer.process();
-            }
-            else {
-                scope.$check();
-            }
+        if (x > cnt - 1) {
+            x = cnt - 1;
         }
 
+        for (; index <= x; index++) {
+
+            if (action && renderers[index].action != action) {
+                continue;
+            }
+
+            self.renderItem(index, renderers, list, trackByFn, renderOnly);
+        }
+    },
+
+    renderItem: function(index, rs, list, trackByFn, renderOnly) {
+
+        var self = this;
+
+        list = list || self.watcher.getLastResult();
+        rs = rs || self.renderers;
+        trackByFn = trackByFn || self.getTrackByFunction();
+
+        var item        = rs[index],
+            scope       = item.scope,
+            last        = rs.length - 1,
+            even        = !(index % 2);
+
+        if (renderOnly && item.rendered) {
+            return;
+        }
+
+        scope.$index    = index;
+        scope.$first    = index === 0;
+        scope.$last     = index === last;
+        scope.$even     = even;
+        scope.$odd      = !even;
+        scope.$trackId  = trackByFn(list[index]);
+        scope.$getRawIndex = self.griDelegate;
+
+        if (!item.renderer) {
+            item.renderer  = new Renderer(item.el, scope);
+            item.renderer.process();
+            item.rendered = true;
+        }
+        else {
+            scope.$check();
+        }
     },
 
     render: function(list) {
@@ -3699,20 +3814,28 @@ ListRenderer.prototype = {
             tpl         = self.tpl,
             parent      = self.parentEl,
             next        = self.nextEl,
+            buffered    = self.buffered,
             fragment    = document.createDocumentFragment(),
             el,
             i, len;
 
         for (i = 0, len = list.length; i < len; i++) {
-
             el = tpl.cloneNode(true);
-            fragment.appendChild(el);
             renderers.push(self.createItem(el, list, i));
+            renderers[i].attached = !buffered;
+            if (!buffered) {
+                fragment.appendChild(el);
+            }
         }
 
-        parent.insertBefore(fragment, next);
-
-        self.doUpdate(0);
+        if (!buffered) {
+            self.doUpdate();
+            parent.insertBefore(fragment, next);
+        }
+        else {
+            self.getScrollOffset();
+            self.updateScrollBuffer();
+        }
     },
 
     getListItem: function(list, index) {
@@ -3729,10 +3852,11 @@ ListRenderer.prototype = {
 
         return {
             index: index,
-            ready: false,
             action: "enter",
             el: el,
-            scope: itemScope
+            scope: itemScope,
+            attached: false,
+            rendered: false
         };
     },
 
@@ -3758,8 +3882,6 @@ ListRenderer.prototype = {
             action,
             translates;
 
-
-
         prs = self.watcher.getMovePrescription(prs, self.getTrackByFunction());
 
         // redefine renderers
@@ -3776,7 +3898,6 @@ ListRenderer.prototype = {
                 }
 
                 prevr.action = "move";
-                prevr.ready = false;
                 prevr.scope[iname] = self.getListItem(list, i);
                 doesMove = animateMove;
 
@@ -3796,9 +3917,10 @@ ListRenderer.prototype = {
         }
 
         self.renderers  = newrs;
-        self.doUpdate(updateStart || 0);
 
         if (animateAll) {
+
+            self.doUpdate(updateStart, null, "enter");
 
             if (doesMove) {
                 translates = self.calculateTranslates(newrs, origrs, renderers);
@@ -3845,20 +3967,24 @@ ListRenderer.prototype = {
             }
 
             animReady.done(function(){
-                animFrame(function(){
+                raf(function(){
                     applyFrom.resolve();
                     self.applyDomPositions(renderers);
-
-                    animFrame(function(){
+                    if (!doesMove) {
+                        self.doUpdate(updateStart, null, "move");
+                    }
+                    raf(function(){
                         startAnimation.resolve();
                     });
                 });
             });
 
             Promise.all(animPromises).always(function(){
-                animFrame(function(){
+                raf(function(){
+                    self.doUpdate(updateStart || 0);
                     self.removeOldElements(renderers);
-                    if (animate.cssAnimations) {
+                    if (doesMove) {
+                        self.doUpdate(updateStart, null, "move");
                         for (i = 0, len = newrs.length; i < len; i++) {
                             r = newrs[i];
                             r.el.style[animate.prefixes.transform] = null;
@@ -3872,22 +3998,26 @@ ListRenderer.prototype = {
         }
         else {
             self.applyDomPositions();
+            if (self.buffered) {
+                !self.bufferState && self.getBufferState();
+                self.doUpdate(self.bufferState.first, self.bufferState.last);
+            }
+            else {
+                self.doUpdate(updateStart || 0);
+            }
             self.removeOldElements(renderers);
         }
     },
 
-    ieFixEl: function(el) {
-        el.style.zoom = 1;
-        el.style.zoom = "";
-    },
 
     removeOldElements: function(rs) {
-        var i, len, r;
+        var i, len, r,
+            parent = this.parentEl;
 
         for (i = 0, len = rs.length; i < len; i++) {
             r = rs[i];
-            if (r) {
-                isAttached(r.el) && r.el.parentNode.removeChild(r.el);
+            if (r && r.attached) {
+                parent.removeChild(r.el);
             }
         }
     },
@@ -3895,35 +4025,56 @@ ListRenderer.prototype = {
 
     applyDomPositions: function(oldrs) {
 
-        var self    = this,
-            rs      = self.renderers,
-            parent  = self.parentEl,
-            prevEl  = self.prevEl,
+        var self        = this,
+            rs          = self.renderers,
+            parent      = self.parentEl,
+            prevEl      = self.prevEl,
+            buffered    = self.buffered,
+            bs          = buffered ? self.getBufferState(true) : null,
+            fc          = prevEl ? prevEl.nextSibling : parent.firstChild,
             next,
-            i, l, el;
+            i, l, el, r;
 
         for (i = 0, l = rs.length; i < l; i++) {
-            el = rs[i].el;
+            r = rs[i];
+            el = r.el;
 
-            if (oldrs && oldrs[i]) {
-                next = oldrs[i].el.nextSibling;
+            if (!buffered || i >= bs.first && i <= bs.last) {
+
+                if (oldrs && oldrs[i]) {
+                    next = oldrs[i].el.nextSibling;
+                }
+                else {
+                    next = i > 0 ? (rs[i-1].el.nextSibling || fc) : fc;
+                }
+
+                if (next && el.nextSibling !== next) {
+                    parent.insertBefore(el, next);
+                }
+                else if (!next) {
+                    parent.appendChild(el);
+                }
+                r.attached = true;
             }
             else {
-                next = i > 0 ?
-                       rs[i-1].el.nextSibling :
-                       (prevEl ? prevEl.nextSibling : parent.firstChild);
+                if (buffered && i < bs.first || i > bs.last) {
+                    if (r.attached) {
+                        parent.removeChild(el);
+                        r.attached = false;
+                    }
+                }
             }
-            if (next && el.nextSibling !== next) {
-                parent.insertBefore(el, next);
-            }
-            else if (!next) {
-                parent.appendChild(el);
-            }
-
-
         }
 
+        if (buffered) {
+            self.updateScrollGhosts(bs);
+        }
     },
+
+
+    /*
+     * <!-- move animation
+     */
 
     getNodePositions: function(tmp, rs, oldrs) {
 
@@ -4042,8 +4193,261 @@ ListRenderer.prototype = {
                     style[animate.prefixes.transform] = "translateX("+to.left+"px) translateY("+to.top+"px)";
                 }
         });
+    },
+
+    /*
+     * move animation -->
+     */
+
+
+    /*
+     * <!-- buffered list
+     */
+
+    initBuffering: function(cfg) {
+
+        var self = this,
+            parent = self.parentEl,
+            prev = self.prevEl,
+            ofsTop,
+            ofsBot,
+            i,
+            style = {
+                fontSize: 0,
+                lineHeight: 0,
+                padding: 0,
+                paddingTop: 0,
+                paddingLeft: 0,
+                paddingBottom: 0,
+                paddingRight: 0,
+                margin: 0,
+                marginLeft: 0,
+                marginTop: 0,
+                marginRight: 0,
+                marginBottom: 0
+            };
+
+        self.buffered       = true;
+        self.itemSize       = cfg.itemSize;
+        self.ofsTopEl       = ofsTop = document.createElement(cfg.stubTag || "div");
+        self.ofsBotEl       = ofsBot = document.createElement(cfg.stubTag || "div");
+        self.scrollEl       = getScrollParent(self.parentEl);
+        self.itemsOffsite   = cfg.itemsOffsite || 5;
+        self.horizontal     = cfg.horizontal || false;
+
+        addClass(ofsTop, "mjs-buffer-top");
+        addClass(ofsBot, "mjs-buffer-bottom");
+        for (i in style) {
+            ofsTop.style[i] = style[i];
+            ofsBot.style[i] = style[i];
+        }
+
+        parent.insertBefore(ofsTop, prev ? prev.nextSibling : parent.firstChild);
+        parent.insertBefore(ofsBot, self.nextEl);
+
+        self.prevEl     = ofsTop;
+        self.nextEl     = ofsBot;
+
+        self.onResizeDelegate = bind(self.onResize, self);
+        self.onScrollDelegate = bind(self.onScroll, self);
+
+        addListener(self.scrollEl, "scroll", self.onScrollDelegate);
+        addListener(window, "resize", self.onResizeDelegate);
+    },
+
+
+    getScrollOffset: function() {
+
+        var self    = this,
+            top     = self.scrollEl,
+            parent  = self.ofsTopEl,
+            hor     = self.horizontal,
+            prop    = hor ? "offsetLeft" : "offsetTop",
+            offset  = 0;
+
+        while (parent && parent !== top) {
+            offset += parent[prop] || 0;
+            parent = parent.parentNode;
+        }
+
+        return self.scrollOffset = offset;
+    },
+
+    getBufferState: function(updateScrollOffset) {
+
+        var self        = this,
+            scrollEl    = self.scrollEl,
+            hor         = self.horizontal,
+            html        = document.documentElement,
+            size        = scrollEl === window ?
+                            (window[hor ? "innerWidth" : "innerHeight"] ||
+                                html[hor ? "clientWidth" : "clientHeight"]):
+                            scrollEl[hor ? "offsetWidth" : "offsetHeight"],
+            scroll      = hor ? getScrollLeft(scrollEl) : getScrollTop(scrollEl),
+            isize       = self.itemSize,
+            off         = self.itemsOffsite,
+            offset      = updateScrollOffset ? self.getScrollOffset() : self.scrollOffset,
+            cnt         = self.renderers.length,
+            first,
+            last;
+
+        scroll  = Math.max(0, scroll - offset);
+        first   = parseInt(scroll / isize, 10);
+
+        if (first < 0) {
+            first = 0;
+        }
+
+        last    = first + parseInt(size / isize, 10);
+        first   = first > off ? first - off : 0;
+        last   += off;
+
+        if (last > cnt - 1) {
+            last = cnt - 1;
+        }
+
+        if (first > last) {
+            return self.bufferState;
+        }
+
+        return self.bufferState = {
+            first: first,
+            last: last,
+            ot: first * isize,
+            ob: (cnt - last - 1) * isize
+        };
+    },
+
+    updateScrollGhosts: function(bs) {
+        var self        = this,
+            hor         = self.horizontal;
+
+        self.ofsTopEl.style[hor ? "width" : "height"] = bs.ot + "px";
+        self.ofsBotEl.style[hor ? "width" : "height"] = bs.ob + "px";
+    },
+
+    onResize: function() {
+        this.runBufferedEvent();
+    },
+
+    onScroll: function() {
+        this.runBufferedEvent();
+    },
+
+    runBufferedEvent: function() {
+        var self = this;
+
+        if (self.scrollBusy) {
+            if (self.eventTmt) {
+                clearTimeout(self.eventTmt);
+                self.eventTmt = null;
+            }
+            self.eventTmt = setTimeout(function(){
+                self.eventTmt = null;
+                self.runBufferedEvent();
+            }, 10);
+        }
+        else {
+            self.updateScrollBuffer();
+        }
+    },
+
+    updateScrollBuffer: function() {
+
+        this.scrollBusy = true;
+
+        var self        = this,
+            prev        = self.bufferState,
+            parent      = self.parentEl,
+            rs          = self.renderers,
+            bot         = self.ofsBotEl,
+            bs          = self.getBufferState(false),
+            fragment,
+            i, x;
+
+        if (!bs) {
+            self.scrollBusy = false;
+            return;
+        }
+
+        raf(function(){
+
+            if (!prev || bs.last < prev.first || bs.first > prev.last){
+                //remove old and append new
+                if (prev) {
+                    for (i = prev.first, x = prev.last; i <= x; i++) {
+                        parent.removeChild(rs[i].el);
+                        rs[i].attached = false;
+                    }
+                }
+                fragment = document.createDocumentFragment();
+                for (i = bs.first, x = bs.last; i <= x; i++) {
+                    if (!rs[i].rendered) {
+                        self.renderItem(i);
+                    }
+                    fragment.appendChild(rs[i].el);
+                    rs[i].attached = true;
+                }
+
+                parent.insertBefore(fragment, bot);
+            }
+            else {
+
+                if (prev.first < bs.first) {
+                    for (i = prev.first, x = bs.first; i < x; i++) {
+                        parent.removeChild(rs[i].el);
+                        rs[i].attached = false;
+                    }
+                }
+                else if (prev.first > bs.first) {
+                    fragment = document.createDocumentFragment();
+                    for (i = bs.first, x = prev.first; i < x; i++) {
+                        if (!rs[i].rendered) {
+                            self.renderItem(i);
+                        }
+                        fragment.appendChild(rs[i].el);
+                        rs[i].attached = true;
+                    }
+                    parent.insertBefore(fragment, rs[prev.first].el);
+                }
+
+                if (prev.last < bs.last) {
+                    fragment = document.createDocumentFragment();
+                    for (i = prev.last + 1, x = bs.last; i <= x; i++) {
+                        if (!rs[i].rendered) {
+                            self.renderItem(i);
+                        }
+                        fragment.appendChild(rs[i].el);
+                        rs[i].attached = true;
+                    }
+                    parent.insertBefore(fragment, bot);
+                }
+                else if (prev.last > bs.last) {
+                    for (i = bs.last + 1, x = prev.last; i <= x; i++) {
+                        parent.removeChild(rs[i].el);
+                        rs[i].attached = false;
+                    }
+                }
+            }
+
+            self.updateScrollGhosts(bs);
+
+            self.scrollBusy = false;
+
+            async(function(){
+                // pre-render next
+                if (!prev || prev.first < bs.first) {
+                    self.doUpdate(bs.last, bs.last + (bs.last - bs.first), null, true);
+                }
+            });
+        });
 
     },
+
+    /*
+     * buffered list -->
+     */
+
 
     parseExpr: function(expr) {
 
@@ -4080,6 +4484,11 @@ ListRenderer.prototype = {
         if (self.trackByWatcher) {
             self.trackByWatcher.unsubscribeAndDestroy();
             delete self.trackByWatcher;
+        }
+
+        if (self.buffered) {
+            removeListener(self.scrollEl, "scroll", self.onScrollDelegate);
+            removeListener(window, "resize", self.onResizeDelegate);
         }
 
         self.supr();
@@ -4224,13 +4633,6 @@ var normalizeEvent = function(originalEvent) {
     return new NormalizedEvent(originalEvent);
 };
 
-var addListener = function(el, event, func) {
-    if (el.attachEvent) {
-        el.attachEvent('on' + event, func);
-    } else {
-        el.addEventListener(event, func, false);
-    }
-};
 
 
 (function(){
@@ -4255,7 +4657,7 @@ var addListener = function(el, event, func) {
 
                 var fn  = createFunc(expr);
 
-                node.removeAttribute("mjs-" + name);
+                attr(node, "mjs-" + name, null);
 
                 addListener(node, eventName, function(e){
 
@@ -4453,9 +4855,24 @@ registerAttributeHandler("mjs-include", 900, function(scope, node, tplExpr, pare
 
 
 registerAttributeHandler("mjs-init", 250, function(scope, node, expr){
-    node.removeAttribute("mjs-init");
+    attr(node, "mjs-init", null);
     createFunc(expr)(scope);
 });
+var uaString = navigator.userAgent.toLowerCase();
+
+
+var isIE = function(){
+
+    var msie    = parseInt((/msie (\d+)/.exec(uaString) || [])[1], 10);
+
+    if (isNaN(msie)) {
+        msie    = parseInt((/trident\/.*; rv:(\d+)/.exec(uaString) || [])[1], 10) || false;
+    }
+
+    return function() {
+        return msie;
+    };
+}();
 
 
 
@@ -4475,7 +4892,7 @@ registerAttributeHandler("mjs-model", 1000, defineClass(null, AttributeHandler, 
 
         self.node           = node;
         self.input          = new Input(node, self.onInputChange, self);
-        self.binding        = node.getAttribute("mjs-data-binding") || "both";
+        self.binding        = attr(node, "mjs-data-binding") || "both";
 
         var inputValue      = self.input.getValue();
 
@@ -4545,10 +4962,6 @@ registerAttributeHandler("mjs-model", 1000, defineClass(null, AttributeHandler, 
 
 
 
-var createGetter = Watchable.createGetter;
-
-
-
 
 
 registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler, {
@@ -4566,7 +4979,7 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
 
         self.parseExpr(expr);
 
-        node.removeAttribute("mjs-options");
+        attr(node, "mjs-options", null);
 
         self.node       = node;
         self.scope      = scope;
@@ -4576,7 +4989,7 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
             node.removeChild(node.firstChild);
         }
 
-        self.defOption && self.defOption.setAttribute("mjs-default-option", "");
+        self.defOption && attr(self.defOption, "mjs-default-option", "");
 
         try {
             self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
@@ -4610,9 +5023,9 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
 
             if (config.group){
                 self.groupEl = parent = document.createElement("optgroup");
-                parent.setAttribute("label", config.group);
+                attr(parent, "label", config.group);
                 if (config.disabledGroup) {
-                    parent.setAttribute("disabled", "disabled");
+                    attr(parent, "disabled", "disabled");
                 }
                 self.fragment.appendChild(parent);
             }
@@ -4624,14 +5037,14 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
         self.prevGroup  = config.group;
 
         option  = document.createElement("option");
-        option.setAttribute("value", config.value);
+        attr(option, "value", config.value);
         option.text = config.name;
 
         if (msie && msie < 9) {
             option.innerHTML = config.name;
         }
         if (config.disabled) {
-            option.setAttribute("disabled", "disabled");
+            attr(option, "disabled", "disabled");
         }
 
         parent.appendChild(option);
@@ -4708,7 +5121,7 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
 
                 initialize: function(scope, node, expr) {
                     this.supr(scope, node, expr);
-                    node.removeAttribute("mjs-" + name);
+                    attr(node, "mjs-" + name, null);
                     this.onChange();
                 },
 
@@ -4718,10 +5131,10 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
                         val     = self.watcher.getLastResult();
 
                     if (!!val) {
-                        self.node.setAttribute(name, true);
+                        attr(self.node, name, name);
                     }
                     else {
-                        self.node.removeAttribute(name);
+                        attr(self.node, name, null);
                     }
                 }
             }));
@@ -4781,7 +5194,7 @@ registerAttributeHandler("mjs-src", 1000, defineClass(null, AttributeHandler, {
 
         this.supr(scope, node, expr);
 
-        node.removeAttribute("mjs-src");
+        attr(node, "mjs-src", null);
 
     },
 
@@ -4794,7 +5207,7 @@ registerAttributeHandler("mjs-src", 1000, defineClass(null, AttributeHandler, {
             preloadImage(src).done(function(){
                 if (self && self.node) {
                     self.node.src = src;
-                    self.node.setAttribute("src", src);
+                    attr(self.node, "src", src);
                 }
             });
         });
@@ -4849,7 +5262,7 @@ registerAttributeHandler("mjs-transclude", 1000, function(scope, node) {
 
 
 registerAttributeHandler("mjs-view", 200, function(scope, node, cls) {
-    node.removeAttribute("mjs-view");
+    attr(node, "mjs-view", null);
     resolveComponent(cls || "MetaphorJs.cmp.View", {scope: scope, node: node}, scope, node)
     return false;
 });
@@ -4864,7 +5277,7 @@ registerTagHandler("mjs-include", 900, function(scope, node, value, parentRender
     var tpl = new Template({
         scope: scope,
         node: node,
-        tpl: node.getAttribute("src"),
+        tpl: attr(node, "src"),
         parentRenderer: parentRenderer,
         replace: true
     });
@@ -5182,14 +5595,6 @@ nsAdd("filter.uppercase", function(val){
     return val.toUpperCase();
 });
 
-var removeListener = function(el, event, func) {
-    if (el.detachEvent) {
-        el.detachEvent('on' + event, func);
-    } else {
-        el.removeEventListener(event, func, false);
-    }
-};
-
 
 /**
  * @param {Function} fn
@@ -5245,7 +5650,7 @@ var onReady = function(fn) {
 
 var initApp = function(node, cls, data, autorun) {
 
-    node.removeAttribute("mjs-app");
+    attr(node, "mjs-app", null);
 
     try {
         var p = resolveComponent(cls || "MetaphorJs.cmp.App", false, data, node, [node, data]);
@@ -5279,7 +5684,7 @@ var run = function() {
 
         for (i = -1, l = appNodes.length; ++i < l;){
             el      = appNodes[i];
-            initApp(el, el.getAttribute && el.getAttribute("mjs-app")).done(done);
+            initApp(el, attr(el, "mjs-app")).done(done);
         }
     });
 
@@ -5298,8 +5703,8 @@ var StoreRenderer = defineClass(
 
         self.parseExpr(expr);
 
-        node.removeAttribute("mjs-each-in-store");
-        node.removeAttribute("mjs-include");
+        attr(node, "mjs-each-in-store", null);
+        attr(node, "mjs-include", null);
 
         self.tpl        = node;
         self.renderers  = [];
@@ -5310,17 +5715,21 @@ var StoreRenderer = defineClass(
         self.scope      = scope;
         self.store      = store = createGetter(self.model)(scope);
 
-        self.animateMove    = node.getAttribute("mjs-animate-move") !== null && animate.cssAnimations;
-        node.removeAttribute("mjs-animate-move");
+        var cfg         = data(node, "config") || {};
+        self.animateMove= !cfg.buffered && cfg.animateMove && animate.cssAnimations;
+        self.animate    = !cfg.buffered && attr(node, "mjs-animate") !== null;
 
         self.parentEl.removeChild(node);
 
         self.trackByFn      = bind(store.getRecordId, store);
         self.griDelegate    = bind(store.indexOfId, store);
 
+        if (cfg.buffered) {
+            self.initBuffering(cfg);
+        }
+
         self.initWatcher();
         self.render(self.watcher.getValue());
-
         self.bindStore(store, "on");
     },
     {

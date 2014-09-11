@@ -1,7 +1,8 @@
 
 var onReady = require("../func/dom/onReady.js"),
     initApp = require("../func/initApp.js"),
-    select  = require("../../../metaphorjs-select/src/metaphorjs.select.js");
+    select  = require("../../../metaphorjs-select/src/metaphorjs.select.js"),
+    attr = require("../func/dom/attr.js");
 
 module.exports = function() {
 
@@ -15,7 +16,7 @@ module.exports = function() {
 
         for (i = -1, l = appNodes.length; ++i < l;){
             el      = appNodes[i];
-            initApp(el, el.getAttribute && el.getAttribute("mjs-app")).done(done);
+            initApp(el, attr(el, "mjs-app")).done(done);
         }
     });
 

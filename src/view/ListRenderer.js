@@ -1,7 +1,6 @@
 var createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
     toArray = require("../func/array/toArray.js"),
     error = require("../func/error.js"),
-    isAttached = require("../func/dom/isAttached.js"),
     animate = require("../../../metaphorjs-animate/src/metaphorjs.animate.js"),
     stopAnimation = require("../../../metaphorjs-animate/src/func/stopAnimation.js"),
     Renderer = require("../view/Renderer.js"),
@@ -12,20 +11,23 @@ var createWatchable = require("../../../metaphorjs-watchable/src/func/createWatc
     undf = require("../var/undf.js"),
     ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
     isFunction = require("../func/isFunction.js"),
-    isIE = require("../func/browser/isIE.js"),
     async = require("../func/async.js"),
+    attr = require("../func/dom/attr.js"),
+    data = require("../func/dom/data.js"),
     Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
-    animFrame = require("../../../metaphorjs-animate/src/func/animFrame.js");
-
-require("../func/array/aIndexOf.js");
-
-
+    raf = require("../../../metaphorjs-animate/src/func/raf.js"),
+    getScrollParent = require("../func/dom/getScrollParent.js"),
+    getScrollTop = require("../func/dom/getScrollTop.js"),
+    getScrollLeft = require("../func/dom/getScrollLeft.js"),
+    addListener = require("../func/event/addListener.js"),
+    removeListener = require("../func/event/removeListener.js"),
+    addClass = require("../func/dom/addClass.js");
 
 
 var ListRenderer = function(scope, node, expr) {
 
-    node.removeAttribute("mjs-each");
-    node.removeAttribute("mjs-include");
+    attr(node, "mjs-each", null);
+    attr(node, "mjs-include", null);
 
     var self    = this;
 
@@ -40,11 +42,12 @@ var ListRenderer = function(scope, node, expr) {
     self.scope      = scope;
     self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
 
-    self.animateMove= node.getAttribute("mjs-animate-move") !== null && animate.cssAnimations;
-    self.animate    = node.getAttribute("mjs-animate") !== null;
-    node.removeAttribute("mjs-animate-move");
+    var cfg         = data(node, "config") || {};
+    self.animateMove= !cfg.buffered && cfg.animateMove && animate.cssAnimations;
+    self.animate    = !cfg.buffered && attr(node, "mjs-animate") !== null;
 
-    self.trackBy    = node.getAttribute("mjs-track-by");
+
+    self.trackBy    = attr(node, "mjs-track-by");
     if (self.trackBy) {
         if (self.trackBy != '$') {
             self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, null, ns);
@@ -53,12 +56,18 @@ var ListRenderer = function(scope, node, expr) {
     else if (!self.watcher.hasInputPipes()) {
         self.trackBy    = '$$'+self.watcher.id;
     }
-    node.removeAttribute("mjs-track-by");
+    attr(node, "mjs-track-by", null);
 
 
     self.griDelegate = bind(self.scopeGetRawIndex, self);
     self.parentEl.removeChild(node);
+
+    if (cfg.buffered) {
+        self.initBuffering(cfg);
+    }
+
     self.render(toArray(self.watcher.getValue()));
+
 };
 
 ListRenderer.prototype = {
@@ -76,6 +85,17 @@ ListRenderer.prototype = {
     animate: false,
     trackByFn: null,
     griDelegate: null,
+
+    buffered: false,
+    itemSize: null,
+    itemsOffsite: 1,
+    bufferState: null,
+    scrollOffset: 0,
+    horizontal: false,
+    eventTmt: null,
+    scrollBusy: false,
+    onResizeDelegate: null,
+    onScrollDelegate: null,
 
     onScopeDestroy: function() {
 
@@ -95,6 +115,7 @@ ListRenderer.prototype = {
 
         self.supr();
     },
+
 
     onChangeTrackBy: function(val) {
         this.trackByFn = null;
@@ -149,45 +170,63 @@ ListRenderer.prototype = {
         return -1;
     },
 
-    doUpdate: function(start) {
+    doUpdate: function(start, end, action, renderOnly) {
 
         var self        = this,
             renderers   = self.renderers,
-            index       = start,
-            len         = renderers.length,
-            last        = len - 1,
-            even        = !(index % 2),
+            index       = start || 0,
+            cnt         = renderers.length,
+            x           = end || cnt - 1,
             list        = self.watcher.getLastResult(),
-            trackByFn   = self.getTrackByFunction(),
-            griDelegate = self.griDelegate,
-            r,
-            scope;
+            trackByFn   = self.getTrackByFunction();
 
-
-        for (; index < len; index++) {
-
-            r       = renderers[index];
-            scope   = r.scope;
-
-            scope.$index    = index;
-            scope.$first    = index === 0;
-            scope.$last     = index === last;
-            scope.$even     = even;
-            scope.$odd      = !even;
-            scope.$trackId  = trackByFn(list[index]);
-            scope.$getRawIndex = griDelegate;
-
-            even = !even;
-
-            if (!r.renderer) {
-                r.renderer  = new Renderer(r.el, r.scope);
-                r.renderer.process();
-            }
-            else {
-                scope.$check();
-            }
+        if (x > cnt - 1) {
+            x = cnt - 1;
         }
 
+        for (; index <= x; index++) {
+
+            if (action && renderers[index].action != action) {
+                continue;
+            }
+
+            self.renderItem(index, renderers, list, trackByFn, renderOnly);
+        }
+    },
+
+    renderItem: function(index, rs, list, trackByFn, renderOnly) {
+
+        var self = this;
+
+        list = list || self.watcher.getLastResult();
+        rs = rs || self.renderers;
+        trackByFn = trackByFn || self.getTrackByFunction();
+
+        var item        = rs[index],
+            scope       = item.scope,
+            last        = rs.length - 1,
+            even        = !(index % 2);
+
+        if (renderOnly && item.rendered) {
+            return;
+        }
+
+        scope.$index    = index;
+        scope.$first    = index === 0;
+        scope.$last     = index === last;
+        scope.$even     = even;
+        scope.$odd      = !even;
+        scope.$trackId  = trackByFn(list[index]);
+        scope.$getRawIndex = self.griDelegate;
+
+        if (!item.renderer) {
+            item.renderer  = new Renderer(item.el, scope);
+            item.renderer.process();
+            item.rendered = true;
+        }
+        else {
+            scope.$check();
+        }
     },
 
     render: function(list) {
@@ -197,20 +236,28 @@ ListRenderer.prototype = {
             tpl         = self.tpl,
             parent      = self.parentEl,
             next        = self.nextEl,
+            buffered    = self.buffered,
             fragment    = document.createDocumentFragment(),
             el,
             i, len;
 
         for (i = 0, len = list.length; i < len; i++) {
-
             el = tpl.cloneNode(true);
-            fragment.appendChild(el);
             renderers.push(self.createItem(el, list, i));
+            renderers[i].attached = !buffered;
+            if (!buffered) {
+                fragment.appendChild(el);
+            }
         }
 
-        parent.insertBefore(fragment, next);
-
-        self.doUpdate(0);
+        if (!buffered) {
+            self.doUpdate();
+            parent.insertBefore(fragment, next);
+        }
+        else {
+            self.getScrollOffset();
+            self.updateScrollBuffer();
+        }
     },
 
     getListItem: function(list, index) {
@@ -227,10 +274,11 @@ ListRenderer.prototype = {
 
         return {
             index: index,
-            ready: false,
             action: "enter",
             el: el,
-            scope: itemScope
+            scope: itemScope,
+            attached: false,
+            rendered: false
         };
     },
 
@@ -256,8 +304,6 @@ ListRenderer.prototype = {
             action,
             translates;
 
-
-
         prs = self.watcher.getMovePrescription(prs, self.getTrackByFunction());
 
         // redefine renderers
@@ -274,7 +320,6 @@ ListRenderer.prototype = {
                 }
 
                 prevr.action = "move";
-                prevr.ready = false;
                 prevr.scope[iname] = self.getListItem(list, i);
                 doesMove = animateMove;
 
@@ -294,9 +339,10 @@ ListRenderer.prototype = {
         }
 
         self.renderers  = newrs;
-        self.doUpdate(updateStart || 0);
 
         if (animateAll) {
+
+            self.doUpdate(updateStart, null, "enter");
 
             if (doesMove) {
                 translates = self.calculateTranslates(newrs, origrs, renderers);
@@ -343,20 +389,24 @@ ListRenderer.prototype = {
             }
 
             animReady.done(function(){
-                animFrame(function(){
+                raf(function(){
                     applyFrom.resolve();
                     self.applyDomPositions(renderers);
-
-                    animFrame(function(){
+                    if (!doesMove) {
+                        self.doUpdate(updateStart, null, "move");
+                    }
+                    raf(function(){
                         startAnimation.resolve();
                     });
                 });
             });
 
             Promise.all(animPromises).always(function(){
-                animFrame(function(){
+                raf(function(){
+                    self.doUpdate(updateStart || 0);
                     self.removeOldElements(renderers);
-                    if (animate.cssAnimations) {
+                    if (doesMove) {
+                        self.doUpdate(updateStart, null, "move");
                         for (i = 0, len = newrs.length; i < len; i++) {
                             r = newrs[i];
                             r.el.style[animate.prefixes.transform] = null;
@@ -370,22 +420,26 @@ ListRenderer.prototype = {
         }
         else {
             self.applyDomPositions();
+            if (self.buffered) {
+                !self.bufferState && self.getBufferState();
+                self.doUpdate(self.bufferState.first, self.bufferState.last);
+            }
+            else {
+                self.doUpdate(updateStart || 0);
+            }
             self.removeOldElements(renderers);
         }
     },
 
-    ieFixEl: function(el) {
-        el.style.zoom = 1;
-        el.style.zoom = "";
-    },
 
     removeOldElements: function(rs) {
-        var i, len, r;
+        var i, len, r,
+            parent = this.parentEl;
 
         for (i = 0, len = rs.length; i < len; i++) {
             r = rs[i];
-            if (r) {
-                isAttached(r.el) && r.el.parentNode.removeChild(r.el);
+            if (r && r.attached) {
+                parent.removeChild(r.el);
             }
         }
     },
@@ -393,35 +447,56 @@ ListRenderer.prototype = {
 
     applyDomPositions: function(oldrs) {
 
-        var self    = this,
-            rs      = self.renderers,
-            parent  = self.parentEl,
-            prevEl  = self.prevEl,
+        var self        = this,
+            rs          = self.renderers,
+            parent      = self.parentEl,
+            prevEl      = self.prevEl,
+            buffered    = self.buffered,
+            bs          = buffered ? self.getBufferState(true) : null,
+            fc          = prevEl ? prevEl.nextSibling : parent.firstChild,
             next,
-            i, l, el;
+            i, l, el, r;
 
         for (i = 0, l = rs.length; i < l; i++) {
-            el = rs[i].el;
+            r = rs[i];
+            el = r.el;
 
-            if (oldrs && oldrs[i]) {
-                next = oldrs[i].el.nextSibling;
+            if (!buffered || i >= bs.first && i <= bs.last) {
+
+                if (oldrs && oldrs[i]) {
+                    next = oldrs[i].el.nextSibling;
+                }
+                else {
+                    next = i > 0 ? (rs[i-1].el.nextSibling || fc) : fc;
+                }
+
+                if (next && el.nextSibling !== next) {
+                    parent.insertBefore(el, next);
+                }
+                else if (!next) {
+                    parent.appendChild(el);
+                }
+                r.attached = true;
             }
             else {
-                next = i > 0 ?
-                       rs[i-1].el.nextSibling :
-                       (prevEl ? prevEl.nextSibling : parent.firstChild);
+                if (buffered && i < bs.first || i > bs.last) {
+                    if (r.attached) {
+                        parent.removeChild(el);
+                        r.attached = false;
+                    }
+                }
             }
-            if (next && el.nextSibling !== next) {
-                parent.insertBefore(el, next);
-            }
-            else if (!next) {
-                parent.appendChild(el);
-            }
-
-
         }
 
+        if (buffered) {
+            self.updateScrollGhosts(bs);
+        }
     },
+
+
+    /*
+     * <!-- move animation
+     */
 
     getNodePositions: function(tmp, rs, oldrs) {
 
@@ -540,8 +615,261 @@ ListRenderer.prototype = {
                     style[animate.prefixes.transform] = "translateX("+to.left+"px) translateY("+to.top+"px)";
                 }
         });
+    },
+
+    /*
+     * move animation -->
+     */
+
+
+    /*
+     * <!-- buffered list
+     */
+
+    initBuffering: function(cfg) {
+
+        var self = this,
+            parent = self.parentEl,
+            prev = self.prevEl,
+            ofsTop,
+            ofsBot,
+            i,
+            style = {
+                fontSize: 0,
+                lineHeight: 0,
+                padding: 0,
+                paddingTop: 0,
+                paddingLeft: 0,
+                paddingBottom: 0,
+                paddingRight: 0,
+                margin: 0,
+                marginLeft: 0,
+                marginTop: 0,
+                marginRight: 0,
+                marginBottom: 0
+            };
+
+        self.buffered       = true;
+        self.itemSize       = cfg.itemSize;
+        self.ofsTopEl       = ofsTop = document.createElement(cfg.stubTag || "div");
+        self.ofsBotEl       = ofsBot = document.createElement(cfg.stubTag || "div");
+        self.scrollEl       = getScrollParent(self.parentEl);
+        self.itemsOffsite   = cfg.itemsOffsite || 5;
+        self.horizontal     = cfg.horizontal || false;
+
+        addClass(ofsTop, "mjs-buffer-top");
+        addClass(ofsBot, "mjs-buffer-bottom");
+        for (i in style) {
+            ofsTop.style[i] = style[i];
+            ofsBot.style[i] = style[i];
+        }
+
+        parent.insertBefore(ofsTop, prev ? prev.nextSibling : parent.firstChild);
+        parent.insertBefore(ofsBot, self.nextEl);
+
+        self.prevEl     = ofsTop;
+        self.nextEl     = ofsBot;
+
+        self.onResizeDelegate = bind(self.onResize, self);
+        self.onScrollDelegate = bind(self.onScroll, self);
+
+        addListener(self.scrollEl, "scroll", self.onScrollDelegate);
+        addListener(window, "resize", self.onResizeDelegate);
+    },
+
+
+    getScrollOffset: function() {
+
+        var self    = this,
+            top     = self.scrollEl,
+            parent  = self.ofsTopEl,
+            hor     = self.horizontal,
+            prop    = hor ? "offsetLeft" : "offsetTop",
+            offset  = 0;
+
+        while (parent && parent !== top) {
+            offset += parent[prop] || 0;
+            parent = parent.parentNode;
+        }
+
+        return self.scrollOffset = offset;
+    },
+
+    getBufferState: function(updateScrollOffset) {
+
+        var self        = this,
+            scrollEl    = self.scrollEl,
+            hor         = self.horizontal,
+            html        = document.documentElement,
+            size        = scrollEl === window ?
+                            (window[hor ? "innerWidth" : "innerHeight"] ||
+                                html[hor ? "clientWidth" : "clientHeight"]):
+                            scrollEl[hor ? "offsetWidth" : "offsetHeight"],
+            scroll      = hor ? getScrollLeft(scrollEl) : getScrollTop(scrollEl),
+            isize       = self.itemSize,
+            off         = self.itemsOffsite,
+            offset      = updateScrollOffset ? self.getScrollOffset() : self.scrollOffset,
+            cnt         = self.renderers.length,
+            first,
+            last;
+
+        scroll  = Math.max(0, scroll - offset);
+        first   = parseInt(scroll / isize, 10);
+
+        if (first < 0) {
+            first = 0;
+        }
+
+        last    = first + parseInt(size / isize, 10);
+        first   = first > off ? first - off : 0;
+        last   += off;
+
+        if (last > cnt - 1) {
+            last = cnt - 1;
+        }
+
+        if (first > last) {
+            return self.bufferState;
+        }
+
+        return self.bufferState = {
+            first: first,
+            last: last,
+            ot: first * isize,
+            ob: (cnt - last - 1) * isize
+        };
+    },
+
+    updateScrollGhosts: function(bs) {
+        var self        = this,
+            hor         = self.horizontal;
+
+        self.ofsTopEl.style[hor ? "width" : "height"] = bs.ot + "px";
+        self.ofsBotEl.style[hor ? "width" : "height"] = bs.ob + "px";
+    },
+
+    onResize: function() {
+        this.runBufferedEvent();
+    },
+
+    onScroll: function() {
+        this.runBufferedEvent();
+    },
+
+    runBufferedEvent: function() {
+        var self = this;
+
+        if (self.scrollBusy) {
+            if (self.eventTmt) {
+                clearTimeout(self.eventTmt);
+                self.eventTmt = null;
+            }
+            self.eventTmt = setTimeout(function(){
+                self.eventTmt = null;
+                self.runBufferedEvent();
+            }, 10);
+        }
+        else {
+            self.updateScrollBuffer();
+        }
+    },
+
+    updateScrollBuffer: function() {
+
+        this.scrollBusy = true;
+
+        var self        = this,
+            prev        = self.bufferState,
+            parent      = self.parentEl,
+            rs          = self.renderers,
+            bot         = self.ofsBotEl,
+            bs          = self.getBufferState(false),
+            fragment,
+            i, x;
+
+        if (!bs) {
+            self.scrollBusy = false;
+            return;
+        }
+
+        raf(function(){
+
+            if (!prev || bs.last < prev.first || bs.first > prev.last){
+                //remove old and append new
+                if (prev) {
+                    for (i = prev.first, x = prev.last; i <= x; i++) {
+                        parent.removeChild(rs[i].el);
+                        rs[i].attached = false;
+                    }
+                }
+                fragment = document.createDocumentFragment();
+                for (i = bs.first, x = bs.last; i <= x; i++) {
+                    if (!rs[i].rendered) {
+                        self.renderItem(i);
+                    }
+                    fragment.appendChild(rs[i].el);
+                    rs[i].attached = true;
+                }
+
+                parent.insertBefore(fragment, bot);
+            }
+            else {
+
+                if (prev.first < bs.first) {
+                    for (i = prev.first, x = bs.first; i < x; i++) {
+                        parent.removeChild(rs[i].el);
+                        rs[i].attached = false;
+                    }
+                }
+                else if (prev.first > bs.first) {
+                    fragment = document.createDocumentFragment();
+                    for (i = bs.first, x = prev.first; i < x; i++) {
+                        if (!rs[i].rendered) {
+                            self.renderItem(i);
+                        }
+                        fragment.appendChild(rs[i].el);
+                        rs[i].attached = true;
+                    }
+                    parent.insertBefore(fragment, rs[prev.first].el);
+                }
+
+                if (prev.last < bs.last) {
+                    fragment = document.createDocumentFragment();
+                    for (i = prev.last + 1, x = bs.last; i <= x; i++) {
+                        if (!rs[i].rendered) {
+                            self.renderItem(i);
+                        }
+                        fragment.appendChild(rs[i].el);
+                        rs[i].attached = true;
+                    }
+                    parent.insertBefore(fragment, bot);
+                }
+                else if (prev.last > bs.last) {
+                    for (i = bs.last + 1, x = prev.last; i <= x; i++) {
+                        parent.removeChild(rs[i].el);
+                        rs[i].attached = false;
+                    }
+                }
+            }
+
+            self.updateScrollGhosts(bs);
+
+            self.scrollBusy = false;
+
+            async(function(){
+                // pre-render next
+                if (!prev || prev.first < bs.first) {
+                    self.doUpdate(bs.last, bs.last + (bs.last - bs.first), null, true);
+                }
+            });
+        });
 
     },
+
+    /*
+     * buffered list -->
+     */
+
 
     parseExpr: function(expr) {
 
@@ -578,6 +906,11 @@ ListRenderer.prototype = {
         if (self.trackByWatcher) {
             self.trackByWatcher.unsubscribeAndDestroy();
             delete self.trackByWatcher;
+        }
+
+        if (self.buffered) {
+            removeListener(self.scrollEl, "scroll", self.onScrollDelegate);
+            removeListener(window, "resize", self.onResizeDelegate);
         }
 
         self.supr();

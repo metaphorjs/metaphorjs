@@ -1,11 +1,12 @@
 
 var error = require("./error.js"),
+    attr = require("./dom/attr.js"),
     resolveComponent = require("./resolveComponent.js"),
     Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js");
 
 module.exports = function(node, cls, data, autorun) {
 
-    node.removeAttribute("mjs-app");
+    attr(node, "mjs-app", null);
 
     try {
         var p = resolveComponent(cls || "MetaphorJs.cmp.App", false, data, node, [node, data]);

@@ -4,6 +4,7 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
     defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
     preloadImage = require("../../func/preloadImage.js"),
     async = require("../../func/async.js"),
+    attr = require("../../func/dom/attr.js"),
     AttributeHandler = require("../../view/AttributeHandler.js");
 
 registerAttributeHandler("mjs-src", 1000, defineClass(null, AttributeHandler, {
@@ -12,7 +13,7 @@ registerAttributeHandler("mjs-src", 1000, defineClass(null, AttributeHandler, {
 
         this.supr(scope, node, expr);
 
-        node.removeAttribute("mjs-src");
+        attr(node, "mjs-src", null);
 
     },
 
@@ -25,7 +26,7 @@ registerAttributeHandler("mjs-src", 1000, defineClass(null, AttributeHandler, {
             preloadImage(src).done(function(){
                 if (self && self.node) {
                     self.node.src = src;
-                    self.node.setAttribute("src", src);
+                    attr(self.node, "src", src);
                 }
             });
         });

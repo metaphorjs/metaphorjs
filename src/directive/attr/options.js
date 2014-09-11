@@ -8,6 +8,7 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
     getValue = require("../../../../metaphorjs-input/src/func/getValue.js"),
     setValue = require("../../../../metaphorjs-input/src/func/setValue.js"),
     error = require("../../func/error.js"),
+    attr = require("../../func/dom/attr.js"),
     undf = require("../../var/undf.js"),
     isIE = require("../../func/browser/isIE.js"),
     createGetter = require("../../../../metaphorjs-watchable/src/func/createGetter.js"),
@@ -30,7 +31,7 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
 
         self.parseExpr(expr);
 
-        node.removeAttribute("mjs-options");
+        attr(node, "mjs-options", null);
 
         self.node       = node;
         self.scope      = scope;
@@ -40,7 +41,7 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
             node.removeChild(node.firstChild);
         }
 
-        self.defOption && self.defOption.setAttribute("mjs-default-option", "");
+        self.defOption && attr(self.defOption, "mjs-default-option", "");
 
         try {
             self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
@@ -74,9 +75,9 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
 
             if (config.group){
                 self.groupEl = parent = document.createElement("optgroup");
-                parent.setAttribute("label", config.group);
+                attr(parent, "label", config.group);
                 if (config.disabledGroup) {
-                    parent.setAttribute("disabled", "disabled");
+                    attr(parent, "disabled", "disabled");
                 }
                 self.fragment.appendChild(parent);
             }
@@ -88,14 +89,14 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
         self.prevGroup  = config.group;
 
         option  = document.createElement("option");
-        option.setAttribute("value", config.value);
+        attr(option, "value", config.value);
         option.text = config.name;
 
         if (msie && msie < 9) {
             option.innerHTML = config.name;
         }
         if (config.disabled) {
-            option.setAttribute("disabled", "disabled");
+            attr(option, "disabled", "disabled");
         }
 
         parent.appendChild(option);

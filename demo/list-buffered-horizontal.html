@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MetaphorJs buffered table demo</title>
+    <script src="../dev-test/metaphorjs.test.js"></script>
+    <script src="data/source.js"></script>
+    <script src="table-buffered/table-buffered.js"></script>
+    <style>
+        .items {
+            height: 200px;
+            white-space: nowrap;
+            margin-top: 50px;
+        }
+        .item {
+            display: inline-block;
+            height: 100px;
+            width: 200px;
+            background-color: #f0f0f0;
+            margin-right: 20px;
+            overflow: hidden;
+        }
+        .mjs-buffer-top, .mjs-buffer-bottom {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body mjs-app>
+
+<div mjs-cmp="My.BufferedTableCmp">
+
+    <div>
+        <button mjs-disabled=".store.start < 1" mjs-click=".store.loadPrevPage()">Prev page</button>
+        <input readonly mjs-bind=".store.start"/>
+        <button mjs-click=".store.loadNextPage()">Next page</button>
+    </div>
+
+    <div class="items">
+
+        <div    class="item"
+                mjs-each-in-store="row in .store"
+                mjs-config="{buffered: true, itemSize: 200, itemsOffsite: 2, horizontal: true}">
+
+            <div>
+                ({{.$index}} - {{.row.employeeNo}})
+                {{.row.forename}} {{.row.surname}}
+            </div>
+            <p>{{.row.email}}</p>
+            <p>{{.row.department}}</p>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

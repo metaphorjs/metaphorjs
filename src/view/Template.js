@@ -13,7 +13,8 @@ var data = require("../func/dom/data.js"),
     Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
     Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
     ajax = require("../../../metaphorjs-ajax/src/metaphorjs.ajax.js"),
-    ns = require("../../../metaphorjs-namespace/src/var/ns.js");
+    ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
+    attr = require("../func/dom/attr.js");
 
 
 
@@ -84,7 +85,7 @@ module.exports = function(){
         var node    = self.node,
             tpl     = self.tpl || self.url;
 
-        node && node.removeAttribute("mjs-include");
+        node && attr(node, "mjs-include", null);
 
         if (!node) {
             self.deferRendering = true;

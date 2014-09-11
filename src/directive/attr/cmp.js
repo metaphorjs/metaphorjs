@@ -1,5 +1,8 @@
 
 var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
+    attr = require("../../func/dom/attr.js"),
+    data = require("../../func/dom/data.js"),
+    extend = require("../../func/extend.js"),
     resolveComponent = require("../../func/resolveComponent.js");
 
 (function(){
@@ -12,9 +15,12 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
             tmp,
             i, len,
             part,
-            cmp;
+            cmp,
+            nodeCfg;
 
-        node.removeAttribute("mjs-cmp");
+
+        nodeCfg = data(node, "config") || {};
+        attr(node, "mjs-cmp", null);
 
         tmp     = expr.split(' ');
 
@@ -34,13 +40,13 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
             }
         }
 
-        var cfg     = {
+        var cfg     = extend({
             scope: scope,
             node: node,
             as: as,
             parentRenderer: parentRenderer,
             destroyScope: true
-        };
+        }, nodeCfg, false, false);
 
         resolveComponent(cmpName, cfg, scope, node);
         return false;

@@ -3,6 +3,7 @@
 var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     emptyFn = require("../func/emptyFn.js"),
     nextUid = require("../func/nextUid.js"),
+    attr = require("../func/dom/attr.js"),
     isAttached = require("../func/dom/isAttached.js"),
     Template = require("../view/Template.js"),
     Scope = require("../lib/Scope.js");
@@ -104,7 +105,7 @@ module.exports = defineClass("MetaphorJs.cmp.Component", "MetaphorJs.cmp.Base", 
         }
 
         if (self.node) {
-            self.id     = self.node.getAttribute("id");
+            self.id = attr(self.node, "id");
             if (self.id) {
                 self.originalId = true;
             }
@@ -168,8 +169,8 @@ module.exports = defineClass("MetaphorJs.cmp.Component", "MetaphorJs.cmp.Base", 
         var self    = this,
             node    = self.node;
 
-        node.setAttribute("id", self.id);
-        node.setAttribute("cmp-id", self.id);
+        attr(node, "id", self.id);
+        attr(node, "cmp-id", self.id);
 
         if (self.hidden) {
             node.style.display = "none";
@@ -321,9 +322,9 @@ module.exports = defineClass("MetaphorJs.cmp.Component", "MetaphorJs.cmp.Base", 
             }
         }
         else {
-            self.node.removeAttribute("cmp-id");
+            attr(self.node, "cmp-id", null);
             if (!self.originalId) {
-                self.node.removeAttribute("id");
+                attr(self.node, "id", null);
             }
         }
 

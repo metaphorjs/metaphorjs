@@ -5,6 +5,7 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     extend = require("../func/extend.js"),
     emptyFn = require("../func/emptyFn.js"),
     slice = require("../func/array/slice.js"),
+    attr = require("../func/dom/attr.js"),
     Scope = require("../lib/Scope.js"),
     Renderer = require("../view/Renderer.js"),
     Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
@@ -74,7 +75,7 @@ module.exports = defineClass("MetaphorJs.cmp.App", "MetaphorJs.cmp.Base", {
 
         while (parent) {
 
-            if (id = parent.getAttribute("cmp-id")) {
+            if (id = attr(parent, "cmp-id")) {
                 return self.getCmp(id);
             }
 

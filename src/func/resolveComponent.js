@@ -10,7 +10,8 @@ var toFragment = require("./dom/toFragment.js"),
     Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
     Provider = require("../lib/Provider.js"),
     isString = require("./isString.js"),
-    isFunction = require("./isFunction.js");
+    isFunction = require("./isFunction.js"),
+    attr = require("./dom/attr.js");
 
 module.exports = function(cmp, cfg, scope, node, args) {
 
@@ -43,7 +44,7 @@ module.exports = function(cmp, cfg, scope, node, args) {
         gProvider   = Provider.global(),
         injectFn    = app ? app.inject : gProvider.inject,
         injectCt    = app ? app : gProvider,
-        cloak       = node ? node.getAttribute("mjs-cloak") : null,
+        cloak       = node ? attr(node, "mjs-cloak") : null,
         inject      = {
             $node: node || null,
             $scope: scope || null,

@@ -12,6 +12,7 @@ var nextUid = require("../func/nextUid.js"),
     Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
     TextRenderer = require("./TextRenderer.js"),
     slice = require("../func/array/slice.js"),
+    attr = require("../func/dom/attr.js"),
     Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
     getAttributeHandlers = require("../func/directive/getAttributeHandlers.js");
 
@@ -191,7 +192,7 @@ module.exports = function(){
             // text node
             if (nodeType == 3) {
 
-                recursive       = node.parentNode.getAttribute("mjs-recursive") !== null;
+                recursive       = attr(node.parentNode, "mjs-recursive") !== null;
                 textRenderer    = createText(scope, node[nodeTextProp], null, texts.length, recursive);
 
                 if (textRenderer) {
@@ -216,7 +217,7 @@ module.exports = function(){
                     defers  = [],
                     nodes   = [],
                     i, f, len,
-                    attr,
+                    attrValue,
                     name,
                     res;
 
@@ -240,11 +241,11 @@ module.exports = function(){
                     name    = handlers[i].name;
 
                     // ie6 doesn't have hasAttribute()
-                    if ((attr = node.getAttribute(name)) !== null) {
+                    if ((attrValue = attr(node, name)) !== null) {
 
-                        res     = self.runHandler(handlers[i].handler, scope, node, attr);
+                        res     = self.runHandler(handlers[i].handler, scope, node, attrValue);
 
-                        node.removeAttribute(name);
+                        attr(node, name, null);
 
                         if (res === false) {
                             return false;
@@ -267,7 +268,7 @@ module.exports = function(){
                     return deferred;
                 }
 
-                recursive = node.getAttribute("mjs-recursive") !== null;
+                recursive = attr(node, "mjs-recursive") !== null;
 
                 var attrs   = toArray(node.attributes);
 
@@ -278,7 +279,7 @@ module.exports = function(){
                         textRenderer = createText(scope, attrs[i].value, null, texts.length, recursive);
 
                         if (textRenderer) {
-                            node.removeAttribute(attrs[i].name);
+                            attr(node, attrs[i].name, null);
                             textRenderer.subscribe(self.onTextChange, self);
                             texts.push({
                                 node: node,
@@ -312,24 +313,24 @@ module.exports = function(){
 
         renderText: function(inx) {
 
-            var self    = this,
-                text    = self.texts[inx],
-                res     = text.tr.getString(),
-                attr    = text.attr;
+            var self        = this,
+                text        = self.texts[inx],
+                res         = text.tr.getString(),
+                attrName    = text.attr;
 
 
-            if (attr) {
-                if (attr == "value") {
+            if (attrName) {
+                if (attrName == "value") {
                     text.node.value = res;
                 }
-                else if (attr == "class") {
+                else if (attrName == "class") {
                     text.node.className = res;
                 }
-                else if (attr == "src") {
+                else if (attrName == "src") {
                     text.node.src = res;
                 }
 
-                text.node.setAttribute(attr, res);
+                attr(text.node, attrName, res);
 
             }
             else {

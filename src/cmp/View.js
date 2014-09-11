@@ -5,6 +5,7 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     stopAnimation = require("../../../metaphorjs-animate/src/func/stopAnimation.js"),
     extend = require("../func/extend.js"),
     data = require("../func/dom/data.js"),
+    attr = require("../func/dom/attr.js"),
     toFragment = require("../func/dom/toFragment.js"),
     resolveComponent = require("../func/resolveComponent.js"),
     createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
@@ -50,14 +51,15 @@ module.exports = defineClass("MetaphorJs.cmp.View", {
         }
 
         if (!self.cmp) {
-            self.cmp = node.getAttribute("mjs-view-cmp");
+            self.cmp = attr(node, "mjs-view-cmp");
         }
 
-        self.defaultCmp = node.getAttribute("mjs-view-default");
+        self.defaultCmp = attr(node, "mjs-view-default");
 
-        node.removeAttribute("mjs-view");
-        node.removeAttribute("mjs-view-cmp");
-        node.removeAttribute("mjs-view-default");
+        attr(node, "mjs-view", null);
+        attr(node, "mjs-view-cmp", null);
+        attr(node, "mjs-view-default", null);
+
 
         if (self.route) {
             history.initPushState();

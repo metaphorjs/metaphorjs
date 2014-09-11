@@ -780,6 +780,22 @@ var extend = function(){
 
 var emptyFn = function(){};
 
+
+var attr = function(el, name, value) {
+    if (!el || !el.getAttribute) {
+        return null;
+    }
+    if (value === undf) {
+        return el.getAttribute(name);
+    }
+    else if (value === null) {
+        return el.removeAttribute(name);
+    }
+    else {
+        return el.setAttribute(name, value);
+    }
+};
+
 /**
  * @returns {String}
  */
@@ -2910,56 +2926,65 @@ var select = function() {
 
         attrMods    = {
             /* W3C "an E element with a "attr" attribute" */
-            '': function (child, attr) {
-                return child.getAttribute(attr) !== null;
+            '': function (child, name) {
+                return attr(child, name) !== null;
             },
             /*
              W3C "an E element whose "attr" attribute value is
              exactly equal to "value"
              */
-            '=': function (child, attr, value) {
-                return (attr = child.getAttribute(attr)) && attr === value;
+            '=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = attr(child, name)) && attrValue === value;
             },
             /*
              from w3.prg "an E element whose "attr" attribute value is
              a list of space-separated values, one of which is exactly
              equal to "value"
              */
-            '&=': function (child, attr, value) {
-                return (attr = child.getAttribute(attr)) && getAttrReg(value).test(attr);
+            '&=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = attr(child, name)) && getAttrReg(value).test(attrValue);
             },
             /*
              from w3.prg "an E element whose "attr" attribute value
              begins exactly with the string "value"
              */
-            '^=': function (child, attr, value) {
-                return (attr = child.getAttribute(attr) + '') && !attr.indexOf(value);
+            '^=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = attr(child, name) + '') && !attrValue.indexOf(value);
             },
             /*
              W3C "an E element whose "attr" attribute value
              ends exactly with the string "value"
              */
-            '$=': function (child, attr, value) {
-                return (attr = child.getAttribute(attr) + '') && attr.indexOf(value) == attr.length - value.length;
+            '$=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = attr(child, name) + '') &&
+                       attrValue.indexOf(value) == attrValue.length - value.length;
             },
             /*
              W3C "an E element whose "attr" attribute value
              contains the substring "value"
              */
-            '*=': function (child, attr, value) {
-                return (attr = child.getAttribute(attr) + '') && attr.indexOf(value) != -1;
+            '*=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = attr(child, name) + '') && attrValue.indexOf(value) != -1;
             },
             /*
              W3C "an E element whose "attr" attribute has
              a hyphen-separated list of values beginning (from the
              left) with "value"
              */
-            '|=': function (child, attr, value) {
-                return (attr = child.getAttribute(attr) + '') && (attr === value || !!attr.indexOf(value + '-'));
+            '|=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = attr(child, name) + '') &&
+                       (attrValue === value || !!attrValue.indexOf(value + '-'));
             },
             /* attr doesn't contain given value */
-            '!=': function (child, attr, value) {
-                return !(attr = child.getAttribute(attr)) || !getAttrReg(value).test(attr);
+            '!=': function (child, name, value) {
+                var attrValue;
+                return !(attrValue = attr(child, name)) || !getAttrReg(value).test(attrValue);
             }
         };
 
@@ -2974,7 +2999,7 @@ var select = function() {
             qsaErr  = null,
             idx, cls, nodes,
             i, node, ind, mod,
-            attrs, attr, eql, value;
+            attrs, attrName, eql, value;
 
         if (qsa) {
             /* replace not quoted args with quoted one -- Safari doesn't understand either */
@@ -3062,14 +3087,14 @@ var select = function() {
                         nodes   = root.getElementsByTagName('*');
                         i       = 0;
                         attrs   = rGetSquare.exec(selector);
-                        attr    = attrs[1];
+                        attrName    = attrs[1];
                         eql     = attrs[2] || '';
                         value   = attrs[3];
 
                         while (node = nodes[i++]) {
                             /* check either attr is defined for given node or it's equal to given value */
-                            if (attrMods[eql] && (attrMods[eql](node, attr, value) ||
-                                                  (attr === 'class' && attrMods[eql](node, 'className', value)))) {
+                            if (attrMods[eql] && (attrMods[eql](node, attrName, value) ||
+                                                  (attrName === 'class' && attrMods[eql](node, 'className', value)))) {
                                 sets[idx++] = node;
                             }
                         }
@@ -3136,7 +3161,7 @@ var select = function() {
                             tag     = single[1] || '*';
                             id      = single[2];
                             klass   = single[3] ? ' ' + single[3] + ' ' : '';
-                            attr    = single[4];
+                            attrName    = single[4];
                             eql     = single[5] || '';
                             mod     = single[7];
 
@@ -3187,9 +3212,9 @@ var select = function() {
                                              */
                                             if ((!id || item.id === id) &&
                                                 (!klass || (' ' + item.className + ' ').indexOf(klass) != -1) &&
-                                                (!attr || (attrMods[eql] &&
-                                                           (attrMods[eql](item, attr, single[6]) ||
-                                                            (attr === 'class' &&
+                                                (!attrName || (attrMods[eql] &&
+                                                           (attrMods[eql](item, attrName, single[6]) ||
+                                                            (attrName === 'class' &&
                                                              attrMods[eql](item, 'className', single[6]))))) &&
                                                 !item.yeasss && !(mods[mod] ? mods[mod](item, ind) : mod)) {
 
@@ -3215,9 +3240,9 @@ var select = function() {
                                                 (tag === '*' || child.nodeName.toLowerCase() === tag) &&
                                                 (!id || child.id === id) &&
                                                 (!klass || (' ' + child.className + ' ').indexOf(klass) != -1) &&
-                                                (!attr || (attrMods[eql] &&
-                                                           (attrMods[eql](item, attr, single[6]) ||
-                                                            (attr === 'class' &&
+                                                (!attrName || (attrMods[eql] &&
+                                                           (attrMods[eql](item, attrName, single[6]) ||
+                                                            (attrName === 'class' &&
                                                              attrMods[eql](item, 'className', single[6]))))) &&
                                                 !child.yeasss &&
                                                 !(mods[mod] ? mods[mod](child, ind) : mod)) {
@@ -3237,9 +3262,9 @@ var select = function() {
                                             (child.nodeName.toLowerCase() === tag.toLowerCase() || tag === '*') &&
                                             (!id || child.id === id) &&
                                             (!klass || (' ' + item.className + ' ').indexOf(klass) != -1) &&
-                                            (!attr ||
-                                             (attrMods[eql] && (attrMods[eql](item, attr, single[6]) ||
-                                                                (attr === 'class' &&
+                                            (!attrName ||
+                                             (attrMods[eql] && (attrMods[eql](item, attrName, single[6]) ||
+                                                                (attrName === 'class' &&
                                                                  attrMods[eql](item, 'className', single[6]))))) &&
                                             !child.yeasss && !(mods[mod] ? mods[mod](child, ind) : mod)) {
 
@@ -3258,9 +3283,9 @@ var select = function() {
                                             if (item.parentNode === child &&
                                                 (!id || item.id === id) &&
                                                 (!klass || (' ' + item.className + ' ').indexOf(klass) != -1) &&
-                                                (!attr || (attrMods[eql] &&
-                                                           (attrMods[eql](item, attr, single[6]) ||
-                                                            (attr === 'class' &&
+                                                (!attrName || (attrMods[eql] &&
+                                                           (attrMods[eql](item, attrName, single[6]) ||
+                                                            (attrName === 'class' &&
                                                              attrMods[eql](item, 'className', single[6]))))) &&
                                                 !item.yeasss &&
                                                 !(mods[mod] ? mods[mod](item, ind) : mod)) {
@@ -4639,7 +4664,7 @@ var Renderer = function(){
             // text node
             if (nodeType == 3) {
 
-                recursive       = node.parentNode.getAttribute("mjs-recursive") !== null;
+                recursive       = attr(node.parentNode, "mjs-recursive") !== null;
                 textRenderer    = createText(scope, node[nodeTextProp], null, texts.length, recursive);
 
                 if (textRenderer) {
@@ -4664,7 +4689,7 @@ var Renderer = function(){
                     defers  = [],
                     nodes   = [],
                     i, f, len,
-                    attr,
+                    attrValue,
                     name,
                     res;
 
@@ -4688,11 +4713,11 @@ var Renderer = function(){
                     name    = handlers[i].name;
 
                     // ie6 doesn't have hasAttribute()
-                    if ((attr = node.getAttribute(name)) !== null) {
+                    if ((attrValue = attr(node, name)) !== null) {
 
-                        res     = self.runHandler(handlers[i].handler, scope, node, attr);
+                        res     = self.runHandler(handlers[i].handler, scope, node, attrValue);
 
-                        node.removeAttribute(name);
+                        attr(node, name, null);
 
                         if (res === false) {
                             return false;
@@ -4715,7 +4740,7 @@ var Renderer = function(){
                     return deferred;
                 }
 
-                recursive = node.getAttribute("mjs-recursive") !== null;
+                recursive = attr(node, "mjs-recursive") !== null;
 
                 var attrs   = toArray(node.attributes);
 
@@ -4726,7 +4751,7 @@ var Renderer = function(){
                         textRenderer = createText(scope, attrs[i].value, null, texts.length, recursive);
 
                         if (textRenderer) {
-                            node.removeAttribute(attrs[i].name);
+                            attr(node, attrs[i].name, null);
                             textRenderer.subscribe(self.onTextChange, self);
                             texts.push({
                                 node: node,
@@ -4760,24 +4785,24 @@ var Renderer = function(){
 
         renderText: function(inx) {
 
-            var self    = this,
-                text    = self.texts[inx],
-                res     = text.tr.getString(),
-                attr    = text.attr;
+            var self        = this,
+                text        = self.texts[inx],
+                res         = text.tr.getString(),
+                attrName    = text.attr;
 
 
-            if (attr) {
-                if (attr == "value") {
+            if (attrName) {
+                if (attrName == "value") {
                     text.node.value = res;
                 }
-                else if (attr == "class") {
+                else if (attrName == "class") {
                     text.node.className = res;
                 }
-                else if (attr == "src") {
+                else if (attrName == "src") {
                     text.node.src = res;
                 }
 
-                text.node.setAttribute(attr, res);
+                attr(text.node, attrName, res);
 
             }
             else {
@@ -5451,7 +5476,7 @@ var Text = function(){
 
         while (parent) {
 
-            if (id = parent.getAttribute("cmp-id")) {
+            if (id = attr(parent, "cmp-id")) {
                 return self.getCmp(id);
             }
 
@@ -5817,52 +5842,52 @@ var addClass = function(el, cls) {
 };
 
 
-var getScrollTop = function() {
-    if(window.pageYOffset !== undf) {
+var getScrollTopOrLeft = function(vertical) {
+
+    var defaultST,
+        wProp = vertical ? "pageYOffset" : "pageXOffset",
+        sProp = vertical ? "scrollTop" : "scrollLeft",
+        doc = document,
+        body = doc.body,
+        html = doc.documentElement;
+
+    if(window[wProp] !== undf) {
         //most browsers except IE before #9
-        return function(){
-            return window.pageYOffset;
+        defaultST = function(){
+            return window[wProp];
         };
     }
     else{
-        var B = document.body; //IE 'quirks'
-        var D = document.documentElement; //IE with doctype
-        if (D.clientHeight) {
-            return function() {
-                return D.scrollTop;
+        if (html.clientHeight) {
+            defaultST = function() {
+                return html[sProp];
             };
         }
         else {
-            return function() {
-                return B.scrollTop;
+            defaultST = function() {
+                return body[sProp];
             };
         }
     }
-}();
 
+    return function(node) {
+        if (node && node.nodeType == 1 &&
+            node !== body && node !== html) {
 
-var getScrollLeft = function() {
-    if(window.pageXOffset !== undf) {
-        //most browsers except IE before #9
-        return function(){
-            return window.pageXOffset;
-        };
-    }
-    else{
-        var B = document.body; //IE 'quirks'
-        var D = document.documentElement; //IE with doctype
-        if (D.clientWidth) {
-            return function() {
-                return D.scrollLeft;
-            };
+            return node[sProp];
         }
         else {
-            return function() {
-                return B.scrollLeft;
-            };
+            return defaultST();
         }
     }
-}();
+
+};
+
+
+var getScrollTop = getScrollTopOrLeft(true);
+
+
+var getScrollLeft = getScrollTopOrLeft(false);
 
 
 var getElemRect = function(el) {
@@ -5922,10 +5947,37 @@ var getElemRect = function(el) {
 };
 
 
-var animFrame = function(){
+var raf = function() {
 
-    return typeof window != strUndef && window.requestAnimationFrame ?
-           window.requestAnimationFrame : async;
+    var raf,
+        cancel;
+
+    if (typeof window != strUndef) {
+        var w   = window;
+        raf     = w.requestAnimationFrame ||
+                    w.webkitRequestAnimationFrame ||
+                    w.mozRequestAnimationFrame;
+        cancel  = w.cancelAnimationFrame ||
+                    w.webkitCancelAnimationFrame ||
+                    w.mozCancelAnimationFrame ||
+                    w.webkitCancelRequestAnimationFrame;
+
+        if (raf) {
+            return function(fn) {
+                var id = raf(fn);
+                return function() {
+                    cancel(id);
+                };
+            };
+        }
+    }
+
+    return function(fn) {
+        var id = setTimeout(fn, 0);
+        return function() {
+            clearTimeout(id);
+        }
+    };
 }();
 
 
@@ -5955,10 +6007,10 @@ var animate = function(){
                     fn();
                 }
                 else {
-                    animFrame(tick);
+                    raf(tick);
                 }
             };
-            animFrame(tick);
+            raf(tick);
         },
 
 
@@ -6026,7 +6078,7 @@ var animate = function(){
                                     callTimeout(finishStage, (new Date).getTime(), duration);
                                 }
                                 else {
-                                    animFrame(finishStage);
+                                    raf(finishStage);
                                     //finishStage();
                                 }
                             }
@@ -6047,14 +6099,14 @@ var animate = function(){
                             }
                         ])
                         .done(function(){
-                            !stopped() && animFrame(setStage);
+                            !stopped() && raf(setStage);
                         });
                 }
             };
 
 
 
-            first ? animFrame(start) : start();
+            first ? raf(start) : start();
         };
 
 
@@ -6063,16 +6115,16 @@ var animate = function(){
         var deferred    = new Promise,
             queue       = data(el, dataParam) || [],
             id          = ++animId,
-            attr        = el.getAttribute("mjs-animate"),
+            attrValue   = attr(el, "mjs-animate"),
             stages,
             jsFn,
             before, after,
             options, context,
             duration;
 
-        animation       = animation || attr;
+        animation       = animation || attrValue;
 
-        if (checkIfEnabled && isNull(attr)) {
+        if (checkIfEnabled && isNull(attrValue)) {
             animation   = null;
         }
 
@@ -6403,9 +6455,9 @@ var ajax = function(){
 
             if (!isObject(data) && !isFunction(data) && name) {
                 input   = document.createElement("input");
-                input.setAttribute("type", "hidden");
-                input.setAttribute("name", name);
-                input.setAttribute("value", data);
+                attr(input, "type", "hidden");
+                attr(input, "name", name);
+                attr(input, "value", data);
                 form.appendChild(input);
             }
             else if (isArray(data) && name) {
@@ -6431,12 +6483,12 @@ var ajax = function(){
 
                 oField = form.elements[nItem];
 
-                if (!oField.hasAttribute("name")) {
+                if (attr(oField, "name") === null) {
                     continue;
                 }
 
                 sFieldType = oField.nodeName.toUpperCase() === "INPUT" ?
-                             oField.getAttribute("type").toUpperCase() : "TEXT";
+                             attr(oField, "type").toUpperCase() : "TEXT";
 
                 if (sFieldType === "FILE") {
                     for (nFile = 0;
@@ -6628,7 +6680,7 @@ var ajax = function(){
                 form    = document.createElement("form");
 
             form.style.display = "none";
-            form.setAttribute("method", self._opt.method);
+            attr(form, "method", self._opt.method);
 
             data2form(self._opt.data, form, null);
 
@@ -6781,7 +6833,7 @@ var ajax = function(){
 
         if (!opt.url) {
             if (opt.form) {
-                opt.url = opt.form.getAttribute("action");
+                opt.url = attr(opt.form, "action");
             }
             if (!opt.url) {
                 throw "Must provide url";
@@ -6793,7 +6845,7 @@ var ajax = function(){
 
         if (!opt.method) {
             if (opt.form) {
-                opt.method = opt.form.getAttribute("method").toUpperCase() || "GET";
+                opt.method = attr(opt.form, "method").toUpperCase() || "GET";
             }
             else {
                 opt.method = "GET";
@@ -7009,9 +7061,9 @@ var ajax = function(){
             var self    = this,
                 script  = document.createElement("script");
 
-            script.setAttribute("async", "async");
-            script.setAttribute("charset", "utf-8");
-            script.setAttribute("src", self._opt.url);
+            attr(script, "async", "async");
+            attr(script, "charset", "utf-8");
+            attr(script, "src", self._opt.url);
 
             addListener(script, "load", bind(self.onLoad, self));
             addListener(script, "error", bind(self.onError, self));
@@ -7080,13 +7132,13 @@ var ajax = function(){
                 id      = "frame-" + nextUid(),
                 form    = self._opt.form;
 
-            frame.setAttribute("id", id);
-            frame.setAttribute("name", id);
+            attr(frame, "id", id);
+            attr(frame, "name", id);
             frame.style.display = "none";
             document.body.appendChild(frame);
 
-            form.setAttribute("action", self._opt.url);
-            form.setAttribute("target", id);
+            attr(form, "action", self._opt.url);
+            attr(form, "target", id);
 
             addListener(frame, "load", bind(self.onLoad, self));
             addListener(frame, "error", bind(self.onError, self));
@@ -7220,7 +7272,7 @@ var Template = function(){
         var node    = self.node,
             tpl     = self.tpl || self.url;
 
-        node && node.removeAttribute("mjs-include");
+        node && attr(node, "mjs-include", null);
 
         if (!node) {
             self.deferRendering = true;
@@ -7545,7 +7597,7 @@ var Template = function(){
         }
 
         if (self.node) {
-            self.id     = self.node.getAttribute("id");
+            self.id = attr(self.node, "id");
             if (self.id) {
                 self.originalId = true;
             }
@@ -7609,8 +7661,8 @@ var Template = function(){
         var self    = this,
             node    = self.node;
 
-        node.setAttribute("id", self.id);
-        node.setAttribute("cmp-id", self.id);
+        attr(node, "id", self.id);
+        attr(node, "cmp-id", self.id);
 
         if (self.hidden) {
             node.style.display = "none";
@@ -7762,9 +7814,9 @@ var Template = function(){
             }
         }
         else {
-            self.node.removeAttribute("cmp-id");
+            attr(self.node, "cmp-id", null);
             if (!self.originalId) {
-                self.node.removeAttribute("id");
+                attr(self.node, "id", null);
             }
         }
 
@@ -7819,7 +7871,7 @@ var resolveComponent = function(cmp, cfg, scope, node, args) {
         gProvider   = Provider.global(),
         injectFn    = app ? app.inject : gProvider.inject,
         injectCt    = app ? app : gProvider,
-        cloak       = node ? node.getAttribute("mjs-cloak") : null,
+        cloak       = node ? attr(node, "mjs-cloak") : null,
         inject      = {
             $node: node || null,
             $scope: scope || null,
@@ -8306,9 +8358,9 @@ var history = function(){
 
             if (a) {
 
-                href = a.getAttribute("href");
+                href = attr(a, "href");
 
-                if (href && href.substr(0,1) != "#" && !a.getAttribute("target") &&
+                if (href && href.substr(0,1) != "#" && !attr(a, "target") &&
                     sameHostLink(href) && !samePathLink(href)) {
 
                     history.pushState(null, null, getPathFromUrl(href));
@@ -8397,14 +8449,15 @@ var currentUrl = history.currentUrl;
         }
 
         if (!self.cmp) {
-            self.cmp = node.getAttribute("mjs-view-cmp");
+            self.cmp = attr(node, "mjs-view-cmp");
         }
 
-        self.defaultCmp = node.getAttribute("mjs-view-default");
+        self.defaultCmp = attr(node, "mjs-view-default");
 
-        node.removeAttribute("mjs-view");
-        node.removeAttribute("mjs-view-cmp");
-        node.removeAttribute("mjs-view-default");
+        attr(node, "mjs-view", null);
+        attr(node, "mjs-view-cmp", null);
+        attr(node, "mjs-view-default", null);
+
 
         if (self.route) {
             history.initPushState();
@@ -8582,7 +8635,7 @@ var registerAttributeHandler = directives.registerAttributeHandler;
 
 
 
-registerAttributeHandler("mjs-app", 0, returnFalse);
+registerAttributeHandler("mjs-app", 100, returnFalse);
 var isField = function(el) {
     var tag	= el.nodeName.toLowerCase(),
         type = el.type;
@@ -8972,7 +9025,7 @@ var Input = function(el, changeFn, changeFnContext, submitFn) {
     self.cb             = changeFn;
     self.scb            = submitFn;
     self.cbContext      = changeFnContext;
-    self.inputType      = type = (el.getAttribute("mjs-input-type") || el.type.toLowerCase());
+    self.inputType      = type = (attr(el, "mjs-input-type") || el.type.toLowerCase());
     self.listeners      = [];
     self.submittable    = isSubmittable(el);
 
@@ -9194,7 +9247,7 @@ Input.prototype = {
             node    = self.el;
 
         if (self.cb) {
-            self.cb.call(self.cbContext, node.checked ? (node.getAttribute("value") || true) : false);
+            self.cb.call(self.cbContext, node.checked ? (attr(node, "value") || true) : false);
         }
     },
 
@@ -9251,7 +9304,7 @@ Input.prototype = {
             return null;
         }
         else if (type == "checkbox") {
-            return self.el.checked ? (self.el.getAttribute("value") || true) : false;
+            return self.el.checked ? (attr(self.el, "value") || true) : false;
         }
         else {
             return self.processValue(getValue(self.el));
@@ -9281,11 +9334,11 @@ registerAttributeHandler("mjs-bind", 1000, defineClass(null, AttributeHandler, {
         var self    = this;
 
         self.isInput    = isField(node);
-        self.recursive  = node.getAttribute("mjs-recursive") !== null;
-        self.lockInput  = node.getAttribute("mjs-lock-input") !== null;
+        self.recursive  = attr(node, "mjs-recursive") !== null;
+        self.lockInput  = attr(node, "mjs-lock-input") !== null;
 
-        node.removeAttribute("mjs-recursive");
-        node.removeAttribute("mjs-lock-input");
+        attr(node, "mjs-recursive", null);
+        attr(node, "mjs-lock-input", null);
 
         if (self.isInput) {
             self.input  = new Input(node, self.onInputChange, self);
@@ -9462,9 +9515,12 @@ registerAttributeHandler("mjs-cmp-prop", 200,
             tmp,
             i, len,
             part,
-            cmp;
+            cmp,
+            nodeCfg;
 
-        node.removeAttribute("mjs-cmp");
+
+        nodeCfg = data(node, "config") || {};
+        attr(node, "mjs-cmp", null);
 
         tmp     = expr.split(' ');
 
@@ -9484,13 +9540,13 @@ registerAttributeHandler("mjs-cmp-prop", 200,
             }
         }
 
-        var cfg     = {
+        var cfg     = extend({
             scope: scope,
             node: node,
             as: as,
             parentRenderer: parentRenderer,
             destroyScope: true
-        };
+        }, nodeCfg, false, false);
 
         resolveComponent(cmpName, cfg, scope, node);
         return false;
@@ -9504,13 +9560,64 @@ registerAttributeHandler("mjs-cmp-prop", 200,
 
 
 
+var createGetter = Watchable.createGetter;
 
+
+registerAttributeHandler("mjs-config", 50, function(scope, node, expr){
+    attr(node, "mjs-config", null);
+    data(node, "config", createGetter(expr)(scope));
+});
+
+var getScrollParent = function() {
+
+    var rOvf        = /(auto|scroll)/,
+        body,
+
+        style       = window.getComputedStyle ?
+                function (node, prop) {
+                    return getComputedStyle(node, null)[prop];
+                }:
+                function(node, prop) {
+                    return node.currentStyle ?
+                            "" + node.currentStyle[prop] :
+                            "" + node.style[prop];
+                },
+
+        overflow    = function (node) {
+            return style(node, "overflow") + style(node, "overflowY") + style(node, "overflowY");
+        },
+
+        scroll      = function (node) {
+            return rOvf.test(overflow(node));
+        };
+
+    return function(node) {
+
+        if (!body) {
+            body = document.body;
+        }
+
+        var parent = node;
+
+        while (parent) {
+            if (parent === body) {
+                return window;
+            }
+            if (scroll(parent)) {
+                return parent;
+            }
+            parent = parent.parentNode;
+        }
+
+        return window;
+    };
+}();
 
 
 var ListRenderer = function(scope, node, expr) {
 
-    node.removeAttribute("mjs-each");
-    node.removeAttribute("mjs-include");
+    attr(node, "mjs-each", null);
+    attr(node, "mjs-include", null);
 
     var self    = this;
 
@@ -9525,11 +9632,12 @@ var ListRenderer = function(scope, node, expr) {
     self.scope      = scope;
     self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
 
-    self.animateMove= node.getAttribute("mjs-animate-move") !== null && animate.cssAnimations;
-    self.animate    = node.getAttribute("mjs-animate") !== null;
-    node.removeAttribute("mjs-animate-move");
+    var cfg         = data(node, "config") || {};
+    self.animateMove= !cfg.buffered && cfg.animateMove && animate.cssAnimations;
+    self.animate    = !cfg.buffered && attr(node, "mjs-animate") !== null;
 
-    self.trackBy    = node.getAttribute("mjs-track-by");
+
+    self.trackBy    = attr(node, "mjs-track-by");
     if (self.trackBy) {
         if (self.trackBy != '$') {
             self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, null, ns);
@@ -9538,12 +9646,18 @@ var ListRenderer = function(scope, node, expr) {
     else if (!self.watcher.hasInputPipes()) {
         self.trackBy    = '$$'+self.watcher.id;
     }
-    node.removeAttribute("mjs-track-by");
+    attr(node, "mjs-track-by", null);
 
 
     self.griDelegate = bind(self.scopeGetRawIndex, self);
     self.parentEl.removeChild(node);
+
+    if (cfg.buffered) {
+        self.initBuffering(cfg);
+    }
+
     self.render(toArray(self.watcher.getValue()));
+
 };
 
 ListRenderer.prototype = {
@@ -9561,6 +9675,17 @@ ListRenderer.prototype = {
     animate: false,
     trackByFn: null,
     griDelegate: null,
+
+    buffered: false,
+    itemSize: null,
+    itemsOffsite: 1,
+    bufferState: null,
+    scrollOffset: 0,
+    horizontal: false,
+    eventTmt: null,
+    scrollBusy: false,
+    onResizeDelegate: null,
+    onScrollDelegate: null,
 
     onScopeDestroy: function() {
 
@@ -9580,6 +9705,7 @@ ListRenderer.prototype = {
 
         self.supr();
     },
+
 
     onChangeTrackBy: function(val) {
         this.trackByFn = null;
@@ -9634,45 +9760,63 @@ ListRenderer.prototype = {
         return -1;
     },
 
-    doUpdate: function(start) {
+    doUpdate: function(start, end, action, renderOnly) {
 
         var self        = this,
             renderers   = self.renderers,
-            index       = start,
-            len         = renderers.length,
-            last        = len - 1,
-            even        = !(index % 2),
+            index       = start || 0,
+            cnt         = renderers.length,
+            x           = end || cnt - 1,
             list        = self.watcher.getLastResult(),
-            trackByFn   = self.getTrackByFunction(),
-            griDelegate = self.griDelegate,
-            r,
-            scope;
+            trackByFn   = self.getTrackByFunction();
 
-
-        for (; index < len; index++) {
-
-            r       = renderers[index];
-            scope   = r.scope;
-
-            scope.$index    = index;
-            scope.$first    = index === 0;
-            scope.$last     = index === last;
-            scope.$even     = even;
-            scope.$odd      = !even;
-            scope.$trackId  = trackByFn(list[index]);
-            scope.$getRawIndex = griDelegate;
-
-            even = !even;
-
-            if (!r.renderer) {
-                r.renderer  = new Renderer(r.el, r.scope);
-                r.renderer.process();
-            }
-            else {
-                scope.$check();
-            }
+        if (x > cnt - 1) {
+            x = cnt - 1;
         }
 
+        for (; index <= x; index++) {
+
+            if (action && renderers[index].action != action) {
+                continue;
+            }
+
+            self.renderItem(index, renderers, list, trackByFn, renderOnly);
+        }
+    },
+
+    renderItem: function(index, rs, list, trackByFn, renderOnly) {
+
+        var self = this;
+
+        list = list || self.watcher.getLastResult();
+        rs = rs || self.renderers;
+        trackByFn = trackByFn || self.getTrackByFunction();
+
+        var item        = rs[index],
+            scope       = item.scope,
+            last        = rs.length - 1,
+            even        = !(index % 2);
+
+        if (renderOnly && item.rendered) {
+            return;
+        }
+
+        scope.$index    = index;
+        scope.$first    = index === 0;
+        scope.$last     = index === last;
+        scope.$even     = even;
+        scope.$odd      = !even;
+        scope.$trackId  = trackByFn(list[index]);
+        scope.$getRawIndex = self.griDelegate;
+
+        if (!item.renderer) {
+            item.renderer  = new Renderer(item.el, scope);
+            item.renderer.process();
+            item.rendered = true;
+        }
+        else {
+            scope.$check();
+        }
     },
 
     render: function(list) {
@@ -9682,20 +9826,28 @@ ListRenderer.prototype = {
             tpl         = self.tpl,
             parent      = self.parentEl,
             next        = self.nextEl,
+            buffered    = self.buffered,
             fragment    = document.createDocumentFragment(),
             el,
             i, len;
 
         for (i = 0, len = list.length; i < len; i++) {
-
             el = tpl.cloneNode(true);
-            fragment.appendChild(el);
             renderers.push(self.createItem(el, list, i));
+            renderers[i].attached = !buffered;
+            if (!buffered) {
+                fragment.appendChild(el);
+            }
         }
 
-        parent.insertBefore(fragment, next);
-
-        self.doUpdate(0);
+        if (!buffered) {
+            self.doUpdate();
+            parent.insertBefore(fragment, next);
+        }
+        else {
+            self.getScrollOffset();
+            self.updateScrollBuffer();
+        }
     },
 
     getListItem: function(list, index) {
@@ -9712,10 +9864,11 @@ ListRenderer.prototype = {
 
         return {
             index: index,
-            ready: false,
             action: "enter",
             el: el,
-            scope: itemScope
+            scope: itemScope,
+            attached: false,
+            rendered: false
         };
     },
 
@@ -9741,8 +9894,6 @@ ListRenderer.prototype = {
             action,
             translates;
 
-
-
         prs = self.watcher.getMovePrescription(prs, self.getTrackByFunction());
 
         // redefine renderers
@@ -9759,7 +9910,6 @@ ListRenderer.prototype = {
                 }
 
                 prevr.action = "move";
-                prevr.ready = false;
                 prevr.scope[iname] = self.getListItem(list, i);
                 doesMove = animateMove;
 
@@ -9779,9 +9929,10 @@ ListRenderer.prototype = {
         }
 
         self.renderers  = newrs;
-        self.doUpdate(updateStart || 0);
 
         if (animateAll) {
+
+            self.doUpdate(updateStart, null, "enter");
 
             if (doesMove) {
                 translates = self.calculateTranslates(newrs, origrs, renderers);
@@ -9828,20 +9979,24 @@ ListRenderer.prototype = {
             }
 
             animReady.done(function(){
-                animFrame(function(){
+                raf(function(){
                     applyFrom.resolve();
                     self.applyDomPositions(renderers);
-
-                    animFrame(function(){
+                    if (!doesMove) {
+                        self.doUpdate(updateStart, null, "move");
+                    }
+                    raf(function(){
                         startAnimation.resolve();
                     });
                 });
             });
 
             Promise.all(animPromises).always(function(){
-                animFrame(function(){
+                raf(function(){
+                    self.doUpdate(updateStart || 0);
                     self.removeOldElements(renderers);
-                    if (animate.cssAnimations) {
+                    if (doesMove) {
+                        self.doUpdate(updateStart, null, "move");
                         for (i = 0, len = newrs.length; i < len; i++) {
                             r = newrs[i];
                             r.el.style[animate.prefixes.transform] = null;
@@ -9855,22 +10010,26 @@ ListRenderer.prototype = {
         }
         else {
             self.applyDomPositions();
+            if (self.buffered) {
+                !self.bufferState && self.getBufferState();
+                self.doUpdate(self.bufferState.first, self.bufferState.last);
+            }
+            else {
+                self.doUpdate(updateStart || 0);
+            }
             self.removeOldElements(renderers);
         }
     },
 
-    ieFixEl: function(el) {
-        el.style.zoom = 1;
-        el.style.zoom = "";
-    },
 
     removeOldElements: function(rs) {
-        var i, len, r;
+        var i, len, r,
+            parent = this.parentEl;
 
         for (i = 0, len = rs.length; i < len; i++) {
             r = rs[i];
-            if (r) {
-                isAttached(r.el) && r.el.parentNode.removeChild(r.el);
+            if (r && r.attached) {
+                parent.removeChild(r.el);
             }
         }
     },
@@ -9878,35 +10037,56 @@ ListRenderer.prototype = {
 
     applyDomPositions: function(oldrs) {
 
-        var self    = this,
-            rs      = self.renderers,
-            parent  = self.parentEl,
-            prevEl  = self.prevEl,
+        var self        = this,
+            rs          = self.renderers,
+            parent      = self.parentEl,
+            prevEl      = self.prevEl,
+            buffered    = self.buffered,
+            bs          = buffered ? self.getBufferState(true) : null,
+            fc          = prevEl ? prevEl.nextSibling : parent.firstChild,
             next,
-            i, l, el;
+            i, l, el, r;
 
         for (i = 0, l = rs.length; i < l; i++) {
-            el = rs[i].el;
+            r = rs[i];
+            el = r.el;
 
-            if (oldrs && oldrs[i]) {
-                next = oldrs[i].el.nextSibling;
+            if (!buffered || i >= bs.first && i <= bs.last) {
+
+                if (oldrs && oldrs[i]) {
+                    next = oldrs[i].el.nextSibling;
+                }
+                else {
+                    next = i > 0 ? (rs[i-1].el.nextSibling || fc) : fc;
+                }
+
+                if (next && el.nextSibling !== next) {
+                    parent.insertBefore(el, next);
+                }
+                else if (!next) {
+                    parent.appendChild(el);
+                }
+                r.attached = true;
             }
             else {
-                next = i > 0 ?
-                       rs[i-1].el.nextSibling :
-                       (prevEl ? prevEl.nextSibling : parent.firstChild);
+                if (buffered && i < bs.first || i > bs.last) {
+                    if (r.attached) {
+                        parent.removeChild(el);
+                        r.attached = false;
+                    }
+                }
             }
-            if (next && el.nextSibling !== next) {
-                parent.insertBefore(el, next);
-            }
-            else if (!next) {
-                parent.appendChild(el);
-            }
-
-
         }
 
+        if (buffered) {
+            self.updateScrollGhosts(bs);
+        }
     },
+
+
+    /*
+     * <!-- move animation
+     */
 
     getNodePositions: function(tmp, rs, oldrs) {
 
@@ -10025,8 +10205,261 @@ ListRenderer.prototype = {
                     style[animate.prefixes.transform] = "translateX("+to.left+"px) translateY("+to.top+"px)";
                 }
         });
+    },
+
+    /*
+     * move animation -->
+     */
+
+
+    /*
+     * <!-- buffered list
+     */
+
+    initBuffering: function(cfg) {
+
+        var self = this,
+            parent = self.parentEl,
+            prev = self.prevEl,
+            ofsTop,
+            ofsBot,
+            i,
+            style = {
+                fontSize: 0,
+                lineHeight: 0,
+                padding: 0,
+                paddingTop: 0,
+                paddingLeft: 0,
+                paddingBottom: 0,
+                paddingRight: 0,
+                margin: 0,
+                marginLeft: 0,
+                marginTop: 0,
+                marginRight: 0,
+                marginBottom: 0
+            };
+
+        self.buffered       = true;
+        self.itemSize       = cfg.itemSize;
+        self.ofsTopEl       = ofsTop = document.createElement(cfg.stubTag || "div");
+        self.ofsBotEl       = ofsBot = document.createElement(cfg.stubTag || "div");
+        self.scrollEl       = getScrollParent(self.parentEl);
+        self.itemsOffsite   = cfg.itemsOffsite || 5;
+        self.horizontal     = cfg.horizontal || false;
+
+        addClass(ofsTop, "mjs-buffer-top");
+        addClass(ofsBot, "mjs-buffer-bottom");
+        for (i in style) {
+            ofsTop.style[i] = style[i];
+            ofsBot.style[i] = style[i];
+        }
+
+        parent.insertBefore(ofsTop, prev ? prev.nextSibling : parent.firstChild);
+        parent.insertBefore(ofsBot, self.nextEl);
+
+        self.prevEl     = ofsTop;
+        self.nextEl     = ofsBot;
+
+        self.onResizeDelegate = bind(self.onResize, self);
+        self.onScrollDelegate = bind(self.onScroll, self);
+
+        addListener(self.scrollEl, "scroll", self.onScrollDelegate);
+        addListener(window, "resize", self.onResizeDelegate);
+    },
+
+
+    getScrollOffset: function() {
+
+        var self    = this,
+            top     = self.scrollEl,
+            parent  = self.ofsTopEl,
+            hor     = self.horizontal,
+            prop    = hor ? "offsetLeft" : "offsetTop",
+            offset  = 0;
+
+        while (parent && parent !== top) {
+            offset += parent[prop] || 0;
+            parent = parent.parentNode;
+        }
+
+        return self.scrollOffset = offset;
+    },
+
+    getBufferState: function(updateScrollOffset) {
+
+        var self        = this,
+            scrollEl    = self.scrollEl,
+            hor         = self.horizontal,
+            html        = document.documentElement,
+            size        = scrollEl === window ?
+                            (window[hor ? "innerWidth" : "innerHeight"] ||
+                                html[hor ? "clientWidth" : "clientHeight"]):
+                            scrollEl[hor ? "offsetWidth" : "offsetHeight"],
+            scroll      = hor ? getScrollLeft(scrollEl) : getScrollTop(scrollEl),
+            isize       = self.itemSize,
+            off         = self.itemsOffsite,
+            offset      = updateScrollOffset ? self.getScrollOffset() : self.scrollOffset,
+            cnt         = self.renderers.length,
+            first,
+            last;
+
+        scroll  = Math.max(0, scroll - offset);
+        first   = parseInt(scroll / isize, 10);
+
+        if (first < 0) {
+            first = 0;
+        }
+
+        last    = first + parseInt(size / isize, 10);
+        first   = first > off ? first - off : 0;
+        last   += off;
+
+        if (last > cnt - 1) {
+            last = cnt - 1;
+        }
+
+        if (first > last) {
+            return self.bufferState;
+        }
+
+        return self.bufferState = {
+            first: first,
+            last: last,
+            ot: first * isize,
+            ob: (cnt - last - 1) * isize
+        };
+    },
+
+    updateScrollGhosts: function(bs) {
+        var self        = this,
+            hor         = self.horizontal;
+
+        self.ofsTopEl.style[hor ? "width" : "height"] = bs.ot + "px";
+        self.ofsBotEl.style[hor ? "width" : "height"] = bs.ob + "px";
+    },
+
+    onResize: function() {
+        this.runBufferedEvent();
+    },
+
+    onScroll: function() {
+        this.runBufferedEvent();
+    },
+
+    runBufferedEvent: function() {
+        var self = this;
+
+        if (self.scrollBusy) {
+            if (self.eventTmt) {
+                clearTimeout(self.eventTmt);
+                self.eventTmt = null;
+            }
+            self.eventTmt = setTimeout(function(){
+                self.eventTmt = null;
+                self.runBufferedEvent();
+            }, 10);
+        }
+        else {
+            self.updateScrollBuffer();
+        }
+    },
+
+    updateScrollBuffer: function() {
+
+        this.scrollBusy = true;
+
+        var self        = this,
+            prev        = self.bufferState,
+            parent      = self.parentEl,
+            rs          = self.renderers,
+            bot         = self.ofsBotEl,
+            bs          = self.getBufferState(false),
+            fragment,
+            i, x;
+
+        if (!bs) {
+            self.scrollBusy = false;
+            return;
+        }
+
+        raf(function(){
+
+            if (!prev || bs.last < prev.first || bs.first > prev.last){
+                //remove old and append new
+                if (prev) {
+                    for (i = prev.first, x = prev.last; i <= x; i++) {
+                        parent.removeChild(rs[i].el);
+                        rs[i].attached = false;
+                    }
+                }
+                fragment = document.createDocumentFragment();
+                for (i = bs.first, x = bs.last; i <= x; i++) {
+                    if (!rs[i].rendered) {
+                        self.renderItem(i);
+                    }
+                    fragment.appendChild(rs[i].el);
+                    rs[i].attached = true;
+                }
+
+                parent.insertBefore(fragment, bot);
+            }
+            else {
+
+                if (prev.first < bs.first) {
+                    for (i = prev.first, x = bs.first; i < x; i++) {
+                        parent.removeChild(rs[i].el);
+                        rs[i].attached = false;
+                    }
+                }
+                else if (prev.first > bs.first) {
+                    fragment = document.createDocumentFragment();
+                    for (i = bs.first, x = prev.first; i < x; i++) {
+                        if (!rs[i].rendered) {
+                            self.renderItem(i);
+                        }
+                        fragment.appendChild(rs[i].el);
+                        rs[i].attached = true;
+                    }
+                    parent.insertBefore(fragment, rs[prev.first].el);
+                }
+
+                if (prev.last < bs.last) {
+                    fragment = document.createDocumentFragment();
+                    for (i = prev.last + 1, x = bs.last; i <= x; i++) {
+                        if (!rs[i].rendered) {
+                            self.renderItem(i);
+                        }
+                        fragment.appendChild(rs[i].el);
+                        rs[i].attached = true;
+                    }
+                    parent.insertBefore(fragment, bot);
+                }
+                else if (prev.last > bs.last) {
+                    for (i = bs.last + 1, x = prev.last; i <= x; i++) {
+                        parent.removeChild(rs[i].el);
+                        rs[i].attached = false;
+                    }
+                }
+            }
+
+            self.updateScrollGhosts(bs);
+
+            self.scrollBusy = false;
+
+            async(function(){
+                // pre-render next
+                if (!prev || prev.first < bs.first) {
+                    self.doUpdate(bs.last, bs.last + (bs.last - bs.first), null, true);
+                }
+            });
+        });
 
     },
+
+    /*
+     * buffered list -->
+     */
+
 
     parseExpr: function(expr) {
 
@@ -10063,6 +10496,11 @@ ListRenderer.prototype = {
         if (self.trackByWatcher) {
             self.trackByWatcher.unsubscribeAndDestroy();
             delete self.trackByWatcher;
+        }
+
+        if (self.buffered) {
+            removeListener(self.scrollEl, "scroll", self.onScrollDelegate);
+            removeListener(window, "resize", self.onResizeDelegate);
         }
 
         self.supr();
@@ -10107,7 +10545,7 @@ var createFunc = Watchable.createFunc;
 
                 var fn  = createFunc(expr);
 
-                node.removeAttribute("mjs-" + name);
+                attr(node, "mjs-" + name, null);
 
                 addListener(node, eventName, function(e){
 
@@ -10305,7 +10743,7 @@ registerAttributeHandler("mjs-include", 900, function(scope, node, tplExpr, pare
 
 
 registerAttributeHandler("mjs-init", 250, function(scope, node, expr){
-    node.removeAttribute("mjs-init");
+    attr(node, "mjs-init", null);
     createFunc(expr)(scope);
 });
 
@@ -10327,7 +10765,7 @@ registerAttributeHandler("mjs-model", 1000, defineClass(null, AttributeHandler, 
 
         self.node           = node;
         self.input          = new Input(node, self.onInputChange, self);
-        self.binding        = node.getAttribute("mjs-data-binding") || "both";
+        self.binding        = attr(node, "mjs-data-binding") || "both";
 
         var inputValue      = self.input.getValue();
 
@@ -10397,10 +10835,6 @@ registerAttributeHandler("mjs-model", 1000, defineClass(null, AttributeHandler, 
 
 
 
-var createGetter = Watchable.createGetter;
-
-
-
 
 
 registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler, {
@@ -10418,7 +10852,7 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
 
         self.parseExpr(expr);
 
-        node.removeAttribute("mjs-options");
+        attr(node, "mjs-options", null);
 
         self.node       = node;
         self.scope      = scope;
@@ -10428,7 +10862,7 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
             node.removeChild(node.firstChild);
         }
 
-        self.defOption && self.defOption.setAttribute("mjs-default-option", "");
+        self.defOption && attr(self.defOption, "mjs-default-option", "");
 
         try {
             self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
@@ -10462,9 +10896,9 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
 
             if (config.group){
                 self.groupEl = parent = document.createElement("optgroup");
-                parent.setAttribute("label", config.group);
+                attr(parent, "label", config.group);
                 if (config.disabledGroup) {
-                    parent.setAttribute("disabled", "disabled");
+                    attr(parent, "disabled", "disabled");
                 }
                 self.fragment.appendChild(parent);
             }
@@ -10476,14 +10910,14 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
         self.prevGroup  = config.group;
 
         option  = document.createElement("option");
-        option.setAttribute("value", config.value);
+        attr(option, "value", config.value);
         option.text = config.name;
 
         if (msie && msie < 9) {
             option.innerHTML = config.name;
         }
         if (config.disabled) {
-            option.setAttribute("disabled", "disabled");
+            attr(option, "disabled", "disabled");
         }
 
         parent.appendChild(option);
@@ -10560,7 +10994,7 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
 
                 initialize: function(scope, node, expr) {
                     this.supr(scope, node, expr);
-                    node.removeAttribute("mjs-" + name);
+                    attr(node, "mjs-" + name, null);
                     this.onChange();
                 },
 
@@ -10570,10 +11004,10 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
                         val     = self.watcher.getLastResult();
 
                     if (!!val) {
-                        self.node.setAttribute(name, true);
+                        attr(self.node, name, name);
                     }
                     else {
-                        self.node.removeAttribute(name);
+                        attr(self.node, name, null);
                     }
                 }
             }));
@@ -10633,7 +11067,7 @@ registerAttributeHandler("mjs-src", 1000, defineClass(null, AttributeHandler, {
 
         this.supr(scope, node, expr);
 
-        node.removeAttribute("mjs-src");
+        attr(node, "mjs-src", null);
 
     },
 
@@ -10646,7 +11080,7 @@ registerAttributeHandler("mjs-src", 1000, defineClass(null, AttributeHandler, {
             preloadImage(src).done(function(){
                 if (self && self.node) {
                     self.node.src = src;
-                    self.node.setAttribute("src", src);
+                    attr(self.node, "src", src);
                 }
             });
         });
@@ -10701,7 +11135,7 @@ registerAttributeHandler("mjs-transclude", 1000, function(scope, node) {
 
 
 registerAttributeHandler("mjs-view", 200, function(scope, node, cls) {
-    node.removeAttribute("mjs-view");
+    attr(node, "mjs-view", null);
     resolveComponent(cls || "MetaphorJs.cmp.View", {scope: scope, node: node}, scope, node)
     return false;
 });
@@ -10716,7 +11150,7 @@ registerTagHandler("mjs-include", 900, function(scope, node, value, parentRender
     var tpl = new Template({
         scope: scope,
         node: node,
-        tpl: node.getAttribute("src"),
+        tpl: attr(node, "src"),
         parentRenderer: parentRenderer,
         replace: true
     });
@@ -11089,7 +11523,7 @@ var onReady = function(fn) {
 
 var initApp = function(node, cls, data, autorun) {
 
-    node.removeAttribute("mjs-app");
+    attr(node, "mjs-app", null);
 
     try {
         var p = resolveComponent(cls || "MetaphorJs.cmp.App", false, data, node, [node, data]);
@@ -11123,7 +11557,7 @@ var run = function() {
 
         for (i = -1, l = appNodes.length; ++i < l;){
             el      = appNodes[i];
-            initApp(el, el.getAttribute && el.getAttribute("mjs-app")).done(done);
+            initApp(el, attr(el, "mjs-app")).done(done);
         }
     });
 
@@ -11306,12 +11740,12 @@ var Model = function(){
             return this[prop] = value;
         },
 
-        _createAjaxCfg: function(what, type, id, data, extra) {
+        _makeRequest: function(what, type, id, data, extra) {
 
             var self        = this,
                 profile     = self[what],
                 cfg         = extend({},
-                                    isString(profile[type]) ?
+                                    isString(profile[type]) || isFunction(profile[type]) ?
                                         {url: profile[type]} :
                                         profile[type]
                                     ),
@@ -11328,7 +11762,7 @@ var Model = function(){
                     throw what + "." + type + " not defined";
                 }
             }
-            if (isString(cfg)) {
+            if (isString(cfg) || isFunction(cfg)) {
                 cfg         = {url: cfg};
             }
 
@@ -11349,6 +11783,22 @@ var Model = function(){
                 true,
                 true
             );
+
+            if (isFunction(cfg.url)) {
+                var df = cfg.url(cfg.data),
+                    promise = new Promise;
+
+                df.then(function(response){
+                    if (what == "record") {
+                        self._processRecordResponse(type, response, promise);
+                    }
+                    else if (what == "store") {
+                        self._processStoreResponse(type, response, promise);
+                    }
+                });
+
+                return promise;
+            }
 
             if (!cfg.method) {
                 cfg.method = type == "load" ? "GET" : "POST";
@@ -11385,7 +11835,7 @@ var Model = function(){
                 };
             }
 
-            return cfg;
+            return ajax(cfg);
         },
 
         _processRecordResponse: function(type, response, df) {
@@ -11432,13 +11882,14 @@ var Model = function(){
             }
         },
 
+
         /**
          * @access public
          * @param {string|number} id Record id
          * @returns MetaphorJs.lib.Promise
          */
         loadRecord: function(id) {
-            return ajax(this._createAjaxCfg("record", "load", id));
+            return this._makeRequest("record", "load", id);
         },
 
         /**
@@ -11449,12 +11900,12 @@ var Model = function(){
          * @returns MetaphorJs.lib.Promise
          */
         saveRecord: function(rec, keys, extra) {
-            return ajax(this._createAjaxCfg(
+            return this._makeRequest(
                 "record",
                 rec.getId() ? "save" : "create",
                 rec.getId(),
                 extend({}, rec.storeData(rec.getData(keys)), extra)
-            ));
+            );
         },
 
         /**
@@ -11463,7 +11914,7 @@ var Model = function(){
          * @returns MetaphorJs.lib.Promise
          */
         deleteRecord: function(rec) {
-            return ajax(this._createAjaxCfg("record", "delete", rec.getId()));
+            return this._makeRequest("record", "delete", rec.getId());
         },
 
         /**
@@ -11473,7 +11924,7 @@ var Model = function(){
          * @returns MetaphorJs.lib.Promise
          */
         loadStore: function(store, params) {
-            return ajax(this._createAjaxCfg("store", "load", null, null, params));
+            return this._makeRequest("store", "load", null, null, params);
         },
 
         /**
@@ -11483,7 +11934,7 @@ var Model = function(){
          * @returns MetaphorJs.lib.Promise
          */
         saveStore: function(store, recordData) {
-            return ajax(this._createAjaxCfg("store", "save", null, recordData));
+            return this._makeRequest("store", "save", null, recordData);
         },
 
         /**
@@ -11493,7 +11944,7 @@ var Model = function(){
          * @returns MetaphorJs.lib.Promise
          */
         deleteRecords: function(store, ids) {
-            return ajax(this._createAjaxCfg("store", "delete", ids));
+            return this._makeRequest("store", "delete", ids);
         },
 
 
@@ -13780,24 +14231,6 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
         {
             /**
              * @static
-             * @param {DOMElement} selectObj
-             * @returns MetaphorJs.data.Store
-             */
-            createFromSelect: function(selectObj) {
-                var d = [], opts = selectObj.options;
-                for(var i = 0, len = opts.length;i < len; i++){
-                    var o = opts[i],
-                        value = (o.hasAttribute ? o.hasAttribute('value') : o.getAttributeNode('value').specified) ?
-                                    o.value : o.text;
-                    d.push([value, o.text]);
-                }
-                var s   = factory("MetaphorJs.data.Store", {server: {load: {id: 0}}});
-                s._loadArray(d);
-                return s;
-            },
-
-            /**
-             * @static
              * @param {string} id
              * @returns MetaphorJs.data.Store|null
              */
@@ -13928,8 +14361,8 @@ var StoreRenderer = defineClass(
 
         self.parseExpr(expr);
 
-        node.removeAttribute("mjs-each-in-store");
-        node.removeAttribute("mjs-include");
+        attr(node, "mjs-each-in-store", null);
+        attr(node, "mjs-include", null);
 
         self.tpl        = node;
         self.renderers  = [];
@@ -13940,17 +14373,21 @@ var StoreRenderer = defineClass(
         self.scope      = scope;
         self.store      = store = createGetter(self.model)(scope);
 
-        self.animateMove    = node.getAttribute("mjs-animate-move") !== null && animate.cssAnimations;
-        node.removeAttribute("mjs-animate-move");
+        var cfg         = data(node, "config") || {};
+        self.animateMove= !cfg.buffered && cfg.animateMove && animate.cssAnimations;
+        self.animate    = !cfg.buffered && attr(node, "mjs-animate") !== null;
 
         self.parentEl.removeChild(node);
 
         self.trackByFn      = bind(store.getRecordId, store);
         self.griDelegate    = bind(store.indexOfId, store);
 
+        if (cfg.buffered) {
+            self.initBuffering(cfg);
+        }
+
         self.initWatcher();
         self.render(self.watcher.getValue());
-
         self.bindStore(store, "on");
     },
     {
@@ -16140,12 +16577,12 @@ var Dialog = function(){
 
                 if (el) {
                     if (cfg.content.attr) {
-                        content = el.getAttribute(cfg.content.attr);
+                        content = attr(el, cfg.content.attr);
                     }
                     else {
-                        content = el.getAttribute('tooltip') ||
-                                  el.getAttribute('title') ||
-                                  el.getAttribute('alt');
+                        content = attr(el, 'tooltip') ||
+                                  attr(el, 'title') ||
+                                  attr(el, 'alt');
                     }
                 }
 
@@ -16700,7 +17137,7 @@ var Dialog = function(){
                 }
 
                 if (rnd.id) {
-                    elem.setAttribute('id', rnd.id);
+                    attr(elem, 'id', rnd.id);
                 }
 
                 if (!cfg.render.keepVisible) {
@@ -16840,11 +17277,11 @@ var Dialog = function(){
 
                 if (trg) {
                     if (state === false) {
-                        data(trg, "tmp-title", trg.getAttribute("title"));
-                        trg.removeAttribute('title');
+                        data(trg, "tmp-title", attr(trg, "title"));
+                        attr(trg, 'title', null);
                     }
                     else if (title = data(trg, "tmp-title")) {
-                        trg.setAttribute("title", title);
+                        attr(trg, "title", title);
                     }
                 }
             },
@@ -17256,7 +17693,7 @@ var Dialog = function(){
         }
 
         if (cfg.target && cfg.useHref) {
-            var href = cfg.target.getAttribute("href");
+            var href = attr(cfg.target, "href");
             if (href.substr(0, 1) == "#") {
                 cfg.render.el = href;
             }
@@ -17782,13 +18219,13 @@ var Validator = function(){
         self.vldr           = vldr;
         self.callbackScope  = scope = cfg.callback.scope;
         self.enabled        = !elem.disabled;
-        self.id             = elem.getAttribute('name') || elem.getAttribute.attr('id');
+        self.id             = attr(elem, 'name') || attr(elem, 'id');
         self.data           = options.data;
         self.rules			= {};
 
         cfg.messages        = extend({}, messages, Validator.messages, cfg.messages, true, true);
 
-        elem.setAttribute("data-validator", vldr.getVldId());
+        attr(elem, "data-validator", vldr.getVldId());
 
         if (self.input.radio) {
             self.initRadio();
@@ -17851,7 +18288,7 @@ var Validator = function(){
                 i,l;
 
             for(i = 0, l = radios.length; i < l; i++) {
-                radios[i].setAttribute("data-validator", vldId);
+                attr(radios[i], "data-validator", vldId);
             }
         },
 
@@ -17958,7 +18395,7 @@ var Validator = function(){
 
                 if (methods.hasOwnProperty(i)) {
 
-                    val = elem.getAttribute(i) || elem.getAttribute("data-validate-" + i);
+                    val = attr(elem, i) || attr(elem, "data-validate-" + i);
 
                     if (val == undf || val === false) {
                         continue;
@@ -17969,12 +18406,12 @@ var Validator = function(){
 
                     found[i] = val;
 
-                    val = elem.getAttribute("data-message-" + i);
+                    val = attr(elem, "data-message-" + i);
                     val && self.setMessage(i, val);
                 }
             }
 
-            if ((val = elem.getAttribute('remote'))) {
+            if ((val = attr(elem, 'remote'))) {
                 found['remote'] = val;
             }
 
@@ -18323,7 +18760,7 @@ var Validator = function(){
 
             self.trigger('destroy', self);
 
-            self.elem.removeAttribute("data-validator");
+            attr(self.elem, "data-validator", null);
 
             if (self.errorBox) {
                 self.errorBox.parentNode.removeChild(self.errorBox);
@@ -18465,8 +18902,8 @@ var Validator = function(){
             acfg.data 		= acfg.data || {};
             acfg.data[
                 acfg.paramName ||
-                elem.getAttribute('name') ||
-                elem.getAttribute('id')] = val;
+                attr(elem, 'name') ||
+                attr(elem, 'id')] = val;
 
             if (!acfg.handler) {
                 acfg.dataType 	= 'text';
@@ -19124,7 +19561,7 @@ var Validator = function(){
 
         validators[self.vldId] = self;
 
-        el.setAttribute("data-validator", self.vldId);
+        attr(el, "data-validator", self.vldId);
 
         self.el     = el;
 
@@ -19425,14 +19862,14 @@ var Validator = function(){
             if (!isField(node)) {
                 return self;
             }
-            if (node.getAttribute("data-no-validate") !== null) {
+            if (attr(node, "data-no-validate") !== null) {
                 return self;
             }
-            if (node.getAttribute("data-validator") !== null) {
+            if (attr(node, "data-validator") !== null) {
                 return self;
             }
 
-            var id 			= node.getAttribute('name') || node.getAttribute('id'),
+            var id 			= attr(node, 'name') || attr(node, 'id'),
                 cfg         = self.cfg,
                 fields      = self.fields,
                 fcfg,
@@ -19707,7 +20144,7 @@ var Validator = function(){
                 if (self.submitButton && /input|button/.test(self.submitButton.nodeName)) {
                     self.hidden = document.createElement("input");
                     self.hidden.type = "hidden";
-                    self.hidden.setAttribute("name", self.submitButton.name);
+                    attr(self.hidden, "name", self.submitButton.name);
                     self.hidden.value = self.submitButton.value;
                     self.el.appendChild(self.hidden);
                 }
@@ -19753,7 +20190,7 @@ var Validator = function(){
         onFieldDestroy: function(f) {
 
             var elem 	= f.getElem(),
-                id		= elem.getAttribute('name') || elem.getAttribute('id');
+                id		= attr(elem, 'name') || attr(elem, 'id');
 
             delete this.fields[id];
         },
@@ -19925,7 +20362,7 @@ var Validator = function(){
         }
     };
     Validator.getValidator      = function(el) {
-        var vldId = el.getAttribute("data-validator");
+        var vldId = attr(el, "data-validator");
         return validators[vldId] || null;
     };
 
