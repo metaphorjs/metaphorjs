@@ -1,5 +1,5 @@
 
-var undf = require("../../var/undf.js");
+var undf = require("../../../var/undf.js");
 
 module.exports = function(vertical) {
 
@@ -30,9 +30,11 @@ module.exports = function(vertical) {
     }
 
     return function(node) {
-        if (node && node.nodeType == 1 &&
+        if (!node || node === window) {
+            return defaultST();
+        }
+        else if (node && node.nodeType == 1 &&
             node !== body && node !== html) {
-
             return node[sProp];
         }
         else {

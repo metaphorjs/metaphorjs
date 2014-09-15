@@ -47,11 +47,11 @@ module.exports = function(){
             if (fn.__instantiate) {
                 return fn.__instantiate.apply(null, args);
             }
-            else if (context) {
+            else {//if (context) {
                 return fn.apply(context, args);
             }
 
-            var Temp = function(){},
+            /*var Temp = function(){},
                 inst, ret;
 
             Temp.prototype  = fn.prototype;
@@ -61,7 +61,7 @@ module.exports = function(){
             // If an object has been returned then return it otherwise
             // return the original instance.
             // (consistent with behaviour of the new operator)
-            return isObject(ret) || ret === false ? ret : inst;
+            return isObject(ret) || ret === false ? ret : inst;*/
         },
 
         inject: function(injectable, context, currentValues, callArgs) {

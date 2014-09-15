@@ -5,7 +5,7 @@
 var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
     defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
     async = require("../../func/async.js"),
-    attr = require("../../func/dom/attr.js"),
+    getAttr = require("../../func/dom/getAttr.js"),
     isIE = require("../../func/browser/isIE.js"),
     Input = require("../../../../metaphorjs-input/src/metaphorjs.input.js"),
     Scope = require("../../lib/Scope.js"),
@@ -26,7 +26,7 @@ registerAttributeHandler("mjs-model", 1000, defineClass(null, AttributeHandler, 
 
         self.node           = node;
         self.input          = new Input(node, self.onInputChange, self);
-        self.binding        = attr(node, "mjs-data-binding") || "both";
+        self.binding        = getAttr(node, "mjs-data-binding") || "both";
 
         var inputValue      = self.input.getValue();
 

@@ -1,7 +1,8 @@
 
 
 var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
-    attr = require("../../func/dom/attr.js"),
+    removeAttr = require("../../func/dom/removeAttr.js"),
+    setAttr = require("../../func/dom/setAttr.js"),
     defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
     AttributeHandler = require("../../view/AttributeHandler.js");
 
@@ -19,7 +20,7 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
 
                 initialize: function(scope, node, expr) {
                     this.supr(scope, node, expr);
-                    attr(node, "mjs-" + name, null);
+                    removeAttr(node, "mjs-" + name);
                     this.onChange();
                 },
 
@@ -29,10 +30,10 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
                         val     = self.watcher.getLastResult();
 
                     if (!!val) {
-                        attr(self.node, name, name);
+                        setAttr(self.node, name, name);
                     }
                     else {
-                        attr(self.node, name, null);
+                        removeAttr(self.node, name);
                     }
                 }
             }));

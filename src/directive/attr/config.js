@@ -1,10 +1,10 @@
 
 var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
     createGetter = require("../../../../metaphorjs-watchable/src/func/createGetter.js"),
-    attr = require("../../func/dom/attr.js"),
+    removeAttr = require("../../func/dom/removeAttr.js"),
     data = require("../../func/dom/data.js");
 
 registerAttributeHandler("mjs-config", 50, function(scope, node, expr){
-    attr(node, "mjs-config", null);
+    removeAttr(node, "mjs-config");
     data(node, "config", createGetter(expr)(scope));
 });

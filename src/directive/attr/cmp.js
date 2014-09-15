@@ -1,6 +1,6 @@
 
 var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
-    attr = require("../../func/dom/attr.js"),
+    removeAttr = require("../../func/dom/removeAttr.js"),
     data = require("../../func/dom/data.js"),
     extend = require("../../func/extend.js"),
     resolveComponent = require("../../func/resolveComponent.js");
@@ -20,7 +20,7 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
 
 
         nodeCfg = data(node, "config") || {};
-        attr(node, "mjs-cmp", null);
+        removeAttr(node, "mjs-cmp");
 
         tmp     = expr.split(' ');
 

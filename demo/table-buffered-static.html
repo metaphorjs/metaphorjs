@@ -17,8 +17,8 @@
 
     <table style="border-collapse: collapse; border-spacing: 0">
         <tbody>
-        <tr mjs-each="row in .store"
-            mjs-config="{buffered: true, itemSize: 21, itemsOffsite: 5, stubTag: 'tr'}">
+        <tr mjs-each="row in .store.data"
+            mjs-config="{buffered: true, itemSize: 21, itemsOffsite: 5, stub: 'tr'}">
             <td>{{.$index + 1}}</td>
             <td>{{.row.employeeNo}}</td>
             <td>{{.row.forename}}</td>

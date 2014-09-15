@@ -1,22 +1,14 @@
 
+var getStyle = require("./getStyle.js");
 
 module.exports = function() {
 
     var rOvf        = /(auto|scroll)/,
         body,
 
-        style       = window.getComputedStyle ?
-                function (node, prop) {
-                    return getComputedStyle(node, null)[prop];
-                }:
-                function(node, prop) {
-                    return node.currentStyle ?
-                            "" + node.currentStyle[prop] :
-                            "" + node.style[prop];
-                },
-
         overflow    = function (node) {
-            return style(node, "overflow") + style(node, "overflowY") + style(node, "overflowY");
+            var style = getStyle(node);
+            return style["overflow"] + style["overflowY"] + style["overflowY"];
         },
 
         scroll      = function (node) {

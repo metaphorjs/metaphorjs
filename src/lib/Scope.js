@@ -8,7 +8,7 @@ var Scope = function(cfg) {
     var self    = this;
 
     self.$$observable    = new Observable;
-
+    self.$$historyWatchers  = {};
     extend(self, cfg, true, false);
 
     if (self.$parent) {
@@ -29,6 +29,7 @@ Scope.prototype = {
     $isRoot: false,
     $$observable: null,
     $$watchers: null,
+    $$historyWatchers: null,
     $$checking: false,
     $$destroyed: false,
 
@@ -63,6 +64,22 @@ Scope.prototype = {
         return Watchable.unsubscribeAndDestroy(this, expr, fn, fnScope);
     },
 
+    $watchHistory: function(prop, param) {
+        var self = this;
+        if (!self.$$historyWatchers[param]) {
+            self.$$historyWatchers[param] = prop;
+            MetaphorJs.history.on("change-" + param, self.$$onHistoryChange, self);
+        }
+    },
+
+    $unwatchHistory: function(param) {
+        var self = this;
+        if (!self.$$historyWatchers[param]) {
+            delete self.$$historyWatchers[param];
+            MetaphorJs.history.un("change-" + param, self.$$onHistoryChange, self);
+        }
+    },
+
     $get: function(key) {
 
         var s       = this;
@@ -83,6 +100,16 @@ Scope.prototype = {
 
     $$onParentCheck: function() {
         this.$check();
+    },
+
+    $$onHistoryChange: function(val, prev, name) {
+        var self = this,
+            prop;
+        if (self.$$historyWatchers[name]) {
+            prop = self.$$historyWatchers[name];
+            self[prop] = val;
+            self.$check();
+        }
     },
 
     $check: function() {
@@ -107,7 +134,8 @@ Scope.prototype = {
 
     $destroy: function() {
 
-        var self    = this;
+        var self    = this,
+            param;
 
         self.$$observable.trigger("destroy");
         self.$$observable.destroy();
@@ -121,6 +149,11 @@ Scope.prototype = {
             self.$$watchers.$destroyAll();
             delete self.$$watchers;
         }
+
+        for (param in self.$$historyWatchers) {
+            self.$unwatchHistory(param);
+        }
+        delete self.$$historyWatchers;
 
         self.$$destroyed = true;
     }

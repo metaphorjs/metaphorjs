@@ -2,49 +2,50 @@
 var isArray = require("./isArray.js"),
     isRegExp = require("./isRegExp.js"),
     isObject = require('./isObject.js'),
+    isPlainObject = require("./isPlainObject.js"),
     isDate = require("./isDate.js"),
     isWindow = require("./isWindow.js");
 
 module.exports = function(){
 
-    var copy = function(source, destination){
+    var copy = function(source, dest){
         if (isWindow(source)) {
             throw new Error("Cannot copy window object");
         }
 
-        if (!destination) {
-            destination = source;
+        if (!dest) {
+            dest = source;
             if (source) {
                 if (isArray(source)) {
-                    destination = copy(source, []);
+                    dest = copy(source, []);
                 } else if (isDate(source)) {
-                    destination = new Date(source.getTime());
+                    dest = new Date(source.getTime());
                 } else if (isRegExp(source)) {
-                    destination = new RegExp(source.source);
-                } else if (isObject(source)) {
-                    destination = copy(source, {});
+                    dest = new RegExp(source.source);
+                } else if (isPlainObject(source)) {
+                    dest = copy(source, {});
                 }
             }
         } else {
-            if (source === destination) {
+            if (source === dest) {
                 throw new Error("Objects are identical");
             }
             if (isArray(source)) {
-                destination.length = 0;
-                for ( var i = 0; i < source.length; i++) {
-                    destination.push(copy(source[i]));
+                dest.length = 0;
+                for ( var i = 0, l = source.length; i < l; i++) {
+                    dest.push(copy(source[i]));
                 }
             } else {
                 var key;
-                for (key in destination) {
-                    delete destination[key];
+                for (key in dest) {
+                    delete dest[key];
                 }
                 for (key in source) {
-                    destination[key] = copy(source[key]);
+                    dest[key] = copy(source[key]);
                 }
             }
         }
-        return destination;
+        return dest;
     };
 
     return copy;

@@ -28,7 +28,7 @@ module.exports = function(){
 
         factory                 = function(scope, origin, parent, userData, recursive) {
 
-            if (!origin || !isString(origin) ||
+            if (!origin || !origin.indexOf ||
                 (origin.indexOf(startSymbol) == -1 &&
                  origin.indexOf(langStartSymbol) == -1)) {
                 return null;

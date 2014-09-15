@@ -3,6 +3,8 @@ window.dataSource = function(){
 
     var Promise = MetaphorJs.lib.Promise;
     var allData = {};
+    var max = 3000;
+    var timeout = 0;
 
     function random(from, to) {
         return Math.floor(Math.random() * (to - from + 1) + from);
@@ -61,6 +63,10 @@ window.dataSource = function(){
         if (start < 0) {
             start = 0;
         }
+        if (end > max) {
+            end = max;
+        }
+
 
         var prepare = function() {
             for (i = start; i < end; i++) {
@@ -69,7 +75,7 @@ window.dataSource = function(){
                 }
                 data.push(allData[i]);
             }
-            return data;
+            return {data: data, total: max};
         };
 
         if (immediate) {
@@ -78,7 +84,7 @@ window.dataSource = function(){
         else {
             setTimeout(function(){
                 promise.resolve(prepare());
-            }, 0);
+            }, timeout);
 
             return promise;
         }

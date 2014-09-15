@@ -6,6 +6,8 @@ var isArray = require("./isArray.js"),
     isFunction = require("./isFunction.js"),
     undf = require("../var/undf.js");
 
+// from Angular
+
 module.exports = function(){
 
     var equals = function(o1, o2) {
@@ -31,12 +33,12 @@ module.exports = function(){
                     if (isWindow(o1) || isWindow(o2) || isArray(o2)) return false;
                     keySet = {};
                     for(key in o1) {
-                        if (key.charAt(0) === '$' && typeof o1[key] == "object") {
+                        if (key.charAt(0) == '$' || isFunction(o1[key])) {//&& typeof o1[key] == "object") {
                             continue;
                         }
-                        if (isFunction(o1[key])) {
-                            continue;
-                        }
+                        //if (isFunction(o1[key])) {
+                        //    continue;
+                        //}
                         if (!equals(o1[key], o2[key])) {
                             return false;
                         }
@@ -44,7 +46,7 @@ module.exports = function(){
                     }
                     for(key in o2) {
                         if (!keySet.hasOwnProperty(key) &&
-                            key.charAt(0) !== '$' &&
+                            key.charAt(0) != '$' &&
                             o2[key] !== undf &&
                             !isFunction(o2[key])) return false;
                     }

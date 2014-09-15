@@ -3,7 +3,8 @@
 var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
     defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
     isField = require("../../func/dom/isField.js"),
-    attr = require("../../func/dom/attr.js"),
+    getAttr = require("../../func/dom/getAttr.js"),
+    removeAttr = require("../../func/dom/removeAttr.js"),
     setValue = require("../../../../metaphorjs-input/src/func/setValue.js"),
     elemTextProp = require("../../var/elemTextProp.js"),
     TextRenderer = require("../../view/TextRenderer.js"),
@@ -25,11 +26,11 @@ registerAttributeHandler("mjs-bind", 1000, defineClass(null, AttributeHandler, {
         var self    = this;
 
         self.isInput    = isField(node);
-        self.recursive  = attr(node, "mjs-recursive") !== null;
-        self.lockInput  = attr(node, "mjs-lock-input") !== null;
+        self.recursive  = getAttr(node, "mjs-recursive") !== null;
+        self.lockInput  = getAttr(node, "mjs-lock-input") !== null;
 
-        attr(node, "mjs-recursive", null);
-        attr(node, "mjs-lock-input", null);
+        removeAttr(node, "mjs-recursive");
+        removeAttr(node, "mjs-lock-input");
 
         if (self.isInput) {
             self.input  = new Input(node, self.onInputChange, self);

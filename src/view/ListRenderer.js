@@ -1,9 +1,11 @@
 var createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
     toArray = require("../func/array/toArray.js"),
     error = require("../func/error.js"),
+    nextUid = require("../func/nextUid.js"),
     animate = require("../../../metaphorjs-animate/src/metaphorjs.animate.js"),
     stopAnimation = require("../../../metaphorjs-animate/src/func/stopAnimation.js"),
     Renderer = require("../view/Renderer.js"),
+    Queue = require("../lib/Queue.js"),
     isNull = require("../func/isNull.js"),
     isNumber = require("../func/isNumber.js"),
     isPrimitive = require("../func/isPrimitive.js"),
@@ -12,8 +14,10 @@ var createWatchable = require("../../../metaphorjs-watchable/src/func/createWatc
     ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
     isFunction = require("../func/isFunction.js"),
     async = require("../func/async.js"),
-    attr = require("../func/dom/attr.js"),
+    getAttr = require("../func/dom/getAttr.js"),
+    removeAttr = require("../func/dom/removeAttr.js"),
     data = require("../func/dom/data.js"),
+    extend = require("../func/extend.js"),
     Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
     raf = require("../../../metaphorjs-animate/src/func/raf.js"),
     getScrollParent = require("../func/dom/getScrollParent.js"),
@@ -21,57 +25,28 @@ var createWatchable = require("../../../metaphorjs-watchable/src/func/createWatc
     getScrollLeft = require("../func/dom/getScrollLeft.js"),
     addListener = require("../func/event/addListener.js"),
     removeListener = require("../func/event/removeListener.js"),
-    addClass = require("../func/dom/addClass.js");
+    addClass = require("../func/dom/addClass.js"),
+    getPosition = require("../func/dom/getPosition.js");
 
 
 var ListRenderer = function(scope, node, expr) {
 
-    attr(node, "mjs-each", null);
-    attr(node, "mjs-include", null);
+    if (!(this instanceof ListRenderer)) {
+        return new ListRenderer(scope, node, expr);
+    }
 
     var self    = this;
+    self.commonInit(scope, node, expr);
+    self.init(scope, node, expr);
 
-    self.parseExpr(expr);
-
-    self.tpl        = node;
-    self.renderers  = [];
-    self.prevEl     = node.previousSibling;
-    self.nextEl     = node.nextSibling;
-    self.parentEl   = node.parentNode;
-    self.node       = node;
-    self.scope      = scope;
-    self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
-
-    var cfg         = data(node, "config") || {};
-    self.animateMove= !cfg.buffered && cfg.animateMove && animate.cssAnimations;
-    self.animate    = !cfg.buffered && attr(node, "mjs-animate") !== null;
-
-
-    self.trackBy    = attr(node, "mjs-track-by");
-    if (self.trackBy) {
-        if (self.trackBy != '$') {
-            self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, null, ns);
-        }
-    }
-    else if (!self.watcher.hasInputPipes()) {
-        self.trackBy    = '$$'+self.watcher.id;
-    }
-    attr(node, "mjs-track-by", null);
-
-
-    self.griDelegate = bind(self.scopeGetRawIndex, self);
-    self.parentEl.removeChild(node);
-
-    if (cfg.buffered) {
-        self.initBuffering(cfg);
-    }
-
-    self.render(toArray(self.watcher.getValue()));
-
+    self.queue.add(self.render, self, [toArray(self.watcher.getLastResult())]);
 };
 
 ListRenderer.prototype = {
 
+    id: null,
+
+    observable: null,
     model: null,
     itemName: null,
     tpl: null,
@@ -86,88 +61,116 @@ ListRenderer.prototype = {
     trackByFn: null,
     griDelegate: null,
 
+    queue: null,
+
     buffered: false,
     itemSize: null,
     itemsOffsite: 1,
     bufferState: null,
     scrollOffset: 0,
     horizontal: false,
-    eventTmt: null,
-    scrollBusy: false,
-    onResizeDelegate: null,
-    onScrollDelegate: null,
+    bufferEventDelegate: null,
+    topStub: null,
+    botStub: null,
 
-    onScopeDestroy: function() {
+    commonInit: function(scope, node, expr) {
+
+        var self = this;
+
+        removeAttr(node, "mjs-include");
+
+        self.parseExpr(expr);
+
+        self.tpl        = node;
+        self.renderers  = [];
+        self.prevEl     = node.previousSibling;
+        self.nextEl     = node.nextSibling;
+        self.parentEl   = node.parentNode;
+        self.node       = node;
+        self.scope      = scope;
+
+        self.queue      = new Queue({
+            async: false, auto: true, thenable: true,
+            stack: false, context: self, mode: Queue.ONCE
+        });
+
+        var cfg         = data(node, "config") || {};
+        self.animateMove= !cfg.buffered && cfg.animateMove && animate.cssAnimations;
+        self.animate    = !cfg.buffered && (getAttr(node, "mjs-animate") !== null || cfg.animate);
+        removeAttr(node, "mjs-animate");
+
+        self.id         = cfg.id || nextUid();
+
+        if (cfg.observable) {
+            self.observable = new Observable;
+            extend(self, self.observable.getApi(), true, false);
+        }
+
+        self.parentEl.removeChild(node);
+
+        if (cfg.buffered) {
+            self.initBuffering(cfg);
+        }
+    },
+
+    init: function(scope, node) {
+
+        var self        = this,
+            cfg         = data(node, "config") || {};
+
+        self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
+        self.trackBy    = cfg.trackBy;
+        if (self.trackBy && self.trackBy != '$') {
+            self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, null, ns);
+        }
+        else if (self.trackBy != '$' && !self.watcher.hasInputPipes()) {
+            self.trackBy    = '$$'+self.watcher.id;
+        }
+
+        self.griDelegate = bind(self.scopeGetRawIndex, self);
+    },
+
+    triggerIf: function() {
+        if (this.observable) {
+            this.trigger.apply(null, arguments);
+        }
+    },
+
+    /*
+     * <!-- render and re-render
+     */
+
+    render: function(list) {
 
         var self        = this,
             renderers   = self.renderers,
+            tpl         = self.tpl,
+            parent      = self.parentEl,
+            next        = self.nextEl,
+            buffered    = self.buffered,
+            fragment    = document.createDocumentFragment(),
+            el,
             i, len;
 
-        for (i = 0, len = renderers.length; i < len; i++) {
-            renderers[i].renderer.destroy();
-        }
-
-        delete self.renderers;
-        delete self.tpl;
-        delete self.prevEl;
-        delete self.nextEl;
-        delete self.parentEl;
-
-        self.supr();
-    },
-
-
-    onChangeTrackBy: function(val) {
-        this.trackByFn = null;
-        this.trackBy = val;
-    },
-
-    getTrackByFunction: function() {
-
-        var self = this,
-            trackBy;
-
-        if (!self.trackByFn) {
-
-            trackBy = self.trackBy;
-
-            if (!trackBy || trackBy == '$') {
-                return function(item) {
-                    return isPrimitive(item) ? item : undf;
-                };
-            }
-            else if (isFunction(trackBy)) {
-                self.trackByFn = trackBy;
-            }
-            else {
-                self.trackByFn = function(item){
-                    return item && !isPrimitive(item) ? item[trackBy] : undf;
-                };
+        for (i = 0, len = list.length; i < len; i++) {
+            el = tpl.cloneNode(true);
+            renderers.push(self.createItem(el, list, i));
+            if (!buffered) {
+                fragment.appendChild(el);
+                renderers[i].attached = true;
             }
         }
 
-        return self.trackByFn;
-    },
-
-
-    scopeGetRawIndex: function(id) {
-
-        if (id === undf) {
-            return -1;
+        if (!buffered) {
+            self.doUpdate();
+            parent.insertBefore(fragment, next);
+        }
+        else {
+            self.getScrollOffset();
+            self.updateScrollBuffer();
         }
 
-        var self        = this,
-            list        = self.watcher.getUnfilteredValue(),
-            trackByFn   = self.getTrackByFunction(),
-            i, l;
-
-        for (i = 0, l = list.length; i < l; i++) {
-            if (trackByFn(list[i]) === id) {
-                return i;
-            }
-        }
-
-        return -1;
+        self.triggerIf("render", self);
     },
 
     doUpdate: function(start, end, action, renderOnly) {
@@ -220,6 +223,7 @@ ListRenderer.prototype = {
         scope.$getRawIndex = self.griDelegate;
 
         if (!item.renderer) {
+
             item.renderer  = new Renderer(item.el, scope);
             item.renderer.process();
             item.rendered = true;
@@ -229,40 +233,6 @@ ListRenderer.prototype = {
         }
     },
 
-    render: function(list) {
-
-        var self        = this,
-            renderers   = self.renderers,
-            tpl         = self.tpl,
-            parent      = self.parentEl,
-            next        = self.nextEl,
-            buffered    = self.buffered,
-            fragment    = document.createDocumentFragment(),
-            el,
-            i, len;
-
-        for (i = 0, len = list.length; i < len; i++) {
-            el = tpl.cloneNode(true);
-            renderers.push(self.createItem(el, list, i));
-            renderers[i].attached = !buffered;
-            if (!buffered) {
-                fragment.appendChild(el);
-            }
-        }
-
-        if (!buffered) {
-            self.doUpdate();
-            parent.insertBefore(fragment, next);
-        }
-        else {
-            self.getScrollOffset();
-            self.updateScrollBuffer();
-        }
-    },
-
-    getListItem: function(list, index) {
-        return list[index];
-    },
 
     createItem: function(el, list, index) {
 
@@ -282,14 +252,26 @@ ListRenderer.prototype = {
         };
     },
 
-    onChange: function(changes) {
+    /*
+     * render and re-render -->
+     */
+
+    /*
+     * <!-- reflect changes
+     */
+
+    onChange: function(current, prev) {
+        var self = this;
+        self.queue.prepend(self.applyChanges, self, [prev], Queue.REPLACE);
+    },
+
+    applyChanges: function(prevList) {
 
         var self        = this,
             renderers   = self.renderers,
-            prs         = changes.prescription || [],
             tpl         = self.tpl,
             index       = 0,
-            list        = toArray(self.watcher.getValue()),
+            list        = toArray(self.watcher.getLastResult()),
             updateStart = null,
             animateMove = self.animateMove,
             animateAll  = self.animate,
@@ -302,9 +284,8 @@ ListRenderer.prototype = {
             i, len,
             r,
             action,
-            translates;
-
-        prs = self.watcher.getMovePrescription(prs, self.getTrackByFunction());
+            translates,
+            prs         = self.watcher.getMovePrescription(prevList, self.getTrackByFunction(), list);
 
         // redefine renderers
         for (i = 0, len = prs.length; i < len; i++) {
@@ -340,6 +321,7 @@ ListRenderer.prototype = {
 
         self.renderers  = newrs;
 
+
         if (animateAll) {
 
             self.doUpdate(updateStart, null, "enter");
@@ -351,6 +333,7 @@ ListRenderer.prototype = {
             var animPromises    = [],
                 startAnimation  = new Promise,
                 applyFrom       = new Promise,
+                donePromise     = new Promise,
                 animReady       = Promise.counter(newrs.length),
                 startCallback   = function(){
                     animReady.countdown();
@@ -364,7 +347,7 @@ ListRenderer.prototype = {
                     r.scope.$destroy();
 
                     stopAnimation(r.el);
-                    animPromises.push(animate(r.el, "leave", null, true, ns)
+                    animPromises.push(animate(r.el, "leave", null, false, ns)
                         .done(function(el){
                             el.style.visibility = "hidden";
                         }));
@@ -376,7 +359,7 @@ ListRenderer.prototype = {
                 stopAnimation(r.el);
 
                 r.action == "enter" ?
-                    animPromises.push(animate(r.el, "enter", startCallback, true, ns)) :
+                    animPromises.push(animate(r.el, "enter", startCallback, false, ns)) :
                     animPromises.push(
                         self.moveAnimation(
                             r.el,
@@ -398,6 +381,7 @@ ListRenderer.prototype = {
                     raf(function(){
                         startAnimation.resolve();
                     });
+                    self.triggerIf("change", self);
                 });
             });
 
@@ -413,21 +397,24 @@ ListRenderer.prototype = {
                             r.el.style[animate.prefixes.transform] = "";
                         }
                     }
-
-
+                    donePromise.resolve();
                 });
             });
+
+            return donePromise;
         }
         else {
-            self.applyDomPositions();
-            if (self.buffered) {
-                !self.bufferState && self.getBufferState();
-                self.doUpdate(self.bufferState.first, self.bufferState.last);
+            if (!self.buffered) {
+                self.applyDomPositions();
+                self.doUpdate(updateStart || 0);
+                self.removeOldElements(renderers);
             }
             else {
-                self.doUpdate(updateStart || 0);
+                self.getScrollOffset();
+                self.removeOldElements(renderers);
+                self.queue.append(self.updateScrollBuffer, self, [true]);
             }
-            self.removeOldElements(renderers);
+            self.triggerIf("change", self);
         }
     },
 
@@ -439,6 +426,7 @@ ListRenderer.prototype = {
         for (i = 0, len = rs.length; i < len; i++) {
             r = rs[i];
             if (r && r.attached) {
+                r.attached = false;
                 parent.removeChild(r.el);
             }
         }
@@ -451,8 +439,6 @@ ListRenderer.prototype = {
             rs          = self.renderers,
             parent      = self.parentEl,
             prevEl      = self.prevEl,
-            buffered    = self.buffered,
-            bs          = buffered ? self.getBufferState(true) : null,
             fc          = prevEl ? prevEl.nextSibling : parent.firstChild,
             next,
             i, l, el, r;
@@ -461,37 +447,94 @@ ListRenderer.prototype = {
             r = rs[i];
             el = r.el;
 
-            if (!buffered || i >= bs.first && i <= bs.last) {
-
-                if (oldrs && oldrs[i]) {
-                    next = oldrs[i].el.nextSibling;
-                }
-                else {
-                    next = i > 0 ? (rs[i-1].el.nextSibling || fc) : fc;
-                }
-
-                if (next && el.nextSibling !== next) {
-                    parent.insertBefore(el, next);
-                }
-                else if (!next) {
-                    parent.appendChild(el);
-                }
-                r.attached = true;
+            if (oldrs && oldrs[i]) {
+                next = oldrs[i].el.nextSibling;
             }
             else {
-                if (buffered && i < bs.first || i > bs.last) {
-                    if (r.attached) {
-                        parent.removeChild(el);
-                        r.attached = false;
-                    }
-                }
+                next = i > 0 ? (rs[i-1].el.nextSibling || fc) : fc;
+            }
+
+            if (next && el.nextSibling !== next) {
+                parent.insertBefore(el, next);
+            }
+            else if (!next) {
+                parent.appendChild(el);
+            }
+            r.attached = true;
+
+        }
+    },
+
+    /*
+     * reflect changes -->
+     */
+
+
+    /*
+     * <!-- configurable item functions
+     */
+
+
+    getListItem: function(list, index) {
+        return list[index];
+    },
+
+    onChangeTrackBy: function(val) {
+        this.trackByFn = null;
+        this.trackBy = val;
+    },
+
+    getTrackByFunction: function() {
+
+        var self = this,
+            trackBy;
+
+        if (!self.trackByFn) {
+
+            trackBy = self.trackBy;
+
+            if (!trackBy || trackBy == '$') {
+                self.trackByFn = function(item) {
+                    return isPrimitive(item) ? item : undf;
+                };
+            }
+            else if (isFunction(trackBy)) {
+                self.trackByFn = trackBy;
+            }
+            else {
+                self.trackByFn = function(item){
+                    return item && !isPrimitive(item) ? item[trackBy] : undf;
+                };
             }
         }
 
-        if (buffered) {
-            self.updateScrollGhosts(bs);
-        }
+        return self.trackByFn;
     },
+
+
+    scopeGetRawIndex: function(id) {
+
+        if (id === undf) {
+            return -1;
+        }
+
+        var self        = this,
+            list        = self.watcher.getUnfilteredValue(),
+            trackByFn   = self.getTrackByFunction(),
+            i, l;
+
+        for (i = 0, l = list.length; i < l; i++) {
+            if (trackByFn(list[i]) === id) {
+                return i;
+            }
+        }
+
+        return -1;
+    },
+
+    /*
+     * configurable item functions -->
+     */
 
 
     /*
@@ -608,7 +651,7 @@ ListRenderer.prototype = {
             el,
             "move",
             startCallback,
-            true,
+            false,
             ns,
             function(el, position, stage){
                 if (position == 0 && stage != "start" && to) {
@@ -626,7 +669,12 @@ ListRenderer.prototype = {
      * <!-- buffered list
      */
 
-    initBuffering: function(cfg) {
+    initScrollParent: function(cfg) {
+        var self = this;
+        self.scrollEl = getScrollParent(self.parentEl);
+    },
+
+    initScrollStubs: function(cfg) {
 
         var self = this,
             parent = self.parentEl,
@@ -649,13 +697,8 @@ ListRenderer.prototype = {
                 marginBottom: 0
             };
 
-        self.buffered       = true;
-        self.itemSize       = cfg.itemSize;
-        self.ofsTopEl       = ofsTop = document.createElement(cfg.stubTag || "div");
-        self.ofsBotEl       = ofsBot = document.createElement(cfg.stubTag || "div");
-        self.scrollEl       = getScrollParent(self.parentEl);
-        self.itemsOffsite   = cfg.itemsOffsite || 5;
-        self.horizontal     = cfg.horizontal || false;
+        self.topStub       = ofsTop = document.createElement(cfg.stub || "div");
+        self.botStub       = ofsBot = document.createElement(cfg.stub || "div");
 
         addClass(ofsTop, "mjs-buffer-top");
         addClass(ofsBot, "mjs-buffer-bottom");
@@ -669,30 +712,34 @@ ListRenderer.prototype = {
 
         self.prevEl     = ofsTop;
         self.nextEl     = ofsBot;
+    },
 
-        self.onResizeDelegate = bind(self.onResize, self);
-        self.onScrollDelegate = bind(self.onScroll, self);
+    initBuffering: function(cfg) {
 
-        addListener(self.scrollEl, "scroll", self.onScrollDelegate);
-        addListener(window, "resize", self.onResizeDelegate);
+        var self = this;
+
+        self.buffered       = true;
+        self.itemSize       = cfg.itemSize;
+        self.itemsOffsite   = cfg.itemsOffsite || 5;
+        self.horizontal     = cfg.horizontal || false;
+
+        self.initScrollParent(cfg);
+        self.initScrollStubs(cfg);
+
+        self.bufferEventDelegate = bind(self.bufferUpdateEvent, self);
+
+        addListener(self.scrollEl, "scroll", self.bufferEventDelegate);
+        addListener(window, "resize", self.bufferEventDelegate);
     },
 
 
     getScrollOffset: function() {
 
-        var self    = this,
-            top     = self.scrollEl,
-            parent  = self.ofsTopEl,
-            hor     = self.horizontal,
-            prop    = hor ? "offsetLeft" : "offsetTop",
-            offset  = 0;
+        var self        = this,
+            position    = getPosition(self.topStub, self.scrollEl),
+            ofs         = self.horizontal ? position.left : position.top;
 
-        while (parent && parent !== top) {
-            offset += parent[prop] || 0;
-            parent = parent.parentNode;
-        }
-
-        return self.scrollOffset = offset;
+        return self.scrollOffset = ofs;
     },
 
     getBufferState: function(updateScrollOffset) {
@@ -710,17 +757,22 @@ ListRenderer.prototype = {
             off         = self.itemsOffsite,
             offset      = updateScrollOffset ? self.getScrollOffset() : self.scrollOffset,
             cnt         = self.renderers.length,
+            viewFirst,
+            viewLast,
             first,
             last;
 
-        scroll  = Math.max(0, scroll - offset);
-        first   = parseInt(scroll / isize, 10);
+
+        scroll  = Math.max(0, scroll + offset);
+        first   = Math.ceil(scroll / isize);
 
         if (first < 0) {
             first = 0;
         }
 
-        last    = first + parseInt(size / isize, 10);
+        viewFirst = first;
+
+        last    = viewLast = first + Math.ceil(size / isize);
         first   = first > off ? first - off : 0;
         last   += off;
 
@@ -735,100 +787,98 @@ ListRenderer.prototype = {
         return self.bufferState = {
             first: first,
             last: last,
+            viewFirst: viewFirst,
+            viewLast: viewLast,
             ot: first * isize,
             ob: (cnt - last - 1) * isize
         };
     },
 
-    updateScrollGhosts: function(bs) {
+    updateStubs: function(bs) {
         var self        = this,
             hor         = self.horizontal;
 
-        self.ofsTopEl.style[hor ? "width" : "height"] = bs.ot + "px";
-        self.ofsBotEl.style[hor ? "width" : "height"] = bs.ob + "px";
+        self.topStub.style[hor ? "width" : "height"] = bs.ot + "px";
+        self.botStub.style[hor ? "width" : "height"] = bs.ob + "px";
     },
 
-    onResize: function() {
-        this.runBufferedEvent();
-    },
-
-    onScroll: function() {
-        this.runBufferedEvent();
-    },
-
-    runBufferedEvent: function() {
+    bufferUpdateEvent: function() {
         var self = this;
-
-        if (self.scrollBusy) {
-            if (self.eventTmt) {
-                clearTimeout(self.eventTmt);
-                self.eventTmt = null;
-            }
-            self.eventTmt = setTimeout(function(){
-                self.eventTmt = null;
-                self.runBufferedEvent();
-            }, 10);
-        }
-        else {
-            self.updateScrollBuffer();
-        }
+        self.queue.add(self.updateScrollBuffer, self);
     },
 
-    updateScrollBuffer: function() {
 
-        this.scrollBusy = true;
+    updateScrollBuffer: function(reset) {
 
         var self        = this,
             prev        = self.bufferState,
             parent      = self.parentEl,
             rs          = self.renderers,
-            bot         = self.ofsBotEl,
+            bot         = self.botStub,
             bs          = self.getBufferState(false),
+            promise     = new Promise,
             fragment,
-            i, x;
+            i, x, r;
 
         if (!bs) {
-            self.scrollBusy = false;
-            return;
+            return null;
+        }
+
+        if (!prev || bs.first != prev.first || bs.last != prev.last) {
+            self.triggerIf("bufferchange", self, bs, prev);
         }
 
         raf(function(){
 
-            if (!prev || bs.last < prev.first || bs.first > prev.last){
+            if (reset || !prev || bs.last < prev.first || bs.first > prev.last){
+
                 //remove old and append new
                 if (prev) {
                     for (i = prev.first, x = prev.last; i <= x; i++) {
-                        parent.removeChild(rs[i].el);
-                        rs[i].attached = false;
+                        r = rs[i];
+                        if (r && r.attached) {
+                            parent.removeChild(r.el);
+                            r.attached = false;
+                        }
                     }
                 }
                 fragment = document.createDocumentFragment();
                 for (i = bs.first, x = bs.last; i <= x; i++) {
-                    if (!rs[i].rendered) {
-                        self.renderItem(i);
+                    r = rs[i];
+                    if (r) {
+                        if (!r.rendered) {
+                            self.renderItem(i);
+                        }
+                        fragment.appendChild(r.el);
+                        r.attached = true;
                     }
-                    fragment.appendChild(rs[i].el);
-                    rs[i].attached = true;
                 }
 
                 parent.insertBefore(fragment, bot);
+
             }
             else {
 
                 if (prev.first < bs.first) {
                     for (i = prev.first, x = bs.first; i < x; i++) {
-                        parent.removeChild(rs[i].el);
-                        rs[i].attached = false;
+                        r = rs[i];
+                        if (r && r.attached) {
+                            parent.removeChild(r.el);
+                            r.attached = false;
+                        }
                     }
                 }
                 else if (prev.first > bs.first) {
                     fragment = document.createDocumentFragment();
                     for (i = bs.first, x = prev.first; i < x; i++) {
-                        if (!rs[i].rendered) {
-                            self.renderItem(i);
+                        r = rs[i];
+                        if (r) {
+                            if (!r.rendered) {
+                                self.renderItem(i);
+                            }
+                            fragment.appendChild(r.el);
+                            r.attached = true;
                         }
-                        fragment.appendChild(rs[i].el);
-                        rs[i].attached = true;
                     }
                     parent.insertBefore(fragment, rs[prev.first].el);
                 }
@@ -836,35 +886,87 @@ ListRenderer.prototype = {
                 if (prev.last < bs.last) {
                     fragment = document.createDocumentFragment();
                     for (i = prev.last + 1, x = bs.last; i <= x; i++) {
-                        if (!rs[i].rendered) {
-                            self.renderItem(i);
+                        r = rs[i];
+                        if (r) {
+                            if (!r.rendered) {
+                                self.renderItem(i);
+                            }
+                            fragment.appendChild(r.el);
+                            r.attached = true;
                         }
-                        fragment.appendChild(rs[i].el);
-                        rs[i].attached = true;
                     }
                     parent.insertBefore(fragment, bot);
                 }
                 else if (prev.last > bs.last) {
                     for (i = bs.last + 1, x = prev.last; i <= x; i++) {
-                        parent.removeChild(rs[i].el);
-                        rs[i].attached = false;
+                        r = rs[i];
+                        if (r && r.attached) {
+                            parent.removeChild(r.el);
+                            r.attached = false;
+                        }
                     }
                 }
             }
 
-            self.updateScrollGhosts(bs);
+            //var start = (new Date).getTime();
 
-            self.scrollBusy = false;
+            self.updateStubs(bs);
 
-            async(function(){
+            self.triggerIf("bufferupdate", self);
+
+
+
+            /*async(function(){
                 // pre-render next
                 if (!prev || prev.first < bs.first) {
-                    self.doUpdate(bs.last, bs.last + (bs.last - bs.first), null, true);
+                    //self.doUpdate(bs.last, bs.last + (bs.last - bs.first), null, true);
                 }
-            });
+
+                self.onBufferStateChange(bs, prev);
+
+            });*/
+            self.onBufferStateChange(bs, prev);
+
+            promise.resolve();
         });
 
+        return promise;
     },
+
+    // not finished: todo unbuffered and animation
+    scrollTo: function(index) {
+        var self    = this,
+            isize   = self.itemSize,
+            sp      = self.scrollEl || getScrollParent(self.parentEl),
+            hor     = self.horizontal,
+            prop    = hor ? "scrollLeft" : "scrollTop",
+            promise = new Promise,
+            pos;
+
+        if (self.buffered) {
+            self.queue.append(function(){
+
+                raf(function(){
+                    pos     = isize * index;
+                    if (sp === window) {
+                        window.scrollTo(
+                            hor ? pos : getScrollLeft(),
+                            !hor ? pos : getScrollTop()
+                        );
+                    }
+                    else {
+                        sp[prop] = pos;
+                    }
+                    promise.resolve();
+                });
+                return promise;
+            });
+        }
+
+        return promise;
+    },
+
+    onBufferStateChange: function(bs, prev) {},
 
     /*
      * buffered list -->
@@ -899,9 +1001,23 @@ ListRenderer.prototype = {
         this.itemName = name || "item";
     },
 
+
     destroy: function() {
 
-        var self = this;
+        var self        = this,
+            renderers   = self.renderers,
+            parent      = self.parentEl,
+            i, len;
+
+        for (i = 0, len = renderers.length; i < len; i++) {
+            renderers[i].renderer.destroy();
+        }
+
+        delete self.renderers;
+        delete self.tpl;
+        delete self.prevEl;
+        delete self.nextEl;
+        delete self.parentEl;
 
         if (self.trackByWatcher) {
             self.trackByWatcher.unsubscribeAndDestroy();
@@ -909,15 +1025,32 @@ ListRenderer.prototype = {
         }
 
         if (self.buffered) {
-            removeListener(self.scrollEl, "scroll", self.onScrollDelegate);
-            removeListener(window, "resize", self.onResizeDelegate);
+            parent.removeChild(self.topStub);
+            parent.removeChild(self.botStub);
+            removeListener(self.scrollEl, "scroll", self.bufferEventDelegate);
+            removeListener(window, "resize", self.bufferEventDelegate);
+            delete self.bufferEventDelegate;
         }
 
-        self.supr();
+        delete self.topStub;
+        delete self.botStub;
+
+        self.queue.destroy();
+        delete self.queue;
+
+        self.watcher.unsubscribeAndDestroy(self.onChange, self);
+        delete self.watcher;
+
+        if (self.observable) {
+            self.trigger("bufferupdate", self);
+            self.observable.destroy();
+            delete self.observable;
+        }
     }
 
 };
 
 ListRenderer.$stopRenderer = true;
+ListRenderer.$registerBy = "id";
 
 module.exports = ListRenderer;

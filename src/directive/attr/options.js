@@ -8,7 +8,8 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
     getValue = require("../../../../metaphorjs-input/src/func/getValue.js"),
     setValue = require("../../../../metaphorjs-input/src/func/setValue.js"),
     error = require("../../func/error.js"),
-    attr = require("../../func/dom/attr.js"),
+    removeAttr = require("../../func/dom/removeAttr.js"),
+    setAttr = require("../../func/dom/setAttr.js"),
     undf = require("../../var/undf.js"),
     isIE = require("../../func/browser/isIE.js"),
     createGetter = require("../../../../metaphorjs-watchable/src/func/createGetter.js"),
@@ -31,7 +32,7 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
 
         self.parseExpr(expr);
 
-        attr(node, "mjs-options", null);
+        removeAttr(node, "mjs-options");
 
         self.node       = node;
         self.scope      = scope;
@@ -41,7 +42,7 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
             node.removeChild(node.firstChild);
         }
 
-        self.defOption && attr(self.defOption, "mjs-default-option", "");
+        self.defOption && setAttr(self.defOption, "mjs-default-option", "");
 
         try {
             self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
@@ -75,9 +76,9 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
 
             if (config.group){
                 self.groupEl = parent = document.createElement("optgroup");
-                attr(parent, "label", config.group);
+                setAttr(parent, "label", config.group);
                 if (config.disabledGroup) {
-                    attr(parent, "disabled", "disabled");
+                    setAttr(parent, "disabled", "disabled");
                 }
                 self.fragment.appendChild(parent);
             }
@@ -89,14 +90,14 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
         self.prevGroup  = config.group;
 
         option  = document.createElement("option");
-        attr(option, "value", config.value);
+        setAttr(option, "value", config.value);
         option.text = config.name;
 
         if (msie && msie < 9) {
             option.innerHTML = config.name;
         }
         if (config.disabled) {
-            attr(option, "disabled", "disabled");
+            setAttr(option, "disabled", "disabled");
         }
 
         parent.appendChild(option);
@@ -155,3 +156,4 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
     }
 
 }));
+

@@ -2,11 +2,7 @@
 var nextUid = require("../nextUid.js"),
     undf = require("../../var/undf.js");
 
-/**
- * @param {Element} el
- * @param {String} key
- * @param {*} value optional
- */
+
 module.exports = function(){
 
     var dataCache   = {},
@@ -15,6 +11,11 @@ module.exports = function(){
             return el._mjsid || (el._mjsid = nextUid());
         };
 
+    /**
+     * @param {Element} el
+     * @param {String} key
+     * @param {*} value optional
+     */
     return function(el, key, value) {
         var id  = getNodeId(el),
             obj = dataCache[id];

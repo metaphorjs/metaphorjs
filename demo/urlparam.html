@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MetaphorJs url param demo</title>
+    <script src="../dev-test/metaphorjs.test.js"></script>
+    <script>
+        MetaphorJs.cs.define("My.Cmp", "MetaphorJs.cmp.Component", {
+
+            initComponent: function() {
+
+                MetaphorJs.history.initPushState();
+                MetaphorJs.history.addParam("p");
+
+                this.scope.$watchHistory("param", "p");
+            }
+        });
+    </script>
+</head>
+<body mjs-app>
+
+    <div mjs-cmp="My.Cmp as ctrl">
+        <a href="/?p=1">1</a> --
+        <a href="/?p=2">2</a> --
+        <a href="/?p=3">3</a><br>
+        p: <input mjs-bind=".param"/>
+    </div>
+
+</body>
+</html>

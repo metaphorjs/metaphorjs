@@ -2,7 +2,7 @@
 var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
     createFunc = require("../../../../metaphorjs-watchable/src/func/createFunc.js"),
     normalizeEvent = require("../../func/event/normalizeEvent.js"),
-    attr = require("../../func/dom/attr.js"),
+    removeAttr = require("../../func/dom/removeAttr.js"),
     addListener = require("../../func/event/addListener.js"),
     Scope = require("../../lib/Scope.js"),
     error = require("../../func/error.js");
@@ -29,7 +29,7 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
 
                 var fn  = createFunc(expr);
 
-                attr(node, "mjs-" + name, null);
+                removeAttr(node, "mjs-" + name);
 
                 addListener(node, eventName, function(e){
 

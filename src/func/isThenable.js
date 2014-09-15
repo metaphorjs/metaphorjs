@@ -1,6 +1,5 @@
 
-var isFunction = require("./isFunction.js"),
-    isObject = require("./isObject.js");
+var isFunction = require("./isFunction.js");
 
 /**
  * Returns 'then' function or false
@@ -8,8 +7,12 @@ var isFunction = require("./isFunction.js"),
  * @returns {Function|boolean}
  */
 module.exports = function(any) {
-    var then;
-    if (!any || (!isObject(any) && !isFunction(any))) {
+    if (!any || !any.then) {
+        return false;
+    }
+    var then, t;
+    //if (!any || (!isObject(any) && !isFunction(any))) {
+    if (((t = typeof any) != "object" && t != "function")) {
         return false;
     }
     return isFunction((then = any.then)) ?

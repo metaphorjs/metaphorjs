@@ -21,45 +21,43 @@
         <h1>Tags</h1>
     </div>
 
-    <div class="row">
+    <div class="row" mjs-init=".tags = ['rock', '90s']; .sortBy = 'asc'; .cls = 'floated'">
 
-        <div class="col-md-6">
-            <ul class="nav nav-tabs" role="tablist">
-                <li class="active"><a href="#html" role="tab" data-toggle="tab">HTML</a></li>
-                <li><a href="#css" role="tab" data-toggle="tab">style.css</a></li>
+            <input mjs-model=".newTag"/>
+            <button mjs-disable="!.newTag" mjs-click=".tags.push(.newTag); .newTag = '';">Add tag</button><br>
+            Sort:
+            <a href="#" mjs-click=".sortBy = 'asc'">asc</a> |
+            <a href="#" mjs-click=".sortBy = 'desc'">desc</a><br>
+            View:
+            <a href="#" mjs-click=".cls = 'floated'">floated</a> |
+            <a href="#" mjs-click=".cls = 'list'">list</a>
+
+            <br><br>
+            <ul class="tags {{.cls}}">
+                <li class="item"
+                    mjs-each="tag in .tags | sortBy:'$':.sortBy"
+                    mjs-click=".$parent.tags.splice(.$parent.tags.indexOf(.tag), 1)"
+                    mjs-animate
+                    mjs-config="{animateMove: true, trackBy: '$'}">{{.tag}}</li>
             </ul>
-            <div class="tab-content">
-                <div class="tab-pane active" id="html">
-                    <pre><code data-export="tags/main.html" class="language-markup"></code></pre>
-                </div>
-                <div class="tab-pane" id="css">
-                    <pre><code data-export="tags/style.css" class="language-css"></code></pre>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6" mjs-init=".tags = ['rock', '90s']; .sortBy = 'asc'; .cls = 'floated'">
-            <div>
-                <input mjs-model=".newTag"/>
-                <button mjs-disable="!.newTag" mjs-click=".tags.push(.newTag); .newTag = '';">Add tag</button><br>
-                Sort:
-                <a href="#" mjs-click=".sortBy = 'asc'">asc</a> |
-                <a href="#" mjs-click=".sortBy = 'desc'">desc</a><br>
-                View:
-                <a href="#" mjs-click=".cls = 'floated'">floated</a> |
-                <a href="#" mjs-click=".cls = 'list'">list</a>
 
-                <br><br>
-                <ul class="tags {{.cls}}">
-                    <li class="item"
-                        mjs-each="tag in .tags | sortBy:'$':.sortBy"
-                        mjs-track-by="$"
-                        mjs-click=".$parent.tags.splice(.$parent.tags.indexOf(.tag), 1)"
-                        mjs-animate
-                        mjs-config="{animateMove: true}">{{.tag}}</li>
-                </ul>
+    </div>
+
+    <div class="row">
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="active"><a href="#html" role="tab" data-toggle="tab">HTML</a></li>
+            <li><a href="#css" role="tab" data-toggle="tab">style.css</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane active" id="html">
+                <pre><code data-export="tags/main.html" class="language-markup"></code></pre>
+            </div>
+            <div class="tab-pane" id="css">
+                <pre><code data-export="tags/style.css" class="language-css"></code></pre>
             </div>
         </div>
     </div>
+
 </div>
 
 </body>

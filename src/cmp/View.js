@@ -5,7 +5,8 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     stopAnimation = require("../../../metaphorjs-animate/src/func/stopAnimation.js"),
     extend = require("../func/extend.js"),
     data = require("../func/dom/data.js"),
-    attr = require("../func/dom/attr.js"),
+    getAttr = require("../func/dom/getAttr.js"),
+    removeAttr = require("../func/dom/removeAttr.js"),
     toFragment = require("../func/dom/toFragment.js"),
     resolveComponent = require("../func/resolveComponent.js"),
     createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
@@ -51,14 +52,14 @@ module.exports = defineClass("MetaphorJs.cmp.View", {
         }
 
         if (!self.cmp) {
-            self.cmp = attr(node, "mjs-view-cmp");
+            self.cmp = getAttr(node, "mjs-view-cmp");
         }
 
-        self.defaultCmp = attr(node, "mjs-view-default");
+        self.defaultCmp = getAttr(node, "mjs-view-default");
 
-        attr(node, "mjs-view", null);
-        attr(node, "mjs-view-cmp", null);
-        attr(node, "mjs-view-default", null);
+        removeAttr(node, "mjs-view");
+        removeAttr(node, "mjs-view-cmp");
+        removeAttr(node, "mjs-view-default");
 
 
         if (self.route) {

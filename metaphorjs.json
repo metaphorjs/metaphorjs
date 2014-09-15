@@ -1,5 +1,5 @@
 {
-    "version": "0.3.6",
+    "version": "0.3.7",
     "push": [
         "github"
     ],
@@ -286,6 +286,10 @@
                 "compile",
                 "nextUid",
                 "isPlainObject",
+                "getPosition",
+                "getOffset",
+                "getOffsetParent",
+                "getStyle",
                 [
                     "MetaphorJs.lib",
                     "Promise"
@@ -297,6 +301,18 @@
                 [
                     "MetaphorJs.lib",
                     "Scope"
+                ],
+                [
+                    "MetaphorJs.lib",
+                    "Queue"
+                ],
+                [
+                    "MetaphorJs.view",
+                    "ListRenderer"
+                ],
+                [
+                    "MetaphorJs.view",
+                    "StoreRenderer"
                 ]
             ]
         }

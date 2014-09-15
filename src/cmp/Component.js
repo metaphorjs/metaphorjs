@@ -3,7 +3,9 @@
 var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     emptyFn = require("../func/emptyFn.js"),
     nextUid = require("../func/nextUid.js"),
-    attr = require("../func/dom/attr.js"),
+    getAttr = require("../func/dom/getAttr.js"),
+    setAttr = require("../func/dom/setAttr.js"),
+    removeAttr = require("../func/dom/removeAttr.js"),
     isAttached = require("../func/dom/isAttached.js"),
     Template = require("../view/Template.js"),
     Scope = require("../lib/Scope.js");
@@ -105,7 +107,7 @@ module.exports = defineClass("MetaphorJs.cmp.Component", "MetaphorJs.cmp.Base", 
         }
 
         if (self.node) {
-            self.id = attr(self.node, "id");
+            self.id = getAttr(self.node, "id");
             if (self.id) {
                 self.originalId = true;
             }
@@ -120,7 +122,7 @@ module.exports = defineClass("MetaphorJs.cmp.Component", "MetaphorJs.cmp.Base", 
         self.initComponent.apply(self, arguments);
 
         if (self.scope.$app){
-            self.scope.$app.registerCmp(self);
+            self.scope.$app.registerCmp(self, self.scope, "id");
         }
 
         var tpl = self.template,
@@ -169,8 +171,8 @@ module.exports = defineClass("MetaphorJs.cmp.Component", "MetaphorJs.cmp.Base", 
         var self    = this,
             node    = self.node;
 
-        attr(node, "id", self.id);
-        attr(node, "cmp-id", self.id);
+        setAttr(node, "id", self.id);
+        setAttr(node, "cmp-id", self.id);
 
         if (self.hidden) {
             node.style.display = "none";
@@ -322,9 +324,9 @@ module.exports = defineClass("MetaphorJs.cmp.Component", "MetaphorJs.cmp.Base", 
             }
         }
         else {
-            attr(self.node, "cmp-id", null);
+            removeAttr(self.node, "cmp-id");
             if (!self.originalId) {
-                attr(self.node, "id", null);
+                removeAttr(self.node, "id");
             }
         }
 

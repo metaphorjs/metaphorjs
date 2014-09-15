@@ -1,6 +1,4 @@
 
-var getElemRect = require("./getElemRect.js");
+var getDimensions = require("./util/getDimensions.js");
 
-module.exports = function(el) {
-    return getElemRect(el).height;
-};
+module.exports = getDimensions("outer", "Height");

@@ -14,7 +14,7 @@ var data = require("../func/dom/data.js"),
     Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
     ajax = require("../../../metaphorjs-ajax/src/metaphorjs.ajax.js"),
     ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
-    attr = require("../func/dom/attr.js");
+    removeAttr = require("../func/dom/removeAttr.js");
 
 
 
@@ -85,7 +85,7 @@ module.exports = function(){
         var node    = self.node,
             tpl     = self.tpl || self.url;
 
-        node && attr(node, "mjs-include", null);
+        node && removeAttr(node, "mjs-include");
 
         if (!node) {
             self.deferRendering = true;

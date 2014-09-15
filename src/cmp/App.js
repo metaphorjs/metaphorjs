@@ -3,9 +3,10 @@
 var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     bind = require("../func/bind.js"),
     extend = require("../func/extend.js"),
+    nextUid = require("../func/nextUid.js"),
     emptyFn = require("../func/emptyFn.js"),
     slice = require("../func/array/slice.js"),
-    attr = require("../func/dom/attr.js"),
+    getAttr = require("../func/dom/getAttr.js"),
     Scope = require("../lib/Scope.js"),
     Renderer = require("../view/Renderer.js"),
     Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
@@ -67,6 +68,7 @@ module.exports = defineClass("MetaphorJs.cmp.App", "MetaphorJs.cmp.Base", {
         this.renderer.process();
     },
 
+
     getParentCmp: function(node) {
 
         var self    = this,
@@ -75,7 +77,7 @@ module.exports = defineClass("MetaphorJs.cmp.App", "MetaphorJs.cmp.Base", {
 
         while (parent) {
 
-            if (id = attr(parent, "cmp-id")) {
+            if (id = getAttr(parent, "cmp-id")) {
                 return self.getCmp(id);
             }
 
@@ -87,7 +89,9 @@ module.exports = defineClass("MetaphorJs.cmp.App", "MetaphorJs.cmp.Base", {
 
     onAvailable: function(cmpId, fn, context) {
 
-        var cmpListeners = this.cmpListeners;
+        var self = this,
+            cmpListeners = self.cmpListeners,
+            components = self.components;
 
         if (!cmpListeners[cmpId]) {
             cmpListeners[cmpId] = new Promise;
@@ -97,6 +101,10 @@ module.exports = defineClass("MetaphorJs.cmp.App", "MetaphorJs.cmp.Base", {
             cmpListeners[cmpId].done(fn, context);
         }
 
+        if (components[cmpId]) {
+            cmpListeners[cmpId].resolve(components[cmpId])
+        }
+
         return cmpListeners[cmpId];
     },
 
@@ -104,17 +112,24 @@ module.exports = defineClass("MetaphorJs.cmp.App", "MetaphorJs.cmp.Base", {
         return this.components[id] || null;
     },
 
-    registerCmp: function(cmp) {
-        var self = this;
+    registerCmp: function(cmp, scope, byKey) {
+        var self = this,
+            id = cmp[byKey],
+            deregister = function() {
+                delete self.cmpListeners[id];
+                delete self.components[id];
+            };
 
-        self.components[cmp.id] = cmp;
+        self.components[id] = cmp;
 
-        self.onAvailable(cmp.id).resolve(cmp);
+        if (self.cmpListeners[id]) {
+            self.cmpListeners[id].resolve(cmp);
+        }
 
-        cmp.on("destroy", function(cmp){
-            delete self.cmpListeners[cmp.id];
-            delete self.components[cmp.id];
-        });
+        if (cmp.on) {
+            cmp.on("destroy", deregister);
+        }
+        scope.$on("$destroy", deregister);
     },
 
     destroy: function() {

@@ -12,7 +12,12 @@ var nextUid = require("../func/nextUid.js"),
     Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
     TextRenderer = require("./TextRenderer.js"),
     slice = require("../func/array/slice.js"),
-    attr = require("../func/dom/attr.js"),
+    getAttr = require("../func/dom/getAttr.js"),
+    setAttr = require("../func/dom/setAttr.js"),
+    removeAttr = require("../func/dom/removeAttr.js"),
+    getAttrMap = require("../func/dom/getAttrMap.js"),
+    data = require("../func/dom/data.js"),
+    undf = require("../var/undf.js"),
     Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
     getAttributeHandlers = require("../func/directive/getAttributeHandlers.js");
 
@@ -33,12 +38,14 @@ module.exports = function(){
                     return;
                 }
                 else {
-                    children = toArray(res);
+                    //children = toArray(res);
+                    children = slice.call(res);
                 }
             }
 
             if (!children.length) {
                 children    = toArray(el.childNodes);
+                //children = slice.call(el.childNodes);
             }
 
             len = children.length;
@@ -63,7 +70,14 @@ module.exports = function(){
             }
         },
 
-        rSkipTag = /^(script|template|mjs-template|style)$/i,
+        //rSkipTag = /^(script|template|mjs-template|style)$/i,
+
+        skipMap = {
+            "script": true,
+            "template": true,
+            "mjs-template": true,
+            "style": true
+        },
 
         eachNode = function(el, fn, fnScope, finish, cnt) {
 
@@ -78,15 +92,15 @@ module.exports = function(){
                 cnt = {countdown: 1};
             }
 
-            if (tag && tag.match(rSkipTag)) {
+            if (tag && skipMap[tag.toLowerCase()]) { //tag.match(rSkipTag)) {
                 --cnt.countdown == 0 && finish && finish.call(fnScope);
                 return;
             }
 
 
-            if (el.nodeType) {
+            //if (el.nodeType) {
                 res = fn.call(fnScope, el);
-            }
+            //}
 
 
             if (res !== false) {
@@ -176,6 +190,17 @@ module.exports = function(){
                 args    = [scope, node, value, self],
                 inst    = app.inject(f, null, inject, args);
 
+            if (app && f.$registerBy && inst) {
+                if (isThenable(inst)) {
+                    inst.done(function(cmp){
+                        app.registerCmp(cmp, parentScope, f.$registerBy);
+                    });
+                }
+                else {
+                    app.registerCmp(inst, parentScope, f.$registerBy);
+                }
+            }
+
             return f.$stopRenderer ? false : inst;
         },
 
@@ -192,7 +217,7 @@ module.exports = function(){
             // text node
             if (nodeType == 3) {
 
-                recursive       = attr(node.parentNode, "mjs-recursive") !== null;
+                recursive       = getAttr(node.parentNode, "mjs-recursive") !== null;
                 textRenderer    = createText(scope, node[nodeTextProp], null, texts.length, recursive);
 
                 if (textRenderer) {
@@ -217,6 +242,7 @@ module.exports = function(){
                     defers  = [],
                     nodes   = [],
                     i, f, len,
+                    map,
                     attrValue,
                     name,
                     res;
@@ -237,15 +263,17 @@ module.exports = function(){
                     }
                 }
 
+                map = getAttrMap(node);
+
                 for (i = 0, len = handlers.length; i < len; i++) {
                     name    = handlers[i].name;
 
-                    // ie6 doesn't have hasAttribute()
-                    if ((attrValue = attr(node, name)) !== null) {
+                    if ((attrValue = map[name]) !== undf) {
 
                         res     = self.runHandler(handlers[i].handler, scope, node, attrValue);
 
-                        attr(node, name, null);
+                        removeAttr(node, name);
+                        delete map[name];
 
                         if (res === false) {
                             return false;
@@ -268,27 +296,28 @@ module.exports = function(){
                     return deferred;
                 }
 
-                recursive = attr(node, "mjs-recursive") !== null;
+                recursive = map["mjs-recursive"] !== undf;
+                delete map["mjs-recursive"];
 
-                var attrs   = toArray(node.attributes);
+                //var attrs   = toArray(node.attributes);
 
-                for (i = 0, len = attrs.length; i < len; i++) {
+                for (i in map) {
 
-                    if (!nsGet(n, true)) {
+                    //if (!nsGet(n, true)) {
 
-                        textRenderer = createText(scope, attrs[i].value, null, texts.length, recursive);
+                        textRenderer = createText(scope, map[i], null, texts.length, recursive);
 
                         if (textRenderer) {
-                            attr(node, attrs[i].name, null);
+                            removeAttr(node, i);
                             textRenderer.subscribe(self.onTextChange, self);
                             texts.push({
                                 node: node,
-                                attr: attrs[i].name,
+                                attr: i,
                                 tr: textRenderer
                             });
                             self.renderText(texts.length - 1);
                         }
-                    }
+                    //}
                 }
 
                 return nodes.length ? nodes : true;
@@ -330,7 +359,7 @@ module.exports = function(){
                     text.node.src = res;
                 }
 
-                attr(text.node, attrName, res);
+                setAttr(text.node, attrName, res);
 
             }
             else {
