@@ -265,7 +265,7 @@ MetaphorJs.onReady(function(){
     var start  = (new Date).getTime();
 
     //console.profile();
-    MetaphorJs.initApp(document.getElementById("render"), null, dataObj)
+    MetaphorJs.initApp(document.getElementById("render"), null, dataObj, false)
         .done(function(app){
             app.value("test", "123");
             app.run();

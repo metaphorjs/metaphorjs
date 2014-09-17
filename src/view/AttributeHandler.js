@@ -15,8 +15,12 @@ module.exports = defineClass("MetaphorJs.view.AttributeHandler", {
     node: null,
     expr: null,
 
+    autoOnChange: true,
+
     initialize: function(scope, node, expr) {
-        var self        = this;
+
+        var self        = this,
+            val;
 
         expr            = trim(expr);
 
@@ -25,8 +29,8 @@ module.exports = defineClass("MetaphorJs.view.AttributeHandler", {
         self.scope      = scope;
         self.watcher    = createWatchable(scope, expr, self.onChange, self, null, ns);
 
-        if (self.watcher.getLastResult() != undf) {
-            self.onChange();
+        if (self.autoOnChange && (val = self.watcher.getLastResult()) != undf) {
+            self.onChange(val, undf);
         }
 
         scope.$on("destroy", self.onScopeDestroy, self);

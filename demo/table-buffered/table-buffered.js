@@ -27,11 +27,10 @@
             self.scope.store = store;
             self.store = store;
 
-            store.load();
-
             self.scope.$app.onAvailable("tmp").done(function(cmp){
                 self.initPagination(cmp);
-            })
+                store.load();
+            });
         },
 
         initPagination: function(list) {

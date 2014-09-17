@@ -32,8 +32,6 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
 
         self.parseExpr(expr);
 
-        removeAttr(node, "mjs-options");
-
         self.node       = node;
         self.scope      = scope;
         self.defOption  = node.options.length ? node.options[0] : null;

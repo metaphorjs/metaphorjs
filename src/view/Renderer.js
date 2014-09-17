@@ -21,6 +21,8 @@ var nextUid = require("../func/nextUid.js"),
     Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
     getAttributeHandlers = require("../func/directive/getAttributeHandlers.js");
 
+require("../func/array/aIndexOf.js");
+
 module.exports = function(){
 
     var handlers                = null,
@@ -270,9 +272,10 @@ module.exports = function(){
 
                     if ((attrValue = map[name]) !== undf) {
 
+                        removeAttr(node, name);
+
                         res     = self.runHandler(handlers[i].handler, scope, node, attrValue);
 
-                        removeAttr(node, name);
                         delete map[name];
 
                         if (res === false) {
@@ -349,6 +352,7 @@ module.exports = function(){
 
 
             if (attrName) {
+
                 if (attrName == "value") {
                     text.node.value = res;
                 }
@@ -360,7 +364,6 @@ module.exports = function(){
                 }
 
                 setAttr(text.node, attrName, res);
-
             }
             else {
                 text.node[nodeTextProp] = res;

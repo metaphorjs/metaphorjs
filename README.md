@@ -5,6 +5,8 @@ v.0.3
 An app framework similar to AngularJs (directives, scopes, dependency injection, etc)
 and ExtJs (class system, event system, data model).
 
+[Short documentation with code examples](http://kuindji.com/js/metaphorjs/docs/index.html)
+
 Features:
 
 * attribute and tag directives

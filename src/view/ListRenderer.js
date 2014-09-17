@@ -26,7 +26,8 @@ var createWatchable = require("../../../metaphorjs-watchable/src/func/createWatc
     addListener = require("../func/event/addListener.js"),
     removeListener = require("../func/event/removeListener.js"),
     addClass = require("../func/dom/addClass.js"),
-    getPosition = require("../func/dom/getPosition.js");
+    getPosition = require("../func/dom/getPosition.js"),
+    getNodeConfig = require("../func/dom/getNodeConfig.js");
 
 
 var ListRenderer = function(scope, node, expr) {
@@ -94,7 +95,8 @@ ListRenderer.prototype = {
             stack: false, context: self, mode: Queue.ONCE
         });
 
-        var cfg         = data(node, "config") || {};
+        var cfg         = getNodeConfig(node, scope);
+
         self.animateMove= !cfg.buffered && cfg.animateMove && animate.cssAnimations;
         self.animate    = !cfg.buffered && (getAttr(node, "mjs-animate") !== null || cfg.animate);
         removeAttr(node, "mjs-animate");
@@ -286,6 +288,7 @@ ListRenderer.prototype = {
             action,
             translates,
             prs         = self.watcher.getMovePrescription(prevList, self.getTrackByFunction(), list);
+
 
         // redefine renderers
         for (i = 0, len = prs.length; i < len; i++) {
@@ -1042,7 +1045,7 @@ ListRenderer.prototype = {
         delete self.watcher;
 
         if (self.observable) {
-            self.trigger("bufferupdate", self);
+            self.trigger("destroy", self);
             self.observable.destroy();
             delete self.observable;
         }

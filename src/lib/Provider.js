@@ -42,29 +42,30 @@ module.exports = function(){
             };
         },
 
-        instantiate: function(fn, context, args) {
+        instantiate: function(fn, context, args, isClass) {
 
-            if (fn.__instantiate) {
-                return fn.__instantiate.apply(null, args);
+            if (fn.instantiate) {
+                return fn.instantiate.apply(null, args);
+            }
+            else if (isClass) {
+                var Temp = function(){},
+                inst, ret;
+
+                Temp.prototype  = fn.prototype;
+                inst            = new Temp;
+                ret             = fn.apply(inst, args);
+
+                // If an object has been returned then return it otherwise
+                // return the original instance.
+                // (consistent with behaviour of the new operator)
+                return isObject(ret) || ret === false ? ret : inst;
             }
             else {//if (context) {
                 return fn.apply(context, args);
             }
-
-            /*var Temp = function(){},
-                inst, ret;
-
-            Temp.prototype  = fn.prototype;
-            inst            = new Temp;
-            ret             = fn.apply(inst, args);
-
-            // If an object has been returned then return it otherwise
-            // return the original instance.
-            // (consistent with behaviour of the new operator)
-            return isObject(ret) || ret === false ? ret : inst;*/
         },
 
-        inject: function(injectable, context, currentValues, callArgs) {
+        inject: function(injectable, context, currentValues, callArgs, isClass) {
 
             currentValues   = currentValues || {};
             callArgs        = callArgs || [];
@@ -79,7 +80,7 @@ module.exports = function(){
                     injectable = tmp;
                 }
                 else {
-                    return self.instantiate(injectable, context, callArgs);
+                    return self.instantiate(injectable, context, callArgs, isClass);
                 }
             }
 
@@ -93,7 +94,7 @@ module.exports = function(){
                  values.push(self.resolve(injectable[i], currentValues))) {}
 
             return Promise.all(values).then(function(values){
-                return self.instantiate(fn, context, values);
+                return self.instantiate(fn, context, values, isClass);
             });
         },
 
@@ -171,7 +172,7 @@ module.exports = function(){
                     res = self.inject(item.fn, item.context, currentValues);
                 }
                 else if (type == SERVICE) {
-                    res = self.inject(item.fn, null, currentValues);
+                    res = self.inject(item.fn, null, currentValues, null, true);
                 }
                 else if (type == PROVIDER) {
 

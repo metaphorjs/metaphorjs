@@ -2,6 +2,7 @@
 var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
     removeAttr = require("../../func/dom/removeAttr.js"),
     data = require("../../func/dom/data.js"),
+    getNodeConfig = require("../../func/dom/getNodeConfig.js"),
     extend = require("../../func/extend.js"),
     resolveComponent = require("../../func/resolveComponent.js");
 
@@ -15,12 +16,7 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
             tmp,
             i, len,
             part,
-            cmp,
-            nodeCfg;
-
-
-        nodeCfg = data(node, "config") || {};
-        removeAttr(node, "mjs-cmp");
+            nodeCfg = getNodeConfig(node, scope);
 
         tmp     = expr.split(' ');
 
@@ -39,6 +35,7 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
                 as      = part;
             }
         }
+
 
         var cfg     = extend({
             scope: scope,

@@ -4,7 +4,8 @@ var isArray = require("./isArray.js"),
     isObject = require('./isObject.js'),
     isPlainObject = require("./isPlainObject.js"),
     isDate = require("./isDate.js"),
-    isWindow = require("./isWindow.js");
+    isWindow = require("./isWindow.js"),
+    isFunction = require("./isFunction.js");
 
 module.exports = function(){
 
@@ -41,7 +42,14 @@ module.exports = function(){
                     delete dest[key];
                 }
                 for (key in source) {
-                    dest[key] = copy(source[key]);
+                    if (source.hasOwnProperty(key)) {
+                        if (key.charAt(0) == '$' || isFunction(source[key])) {
+                            dest[key] = source[key];
+                        }
+                        else {
+                            dest[key] = copy(source[key]);
+                        }
+                    }
                 }
             }
         }

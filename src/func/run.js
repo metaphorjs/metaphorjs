@@ -9,14 +9,11 @@ module.exports = function() {
     onReady(function() {
 
         var appNodes    = select("[mjs-app]"),
-            i, l, el,
-            done        = function(app) {
-                app.run();
-            };
+            i, l, el;
 
         for (i = -1, l = appNodes.length; ++i < l;){
             el      = appNodes[i];
-            initApp(el, getAttr(el, "mjs-app")).done(done);
+            initApp(el, getAttr(el, "mjs-app"), null, true);
         }
     });
 

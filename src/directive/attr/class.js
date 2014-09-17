@@ -59,11 +59,15 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
             var self    = this,
                 node    = self.node,
                 clss    = self.watcher.getLastResult(),
+                prev    = self.watcher.getPrevValue(),
                 i;
 
             stopAnimation(node);
 
             if (isString(clss)) {
+                if (prev) {
+                    toggleClass(node, prev, false, false);
+                }
                 toggleClass(node, clss, null, !self.initial);
             }
             else if (isArray(clss)) {

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html mjs-app>
 <head>
-    <title>MetaphorJs Basics</title>
+    <title>MetaphorJs Recursive rendering</title>
     <link rel="stylesheet" href="rsc/prism.css">
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
     <script src="rsc/prism.js" data-manual></script>
@@ -35,8 +35,8 @@
             </div>
         </div>
         <div class="col-md-6">
-            .a = <input type="number" mjs-input-type="number" mjs-model=".a" value="1"/> (number)<br>
-            .b = <input type="number" mjs-input-type="number" mjs-model=".b" value="2"/> (number)<br>
+            .a = <input type="number" data-type="number" mjs-model=".a" value="1"/> (number)<br>
+            .b = <input type="number" data-type="number" mjs-model=".b" value="2"/> (number)<br>
             .c = <input mjs-model=".c" value="\{{.a}} + \{{.b}}"/> (string)<br>
             .d = <input mjs-model=".d" value="\{{.c}} = \{{.a + .b}}"/> (string)<br><br>
             <p class="well" mjs-recursive>
@@ -45,7 +45,7 @@
                 <b>.d</b> via curlies: {{.d}}
             </p>
             <p>Enter list items:</p>
-            <textarea mjs-model="toList:.sep >> .list" mjs-data-binding="input" style="width:100%;" rows="5">first line, second line
+            <textarea mjs-model="split:.sep >> .list" data-binding="input" style="width:100%;" rows="5">first line, second line
 \{{.c}}
 \{{.d}}</textarea>
             <p>Use this separator:</p>

@@ -1,44 +1,36 @@
 
 
 var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
+    defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
     removeAttr = require("../../func/dom/removeAttr.js"),
     setAttr = require("../../func/dom/setAttr.js"),
-    defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
     AttributeHandler = require("../../view/AttributeHandler.js");
 
 
 (function(){
 
-    var boolAttrs = ['selected', 'checked', 'disabled', 'readonly', 'required', 'open'],
-        i, len;
+    var booleanAttrs = ["selected", "checked", "disabled", "readonly", "open", "required"],
+        i, l;
 
-    for (i = 0, len = boolAttrs.length; i < len; i++) {
-
+    for (i = 0, l = booleanAttrs.length; i < l; i++) {
         (function(name){
 
             registerAttributeHandler("mjs-" + name, 1000, defineClass(null, AttributeHandler, {
 
-                initialize: function(scope, node, expr) {
-                    this.supr(scope, node, expr);
-                    removeAttr(node, "mjs-" + name);
-                    this.onChange();
-                },
+                onChange: function(val) {
 
-                onChange: function() {
+                    val = !!val;
 
-                    var self    = this,
-                        val     = self.watcher.getLastResult();
-
-                    if (!!val) {
-                        setAttr(self.node, name, name);
+                    if (val) {
+                        setAttr(this.node, name, name);
                     }
                     else {
-                        removeAttr(self.node, name);
+                        removeAttr(this.node, name);
                     }
                 }
             }));
 
-        }(boolAttrs[i]));
+        }(booleanAttrs[i]));
     }
 
 }());

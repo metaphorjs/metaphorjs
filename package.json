@@ -1,6 +1,6 @@
 {
     "name": "metaphorjs",
-    "version": "0.3.7",
+    "version": "0.3.8",
     "description": "MetaphorJs app framework",
     "main": "dist/metaphorjs.npm.js",
     "directories": {
@@ -23,6 +23,8 @@
     "devDependencies": {
         "chai": "^1.9.1",
         "chai-as-promised": "^4.1.1",
+        "grunt": "^0.4.5",
+        "gulp": "^3.8.8",
         "karma": "^0.12.23",
         "karma-chai": "^0.1.0",
         "karma-chrome-launcher": "^0.1.4",

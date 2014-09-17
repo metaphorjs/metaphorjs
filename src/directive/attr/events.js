@@ -10,8 +10,7 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
 (function(){
 
     var events = ['click', 'dblclick', 'mousedown', 'mouseup', 'mouseover',
-                  'mouseout', 'mousemove', 'mouseenter',
-                  'mouseleave', 'keydown', 'keyup', 'keypress', 'submit',
+                  'mouseout', 'mousemove', 'keydown', 'keyup', 'keypress', 'submit',
                   'focus', 'blur', 'copy', 'cut', 'paste', 'enter'],
         i, len;
 

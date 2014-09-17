@@ -5,8 +5,6 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     stopAnimation = require("../../../metaphorjs-animate/src/func/stopAnimation.js"),
     extend = require("../func/extend.js"),
     data = require("../func/dom/data.js"),
-    getAttr = require("../func/dom/getAttr.js"),
-    removeAttr = require("../func/dom/removeAttr.js"),
     toFragment = require("../func/dom/toFragment.js"),
     resolveComponent = require("../func/resolveComponent.js"),
     createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
@@ -14,7 +12,9 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     isObject = require("../func/isObject.js"),
     isString = require("../func/isString.js"),
     ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
-    history = require("../../../metaphorjs-history/src/metaphorjs.history.js");
+    nextUid = require("../func/nextUid.js"),
+    history = require("../../../metaphorjs-history/src/metaphorjs.history.js"),
+    getNodeConfig = require("../func/dom/getNodeConfig.js");
 
 
 module.exports = defineClass("MetaphorJs.cmp.View", {
@@ -34,6 +34,7 @@ module.exports = defineClass("MetaphorJs.cmp.View", {
     node: null,
     scope: null,
     cmp: null,
+    id: null,
 
     currentComponent: null,
     watchable: null,
@@ -45,22 +46,20 @@ module.exports = defineClass("MetaphorJs.cmp.View", {
 
         extend(self, cfg, true, false);
 
-        var node = self.node;
+        var node = self.node,
+            viewCfg = getNodeConfig(node, self.scope);
+
+        extend(self, viewCfg, true, false);
 
         if (node && node.firstChild) {
             data(node, "mjs-transclude", toFragment(node.childNodes));
         }
 
-        if (!self.cmp) {
-            self.cmp = getAttr(node, "mjs-view-cmp");
+        if (!self.id) {
+            self.id = nextUid();
         }
 
-        self.defaultCmp = getAttr(node, "mjs-view-default");
-
-        removeAttr(node, "mjs-view");
-        removeAttr(node, "mjs-view-cmp");
-        removeAttr(node, "mjs-view-default");
-
+        self.scope.$app.registerCmp(self, self.scope, "id");
 
         if (self.route) {
             history.initPushState();

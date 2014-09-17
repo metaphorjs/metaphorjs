@@ -147,7 +147,7 @@
                 <h4>Model</h4>
                 <label class="case-label">Input (number)</label>
                 <p class="test">
-                    <input mjs-model=".a" type="number" mjs-input-type="number" id="model-input-a"/>
+                    <input mjs-model=".a" type="number" data-type="number" id="model-input-a"/>
                 </p>
                 <label class="case-label">Checkbox (.bool)</label>
                 <p class="test">
@@ -161,7 +161,7 @@
                 </p>
                 <label class="case-label">Select (.a)</label>
                 <p class="test">
-                    <select id="model-select-a" mjs-model=".a" mjs-input-type="number">
+                    <select id="model-select-a" mjs-model=".a" data-type="number">
                         <option value="1">1</option>
                         <option value="2">2</option>
                         <option value="3">3</option>
@@ -243,7 +243,7 @@
                 <label><input type="radio" name="sep" value=","/> ,</label><br><br>
 
 
-                <textarea mjs-model="toList:.sep >> .dynamicList" mjs-data-binding="input"></textarea>
+                <textarea mjs-model="split:.sep >> .dynamicList" data-binding="input"></textarea>
 
                 <ul>
                     <li mjs-each="item in .dynamicList" mjs-recursive>
@@ -318,7 +318,7 @@
                 This element is ignored by renderer: {{ .$root.a }}
             </div>
 
-            <div class="case" mjs-view mjs-view-cmp=".viewCmp" mjs-view-default="Test.ViewComponent1">
+            <div class="case" mjs-view data-cmp=".viewCmp" data-default-cmp="Test.ViewComponent1">
                 <p>
                     change cmp:
                     <a href="#" mjs-click=".$parent.viewCmp = 'Test.ViewComponent1'">Cmp1</a> |
@@ -341,7 +341,7 @@
                 <ul mjs-show=".bool" mjs-animate>
                     <li mjs-each="item in .list | filter:.listFilter | sortBy:'txt':.sortBy"
                         mjs-animate
-                        mjs-config="{animateMove: true}" >
+                        data-animate-move="true"
                         <label mjs-class="{cls3: .item.bool}">
                             <input type="checkbox" mjs-model=".item.bool"/>
                             {{.$index}} -
@@ -420,7 +420,7 @@
             <label class="case-label">using lang expression:</label>
             <p class="test">{{.b}} {[ plr | p:.b]}</p>
 
-            <p><input type="number" mjs-input-type="number" mjs-model=".people"/></p>
+            <p><input type="number" data-type="number" mjs-model=".people"/></p>
             <p class="test" mjs-recursive>{[ viewing | p:.people]}</p>
         </div>
 

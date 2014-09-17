@@ -33,8 +33,8 @@ module.exports = defineClass("MetaphorJs.cmp.Base", {
         var self    = this;
         cfg         = cfg || {};
 
-        self._observable    = new Observable;
-        extend(self, self._observable.getApi(), true, false);
+        self.$$observable    = new Observable;
+        extend(self, self.$$observable.getApi(), true, false);
 
         if (cfg.callback) {
 
@@ -74,8 +74,8 @@ module.exports = defineClass("MetaphorJs.cmp.Base", {
 
         self.trigger('destroy', self);
 
-        self._observable.destroy();
-        delete this._observable;
+        self.$$observable.destroy();
+        delete this.$$observable;
 
     },
 

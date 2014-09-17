@@ -11,8 +11,8 @@ module.exports = function(node, cls, data, autorun) {
     try {
         var p = resolveComponent(cls || "MetaphorJs.cmp.App", false, data, node, [node, data]);
 
-        if (autorun) {
-            return p.then(function(app){
+        if (autorun !== false) {
+            return p.done(function(app){
                 app.run();
                 return app;
             });

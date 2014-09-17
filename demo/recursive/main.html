@@ -4,8 +4,8 @@
     <script src="metaphorjs.min.js"></script>
 </head>
 <body>
-.a = <input type="number" mjs-input-type="number" mjs-model=".a" value="1"/> (number)<br>
-.b = <input type="number" mjs-input-type="number" mjs-model=".b" value="2"/> (number)<br>
+.a = <input type="number" data-type="number" mjs-model=".a" value="1"/> (number)<br>
+.b = <input type="number" data-type="number" mjs-model=".b" value="2"/> (number)<br>
 .c = <input mjs-model=".c" value="\{{.a}} + \{{.b}}"/> (string)<br>
 .d = <input mjs-model=".d" value="\{{.c}} = \{{.a + .b}}"/> (string)<br><br>
 <p class="well" mjs-recursive>
@@ -14,9 +14,9 @@
     <b>.d</b> via curlies: {{.d}}
 </p>
 <p>Enter list items:</p>
-<textarea mjs-model="toList:.sep >> .list" mjs-data-binding="input" style="width:100%;" rows="5">first line, second line
-\{{.c}}
-\{{.d}}</textarea>
+<textarea mjs-model="split:.sep >> .list" data-binding="input" style="width:100%;" rows="5">first line, second line
+    \{{.c}}
+    \{{.d}}</textarea>
 <p>Use this separator:</p>
 <label><input type="radio" name="sep" value="/\n|,/" mjs-model=".sep" checked/> /\n|,/</label> |
 <label><input type="radio" name="sep" value="/\n/"/> /\n/</label> |

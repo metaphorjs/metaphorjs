@@ -115,6 +115,13 @@ var Namespace   = function(root, rootName) {
         }
     }
 
+    var normalize   = function(ns) {
+        if (ns && rootName && ns.indexOf(rootName) !== 0) {
+            return rootName + "." + ns;
+        }
+        return ns;
+    };
+
     var parseNs     = function(ns) {
 
         var tmp     = ns.split("."),
@@ -269,6 +276,7 @@ var Namespace   = function(root, rootName) {
     self.get        = get;
     self.add        = add;
     self.remove     = remove;
+    self.normalize  = normalize;
 };
 
 Namespace.prototype = {
@@ -276,7 +284,8 @@ Namespace.prototype = {
     exists: null,
     get: null,
     add: null,
-    remove: null
+    remove: null,
+    normalize: null
 };
 
 
@@ -385,6 +394,11 @@ var Class = function(ns){
 
             var fn          = function() {
                 var self = this;
+
+                if (!(self instanceof fn)) {
+                    return fn.instantiate.apply(null, arguments);
+                }
+
                 self[constr].apply(self, arguments);
                 if (self.initialize) {
                     self.initialize.apply(self, arguments);
@@ -396,28 +410,30 @@ var Class = function(ns){
 
             fn[proto] = prototype;
             fn[proto].getClass = function() {
-                return fn.__class;
+                return fn.className;
             };
             fn[proto].getParentClass = function() {
-                return fn.__parentClass;
+                return fn.parentClass;
             };
 
-            fn.__instantiate = function(fn) {
+            fn.instantiate = function() {
+                var Temp = function(){},
+                    inst, ret;
 
-                return function() {
-                    var Temp = function(){},
-                        inst, ret;
+                Temp.prototype  = fn.prototype;
+                inst            = new Temp;
+                ret             = fn.prototype.constructor.apply(inst, arguments);
 
-                    Temp.prototype  = fn.prototype;
-                    inst            = new Temp;
-                    ret             = fn.prototype.constructor.apply(inst, arguments);
+                // If an object has been returned then return it otherwise
+                // return the original instance.
+                // (consistent with behaviour of the new operator)
+                return isObject(ret) ? ret : inst;
+            };
 
-                    // If an object has been returned then return it otherwise
-                    // return the original instance.
-                    // (consistent with behaviour of the new operator)
-                    return isObject(ret) ? ret : inst;
-                };
-            }(fn);
+            fn.extend = function(name, constructor, definition, statics) {
+                return define(name, fn, constructor, definition, statics);
+            };
+
 
             return fn;
         };
@@ -538,10 +554,10 @@ var Class = function(ns){
 
         var c   = pConstructor ? extend(pConstructor, definition, constructor) : create(definition, constructor);
 
-        c.__isMetaphorClass = true;
-        c.__parent          = pConstructor;
-        c.__parentClass     = pConstructor ? pConstructor.__class : null;
-        c.__class           = name;
+        c.isMetaphorClass = true;
+        c.parent          = pConstructor;
+        c.parentClass     = pConstructor ? pConstructor.className : null;
+        c.className       = ns.normalize(name);
 
         if (statics) {
             for (var k in statics) {
@@ -597,7 +613,7 @@ var Class = function(ns){
             throw new Error(name + " not found");
         }
 
-        return cls.__instantiate.apply(this, args);
+        return cls.instantiate.apply(this, args);
     };
 
 
@@ -619,30 +635,33 @@ var Class = function(ns){
     /**
      * Is one class subclass of another class
      * @function MetaphorJs.isSubclass
-     * @param {object} child
-     * @param {string|object} parent
+     * @param {string|object} childClass
+     * @param {string|object} parentClass
      * @return bool
      * @alias MetaphorJs.iss
      */
-    var isSubclassOf = function(child, parent) {
+    var isSubclassOf = function(childClass, parentClass) {
 
-        var p   = child,
+        var p   = childClass,
             g   = ns.get;
 
-        if (!isString(parent)) {
-            parent  = parent.getClass ? parent.getClass() : parent.prototype.constructor.__class;
+        if (!isString(parentClass)) {
+            parentClass  = parentClass.getClass ? parentClass.getClass() : parentClass.className;
         }
-        if (isString(child)) {
-            p   = g(child);
+        else {
+            parentClass = ns.normalize(parentClass);
+        }
+        if (isString(childClass)) {
+            p   = g(ns.normalize(childClass));
         }
 
         while (p) {
-            if (p.prototype.constructor.__class == parent) {
+
+            if (p.className == parentClass) {
                 return true;
             }
-            if (p) {
-                p = p.getParentClass ? g(p.getParentClass()) : p.__parent;
-            }
+
+            p = p.getParentClass ? g(p.getParentClass()) : p.parent;
         }
 
         return false;
@@ -1624,7 +1643,14 @@ var copy = function(){
                     delete dest[key];
                 }
                 for (key in source) {
-                    dest[key] = copy(source[key]);
+                    if (source.hasOwnProperty(key)) {
+                        if (key.charAt(0) == '$' || isFunction(source[key])) {
+                            dest[key] = source[key];
+                        }
+                        else {
+                            dest[key] = copy(source[key]);
+                        }
+                    }
                 }
             }
         }
@@ -1729,17 +1755,170 @@ var levenshteinArray = function(from, to) {
         distance: dist,
         prescription: route.reverse()
     };
-};var Watchable, createWatchable;
+};
+
+
+var functionFactory = function() {
+
+    var REG_REPLACE_EXPR    = /(^|[^a-z0-9_$])(\.)([^0-9])/ig,
+
+        f               = Function,
+        fnBodyStart     = 'try {',
+        getterBodyEnd   = ';} catch (thrownError) { return $$interceptor(thrownError, $$itself, ____); }',
+        setterBodyEnd   = ';} catch (thrownError) { return $$interceptor(thrownError, $$itself, ____, $$$$); }',
+
+
+        interceptor     = function(thrownError, func, scope, value) {
+
+            while (scope && !scope.$isRoot) {
+
+                scope = scope.$parent;
+
+                if (scope) {
+
+                    try {
+                        if (arguments.length == 4) {
+                            return func.call(null, scope, value, emptyFn, func);
+                        }
+                        else {
+                            return func.call(null, scope, emptyFn, func);
+                        }
+                    }
+                    catch (newError) {}
+                }
+            }
+
+            if (thrownError !== null) {
+                error(thrownError);
+            }
+
+            return undf;
+        },
+
+        isFailed        = function(val) {
+            return val === undf || (typeof val == "number" && isNaN(val));
+        },
+
+        wrapFunc        = function(func, returnsValue) {
+            return function() {
+                var args = slice.call(arguments),
+                    val;
+
+                args.push(interceptor);
+                args.push(func);
+
+                val = func.apply(null, args);
+
+                if (returnsValue && isFailed(val)) {//) {
+                    args = slice.call(arguments);
+                    args.unshift(func);
+                    args.unshift(null);
+                    return interceptor.apply(null, args);
+                }
+                else {
+                    return val;
+                }
+            };
+        },
+
+        getterCache     = {},
+        getterCacheCnt  = 0,
+
+        createGetter    = function createGetter(expr) {
+            try {
+                if (!getterCache[expr]) {
+                    getterCacheCnt++;
+                    return getterCache[expr] = wrapFunc(new f(
+                        '____',
+                        '$$interceptor',
+                        '$$itself',
+                        "".concat(fnBodyStart, 'return ', expr.replace(REG_REPLACE_EXPR, '$1____.$3'), getterBodyEnd)
+                    ), true);
+                }
+                return getterCache[expr];
+            }
+            catch (thrownError){
+                error(thrownError);
+                return emptyFn;
+            }
+        },
+
+        setterCache     = {},
+        setterCacheCnt  = 0,
+
+        createSetter    = function createSetter(expr) {
+            try {
+                if (!setterCache[expr]) {
+                    setterCacheCnt++;
+                    var code = expr.replace(REG_REPLACE_EXPR, '$1____.$3');
+                    return setterCache[expr] = wrapFunc(new f(
+                        '____',
+                        '$$$$',
+                        '$$interceptor',
+                        '$$itself',
+                        "".concat(fnBodyStart, code, ' = $$$$', setterBodyEnd)
+                    ));
+                }
+                return setterCache[expr];
+            }
+            catch (thrownError) {
+                error(thrownError);
+                return emptyFn;
+            }
+        },
+
+        funcCache       = {},
+        funcCacheCnt    = 0,
+
+        createFunc      = function createFunc(expr) {
+            try {
+                if (!funcCache[expr]) {
+                    funcCacheCnt++;
+                    return funcCache[expr] = wrapFunc(new f(
+                        '____',
+                        '$$interceptor',
+                        '$$itself',
+                        "".concat(fnBodyStart, expr.replace(REG_REPLACE_EXPR, '$1____.$3'), getterBodyEnd)
+                    ));
+                }
+                return funcCache[expr];
+            }
+            catch (thrownError) {
+                error(thrownError);
+                return emptyFn;
+            }
+        },
+
+        resetCache = function() {
+            getterCacheCnt >= 1000 && (getterCache = {});
+            setterCacheCnt >= 1000 && (setterCache = {});
+            funcCacheCnt >= 1000 && (funcCache = {});
+        };
+
+    return {
+        createGetter: createGetter,
+        createSetter: createSetter,
+        createFunc: createFunc,
+        resetCache: resetCache,
+        enableResetCacheInterval: function() {
+            setTimeout(resetCache, 10000);
+        }
+    };
+}();
+
+
+var createGetter = functionFactory.createGetter;
 
 
 
-Watchable = createWatchable = function(){
+var createSetter = functionFactory.createSetter;
+
+
+var Watchable = function(){
 
     
 
-    var REG_REPLACE_EXPR = /(^|[^a-z0-9_$])(\.)([^0-9])/ig,
-
-        isStatic    = function(val) {
+    var isStatic    = function(val) {
 
             if (!isString(val)) {
                 return true;
@@ -1874,7 +2053,7 @@ Watchable = createWatchable = function(){
         }
 
         self.curr       = self._getValue();
-
+        self.currCopy   = isPrimitive(self.curr) ? self.curr : copy(self.curr);
     };
 
     Watchable.prototype = {
@@ -1891,6 +2070,7 @@ Watchable = createWatchable = function(){
         obj: null,
         itv: null,
         curr: null,
+        currCopy: null,
         prev: null,
         unfiltered: null,
         pipes: null,
@@ -2041,23 +2221,26 @@ Watchable = createWatchable = function(){
                     break;
                 case "expr":
                     val = self.getterFn(self.obj);
-                    if (val === undf) {
-                        val = "";
-                    }
+                    //if (val === undf) {
+                    //    val = "";
+                    //}
                     break;
                 case "object":
                     val = self.obj;
                     break;
             }
 
+
             if (isArray(val)) {
                 if (!self.inputPipes) {
                     self._indexArrayItems(val);
                 }
+                val = val.slice();
             }
-            if (!isPrimitive(val)) {
-                val = copy(val);
-            }
+
+            //if (!isPrimitive(val)) {
+            //    val = copy(val);
+            //}
 
             self.unfiltered = val;
 
@@ -2065,6 +2248,7 @@ Watchable = createWatchable = function(){
 
             return val;
         },
+
 
         _runThroughPipes: function(val, pipes) {
 
@@ -2118,13 +2302,14 @@ Watchable = createWatchable = function(){
         },
 
         getPrevValue: function() {
-            var self = this;
+            return this.prev;
+            /*var self = this;
             if (self.prev === null) {
                 return self._getValue();
             }
             else {
                 return self.prev;
-            }
+            }*/
         },
 
         getPrescription: function(from, to) {
@@ -2164,6 +2349,8 @@ Watchable = createWatchable = function(){
                 }
 
                 self.setterFn(self.obj, val);
+                //console.log(self.code, val, self.obj, self.setterFn)
+                //console.log(self.obj.todo.done)
             }
             else if (type == "object") {
                 self.obj = val;
@@ -2182,13 +2369,13 @@ Watchable = createWatchable = function(){
 
             var self    = this,
                 val     = self._getValue(),
-                prev    = self.curr;
+                curr    = self.currCopy;
 
-
-            if (!equals(prev, val)) {
+            if (!equals(curr, val)) {
                 self.curr = val;
-                self.prev = prev;
-                observable.trigger(self.id, val, prev);
+                self.prev = curr;
+                self.currCopy = isPrimitive(val) ? val : copy(val);
+                observable.trigger(self.id, val, curr);
                 return true;
             }
 
@@ -2375,164 +2562,21 @@ Watchable = createWatchable = function(){
         },
 
 
-        f               = Function,
-        fnBodyStart     = 'try {',
-        getterBodyEnd   = ';} catch (thrownError) { return $$interceptor(thrownError, $$itself, ____); }',
-        setterBodyEnd   = ';} catch (thrownError) { return $$interceptor(thrownError, $$itself, ____, $$$$); }',
-
-        prepareCode     = function prepareCode(expr) {
-            return expr.replace(REG_REPLACE_EXPR, '$1____.$3');
-        },
-
-
-        interceptor     = function(thrownError, func, scope, value) {
-
-            while (scope && !scope.$isRoot) {
-
-                scope = scope.$parent;
-
-                if (scope) {
-
-                    try {
-                        if (arguments.length == 4) {
-                            return func.call(null, scope, value, emptyFn, func);
-                        }
-                        else {
-                            return func.call(null, scope, emptyFn, func);
-                        }
-                    }
-                    catch (newError) {}
-                }
-            }
-
-            if (thrownError !== null) {
-                error(thrownError);
-            }
-
-            return undf;
-        },
-
-        isFailed        = function(value) {
-            return value === undf || varType(value) == 8;
-        },
-
-        wrapFunc        = function(func, returnsValue) {
-            return function() {
-                var args = slice.call(arguments),
-                    val;
-
-                args.push(interceptor);
-                args.push(func);
-
-                val = func.apply(null, args);
-
-                if (returnsValue && val === undf) {//isFailed(val)) {
-                    args = slice.call(arguments);
-                    args.unshift(func);
-                    args.unshift(null);
-                    return interceptor.apply(null, args);
-                }
-                else {
-                    return val;
-                }
-            };
-        },
-
-        getterCache     = {},
-        getterCacheCnt  = 0,
-
-        createGetter    = function createGetter(expr) {
-            try {
-                if (!getterCache[expr]) {
-                    getterCacheCnt++;
-                    return getterCache[expr] = wrapFunc(new f(
-                        '____',
-                        '$$interceptor',
-                        '$$itself',
-                        "".concat(fnBodyStart, 'return ', expr.replace(REG_REPLACE_EXPR, '$1____.$3'), getterBodyEnd)
-                    ), true);
-                }
-                return getterCache[expr];
-            }
-            catch (thrownError){
-                error(thrownError);
-                return emptyFn;
-            }
-        },
-
-        setterCache     = {},
-        setterCacheCnt  = 0,
-
-        createSetter    = function createSetter(expr) {
-            try {
-                if (!setterCache[expr]) {
-                    setterCacheCnt++;
-                    var code = expr.replace(REG_REPLACE_EXPR, '$1____.$3');
-                    return setterCache[expr] = wrapFunc(new f(
-                        '____',
-                        '$$$$',
-                        '$$interceptor',
-                        '$$itself',
-                        "".concat(fnBodyStart, code, ' = $$$$', setterBodyEnd)
-                    ));
-                }
-                return setterCache[expr];
-            }
-            catch (thrownError) {
-                error(thrownError);
-                return emptyFn;
-            }
-        },
-
-        funcCache       = {},
-        funcCacheCnt    = 0,
-
-        createFunc      = function createFunc(expr) {
-            try {
-                if (!funcCache[expr]) {
-                    funcCacheCnt++;
-                    return funcCache[expr] = wrapFunc(new f(
-                        '____',
-                        '$$interceptor',
-                        '$$itself',
-                        "".concat(fnBodyStart, expr.replace(REG_REPLACE_EXPR, '$1____.$3'), getterBodyEnd)
-                    ));
-                }
-                return funcCache[expr];
-            }
-            catch (thrownError) {
-                error(thrownError);
-                return emptyFn;
-            }
-        },
-
         evaluate    = function(expr, scope) {
             var val;
             if (val = isStatic(expr)) {
                 return val;
             }
             return createGetter(expr)(scope);
-        },
-
-        resetCache  = function() {
-            getterCacheCnt >= 1000 && (getterCache = {});
-            setterCacheCnt >= 1000 && (setterCache = {});
-            funcCacheCnt >= 1000 && (funcCache = {});
         };
+
 
 
     Watchable.create = create;
     Watchable.unsubscribeAndDestroy = unsubscribeAndDestroy;
     Watchable.normalizeExpr = normalizeExpr;
-    Watchable.prepareCode = prepareCode;
-    Watchable.createGetter = createGetter;
-    Watchable.createSetter = createSetter;
-    Watchable.createFunc = createFunc;
     Watchable.eval = evaluate;
 
-    Watchable.enableResetCacheInterval = function() {
-        setTimeout(resetCache, 10000);
-    };
 
     return Watchable;
 }();
@@ -3335,6 +3379,10 @@ var nodeTextProp = function(){
     var node    = document.createTextNode("");
     return isString(node.textContent) ? "textContent" : "nodeValue";
 }();
+
+
+
+var createWatchable = Watchable.create;
 
 
 
@@ -4513,6 +4561,76 @@ var directives = function() {
 
 
 var getAttributeHandlers = directives.getAttributeHandlers;
+var aIndexOf    = Array.prototype.indexOf;
+
+if (!aIndexOf) {
+    aIndexOf = Array.prototype.indexOf = function (searchElement, fromIndex) {
+
+        var k;
+
+        // 1. Let O be the result of calling ToObject passing
+        //    the this value as the argument.
+        if (this == null) {
+            throw new TypeError('"this" is null or not defined');
+        }
+
+        var O = Object(this);
+
+        // 2. Let lenValue be the result of calling the Get
+        //    internal method of O with the argument "length".
+        // 3. Let len be ToUint32(lenValue).
+        var len = O.length >>> 0;
+
+        // 4. If len is 0, return -1.
+        if (len === 0) {
+            return -1;
+        }
+
+        // 5. If argument fromIndex was passed let n be
+        //    ToInteger(fromIndex); else let n be 0.
+        var n = +fromIndex || 0;
+
+        if (Math.abs(n) === Infinity) {
+            n = 0;
+        }
+
+        // 6. If n >= len, return -1.
+        if (n >= len) {
+            return -1;
+        }
+
+        // 7. If n >= 0, then Let k be n.
+        // 8. Else, n<0, Let k be len - abs(n).
+        //    If k is less than 0, then let k be 0.
+        k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+
+        // 9. Repeat, while k < len
+        while (k < len) {
+            var kValue;
+            // a. Let Pk be ToString(k).
+            //   This is implicit for LHS operands of the in operator
+            // b. Let kPresent be the result of calling the
+            //    HasProperty internal method of O with argument Pk.
+            //   This step can be combined with c
+            // c. If kPresent is true, then
+            //    i.  Let elementK be the result of calling the Get
+            //        internal method of O with the argument ToString(k).
+            //   ii.  Let same be the result of applying the
+            //        Strict Equality Comparison Algorithm to
+            //        searchElement and elementK.
+            //  iii.  If same is true, return k.
+            if (k in O && O[k] === searchElement) {
+                return k;
+            }
+            k++;
+        }
+        return -1;
+    };
+}
+
+
+
+
 
 
 
@@ -4765,9 +4883,10 @@ var Renderer = function(){
 
                     if ((attrValue = map[name]) !== undf) {
 
+                        removeAttr(node, name);
+
                         res     = self.runHandler(handlers[i].handler, scope, node, attrValue);
 
-                        removeAttr(node, name);
                         delete map[name];
 
                         if (res === false) {
@@ -4844,6 +4963,7 @@ var Renderer = function(){
 
 
             if (attrName) {
+
                 if (attrName == "value") {
                     text.node.value = res;
                 }
@@ -4855,7 +4975,6 @@ var Renderer = function(){
                 }
 
                 setAttr(text.node, attrName, res);
-
             }
             else {
                 text.node[nodeTextProp] = res;
@@ -4930,29 +5049,30 @@ var Provider = function(){
             };
         },
 
-        instantiate: function(fn, context, args) {
+        instantiate: function(fn, context, args, isClass) {
 
-            if (fn.__instantiate) {
-                return fn.__instantiate.apply(null, args);
+            if (fn.instantiate) {
+                return fn.instantiate.apply(null, args);
+            }
+            else if (isClass) {
+                var Temp = function(){},
+                inst, ret;
+
+                Temp.prototype  = fn.prototype;
+                inst            = new Temp;
+                ret             = fn.apply(inst, args);
+
+                // If an object has been returned then return it otherwise
+                // return the original instance.
+                // (consistent with behaviour of the new operator)
+                return isObject(ret) || ret === false ? ret : inst;
             }
             else {//if (context) {
                 return fn.apply(context, args);
             }
-
-            /*var Temp = function(){},
-                inst, ret;
-
-            Temp.prototype  = fn.prototype;
-            inst            = new Temp;
-            ret             = fn.apply(inst, args);
-
-            // If an object has been returned then return it otherwise
-            // return the original instance.
-            // (consistent with behaviour of the new operator)
-            return isObject(ret) || ret === false ? ret : inst;*/
         },
 
-        inject: function(injectable, context, currentValues, callArgs) {
+        inject: function(injectable, context, currentValues, callArgs, isClass) {
 
             currentValues   = currentValues || {};
             callArgs        = callArgs || [];
@@ -4967,7 +5087,7 @@ var Provider = function(){
                     injectable = tmp;
                 }
                 else {
-                    return self.instantiate(injectable, context, callArgs);
+                    return self.instantiate(injectable, context, callArgs, isClass);
                 }
             }
 
@@ -4981,7 +5101,7 @@ var Provider = function(){
                  values.push(self.resolve(injectable[i], currentValues))) {}
 
             return Promise.all(values).then(function(values){
-                return self.instantiate(fn, context, values);
+                return self.instantiate(fn, context, values, isClass);
             });
         },
 
@@ -5059,7 +5179,7 @@ var Provider = function(){
                     res = self.inject(item.fn, item.context, currentValues);
                 }
                 else if (type == SERVICE) {
-                    res = self.inject(item.fn, null, currentValues);
+                    res = self.inject(item.fn, null, currentValues, null, true);
                 }
                 else if (type == PROVIDER) {
 
@@ -5408,8 +5528,8 @@ var Text = function(){
         var self    = this;
         cfg         = cfg || {};
 
-        self._observable    = new Observable;
-        extend(self, self._observable.getApi(), true, false);
+        self.$$observable    = new Observable;
+        extend(self, self.$$observable.getApi(), true, false);
 
         if (cfg.callback) {
 
@@ -5449,8 +5569,8 @@ var Text = function(){
 
         self.trigger('destroy', self);
 
-        self._observable.destroy();
-        delete this._observable;
+        self.$$observable.destroy();
+        delete this.$$observable;
 
     },
 
@@ -6227,10 +6347,6 @@ var animate = function(){
 
     return animate;
 }();
-
-
-
-var createWatchable = Watchable.create;
 
 
 var parseJSON = function() {
@@ -8437,6 +8553,82 @@ var history = function(){
 
 
 var currentUrl = history.currentUrl;
+var rToCamelCase = /-./g;
+
+var toCamelCase = function(str) {
+    return str.replace(rToCamelCase, function(match){
+        return match.charAt(1).toUpperCase();
+    });
+};
+
+
+var getNodeData = function() {
+
+    var readDataSet = function(node) {
+        var attrs = node.attributes,
+            dataset = {},
+            i, l;
+
+        for (i = 0, l = attrs.length; i < l; i++) {
+            dataset[toCamelCase(attrs[i].name)] = attrs[i].value;
+        }
+
+        return dataset;
+    };
+
+    if (document.documentElement.dataset) {
+        return function(node) {
+            return node.dataset;
+        };
+    }
+    else {
+        return function(node) {
+
+            var dataset;
+
+            if ((dataset = data(node, "data")) !== undf) {
+                return dataset;
+            }
+
+            dataset = readDataSet(node);
+            data(node, "data", dataset);
+            return dataset;
+        };
+    }
+
+}();
+
+
+var getNodeConfig = function(node, scope, expr) {
+
+    var cfg = data(node, "config"),
+        config, dataset, i, val;
+
+    if (cfg) {
+        return cfg;
+    }
+
+    cfg = {};
+
+    if (expr || (expr = getAttr(node, "mjs-config")) !== null) {
+        removeAttr(node, "mjs-config");
+        config = expr ? createGetter(expr)(scope || {}) : {};
+        for (i in config){
+            cfg[i] = config[i];
+        }
+    }
+
+    dataset = getNodeData(node);
+
+    for (i in dataset){
+        val = dataset[i];
+        cfg[i] = val === "" ? true : val;
+    }
+
+    data(node, "config", cfg);
+
+    return cfg;
+};
 
 
 
@@ -8458,6 +8650,7 @@ var currentUrl = history.currentUrl;
     node: null,
     scope: null,
     cmp: null,
+    id: null,
 
     currentComponent: null,
     watchable: null,
@@ -8469,22 +8662,20 @@ var currentUrl = history.currentUrl;
 
         extend(self, cfg, true, false);
 
-        var node = self.node;
+        var node = self.node,
+            viewCfg = getNodeConfig(node, self.scope);
+
+        extend(self, viewCfg, true, false);
 
         if (node && node.firstChild) {
             data(node, "mjs-transclude", toFragment(node.childNodes));
         }
 
-        if (!self.cmp) {
-            self.cmp = getAttr(node, "mjs-view-cmp");
+        if (!self.id) {
+            self.id = nextUid();
         }
 
-        self.defaultCmp = getAttr(node, "mjs-view-default");
-
-        removeAttr(node, "mjs-view");
-        removeAttr(node, "mjs-view-cmp");
-        removeAttr(node, "mjs-view-default");
-
+        self.scope.$app.registerCmp(self, self.scope, "id");
 
         if (self.route) {
             history.initPushState();
@@ -8760,74 +8951,6 @@ var getValue = function(){
 
     };
 }();
-var aIndexOf    = Array.prototype.indexOf;
-
-if (!aIndexOf) {
-    aIndexOf = Array.prototype.indexOf = function (searchElement, fromIndex) {
-
-        var k;
-
-        // 1. Let O be the result of calling ToObject passing
-        //    the this value as the argument.
-        if (this == null) {
-            throw new TypeError('"this" is null or not defined');
-        }
-
-        var O = Object(this);
-
-        // 2. Let lenValue be the result of calling the Get
-        //    internal method of O with the argument "length".
-        // 3. Let len be ToUint32(lenValue).
-        var len = O.length >>> 0;
-
-        // 4. If len is 0, return -1.
-        if (len === 0) {
-            return -1;
-        }
-
-        // 5. If argument fromIndex was passed let n be
-        //    ToInteger(fromIndex); else let n be 0.
-        var n = +fromIndex || 0;
-
-        if (Math.abs(n) === Infinity) {
-            n = 0;
-        }
-
-        // 6. If n >= len, return -1.
-        if (n >= len) {
-            return -1;
-        }
-
-        // 7. If n >= 0, then Let k be n.
-        // 8. Else, n<0, Let k be len - abs(n).
-        //    If k is less than 0, then let k be 0.
-        k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
-
-        // 9. Repeat, while k < len
-        while (k < len) {
-            var kValue;
-            // a. Let Pk be ToString(k).
-            //   This is implicit for LHS operands of the in operator
-            // b. Let kPresent be the result of calling the
-            //    HasProperty internal method of O with argument Pk.
-            //   This step can be combined with c
-            // c. If kPresent is true, then
-            //    i.  Let elementK be the result of calling the Get
-            //        internal method of O with the argument ToString(k).
-            //   ii.  Let same be the result of applying the
-            //        Strict Equality Comparison Algorithm to
-            //        searchElement and elementK.
-            //  iii.  If same is true, return k.
-            if (k in O && O[k] === searchElement) {
-                return k;
-            }
-            k++;
-        }
-        return -1;
-    };
-}
-
-
 
 
 /**
@@ -8932,8 +9055,12 @@ var AttributeHandler = defineClass("MetaphorJs.view.AttributeHandler", {
     node: null,
     expr: null,
 
+    autoOnChange: true,
+
     initialize: function(scope, node, expr) {
-        var self        = this;
+
+        var self        = this,
+            val;
 
         expr            = trim(expr);
 
@@ -8942,8 +9069,8 @@ var AttributeHandler = defineClass("MetaphorJs.view.AttributeHandler", {
         self.scope      = scope;
         self.watcher    = createWatchable(scope, expr, self.onChange, self, null, ns);
 
-        if (self.watcher.getLastResult() != undf) {
-            self.onChange();
+        if (self.autoOnChange && (val = self.watcher.getLastResult()) != undf) {
+            self.onChange(val, undf);
         }
 
         scope.$on("destroy", self.onScopeDestroy, self);
@@ -9038,13 +9165,14 @@ var browserHasEvent = function(){
 var Input = function(el, changeFn, changeFnContext, submitFn) {
 
     var self    = this,
+        cfg     = getNodeConfig(el),
         type;
 
     self.el             = el;
     self.cb             = changeFn;
     self.scb            = submitFn;
     self.cbContext      = changeFnContext;
-    self.inputType      = type = (getAttr(el, "mjs-input-type") || el.type.toLowerCase());
+    self.inputType      = type = (cfg.type || el.type.toLowerCase());
     self.listeners      = [];
     self.submittable    = isSubmittable(el);
 
@@ -9475,11 +9603,15 @@ registerAttributeHandler("mjs-bind-html", 1000, defineClass(null, "attr.mjs-bind
             var self    = this,
                 node    = self.node,
                 clss    = self.watcher.getLastResult(),
+                prev    = self.watcher.getPrevValue(),
                 i;
 
             stopAnimation(node);
 
             if (isString(clss)) {
+                if (prev) {
+                    toggleClass(node, prev, false, false);
+                }
                 toggleClass(node, clss, null, !self.initial);
             }
             else if (isArray(clss)) {
@@ -9518,12 +9650,7 @@ registerAttributeHandler("mjs-cmp-prop", 200,
             tmp,
             i, len,
             part,
-            cmp,
-            nodeCfg;
-
-
-        nodeCfg = data(node, "config") || {};
-        removeAttr(node, "mjs-cmp");
+            nodeCfg = getNodeConfig(node, scope);
 
         tmp     = expr.split(' ');
 
@@ -9542,6 +9669,7 @@ registerAttributeHandler("mjs-cmp-prop", 200,
                 as      = part;
             }
         }
+
 
         var cfg     = extend({
             scope: scope,
@@ -9562,13 +9690,8 @@ registerAttributeHandler("mjs-cmp-prop", 200,
 }());
 
 
-
-var createGetter = Watchable.createGetter;
-
-
 registerAttributeHandler("mjs-config", 50, function(scope, node, expr){
-    removeAttr(node, "mjs-config");
-    data(node, "config", createGetter(expr)(scope));
+    getNodeConfig(node, scope, expr);
 });
 
 
@@ -10031,7 +10154,8 @@ ListRenderer.prototype = {
             stack: false, context: self, mode: Queue.ONCE
         });
 
-        var cfg         = data(node, "config") || {};
+        var cfg         = getNodeConfig(node, scope);
+
         self.animateMove= !cfg.buffered && cfg.animateMove && animate.cssAnimations;
         self.animate    = !cfg.buffered && (getAttr(node, "mjs-animate") !== null || cfg.animate);
         removeAttr(node, "mjs-animate");
@@ -10223,6 +10347,7 @@ ListRenderer.prototype = {
             action,
             translates,
             prs         = self.watcher.getMovePrescription(prevList, self.getTrackByFunction(), list);
+
 
         // redefine renderers
         for (i = 0, len = prs.length; i < len; i++) {
@@ -10979,7 +11104,7 @@ ListRenderer.prototype = {
         delete self.watcher;
 
         if (self.observable) {
-            self.trigger("bufferupdate", self);
+            self.trigger("destroy", self);
             self.observable.destroy();
             delete self.observable;
         }
@@ -11000,14 +11125,13 @@ registerAttributeHandler("mjs-each", 100, ListRenderer);
 
 
 
-var createFunc = Watchable.createFunc;
+var createFunc = functionFactory.createFunc;
 
 
 (function(){
 
     var events = ['click', 'dblclick', 'mousedown', 'mouseup', 'mouseover',
-                  'mouseout', 'mousemove', 'mouseenter',
-                  'mouseleave', 'keydown', 'keyup', 'keypress', 'submit',
+                  'mouseout', 'mousemove', 'keydown', 'keyup', 'keypress', 'submit',
                   'focus', 'blur', 'copy', 'cut', 'paste', 'enter'],
         i, len;
 
@@ -11239,25 +11363,37 @@ registerAttributeHandler("mjs-model", 1000, defineClass(null, AttributeHandler, 
     input: null,
     binding: null,
 
+    autoOnChange: false,
+
     initialize: function(scope, node, expr) {
 
-        var self    = this;
+        var self    = this,
+            cfg     = getNodeConfig(node, scope);
 
         self.node           = node;
         self.input          = new Input(node, self.onInputChange, self);
-        self.binding        = getAttr(node, "mjs-data-binding") || "both";
-
-        var inputValue      = self.input.getValue();
+        self.binding        = cfg.binding || "both";
 
         self.supr(scope, node, expr);
 
-        var scopeValue      = self.watcher.getLastResult();
+        var inputValue      = self.input.getValue(),
+            scopeValue      = self.watcher.getLastResult();
 
-        if (self.binding != "scope" && self.watcher &&
+        if (scopeValue != inputValue) {
+            // scope value takes priority
+            if (self.binding != "input" && scopeValue != undf) {
+                self.onChange(scopeValue);
+            }
+            else if (self.binding != "scope" && inputValue != undf) {
+                self.onInputChange(inputValue);
+            }
+        }
+
+        /*if (self.binding != "scope" && self.watcher &&
             (inputValue || (scopeValue && self.watcher.hasInputPipes()))) {
 
             self.onInputChange(scopeValue || inputValue);
-        }
+        }*/
     },
 
     onInputChange: function(val) {
@@ -11269,6 +11405,10 @@ registerAttributeHandler("mjs-model", 1000, defineClass(null, AttributeHandler, 
 
             if (val && isString(val) && val.indexOf('\\{') != -1) {
                 val = val.replace(/\\{/g, '{');
+            }
+
+            if (self.watcher.getLastResult() == val) {
+                return;
             }
 
             self.watcher.setValue(val);
@@ -11331,8 +11471,6 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
         var self    = this;
 
         self.parseExpr(expr);
-
-        removeAttr(node, "mjs-options");
 
         self.node       = node;
         self.scope      = scope;
@@ -11464,36 +11602,28 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
 
 (function(){
 
-    var boolAttrs = ['selected', 'checked', 'disabled', 'readonly', 'required', 'open'],
-        i, len;
+    var booleanAttrs = ["selected", "checked", "disabled", "readonly", "open", "required"],
+        i, l;
 
-    for (i = 0, len = boolAttrs.length; i < len; i++) {
-
+    for (i = 0, l = booleanAttrs.length; i < l; i++) {
         (function(name){
 
             registerAttributeHandler("mjs-" + name, 1000, defineClass(null, AttributeHandler, {
 
-                initialize: function(scope, node, expr) {
-                    this.supr(scope, node, expr);
-                    removeAttr(node, "mjs-" + name);
-                    this.onChange();
-                },
+                onChange: function(val) {
 
-                onChange: function() {
+                    val = !!val;
 
-                    var self    = this,
-                        val     = self.watcher.getLastResult();
-
-                    if (!!val) {
-                        setAttr(self.node, name, name);
+                    if (val) {
+                        setAttr(this.node, name, name);
                     }
                     else {
-                        removeAttr(self.node, name);
+                        removeAttr(this.node, name);
                     }
                 }
             }));
 
-        }(boolAttrs[i]));
+        }(booleanAttrs[i]));
     }
 
 }());
@@ -11719,22 +11849,32 @@ registerAttributeHandler("mjs-src", 1000, defineClass(null, AttributeHandler, {
     sh: null,
     queue: null,
     checkVisibility: true,
+    usePreload: true,
 
     initialize: function(scope, node, expr) {
 
-        var self = this;
+        var self = this,
+            cfg = getNodeConfig(node, scope);
 
-        self.scrollEl = getScrollParent(node);
-        self.scrollDelegate = bind(self.onScroll, self);
-        self.resizeDelegate = bind(self.onResize, self);
+        if (cfg.deferred) {
+            self.scrollEl = getScrollParent(node);
+            self.scrollDelegate = bind(self.onScroll, self);
+            self.resizeDelegate = bind(self.onResize, self);
 
-        addListener(self.scrollEl, "scroll", self.scrollDelegate);
-        addListener(window, "resize", self.resizeDelegate);
+            addListener(self.scrollEl, "scroll", self.scrollDelegate);
+            addListener(window, "resize", self.resizeDelegate);
+        }
+        else {
+            self.checkVisibility = false;
+        }
+
+        if (cfg.noPreload) {
+            self.usePreload = false;
+        }
 
         self.queue = new Queue({auto: true, async: true, mode: Queue.ONCE});
 
         self.supr(scope, node, expr);
-        removeAttr(node, "mjs-src");
 
     },
 
@@ -11791,14 +11931,20 @@ registerAttributeHandler("mjs-src", 1000, defineClass(null, AttributeHandler, {
 
             var src = self.watcher.getLastResult();
             self.stopWatching();
-            preloadImage(src).done(function(){
-                if (self && self.node) {
-                    raf(function(){
-                        self.node.src = src;
-                        setAttr(self.node, "src", src);
-                    });
-                }
-            });
+            if (self.usePreload) {
+                preloadImage(src).done(function(){
+                    if (self && self.node) {
+                        raf(function(){
+                            self.node.src = src;
+                            setAttr(self.node, "src", src);
+                        });
+                    }
+                });
+            }
+            else {
+                self.node.src = src;
+                setAttr(self.node, "src", src);
+            }
         }
     },
 
@@ -12005,7 +12151,7 @@ nsAdd("filter.filter", function(val, scope, by, opt) {
 
 
 
-nsAdd("filter.fromList", function(input, scope, separator) {
+nsAdd("filter.join", function(input, scope, separator) {
 
     separator = separator || ", ";
 
@@ -12169,13 +12315,7 @@ nsAdd("filter.sortBy", function(val, scope, field, dir) {
 
 
 
-nsAdd("filter.toArray", function(input){
-    return toArray(input);
-});
-
-
-
-nsAdd("filter.toList", function(input, scope, sep, limit) {
+nsAdd("filter.split", function(input, scope, sep, limit) {
 
     limit       = limit || undf;
     sep         = sep || "/\\n|,/";
@@ -12198,6 +12338,12 @@ nsAdd("filter.toList", function(input, scope, sep, limit) {
     return list;
 });
 
+
+
+
+nsAdd("filter.toArray", function(input){
+    return toArray(input);
+});
 
 
 nsAdd("filter.ucfirst", function(val){
@@ -12270,8 +12416,8 @@ var initApp = function(node, cls, data, autorun) {
     try {
         var p = resolveComponent(cls || "MetaphorJs.cmp.App", false, data, node, [node, data]);
 
-        if (autorun) {
-            return p.then(function(app){
+        if (autorun !== false) {
+            return p.done(function(app){
                 app.run();
                 return app;
             });
@@ -12292,14 +12438,11 @@ var run = function() {
     onReady(function() {
 
         var appNodes    = select("[mjs-app]"),
-            i, l, el,
-            done        = function(app) {
-                app.run();
-            };
+            i, l, el;
 
         for (i = -1, l = appNodes.length; ++i < l;){
             el      = appNodes[i];
-            initApp(el, getAttr(el, "mjs-app")).done(done);
+            initApp(el, getAttr(el, "mjs-app"), null, true);
         }
     });
 

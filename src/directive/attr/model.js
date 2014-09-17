@@ -7,10 +7,12 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
     async = require("../../func/async.js"),
     getAttr = require("../../func/dom/getAttr.js"),
     isIE = require("../../func/browser/isIE.js"),
+    undf = require("../../var/undf.js"),
     Input = require("../../../../metaphorjs-input/src/metaphorjs.input.js"),
     Scope = require("../../lib/Scope.js"),
     isString = require("../../func/isString.js"),
-    AttributeHandler = require("../../view/AttributeHandler.js");
+    AttributeHandler = require("../../view/AttributeHandler.js"),
+    getNodeConfig = require("../../func/dom/getNodeConfig.js");
 
 
 
@@ -20,25 +22,37 @@ registerAttributeHandler("mjs-model", 1000, defineClass(null, AttributeHandler, 
     input: null,
     binding: null,
 
+    autoOnChange: false,
+
     initialize: function(scope, node, expr) {
 
-        var self    = this;
+        var self    = this,
+            cfg     = getNodeConfig(node, scope);
 
         self.node           = node;
         self.input          = new Input(node, self.onInputChange, self);
-        self.binding        = getAttr(node, "mjs-data-binding") || "both";
-
-        var inputValue      = self.input.getValue();
+        self.binding        = cfg.binding || "both";
 
         self.supr(scope, node, expr);
 
-        var scopeValue      = self.watcher.getLastResult();
+        var inputValue      = self.input.getValue(),
+            scopeValue      = self.watcher.getLastResult();
 
-        if (self.binding != "scope" && self.watcher &&
+        if (scopeValue != inputValue) {
+            // scope value takes priority
+            if (self.binding != "input" && scopeValue != undf) {
+                self.onChange(scopeValue);
+            }
+            else if (self.binding != "scope" && inputValue != undf) {
+                self.onInputChange(inputValue);
+            }
+        }
+
+        /*if (self.binding != "scope" && self.watcher &&
             (inputValue || (scopeValue && self.watcher.hasInputPipes()))) {
 
             self.onInputChange(scopeValue || inputValue);
-        }
+        }*/
     },
 
     onInputChange: function(val) {
@@ -50,6 +64,10 @@ registerAttributeHandler("mjs-model", 1000, defineClass(null, AttributeHandler, 
 
             if (val && isString(val) && val.indexOf('\\{') != -1) {
                 val = val.replace(/\\{/g, '{');
+            }
+
+            if (self.watcher.getLastResult() == val) {
+                return;
             }
 
             self.watcher.setValue(val);

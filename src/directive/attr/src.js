@@ -17,7 +17,8 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
     Queue = require("../../lib/Queue.js"),
     addListener = require("../../func/event/addListener.js"),
     removeListener = require("../../func/event/removeListener.js"),
-    raf = require("../../../../metaphorjs-animate/src/func/raf.js");
+    raf = require("../../../../metaphorjs-animate/src/func/raf.js"),
+    getNodeConfig = require("../../func/dom/getNodeConfig.js");
 
 registerAttributeHandler("mjs-src", 1000, defineClass(null, AttributeHandler, {
 
@@ -29,22 +30,32 @@ registerAttributeHandler("mjs-src", 1000, defineClass(null, AttributeHandler, {
     sh: null,
     queue: null,
     checkVisibility: true,
+    usePreload: true,
 
     initialize: function(scope, node, expr) {
 
-        var self = this;
+        var self = this,
+            cfg = getNodeConfig(node, scope);
 
-        self.scrollEl = getScrollParent(node);
-        self.scrollDelegate = bind(self.onScroll, self);
-        self.resizeDelegate = bind(self.onResize, self);
+        if (cfg.deferred) {
+            self.scrollEl = getScrollParent(node);
+            self.scrollDelegate = bind(self.onScroll, self);
+            self.resizeDelegate = bind(self.onResize, self);
 
-        addListener(self.scrollEl, "scroll", self.scrollDelegate);
-        addListener(window, "resize", self.resizeDelegate);
+            addListener(self.scrollEl, "scroll", self.scrollDelegate);
+            addListener(window, "resize", self.resizeDelegate);
+        }
+        else {
+            self.checkVisibility = false;
+        }
+
+        if (cfg.noPreload) {
+            self.usePreload = false;
+        }
 
         self.queue = new Queue({auto: true, async: true, mode: Queue.ONCE});
 
         self.supr(scope, node, expr);
-        removeAttr(node, "mjs-src");
 
     },
 
@@ -101,14 +112,20 @@ registerAttributeHandler("mjs-src", 1000, defineClass(null, AttributeHandler, {
 
             var src = self.watcher.getLastResult();
             self.stopWatching();
-            preloadImage(src).done(function(){
-                if (self && self.node) {
-                    raf(function(){
-                        self.node.src = src;
-                        setAttr(self.node, "src", src);
-                    });
-                }
-            });
+            if (self.usePreload) {
+                preloadImage(src).done(function(){
+                    if (self && self.node) {
+                        raf(function(){
+                            self.node.src = src;
+                            setAttr(self.node, "src", src);
+                        });
+                    }
+                });
+            }
+            else {
+                self.node.src = src;
+                setAttr(self.node, "src", src);
+            }
         }
     },
 
