@@ -13,7 +13,7 @@ var toFragment = require("./dom/toFragment.js"),
     isFunction = require("./isFunction.js"),
     getAttr = require("./dom/getAttr.js");
 
-module.exports = function(cmp, cfg, scope, node, args) {
+module.exports = function resolveComponent(cmp, cfg, scope, node, args) {
 
     var hasCfg  = cfg !== false;
 

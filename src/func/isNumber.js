@@ -1,6 +1,6 @@
 
 var varType = require("./varType.js");
 
-module.exports = function(value) {
+module.exports = function isNumber(value) {
     return varType(value) === 1;
 };

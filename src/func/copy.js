@@ -9,7 +9,7 @@ var isArray = require("./isArray.js"),
 
 module.exports = function(){
 
-    var copy = function(source, dest){
+    var copy = function copy(source, dest){
         if (isWindow(source)) {
             throw new Error("Cannot copy window object");
         }

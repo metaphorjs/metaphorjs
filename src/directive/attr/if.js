@@ -7,7 +7,9 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
     AttributeHandler = require("../../view/AttributeHandler.js");
 
 
-registerAttributeHandler("mjs-if", 500, defineClass(null, AttributeHandler, {
+registerAttributeHandler("mjs-if", 500, defineClass({
+
+    $extends: AttributeHandler,
 
     parentEl: null,
     prevEl: null,
@@ -28,8 +30,8 @@ registerAttributeHandler("mjs-if", 500, defineClass(null, AttributeHandler, {
 
         var self    = this;
 
-        delete self.prevEl;
-        delete self.parentEl;
+        self.prevEl = null;
+        self.parentEl = null;
 
         self.supr();
     },

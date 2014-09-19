@@ -16,7 +16,10 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
 
 require("./Base.js");
 
-module.exports = defineClass("MetaphorJs.cmp.App", "MetaphorJs.cmp.Base", {
+module.exports = defineClass({
+
+    $class: "MetaphorJs.cmp.App",
+    $extends: "MetaphorJs.cmp.Base",
 
     lang: null,
     scope: null,
@@ -144,9 +147,11 @@ module.exports = defineClass("MetaphorJs.cmp.App", "MetaphorJs.cmp.Base", {
 
         for (i in self) {
             if (self.hasOwnProperty(i)) {
-                delete self[i];
+                self[i] = null;
             }
         }
+
+        self.supr();
     }
 
 });

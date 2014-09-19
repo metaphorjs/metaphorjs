@@ -1,6 +1,7 @@
 
 
 var nextUid = require("../func/nextUid.js"),
+    extend = require("../func/extend.js"),
     isArray = require("../func/isArray.js"),
     toArray = require("../func/array/toArray.js"),
     isThenable = require("../func/isThenable.js"),
@@ -148,7 +149,7 @@ module.exports = function(){
         }
     };
 
-    Renderer.prototype = {
+    extend(Renderer.prototype, {
 
         id: null,
         el: null,
@@ -160,6 +161,10 @@ module.exports = function(){
 
         on: function(event, fn, context) {
             return observer.on(event + '-' + this.id, fn, context);
+        },
+
+        once: function(event, fn, context) {
+            return observer.once(event + '-' + this.id, fn, context);
         },
 
         un: function(event, fn, context) {
@@ -388,14 +393,14 @@ module.exports = function(){
                 self.parent.un("destroy", self.destroy, self);
             }
 
-            delete self.texts;
-            delete self.el;
-            delete self.scope;
-            delete self.parent;
+            self.texts = null;
+            self.el = null;
+            self.scope = null;
+            self.parent = null;
 
             observer.trigger("destroy-" + self.id);
         }
-    };
+    }, true, false);
 
 
     return Renderer;

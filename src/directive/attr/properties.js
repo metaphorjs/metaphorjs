@@ -15,7 +15,9 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
     for (i = 0, l = booleanAttrs.length; i < l; i++) {
         (function(name){
 
-            registerAttributeHandler("mjs-" + name, 1000, defineClass(null, AttributeHandler, {
+            registerAttributeHandler("mjs-" + name, 1000, defineClass({
+
+                $extends: AttributeHandler,
 
                 onChange: function(val) {
 

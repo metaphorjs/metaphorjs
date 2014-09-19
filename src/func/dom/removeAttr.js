@@ -1,4 +1,4 @@
 
-module.exports = function(el, name) {
+module.exports = function removeAttr(el, name) {
     return el.removeAttribute(name);
 };

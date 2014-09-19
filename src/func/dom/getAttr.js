@@ -1,4 +1,4 @@
 
-module.exports = function(el, name) {
+module.exports = function getAttr(el, name) {
     return el.getAttribute(name);
 };

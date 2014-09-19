@@ -200,7 +200,8 @@
                     which you can expose during <a href="#building">build phase</a> or later.</p>
                 <h3>MetaphorJs.cs</h3>
                 <pre><code class="language-javascript">
-MetaphorJs.cs.define("My.Person", {
+MetaphorJs.cs.define({
+    $class: "My.Person",
     firstName: null,
     lastName: null,
     initialize: function(firstName, lastName) {
@@ -211,8 +212,12 @@ MetaphorJs.cs.define("My.Person", {
         return this.firstName + " " + this.lastName;
     }
 });
+// define() returns newly created classes,
+// so you can avoid using $class names.
 
-MetaphorJs.cs.define("My.ExtendedPerson", "My.Person", {
+MetaphorJs.cs.define({
+    $class: "My.ExtendedPerson",
+    $extends: "My.Person",
     age: null,
     initialize: function(firstName, lastName, age) {
         this.supr(firstName, lastName);
@@ -222,6 +227,15 @@ MetaphorJs.cs.define("My.ExtendedPerson", "My.Person", {
         return this.age;
     }
 });
+
+var ClassWithoutName = MetaphorJs.My.ExtendedPerson.$extend({
+    getAge: function() {
+        return this.supr() * 10;
+    }
+});
+
+// instantiate with variable number of arguments:
+MetaphorJs.My.ExtendedPerson.$instantiate(["John", "Smith", 30]);
 
 var person = MetaphorJs.cs.factory("My.ExtendedPerson", "John", "Smith", 30);
 var another = new MetaphorJs.My.ExtendedPerson("Jane", "Smith", 29);
@@ -235,8 +249,15 @@ var encapsulated = {};
 var encNs = new MetaphorJs.lib.Namespace(encapsulated); // hidden namespace
 var encCs = new MetaphorJs.lib.Class(encNs); // hidden class system
 
-cs.define("My.TestClass", {}); // window.My.TestClass
-encCs.define("My.TestClass", {}); // encapsulated.My.TestClass
+cs.define({
+    $class: "My.TestClass"
+});
+// window.My.TestClass
+
+encCs.define({
+    $class: "My.TestClass"
+});
+// encapsulated.My.TestClass
 
 // in the default namespace you can use both
 // "MetaphorJs.Any.Thing" and "Any.Thing" - it is the same.
@@ -262,7 +283,9 @@ encCs.define("My.TestClass", {}); // encapsulated.My.TestClass
                 <p>You can provide your own class name as a value of this attribute. Your class
                     must extend MetaphorJs.cmp.App</p>
                 <div class="col-md-6">
-                    <pre><code class="language-javascript">MetaphorJs.define("My.App", "MetaphorJs.cmp.App", {
+                    <pre><code class="language-javascript">MetaphorJs.define({
+    $class: "My.App",
+    $extends: "MetaphorJs.cmp.App",
     initApp: function() {
         this.value('someDependency', someValue);
         this.onAvailable("componentId").done(function(cmp){
@@ -308,6 +331,16 @@ encCs.define("My.TestClass", {}); // encapsulated.My.TestClass
     You can insert variables {{.a}} {{.b}} {{.a + .b}} wherever you want.
 &lt;/p&gt;</code></pre>
                 <p>Use <code>mjs-bind-html</code> if you want to insert html. Otherwise, html tags will be escaped.</p>
+                <!--<h4>Object.observe()</h4>
+                <p>MetaphorJs supports <code>Object.observe()</code> method although it can't replace
+                normal digest cycle since you can use any kind of expression including functions.
+                So, digest cycle stays in place and you occasionally have to call scope.$check(), but
+                if native version of Object.observe is present (MetaphorJs ignores polyfills), all
+                non-expression checks will be skipped, making digest cycle potentially faster.</p>
+                <p>Make sure to initialize scope variable before data binding happens, otherwise
+                it will be treated as an expression.</p>
+                <p>Also, observe() will not be used if output pipes are present since they can potentially return
+                different values given the same input.</p>-->
             </div>
         </div>
 
@@ -736,7 +769,9 @@ encCs.define("My.TestClass", {}); // encapsulated.My.TestClass
         </div>
         <div class="row">
             <div class="col-md-6">
-                <pre><code class="language-javascript">MetaphorJs.cs.define("MyComponent", "MetaphorJs.cmp.Component", {
+                <pre><code class="language-javascript">MetaphorJs.cs.define({
+    $class: "MyComponent",
+    $extends: "MetaphorJs.cmp.Component",
     templateUrl: "/path/to/some/template.html", // or
     template: "templateId", // or
     template: ".varName", // or
@@ -793,7 +828,9 @@ encCs.define("My.TestClass", {}); // encapsulated.My.TestClass
             <div class="col-md-12">
                 <p>Apart from <a href="#injection">dependency injection</a> component may also have its own resolve
                 functions:</p>
-                <pre><code class="language-javascript">MetaphorJs.define("MyComponent", "MetaphorJs.cmp.Component", {
+                <pre><code class="language-javascript">MetaphorJs.define({
+    $class: "MyComponent",
+    $extends: "MetaphorJs.cmp.Component"
     // instance properties
 }, {
     // static properties
@@ -835,7 +872,9 @@ encCs.define("My.TestClass", {}); // encapsulated.My.TestClass
         </div>
         <div class="row">
             <div class="col-md-6">
-                <pre><code class="language-javascript">MetaphorJs.define("MyUrlView", "MetaphorJs.cmp.View", {
+                <pre><code class="language-javascript">MetaphorJs.define({
+    $class: "MyUrlView",
+    $extends: "MetaphorJs.cmp.View",
     route: [
         {
             template: 'test-template', // no component here
@@ -870,7 +909,9 @@ encCs.define("My.TestClass", {}); // encapsulated.My.TestClass
         </div>
         <div class="row">
             <div class="col-md-6">
-                <pre><code class="language-javascript">MetaphorJs.cs.define("MyCmpView", "MetaphorJs.cmp.View", {
+                <pre><code class="language-javascript">MetaphorJs.cs.define({
+    $class: "MyCmpView",
+    $extends: "MetaphorJs.cmp.View",
     cmp: ".varName",
     defaultCmp: "SomeComponent" // optional
 });</code></pre>
@@ -902,7 +943,9 @@ encCs.define("My.TestClass", {}); // encapsulated.My.TestClass
                     function. It may or may not return promise, depending on whether there were
                     dependencies.</p>
                 <p>You can provide dependencies on app's initialization time or later.</p>
-                <pre><code class="language-javascript">MetaphorJs.cs.define("MyApp", "MetaphorJs.cmp.App", {
+                <pre><code class="language-javascript">MetaphorJs.cs.define({
+    $class: "MyApp",
+    $extends: "MetaphorJs.cmp.App",
     initApp: function() {
         this.value("name", someValue);
     }
@@ -957,8 +1000,10 @@ scope.$app.value("name", someValue);</code></pre>
                 </p>
                 <h4>Model</h4>
                 <p>The Model class keeps information about how to fetch and configure records and stores.</p>
-                <pre><code class="language-javascript">MetaphorJs.define("MyModel", "MetaphorJs.data.Model", {
-    type: "MetaphorJs.data.Record", // or your class; optional
+                <pre><code class="language-javascript">MetaphorJs.define({
+    $class: "MyModel",
+    $extends: "MetaphorJs.model.Model",
+    type: "MetaphorJs.model.Record", // or your class; optional
     fields: {
         name: {
             // store and restore params
@@ -991,14 +1036,14 @@ scope.$app.value("name", someValue);</code></pre>
     }
 });</code></pre>
                 <h4>Store</h4>
-                <p><code>MetaphorJs.data.Store</code> can be local or "remote".</p>
-                <pre><code class="language-javascript">var store = new MetaphorJs.data.Store({
+                <p><code>MetaphorJs.model.Store</code> can be local or "remote".</p>
+                <pre><code class="language-javascript">var store = new MetaphorJs.model.Store({
     model: { // object|model class name|model instance
         // model config
     }
 });
 // or
-var store = new MetaphorJs.data.Store(url, optionalConfig);</code></pre>
+var store = new MetaphorJs.model.Store(url, optionalConfig);</code></pre>
                 <p>Store instance has following methods (among others):
                     <code>load(),</code>
                     <code>save(),</code>
@@ -1133,7 +1178,9 @@ var store = new MetaphorJs.data.Store(url, optionalConfig);</code></pre>
 
         <div class="row">
             <div class="col-md-6">
-                <pre><code class="language-javascript">MetaphorJs.cs.define("MyApp", "MetaphorJs.cmp.App", {
+                <pre><code class="language-javascript">MetaphorJs.cs.define({
+    $class: "MyApp",
+    $extends: "MetaphorJs.cmp.App",
     initApp: function() {
         this.lang.setLocale("en");
         this.lang.load(this.langMap);
@@ -1320,7 +1367,7 @@ module.exports = MyClass;</code></pre>
 
         <div class="row">
             <div class="col-md-12">
-                <p>Having one function in one file serves two purposes:</p>
+                <p>Having one function in one file serves several purposes:</p>
                 <ol>
                     <li>It makes testing easier. You write tests requiring one single function.</li>
                     <li>It reduces final file size. You don't need to include a whole library just because

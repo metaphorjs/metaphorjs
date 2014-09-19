@@ -4,7 +4,7 @@
  * @param {[]} args
  * @param {number} timeout
  */
-module.exports = function(fn, context, args, timeout) {
+module.exports = function async(fn, context, args, timeout) {
     setTimeout(function(){
         fn.apply(context, args || []);
     }, timeout || 0);

@@ -8,7 +8,9 @@ var trim = require("../func/trim.js"),
     defineClass = require("../../../metaphorjs-class/src/func/defineClass.js");
 
 
-module.exports = defineClass("MetaphorJs.view.AttributeHandler", {
+module.exports = defineClass({
+
+    $class: "MetaphorJs.view.AttributeHandler",
 
     watcher: null,
     scope: null,
@@ -45,13 +47,15 @@ module.exports = defineClass("MetaphorJs.view.AttributeHandler", {
     destroy: function() {
         var self    = this;
 
-        delete self.node;
-        delete self.scope;
+        self.node = null;
+        self.scope = null;
 
         if (self.watcher) {
             self.watcher.unsubscribeAndDestroy(self.onChange, self);
-            delete self.watcher;
+            self.watcher = null;
         }
+
+        self.supr();
     }
 });
 

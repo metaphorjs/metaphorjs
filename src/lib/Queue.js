@@ -1,5 +1,6 @@
 
 var async = require("../func/async.js"),
+    extend = require("../func/extend.js"),
     nextUid = require("../func/nextUid.js"),
     isThenable = require("../func/isThenable.js"),
     emptyFn = require("../func/emptyFn.js"),
@@ -31,7 +32,7 @@ Queue.MULTIPLE = 3;
 Queue.ONCE_EVER = 3;
 
 
-Queue.prototype = {
+extend(Queue.prototype, {
 
     _queue: null,
     _map: null,
@@ -61,11 +62,12 @@ Queue.prototype = {
             };
 
         mode = mode || self.mode;
-        fn[qid] = id;
 
         if (mode == Queue.ONCE_EVER && fn[qid]) {
             return fn[qid];
         }
+
+        fn[qid] = id;
 
         if (self._map[id]) {
             if (mode == Queue.REPLACE) {
@@ -187,14 +189,14 @@ Queue.prototype = {
 
         var self = this;
 
-        delete self._queue;
-        delete self._map;
-        delete self.context;
+        self._queue = null;
+        self._map = null;
+        self.context = null;
         self._nextRequested = false;
         self._running = false;
         self.next = emptyFn;
 
     }
-};
+}, true, false);
 
 module.exports = Queue;

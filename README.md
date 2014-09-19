@@ -71,7 +71,7 @@ Form validation.
 [history.pushState](https://github.com/kuindji/metaphorjs-history)
 Stateless pushState wrapper/polyfill.
 
-[MetaphorJs.data.Model](https://github.com/kuindji/metaphorjs-model)
+[MetaphorJs.model](https://github.com/kuindji/metaphorjs-model)
 Model/Record/Store classes.
 
 [select](https://github.com/kuindji/metaphorjs-select)

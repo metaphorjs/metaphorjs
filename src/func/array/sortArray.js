@@ -1,7 +1,7 @@
 
 var isFunction = require("../isFunction.js");
 
-module.exports = function(arr, by, dir) {
+module.exports = function sortArray(arr, by, dir) {
 
     if (!dir) {
         dir = "asc";

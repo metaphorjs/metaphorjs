@@ -17,7 +17,10 @@ require("./Base.js");
  * @class MetaphorJs.cmp.Component
  * @extends MetaphorJs.cmp.Observable
  */
-module.exports = defineClass("MetaphorJs.cmp.Component", "MetaphorJs.cmp.Base", {
+module.exports = defineClass({
+
+    $class: "MetaphorJs.cmp.Component",
+    $extends: "MetaphorJs.cmp.Base",
 
     /**
      * @access protected
@@ -309,13 +312,12 @@ module.exports = defineClass("MetaphorJs.cmp.Component", "MetaphorJs.cmp.Base", 
         this.destroy();
     },
 
-    onDestroy:      function() {
+    destroy:      function() {
 
         var self    = this;
 
         if (self.template) {
             self.template.destroy();
-            delete self.template;
         }
 
         if (self.destroyEl) {
@@ -333,9 +335,6 @@ module.exports = defineClass("MetaphorJs.cmp.Component", "MetaphorJs.cmp.Base", 
         if (self.destroyScope && self.scope) {
             self.scope.$destroy();
         }
-
-        delete self.scope;
-        delete self.node;
 
         self.supr();
     }

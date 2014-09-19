@@ -2,7 +2,7 @@
 var Renderer = require("../view/Renderer.js"),
     toFragment = require("./dom/toFragment.js");
 
-module.exports = function(htmlString, scope) {
+module.exports = function compile(htmlString, scope) {
 
     var div = document.createElement("div");
 

@@ -25,7 +25,7 @@ module.exports = function() {
         };
 
     return {
-        registerAttributeHandler: function(name, priority, handler) {
+        registerAttributeHandler: function registerAttributeHandler(name, priority, handler) {
             if (!nsGet("attr." + name, true)) {
                 attributeHandlers.push({
                     priority: priority,
@@ -36,7 +36,7 @@ module.exports = function() {
             }
         },
 
-        getAttributeHandlers: function() {
+        getAttributeHandlers: function getAttributeHandlers() {
             if (!attributesSorted) {
                 attributeHandlers.sort(compare);
                 attributesSorted = true;
@@ -44,7 +44,7 @@ module.exports = function() {
             return attributeHandlers;
         },
 
-        registerTagHandler: function(name, priority, handler) {
+        registerTagHandler: function registerTagHandler(name, priority, handler) {
             if (!nsGet("tag." + name, true)) {
                 tagHandlers.push({
                     priority: priority,
@@ -55,7 +55,7 @@ module.exports = function() {
             }
         },
 
-        getTagHandlers: function() {
+        getTagHandlers: function getTagHandlers() {
             if (!tagsSorted) {
                 tagHandlers.sort(compare);
                 tagsSorted = true;

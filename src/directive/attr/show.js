@@ -3,16 +3,23 @@
 var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
     defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
     animate = require("../../../../metaphorjs-animate/src/metaphorjs.animate.js"),
+    getNodeConfig = require("../../func/dom/getNodeConfig.js"),
     AttributeHandler = require("../../view/AttributeHandler.js");
 
 
-registerAttributeHandler("mjs-show", 500, defineClass(null, AttributeHandler, {
+registerAttributeHandler("mjs-show", 500, defineClass({
+
+    $extends: AttributeHandler,
 
     initial: true,
+    display: "",
 
     initialize: function(scope, node, expr) {
 
-        var self    = this;
+        var self    = this,
+            cfg = getNodeConfig(node, scope);
+
+        self.display = cfg.display || "";
 
         self.supr(scope, node, expr);
     },
@@ -26,7 +33,7 @@ registerAttributeHandler("mjs-show", 500, defineClass(null, AttributeHandler, {
                     style.display = "none";
                 }
                 else {
-                    style.display = "";
+                    style.display = self.display;
                 }
             };
 
@@ -35,7 +42,7 @@ registerAttributeHandler("mjs-show", 500, defineClass(null, AttributeHandler, {
             show ? "show" : "hide",
             function() {
                 if (show) {
-                    style.display = "";
+                    style.display = self.display;
                 }
             },
             true)

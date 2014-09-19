@@ -50,7 +50,9 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
         }
     };
 
-    registerAttributeHandler("mjs-class", 1000, defineClass(null, AttributeHandler, {
+    registerAttributeHandler("mjs-class", 1000, defineClass({
+
+        $extends: AttributeHandler,
 
         initial: true,
 

@@ -13,7 +13,9 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
     Input = require("../../../../metaphorjs-input/src/metaphorjs.input.js");
 
 
-registerAttributeHandler("mjs-bind", 1000, defineClass(null, AttributeHandler, {
+registerAttributeHandler("mjs-bind", 1000, defineClass({
+
+    $extends: AttributeHandler,
 
     isInput: false,
     input: null,
@@ -91,12 +93,12 @@ registerAttributeHandler("mjs-bind", 1000, defineClass(null, AttributeHandler, {
 
         if (self.textRenderer) {
             self.textRenderer.destroy();
-            delete self.textRenderer;
+            self.textRenderer = null;
         }
 
         if (self.input) {
             self.input.destroy();
-            delete self.input;
+            self.input = null;
         }
 
         self.supr();

@@ -31,7 +31,7 @@ module.exports = function(){
         'date': 10
     */
 
-    return function(val) {
+    return function varType(val) {
 
         if (!val) {
             if (val === null) {

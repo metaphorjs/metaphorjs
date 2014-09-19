@@ -1,5 +1,5 @@
 
-module.exports = function(el) {
+module.exports = function isField(el) {
     var tag	= el.nodeName.toLowerCase(),
         type = el.type;
     if (tag == 'input' || tag == 'textarea' || tag == 'select') {

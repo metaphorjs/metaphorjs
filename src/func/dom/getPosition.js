@@ -4,7 +4,7 @@ var getStyle = require("./getStyle.js"),
     getOffset = require("./getOffset.js"),
     elHtml = require("../../var/elHtml.js");
 
-module.exports = function(node, to) {
+module.exports = function getPosition(node, to) {
 
     var offsetParent, offset,
         parentOffset = {top: 0, left: 0};

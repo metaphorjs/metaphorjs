@@ -1,7 +1,7 @@
 
 window.dataSource = function(){
 
-    var Promise = MetaphorJs.lib.Promise;
+    var Promise = MetaphorJs.Promise;
     var allData = {};
     var max = 3000;
     var timeout = 0;

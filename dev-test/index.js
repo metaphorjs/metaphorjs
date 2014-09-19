@@ -1,7 +1,10 @@
 
 var defineClass = MetaphorJs.cs.define;
 
-defineClass("Test.MyApp2", "MetaphorJs.cmp.App", {
+defineClass({
+
+    $class: "Test.MyApp2",
+    $extends: "MetaphorJs.cmp.App",
 
     initApp: function(node, scope, someValue) {
 
@@ -52,7 +55,7 @@ defineClass("Test.MyApp2", "MetaphorJs.cmp.App", {
     inject: ['$node', '$scope', 'someValue'],
     resolve: {
         someValue: function() {
-            var p = new MetaphorJs.lib.Promise;
+            var p = new MetaphorJs.Promise;
             setTimeout(function(){
                 p.resolve((new Date).getTime());
             }, 100);
@@ -63,7 +66,10 @@ defineClass("Test.MyApp2", "MetaphorJs.cmp.App", {
 
 
 
-defineClass("Test.MyView", "MetaphorJs.cmp.View", {
+defineClass({
+
+    $class: "Test.MyView",
+    $extends: "MetaphorJs.cmp.View",
 
         route: [
             {
@@ -90,9 +96,15 @@ defineClass("Test.MyView", "MetaphorJs.cmp.View", {
         ]
     });
 
-defineClass("Test.MyRecord", "MetaphorJs.data.Record", {});
+defineClass({
+    $class: "Test.MyRecord",
+    $extends: "MetaphorJs.model.Record"
+});
 
-defineClass("Test.MyComponent", "MetaphorJs.cmp.Component", {
+defineClass({
+
+    $class: "Test.MyComponent",
+    $extends: "MetaphorJs.cmp.Component",
 
         initComponent: function() {
 
@@ -100,7 +112,7 @@ defineClass("Test.MyComponent", "MetaphorJs.cmp.Component", {
 
             self.scope.title = "My Component" + (new Date).getTime();
 
-            var model   = new MetaphorJs.data.Model({
+            var model   = new MetaphorJs.Model({
                 type: "Test.MyRecord",
                 id: "id",
                 data: "record",
@@ -110,7 +122,7 @@ defineClass("Test.MyComponent", "MetaphorJs.cmp.Component", {
                 }
             });
 
-            self.scope.store = new MetaphorJs.data.Store({
+            self.scope.store = new MetaphorJs.model.Store({
                 model: model
             });
 
@@ -175,7 +187,7 @@ defineClass("Test.MyComponent", "MetaphorJs.cmp.Component", {
         resolve: {
             deferred: ['$node', '$scope', 'test', function(node, scope, test) {
 
-                return new MetaphorJs.lib.Promise(function(resolve, reject){
+                return new MetaphorJs.Promise(function(resolve, reject){
                     setTimeout(function(){
                         resolve((new Date).getTime());
                     }, 1000);
@@ -184,68 +196,86 @@ defineClass("Test.MyComponent", "MetaphorJs.cmp.Component", {
         }
     });
 
-defineClass("Test.MyComponent2", "MetaphorJs.cmp.Component", {
+defineClass({
 
-        template: 'cmp1-template',
+    $class: "Test.MyComponent2",
+    $extends: "MetaphorJs.cmp.Component",
 
-        initComponent: function(cfg, param) {
-            var self    = this;
+    template: 'cmp1-template',
 
-            if (cfg.param) {
-                alert("received param: " + cfg.param);
+    initComponent: function(cfg, param) {
+        var self    = this;
+
+        if (cfg.param) {
+            alert("received param: " + cfg.param);
+        }
+        self.scope.title = "My Component2 " + (new Date).getTime();
+    }
+});
+
+defineClass({
+
+    $class: "Test.TplComponent",
+    $extends: "MetaphorJs.cmp.Component",
+
+    initComponent: function() {
+
+        var self    = this;
+
+        self.scope.title= "Tpl Component";
+        self.scope.tpl  = "a+b";
+
+        self.scope.$app.onAvailable("myComponent1").done(function(cmp){
+            if (window.console && window.console.log) {
+                console.log("on available myComponent1");
             }
-            self.scope.title = "My Component2 " + (new Date).getTime();
-        }
-    });
+        });
+    }
+});
 
-defineClass("Test.TplComponent", "MetaphorJs.cmp.Component", {
+defineClass({
+    $class: "Test.StringTemplate",
+    $extends: "MetaphorJs.cmp.Component"
+    }, {
+    template: '<p>This template is inlined in components definition ({{.$root.a}})</p>'
+});
 
-        initComponent: function() {
+defineClass({
+    $class: "Test.DynamicComponent",
+    $extends: "MetaphorJs.cmp.Component"
+    }, {
+    template: '<p>This component was created dynamically</p><div mjs-transclude></div>'
+});
 
-            var self    = this;
+defineClass({
 
-            self.scope.title= "Tpl Component";
-            self.scope.tpl  = "a+b";
+    $class: "Test.ChangeTemplate",
+    $extends: "MetaphorJs.cmp.Component",
 
-            self.scope.$app.onAvailable("myComponent1").done(function(cmp){
-                if (window.console && window.console.log) {
-                    console.log("on available myComponent1");
-                }
-            });
-        }
+    template: '.tpl',
 
-    });
+    initComponent: function() {
 
-defineClass("Test.StringTemplate", "MetaphorJs.cmp.Component", {}, {
-        template: '<p>This template is inlined in components definition ({{.$root.a}})</p>'
-    });
+        var scope = this.scope;
 
-defineClass("Test.DynamicComponent", "MetaphorJs.cmp.Component", {}, {
-        template: '<p>This component was created dynamically</p><div mjs-transclude></div>'
-    });
+        scope.tpl1 = '<p>Template 1</p><div mjs-transclude></div>';
+        scope.tpl2 = '<p>Template 2</p><div mjs-transclude></div>';
 
-defineClass("Test.ChangeTemplate", "MetaphorJs.cmp.Component", {
+        scope.tpl = scope.tpl1;
+    }
+});
 
-        template: '.tpl',
+defineClass({
+    $class: "Test.ViewComponent1",
+    $extends: "MetaphorJs.cmp.Component",
+    template: '<p>View template 1</p><div mjs-transclude></div>'
+});
 
-        initComponent: function() {
-
-            var scope = this.scope;
-
-            scope.tpl1 = '<p>Template 1</p><div mjs-transclude></div>';
-            scope.tpl2 = '<p>Template 2</p><div mjs-transclude></div>';
-
-            scope.tpl = scope.tpl1;
-        }
-    });
-
-defineClass("Test.ViewComponent1", "MetaphorJs.cmp.Component", {
-        template: '<p>View template 1</p><div mjs-transclude></div>'
-    });
-
-defineClass("Test.ViewComponent2", "MetaphorJs.cmp.Component", {
-        template: '<p>View template 2</p><div mjs-transclude></div>'
-    });
+defineClass({
+    $class: "Test.ViewComponent2",
+    $extends: "MetaphorJs.cmp.Component",
+    template: '<p>View template 2</p><div mjs-transclude></div>'
+});
 
 
 

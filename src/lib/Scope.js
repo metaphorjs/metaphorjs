@@ -21,7 +21,7 @@ var Scope = function(cfg) {
     }
 };
 
-Scope.prototype = {
+extend(Scope.prototype, {
 
     $app: null,
     $parent: null,
@@ -130,6 +130,10 @@ Scope.prototype = {
         if (!self.$$destroyed) {
             self.$$observable.trigger("check", changes);
         }
+
+        if (changes > 0) {
+            self.$check();
+        }
     },
 
     $destroy: function() {
@@ -140,25 +144,25 @@ Scope.prototype = {
         self.$$observable.trigger("destroy");
         self.$$observable.destroy();
 
-        delete self.$$observable;
-        delete self.$app;
-        delete self.$root;
-        delete self.$parent;
+        self.$$observable = null;
+        self.$app = null;
+        self.$root = null;
+        self.$parent = null;
 
         if (self.$$watchers) {
             self.$$watchers.$destroyAll();
-            delete self.$$watchers;
+            self.$$watchers = null;
         }
 
         for (param in self.$$historyWatchers) {
             self.$unwatchHistory(param);
         }
-        delete self.$$historyWatchers;
+        self.$$historyWatchers = null;
 
         self.$$destroyed = true;
     }
 
-};
+}, true, false);
 
 
 module.exports = Scope;

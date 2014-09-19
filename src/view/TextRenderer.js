@@ -3,6 +3,7 @@
 var nextUid = require("../func/nextUid.js"),
     bind = require("../func/bind.js"),
     trim = require("../func/trim.js"),
+    extend = require("../func/extend.js"),
     createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
     Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
     isString = require("../func/isString.js"),
@@ -61,7 +62,7 @@ module.exports = function(){
         self.render();
     };
 
-    TextRenderer.prototype = {
+    extend(TextRenderer.prototype, {
 
         id: null,
         parent: null,
@@ -310,31 +311,26 @@ module.exports = function(){
 
         destroy: function() {
 
-            var self    = this;
+            var self    = this,
+                i;
 
             self.destroyChildren();
             self.destroyWatchers();
 
             observer.destroyEvent(self.id);
 
-            delete self.watchers;
-            delete self.children;
-            delete self.origin;
-            delete self.processed;
-            delete self.text;
-            delete self.scope;
-            delete self.data;
-            delete self.dataChangeDelegate;
-            delete self.lang;
-
             if (self.changeTmt) {
                 clearTimeout(self.changeTmt);
             }
-            delete self.changeTmt;
 
+            for (i in self) {
+                if (self.hasOwnProperty(i)){
+                    self[i] = null;
+                }
+            }
         }
 
-    };
+    }, true, false);
 
     TextRenderer.create = factory;
 

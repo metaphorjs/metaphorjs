@@ -1,6 +1,6 @@
 
 var varType = require("./varType.js");
 
-module.exports = function(value) {
+module.exports = function isBool(value) {
     return value === true || value === false;
 };

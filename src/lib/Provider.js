@@ -1,13 +1,15 @@
 
 
 var bind = require("../func/bind.js"),
+    extend = require("../func/extend.js"),
     isThenable = require("../func/isThenable.js"),
     slice = require("../func/array/slice.js"),
     Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
     isObject = require("../func/isObject.js"),
     isFunction = require("../func/isFunction.js"),
     undf = require("../var/undf.js"),
-    isBool = require("../func/isBool.js");
+    isBool = require("../func/isBool.js"),
+    instantiate = require("../func/instantiate.js");
 
 
 module.exports = function(){
@@ -23,7 +25,7 @@ module.exports = function(){
         this.store  = {};
     };
 
-    Provider.prototype = {
+    extend(Provider.prototype, {
 
         store: null,
 
@@ -44,23 +46,13 @@ module.exports = function(){
 
         instantiate: function(fn, context, args, isClass) {
 
-            if (fn.instantiate) {
-                return fn.instantiate.apply(null, args);
+            if (fn.$instantiate) {
+                return fn.$instantiate.apply(fn, args);
             }
             else if (isClass) {
-                var Temp = function(){},
-                inst, ret;
-
-                Temp.prototype  = fn.prototype;
-                inst            = new Temp;
-                ret             = fn.apply(inst, args);
-
-                // If an object has been returned then return it otherwise
-                // return the original instance.
-                // (consistent with behaviour of the new operator)
-                return isObject(ret) || ret === false ? ret : inst;
+                return instantiate(fn, args);
             }
-            else {//if (context) {
+            else {
                 return fn.apply(context, args);
             }
         },
@@ -224,11 +216,11 @@ module.exports = function(){
         },
 
         destroy: function() {
-            delete this.store;
-            delete this.scope;
+            this.store = null;
+            this.scope = null;
         }
 
-    };
+    }, true, false);
 
     Provider.global = function() {
         return globalProvider;

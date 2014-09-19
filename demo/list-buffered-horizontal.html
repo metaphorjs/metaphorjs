@@ -38,7 +38,8 @@
 
         <div    class="item"
                 mjs-each-in-store="row in .store"
-                mjs-config="{buffered: true, itemSize: 200, itemsOffsite: 2, horizontal: true}">
+                mjs-config="{buffered: true, itemSize: 200, itemsOffsite: 2, pullNext: true,
+                horizontal: true, id: 'tmp', observable: true}">
 
             <div>
                 ({{.$index}} - {{.row.employeeNo}})

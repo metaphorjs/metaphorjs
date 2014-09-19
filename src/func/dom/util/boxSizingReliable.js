@@ -36,7 +36,7 @@ module.exports = function() {
         return ret;
     };
 
-    return function() {
+    return function boxSizingReliable() {
         if (boxSizingReliableVal === undf) {
             boxSizingReliableVal = computePixelPositionAndBoxSizingReliable();
         }

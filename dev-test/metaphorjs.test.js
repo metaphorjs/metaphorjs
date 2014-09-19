@@ -7,7 +7,7 @@ var MetaphorJs = {
     view: {}
 };
 
-var isFunction = function(value) {
+function isFunction(value) {
     return typeof value == 'function';
 };
 var toString = Object.prototype.toString;
@@ -43,7 +43,7 @@ var varType = function(){
         'date': 10
     */
 
-    return function(val) {
+    return function varType(val) {
 
         if (!val) {
             if (val === null) {
@@ -70,13 +70,13 @@ var varType = function(){
 }();
 
 
-var isString = function(value) {
+function isString(value) {
     return typeof value == "string" || value === ""+value;
     //return typeof value == "string" || varType(value) === 0;
 };
 
 
-var isObject = function(value) {
+function isObject(value) {
     if (value === null || typeof value != "object") {
         return false;
     }
@@ -279,14 +279,12 @@ var Namespace   = function(root, rootName) {
     self.normalize  = normalize;
 };
 
-Namespace.prototype = {
-    register: null,
-    exists: null,
-    get: null,
-    add: null,
-    remove: null,
-    normalize: null
-};
+Namespace.prototype.register = null;
+Namespace.prototype.exists = null;
+Namespace.prototype.get = null;
+Namespace.prototype.add = null;
+Namespace.prototype.remove = null;
+Namespace.prototype.normalize = null;
 
 
 
@@ -298,14 +296,14 @@ var slice = Array.prototype.slice;/**
  * @param {[]} args
  * @param {number} timeout
  */
-var async = function(fn, context, args, timeout) {
+function async(fn, context, args, timeout) {
     setTimeout(function(){
         fn.apply(context, args || []);
     }, timeout || 0);
 };
 
 
-var error = function(e) {
+function error(e) {
 
     var stack = e.stack || (new Error).stack;
 
@@ -322,47 +320,55 @@ var error = function(e) {
     }
 };
 
-var emptyFn = function(){};
+function emptyFn(){};
+
+
+var instantiate = function(fn, args) {
+
+    var Temp = function(){},
+        inst, ret;
+
+    Temp.prototype  = fn.prototype;
+    inst            = new Temp;
+    ret             = fn.apply(inst, args);
+
+    // If an object has been returned then return it otherwise
+    // return the original instance.
+    // (consistent with behaviour of the new operator)
+    return isObject(ret) || ret === false ? ret : inst;
+
+};
 
 
 /*!
  * inspired by and based on klass
  */
 
-var Class = function(ns){
 
-    if (!ns) {
-        ns = new Namespace;
-    }
+var Class = function(){
 
-
-    /**
-     * @namespace MetaphorJs
-     */
 
     var proto   = "prototype",
 
-        constr  = "__construct",
+        constr  = "$construct",
 
-        emptyConstructor    = function() {
+        $constr = function $constr() {
             var self = this;
             if (self.supr && self.supr !== emptyFn) {
                 self.supr.apply(self, arguments);
             }
         },
 
-        create  = function(cls, constructor) {
-            return extend(function(){}, cls, constructor);
-        },
+        wrapPrototypeMethod = function wrapPrototypeMethod(parent, k, fn) {
 
-        wrap    = function(parent, k, fn) {
+            var supr = parent[proto][k] || (k == constr ? parent : emptyFn) || emptyFn;
 
             return function() {
                 var ret,
                     self    = this,
                     prev    = self.supr;
 
-                self.supr   = parent[proto][k] || (k == constr ? parent : emptyFn) || emptyFn;
+                self.supr   = supr;
                 ret         = fn.apply(self, arguments);
                 self.supr   = prev;
 
@@ -370,326 +376,329 @@ var Class = function(ns){
             };
         },
 
-        process = function(prototype, cls, parent) {
+        preparePrototype = function preparePrototype(prototype, cls, parent) {
             for (var k in cls) {
                 if (cls.hasOwnProperty(k)) {
 
                     prototype[k] = isFunction(cls[k]) &&
-                              (isFunction(parent[proto][k]) || !parent[proto][k]) ?
-                                    wrap(parent, k, cls[k]) :
-                                    cls[k];
+                                   (isFunction(parent[proto][k]) || !parent[proto][k]) ?
+                                   wrapPrototypeMethod(parent, k, cls[k]) :
+                                   cls[k];
 
 
                 }
             }
         },
 
-        extend  = function(parent, cls, constructorFn) {
 
-            var noop        = function(){};
-            noop[proto]     = parent[proto];
-            var prototype   = new noop;
+        createConstructor = function() {
 
-            cls[constr]     = constructorFn || emptyConstructor;
+            return function() {
 
-            var fn          = function() {
-                var self = this;
+                var self    = this,
+                    cls     = self ? self.$self : null;
 
-                if (!(self instanceof fn)) {
-                    return fn.instantiate.apply(null, arguments);
+                if (!self) {
+                    throw "Must instantiate via new";
                 }
 
                 self[constr].apply(self, arguments);
+
                 if (self.initialize) {
                     self.initialize.apply(self, arguments);
                 }
             };
-
-            process(prototype, cls, parent);
-            prototype.constructor = fn;
-
-            fn[proto] = prototype;
-            fn[proto].getClass = function() {
-                return fn.className;
-            };
-            fn[proto].getParentClass = function() {
-                return fn.parentClass;
-            };
-
-            fn.instantiate = function() {
-                var Temp = function(){},
-                    inst, ret;
-
-                Temp.prototype  = fn.prototype;
-                inst            = new Temp;
-                ret             = fn.prototype.constructor.apply(inst, arguments);
-
-                // If an object has been returned then return it otherwise
-                // return the original instance.
-                // (consistent with behaviour of the new operator)
-                return isObject(ret) ? ret : inst;
-            };
-
-            fn.extend = function(name, constructor, definition, statics) {
-                return define(name, fn, constructor, definition, statics);
-            };
-
-
-            return fn;
         };
 
 
-    /**
-     * Define class
-     * @function MetaphorJs.define
-     * @param {string} name
-     * @param {function} constructor
-     * @param {object} definition (optional)
-     * @param {object} statics (optional)
-     * @param {bool} cacheOnly (optional)
-     * @return function New class constructor
-     * @alias MetaphorJs.d
-     */
 
-    /**
-     * Define class
-     * @function MetaphorJs.define
-     * @param {function} constructor
-     * @param {object} definition (optional)
-     * @param {object} statics (optional)
-     * @param {bool} cacheOnly (optional)
-     * @return function New class constructor
-     * @alias MetaphorJs.d
-     */
 
-    /**
-     * Define class
-     * @function MetaphorJs.define
-     * @param {string} name
-     * @param {object} definition
-     * @param {object} statics (optional)
-     * @param {bool} cacheOnly (optional)
-     * @return function New class constructor
-     * @alias MetaphorJs.d
-     */
+    var Class = function(ns){
 
-    /**
-     * Define class
-     * @function MetaphorJs.define
-     * @param {object} definition
-     * @param {object} statics (optional)
-     * @param {bool} cacheOnly (optional)
-     * @return function New class constructor
-     * @alias MetaphorJs.d
-     */
-
-    /**
-     * Define class
-     * @function MetaphorJs.define
-     * @param {string} name
-     * @param {string} parentClass
-     * @param {function} constructor
-     * @param {object} definition (optional)
-     * @param {object} statics (optional)
-     * @param {bool} cacheOnly (optional)
-     * @return function New class constructor
-     * @alias MetaphorJs.d
-     */
-    var define = function(name, parentClass, constructor, definition, statics, cacheOnly) {
-
-        if (name === null) {
-            name = "";
+        if (!ns) {
+            ns = new Namespace;
         }
 
-        // constructor as first argument
-        if (isFunction(name)) {
 
-            statics         = constructor;
 
-            if (isString(parentClass)) {
-                statics     = definition;
-                definition  = constructor;
-            }
-            else {
-                definition      = parentClass;
-                constructor     = name;
-                parentClass     = null;
-            }
+        var BaseClass = function() {
 
-            name              = null;
-        }
+        };
 
-        // definition as first argument
-        else if (!isString(name)) {
-            statics         = parentClass;
-            definition      = name;
-            parentClass     = null;
-            constructor     = null;
-            name            = null;
-        }
+        BaseClass.prototype = {
 
-        // if object is second parameter (leads to next check)
-        if (!isString(parentClass) && !isFunction(parentClass)) {
-            statics         = definition;
-            definition      = constructor;
-            constructor     = parentClass;
-            parentClass     = null;
-        }
+            $class: null,
+            $extends: null,
 
-        // if third parameter is not a function (definition instead of constructor)
-        if (!isFunction(constructor)) {
-            statics         = definition;
-            definition      = constructor;
-            constructor     = null;
-        }
+            $construct: function(){},
 
-        definition          = definition || {};
-        var pConstructor    = parentClass && isString(parentClass) ?
-                                ns.get(parentClass) :
-                                parentClass;
+            $getClass: function() {
+                return this.$class;
+            },
 
-        if (parentClass && !pConstructor) {
-            throw new Error(parentClass + " not found");
-        }
+            $getParentClass: function() {
+                return this.$extends;
+            },
 
-        var c   = pConstructor ? extend(pConstructor, definition, constructor) : create(definition, constructor);
+            $override: function() {},
 
-        c.isMetaphorClass = true;
-        c.parent          = pConstructor;
-        c.parentClass     = pConstructor ? pConstructor.className : null;
-        c.className       = ns.normalize(name);
+            destroy: function() {
 
-        if (statics) {
-            for (var k in statics) {
-                if (statics.hasOwnProperty(k)) {
-                    c[k] = statics[k];
+                var self = this,
+                    i;
+
+                for (i in self) {
+                    if (self.hasOwnProperty(i)) {
+                        self[i] = null;
+                    }
                 }
             }
-        }
+        };
 
-        if (name) {
-            if (!cacheOnly) {
-                ns.register(name, c);
+        BaseClass.$self = BaseClass;
+
+        BaseClass.$instantiate = function() {
+
+            var cls = this,
+                args = arguments,
+                cnt = args.length;
+
+            // lets make it ugly, but without creating temprorary classes and leaks.
+            // and fallback to normal instantiation.
+
+            switch (cnt) {
+                case 0:
+                    return new cls;
+                case 1:
+                    return new cls(args[0]);
+                case 2:
+                    return new cls(args[0], args[1]);
+                case 3:
+                    return new cls(args[0], args[1], args[2]);
+                case 4:
+                    return new cls(args[0], args[1], args[2], args[3]);
+                default:
+                    return instantiate(cls, args);
+            }
+        };
+
+
+        BaseClass.$extend = function(constructor, definition, statics) {
+            return define(constructor, definition, statics, this);
+        };
+
+
+        /**
+         * @namespace MetaphorJs
+         */
+
+
+
+        /**
+         * Define class
+         * @function MetaphorJs.define
+         * @param {function} constructor
+         * @param {object} definition (optional)
+         * @param {object} statics (optional)
+         * @return function New class constructor
+         * @alias MetaphorJs.d
+         */
+
+        /**
+         * Define class
+         * @function MetaphorJs.define
+         * @param {object} definition
+         * @param {object} statics (optional)
+         * @return function New class constructor
+         * @alias MetaphorJs.d
+         */
+
+        /**
+         * Define class
+         * @function MetaphorJs.define
+         * @param {function} constructor
+         * @param {object} definition (optional)
+         * @param {object} statics (optional)
+         * @return function New class constructor
+         * @alias MetaphorJs.d
+         */
+        var define = function(constructor, definition, statics, $extends) {
+
+            // if third parameter is not a function (definition instead of constructor)
+            if (!isFunction(constructor)) {
+                statics         = definition;
+                definition      = constructor;
+                constructor     = null;
+            }
+
+            definition          = definition || {};
+            var name            = definition.$class,
+                parentClass     = $extends || definition.$extends,
+                pConstructor,
+                k, noop, prototype, c;
+
+            pConstructor = parentClass && isString(parentClass) ? ns.get(parentClass) : BaseClass;
+
+            if (parentClass) {
+                if (isString(parentClass)) {
+                    pConstructor = ns.get(parentClass);
+                }
+                else {
+                    pConstructor = parentClass;
+                    parentClass = pConstructor.$class || "";
+                }
             }
             else {
-                ns.add(name, c);
-            }
-        }
-
-        if (statics && statics.alias) {
-            ns.add(statics.alias, c);
-        }
-
-        return c;
-    };
-
-
-    var extendClass = function(parentClass, constructorFn, cls, statics) {
-        return define(null, parentClass, constructorFn, cls, statics);
-    };
-
-
-    /**
-     * @function MetaphorJs.defineCache
-     * Same as define() but this one only puts object to cache without registering namespace
-     */
-    var defineCache = function(name, parentClass, constructor, definition, statics) {
-        return define(name, parentClass, constructor, definition, statics, true);
-    };
-
-
-
-    /**
-     * Instantiate class
-     * @function MetaphorJs.create
-     * @param {string} name Full name of the class
-     */
-    var instantiate = function(name) {
-
-        var cls     = ns.get(name),
-            args    = slice.call(arguments, 1);
-
-        if (!cls) {
-            throw new Error(name + " not found");
-        }
-
-        return cls.instantiate.apply(this, args);
-    };
-
-
-
-    /**
-     * Is cmp instance of cls
-     * @function MetaphorJs.is
-     * @param {object} cmp
-     * @param {string|object} cls
-     * @returns boolean
-     */
-    var isInstanceOf = function(cmp, cls) {
-        var _cls    = isString(cls) ? ns.get(cls) : cls;
-        return _cls ? cmp instanceof _cls : false;
-    };
-
-
-
-    /**
-     * Is one class subclass of another class
-     * @function MetaphorJs.isSubclass
-     * @param {string|object} childClass
-     * @param {string|object} parentClass
-     * @return bool
-     * @alias MetaphorJs.iss
-     */
-    var isSubclassOf = function(childClass, parentClass) {
-
-        var p   = childClass,
-            g   = ns.get;
-
-        if (!isString(parentClass)) {
-            parentClass  = parentClass.getClass ? parentClass.getClass() : parentClass.className;
-        }
-        else {
-            parentClass = ns.normalize(parentClass);
-        }
-        if (isString(childClass)) {
-            p   = g(ns.normalize(childClass));
-        }
-
-        while (p) {
-
-            if (p.className == parentClass) {
-                return true;
+                pConstructor = BaseClass;
+                parentClass = "";
             }
 
-            p = p.getParentClass ? g(p.getParentClass()) : p.parent;
-        }
+            if (parentClass && !pConstructor) {
+                throw new Error(parentClass + " not found");
+            }
 
-        return false;
+            if (name) {
+                name = ns.normalize(name);
+            }
+
+            definition.$class   = name;
+            definition.$extends = parentClass;
+
+
+            noop                = function(){};
+            noop[proto]         = pConstructor[proto];
+            prototype           = new noop;
+            noop                = null;
+            definition[constr]  = constructor || $constr;
+
+            preparePrototype(prototype, definition, pConstructor);
+
+            c = createConstructor();
+            prototype.constructor = c;
+            c[proto] = prototype;
+
+            for (k in BaseClass) {
+                if (k != proto && BaseClass.hasOwnProperty(k)) {
+                    c[k] = BaseClass[k];
+                }
+            }
+
+            for (k in pConstructor) {
+                if (k != proto && pConstructor.hasOwnProperty(k)) {
+                    c[k] = pConstructor[k];
+                }
+            }
+
+            if (statics) {
+                for (k in statics) {
+                    if (k != proto && statics.hasOwnProperty(k)) {
+                        c[k] = statics[k];
+                    }
+                }
+            }
+
+            c.$parent   = pConstructor;
+            c.$self     = c;
+
+            if (name) {
+                ns.register(name, c);
+            }
+
+            return c;
+        };
+
+
+
+
+        /**
+         * Instantiate class
+         * @function MetaphorJs.create
+         * @param {string} name Full name of the class
+         */
+        var instantiate = function(name) {
+
+            var cls     = ns.get(name),
+                args    = slice.call(arguments, 1);
+
+            if (!cls) {
+                throw new Error(name + " not found");
+            }
+
+            return cls.$instantiate.apply(cls, args);
+        };
+
+
+
+        /**
+         * Is cmp instance of cls
+         * @function MetaphorJs.is
+         * @param {object} cmp
+         * @param {string|object} cls
+         * @returns boolean
+         */
+        var isInstanceOf = function(cmp, cls) {
+            var _cls    = isString(cls) ? ns.get(cls) : cls;
+            return _cls ? cmp instanceof _cls : false;
+        };
+
+
+
+        /**
+         * Is one class subclass of another class
+         * @function MetaphorJs.isSubclass
+         * @param {string|object} childClass
+         * @param {string|object} parentClass
+         * @return bool
+         * @alias MetaphorJs.iss
+         */
+        var isSubclassOf = function(childClass, parentClass) {
+
+            var p   = childClass,
+                g   = ns.get;
+
+            if (!isString(parentClass)) {
+                parentClass  = parentClass.prototype.$class;
+            }
+            else {
+                parentClass = ns.normalize(parentClass);
+            }
+            if (isString(childClass)) {
+                p   = g(ns.normalize(childClass));
+            }
+
+            while (p && p.prototype) {
+
+                if (p.prototype.$class == parentClass) {
+                    return true;
+                }
+
+                p = p.$parent;
+            }
+
+            return false;
+        };
+
+        var self    = this;
+
+        self.factory = instantiate;
+        self.isSubclassOf = isSubclassOf;
+        self.isInstanceOf = isInstanceOf;
+        self.define = define;
+        self.BaseClass = BaseClass;
+
     };
 
-    var self    = this;
+    Class.prototype = {
 
-    self.factory = instantiate;
-    self.isSubclassOf = isSubclassOf;
-    self.isInstanceOf = isInstanceOf;
-    self.define = define;
-    self.defineCache = defineCache;
-    self.extend = extendClass;
+        factory: null,
+        isSubclassOf: null,
+        isInstanceOf: null,
+        define: null
+    };
 
-};
+    return Class;
 
-Class.prototype = {
-
-    factory: null,
-    isSubclassOf: null,
-    isInstanceOf: null,
-    define: null,
-    defineCache: null,
-    extend: null
-
-};
-
-
+}();
 
 
 
@@ -719,16 +728,20 @@ var bind = Function.prototype.bind ?
 
 
 
-var isPlainObject = function(value) {
+function isPlainObject(value) {
     // IE < 9 returns [object Object] from toString(htmlElement)
-    return typeof value == "object" && varType(value) === 3 && !value.nodeType;
+    return typeof value == "object" &&
+           varType(value) === 3 &&
+            !value.nodeType &&
+            value.constructor === Object;
+
 };
 
 
-var isBool = function(value) {
+function isBool(value) {
     return value === true || value === false;
 };
-var isNull = function(value) {
+function isNull(value) {
     return value === null;
 };
 
@@ -807,7 +820,7 @@ var nextUid = function(){
     var uid = ['0', '0', '0'];
 
     // from AngularJs
-    return function() {
+    return function nextUid() {
         var index = uid.length;
         var digit;
 
@@ -830,7 +843,7 @@ var nextUid = function(){
     };
 }();
 
-var getAttr = function(el, name) {
+function getAttr(el, name) {
     return el.getAttribute(name);
 };
 
@@ -878,7 +891,7 @@ var Observable = function() {
 };
 
 
-Observable.prototype = {
+extend(Observable.prototype, {
 
     /**
     * <p>You don't have to call this function unless you want to pass returnResult param.
@@ -943,7 +956,7 @@ Observable.prototype = {
     *       Callback function
     *       @required
     * }
-    * @param {object} scope "this" object for the callback function
+    * @param {object} context "this" object for the callback function
     * @param {object} options {
     *       @type bool first {
     *           True to prepend to the list of handlers
@@ -962,13 +975,13 @@ Observable.prototype = {
      *      @type bool allowDupes allow the same handler twice
     * }
     */
-    on: function(name, fn, scope, options) {
+    on: function(name, fn, context, options) {
         name = name.toLowerCase();
         var events  = this.events;
         if (!events[name]) {
             events[name] = new Event(name);
         }
-        return events[name].on(fn, scope, options);
+        return events[name].on(fn, context, options);
     },
 
     /**
@@ -977,10 +990,10 @@ Observable.prototype = {
     * @md-apply on
     * @access public
     */
-    once: function(name, fn, scope, options) {
+    once: function(name, fn, context, options) {
         options     = options || {};
         options.limit = 1;
-        return this.on(name, fn, scope, options);
+        return this.on(name, fn, context, options);
     },
 
 
@@ -990,15 +1003,15 @@ Observable.prototype = {
     * @access public
     * @param {string} name Event name
     * @param {function} fn Event handler
-    * @param {object} scope If you called on() with scope you must call un() with the same scope
+    * @param {object} context If you called on() with context you must call un() with the same context
     */
-    un: function(name, fn, scope) {
+    un: function(name, fn, context) {
         name = name.toLowerCase();
         var events  = this.events;
         if (!events[name]) {
             return;
         }
-        events[name].un(fn, scope);
+        events[name].un(fn, context);
     },
 
     /**
@@ -1013,16 +1026,16 @@ Observable.prototype = {
     * @access public
     * @param {string} name Event name { @required }
     * @param {function} fn Callback function { @required }
-    * @param {object} scope Function's "this" object
+    * @param {object} context Function's "this" object
     * @return bool
     */
-    hasListener: function(name, fn, scope) {
+    hasListener: function(name, fn, context) {
         name = name.toLowerCase();
         var events  = this.events;
         if (!events[name]) {
             return false;
         }
-        return events[name].hasListener(fn, scope);
+        return events[name].hasListener(fn, context);
     },
 
 
@@ -1192,7 +1205,7 @@ Observable.prototype = {
 
         return self.api;
     }
-};
+}, true, false);
 
 
 /**
@@ -1215,7 +1228,7 @@ var Event = function(name, returnResult) {
 };
 
 
-Event.prototype = {
+extend(Event.prototype, {
 
     getName: function() {
         return this.name;
@@ -1233,36 +1246,36 @@ Event.prototype = {
     /**
      * @method
      * @param {function} fn Callback function { @required }
-     * @param {object} scope Function's "this" object
+     * @param {object} context Function's "this" object
      * @param {object} options See Observable's on()
      */
-    on: function(fn, scope, options) {
+    on: function(fn, context, options) {
 
         if (!fn) {
             return null;
         }
 
-        scope       = scope || null;
+        context     = context || null;
         options     = options || {};
 
         var self        = this,
             uni         = self.uni,
-            uniScope    = scope || fn;
+            uniContext  = context || fn;
 
-        if (uniScope[uni] && !options.allowDupes) {
+        if (uniContext[uni] && !options.allowDupes) {
             return null;
         }
 
         var id      = ++self.lid,
             first   = options.first || false;
 
-        uniScope[uni]  = id;
+        uniContext[uni]  = id;
 
 
         var e = {
             fn:         fn,
-            scope:      scope,
-            uniScope:   uniScope,
+            context:    context,
+            uniContext: uniContext,
             id:         id,
             called:     0, // how many times the function was triggered
             limit:      options.limit || 0, // how many times the function is allowed to trigger
@@ -1287,23 +1300,23 @@ Event.prototype = {
     /**
      * @method
      * @param {function} fn Callback function { @required }
-     * @param {object} scope Function's "this" object
+     * @param {object} context Function's "this" object
      * @param {object} options See Observable's on()
      */
-    once: function(fn, scope, options) {
+    once: function(fn, context, options) {
 
         options = options || {};
         options.once = true;
 
-        return this.on(fn, scope, options);
+        return this.on(fn, context, options);
     },
 
     /**
      * @method
      * @param {function} fn Callback function { @required }
-     * @param {object} scope Function's "this" object
+     * @param {object} context Function's "this" object
      */
-    un: function(fn, scope) {
+    un: function(fn, context) {
 
         var self        = this,
             inx         = -1,
@@ -1315,8 +1328,8 @@ Event.prototype = {
             id      = fn;
         }
         else {
-            scope   = scope || fn;
-            id      = scope[uni];
+            context = context || fn;
+            id      = context[uni];
         }
 
         if (!id) {
@@ -1326,7 +1339,7 @@ Event.prototype = {
         for (var i = 0, len = listeners.length; i < len; i++) {
             if (listeners[i].id == id) {
                 inx = i;
-                delete listeners[i].uniScope[uni];
+                delete listeners[i].uniContext[uni];
                 break;
             }
         }
@@ -1348,10 +1361,10 @@ Event.prototype = {
     /**
      * @method
      * @param {function} fn Callback function { @required }
-     * @param {object} scope Function's "this" object
+     * @param {object} context Function's "this" object
      * @return bool
      */
-    hasListener: function(fn, scope) {
+    hasListener: function(fn, context) {
 
         var self    = this,
             listeners   = self.listeners,
@@ -1359,13 +1372,13 @@ Event.prototype = {
 
         if (fn) {
 
-            scope   = scope || fn;
+            context = context || fn;
 
             if (!isFunction(fn)) {
                 id  = fn;
             }
             else {
-                id  = scope[self.uni];
+                id  = context[self.uni];
             }
 
             if (!id) {
@@ -1396,7 +1409,7 @@ Event.prototype = {
             i, len;
 
         for (i = 0, len = listeners.length; i < len; i++) {
-            delete listeners[i].uniScope[uni];
+            delete listeners[i].uniContext[uni];
         }
         self.listeners   = [];
         self.map         = {};
@@ -1478,7 +1491,7 @@ Event.prototype = {
                 continue;
             }
 
-            res = l.fn.apply(l.scope, self._prepareArgs(l, arguments));
+            res = l.fn.apply(l.context, self._prepareArgs(l, arguments));
 
             l.called++;
 
@@ -1507,7 +1520,7 @@ Event.prototype = {
             return ret;
         }
     }
-};
+}, true, false);
 
 
 
@@ -1517,7 +1530,7 @@ Event.prototype = {
  * @param {*} value
  * @returns {boolean}
  */
-var isArray = function(value) {
+function isArray(value) {
     return typeof value == "object" && varType(value) === 5;
 };
 
@@ -1539,15 +1552,15 @@ var trim = function() {
 }();
 
 
-var isDate = function(value) {
+function isDate(value) {
     return varType(value) === 10;
 };
 
 
-var isRegExp = function(value) {
+function isRegExp(value) {
     return varType(value) === 9;
 };
-var isWindow = function(obj) {
+function isWindow(obj) {
     return obj === window ||
            (obj && obj.document && obj.location && obj.alert && obj.setInterval);
 };
@@ -1557,7 +1570,7 @@ var isWindow = function(obj) {
 
 var equals = function(){
 
-    var equals = function(o1, o2) {
+    var equals = function equals(o1, o2) {
         if (o1 === o2) return true;
         if (o1 === null || o2 === null) return false;
         if (o1 !== o1 && o2 !== o2) return true; // NaN === NaN
@@ -1610,7 +1623,7 @@ var equals = function(){
 
 var copy = function(){
 
-    var copy = function(source, dest){
+    var copy = function copy(source, dest){
         if (isWindow(source)) {
             throw new Error("Cannot copy window object");
         }
@@ -1661,13 +1674,54 @@ var copy = function(){
 }();
 
 
-var isPrimitive = function(value) {
+function isPrimitive(value) {
     var vt = varType(value);
     return vt < 3 && vt > -1;
+};// https://gist.github.com/jdalton/5e34d890105aca44399f
+
+var isNative = function() {
+
+    // Used to resolve the internal `[[Class]]` of values.
+    var toString = Object.prototype.toString;
+
+    // Used to resolve the decompiled source of functions.
+    var fnToString = Function.prototype.toString;
+
+    // Used to detect host constructors (Safari > 4; really typed array specific).
+    var reHostCtor = /^\[object .+?Constructor\]$/;
+
+    // Compile a regexp using a common native method as a template.
+    // We chose `Object#toString` because there's a good chance it is not being mucked with.
+    var reNative = RegExp('^' +
+                          // Coerce `Object#toString` to a string.
+                          String(toString)
+                              // Escape any special regexp characters.
+                              .replace(/[.*+?^${}()|[\]\/\\]/g, '\\$&')
+                              // Replace mentions of `toString` with `.*?` to keep the template generic.
+                              // Replace thing like `for ...` to support environments, like Rhino, which add extra
+                              // info such as method arity.
+                              .replace(/toString|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$'
+    );
+
+    return function isNative(value) {
+        var type = typeof value;
+        return type == 'function'
+            // Use `Function#toString` to bypass the value's own `toString` method
+            // and avoid being faked out.
+            ? (!('prototype' in value) || reNative.test(fnToString.call(value)))
+            // Fallback to a host object check because some environments will represent
+            // things like typed arrays as DOM methods which may not conform to the
+            // normal native pattern.
+            : (value && type == 'object' && reHostCtor.test(toString.call(value))) || false;
+    };
+
+}();
+function returnFalse() {
+    return false;
 };
 
 
-var levenshteinArray = function(from, to) {
+function levenshteinArray(from, to) {
 
     var m = from.length,
         n = to.length,
@@ -1764,11 +1818,13 @@ var functionFactory = function() {
 
         f               = Function,
         fnBodyStart     = 'try {',
-        getterBodyEnd   = ';} catch (thrownError) { return $$interceptor(thrownError, $$itself, ____); }',
-        setterBodyEnd   = ';} catch (thrownError) { return $$interceptor(thrownError, $$itself, ____, $$$$); }',
+        //getterBodyEnd   = ';} catch (thrownError) { return $$interceptor(thrownError, $$itself, ____); }',
+        //setterBodyEnd   = ';} catch (thrownError) { return $$interceptor(thrownError, $$itself, ____, $$$$); }',
+        getterBodyEnd   = ';} catch (thrownError) { return undefined; }',
+        setterBodyEnd   = ';} catch (thrownError) { return undefined; }',
 
 
-        interceptor     = function(thrownError, func, scope, value) {
+        /*interceptor     = function(thrownError, func, scope, value) {
 
             while (scope && !scope.$isRoot) {
 
@@ -1793,23 +1849,35 @@ var functionFactory = function() {
             }
 
             return undf;
-        },
+        },*/
 
         isFailed        = function(val) {
             return val === undf || (typeof val == "number" && isNaN(val));
         },
 
         wrapFunc        = function(func, returnsValue) {
-            return function() {
+            return function(scope) {
                 var args = slice.call(arguments),
                     val;
 
-                args.push(interceptor);
+                //args.push(interceptor);
+                args.push(null);
                 args.push(func);
 
-                val = func.apply(null, args);
+                if (returnsValue) {
+                    val = func.apply(null, args);
+                    while (isFailed(val) && !scope.$isRoot) {
+                        scope = scope.$parent;
+                        args[0] = scope;
+                        val = func.apply(null, args);
+                    }
+                    return val;
+                }
+                else {
+                    return func.apply(null, args);
+                }
 
-                if (returnsValue && isFailed(val)) {//) {
+                /*if (returnsValue && isFailed(val)) {//) {
                     args = slice.call(arguments);
                     args.unshift(func);
                     args.unshift(null);
@@ -1817,7 +1885,7 @@ var functionFactory = function() {
                 }
                 else {
                     return val;
-                }
+                }*/
             };
         },
 
@@ -1916,9 +1984,9 @@ var createSetter = functionFactory.createSetter;
 
 var Watchable = function(){
 
-    
+    var nativeObserver  = Object.observe && isNative(Object.observe),
 
-    var isStatic    = function(val) {
+        isStatic    = function(val) {
 
             if (!isString(val)) {
                 return true;
@@ -1991,7 +2059,8 @@ var Watchable = function(){
 
         var self    = this,
             id      = nextUid(),
-            type;
+            type,
+            useObserver = false;
 
         if (namespace) {
             self.namespace = namespace;
@@ -2052,11 +2121,34 @@ var Watchable = function(){
             self.getterFn   = createGetter(code);
         }
 
-        self.curr       = self._getValue();
-        self.currCopy   = isPrimitive(self.curr) ? self.curr : copy(self.curr);
+        // disable Observer.observe() for now.
+        // it doesn't work with expressions and may confuse more than help.
+
+        /*if (type == "attr" && nativeObserver && !self.pipes && !self.inputPipes) {
+            self.curr   = self._getValue();
+            useObserver = isPrimitive(self.curr);
+        }*/
+        //useObserver = false;
+
+        if (type != "static" || self.pipes) {
+            self.curr = self.curr || self._getValue();
+            if (!useObserver) {
+                self.currCopy = isPrimitive(self.curr) ? self.curr : copy(self.curr);
+            }
+        }
+        else {
+            self.check = returnFalse;
+            self.curr = self.prev = self.staticValue;
+        }
+
+        if (useObserver) {
+            self.obsrvDelegate = bind(self.onObserverChange, self);
+            self.check = returnFalse;
+            Object.observe(self.obj, self.obsrvDelegate);
+        }
     };
 
-    Watchable.prototype = {
+    extend(Watchable.prototype, {
 
         namespace: null,
         nsGet: null,
@@ -2077,6 +2169,7 @@ var Watchable = function(){
         inputPipes: null,
         lastSetValue: null,
         userData: null,
+        obsrvDelegate: null,
 
 
         _indexArrayItems: function(a) {
@@ -2314,7 +2407,7 @@ var Watchable = function(){
 
         getPrescription: function(from, to) {
             to = to || this._getValue();
-            return levenshteinArray(from, to).prescription;
+            return levenshteinArray(from || [], to || []).prescription;
         },
 
         getMovePrescription: function(from, trackByFn, to) {
@@ -2323,9 +2416,9 @@ var Watchable = function(){
                 to      = to || self._getValue();
 
             return prescription2moves(
-                from,
-                to,
-                self.getPrescription(from, to),
+                from || [],
+                to || [],
+                self.getPrescription(from || [], to || []),
                 trackByFn
             );
         },
@@ -2349,23 +2442,43 @@ var Watchable = function(){
                 }
 
                 self.setterFn(self.obj, val);
-                //console.log(self.code, val, self.obj, self.setterFn)
-                //console.log(self.obj.todo.done)
             }
             else if (type == "object") {
                 self.obj = val;
             }
         },
 
-        onInputParamChange: function() {
+        onInputParamChange: function(val, prev, async) {
             this.setValue(this.lastSetValue);
+            if (async) {
+                this.checkAll();
+            }
         },
 
-        onPipeParamChange: function() {
+        onPipeParamChange: function(val, prev, async) {
             this.check();
         },
 
-        check: function() {
+        /*onObserverChange: function(changes) {
+
+            var self = this,
+                code = self.code,
+                prev = self.curr,
+                i, l,
+                change;
+
+            for (i = 0, l = changes.length; i < l; i++) {
+                change = changes[i];
+                if (change.name == code) {
+                    self.prev = prev;
+                    self.curr = self._getValue(); // enforce pipes
+                    observable.trigger(self.id, self.curr, prev, true);
+                    break;
+                }
+            }
+        },*/
+
+        _check: function(async) {
 
             var self    = this,
                 val     = self._getValue(),
@@ -2375,11 +2488,15 @@ var Watchable = function(){
                 self.curr = val;
                 self.prev = curr;
                 self.currCopy = isPrimitive(val) ? val : copy(val);
-                observable.trigger(self.id, val, curr);
+                observable.trigger(self.id, val, curr, async);
                 return true;
             }
 
             return false;
+        },
+
+        check: function(async) {
+            return this._check(async);
         },
 
         checkAll: function() {
@@ -2454,31 +2571,23 @@ var Watchable = function(){
                 }
             }
 
-            if (self.obj) {
-                delete self.obj.$$watchers[self.origCode];
+            if (self.obsrvDelegate) {
+                Object.unobserve(self.obj, self.obsrvDelegate);
             }
 
-            delete self.id;
-            delete self.curr;
-            delete self.prev;
-            delete self.unfiltered;
-            delete self.obj;
-            delete self.pipes;
-            delete self.inputPipes;
-            delete self.origCode;
-            delete self.code;
-            delete self.getterFn;
-            delete self.setterFn;
-            delete self.lastSetValue;
-            delete self.staticValue;
-            delete self.userData;
-            delete self.namespace;
-            delete self.nsGet;
+            if (self.obj) {
+                delete self.obj.$$watchers.$codes[self.origCode];
+            }
 
             observable.destroyEvent(self.id);
 
+            for (i in self) {
+                if (self.hasOwnProperty(i)){
+                    self[i] = null;
+                }
+            }
         }
-    };
+    }, true, false);
 
 
     var create = function(obj, code, fn, fnScope, userData, namespace) {
@@ -2488,18 +2597,16 @@ var Watchable = function(){
             if (obj) {
                 if (!obj.$$watchers) {
                     obj.$$watchers = {
+                        $codes: {},
                         $checkAll: function() {
 
-                            var self    = this,
+                            var ws      = this.$codes,
                                 i,
                                 changes = 0;
 
-                            for (i in self) {
+                            for (i in ws) {
 
-                                if (i.charAt(0) != '$' && self[i].check()) {
-                                    changes++;
-                                }
-                                else if (i.charAt(0) == '$' && self[i] instanceof Watchable && self[i].check()) {
+                                if (ws[i].check()) {
                                     changes++;
                                 }
                             }
@@ -2508,27 +2615,25 @@ var Watchable = function(){
                         },
                         $destroyAll: function() {
 
-                            var self    = this,
+                            var ws      = this.$codes,
                                 i;
 
-                            for (i in self) {
-                                if (i.charAt(0) != '$' || self[i] instanceof Watchable) {
-                                    self[i].destroy();
-                                    delete self[i];
-                                }
+                            for (i in ws) {
+                                ws[i].destroy();
+                                delete ws[i];
                             }
                         }
                     };
                 }
 
-                if (obj.$$watchers[code]) {
-                    obj.$$watchers[code].subscribe(fn, fnScope, {append: [userData], allowDupes: true});
+                if (obj.$$watchers.$codes[code]) {
+                    obj.$$watchers.$codes[code].subscribe(fn, fnScope, {append: [userData], allowDupes: true});
                 }
                 else {
-                    obj.$$watchers[code] = new Watchable(obj, code, fn, fnScope, userData, namespace);
+                    obj.$$watchers.$codes[code] = new Watchable(obj, code, fn, fnScope, userData, namespace);
                 }
 
-                return obj.$$watchers[code];
+                return obj.$$watchers.$codes[code];
             }
             else {
                 return new Watchable(obj, code, fn, fnScope, userData, namespace);
@@ -2538,7 +2643,7 @@ var Watchable = function(){
         unsubscribeAndDestroy = function(obj, code, fn, fnScope) {
             code = trim(code);
 
-            var ws = obj.$$watchers;
+            var ws = obj.$$watchers ? obj.$$watchers.$codes : null;
 
             if (ws && ws[code] && ws[code].unsubscribeAndDestroy(fn, fnScope)) {
                 delete ws[code];
@@ -2576,7 +2681,9 @@ var Watchable = function(){
     Watchable.unsubscribeAndDestroy = unsubscribeAndDestroy;
     Watchable.normalizeExpr = normalizeExpr;
     Watchable.eval = evaluate;
-
+    Watchable.usesNativeObserver = function() {
+        return nativeObserver;
+    };
 
     return Watchable;
 }();
@@ -2602,7 +2709,7 @@ var Scope = function(cfg) {
     }
 };
 
-Scope.prototype = {
+extend(Scope.prototype, {
 
     $app: null,
     $parent: null,
@@ -2711,6 +2818,10 @@ Scope.prototype = {
         if (!self.$$destroyed) {
             self.$$observable.trigger("check", changes);
         }
+
+        if (changes > 0) {
+            self.$check();
+        }
     },
 
     $destroy: function() {
@@ -2721,25 +2832,25 @@ Scope.prototype = {
         self.$$observable.trigger("destroy");
         self.$$observable.destroy();
 
-        delete self.$$observable;
-        delete self.$app;
-        delete self.$root;
-        delete self.$parent;
+        self.$$observable = null;
+        self.$app = null;
+        self.$root = null;
+        self.$parent = null;
 
         if (self.$$watchers) {
             self.$$watchers.$destroyAll();
-            delete self.$$watchers;
+            self.$$watchers = null;
         }
 
         for (param in self.$$historyWatchers) {
             self.$unwatchHistory(param);
         }
-        delete self.$$historyWatchers;
+        self.$$historyWatchers = null;
 
         self.$$destroyed = true;
     }
 
-};
+}, true, false);
 
 
 
@@ -2749,7 +2860,7 @@ Scope.prototype = {
  * @param {*} list
  * @returns {[]}
  */
-var toArray = function(list) {
+function toArray(list) {
     if (list && !list.length != undf && list !== ""+list) {
         for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]){}
         return a;
@@ -2768,7 +2879,7 @@ var toArray = function(list) {
  * @param {*} any
  * @returns {Function|boolean}
  */
-var isThenable = function(any) {
+function isThenable(any) {
     if (!any || !any.then) {
         return false;
     }
@@ -3438,7 +3549,7 @@ var TextRenderer = function(){
         self.render();
     };
 
-    TextRenderer.prototype = {
+    extend(TextRenderer.prototype, {
 
         id: null,
         parent: null,
@@ -3687,31 +3798,26 @@ var TextRenderer = function(){
 
         destroy: function() {
 
-            var self    = this;
+            var self    = this,
+                i;
 
             self.destroyChildren();
             self.destroyWatchers();
 
             observer.destroyEvent(self.id);
 
-            delete self.watchers;
-            delete self.children;
-            delete self.origin;
-            delete self.processed;
-            delete self.text;
-            delete self.scope;
-            delete self.data;
-            delete self.dataChangeDelegate;
-            delete self.lang;
-
             if (self.changeTmt) {
                 clearTimeout(self.changeTmt);
             }
-            delete self.changeTmt;
 
+            for (i in self) {
+                if (self.hasOwnProperty(i)){
+                    self[i] = null;
+                }
+            }
         }
 
-    };
+    }, true, false);
 
     TextRenderer.create = factory;
 
@@ -3721,13 +3827,13 @@ var TextRenderer = function(){
 
 
 
-var setAttr = function(el, name, value) {
+function setAttr(el, name, value) {
     return el.setAttribute(name, value);
 };
-var removeAttr = function(el, name) {
+function removeAttr(el, name) {
     return el.removeAttribute(name);
 };
-var getAttrMap = function(node) {
+function getAttrMap(node) {
     var map = {},
         i, l, a,
         attrs = node.attributes;
@@ -3755,7 +3861,7 @@ var data = function(){
      * @param {String} key
      * @param {*} value optional
      */
-    return function(el, key, value) {
+    return function data(el, key, value) {
         var id  = getNodeId(el),
             obj = dataCache[id];
 
@@ -3772,7 +3878,6 @@ var data = function(){
     };
 
 }();
-
 
 
 
@@ -3903,7 +4008,7 @@ var Promise = function(){
         }
     };
 
-    Promise.prototype = {
+    extend(Promise.prototype, {
 
         _state: PENDING,
 
@@ -3934,10 +4039,10 @@ var Promise = function(){
         _cleanup: function() {
             var self    = this;
 
-            delete self._fulfills;
-            delete self._rejects;
-            delete self._dones;
-            delete self._fails;
+            self._fulfills = null;
+            self._rejects = null;
+            self._dones = null;
+            self._fails = null;
         },
 
         _processValue: function(value, cb) {
@@ -4269,7 +4374,7 @@ var Promise = function(){
 
             return self;
         }
-    };
+    }, true, false);
 
 
     Promise.fcall = function(fn, context, args) {
@@ -4519,7 +4624,7 @@ var directives = function() {
         };
 
     return {
-        registerAttributeHandler: function(name, priority, handler) {
+        registerAttributeHandler: function registerAttributeHandler(name, priority, handler) {
             if (!nsGet("attr." + name, true)) {
                 attributeHandlers.push({
                     priority: priority,
@@ -4530,7 +4635,7 @@ var directives = function() {
             }
         },
 
-        getAttributeHandlers: function() {
+        getAttributeHandlers: function getAttributeHandlers() {
             if (!attributesSorted) {
                 attributeHandlers.sort(compare);
                 attributesSorted = true;
@@ -4538,7 +4643,7 @@ var directives = function() {
             return attributeHandlers;
         },
 
-        registerTagHandler: function(name, priority, handler) {
+        registerTagHandler: function registerTagHandler(name, priority, handler) {
             if (!nsGet("tag." + name, true)) {
                 tagHandlers.push({
                     priority: priority,
@@ -4549,7 +4654,7 @@ var directives = function() {
             }
         },
 
-        getTagHandlers: function() {
+        getTagHandlers: function getTagHandlers() {
             if (!tagsSorted) {
                 tagHandlers.sort(compare);
                 tagsSorted = true;
@@ -4759,7 +4864,7 @@ var Renderer = function(){
         }
     };
 
-    Renderer.prototype = {
+    extend(Renderer.prototype, {
 
         id: null,
         el: null,
@@ -4771,6 +4876,10 @@ var Renderer = function(){
 
         on: function(event, fn, context) {
             return observer.on(event + '-' + this.id, fn, context);
+        },
+
+        once: function(event, fn, context) {
+            return observer.once(event + '-' + this.id, fn, context);
         },
 
         un: function(event, fn, context) {
@@ -4999,14 +5108,14 @@ var Renderer = function(){
                 self.parent.un("destroy", self.destroy, self);
             }
 
-            delete self.texts;
-            delete self.el;
-            delete self.scope;
-            delete self.parent;
+            self.texts = null;
+            self.el = null;
+            self.scope = null;
+            self.parent = null;
 
             observer.trigger("destroy-" + self.id);
         }
-    };
+    }, true, false);
 
 
     return Renderer;
@@ -5030,7 +5139,7 @@ var Provider = function(){
         this.store  = {};
     };
 
-    Provider.prototype = {
+    extend(Provider.prototype, {
 
         store: null,
 
@@ -5051,23 +5160,13 @@ var Provider = function(){
 
         instantiate: function(fn, context, args, isClass) {
 
-            if (fn.instantiate) {
-                return fn.instantiate.apply(null, args);
+            if (fn.$instantiate) {
+                return fn.$instantiate.apply(fn, args);
             }
             else if (isClass) {
-                var Temp = function(){},
-                inst, ret;
-
-                Temp.prototype  = fn.prototype;
-                inst            = new Temp;
-                ret             = fn.apply(inst, args);
-
-                // If an object has been returned then return it otherwise
-                // return the original instance.
-                // (consistent with behaviour of the new operator)
-                return isObject(ret) || ret === false ? ret : inst;
+                return instantiate(fn, args);
             }
-            else {//if (context) {
+            else {
                 return fn.apply(context, args);
             }
         },
@@ -5231,11 +5330,11 @@ var Provider = function(){
         },
 
         destroy: function() {
-            delete this.store;
-            delete this.scope;
+            this.store = null;
+            this.scope = null;
         }
 
-    };
+    }, true, false);
 
     Provider.global = function() {
         return globalProvider;
@@ -5432,7 +5531,7 @@ var Text = function(){
         }
     };
 
-    Text.prototype = {
+    extend(Text.prototype, {
 
         store: null,
         locale: "en",
@@ -5485,7 +5584,7 @@ var Text = function(){
             }
         }
 
-    };
+    }, true, false);
 
 
     var globalText  = new Text;
@@ -5506,7 +5605,9 @@ var Text = function(){
  * @namespace MetaphorJs
  * @class MetaphorJs.cmp.Base
  */
- defineClass("MetaphorJs.cmp.Base", {
+defineClass({
+
+    $class: "MetaphorJs.cmp.Base",
 
     /**
      * @var bool
@@ -5535,6 +5636,7 @@ var Text = function(){
 
             var cb      = cfg.callback,
                 scope   = cb.scope || self;
+
             delete cb.scope;
 
             for (var k in cb) {
@@ -5570,8 +5672,9 @@ var Text = function(){
         self.trigger('destroy', self);
 
         self.$$observable.destroy();
-        delete this.$$observable;
+        self.$$observable = null;
 
+        self.supr();
     },
 
     /**
@@ -5588,7 +5691,10 @@ var Text = function(){
 
 
 
- defineClass("MetaphorJs.cmp.App", "MetaphorJs.cmp.Base", {
+defineClass({
+
+    $class: "MetaphorJs.cmp.App",
+    $extends: "MetaphorJs.cmp.Base",
 
     lang: null,
     scope: null,
@@ -5716,9 +5822,11 @@ var Text = function(){
 
         for (i in self) {
             if (self.hasOwnProperty(i)) {
-                delete self[i];
+                self[i] = null;
             }
         }
+
+        self.supr();
     }
 
 });
@@ -5729,7 +5837,7 @@ var elHtml = document.documentElement;
 
 
 var isAttached = function(){
-    var isAttached = function(node) {
+    var isAttached = function isAttached(node) {
         if (node === window) {
             return true;
         }
@@ -5747,7 +5855,7 @@ var isAttached = function(){
 }();
 
 
-var toFragment = function(nodes) {
+function toFragment(nodes) {
 
     var fragment = document.createDocumentFragment();
 
@@ -5772,7 +5880,7 @@ var toFragment = function(nodes) {
  * @param {[]|Element} node
  * @returns {[]|Element}
  */
-var clone = function(node) {
+var clone = function clone(node) {
 
     var i, len, cloned;
 
@@ -5934,7 +6042,7 @@ var getRegExp = function(){
 
     var cache = {};
 
-    return function(expr) {
+    return function getRegExp(expr) {
         return cache[expr] || (cache[expr] = new RegExp(expr));
     };
 }();
@@ -5944,7 +6052,7 @@ var getRegExp = function(){
  * @param {String} cls
  * @returns {RegExp}
  */
-var getClsReg = function(cls) {
+function getClsReg(cls) {
     return getRegExp('(?:^|\\s)'+cls+'(?!\\S)');
 };
 
@@ -5953,7 +6061,7 @@ var getClsReg = function(cls) {
  * @param {Element} el
  * @param {String} cls
  */
-var removeClass = function(el, cls) {
+function removeClass(el, cls) {
     if (cls) {
         el.className = el.className.replace(getClsReg(cls), '');
     }
@@ -5999,7 +6107,7 @@ var stopAnimation = function(el) {
  * @param {String} cls
  * @returns {boolean}
  */
-var hasClass = function(el, cls) {
+function hasClass(el, cls) {
     return cls ? getClsReg(cls).test(el.className) : false;
 };
 
@@ -6008,7 +6116,7 @@ var hasClass = function(el, cls) {
  * @param {Element} el
  * @param {String} cls
  */
-var addClass = function(el, cls) {
+function addClass(el, cls) {
     if (cls && !hasClass(el, cls)) {
         el.className += " " + cls;
     }
@@ -6047,7 +6155,7 @@ var raf = function() {
         }
     };
 }();
-var addListener = function(el, event, func) {
+function addListener(el, event, func) {
     if (el.attachEvent) {
         el.attachEvent('on' + event, func);
     } else {
@@ -6055,7 +6163,7 @@ var addListener = function(el, event, func) {
     }
 };
 
-var removeListener = function(el, event, func) {
+function removeListener(el, event, func) {
     if (el.detachEvent) {
         el.detachEvent('on' + event, func);
     } else {
@@ -6125,9 +6233,9 @@ var animate = function(){
 
             var finishStage = function() {
 
-                if (prefixes.transitionend) {
-                    removeListener(el, prefixes.transitionend, finishStage);
-                }
+                //if (prefixes.transitionend) {
+                //    removeListener(el, prefixes.transitionend, finishStage);
+                //}
 
                 if (stopped()) {
                     return;
@@ -6163,12 +6271,15 @@ var animate = function(){
                                 var duration = getAnimationDuration(el);
 
                                 if (duration) {
-                                    if (prefixes.transitionend) {
-                                        addListener(el, prefixes.transitionend, finishStage);
-                                    }
-                                    else {
+                                    // i don't understand how transitionend works.
+                                    // it just doesn't fire sometimes! :(
+
+                                    //if (prefixes.transitionend) {
+                                    //    addListener(el, prefixes.transitionend, finishStage);
+                                    //}
+                                    //else {
                                         callTimeout(finishStage, (new Date).getTime(), duration);
-                                    }
+                                    //}
                                 }
                                 else {
                                     raf(finishStage);
@@ -6363,7 +6474,7 @@ var parseJSON = function() {
 
 
 
-var parseXML = function(data, type) {
+function parseXML(data, type) {
 
     var xml, tmp;
 
@@ -6731,7 +6842,7 @@ var ajax = function(){
         }
     };
 
-    AJAX.prototype = {
+    extend(AJAX.prototype, {
 
         _jsonpName: null,
         _transport: null,
@@ -6881,12 +6992,12 @@ var ajax = function(){
 
             self._transport.destroy();
 
-            delete self._transport;
-            delete self._opt;
-            delete self._deferred;
-            delete self._promise;
-            delete self._timeout;
-            delete self._form;
+            self._transport = null;
+            self._opt = null;
+            self._deferred = null;
+            self._promise = null;
+            self._timeout = null;
+            self._form = null;
 
             if (self._jsonpName) {
                 if (typeof window != strUndef) {
@@ -6897,7 +7008,7 @@ var ajax = function(){
                 }
             }
         }
-    };
+    }, true, false);
 
 
 
@@ -7023,7 +7134,7 @@ var ajax = function(){
         xhr.onreadystatechange = bind(self.onReadyStateChange, self);
     };
 
-    XHRTransport.prototype = {
+    extend(XHRTransport.prototype, {
 
         _xhr: null,
         _deferred: null,
@@ -7108,14 +7219,14 @@ var ajax = function(){
         destroy: function() {
             var self    = this;
 
-            delete self._xhr;
-            delete self._deferred;
-            delete self._opt;
-            delete self._ajax;
+            self._xhr = null;
+            self._deferred = null;
+            self._opt = null;
+            self._ajax = null;
 
         }
 
-    };
+    }, true, false);
 
 
 
@@ -7130,7 +7241,7 @@ var ajax = function(){
 
     };
 
-    ScriptTransport.prototype = {
+    extend(ScriptTransport.prototype, {
 
         _opt: null,
         _deferred: null,
@@ -7180,14 +7291,14 @@ var ajax = function(){
                 self._el.parentNode.removeChild(self._el);
             }
 
-            delete self._el;
-            delete self._opt;
-            delete self._ajax;
-            delete self._deferred;
+            self._el = null;
+            self._opt = null;
+            self._ajax = null;
+            self._deferred = null;
 
         }
 
-    };
+    }, true, false);
 
 
 
@@ -7199,7 +7310,7 @@ var ajax = function(){
         self._deferred  = deferred;
     };
 
-    IframeTransport.prototype = {
+    extend(IframeTransport.prototype, {
 
         _opt: null,
         _deferred: null,
@@ -7267,14 +7378,14 @@ var ajax = function(){
                 self._el.parentNode.removeChild(self._el);
             }
 
-            delete self._el;
-            delete self._opt;
-            delete self._ajax;
-            delete self._deferred;
+            self._el = null;
+            self._opt = null;
+            self._ajax = null;
+            self._deferred = null;
 
         }
 
-    };
+    }, true, false);
 
     return ajax;
 }();
@@ -7395,7 +7506,7 @@ var Template = function(){
         }
     };
 
-    Template.prototype = {
+    extend(Template.prototype, {
 
         _watcher:           null,
         _tpl:               null,
@@ -7543,33 +7654,34 @@ var Template = function(){
             this._renderer.destroy();
             this.destroy();
 
-            delete this._renderer;
+            this._renderer = null;
         },
 
         onScopeDestroy: function() {
             this.destroy();
 
             // renderer itself subscribes to scope's destroy event
-            delete this._renderer;
+            this._renderer = null;
         },
 
         destroy: function() {
 
-            var self    = this;
+            var self    = this,
+                i;
 
-            delete self.node;
-            delete self.scope;
-            delete self.initPromise;
 
             if (self._watcher) {
                 self._watcher.unsubscribeAndDestroy(self.onChange, self);
-                delete self._watcher;
             }
 
-            delete self.tpl;
+            for (i in self) {
+                if (self.hasOwnProperty(i)) {
+                    self[i] = null;
+                }
+            }
         }
 
-    };
+    }, true, false);
 
     Template.getTemplate = getTemplate;
     Template.loadTemplate = loadTemplate;
@@ -7588,7 +7700,10 @@ var Template = function(){
  * @class MetaphorJs.cmp.Component
  * @extends MetaphorJs.cmp.Observable
  */
- defineClass("MetaphorJs.cmp.Component", "MetaphorJs.cmp.Base", {
+defineClass({
+
+    $class: "MetaphorJs.cmp.Component",
+    $extends: "MetaphorJs.cmp.Base",
 
     /**
      * @access protected
@@ -7880,13 +7995,12 @@ var Template = function(){
         this.destroy();
     },
 
-    onDestroy:      function() {
+    destroy:      function() {
 
         var self    = this;
 
         if (self.template) {
             self.template.destroy();
-            delete self.template;
         }
 
         if (self.destroyEl) {
@@ -7905,9 +8019,6 @@ var Template = function(){
             self.scope.$destroy();
         }
 
-        delete self.scope;
-        delete self.node;
-
         self.supr();
     }
 
@@ -7921,7 +8032,7 @@ var Template = function(){
 
 
 
-var resolveComponent = function(cmp, cfg, scope, node, args) {
+function resolveComponent(cmp, cfg, scope, node, args) {
 
     var hasCfg  = cfg !== false;
 
@@ -8051,11 +8162,8 @@ var resolveComponent = function(cmp, cfg, scope, node, args) {
 };
 
 
-var returnFalse = function() {
-    return false;
-};
 
-var returnTrue = function() {
+function returnTrue() {
     return true;
 };
 
@@ -8134,7 +8242,7 @@ var NormalizedEvent = function(src) {
 
 // Event is based on DOM3 Events as specified by the ECMAScript Language Binding
 // http://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
-NormalizedEvent.prototype = {
+extend(NormalizedEvent.prototype, {
 
     isDefaultPrevented: returnFalse,
     isPropagationStopped: returnFalse,
@@ -8170,11 +8278,11 @@ NormalizedEvent.prototype = {
 
         this.stopPropagation();
     }
-};
+}, true, false);
 
 
 
-var normalizeEvent = function(originalEvent) {
+function normalizeEvent(originalEvent) {
     return new NormalizedEvent(originalEvent);
 };
 
@@ -8555,7 +8663,7 @@ var history = function(){
 var currentUrl = history.currentUrl;
 var rToCamelCase = /-./g;
 
-var toCamelCase = function(str) {
+function toCamelCase(str) {
     return str.replace(rToCamelCase, function(match){
         return match.charAt(1).toUpperCase();
     });
@@ -8567,10 +8675,13 @@ var getNodeData = function() {
     var readDataSet = function(node) {
         var attrs = node.attributes,
             dataset = {},
-            i, l;
+            i, l, name;
 
         for (i = 0, l = attrs.length; i < l; i++) {
-            dataset[toCamelCase(attrs[i].name)] = attrs[i].value;
+            name = attrs[i].name;
+            if (name.indexOf("data-") === 0) {
+                dataset[toCamelCase(name.substr(5))] = attrs[i].value;
+            }
         }
 
         return dataset;
@@ -8599,7 +8710,7 @@ var getNodeData = function() {
 }();
 
 
-var getNodeConfig = function(node, scope, expr) {
+function getNodeConfig(node, scope, expr) {
 
     var cfg = data(node, "config"),
         config, dataset, i, val;
@@ -8633,7 +8744,9 @@ var getNodeConfig = function(node, scope, expr) {
 
 
 
- defineClass("MetaphorJs.cmp.View", {
+defineClass({
+
+    $class: "MetaphorJs.cmp.View",
 
     /**
      * [
@@ -8831,16 +8944,18 @@ var getNodeConfig = function(node, scope, expr) {
 
         if (self.route) {
             history.un("locationchange", self.onLocationChange, self);
-            delete self.route;
+            self.route = null;
         }
 
         if (self.watchable) {
             self.watchable.unsubscribeAndDestroy(self.onCmpChange, self);
-            delete self.watchable;
+            self.watchable = null;
         }
 
-        delete self.scope;
-        delete self.currentComponent;
+        self.scope = null;
+        self.currentComponent = null;
+
+        self.supr();
     }
 });
 
@@ -8854,7 +8969,7 @@ var registerAttributeHandler = directives.registerAttributeHandler;
 
 
 registerAttributeHandler("mjs-app", 100, returnFalse);
-var isField = function(el) {
+function isField(el) {
     var tag	= el.nodeName.toLowerCase(),
         type = el.type;
     if (tag == 'input' || tag == 'textarea' || tag == 'select') {
@@ -8958,12 +9073,12 @@ var getValue = function(){
  * @param {[]} arr
  * @returns {boolean}
  */
-var inArray = function(val, arr) {
+function inArray(val, arr) {
     return arr ? (aIndexOf.call(arr, val) != -1) : false;
 };
 
 
-var isNumber = function(value) {
+function isNumber(value) {
     return varType(value) === 1;
 };
 
@@ -9048,7 +9163,9 @@ var elemTextProp = function(){
 
 
 
-var AttributeHandler = defineClass("MetaphorJs.view.AttributeHandler", {
+var AttributeHandler = defineClass({
+
+    $class: "MetaphorJs.view.AttributeHandler",
 
     watcher: null,
     scope: null,
@@ -9085,13 +9202,15 @@ var AttributeHandler = defineClass("MetaphorJs.view.AttributeHandler", {
     destroy: function() {
         var self    = this;
 
-        delete self.node;
-        delete self.scope;
+        self.node = null;
+        self.scope = null;
 
         if (self.watcher) {
             self.watcher.unsubscribeAndDestroy(self.onChange, self);
-            delete self.watcher;
+            self.watcher = null;
         }
+
+        self.supr();
     }
 });
 
@@ -9100,7 +9219,7 @@ var AttributeHandler = defineClass("MetaphorJs.view.AttributeHandler", {
  * @param {Element} elem
  * @returns {boolean}
  */
-var isSubmittable = function(elem) {
+function isSubmittable(elem) {
     var type	= elem.type ? elem.type.toLowerCase() : '';
     return elem.nodeName.toLowerCase() == 'input' && type != 'radio' && type != 'checkbox';
 };
@@ -9111,7 +9230,7 @@ var isAndroid = function(){
 
     var android = parseInt((/android (\d+)/.exec(uaString) || [])[1], 10) || false;
 
-    return function() {
+    return function isAndroid() {
         return android;
     };
 
@@ -9126,7 +9245,7 @@ var isIE = function(){
         msie    = parseInt((/trident\/.*; rv:(\d+)/.exec(uaString) || [])[1], 10) || false;
     }
 
-    return function() {
+    return function isIE() {
         return msie;
     };
 }();//#require isIE.js
@@ -9141,7 +9260,7 @@ var browserHasEvent = function(){
 
     var eventSupport = {};
 
-    return function(event) {
+    return function browserHasEvent(event) {
         // IE9 implements 'input' event it's so fubared that we rather pretend that it doesn't have
         // it. In particular the event is not fired when backspace or delete key are pressed or
         // when cut operation is performed.
@@ -9187,7 +9306,7 @@ var Input = function(el, changeFn, changeFnContext, submitFn) {
     }
 };
 
-Input.prototype = {
+extend(Input.prototype, {
 
     el: null,
     inputType: null,
@@ -9219,10 +9338,11 @@ Input.prototype = {
             }
         }
 
-        delete self.radio;
-        delete self.el;
-        delete self.cb;
-        delete self.cbContext;
+        for (i in self) {
+            if (self.hasOwnProperty(i)) {
+                self[i] = null;
+            }
+        }
     },
 
     initRadioInput: function() {
@@ -9441,7 +9561,7 @@ Input.prototype = {
             return self.processValue(getValue(self.el));
         }
     }
-};
+}, true, false);
 
 Input.getValue = getValue;
 Input.setValue = setValue;
@@ -9452,7 +9572,9 @@ Input.setValue = setValue;
 
 
 
-registerAttributeHandler("mjs-bind", 1000, defineClass(null, AttributeHandler, {
+registerAttributeHandler("mjs-bind", 1000, defineClass({
+
+    $extends: AttributeHandler,
 
     isInput: false,
     input: null,
@@ -9530,12 +9652,12 @@ registerAttributeHandler("mjs-bind", 1000, defineClass(null, AttributeHandler, {
 
         if (self.textRenderer) {
             self.textRenderer.destroy();
-            delete self.textRenderer;
+            self.textRenderer = null;
         }
 
         if (self.input) {
             self.input.destroy();
-            delete self.input;
+            self.input = null;
         }
 
         self.supr();
@@ -9546,7 +9668,9 @@ registerAttributeHandler("mjs-bind", 1000, defineClass(null, AttributeHandler, {
 
 
 
-registerAttributeHandler("mjs-bind-html", 1000, defineClass(null, "attr.mjs-bind", {
+registerAttributeHandler("mjs-bind-html", 1000, defineClass({
+
+    $extends: "attr.mjs-bind",
 
     updateElement: function(val) {
         this.node.innerHTML = val;
@@ -9594,7 +9718,9 @@ registerAttributeHandler("mjs-bind-html", 1000, defineClass(null, "attr.mjs-bind
         }
     };
 
-    registerAttributeHandler("mjs-class", 1000, defineClass(null, AttributeHandler, {
+    registerAttributeHandler("mjs-class", 1000, defineClass({
+
+        $extends: AttributeHandler,
 
         initial: true,
 
@@ -9719,7 +9845,7 @@ Queue.MULTIPLE = 3;
 Queue.ONCE_EVER = 3;
 
 
-Queue.prototype = {
+extend(Queue.prototype, {
 
     _queue: null,
     _map: null,
@@ -9749,11 +9875,12 @@ Queue.prototype = {
             };
 
         mode = mode || self.mode;
-        fn[qid] = id;
 
         if (mode == Queue.ONCE_EVER && fn[qid]) {
             return fn[qid];
         }
+
+        fn[qid] = id;
 
         if (self._map[id]) {
             if (mode == Queue.REPLACE) {
@@ -9875,15 +10002,15 @@ Queue.prototype = {
 
         var self = this;
 
-        delete self._queue;
-        delete self._map;
-        delete self.context;
+        self._queue = null;
+        self._map = null;
+        self.context = null;
         self._nextRequested = false;
         self._running = false;
         self.next = emptyFn;
 
     }
-};
+}, true, false);
 
 
 
@@ -9924,7 +10051,7 @@ var getScrollParent = function() {
             return rOvf.test(overflow(node));
         };
 
-    return function(node) {
+    return function getScrollParent(node) {
 
         if (!body) {
             body = document.body;
@@ -9998,7 +10125,7 @@ var getScrollLeft = getScrollTopOrLeft(false);
 
 
 
-var getOffsetParent = function(node) {
+function getOffsetParent(node) {
 
     var offsetParent = node.offsetParent || elHtml;
 
@@ -10012,7 +10139,7 @@ var getOffsetParent = function(node) {
 };
 
 
-var getOffset = function(node) {
+function getOffset(node) {
 
     var box = {top: 0, left: 0};
 
@@ -10034,7 +10161,7 @@ var getOffset = function(node) {
 };
 
 
-var getPosition = function(node, to) {
+function getPosition(node, to) {
 
     var offsetParent, offset,
         parentOffset = {top: 0, left: 0};
@@ -10088,339 +10215,335 @@ var getPosition = function(node, to) {
     };
 };
 
+var ListRenderer = defineClass(
 
-var ListRenderer = function(scope, node, expr) {
+    function(scope, node, expr) {
 
-    if (!(this instanceof ListRenderer)) {
-        return new ListRenderer(scope, node, expr);
-    }
+        var self    = this;
+        self.commonInit(scope, node, expr);
+        self.init(scope, node, expr);
 
-    var self    = this;
-    self.commonInit(scope, node, expr);
-    self.init(scope, node, expr);
-
-    self.queue.add(self.render, self, [toArray(self.watcher.getLastResult())]);
-};
-
-ListRenderer.prototype = {
-
-    id: null,
-
-    observable: null,
-    model: null,
-    itemName: null,
-    tpl: null,
-    renderers: null,
-    parentEl: null,
-    prevEl: null,
-    nextEl: null,
-    trackBy: null,
-    trackByWatcher: null,
-    animateMove: false,
-    animate: false,
-    trackByFn: null,
-    griDelegate: null,
-
-    queue: null,
-
-    buffered: false,
-    itemSize: null,
-    itemsOffsite: 1,
-    bufferState: null,
-    scrollOffset: 0,
-    horizontal: false,
-    bufferEventDelegate: null,
-    topStub: null,
-    botStub: null,
-
-    commonInit: function(scope, node, expr) {
-
-        var self = this;
-
-        removeAttr(node, "mjs-include");
-
-        self.parseExpr(expr);
-
-        self.tpl        = node;
-        self.renderers  = [];
-        self.prevEl     = node.previousSibling;
-        self.nextEl     = node.nextSibling;
-        self.parentEl   = node.parentNode;
-        self.node       = node;
-        self.scope      = scope;
-
-        self.queue      = new Queue({
-            async: false, auto: true, thenable: true,
-            stack: false, context: self, mode: Queue.ONCE
-        });
-
-        var cfg         = getNodeConfig(node, scope);
-
-        self.animateMove= !cfg.buffered && cfg.animateMove && animate.cssAnimations;
-        self.animate    = !cfg.buffered && (getAttr(node, "mjs-animate") !== null || cfg.animate);
-        removeAttr(node, "mjs-animate");
-
-        self.id         = cfg.id || nextUid();
-
-        if (cfg.observable) {
-            self.observable = new Observable;
-            extend(self, self.observable.getApi(), true, false);
-        }
-
-        self.parentEl.removeChild(node);
-
-        if (cfg.buffered) {
-            self.initBuffering(cfg);
-        }
+        self.queue.add(self.render, self, [toArray(self.watcher.getLastResult())]);
     },
+    {
 
-    init: function(scope, node) {
+        id: null,
 
-        var self        = this,
-            cfg         = data(node, "config") || {};
+        observable: null,
+        model: null,
+        itemName: null,
+        tpl: null,
+        renderers: null,
+        parentEl: null,
+        prevEl: null,
+        nextEl: null,
+        trackBy: null,
+        trackByWatcher: null,
+        animateMove: false,
+        animate: false,
+        trackByFn: null,
+        griDelegate: null,
 
-        self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
-        self.trackBy    = cfg.trackBy;
-        if (self.trackBy && self.trackBy != '$') {
-            self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, null, ns);
-        }
-        else if (self.trackBy != '$' && !self.watcher.hasInputPipes()) {
-            self.trackBy    = '$$'+self.watcher.id;
-        }
+        queue: null,
 
-        self.griDelegate = bind(self.scopeGetRawIndex, self);
-    },
+        buffered: false,
+        itemSize: null,
+        itemsOffsite: 1,
+        bufferState: null,
+        scrollOffset: 0,
+        horizontal: false,
+        bufferEventDelegate: null,
+        topStub: null,
+        botStub: null,
 
-    triggerIf: function() {
-        if (this.observable) {
-            this.trigger.apply(null, arguments);
-        }
-    },
+        commonInit: function(scope, node, expr) {
 
-    /*
-     * <!-- render and re-render
-     */
+            var self = this;
 
-    render: function(list) {
+            removeAttr(node, "mjs-include");
 
-        var self        = this,
-            renderers   = self.renderers,
-            tpl         = self.tpl,
-            parent      = self.parentEl,
-            next        = self.nextEl,
-            buffered    = self.buffered,
-            fragment    = document.createDocumentFragment(),
-            el,
-            i, len;
+            self.parseExpr(expr);
 
-        for (i = 0, len = list.length; i < len; i++) {
-            el = tpl.cloneNode(true);
-            renderers.push(self.createItem(el, list, i));
-            if (!buffered) {
-                fragment.appendChild(el);
-                renderers[i].attached = true;
-            }
-        }
+            self.tpl        = node;
+            self.renderers  = [];
+            self.prevEl     = node.previousSibling;
+            self.nextEl     = node.nextSibling;
+            self.parentEl   = node.parentNode;
+            self.node       = node;
+            self.scope      = scope;
 
-        if (!buffered) {
-            self.doUpdate();
-            parent.insertBefore(fragment, next);
-        }
-        else {
-            self.getScrollOffset();
-            self.updateScrollBuffer();
-        }
+            self.queue      = new Queue({
+                async: false, auto: true, thenable: true,
+                stack: false, context: self, mode: Queue.ONCE
+            });
 
-        self.triggerIf("render", self);
-    },
+            var cfg         = getNodeConfig(node, scope);
 
-    doUpdate: function(start, end, action, renderOnly) {
+            self.animateMove= !cfg.buffered && cfg.animateMove && animate.cssAnimations;
+            self.animate    = !cfg.buffered && (getAttr(node, "mjs-animate") !== null || cfg.animate);
+            removeAttr(node, "mjs-animate");
 
-        var self        = this,
-            renderers   = self.renderers,
-            index       = start || 0,
-            cnt         = renderers.length,
-            x           = end || cnt - 1,
-            list        = self.watcher.getLastResult(),
-            trackByFn   = self.getTrackByFunction();
+            self.id         = cfg.id || nextUid();
 
-        if (x > cnt - 1) {
-            x = cnt - 1;
-        }
-
-        for (; index <= x; index++) {
-
-            if (action && renderers[index].action != action) {
-                continue;
+            if (cfg.observable) {
+                self.observable = new Observable;
+                extend(self, self.observable.getApi(), true, false);
             }
 
-            self.renderItem(index, renderers, list, trackByFn, renderOnly);
-        }
-    },
+            self.parentEl.removeChild(node);
 
-    renderItem: function(index, rs, list, trackByFn, renderOnly) {
+            if (cfg.buffered) {
+                self.initBuffering(cfg);
+            }
+        },
 
-        var self = this;
+        init: function(scope, node) {
 
-        list = list || self.watcher.getLastResult();
-        rs = rs || self.renderers;
-        trackByFn = trackByFn || self.getTrackByFunction();
+            var self        = this,
+                cfg         = data(node, "config") || {};
 
-        var item        = rs[index],
-            scope       = item.scope,
-            last        = rs.length - 1,
-            even        = !(index % 2);
+            self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
+            self.trackBy    = cfg.trackBy;
+            if (self.trackBy && self.trackBy != '$') {
+                self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, null, ns);
+            }
+            else if (self.trackBy != '$' && !self.watcher.hasInputPipes()) {
+                self.trackBy    = '$$'+self.watcher.id;
+            }
 
-        if (renderOnly && item.rendered) {
-            return;
-        }
+            self.griDelegate = bind(self.scopeGetRawIndex, self);
+        },
 
-        scope.$index    = index;
-        scope.$first    = index === 0;
-        scope.$last     = index === last;
-        scope.$even     = even;
-        scope.$odd      = !even;
-        scope.$trackId  = trackByFn(list[index]);
-        scope.$getRawIndex = self.griDelegate;
+        triggerIf: function() {
+            if (this.observable) {
+                this.trigger.apply(null, arguments);
+            }
+        },
 
-        if (!item.renderer) {
+        /*
+         * <!-- render and re-render
+         */
 
-            item.renderer  = new Renderer(item.el, scope);
-            item.renderer.process();
-            item.rendered = true;
-        }
-        else {
-            scope.$check();
-        }
-    },
+        render: function(list) {
 
+            var self        = this,
+                renderers   = self.renderers,
+                tpl         = self.tpl,
+                parent      = self.parentEl,
+                next        = self.nextEl,
+                buffered    = self.buffered,
+                fragment    = document.createDocumentFragment(),
+                el,
+                i, len;
 
-    createItem: function(el, list, index) {
-
-        var self        = this,
-            iname       = self.itemName,
-            itemScope   = self.scope.$new();
-
-        itemScope[iname]    = self.getListItem(list, index);
-
-        return {
-            index: index,
-            action: "enter",
-            el: el,
-            scope: itemScope,
-            attached: false,
-            rendered: false
-        };
-    },
-
-    /*
-     * render and re-render -->
-     */
-
-    /*
-     * <!-- reflect changes
-     */
-
-    onChange: function(current, prev) {
-        var self = this;
-        self.queue.prepend(self.applyChanges, self, [prev], Queue.REPLACE);
-    },
-
-    applyChanges: function(prevList) {
-
-        var self        = this,
-            renderers   = self.renderers,
-            tpl         = self.tpl,
-            index       = 0,
-            list        = toArray(self.watcher.getLastResult()),
-            updateStart = null,
-            animateMove = self.animateMove,
-            animateAll  = self.animate,
-            newrs       = [],
-            iname       = self.itemName,
-            origrs      = renderers.slice(),
-            doesMove    = false,
-            prevr,
-            prevrInx,
-            i, len,
-            r,
-            action,
-            translates,
-            prs         = self.watcher.getMovePrescription(prevList, self.getTrackByFunction(), list);
-
-
-        // redefine renderers
-        for (i = 0, len = prs.length; i < len; i++) {
-
-            action = prs[i];
-
-            if (isNumber(action)) {
-                prevrInx    = action;
-                prevr       = renderers[prevrInx];
-
-                if (prevrInx != index && isNull(updateStart)) {
-                    updateStart = i;
+            for (i = 0, len = list.length; i < len; i++) {
+                el = tpl.cloneNode(true);
+                renderers.push(self.createItem(el, list, i));
+                if (!buffered) {
+                    fragment.appendChild(el);
+                    renderers[i].attached = true;
                 }
+            }
 
-                prevr.action = "move";
-                prevr.scope[iname] = self.getListItem(list, i);
-                doesMove = animateMove;
-
-                newrs.push(prevr);
-                renderers[prevrInx] = null;
-                index++;
+            if (!buffered) {
+                self.doUpdate();
+                parent.insertBefore(fragment, next);
             }
             else {
-                if (isNull(updateStart)) {
-                    updateStart = i;
+                self.getScrollOffset();
+                self.updateScrollBuffer();
+            }
+
+            self.triggerIf("render", self);
+        },
+
+        doUpdate: function(start, end, action, renderOnly) {
+
+            var self        = this,
+                renderers   = self.renderers,
+                index       = start || 0,
+                cnt         = renderers.length,
+                x           = end || cnt - 1,
+                list        = self.watcher.getLastResult(),
+                trackByFn   = self.getTrackByFunction();
+
+            if (x > cnt - 1) {
+                x = cnt - 1;
+            }
+
+            for (; index <= x; index++) {
+
+                if (action && renderers[index].action != action) {
+                    continue;
                 }
-                r = self.createItem(tpl.cloneNode(true), list, i);
-                newrs.push(r);
-                // add new elements to old renderers
-                // so that we could correctly determine positions
+
+                self.renderItem(index, renderers, list, trackByFn, renderOnly);
             }
-        }
+        },
 
-        self.renderers  = newrs;
+        renderItem: function(index, rs, list, trackByFn, renderOnly) {
 
+            var self = this;
 
-        if (animateAll) {
+            list = list || self.watcher.getLastResult();
+            rs = rs || self.renderers;
+            trackByFn = trackByFn || self.getTrackByFunction();
 
-            self.doUpdate(updateStart, null, "enter");
+            var item        = rs[index],
+                scope       = item.scope,
+                last        = rs.length - 1,
+                even        = !(index % 2);
 
-            if (doesMove) {
-                translates = self.calculateTranslates(newrs, origrs, renderers);
+            if (renderOnly && item.rendered) {
+                return;
             }
 
-            var animPromises    = [],
-                startAnimation  = new Promise,
-                applyFrom       = new Promise,
-                donePromise     = new Promise,
-                animReady       = Promise.counter(newrs.length),
-                startCallback   = function(){
-                    animReady.countdown();
-                    return startAnimation;
-                };
+            scope.$index    = index;
+            scope.$first    = index === 0;
+            scope.$last     = index === last;
+            scope.$even     = even;
+            scope.$odd      = !even;
+            scope.$trackId  = trackByFn(list[index]);
+            scope.$getRawIndex = self.griDelegate;
 
-            // destroy old renderers and remove old elements
-            for (i = 0, len = renderers.length; i < len; i++) {
-                r = renderers[i];
-                if (r) {
-                    r.scope.$destroy();
+            if (!item.renderer) {
 
+                item.renderer  = new Renderer(item.el, scope);
+                item.renderer.process();
+                item.rendered = true;
+            }
+            else {
+                scope.$check();
+            }
+        },
+
+
+        createItem: function(el, list, index) {
+
+            var self        = this,
+                iname       = self.itemName,
+                itemScope   = self.scope.$new();
+
+            itemScope[iname]    = self.getListItem(list, index);
+
+            return {
+                index: index,
+                action: "enter",
+                el: el,
+                scope: itemScope,
+                attached: false,
+                rendered: false
+            };
+        },
+
+        /*
+         * render and re-render -->
+         */
+
+        /*
+         * <!-- reflect changes
+         */
+
+        onChange: function(current, prev) {
+            var self = this;
+            self.queue.prepend(self.applyChanges, self, [prev], Queue.REPLACE);
+        },
+
+        applyChanges: function(prevList) {
+
+            var self        = this,
+                renderers   = self.renderers,
+                tpl         = self.tpl,
+                index       = 0,
+                list        = toArray(self.watcher.getLastResult()),
+                updateStart = null,
+                animateMove = self.animateMove,
+                animateAll  = self.animate,
+                newrs       = [],
+                iname       = self.itemName,
+                origrs      = renderers.slice(),
+                doesMove    = false,
+                prevr,
+                prevrInx,
+                i, len,
+                r,
+                action,
+                translates,
+                prs         = self.watcher.getMovePrescription(prevList, self.getTrackByFunction(), list);
+
+
+            // redefine renderers
+            for (i = 0, len = prs.length; i < len; i++) {
+
+                action = prs[i];
+
+                if (isNumber(action)) {
+                    prevrInx    = action;
+                    prevr       = renderers[prevrInx];
+
+                    if (prevrInx != index && isNull(updateStart)) {
+                        updateStart = i;
+                    }
+
+                    prevr.action = "move";
+                    prevr.scope[iname] = self.getListItem(list, i);
+                    doesMove = animateMove;
+
+                    newrs.push(prevr);
+                    renderers[prevrInx] = null;
+                    index++;
+                }
+                else {
+                    if (isNull(updateStart)) {
+                        updateStart = i;
+                    }
+                    r = self.createItem(tpl.cloneNode(true), list, i);
+                    newrs.push(r);
+                    // add new elements to old renderers
+                    // so that we could correctly determine positions
+                }
+            }
+
+            self.renderers  = newrs;
+
+
+            if (animateAll) {
+
+                self.doUpdate(updateStart, null, "enter");
+
+                if (doesMove) {
+                    translates = self.calculateTranslates(newrs, origrs, renderers);
+                }
+
+                var animPromises    = [],
+                    startAnimation  = new Promise,
+                    applyFrom       = new Promise,
+                    donePromise     = new Promise,
+                    animReady       = Promise.counter(newrs.length),
+                    startCallback   = function(){
+                        animReady.countdown();
+                        return startAnimation;
+                    };
+
+                // destroy old renderers and remove old elements
+                for (i = 0, len = renderers.length; i < len; i++) {
+                    r = renderers[i];
+                    if (r) {
+                        r.scope.$destroy();
+
+                        stopAnimation(r.el);
+                        animPromises.push(animate(r.el, "leave", null, false, ns)
+                            .done(function(el){
+                                el.style.visibility = "hidden";
+                            }));
+                    }
+                }
+
+                for (i = 0, len = newrs.length; i < len; i++) {
+                    r = newrs[i];
                     stopAnimation(r.el);
-                    animPromises.push(animate(r.el, "leave", null, false, ns)
-                        .done(function(el){
-                            el.style.visibility = "hidden";
-                        }));
-                }
-            }
 
-            for (i = 0, len = newrs.length; i < len; i++) {
-                r = newrs[i];
-                stopAnimation(r.el);
-
-                r.action == "enter" ?
+                    r.action == "enter" ?
                     animPromises.push(animate(r.el, "enter", startCallback, false, ns)) :
                     animPromises.push(
                         self.moveAnimation(
@@ -10431,508 +10554,481 @@ ListRenderer.prototype = {
                             applyFrom
                         )
                     );
-            }
+                }
 
-            animReady.done(function(){
-                raf(function(){
-                    applyFrom.resolve();
-                    self.applyDomPositions(renderers);
-                    if (!doesMove) {
-                        self.doUpdate(updateStart, null, "move");
-                    }
+                animReady.done(function(){
                     raf(function(){
-                        startAnimation.resolve();
+                        applyFrom.resolve();
+                        self.applyDomPositions(renderers);
+                        if (!doesMove) {
+                            self.doUpdate(updateStart, null, "move");
+                        }
+                        raf(function(){
+                            startAnimation.resolve();
+                        });
+                        self.triggerIf("change", self);
                     });
-                    self.triggerIf("change", self);
                 });
-            });
 
-            Promise.all(animPromises).always(function(){
-                raf(function(){
+                Promise.all(animPromises).always(function(){
+                    raf(function(){
+                        self.doUpdate(updateStart || 0);
+                        self.removeOldElements(renderers);
+                        if (doesMove) {
+                            self.doUpdate(updateStart, null, "move");
+                            for (i = 0, len = newrs.length; i < len; i++) {
+                                r = newrs[i];
+                                r.el.style[animate.prefixes.transform] = null;
+                                r.el.style[animate.prefixes.transform] = "";
+                            }
+                        }
+                        donePromise.resolve();
+                    });
+                });
+
+                return donePromise;
+            }
+            else {
+                if (!self.buffered) {
+                    self.applyDomPositions();
                     self.doUpdate(updateStart || 0);
                     self.removeOldElements(renderers);
-                    if (doesMove) {
-                        self.doUpdate(updateStart, null, "move");
-                        for (i = 0, len = newrs.length; i < len; i++) {
-                            r = newrs[i];
-                            r.el.style[animate.prefixes.transform] = null;
-                            r.el.style[animate.prefixes.transform] = "";
-                        }
-                    }
-                    donePromise.resolve();
-                });
+                }
+                else {
+                    self.getScrollOffset();
+                    self.removeOldElements(renderers);
+                    self.queue.append(self.updateScrollBuffer, self, [true]);
+                }
+                self.triggerIf("change", self);
+            }
+        },
+
+
+        removeOldElements: function(rs) {
+            var i, len, r,
+                parent = this.parentEl;
+
+            for (i = 0, len = rs.length; i < len; i++) {
+                r = rs[i];
+                if (r && r.attached) {
+                    r.attached = false;
+                    parent.removeChild(r.el);
+                }
+            }
+        },
+
+
+        applyDomPositions: function(oldrs) {
+
+            var self        = this,
+                rs          = self.renderers,
+                parent      = self.parentEl,
+                prevEl      = self.prevEl,
+                fc          = prevEl ? prevEl.nextSibling : parent.firstChild,
+                next,
+                i, l, el, r;
+
+            for (i = 0, l = rs.length; i < l; i++) {
+                r = rs[i];
+                el = r.el;
+
+                if (oldrs && oldrs[i]) {
+                    next = oldrs[i].el.nextSibling;
+                }
+                else {
+                    next = i > 0 ? (rs[i-1].el.nextSibling || fc) : fc;
+                }
+
+                if (next && el.nextSibling !== next) {
+                    parent.insertBefore(el, next);
+                }
+                else if (!next) {
+                    parent.appendChild(el);
+                }
+                r.attached = true;
+
+            }
+        },
+
+        /*
+         * reflect changes -->
+         */
+
+
+        /*
+         * <!-- configurable item functions
+         */
+
+
+        getListItem: function(list, index) {
+            return list[index];
+        },
+
+        onChangeTrackBy: function(val) {
+            this.trackByFn = null;
+            this.trackBy = val;
+        },
+
+        getTrackByFunction: function() {
+
+            var self = this,
+                trackBy;
+
+            if (!self.trackByFn) {
+
+                trackBy = self.trackBy;
+
+                if (!trackBy || trackBy == '$') {
+                    self.trackByFn = function(item) {
+                        return isPrimitive(item) ? item : undf;
+                    };
+                }
+                else if (isFunction(trackBy)) {
+                    self.trackByFn = trackBy;
+                }
+                else {
+                    self.trackByFn = function(item){
+                        return item && !isPrimitive(item) ? item[trackBy] : undf;
+                    };
+                }
+            }
+
+            return self.trackByFn;
+        },
+
+
+        scopeGetRawIndex: function(id) {
+
+            if (id === undf) {
+                return -1;
+            }
+
+            var self        = this,
+                list        = self.watcher.getUnfilteredValue(),
+                trackByFn   = self.getTrackByFunction(),
+                i, l;
+
+            for (i = 0, l = list.length; i < l; i++) {
+                if (trackByFn(list[i]) === id) {
+                    return i;
+                }
+            }
+
+            return -1;
+        },
+
+        /*
+         * configurable item functions -->
+         */
+
+
+        /*
+         * <!-- move animation
+         */
+
+        getNodePositions: function(tmp, rs, oldrs) {
+
+            var nodes = [],
+                i, l, el, r,
+                tmpNode,
+                positions = {};
+
+            while(tmp.firstChild) {
+                tmp.removeChild(tmp.firstChild);
+            }
+            for (i = 0, l = rs.length; i < l; i++) {
+                if (oldrs && oldrs[i]) {
+                    tmpNode = oldrs[i].el.cloneNode(true);
+                    tmp.appendChild(tmpNode);
+                }
+                tmpNode = rs[i].el.cloneNode(true);
+                tmp.appendChild(tmpNode);
+                nodes.push(tmpNode);
+            }
+            for (i = 0, l = nodes.length; i < l; i++) {
+                el = nodes[i];
+                r = rs[i].renderer;
+                if (r) {
+                    positions[r.id] = {left: el.offsetLeft, top: el.offsetTop};
+                }
+            }
+
+
+            return positions;
+        },
+
+        calculateTranslates: function(newRenderers, origRenderers, withDeletes) {
+
+            var self        = this,
+                parent      = self.parentEl,
+                pp          = parent.parentNode,
+                tmp         = parent.cloneNode(true),
+                ofsW        = parent.offsetWidth,
+                translates  = [],
+                fl          = 0,
+                ft          = 0,
+                oldPositions,
+                insertPositions,
+                newPositions,
+                r, i, len, id,
+                style,
+                el;
+
+            style = tmp.style;
+            style.position = "absolute";
+            style.left = "-10000px";
+            style.visibility = "hidden";
+            style.width = ofsW + 'px';
+
+            pp.insertBefore(tmp, parent);
+            // correct width to compensate for padding and stuff
+            style.width = ofsW - (tmp.offsetWidth - ofsW) + "px";
+
+            // positions before change
+            oldPositions = self.getNodePositions(tmp, origRenderers);
+            // positions when items reordered but deleted items are still in place
+            insertPositions = self.getNodePositions(tmp, newRenderers, withDeletes);
+            // positions after old items removed from dom
+            newPositions = self.getNodePositions(tmp, newRenderers);
+
+            pp.removeChild(tmp);
+            tmp = null;
+
+            for (i = 0, len = newRenderers.length; i < len; i++) {
+                el = newRenderers[i].el;
+                r = newRenderers[i].renderer;
+                id = r.id;
+
+                if (i == 0) {
+                    fl = el.offsetLeft;
+                    ft = el.offsetTop;
+                }
+
+                translates.push([
+                    // to
+                    {
+                        left: (newPositions[id].left - fl) - (insertPositions[id].left - fl),
+                        top: (newPositions[id].top - ft) - (insertPositions[id].top - ft)
+                    },
+                    // from
+                    oldPositions[id] ? //insertPositions[id] &&
+                    {
+                        left: (oldPositions[id].left - fl) - (insertPositions[id].left - fl),
+                        top: (oldPositions[id].top - ft) - (insertPositions[id].top - ft)
+                    } : null
+                ]);
+            }
+
+            return translates;
+        },
+
+        moveAnimation: function(el, to, from, startCallback, applyFrom) {
+
+            var style = el.style;
+
+            applyFrom.done(function(){
+                if (from) {
+                    style[animate.prefixes.transform] = "translateX("+from.left+"px) translateY("+from.top+"px)";
+                }
             });
 
-            return donePromise;
-        }
-        else {
-            if (!self.buffered) {
-                self.applyDomPositions();
-                self.doUpdate(updateStart || 0);
-                self.removeOldElements(renderers);
-            }
-            else {
-                self.getScrollOffset();
-                self.removeOldElements(renderers);
-                self.queue.append(self.updateScrollBuffer, self, [true]);
-            }
-            self.triggerIf("change", self);
-        }
-    },
+            return animate(
+                el,
+                "move",
+                startCallback,
+                false,
+                ns,
+                function(el, position, stage){
+                    if (position == 0 && stage != "start" && to) {
+                        style[animate.prefixes.transform] = "translateX("+to.left+"px) translateY("+to.top+"px)";
+                    }
+                });
+        },
+
+        /*
+         * move animation -->
+         */
 
 
-    removeOldElements: function(rs) {
-        var i, len, r,
-            parent = this.parentEl;
+        /*
+         * <!-- buffered list
+         */
 
-        for (i = 0, len = rs.length; i < len; i++) {
-            r = rs[i];
-            if (r && r.attached) {
-                r.attached = false;
-                parent.removeChild(r.el);
-            }
-        }
-    },
+        initScrollParent: function(cfg) {
+            var self = this;
+            self.scrollEl = getScrollParent(self.parentEl);
+        },
 
+        initScrollStubs: function(cfg) {
 
-    applyDomPositions: function(oldrs) {
-
-        var self        = this,
-            rs          = self.renderers,
-            parent      = self.parentEl,
-            prevEl      = self.prevEl,
-            fc          = prevEl ? prevEl.nextSibling : parent.firstChild,
-            next,
-            i, l, el, r;
-
-        for (i = 0, l = rs.length; i < l; i++) {
-            r = rs[i];
-            el = r.el;
-
-            if (oldrs && oldrs[i]) {
-                next = oldrs[i].el.nextSibling;
-            }
-            else {
-                next = i > 0 ? (rs[i-1].el.nextSibling || fc) : fc;
-            }
-
-            if (next && el.nextSibling !== next) {
-                parent.insertBefore(el, next);
-            }
-            else if (!next) {
-                parent.appendChild(el);
-            }
-            r.attached = true;
-
-        }
-    },
-
-    /*
-     * reflect changes -->
-     */
-
-
-    /*
-     * <!-- configurable item functions
-     */
-
-
-    getListItem: function(list, index) {
-        return list[index];
-    },
-
-    onChangeTrackBy: function(val) {
-        this.trackByFn = null;
-        this.trackBy = val;
-    },
-
-    getTrackByFunction: function() {
-
-        var self = this,
-            trackBy;
-
-        if (!self.trackByFn) {
-
-            trackBy = self.trackBy;
-
-            if (!trackBy || trackBy == '$') {
-                self.trackByFn = function(item) {
-                    return isPrimitive(item) ? item : undf;
+            var self = this,
+                parent = self.parentEl,
+                prev = self.prevEl,
+                ofsTop,
+                ofsBot,
+                i,
+                style = {
+                    fontSize: 0,
+                    lineHeight: 0,
+                    padding: 0,
+                    paddingTop: 0,
+                    paddingLeft: 0,
+                    paddingBottom: 0,
+                    paddingRight: 0,
+                    margin: 0,
+                    marginLeft: 0,
+                    marginTop: 0,
+                    marginRight: 0,
+                    marginBottom: 0
                 };
-            }
-            else if (isFunction(trackBy)) {
-                self.trackByFn = trackBy;
-            }
-            else {
-                self.trackByFn = function(item){
-                    return item && !isPrimitive(item) ? item[trackBy] : undf;
-                };
-            }
-        }
 
-        return self.trackByFn;
-    },
+            self.topStub       = ofsTop = document.createElement(cfg.stub || "div");
+            self.botStub       = ofsBot = document.createElement(cfg.stub || "div");
 
-
-    scopeGetRawIndex: function(id) {
-
-        if (id === undf) {
-            return -1;
-        }
-
-        var self        = this,
-            list        = self.watcher.getUnfilteredValue(),
-            trackByFn   = self.getTrackByFunction(),
-            i, l;
-
-        for (i = 0, l = list.length; i < l; i++) {
-            if (trackByFn(list[i]) === id) {
-                return i;
-            }
-        }
-
-        return -1;
-    },
-
-    /*
-     * configurable item functions -->
-     */
-
-
-    /*
-     * <!-- move animation
-     */
-
-    getNodePositions: function(tmp, rs, oldrs) {
-
-        var nodes = [],
-            i, l, el, r,
-            tmpNode,
-            positions = {};
-
-        while(tmp.firstChild) {
-            tmp.removeChild(tmp.firstChild);
-        }
-        for (i = 0, l = rs.length; i < l; i++) {
-            if (oldrs && oldrs[i]) {
-                tmpNode = oldrs[i].el.cloneNode(true);
-                tmp.appendChild(tmpNode);
-            }
-            tmpNode = rs[i].el.cloneNode(true);
-            tmp.appendChild(tmpNode);
-            nodes.push(tmpNode);
-        }
-        for (i = 0, l = nodes.length; i < l; i++) {
-            el = nodes[i];
-            r = rs[i].renderer;
-            if (r) {
-                positions[r.id] = {left: el.offsetLeft, top: el.offsetTop};
-            }
-        }
-
-
-        return positions;
-    },
-
-    calculateTranslates: function(newRenderers, origRenderers, withDeletes) {
-
-        var self        = this,
-            parent      = self.parentEl,
-            pp          = parent.parentNode,
-            tmp         = parent.cloneNode(true),
-            ofsW        = parent.offsetWidth,
-            translates  = [],
-            fl          = 0,
-            ft          = 0,
-            oldPositions,
-            insertPositions,
-            newPositions,
-            r, i, len, id,
-            style,
-            el;
-
-        style = tmp.style;
-        style.position = "absolute";
-        style.left = "-10000px";
-        style.visibility = "hidden";
-        style.width = ofsW + 'px';
-
-        pp.insertBefore(tmp, parent);
-        // correct width to compensate for padding and stuff
-        style.width = ofsW - (tmp.offsetWidth - ofsW) + "px";
-
-        // positions before change
-        oldPositions = self.getNodePositions(tmp, origRenderers);
-        // positions when items reordered but deleted items are still in place
-        insertPositions = self.getNodePositions(tmp, newRenderers, withDeletes);
-        // positions after old items removed from dom
-        newPositions = self.getNodePositions(tmp, newRenderers);
-
-        pp.removeChild(tmp);
-        tmp = null;
-
-        for (i = 0, len = newRenderers.length; i < len; i++) {
-            el = newRenderers[i].el;
-            r = newRenderers[i].renderer;
-            id = r.id;
-
-            if (i == 0) {
-                fl = el.offsetLeft;
-                ft = el.offsetTop;
+            addClass(ofsTop, "mjs-buffer-top");
+            addClass(ofsBot, "mjs-buffer-bottom");
+            for (i in style) {
+                ofsTop.style[i] = style[i];
+                ofsBot.style[i] = style[i];
             }
 
-            translates.push([
-                // to
-                {
-                    left: (newPositions[id].left - fl) - (insertPositions[id].left - fl),
-                    top: (newPositions[id].top - ft) - (insertPositions[id].top - ft)
-                },
-                // from
-                oldPositions[id] ? //insertPositions[id] &&
-                {
-                    left: (oldPositions[id].left - fl) - (insertPositions[id].left - fl),
-                    top: (oldPositions[id].top - ft) - (insertPositions[id].top - ft)
-                } : null
-            ]);
-        }
+            parent.insertBefore(ofsTop, prev ? prev.nextSibling : parent.firstChild);
+            parent.insertBefore(ofsBot, self.nextEl);
 
-        return translates;
-    },
+            self.prevEl     = ofsTop;
+            self.nextEl     = ofsBot;
+        },
 
-    moveAnimation: function(el, to, from, startCallback, applyFrom) {
+        initBuffering: function(cfg) {
 
-        var style = el.style;
+            var self = this;
 
-        applyFrom.done(function(){
-            if (from) {
-                style[animate.prefixes.transform] = "translateX("+from.left+"px) translateY("+from.top+"px)";
+            self.buffered       = true;
+            self.itemSize       = cfg.itemSize;
+            self.itemsOffsite   = cfg.itemsOffsite || 5;
+            self.horizontal     = cfg.horizontal || false;
+
+            self.initScrollParent(cfg);
+            self.initScrollStubs(cfg);
+
+            self.bufferEventDelegate = bind(self.bufferUpdateEvent, self);
+
+            addListener(self.scrollEl, "scroll", self.bufferEventDelegate);
+            addListener(window, "resize", self.bufferEventDelegate);
+        },
+
+
+        getScrollOffset: function() {
+
+            var self        = this,
+                position    = getPosition(self.topStub, self.scrollEl),
+                ofs         = self.horizontal ? position.left : position.top;
+
+            return self.scrollOffset = ofs;
+        },
+
+        getBufferState: function(updateScrollOffset) {
+
+            var self        = this,
+                scrollEl    = self.scrollEl,
+                hor         = self.horizontal,
+                html        = document.documentElement,
+                size        = scrollEl === window ?
+                              (window[hor ? "innerWidth" : "innerHeight"] ||
+                               html[hor ? "clientWidth" : "clientHeight"]):
+                              scrollEl[hor ? "offsetWidth" : "offsetHeight"],
+                scroll      = hor ? getScrollLeft(scrollEl) : getScrollTop(scrollEl),
+                isize       = self.itemSize,
+                off         = self.itemsOffsite,
+                offset      = updateScrollOffset ? self.getScrollOffset() : self.scrollOffset,
+                cnt         = self.renderers.length,
+                viewFirst,
+                viewLast,
+                first,
+                last;
+
+
+            scroll  = Math.max(0, scroll + offset);
+            first   = Math.ceil(scroll / isize);
+
+            if (first < 0) {
+                first = 0;
             }
-        });
 
-        return animate(
-            el,
-            "move",
-            startCallback,
-            false,
-            ns,
-            function(el, position, stage){
-                if (position == 0 && stage != "start" && to) {
-                    style[animate.prefixes.transform] = "translateX("+to.left+"px) translateY("+to.top+"px)";
-                }
-        });
-    },
+            viewFirst = first;
 
-    /*
-     * move animation -->
-     */
+            last    = viewLast = first + Math.ceil(size / isize);
+            first   = first > off ? first - off : 0;
+            last   += off;
 
+            if (last > cnt - 1) {
+                last = cnt - 1;
+            }
 
-    /*
-     * <!-- buffered list
-     */
+            if (first > last) {
+                return self.bufferState;
+            }
 
-    initScrollParent: function(cfg) {
-        var self = this;
-        self.scrollEl = getScrollParent(self.parentEl);
-    },
-
-    initScrollStubs: function(cfg) {
-
-        var self = this,
-            parent = self.parentEl,
-            prev = self.prevEl,
-            ofsTop,
-            ofsBot,
-            i,
-            style = {
-                fontSize: 0,
-                lineHeight: 0,
-                padding: 0,
-                paddingTop: 0,
-                paddingLeft: 0,
-                paddingBottom: 0,
-                paddingRight: 0,
-                margin: 0,
-                marginLeft: 0,
-                marginTop: 0,
-                marginRight: 0,
-                marginBottom: 0
+            return self.bufferState = {
+                first: first,
+                last: last,
+                viewFirst: viewFirst,
+                viewLast: viewLast,
+                ot: first * isize,
+                ob: (cnt - last - 1) * isize
             };
+        },
 
-        self.topStub       = ofsTop = document.createElement(cfg.stub || "div");
-        self.botStub       = ofsBot = document.createElement(cfg.stub || "div");
+        updateStubs: function(bs) {
+            var self        = this,
+                hor         = self.horizontal;
 
-        addClass(ofsTop, "mjs-buffer-top");
-        addClass(ofsBot, "mjs-buffer-bottom");
-        for (i in style) {
-            ofsTop.style[i] = style[i];
-            ofsBot.style[i] = style[i];
-        }
+            self.topStub.style[hor ? "width" : "height"] = bs.ot + "px";
+            self.botStub.style[hor ? "width" : "height"] = bs.ob + "px";
+        },
 
-        parent.insertBefore(ofsTop, prev ? prev.nextSibling : parent.firstChild);
-        parent.insertBefore(ofsBot, self.nextEl);
-
-        self.prevEl     = ofsTop;
-        self.nextEl     = ofsBot;
-    },
-
-    initBuffering: function(cfg) {
-
-        var self = this;
-
-        self.buffered       = true;
-        self.itemSize       = cfg.itemSize;
-        self.itemsOffsite   = cfg.itemsOffsite || 5;
-        self.horizontal     = cfg.horizontal || false;
-
-        self.initScrollParent(cfg);
-        self.initScrollStubs(cfg);
-
-        self.bufferEventDelegate = bind(self.bufferUpdateEvent, self);
-
-        addListener(self.scrollEl, "scroll", self.bufferEventDelegate);
-        addListener(window, "resize", self.bufferEventDelegate);
-    },
+        bufferUpdateEvent: function() {
+            var self = this;
+            self.queue.add(self.updateScrollBuffer, self);
+        },
 
 
-    getScrollOffset: function() {
+        updateScrollBuffer: function(reset) {
 
-        var self        = this,
-            position    = getPosition(self.topStub, self.scrollEl),
-            ofs         = self.horizontal ? position.left : position.top;
+            var self        = this,
+                prev        = self.bufferState,
+                parent      = self.parentEl,
+                rs          = self.renderers,
+                bot         = self.botStub,
+                bs          = self.getBufferState(false),
+                promise     = new Promise,
+                fragment,
+                i, x, r;
 
-        return self.scrollOffset = ofs;
-    },
-
-    getBufferState: function(updateScrollOffset) {
-
-        var self        = this,
-            scrollEl    = self.scrollEl,
-            hor         = self.horizontal,
-            html        = document.documentElement,
-            size        = scrollEl === window ?
-                            (window[hor ? "innerWidth" : "innerHeight"] ||
-                                html[hor ? "clientWidth" : "clientHeight"]):
-                            scrollEl[hor ? "offsetWidth" : "offsetHeight"],
-            scroll      = hor ? getScrollLeft(scrollEl) : getScrollTop(scrollEl),
-            isize       = self.itemSize,
-            off         = self.itemsOffsite,
-            offset      = updateScrollOffset ? self.getScrollOffset() : self.scrollOffset,
-            cnt         = self.renderers.length,
-            viewFirst,
-            viewLast,
-            first,
-            last;
-
-
-        scroll  = Math.max(0, scroll + offset);
-        first   = Math.ceil(scroll / isize);
-
-        if (first < 0) {
-            first = 0;
-        }
-
-        viewFirst = first;
-
-        last    = viewLast = first + Math.ceil(size / isize);
-        first   = first > off ? first - off : 0;
-        last   += off;
-
-        if (last > cnt - 1) {
-            last = cnt - 1;
-        }
-
-        if (first > last) {
-            return self.bufferState;
-        }
-
-        return self.bufferState = {
-            first: first,
-            last: last,
-            viewFirst: viewFirst,
-            viewLast: viewLast,
-            ot: first * isize,
-            ob: (cnt - last - 1) * isize
-        };
-    },
-
-    updateStubs: function(bs) {
-        var self        = this,
-            hor         = self.horizontal;
-
-        self.topStub.style[hor ? "width" : "height"] = bs.ot + "px";
-        self.botStub.style[hor ? "width" : "height"] = bs.ob + "px";
-    },
-
-    bufferUpdateEvent: function() {
-        var self = this;
-        self.queue.add(self.updateScrollBuffer, self);
-    },
-
-
-    updateScrollBuffer: function(reset) {
-
-        var self        = this,
-            prev        = self.bufferState,
-            parent      = self.parentEl,
-            rs          = self.renderers,
-            bot         = self.botStub,
-            bs          = self.getBufferState(false),
-            promise     = new Promise,
-            fragment,
-            i, x, r;
-
-        if (!bs) {
-            return null;
-        }
-
-        if (!prev || bs.first != prev.first || bs.last != prev.last) {
-            self.triggerIf("bufferchange", self, bs, prev);
-        }
-
-        raf(function(){
-
-            if (reset || !prev || bs.last < prev.first || bs.first > prev.last){
-
-                //remove old and append new
-                if (prev) {
-                    for (i = prev.first, x = prev.last; i <= x; i++) {
-                        r = rs[i];
-                        if (r && r.attached) {
-                            parent.removeChild(r.el);
-                            r.attached = false;
-                        }
-                    }
-                }
-                fragment = document.createDocumentFragment();
-                for (i = bs.first, x = bs.last; i <= x; i++) {
-                    r = rs[i];
-                    if (r) {
-                        if (!r.rendered) {
-                            self.renderItem(i);
-                        }
-                        fragment.appendChild(r.el);
-                        r.attached = true;
-                    }
-                }
-
-                parent.insertBefore(fragment, bot);
-
+            if (!bs) {
+                return null;
             }
-            else {
 
-                if (prev.first < bs.first) {
-                    for (i = prev.first, x = bs.first; i < x; i++) {
-                        r = rs[i];
-                        if (r && r.attached) {
-                            parent.removeChild(r.el);
-                            r.attached = false;
+            if (!prev || bs.first != prev.first || bs.last != prev.last) {
+                self.triggerIf("bufferchange", self, bs, prev);
+            }
+
+            raf(function(){
+
+                if (reset || !prev || bs.last < prev.first || bs.first > prev.last){
+
+                    //remove old and append new
+                    if (prev) {
+                        for (i = prev.first, x = prev.last; i <= x; i++) {
+                            r = rs[i];
+                            if (r && r.attached) {
+                                parent.removeChild(r.el);
+                                r.attached = false;
+                            }
                         }
                     }
-                }
-                else if (prev.first > bs.first) {
                     fragment = document.createDocumentFragment();
-                    for (i = bs.first, x = prev.first; i < x; i++) {
+                    for (i = bs.first, x = bs.last; i <= x; i++) {
                         r = rs[i];
                         if (r) {
                             if (!r.rendered) {
@@ -10942,179 +11038,198 @@ ListRenderer.prototype = {
                             r.attached = true;
                         }
                     }
-                    parent.insertBefore(fragment, rs[prev.first].el);
-                }
 
-                if (prev.last < bs.last) {
-                    fragment = document.createDocumentFragment();
-                    for (i = prev.last + 1, x = bs.last; i <= x; i++) {
-                        r = rs[i];
-                        if (r) {
-                            if (!r.rendered) {
-                                self.renderItem(i);
-                            }
-                            fragment.appendChild(r.el);
-                            r.attached = true;
-                        }
-                    }
                     parent.insertBefore(fragment, bot);
+
                 }
-                else if (prev.last > bs.last) {
-                    for (i = bs.last + 1, x = prev.last; i <= x; i++) {
-                        r = rs[i];
-                        if (r && r.attached) {
-                            parent.removeChild(r.el);
-                            r.attached = false;
+                else {
+
+                    if (prev.first < bs.first) {
+                        for (i = prev.first, x = bs.first; i < x; i++) {
+                            r = rs[i];
+                            if (r && r.attached) {
+                                parent.removeChild(r.el);
+                                r.attached = false;
+                            }
+                        }
+                    }
+                    else if (prev.first > bs.first) {
+                        fragment = document.createDocumentFragment();
+                        for (i = bs.first, x = prev.first; i < x; i++) {
+                            r = rs[i];
+                            if (r) {
+                                if (!r.rendered) {
+                                    self.renderItem(i);
+                                }
+                                fragment.appendChild(r.el);
+                                r.attached = true;
+                            }
+                        }
+                        parent.insertBefore(fragment, rs[prev.first].el);
+                    }
+
+                    if (prev.last < bs.last) {
+                        fragment = document.createDocumentFragment();
+                        for (i = prev.last + 1, x = bs.last; i <= x; i++) {
+                            r = rs[i];
+                            if (r) {
+                                if (!r.rendered) {
+                                    self.renderItem(i);
+                                }
+                                fragment.appendChild(r.el);
+                                r.attached = true;
+                            }
+                        }
+                        parent.insertBefore(fragment, bot);
+                    }
+                    else if (prev.last > bs.last) {
+                        for (i = bs.last + 1, x = prev.last; i <= x; i++) {
+                            r = rs[i];
+                            if (r && r.attached) {
+                                parent.removeChild(r.el);
+                                r.attached = false;
+                            }
                         }
                     }
                 }
-            }
 
-            //var start = (new Date).getTime();
+                //var start = (new Date).getTime();
 
-            self.updateStubs(bs);
+                self.updateStubs(bs);
 
-            self.triggerIf("bufferupdate", self);
-
+                self.triggerIf("bufferupdate", self);
 
 
-            /*async(function(){
-                // pre-render next
-                if (!prev || prev.first < bs.first) {
-                    //self.doUpdate(bs.last, bs.last + (bs.last - bs.first), null, true);
-                }
 
+                /*async(function(){
+                 // pre-render next
+                 if (!prev || prev.first < bs.first) {
+                 //self.doUpdate(bs.last, bs.last + (bs.last - bs.first), null, true);
+                 }
+
+                 self.onBufferStateChange(bs, prev);
+
+                 });*/
                 self.onBufferStateChange(bs, prev);
 
-            });*/
-            self.onBufferStateChange(bs, prev);
-
-            promise.resolve();
-        });
-
-        return promise;
-    },
-
-    // not finished: todo unbuffered and animation
-    scrollTo: function(index) {
-        var self    = this,
-            isize   = self.itemSize,
-            sp      = self.scrollEl || getScrollParent(self.parentEl),
-            hor     = self.horizontal,
-            prop    = hor ? "scrollLeft" : "scrollTop",
-            promise = new Promise,
-            pos;
-
-        if (self.buffered) {
-            self.queue.append(function(){
-
-                raf(function(){
-                    pos     = isize * index;
-                    if (sp === window) {
-                        window.scrollTo(
-                            hor ? pos : getScrollLeft(),
-                            !hor ? pos : getScrollTop()
-                        );
-                    }
-                    else {
-                        sp[prop] = pos;
-                    }
-                    promise.resolve();
-                });
-                return promise;
+                promise.resolve();
             });
-        }
 
-        return promise;
-    },
+            return promise;
+        },
 
-    onBufferStateChange: function(bs, prev) {},
+        // not finished: todo unbuffered and animation
+        scrollTo: function(index) {
+            var self    = this,
+                isize   = self.itemSize,
+                sp      = self.scrollEl || getScrollParent(self.parentEl),
+                hor     = self.horizontal,
+                prop    = hor ? "scrollLeft" : "scrollTop",
+                promise = new Promise,
+                pos;
 
-    /*
-     * buffered list -->
-     */
+            if (self.buffered) {
+                self.queue.append(function(){
 
-
-    parseExpr: function(expr) {
-
-        var tmp = expr.split(" "),
-            i, len,
-            model, name,
-            row;
-
-        for (i = 0, len = tmp.length; i < len; i++) {
-
-            row = tmp[i];
-
-            if (row == "" || row == "in") {
-                continue;
+                    raf(function(){
+                        pos     = isize * index;
+                        if (sp === window) {
+                            window.scrollTo(
+                                hor ? pos : getScrollLeft(),
+                                !hor ? pos : getScrollTop()
+                            );
+                        }
+                        else {
+                            sp[prop] = pos;
+                        }
+                        promise.resolve();
+                    });
+                    return promise;
+                });
             }
 
-            if (!name) {
-                name = row;
+            return promise;
+        },
+
+        onBufferStateChange: function(bs, prev) {},
+
+        /*
+         * buffered list -->
+         */
+
+
+        parseExpr: function(expr) {
+
+            var tmp = expr.split(" "),
+                i, len,
+                model, name,
+                row;
+
+            for (i = 0, len = tmp.length; i < len; i++) {
+
+                row = tmp[i];
+
+                if (row == "" || row == "in") {
+                    continue;
+                }
+
+                if (!name) {
+                    name = row;
+                }
+                else {
+                    model = tmp.slice(i).join(" ");
+                    break;
+                }
             }
-            else {
-                model = tmp.slice(i).join(" ");
-                break;
+
+            this.model = model;
+            this.itemName = name || "item";
+        },
+
+
+        destroy: function() {
+
+            var self        = this,
+                renderers   = self.renderers,
+                parent      = self.parentEl,
+                i, len;
+
+            for (i = 0, len = renderers.length; i < len; i++) {
+                renderers[i].renderer.destroy();
+            }
+
+            if (self.trackByWatcher) {
+                self.trackByWatcher.unsubscribeAndDestroy();
+            }
+
+            if (self.buffered) {
+                parent.removeChild(self.topStub);
+                parent.removeChild(self.botStub);
+                removeListener(self.scrollEl, "scroll", self.bufferEventDelegate);
+                removeListener(window, "resize", self.bufferEventDelegate);
+            }
+
+
+            self.queue.destroy();
+            self.watcher.unsubscribeAndDestroy(self.onChange, self);
+
+
+            if (self.observable) {
+                self.trigger("destroy", self);
+                self.observable.destroy();
+            }
+
+            for (i in self) {
+                if (self.hasOwnProperty(i)) {
+                    self[i] = null;
+                }
             }
         }
 
-        this.model = model;
-        this.itemName = name || "item";
-    },
-
-
-    destroy: function() {
-
-        var self        = this,
-            renderers   = self.renderers,
-            parent      = self.parentEl,
-            i, len;
-
-        for (i = 0, len = renderers.length; i < len; i++) {
-            renderers[i].renderer.destroy();
-        }
-
-        delete self.renderers;
-        delete self.tpl;
-        delete self.prevEl;
-        delete self.nextEl;
-        delete self.parentEl;
-
-        if (self.trackByWatcher) {
-            self.trackByWatcher.unsubscribeAndDestroy();
-            delete self.trackByWatcher;
-        }
-
-        if (self.buffered) {
-            parent.removeChild(self.topStub);
-            parent.removeChild(self.botStub);
-            removeListener(self.scrollEl, "scroll", self.bufferEventDelegate);
-            removeListener(window, "resize", self.bufferEventDelegate);
-            delete self.bufferEventDelegate;
-        }
-
-        delete self.topStub;
-        delete self.botStub;
-
-        self.queue.destroy();
-        delete self.queue;
-
-        self.watcher.unsubscribeAndDestroy(self.onChange, self);
-        delete self.watcher;
-
-        if (self.observable) {
-            self.trigger("destroy", self);
-            self.observable.destroy();
-            delete self.observable;
-        }
-    }
-
-};
-
-ListRenderer.$stopRenderer = true;
-ListRenderer.$registerBy = "id";
-
+    }, {
+        $stopRenderer: true,
+        $registerBy: "id"
+});
 
 
 
@@ -11191,13 +11306,19 @@ var createFunc = functionFactory.createFunc;
 
 
 
-registerAttributeHandler("mjs-show", 500, defineClass(null, AttributeHandler, {
+registerAttributeHandler("mjs-show", 500, defineClass({
+
+    $extends: AttributeHandler,
 
     initial: true,
+    display: "",
 
     initialize: function(scope, node, expr) {
 
-        var self    = this;
+        var self    = this,
+            cfg = getNodeConfig(node, scope);
+
+        self.display = cfg.display || "";
 
         self.supr(scope, node, expr);
     },
@@ -11211,7 +11332,7 @@ registerAttributeHandler("mjs-show", 500, defineClass(null, AttributeHandler, {
                     style.display = "none";
                 }
                 else {
-                    style.display = "";
+                    style.display = self.display;
                 }
             };
 
@@ -11220,7 +11341,7 @@ registerAttributeHandler("mjs-show", 500, defineClass(null, AttributeHandler, {
             show ? "show" : "hide",
             function() {
                 if (show) {
-                    style.display = "";
+                    style.display = self.display;
                 }
             },
             true)
@@ -11242,7 +11363,9 @@ registerAttributeHandler("mjs-show", 500, defineClass(null, AttributeHandler, {
 
 
 
-registerAttributeHandler("mjs-hide", 500, defineClass(null, "attr.mjs-show", {
+registerAttributeHandler("mjs-hide", 500, defineClass({
+
+    $extends: "attr.mjs-show",
 
     onChange: function() {
         var self    = this,
@@ -11257,7 +11380,9 @@ registerAttributeHandler("mjs-hide", 500, defineClass(null, "attr.mjs-show", {
 
 
 
-registerAttributeHandler("mjs-if", 500, defineClass(null, AttributeHandler, {
+registerAttributeHandler("mjs-if", 500, defineClass({
+
+    $extends: AttributeHandler,
 
     parentEl: null,
     prevEl: null,
@@ -11278,8 +11403,8 @@ registerAttributeHandler("mjs-if", 500, defineClass(null, AttributeHandler, {
 
         var self    = this;
 
-        delete self.prevEl;
-        delete self.parentEl;
+        self.prevEl = null;
+        self.parentEl = null;
 
         self.supr();
     },
@@ -11357,7 +11482,9 @@ registerAttributeHandler("mjs-init", 250, function(scope, node, expr){
 
 
 
-registerAttributeHandler("mjs-model", 1000, defineClass(null, AttributeHandler, {
+registerAttributeHandler("mjs-model", 1000, defineClass({
+
+    $extends: AttributeHandler,
 
     inProg: false,
     input: null,
@@ -11388,12 +11515,6 @@ registerAttributeHandler("mjs-model", 1000, defineClass(null, AttributeHandler, 
                 self.onInputChange(inputValue);
             }
         }
-
-        /*if (self.binding != "scope" && self.watcher &&
-            (inputValue || (scopeValue && self.watcher.hasInputPipes()))) {
-
-            self.onInputChange(scopeValue || inputValue);
-        }*/
     },
 
     onInputChange: function(val) {
@@ -11429,7 +11550,7 @@ registerAttributeHandler("mjs-model", 1000, defineClass(null, AttributeHandler, 
         var self        = this;
 
         self.input.destroy();
-        delete self.input;
+        self.input = null;
         self.supr();
     },
 
@@ -11457,7 +11578,9 @@ registerAttributeHandler("mjs-model", 1000, defineClass(null, AttributeHandler, 
 
 
 
-registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler, {
+registerAttributeHandler("mjs-options", 100, defineClass({
+
+    $extends: AttributeHandler,
 
     model: null,
     getterFn: null,
@@ -11608,7 +11731,9 @@ registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler,
     for (i = 0, l = booleanAttrs.length; i < l; i++) {
         (function(name){
 
-            registerAttributeHandler("mjs-" + name, 1000, defineClass(null, AttributeHandler, {
+            registerAttributeHandler("mjs-" + name, 1000, defineClass({
+
+                $extends: AttributeHandler,
 
                 onChange: function(val) {
 
@@ -11636,7 +11761,7 @@ var preloadImage = function() {
         cacheCnt = 0;
 
 
-    return function(src) {
+    return function preloadImage(src) {
 
         if (cache[src]) {
             return Promise.resolve(src);
@@ -11707,7 +11832,7 @@ var boxSizingReliable = function() {
         return ret;
     };
 
-    return function() {
+    return function boxSizingReliable() {
         if (boxSizingReliableVal === undf) {
             boxSizingReliableVal = computePixelPositionAndBoxSizingReliable();
         }
@@ -11803,7 +11928,7 @@ var getDimensions = function(type, name) {
     };
 
 
-    return function(elem, margin) {
+    return function getDimensions(elem, margin) {
 
         if (elem === window) {
             return elem.document.documentElement["client" + name];
@@ -11839,7 +11964,9 @@ var getHeight = getDimensions("", "Height");
 
 
 
-registerAttributeHandler("mjs-src", 1000, defineClass(null, AttributeHandler, {
+registerAttributeHandler("mjs-src", 1000, defineClass({
+
+    $extends: AttributeHandler,
 
     scrollEl: null,
     scrollDelegate: null,
@@ -11955,12 +12082,12 @@ registerAttributeHandler("mjs-src", 1000, defineClass(null, AttributeHandler, {
             removeListener(self.scrollEl, "scroll", self.scrollDelegate);
             removeListener(window, "resize", self.resizeDelegate);
 
-            delete self.scrollDelegate;
-            delete self.resizeDelegate;
-            delete self.scrollEl;
+            self.scrollDelegate = null;
+            self.resizeDelegate = null;
+            self.scrollEl = null;
 
             self.queue.destroy();
-            delete self.queue;
+            self.queue = null;
 
             self.checkVisibility = false;
         }
@@ -11976,7 +12103,7 @@ registerAttributeHandler("mjs-src", 1000, defineClass(null, AttributeHandler, {
 }));
 
 
-var parentData = function(node, key) {
+function parentData(node, key) {
 
     var val;
 
@@ -11992,7 +12119,7 @@ var parentData = function(node, key) {
 };
 
 
-var transclude = function(node) {
+function transclude(node) {
 
     var contents  = parentData(node, 'mjs-transclude');
 
@@ -12117,7 +12244,7 @@ var filterArray = function(){
             return false;
         };
 
-    var filterArray = function(a, by, opt) {
+    var filterArray = function filterArray(a, by, opt) {
 
         if (!isPlainObject(by)) {
             by = {$: by};
@@ -12263,7 +12390,7 @@ nsAdd("filter.p", function(key, scope, number) {
 });
 
 
-var sortArray = function(arr, by, dir) {
+function sortArray(arr, by, dir) {
 
     if (!dir) {
         dir = "asc";
@@ -12360,7 +12487,7 @@ nsAdd("filter.uppercase", function(val){
 /**
  * @param {Function} fn
  */
-var onReady = function(fn) {
+function onReady(fn) {
 
     var done    = false,
         top     = true,
@@ -12409,7 +12536,7 @@ var onReady = function(fn) {
 };
 
 
-var initApp = function(node, cls, data, autorun) {
+function initApp(node, cls, data, autorun) {
 
     removeAttr(node, "mjs-app");
 
@@ -12433,7 +12560,7 @@ var initApp = function(node, cls, data, autorun) {
 };
 
 
-var run = function() {
+function run() {
 
     onReady(function() {
 
@@ -12469,9 +12596,11 @@ var Model = function(){
 
     /**
      * @namespace MetaphorJs
-     * @class MetaphorJs.data.Model
+     * @class MetaphorJs.model.Model
      */
-    return defineClass("MetaphorJs.data.Model", {
+    return defineClass({
+
+        $class:         "MetaphorJs.model.Model",
 
         type:           null,
         fields:         null,
@@ -12779,7 +12908,7 @@ var Model = function(){
 
         /**
          * @access public
-         * @param {MetaphorJs.data.Record} rec
+         * @param {MetaphorJs.model.Record} rec
          * @param {array|null} keys
          * @param {object|null} extra
          * @returns MetaphorJs.lib.Promise
@@ -12795,7 +12924,7 @@ var Model = function(){
 
         /**
          * @access public
-         * @param {MetaphorJs.data.Record} rec
+         * @param {MetaphorJs.model.Record} rec
          * @returns MetaphorJs.lib.Promise
          */
         deleteRecord: function(rec) {
@@ -12804,7 +12933,7 @@ var Model = function(){
 
         /**
          * @access public
-         * @param {MetaphorJs.data.Store} store
+         * @param {MetaphorJs.model.Store} store
          * @param {object} params
          * @returns MetaphorJs.lib.Promise
          */
@@ -12814,7 +12943,7 @@ var Model = function(){
 
         /**
          * @access public
-         * @param {MetaphorJs.data.Store} store
+         * @param {MetaphorJs.model.Store} store
          * @param {object} recordData
          * @returns MetaphorJs.lib.Promise
          */
@@ -12824,7 +12953,7 @@ var Model = function(){
 
         /**
          * @access public
-         * @param {MetaphorJs.data.Store} store
+         * @param {MetaphorJs.model.Store} store
          * @param {array} ids
          * @returns MetaphorJs.lib.Promise
          */
@@ -12842,7 +12971,7 @@ var Model = function(){
 
         /**
          * Convert field's value from database state to app state
-         * @param {MetaphorJs.data.Record} rec
+         * @param {MetaphorJs.model.Record} rec
          * @param {string} name
          * @param {string|int|bool|Date} value
          * @returns mixed
@@ -12904,7 +13033,7 @@ var Model = function(){
 
         /**
          * @access protected
-         * @param {MetaphorJs.data.Record} rec
+         * @param {MetaphorJs.model.Record} rec
          * @param {string} name
          * @param {string|int|bool} value
          * @returns string|int|bool|Date
@@ -12915,7 +13044,7 @@ var Model = function(){
 
         /**
          * Convert field's value from app state to database state
-         * @param {MetaphorJs.data.Record} rec
+         * @param {MetaphorJs.model.Record} rec
          * @param {string} name
          * @param {string|int|bool|Date} value
          * @returns mixed
@@ -12967,7 +13096,7 @@ var Model = function(){
 
         /**
          * @access protected
-         * @param {MetaphorJs.data.Record} rec
+         * @param {MetaphorJs.model.Record} rec
          * @param {string} name
          * @param {string|int|bool} value
          * @returns string|int
@@ -12985,7 +13114,7 @@ var Model = function(){
          */
         create: function(model, cfg) {
 
-            if (model == "MetaphorJs.data.Model") {
+            if (model == "MetaphorJs.model.Model") {
                 return factory(model, cfg);
             }
             else {
@@ -13005,14 +13134,14 @@ var Model = function(){
 
         /**
          * @static
-         * @param {MetaphorJs.data.Record} rec
+         * @param {MetaphorJs.model.Record} rec
          */
         addToCache: function(rec) {
 
-            var cls     = rec.getClass(),
+            var cls     = rec.$getClass(),
                 id      = rec.getId();
 
-            if (cls != "MetaphorJs.data.Record") {
+            if (cls != "MetaphorJs.model.Record") {
                 if (!cache[cls]) {
                     cache[cls] = {};
                 }
@@ -13061,10 +13190,13 @@ var isInstanceOf = cs.isInstanceOf;
 
 /**
  * @namespace MetaphorJs
- * @class MetaphorJs.data.Record
+ * @class MetaphorJs.model.Record
  * @extends MetaphorJs.cmp.Observable
  */
-var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
+var Record = defineClass({
+
+    $class:         "MetaphorJs.model.Record",
+    $extends:       "MetaphorJs.cmp.Base",
 
     /**
      * @var mixed
@@ -13109,7 +13241,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
     destroyed:      false,
 
     /**
-     * @var MetaphorJs.data.Model
+     * @var MetaphorJs.model.Model
      * @access protected
      */
     model:          null,
@@ -13170,8 +13302,8 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
         if (isString(self.model)) {
             self.model  = factory(self.model);
         }
-        else if (!isInstanceOf(self.model, "MetaphorJs.data.Model")) {
-            self.model  = factory("MetaphorJs.data.Model", self.model);
+        else if (!isInstanceOf(self.model, "MetaphorJs.model.Model")) {
+            self.model  = factory("MetaphorJs.model.Model", self.model);
         }
 
         self.id     = id;
@@ -13183,7 +13315,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             self.load();
         }
 
-        if (self.getClass() != "MetaphorJs.data.Record") {
+        if (self.$getClass() != "MetaphorJs.model.Record") {
             Model.addToCache(self);
         }
     },
@@ -13210,14 +13342,14 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
     },
 
     /**
-     * @returns {MetaphorJs.data.Model}
+     * @returns {MetaphorJs.model.Model}
      */
     getModel: function() {
         return this.model;
     },
 
     /**
-     * @param {MetaphorJs.data.Store} store
+     * @param {MetaphorJs.model.Store} store
      */
     attachStore: function(store) {
         var self    = this,
@@ -13229,7 +13361,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
     },
 
     /**
-     * @param {MetaphorJs.data.Store} store
+     * @param {MetaphorJs.model.Store} store
      */
     detachStore: function(store) {
         var self    = this,
@@ -13480,7 +13612,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
         self.model      = null;
         self.stores     = null;
 
-        Model.removeFromCache(self.getClass(), self.id);
+        Model.removeFromCache(self.$getClass(), self.id);
 
         self.supr();
     }
@@ -13493,7 +13625,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
 
 
- (function(){
+(function(){
 
     var allStores   = {};
 
@@ -13501,10 +13633,13 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
     /**
      * @namespace MetaphorJs
-     * @class MetaphorJs.data.Store
+     * @class MetaphorJs.model.Store
      * @extends MetaphorJs.cmp.Observable
      */
-    return defineClass("MetaphorJs.data.Store", "MetaphorJs.cmp.Base", {
+    return defineClass({
+
+            $class:         "MetaphorJs.model.Store",
+            $extends:       "MetaphorJs.cmp.Base",
 
             /**
              * @var {string}
@@ -13523,7 +13658,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             clearOnLoad:    true,
 
             /**
-             * @var {MetaphorJs.data.Model}
+             * @var {MetaphorJs.model.Model}
              * @access protected
              */
             model:          null,
@@ -13739,7 +13874,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
                     self.model  = factory(self.model);
                 }
                 else if (!(self.model instanceof Model)) {
-                    self.model  = factory("MetaphorJs.data.Model", self.model);
+                    self.model  = factory("MetaphorJs.model.Model", self.model);
                 }
 
                 if (options.url) {
@@ -13902,7 +14037,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             },
 
             /**
-             * @returns MetaphorJs.data.Model
+             * @returns MetaphorJs.model.Model
              */
             getModel: function() {
                 return this.model;
@@ -14226,7 +14361,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             },
 
             /**
-             * @param {MetaphorJs.data.Record} rec
+             * @param {MetaphorJs.model.Record} rec
              * @param {boolean} silent
              * @param {boolean} skipUpdate
              * @returns MetaphorJs.lib.Promise
@@ -14237,7 +14372,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             },
 
             /**
-             * @param {MetaphorJs.data.Record[]} recs
+             * @param {MetaphorJs.model.Record[]} recs
              * @param {boolean} silent
              * @param {boolean} skipUpdate
              * @returns MetaphorJs.lib.Promise
@@ -14355,7 +14490,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
 
             /**
-             * @param {MetaphorJs.data.Record|Object} rec
+             * @param {MetaphorJs.model.Record|Object} rec
              */
             getRecordId: function(rec) {
                 if (rec instanceof Record) {
@@ -14372,8 +14507,8 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
             /**
              * @access protected
-             * @param {MetaphorJs.data.Record|Object} item
-             * @returns MetaphorJs.data.Record|Object
+             * @param {MetaphorJs.model.Record|Object} item
+             * @returns MetaphorJs.model.Record|Object
              */
             processRawDataItem: function(item) {
 
@@ -14417,7 +14552,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
             /**
              * @access protected
-             * @param {MetaphorJs.data.Record|Object} rec
+             * @param {MetaphorJs.model.Record|Object} rec
              */
             onRecordDirtyChange: function(rec) {
                 this.trigger("update", this, rec);
@@ -14425,7 +14560,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
             /**
              * @access protected
-             * @param {MetaphorJs.data.Record|Object} rec
+             * @param {MetaphorJs.model.Record|Object} rec
              * @param {string} k
              * @param {string|int|bool} v
              * @param {string|int|bool} prev
@@ -14436,7 +14571,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
             /**
              * @access protected
-             * @param {MetaphorJs.data.Record|Object} rec
+             * @param {MetaphorJs.model.Record|Object} rec
              */
             onRecordDestroy: function(rec) {
                 this.remove(rec);
@@ -14450,7 +14585,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
              * @param {boolean} silent
              * @param {boolean} skipUpdate
              * @param {boolean} unfiltered
-             * @returns {MetaphorJs.data.Record|Object|null}
+             * @returns {MetaphorJs.model.Record|Object|null}
              */
             shift: function(silent, skipUpdate, unfiltered) {
                 return this.removeAt(0, silent, skipUpdate, unfiltered);
@@ -14458,10 +14593,10 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
             /**
              * Works with unfiltered data
-             * @param {{}|MetaphorJs.data.Record} rec
+             * @param {{}|MetaphorJs.model.Record} rec
              * @param {boolean} silent
              * @param {boolean} skipUpdate
-             * @returns {MetaphorJs.data.Record|Object}
+             * @returns {MetaphorJs.model.Record|Object}
              */
             unshift: function(rec, silent, skipUpdate) {
                 return this.insert(0, rec, silent, skipUpdate);
@@ -14471,7 +14606,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
              * @param {boolean} silent
              * @param {boolean} skipUpdate
              * @param {boolean} unfiltered
-             * @returns {MetaphorJs.data.Record|Object|null}
+             * @returns {MetaphorJs.model.Record|Object|null}
              */
             pop: function(silent, skipUpdate, unfiltered) {
                 return this.removeAt(this.length - 1, silent, skipUpdate, unfiltered);
@@ -14501,7 +14636,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
             /**
              * Works with unfiltered data
-             * @param {MetaphorJs.data.Record|Object} rec
+             * @param {MetaphorJs.model.Record|Object} rec
              * @param {boolean} silent
              * @param {boolean} skipUpdate
              */
@@ -14517,7 +14652,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
              * @param {boolean} silent
              * @param {boolean} skipUpdate
              * @param {boolean} unfiltered -- index from unfiltered item list
-             * @returns MetaphorJs.data.Record|Object|null
+             * @returns MetaphorJs.model.Record|Object|null
              */
             removeAt: function(index, silent, skipUpdate, unfiltered) {
 
@@ -14585,10 +14720,10 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             /**
              * Works with unfiltered items
              * @param {number} index
-             * @param {MetaphorJs.data.Record|Object} rec
+             * @param {MetaphorJs.model.Record|Object} rec
              * @param {boolean} silent
              * @param {boolean} skipUpdate
-             * @returns MetaphorJs.data.Record|Object
+             * @returns MetaphorJs.model.Record|Object
              */
             insert: function(index, rec, silent, skipUpdate) {
 
@@ -14647,11 +14782,11 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             },
 
             /**
-             * @param {MetaphorJs.data.Record|Object} old
-             * @param {MetaphorJs.data.Record|Object} rec
+             * @param {MetaphorJs.model.Record|Object} old
+             * @param {MetaphorJs.model.Record|Object} rec
              * @param {boolean} silent
              * @param {boolean} skipUpdate
-             * @returns MetaphorJs.data.Record|Object
+             * @returns MetaphorJs.model.Record|Object
              */
             replace: function(old, rec, silent, skipUpdate) {
                 var self    = this,
@@ -14676,10 +14811,10 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             onReplace: emptyFn,
 
             /**
-             * @param {MetaphorJs.data.Record|Object} rec
+             * @param {MetaphorJs.model.Record|Object} rec
              * @param {boolean} silent
              * @param {boolean} skipUpdate
-             * @returns MetaphorJs.data.Record|Object|null
+             * @returns MetaphorJs.model.Record|Object|null
              */
             remove: function(rec, silent, skipUpdate) {
                 return this.removeAt(this.indexOf(rec, true), silent, skipUpdate, true);
@@ -14689,14 +14824,14 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
              * @param {string|int} id
              * @param {boolean} silent
              * @param {boolean} skipUpdate
-             * @returns MetaphorJs.data.Record|Object|null
+             * @returns MetaphorJs.model.Record|Object|null
              */
             removeId: function(id, silent, skipUpdate) {
                 return this.removeAt(this.indexOfId(id, true), silent, skipUpdate, true);
             },
 
             /**
-             * @param {MetaphorJs.data.Record|Object} rec
+             * @param {MetaphorJs.model.Record|Object} rec
              * @param {boolean} unfiltered
              * @returns bool
              */
@@ -14772,7 +14907,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             /**
              * @param {number} index
              * @param {boolean} unfiltered
-             * @returns MetaphorJs.data.Record|Object|null
+             * @returns MetaphorJs.model.Record|Object|null
              */
             getAt: function(index, unfiltered) {
                 return unfiltered ?
@@ -14783,7 +14918,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             /**
              * @param {string|int} id
              * @param {boolean} unfiltered
-             * @returns MetaphorJs.data.Record|Object|null
+             * @returns MetaphorJs.model.Record|Object|null
              */
             getById: function(id, unfiltered) {
                 return unfiltered ?
@@ -14793,7 +14928,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
             /**
              * Works with filtered list unless fromOriginal = true
-             * @param {MetaphorJs.data.Record|Object} rec
+             * @param {MetaphorJs.model.Record|Object} rec
              * @param {boolean} unfiltered
              * @returns Number
              */
@@ -14814,7 +14949,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
             /**
              * @param {function} fn {
-             *      @param {MetaphorJs.data.Record|Object} rec
+             *      @param {MetaphorJs.model.Record|Object} rec
              *      @param {number} index
              *      @param {number} length
              * }
@@ -14876,7 +15011,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
             /**
              * @param {boolean} unfiltered
-             * @returns MetaphorJs.data.Record|Object
+             * @returns MetaphorJs.model.Record|Object
              */
             first : function(unfiltered){
                 return unfiltered ? this.items[0] : this.current[0];
@@ -14884,7 +15019,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
             /**
              * @param {boolean} unfiltered
-             * @returns MetaphorJs.data.Record|Object
+             * @returns MetaphorJs.model.Record|Object
              */
             last : function(unfiltered){
                 return unfiltered ? this.items[this.length-1] : this.current[this.current-1];
@@ -14895,7 +15030,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
              * @param {number} start Optional
              * @param {number} end Optional
              * @param {boolean} unfiltered
-             * @returns MetaphorJs.data.Record[]|Object[]
+             * @returns MetaphorJs.model.Record[]|Object[]
              */
             getRange : function(start, end, unfiltered){
                 var self    = this,
@@ -14925,13 +15060,13 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             /**
              *
              * @param {function} fn {
-             *      @param {MetaphorJs.data.Record|Object} rec
+             *      @param {MetaphorJs.model.Record|Object} rec
              *      @param {string|int} id
              * }
              * @param {object} context
              * @param {number} start { @default 0 }
              * @param {boolean} unfiltered
-             * @returns MetaphorJs.data.Record|Object|null
+             * @returns MetaphorJs.model.Record|Object|null
              */
             findBy: function(fn, context, start, unfiltered) {
                 var inx = this.findIndexBy(fn, context, start, unfiltered);
@@ -14941,7 +15076,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             /**
              *
              * @param {function} fn {
-             *      @param {MetaphorJs.data.Record|Object} rec
+             *      @param {MetaphorJs.model.Record|Object} rec
              *      @param {string|int} id
              * }
              * @param {object} context
@@ -15003,7 +15138,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             /**
              * @param {object} props
              * @param {boolean} unfiltered
-             * @returns MetaphorJs.data.Record|Object|null
+             * @returns MetaphorJs.model.Record|Object|null
              */
             findBySet: function(props, unfiltered) {
 
@@ -15146,7 +15281,7 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
             /**
              * @static
              * @param {string} id
-             * @returns MetaphorJs.data.Store|null
+             * @returns MetaphorJs.model.Store|null
              */
             lookupStore: function(id) {
                 return allStores[id] || null;
@@ -15172,7 +15307,10 @@ var Record = defineClass("MetaphorJs.data.Record", "MetaphorJs.cmp.Base", {
 
 
 
-defineClass("MetaphorJs.data.FirebaseStore", "MetaphorJs.data.Store", {
+defineClass({
+
+    $class: "MetaphorJs.model.FirebaseStore",
+    $extends: "MetaphorJs.model.Store",
 
     firebase: null,
 
@@ -15206,6 +15344,7 @@ defineClass("MetaphorJs.data.FirebaseStore", "MetaphorJs.data.Store", {
     },
 
     onSnapshotLoaded: function(recordsSnapshot) {
+
 
         var self = this;
 
@@ -15264,16 +15403,7 @@ defineClass("MetaphorJs.data.FirebaseStore", "MetaphorJs.data.Store", {
 
 
 
-var StoreRenderer = defineClass(
-    null,
-    ListRenderer,
-    function(scope, node, expr) {
-        if (!(this instanceof StoreRenderer)) {
-            return new StoreRenderer(scope, node, expr);
-        }
-        this.supr(scope, node, expr);
-    },
-    {
+var StoreRenderer = ListRenderer.$extend({
 
         store: null,
         pullNext: false,
@@ -15317,7 +15447,7 @@ var StoreRenderer = defineClass(
             var self = this;
             self.onStoreUpdate();
             self.watcher.unsubscribeAndDestroy(self.onChange, self);
-            delete self.watcher;
+            self.watcher = null;
         },
 
 
@@ -15377,12 +15507,14 @@ var StoreRenderer = defineClass(
         destroy: function() {
             var self = this;
             self.bindStore(self.store, "un");
-            delete self.store;
+            self.store = null;
 
             if (self.pullNext && !self.buffered) {
                 removeListener(self.scrollEl, "scroll", self.pullNextDelegate);
                 removeListener(window, "resize", self.pullNextDelegate);
             }
+
+            self.pullNextDelegate = null;
 
             self.supr();
         }
@@ -15405,7 +15537,7 @@ registerAttributeHandler("mjs-each-in-store", 100, StoreRenderer);
  * @param {Element} el
  * @returns {boolean}
  */
-var isVisible = function(el) {
+function isVisible(el) {
     return !(el.offsetWidth <= 0 || el.offsetHeight <= 0);
 };
 
@@ -15416,7 +15548,7 @@ var isVisible = function(el) {
  * @returns {boolean}
  */
 var is = select.is;
-var ucfirst = function(str) {
+function ucfirst(str) {
     return str.substr(0, 1).toUpperCase() + str.substr(1);
 };
 
@@ -15429,7 +15561,7 @@ var delegates = {};
 
 
 
-var delegate = function(el, selector, event, fn) {
+function delegate(el, selector, event, fn) {
 
     var key = selector + "-" + event,
         listener    = function(e) {
@@ -15450,7 +15582,7 @@ var delegate = function(el, selector, event, fn) {
 };
 
 
-var undelegate = function(el, selector, event, fn) {
+function undelegate(el, selector, event, fn) {
 
     var key = selector + "-" + event,
         i, l,
@@ -15605,10 +15737,10 @@ var Dialog = function(){
                 newcfg.size 	= size - (cfg.border*2);
                 newcfg.width	= width - (cfg.border*4);
 
-                delete newcfg.border;
-                delete newcfg.borderColor;
-                delete newcfg.borderCls;
-                delete newcfg.offset;
+                newcfg.border = null;
+                newcfg.borderColor = null;
+                newcfg.borderCls = null;
+                newcfg.offset = null;
 
                 sub = new Pointer(dlg, newcfg, cfg.border);
             },
@@ -15826,6 +15958,9 @@ var Dialog = function(){
                 self.remove();
                 self    = null;
                 sub     = null;
+                dlg     = null;
+                cfg     = null;
+                inner   = null;
             },
 
             remove: function() {
@@ -18675,7 +18810,10 @@ var Dialog = function(){
 
 
 
-defineClass("MetaphorJs.cmp.Dialog", "MetaphorJs.cmp.Component", {
+defineClass({
+
+    $class: "MetaphorJs.cmp.Dialog",
+    $extends: "MetaphorJs.cmp.Component",
 
     dialog: null,
     dialogPreset: null,
@@ -18725,12 +18863,12 @@ defineClass("MetaphorJs.cmp.Dialog", "MetaphorJs.cmp.Component", {
         var self    = this;
 
         if (!self.destroying) {
-            delete self.dialog;
+            self.dialog = null;
             self.destroy();
         }
     },
 
-    onDestroy: function() {
+    destroy: function() {
 
         var self    = this;
 
@@ -18739,9 +18877,10 @@ defineClass("MetaphorJs.cmp.Dialog", "MetaphorJs.cmp.Component", {
         if (self.dialog) {
             self.dialog.destroy();
         }
-        delete self.dialog;
-        delete self.dialogCfg;
-        delete self.dialogPreset;
+
+        self.dialog = null;
+        self.dialogCfg = null;
+        self.dialogPreset = null;
 
         self.supr();
 
@@ -18750,7 +18889,7 @@ defineClass("MetaphorJs.cmp.Dialog", "MetaphorJs.cmp.Component", {
 
 });
 
-var eachNode = function(el, fn, context) {
+function eachNode(el, fn, context) {
     var i, len,
         children = el.childNodes;
 
@@ -19195,7 +19334,7 @@ var Validator = function(){
         }
     };
 
-    Field.prototype = {
+    extend(Field.prototype, {
 
         vldr:           null,
         elem:           null,
@@ -19712,16 +19851,16 @@ var Validator = function(){
             }
 
             self.input.destroy();
-            delete self.input;
+            self.input = null;
 
             self._observable.destroy();
 
-            delete self._observable;
-            delete self.vldr;
-            delete self.cfg;
-            delete self.errorBox;
-            delete self.rules;
-            delete self.elem;
+            self._observable = null;
+            self.vldr = null;
+            self.cfg = null;
+            self.errorBox = null;
+            self.rules = null;
+            self.elem = null;
         },
 
 
@@ -19922,7 +20061,7 @@ var Validator = function(){
                 self.trigger('afterAjax', self);
             }
         }
-    };
+    }, true, false);
 
 
 
@@ -20024,7 +20163,7 @@ var Validator = function(){
         self.enabled = !cfg.disabled;
     };
 
-    Group.prototype = {
+    extend(Group.prototype, {
 
         fields:         null,
         rules:          null,
@@ -20377,7 +20516,6 @@ var Validator = function(){
             for (var i in fields) {
                 if (fields[i]) {
                     self.setFieldEvents(fields[i], 'un');
-                    delete fields[i];
                 }
             }
 
@@ -20386,11 +20524,12 @@ var Validator = function(){
             }
 
             self._observable.destroy();
-            delete self._observable;
-            delete self.vldr;
-            delete self.rules;
-            delete self.fields;
-            delete self.cfg;
+
+            self._observable = null;
+            self.vldr = null;
+            self.rules = null;
+            self.fields = null;
+            self.cfg = null;
         },
 
         add:		function(field) {
@@ -20449,7 +20588,7 @@ var Validator = function(){
             self.trigger("fieldstatechange", self, f, valid);
             self.check();
         }
-    };
+    }, true, false);
 
 
 
@@ -20569,7 +20708,7 @@ var Validator = function(){
         self.enabled = true;
     };
 
-    Validator.prototype = {
+    extend(Validator.prototype, {
 
         vldId:          null,
         el:             null,
@@ -21265,7 +21404,6 @@ var Validator = function(){
                 if (groups.hasOwnProperty(i) && groups[i]) {
                     self.setGroupEvents(groups[i], 'un');
                     groups[i].destroy();
-                    delete groups[i];
                 }
             }
 
@@ -21273,22 +21411,21 @@ var Validator = function(){
                 if (fields.hasOwnProperty(i) && fields[i]) {
                     self.setFieldEvents(fields[i], 'un');
                     fields[i].destroy();
-                    delete fields[i];
                 }
             }
 
             self._observable.destroy();
-            delete self._observable;
+            self._observable = null;
 
             self.initForm('unbind');
 
-            delete self.fields;
-            delete self.groups;
-            delete self.el;
-            delete self.cfg;
+            self.fields = null;
+            self.groups = null;
+            self.el = null;
+            self.cfg = null;
         }
 
-    };
+    }, true, false);
 
 
 
@@ -21318,14 +21455,16 @@ var Validator = function(){
 
 
 
-defineClass("MetaphorJs.view.Validator", {
+defineClass({
+
+    $class: "MetaphorJs.view.Validator",
 
     node: null,
     scope: null,
     validator: null,
     scopeState: null,
 
-    initialize: function(node, scope) {
+    initialize: function(node, scope, renderer) {
 
         var self        = this;
 
@@ -21338,7 +21477,9 @@ defineClass("MetaphorJs.view.Validator", {
         self.initScopeState();
         self.initValidatorEvents();
 
-        self.validator.check();
+        // wait for the renderer to finish
+        // before making judgements :)
+        renderer.once("rendered", self.validator.check, self.validator);
     },
 
     createValidator: function() {
@@ -21427,6 +21568,7 @@ defineClass("MetaphorJs.view.Validator", {
         state.$submit = bind(self.validator.onSubmit, self.validator);
         state.$reset = bind(self.validator.reset, self.validator);
 
+        window.formState = state;
     },
 
     onDisplayStateChange: function(vld, state) {
@@ -21511,7 +21653,8 @@ defineClass("MetaphorJs.view.Validator", {
 
 });
 
-registerAttributeHandler("mjs-validate", 250, function(scope, node, expr) {
+registerAttributeHandler("mjs-validate", 250, ['$scope', '$node', '$attrValue', '$renderer',
+                                               function(scope, node, expr, renderer) {
 
     var cls     = expr || "MetaphorJs.view.Validator",
         constr  = nsGet(cls);
@@ -21520,16 +21663,16 @@ registerAttributeHandler("mjs-validate", 250, function(scope, node, expr) {
         error(new Error("Class '"+cls+"' not found"));
     }
     else {
-        new constr(node, scope);
+        new constr(node, scope, renderer);
     }
-});
+}]);
 
 
 
 var pushUrl = history.pushUrl;
 
 
-var compile = function(htmlString, scope) {
+function compile(htmlString, scope) {
 
     var div = document.createElement("div");
 
@@ -21542,38 +21685,153 @@ var compile = function(htmlString, scope) {
 
     return fragment;
 };
-MetaphorJs['onReady'] = onReady;
-MetaphorJs['initApp'] = initApp;
+MetaphorJs['isFunction'] = isFunction;
+MetaphorJs['undf'] = undf;
+MetaphorJs['varType'] = varType;
+MetaphorJs['isString'] = isString;
+MetaphorJs['isObject'] = isObject;
+MetaphorJs['strUndef'] = strUndef;
+MetaphorJs['Namespace'] = Namespace;
+MetaphorJs['slice'] = slice;
+MetaphorJs['async'] = async;
+MetaphorJs['error'] = error;
+MetaphorJs['emptyFn'] = emptyFn;
+MetaphorJs['instantiate'] = instantiate;
+MetaphorJs['Class'] = Class;
 MetaphorJs['ns'] = ns;
 MetaphorJs['cs'] = cs;
-MetaphorJs['resolveComponent'] = resolveComponent;
-MetaphorJs['animate'] = animate;
-MetaphorJs['stopAnimation'] = stopAnimation;
-MetaphorJs['ajax'] = ajax;
-MetaphorJs['select'] = select;
+MetaphorJs['defineClass'] = defineClass;
 MetaphorJs['bind'] = bind;
-MetaphorJs['extend'] = extend;
-MetaphorJs['trim'] = trim;
-MetaphorJs['pushUrl'] = pushUrl;
-MetaphorJs['currentUrl'] = currentUrl;
-MetaphorJs['history'] = history;
-MetaphorJs['run'] = run;
-MetaphorJs['async'] = async;
-MetaphorJs['compile'] = compile;
-MetaphorJs['nextUid'] = nextUid;
 MetaphorJs['isPlainObject'] = isPlainObject;
-MetaphorJs['getPosition'] = getPosition;
-MetaphorJs['getOffset'] = getOffset;
-MetaphorJs['getOffsetParent'] = getOffsetParent;
+MetaphorJs['isBool'] = isBool;
+MetaphorJs['isNull'] = isNull;
+MetaphorJs['extend'] = extend;
+MetaphorJs['nextUid'] = nextUid;
+MetaphorJs['getAttr'] = getAttr;
+MetaphorJs['Observable'] = Observable;
+MetaphorJs['isArray'] = isArray;
+MetaphorJs['trim'] = trim;
+MetaphorJs['isDate'] = isDate;
+MetaphorJs['isRegExp'] = isRegExp;
+MetaphorJs['isWindow'] = isWindow;
+MetaphorJs['equals'] = equals;
+MetaphorJs['copy'] = copy;
+MetaphorJs['isPrimitive'] = isPrimitive;
+MetaphorJs['isNative'] = isNative;
+MetaphorJs['returnFalse'] = returnFalse;
+MetaphorJs['levenshteinArray'] = levenshteinArray;
+MetaphorJs['functionFactory'] = functionFactory;
+MetaphorJs['createGetter'] = createGetter;
+MetaphorJs['createSetter'] = createSetter;
+MetaphorJs['Watchable'] = Watchable;
+MetaphorJs['Scope'] = Scope;
+MetaphorJs['toArray'] = toArray;
+MetaphorJs['isThenable'] = isThenable;
+MetaphorJs['nsGet'] = nsGet;
+MetaphorJs['select'] = select;
+MetaphorJs['nodeTextProp'] = nodeTextProp;
+MetaphorJs['createWatchable'] = createWatchable;
+MetaphorJs['TextRenderer'] = TextRenderer;
+MetaphorJs['setAttr'] = setAttr;
+MetaphorJs['removeAttr'] = removeAttr;
+MetaphorJs['getAttrMap'] = getAttrMap;
+MetaphorJs['data'] = data;
+MetaphorJs['Promise'] = Promise;
+MetaphorJs['nsAdd'] = nsAdd;
+MetaphorJs['directives'] = directives;
+MetaphorJs['getAttributeHandlers'] = getAttributeHandlers;
+MetaphorJs['aIndexOf'] = aIndexOf;
+MetaphorJs['Renderer'] = Renderer;
+MetaphorJs['Provider'] = Provider;
+MetaphorJs['Text'] = Text;
+MetaphorJs['elHtml'] = elHtml;
+MetaphorJs['isAttached'] = isAttached;
+MetaphorJs['toFragment'] = toFragment;
+MetaphorJs['clone'] = clone;
+MetaphorJs['getAnimationPrefixes'] = getAnimationPrefixes;
+MetaphorJs['getAnimationDuration'] = getAnimationDuration;
+MetaphorJs['getRegExp'] = getRegExp;
+MetaphorJs['getClsReg'] = getClsReg;
+MetaphorJs['removeClass'] = removeClass;
+MetaphorJs['stopAnimation'] = stopAnimation;
+MetaphorJs['hasClass'] = hasClass;
+MetaphorJs['addClass'] = addClass;
+MetaphorJs['raf'] = raf;
+MetaphorJs['addListener'] = addListener;
+MetaphorJs['removeListener'] = removeListener;
+MetaphorJs['animate'] = animate;
+MetaphorJs['parseJSON'] = parseJSON;
+MetaphorJs['parseXML'] = parseXML;
+MetaphorJs['ajax'] = ajax;
+MetaphorJs['Template'] = Template;
+MetaphorJs['resolveComponent'] = resolveComponent;
+MetaphorJs['returnTrue'] = returnTrue;
+MetaphorJs['NormalizedEvent'] = NormalizedEvent;
+MetaphorJs['normalizeEvent'] = normalizeEvent;
+MetaphorJs['history'] = history;
+MetaphorJs['currentUrl'] = currentUrl;
+MetaphorJs['toCamelCase'] = toCamelCase;
+MetaphorJs['getNodeData'] = getNodeData;
+MetaphorJs['getNodeConfig'] = getNodeConfig;
+MetaphorJs['registerAttributeHandler'] = registerAttributeHandler;
+MetaphorJs['isField'] = isField;
+MetaphorJs['getValue'] = getValue;
+MetaphorJs['inArray'] = inArray;
+MetaphorJs['isNumber'] = isNumber;
+MetaphorJs['setValue'] = setValue;
+MetaphorJs['elemTextProp'] = elemTextProp;
+MetaphorJs['AttributeHandler'] = AttributeHandler;
+MetaphorJs['isSubmittable'] = isSubmittable;
+MetaphorJs['uaString'] = uaString;
+MetaphorJs['isAndroid'] = isAndroid;
+MetaphorJs['isIE'] = isIE;
+MetaphorJs['browserHasEvent'] = browserHasEvent;
+MetaphorJs['Input'] = Input;
+MetaphorJs['Queue'] = Queue;
 MetaphorJs['getStyle'] = getStyle;
-MetaphorJs.lib['Promise'] = Promise;
-MetaphorJs.lib['Observable'] = Observable;
-MetaphorJs.lib['Scope'] = Scope;
-MetaphorJs.lib['Queue'] = Queue;
-MetaphorJs.view || (MetaphorJs.view = {});
-MetaphorJs.view['ListRenderer'] = ListRenderer;
-MetaphorJs.view || (MetaphorJs.view = {});
-MetaphorJs.view['StoreRenderer'] = StoreRenderer;
+MetaphorJs['getScrollParent'] = getScrollParent;
+MetaphorJs['getScrollTopOrLeft'] = getScrollTopOrLeft;
+MetaphorJs['getScrollTop'] = getScrollTop;
+MetaphorJs['getScrollLeft'] = getScrollLeft;
+MetaphorJs['getOffsetParent'] = getOffsetParent;
+MetaphorJs['getOffset'] = getOffset;
+MetaphorJs['getPosition'] = getPosition;
+MetaphorJs['ListRenderer'] = ListRenderer;
+MetaphorJs['createFunc'] = createFunc;
+MetaphorJs['preloadImage'] = preloadImage;
+MetaphorJs['elBody'] = elBody;
+MetaphorJs['boxSizingReliable'] = boxSizingReliable;
+MetaphorJs['getDimensions'] = getDimensions;
+MetaphorJs['getWidth'] = getWidth;
+MetaphorJs['getHeight'] = getHeight;
+MetaphorJs['parentData'] = parentData;
+MetaphorJs['transclude'] = transclude;
+MetaphorJs['registerTagHandler'] = registerTagHandler;
+MetaphorJs['filterArray'] = filterArray;
+MetaphorJs['dateFormats'] = dateFormats;
+MetaphorJs['numberFormats'] = numberFormats;
+MetaphorJs['sortArray'] = sortArray;
+MetaphorJs['onReady'] = onReady;
+MetaphorJs['initApp'] = initApp;
+MetaphorJs['run'] = run;
+MetaphorJs['factory'] = factory;
+MetaphorJs['Model'] = Model;
+MetaphorJs['isInstanceOf'] = isInstanceOf;
+MetaphorJs['Record'] = Record;
+MetaphorJs['StoreRenderer'] = StoreRenderer;
+MetaphorJs['isVisible'] = isVisible;
+MetaphorJs['is'] = is;
+MetaphorJs['ucfirst'] = ucfirst;
+MetaphorJs['getOuterWidth'] = getOuterWidth;
+MetaphorJs['getOuterHeight'] = getOuterHeight;
+MetaphorJs['delegates'] = delegates;
+MetaphorJs['delegate'] = delegate;
+MetaphorJs['undelegate'] = undelegate;
+MetaphorJs['Dialog'] = Dialog;
+MetaphorJs['eachNode'] = eachNode;
+MetaphorJs['Validator'] = Validator;
+MetaphorJs['pushUrl'] = pushUrl;
+MetaphorJs['compile'] = compile;
 
 typeof global != "undefined" ? (global['MetaphorJs'] = MetaphorJs) : (window['MetaphorJs'] = MetaphorJs);
 

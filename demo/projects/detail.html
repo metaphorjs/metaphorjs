@@ -1,9 +1,10 @@
 <form name="myForm" mjs-validate mjs-validator-submit=".ctrl.save()">
-    <div class="control-group" mjs-class="{error: .myForm.name.$invalid && !.myForm.name.$pristine}">
+    <div class="control-group" mjs-class="{error: .myForm.name.$invalid && .myForm.name.$pristine === false}">
         <label>Name</label>
         <input type="text" name="name" mjs-model=".project.name" data-validate-required>
-        <span mjs-show=".myForm.name.$error == 'required' && !.myForm.name.$pristine" class="help-inline">
-            Required {{myForm.name.$pristine}}</span>
+        <span mjs-show=".myForm.name.$error == 'required' && .myForm.name.$pristine === false"
+              class="help-inline" data-display="inline">
+            Required</span>
     </div>
 
     <div class="control-group" mjs-class="{error: .myForm.site.$invalid && !.myForm.site.$pristine}">

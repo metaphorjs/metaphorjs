@@ -2,7 +2,7 @@
 var data = require("./data.js"),
     undf = require("../../var/undf.js");
 
-module.exports = function(node, key) {
+module.exports = function parentData(node, key) {
 
     var val;
 

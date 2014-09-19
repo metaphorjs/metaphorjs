@@ -15,7 +15,7 @@ module.exports = function() {
             return rOvf.test(overflow(node));
         };
 
-    return function(node) {
+    return function getScrollParent(node) {
 
         if (!body) {
             body = document.body;

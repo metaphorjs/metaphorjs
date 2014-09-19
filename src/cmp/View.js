@@ -17,7 +17,9 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     getNodeConfig = require("../func/dom/getNodeConfig.js");
 
 
-module.exports = defineClass("MetaphorJs.cmp.View", {
+module.exports = defineClass({
+
+    $class: "MetaphorJs.cmp.View",
 
     /**
      * [
@@ -215,16 +217,18 @@ module.exports = defineClass("MetaphorJs.cmp.View", {
 
         if (self.route) {
             history.un("locationchange", self.onLocationChange, self);
-            delete self.route;
+            self.route = null;
         }
 
         if (self.watchable) {
             self.watchable.unsubscribeAndDestroy(self.onCmpChange, self);
-            delete self.watchable;
+            self.watchable = null;
         }
 
-        delete self.scope;
-        delete self.currentComponent;
+        self.scope = null;
+        self.currentComponent = null;
+
+        self.supr();
     }
 });
 

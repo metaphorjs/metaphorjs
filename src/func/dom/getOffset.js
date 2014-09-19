@@ -4,7 +4,7 @@ var elHtml = require("../../var/elHtml.js"),
     getScrollTop = require("./getScrollTop.js"),
     getScrollLeft = require("./getScrollLeft.js");
 
-module.exports = function(node) {
+module.exports = function getOffset(node) {
 
     var box = {top: 0, left: 0};
 

@@ -20,7 +20,9 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
     raf = require("../../../../metaphorjs-animate/src/func/raf.js"),
     getNodeConfig = require("../../func/dom/getNodeConfig.js");
 
-registerAttributeHandler("mjs-src", 1000, defineClass(null, AttributeHandler, {
+registerAttributeHandler("mjs-src", 1000, defineClass({
+
+    $extends: AttributeHandler,
 
     scrollEl: null,
     scrollDelegate: null,
@@ -136,12 +138,12 @@ registerAttributeHandler("mjs-src", 1000, defineClass(null, AttributeHandler, {
             removeListener(self.scrollEl, "scroll", self.scrollDelegate);
             removeListener(window, "resize", self.resizeDelegate);
 
-            delete self.scrollDelegate;
-            delete self.resizeDelegate;
-            delete self.scrollEl;
+            self.scrollDelegate = null;
+            self.resizeDelegate = null;
+            self.scrollEl = null;
 
             self.queue.destroy();
-            delete self.queue;
+            self.queue = null;
 
             self.checkVisibility = false;
         }

@@ -16,7 +16,9 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
 
 
 
-registerAttributeHandler("mjs-model", 1000, defineClass(null, AttributeHandler, {
+registerAttributeHandler("mjs-model", 1000, defineClass({
+
+    $extends: AttributeHandler,
 
     inProg: false,
     input: null,
@@ -47,12 +49,6 @@ registerAttributeHandler("mjs-model", 1000, defineClass(null, AttributeHandler, 
                 self.onInputChange(inputValue);
             }
         }
-
-        /*if (self.binding != "scope" && self.watcher &&
-            (inputValue || (scopeValue && self.watcher.hasInputPipes()))) {
-
-            self.onInputChange(scopeValue || inputValue);
-        }*/
     },
 
     onInputChange: function(val) {
@@ -88,7 +84,7 @@ registerAttributeHandler("mjs-model", 1000, defineClass(null, AttributeHandler, 
         var self        = this;
 
         self.input.destroy();
-        delete self.input;
+        self.input = null;
         self.supr();
     },
 

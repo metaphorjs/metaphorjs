@@ -5,7 +5,7 @@ var isArray = require("../isArray.js");
  * @param {[]|Element} node
  * @returns {[]|Element}
  */
-var clone = function(node) {
+var clone = function clone(node) {
 
     var i, len, cloned;
 

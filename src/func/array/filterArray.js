@@ -68,7 +68,7 @@ module.exports = function(){
             return false;
         };
 
-    var filterArray = function(a, by, opt) {
+    var filterArray = function filterArray(a, by, opt) {
 
         if (!isPlainObject(by)) {
             by = {$: by};

@@ -17,7 +17,9 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
     AttributeHandler = require("../../view/AttributeHandler.js");
 
 
-registerAttributeHandler("mjs-options", 100, defineClass(null, AttributeHandler, {
+registerAttributeHandler("mjs-options", 100, defineClass({
+
+    $extends: AttributeHandler,
 
     model: null,
     getterFn: null,

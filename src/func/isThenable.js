@@ -6,7 +6,7 @@ var isFunction = require("./isFunction.js");
  * @param {*} any
  * @returns {Function|boolean}
  */
-module.exports = function(any) {
+module.exports = function isThenable(any) {
     if (!any || !any.then) {
         return false;
     }

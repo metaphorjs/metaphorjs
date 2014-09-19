@@ -1,6 +1,9 @@
 
 
-MetaphorJs.cs.define("My.Flickr", "MetaphorJs.cmp.Component", {
+MetaphorJs.cs.define({
+
+    $class: "My.Flickr",
+    $extends: "MetaphorJs.cmp.Component",
 
     store: null,
 
@@ -10,7 +13,7 @@ MetaphorJs.cs.define("My.Flickr", "MetaphorJs.cmp.Component", {
             scope = self.scope,
             store;
 
-        store = new MetaphorJs.data.Store({
+        store = new MetaphorJs.model.Store({
 
             model: {
                 store: {

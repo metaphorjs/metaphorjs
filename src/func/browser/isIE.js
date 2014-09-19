@@ -9,7 +9,7 @@ module.exports = function(){
         msie    = parseInt((/trident\/.*; rv:(\d+)/.exec(uaString) || [])[1], 10) || false;
     }
 
-    return function() {
+    return function isIE() {
         return msie;
     };
 }();

@@ -8,10 +8,13 @@ module.exports = function() {
     var readDataSet = function(node) {
         var attrs = node.attributes,
             dataset = {},
-            i, l;
+            i, l, name;
 
         for (i = 0, l = attrs.length; i < l; i++) {
-            dataset[toCamelCase(attrs[i].name)] = attrs[i].value;
+            name = attrs[i].name;
+            if (name.indexOf("data-") === 0) {
+                dataset[toCamelCase(name.substr(5))] = attrs[i].value;
+            }
         }
 
         return dataset;

@@ -11,7 +11,7 @@ module.exports = function(){
 
     var eventSupport = {};
 
-    return function(event) {
+    return function browserHasEvent(event) {
         // IE9 implements 'input' event it's so fubared that we rather pretend that it doesn't have
         // it. In particular the event is not fired when backspace or delete key are pressed or
         // when cut operation is performed.

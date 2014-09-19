@@ -188,7 +188,7 @@ module.exports = function(){
         }
     };
 
-    Text.prototype = {
+    extend(Text.prototype, {
 
         store: null,
         locale: "en",
@@ -241,7 +241,7 @@ module.exports = function(){
             }
         }
 
-    };
+    }, true, false);
 
 
     var globalText  = new Text;

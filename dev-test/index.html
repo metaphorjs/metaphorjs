@@ -3,8 +3,8 @@
 <head>
     <link rel="stylesheet" href="style.css">
 
-    <script src="numeral.min.js"></script>
-    <script src="moment.min.js"></script>
+    <!--<script src="numeral.min.js"></script>
+    <script src="moment.min.js"></script>-->
 
     <script src="metaphorjs.test.js"></script>
     <script src="index.js"></script>
@@ -235,7 +235,7 @@
                 </form>
             </div>
 
-            <div class="case">
+            <div class="case" mjs-init=".dynamicList = []">
                 <h4>dynamic list</h4>
 
                 <label><input id="radio-sep-1" type="radio" name="sep" value="/\n|,/" mjs-model=".sep"/> /\n|,/</label>
@@ -341,7 +341,7 @@
                 <ul mjs-show=".bool" mjs-animate>
                     <li mjs-each="item in .list | filter:.listFilter | sortBy:'txt':.sortBy"
                         mjs-animate
-                        data-animate-move="true"
+                        data-animate-move="true">
                         <label mjs-class="{cls3: .item.bool}">
                             <input type="checkbox" mjs-model=".item.bool"/>
                             {{.$index}} -

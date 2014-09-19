@@ -1,5 +1,5 @@
 
-var eachNode = function(el, fn, context) {
+function eachNode(el, fn, context) {
     var i, len,
         children = el.childNodes;
 

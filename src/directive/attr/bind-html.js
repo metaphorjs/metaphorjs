@@ -5,7 +5,9 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
 
 require("./bind.js");
 
-registerAttributeHandler("mjs-bind-html", 1000, defineClass(null, "attr.mjs-bind", {
+registerAttributeHandler("mjs-bind-html", 1000, defineClass({
+
+    $extends: "attr.mjs-bind",
 
     updateElement: function(val) {
         this.node.innerHTML = val;

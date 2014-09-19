@@ -88,7 +88,7 @@ module.exports = function(type, name) {
     };
 
 
-    return function(elem, margin) {
+    return function getDimensions(elem, margin) {
 
         if (elem === window) {
             return elem.document.documentElement["client" + name];

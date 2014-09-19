@@ -16,7 +16,7 @@ module.exports = function(){
      * @param {String} key
      * @param {*} value optional
      */
-    return function(el, key, value) {
+    return function data(el, key, value) {
         var id  = getNodeId(el),
             obj = dataCache[id];
 

@@ -2,7 +2,7 @@
 var delegates = require("../../var/delegates.js"),
     removeListener = require("../event/removeListener.js");
 
-module.exports = function(el, selector, event, fn) {
+module.exports = function undelegate(el, selector, event, fn) {
 
     var key = selector + "-" + event,
         i, l,

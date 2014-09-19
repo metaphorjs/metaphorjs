@@ -2,7 +2,7 @@
 var async = require("./async.js"),
     strUndef = require("../var/strUndef.js");
 
-module.exports = function(e) {
+module.exports = function error(e) {
 
     var stack = e.stack || (new Error).stack;
 

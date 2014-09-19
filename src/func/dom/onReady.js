@@ -5,7 +5,7 @@ var removeListener = require("../event/removeListener.js"),
 /**
  * @param {Function} fn
  */
-module.exports = function(fn) {
+module.exports = function onReady(fn) {
 
     var done    = false,
         top     = true,

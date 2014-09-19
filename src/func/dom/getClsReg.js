@@ -5,6 +5,6 @@ var getRegExp = require("../getRegExp.js");
  * @param {String} cls
  * @returns {RegExp}
  */
-module.exports = function(cls) {
+module.exports = function getClsReg(cls) {
     return getRegExp('(?:^|\\s)'+cls+'(?!\\S)');
 };

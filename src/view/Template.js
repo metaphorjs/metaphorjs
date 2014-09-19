@@ -127,7 +127,7 @@ module.exports = function(){
         }
     };
 
-    Template.prototype = {
+    extend(Template.prototype, {
 
         _watcher:           null,
         _tpl:               null,
@@ -275,33 +275,34 @@ module.exports = function(){
             this._renderer.destroy();
             this.destroy();
 
-            delete this._renderer;
+            this._renderer = null;
         },
 
         onScopeDestroy: function() {
             this.destroy();
 
             // renderer itself subscribes to scope's destroy event
-            delete this._renderer;
+            this._renderer = null;
         },
 
         destroy: function() {
 
-            var self    = this;
+            var self    = this,
+                i;
 
-            delete self.node;
-            delete self.scope;
-            delete self.initPromise;
 
             if (self._watcher) {
                 self._watcher.unsubscribeAndDestroy(self.onChange, self);
-                delete self._watcher;
             }
 
-            delete self.tpl;
+            for (i in self) {
+                if (self.hasOwnProperty(i)) {
+                    self[i] = null;
+                }
+            }
         }
 
-    };
+    }, true, false);
 
     Template.getTemplate = getTemplate;
     Template.loadTemplate = loadTemplate;

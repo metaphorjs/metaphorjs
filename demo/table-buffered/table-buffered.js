@@ -1,13 +1,16 @@
 
 (function(){
 
-    MetaphorJs.cs.define("My.BufferedTableCmp", "MetaphorJs.cmp.Component", {
+    MetaphorJs.cs.define({
+
+        $class: "My.BufferedTableCmp",
+        $extends: "MetaphorJs.cmp.Component",
 
         initComponent: function() {
 
             var self  = this;
 
-            var store = new MetaphorJs.data.Store({
+            var store = new MetaphorJs.model.Store({
 
                 model: {
                     store: {
@@ -42,7 +45,7 @@
             var self = this,
                 store = self.store,
                 ps  = store.pageSize,
-                Queue = MetaphorJs.lib.Queue,
+                Queue = MetaphorJs.Queue,
                 queue = new Queue({auto: true, async: false, thenable: true});
 
             var getPageFromUrl = function(url) {
@@ -90,7 +93,9 @@
 
     });
 
-    MetaphorJs.cs.define("My.StaticTableCmp", "MetaphorJs.cmp.Component", {
+    MetaphorJs.cs.define({
+        $class: "My.StaticTableCmp",
+        $extends: "MetaphorJs.cmp.Component",
         initComponent: function() {
             this.scope.store = window.dataSource({start: 0, limit: 1000}, true);
         }

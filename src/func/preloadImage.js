@@ -9,7 +9,7 @@ module.exports = function() {
         cacheCnt = 0;
 
 
-    return function(src) {
+    return function preloadImage(src) {
 
         if (cache[src]) {
             return Promise.resolve(src);

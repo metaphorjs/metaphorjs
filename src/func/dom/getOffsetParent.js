@@ -3,7 +3,7 @@
 var elHtml = require("../../var/elHtml.js"),
     getStyle = require("./getStyle.js");
 
-module.exports = function(node) {
+module.exports = function getOffsetParent(node) {
 
     var offsetParent = node.offsetParent || elHtml;
 

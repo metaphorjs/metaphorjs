@@ -1,6 +1,9 @@
 
 
-MetaphorJs.cs.define("My.Firebase", "MetaphorJs.cmp.Component", {
+MetaphorJs.cs.define({
+
+    $class: "My.Firebase",
+    $extends: "MetaphorJs.cmp.Component",
 
     // see mjs-cmp-prop attribute
     chat: null,
@@ -11,7 +14,7 @@ MetaphorJs.cs.define("My.Firebase", "MetaphorJs.cmp.Component", {
 
         // FirebaseStore is not included in the default
         // distribution; you need to build MetaphorJs with it
-        var store = new MetaphorJs.data.FirebaseStore(
+        var store = new MetaphorJs.model.FirebaseStore(
             new Firebase("https://metaphorjs-posts.firebaseio.com").limit(10)
         );
         store.load();

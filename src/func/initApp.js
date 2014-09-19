@@ -4,7 +4,7 @@ var error = require("./error.js"),
     resolveComponent = require("./resolveComponent.js"),
     Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js");
 
-module.exports = function(node, cls, data, autorun) {
+module.exports = function initApp(node, cls, data, autorun) {
 
     removeAttr(node, "mjs-app");
 

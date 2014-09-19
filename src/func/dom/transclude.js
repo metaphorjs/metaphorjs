@@ -5,7 +5,7 @@ var parentData = require("../dom/parentData.js"),
     clone = require("../dom/clone.js"),
     toArray = require("../array/toArray.js");
 
-module.exports = function(node) {
+module.exports = function transclude(node) {
 
     var contents  = parentData(node, 'mjs-transclude');
 

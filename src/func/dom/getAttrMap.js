@@ -1,5 +1,5 @@
 
-module.exports = function(node) {
+module.exports = function getAttrMap(node) {
     var map = {},
         i, l, a,
         attrs = node.attributes;

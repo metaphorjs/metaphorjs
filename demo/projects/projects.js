@@ -11,7 +11,7 @@
     };
 
     var getProjects = ['$firebase', function(firebase) {
-        var promise    = new MetaphorJs.lib.Promise;
+        var promise    = new MetaphorJs.Promise;
 
         firebase.on("value", function(projects){
             promise.resolve(projects);
@@ -20,7 +20,10 @@
         return promise;
     }];
 
-    MetaphorJs.cs.define("My.App", "MetaphorJs.cmp.App", {
+    MetaphorJs.cs.define({
+
+        $class: "My.App",
+        $extends: "MetaphorJs.cmp.App",
 
         initApp: function() {
             this.factory("$firebase", getFirebase, true);
@@ -29,7 +32,10 @@
 
     });
 
-    MetaphorJs.cs.define("My.ProjectsView", "MetaphorJs.cmp.View", {
+    MetaphorJs.cs.define({
+
+        $class: "My.ProjectsView",
+        $extends: "MetaphorJs.cmp.View",
 
         route: [
             {
@@ -53,7 +59,10 @@
 
     });
 
-    MetaphorJs.cs.define("My.ProjectsList", "MetaphorJs.cmp.Component", {
+    MetaphorJs.cs.define({
+
+        $class: "My.ProjectsList",
+        $extends: "MetaphorJs.cmp.Component",
 
         // instance properties and methods
         initComponent: function(cfg, fProjects) {
@@ -77,10 +86,12 @@
     });
 
 
-    MetaphorJs.cs.define("My.NewProject", "MetaphorJs.cmp.Component", {
+    MetaphorJs.cs.define({
+
+        $class: "My.NewProject",
+        $extends: "MetaphorJs.cmp.Component",
 
         firebase: null,
-        templateUrl: '/metaphorjs/demo/projects/detail.html',
 
         initComponent: function(cfg, firebase) {
 
@@ -95,10 +106,14 @@
             return false;
         }
     }, {
+        templateUrl: '/metaphorjs/demo/projects/detail.html',
         inject: ['$config', '$firebase']
     });
 
-    MetaphorJs.cs.define("My.EditProject", "MetaphorJs.cmp.Component", {
+    MetaphorJs.cs.define({
+
+        $class: "My.EditProject",
+        $extends: "MetaphorJs.cmp.Component",
 
         initComponent: function(cfg, projects, projectId) {
 

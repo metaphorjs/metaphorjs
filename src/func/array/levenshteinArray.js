@@ -1,7 +1,7 @@
 
 var equals = require("../equals.js");
 
-module.exports = function(from, to) {
+module.exports = function levenshteinArray(from, to) {
 
     var m = from.length,
         n = to.length,

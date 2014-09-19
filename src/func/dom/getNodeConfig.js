@@ -5,7 +5,7 @@ var data = require("./data.js"),
     createGetter = require("../../../../metaphorjs-watchable/src/func/createGetter.js"),
     getNodeData = require("./getNodeData.js");
 
-module.exports = function(node, scope, expr) {
+module.exports = function getNodeConfig(node, scope, expr) {
 
     var cfg = data(node, "config"),
         config, dataset, i, val;

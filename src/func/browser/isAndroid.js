@@ -5,7 +5,7 @@ module.exports = function(){
 
     var android = parseInt((/android (\d+)/.exec(uaString) || [])[1], 10) || false;
 
-    return function() {
+    return function isAndroid() {
         return android;
     };
 

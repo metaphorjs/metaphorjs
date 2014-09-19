@@ -2,7 +2,7 @@
 var elHtml = require("../../var/elHtml.js");
 
 module.exports = function(){
-    var isAttached = function(node) {
+    var isAttached = function isAttached(node) {
         if (node === window) {
             return true;
         }

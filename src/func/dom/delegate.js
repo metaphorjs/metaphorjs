@@ -5,7 +5,7 @@ var normalizeEvent = require("../event/normalizeEvent.js"),
     addListener = require("../event/addListener.js");
 
 
-module.exports = function(el, selector, event, fn) {
+module.exports = function delegate(el, selector, event, fn) {
 
     var key = selector + "-" + event,
         listener    = function(e) {

@@ -11,7 +11,9 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
  * @namespace MetaphorJs
  * @class MetaphorJs.cmp.Base
  */
-module.exports = defineClass("MetaphorJs.cmp.Base", {
+module.exports = defineClass({
+
+    $class: "MetaphorJs.cmp.Base",
 
     /**
      * @var bool
@@ -40,6 +42,7 @@ module.exports = defineClass("MetaphorJs.cmp.Base", {
 
             var cb      = cfg.callback,
                 scope   = cb.scope || self;
+
             delete cb.scope;
 
             for (var k in cb) {
@@ -75,8 +78,9 @@ module.exports = defineClass("MetaphorJs.cmp.Base", {
         self.trigger('destroy', self);
 
         self.$$observable.destroy();
-        delete this.$$observable;
+        self.$$observable = null;
 
+        self.supr();
     },
 
     /**

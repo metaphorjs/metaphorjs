@@ -2,7 +2,7 @@
 var isString = require("./isString.js"),
     undf = require("../var/undf.js");
 
-module.exports = function(data, type) {
+module.exports = function parseXML(data, type) {
 
     var xml, tmp;
 

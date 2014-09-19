@@ -4,7 +4,7 @@ var onReady = require("../func/dom/onReady.js"),
     select  = require("../../../metaphorjs-select/src/metaphorjs.select.js"),
     getAttr = require("../func/dom/getAttr.js");
 
-module.exports = function() {
+module.exports = function run() {
 
     onReady(function() {
 

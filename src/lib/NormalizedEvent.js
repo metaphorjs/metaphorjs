@@ -2,7 +2,8 @@
 var returnFalse = require("../func/returnFalse.js"),
     returnTrue = require("../func/returnTrue.js"),
     undf = require("../var/undf.js"),
-    isNull = require("../func/isNull.js");
+    isNull = require("../func/isNull.js"),
+    extend = require("../func/extend.js");
 
 // from jQuery
 
@@ -78,7 +79,7 @@ var NormalizedEvent = function(src) {
 
 // Event is based on DOM3 Events as specified by the ECMAScript Language Binding
 // http://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
-NormalizedEvent.prototype = {
+extend(NormalizedEvent.prototype, {
 
     isDefaultPrevented: returnFalse,
     isPropagationStopped: returnFalse,
@@ -114,6 +115,6 @@ NormalizedEvent.prototype = {
 
         this.stopPropagation();
     }
-};
+}, true, false);
 
 module.exports = NormalizedEvent;
