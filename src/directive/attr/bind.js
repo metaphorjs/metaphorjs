@@ -23,7 +23,7 @@ registerAttributeHandler("mjs-bind", 1000, defineClass({
     recursive: false,
     textRenderer: null,
 
-    initialize: function(scope, node, expr) {
+    $init: function(scope, node, expr) {
 
         var self    = this;
 

@@ -26,7 +26,7 @@ registerAttributeHandler("mjs-model", 1000, defineClass({
 
     autoOnChange: false,
 
-    initialize: function(scope, node, expr) {
+    $init: function(scope, node, expr) {
 
         var self    = this,
             cfg     = getNodeConfig(node, scope);

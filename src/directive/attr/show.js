@@ -14,7 +14,7 @@ registerAttributeHandler("mjs-show", 500, defineClass({
     initial: true,
     display: "",
 
-    initialize: function(scope, node, expr) {
+    $init: function(scope, node, expr) {
 
         var self    = this,
             cfg = getNodeConfig(node, scope);

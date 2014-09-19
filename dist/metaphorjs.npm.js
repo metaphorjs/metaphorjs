@@ -1942,7 +1942,7 @@ defineClass({
     /**
      * @param {object} cfg
      */
-    initialize: function(cfg) {
+    $init: function(cfg) {
 
         var self    = this;
         cfg         = cfg || {};
@@ -2020,7 +2020,7 @@ defineClass({
     cmpListeners: null,
     components: null,
 
-    initialize: function(node, data) {
+    $init: function(node, data) {
 
         var self        = this,
             scope       = data instanceof Scope ? data : new Scope(data),
@@ -2616,7 +2616,7 @@ defineClass({
      *      @type bool destroyEl
      * }
      */
-    initialize: function(cfg) {
+    $init: function(cfg) {
 
         var self    = this;
 
@@ -3362,7 +3362,7 @@ defineClass({
     watchable: null,
     defaultCmp: null,
 
-    initialize: function(cfg)  {
+    $init: function(cfg)  {
 
         var self    = this;
 
@@ -3595,7 +3595,7 @@ var AttributeHandler = defineClass({
 
     autoOnChange: true,
 
-    initialize: function(scope, node, expr) {
+    $init: function(scope, node, expr) {
 
         var self        = this,
             val;
@@ -3651,7 +3651,7 @@ registerAttributeHandler("mjs-bind", 1000, defineClass({
     recursive: false,
     textRenderer: null,
 
-    initialize: function(scope, node, expr) {
+    $init: function(scope, node, expr) {
 
         var self    = this;
 
@@ -5566,7 +5566,7 @@ registerAttributeHandler("mjs-show", 500, defineClass({
     initial: true,
     display: "",
 
-    initialize: function(scope, node, expr) {
+    $init: function(scope, node, expr) {
 
         var self    = this,
             cfg = getNodeConfig(node, scope);
@@ -5642,7 +5642,7 @@ registerAttributeHandler("mjs-if", 500, defineClass({
     el: null,
     initial: true,
 
-    initialize: function(scope, node, expr) {
+    $init: function(scope, node, expr) {
 
         var self    = this;
 
@@ -5760,7 +5760,7 @@ registerAttributeHandler("mjs-model", 1000, defineClass({
 
     autoOnChange: false,
 
-    initialize: function(scope, node, expr) {
+    $init: function(scope, node, expr) {
 
         var self    = this,
             cfg     = getNodeConfig(node, scope);
@@ -5857,7 +5857,7 @@ registerAttributeHandler("mjs-options", 100, defineClass({
     groupEl: null,
     fragment: null,
 
-    initialize: function(scope, node, expr) {
+    $init: function(scope, node, expr) {
 
         var self    = this;
 
@@ -6246,7 +6246,7 @@ registerAttributeHandler("mjs-src", 1000, defineClass({
     checkVisibility: true,
     usePreload: true,
 
-    initialize: function(scope, node, expr) {
+    $init: function(scope, node, expr) {
 
         var self = this,
             cfg = getNodeConfig(node, scope);
@@ -7081,7 +7081,7 @@ defineClass({
     validator: null,
     scopeState: null,
 
-    initialize: function(node, scope, renderer) {
+    $init: function(node, scope, renderer) {
 
         var self        = this;
 

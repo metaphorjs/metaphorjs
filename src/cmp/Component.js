@@ -95,7 +95,7 @@ module.exports = defineClass({
      *      @type bool destroyEl
      * }
      */
-    initialize: function(cfg) {
+    $init: function(cfg) {
 
         var self    = this;
 

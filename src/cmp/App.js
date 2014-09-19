@@ -27,7 +27,7 @@ module.exports = defineClass({
     cmpListeners: null,
     components: null,
 
-    initialize: function(node, data) {
+    $init: function(node, data) {
 
         var self        = this,
             scope       = data instanceof Scope ? data : new Scope(data),

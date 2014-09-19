@@ -42,7 +42,7 @@ module.exports = defineClass({
     watchable: null,
     defaultCmp: null,
 
-    initialize: function(cfg)  {
+    $init: function(cfg)  {
 
         var self    = this;
 

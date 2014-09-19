@@ -16,7 +16,7 @@ registerAttributeHandler("mjs-if", 500, defineClass({
     el: null,
     initial: true,
 
-    initialize: function(scope, node, expr) {
+    $init: function(scope, node, expr) {
 
         var self    = this;
 

@@ -19,7 +19,7 @@ module.exports = defineClass({
 
     autoOnChange: true,
 
-    initialize: function(scope, node, expr) {
+    $init: function(scope, node, expr) {
 
         var self        = this,
             val;

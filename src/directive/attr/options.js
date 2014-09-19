@@ -28,7 +28,7 @@ registerAttributeHandler("mjs-options", 100, defineClass({
     groupEl: null,
     fragment: null,
 
-    initialize: function(scope, node, expr) {
+    $init: function(scope, node, expr) {
 
         var self    = this;
 

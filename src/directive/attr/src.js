@@ -34,7 +34,7 @@ registerAttributeHandler("mjs-src", 1000, defineClass({
     checkVisibility: true,
     usePreload: true,
 
-    initialize: function(scope, node, expr) {
+    $init: function(scope, node, expr) {
 
         var self = this,
             cfg = getNodeConfig(node, scope);

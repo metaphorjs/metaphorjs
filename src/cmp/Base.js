@@ -30,7 +30,7 @@ module.exports = defineClass({
     /**
      * @param {object} cfg
      */
-    initialize: function(cfg) {
+    $init: function(cfg) {
 
         var self    = this;
         cfg         = cfg || {};
