@@ -10,7 +10,8 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     extend = require("../func/extend.js"),
     Template = require("./Template.js"),
     Scope = require("../lib/Scope.js"),
-    ObservableMixin = require("../mixin/ObservableMixin.js");
+    ObservableMixin = require("../mixin/ObservableMixin.js"),
+    shadowRootSupported = require("../var/shadowRootSupported.js");
 
 
 /**
@@ -140,7 +141,8 @@ module.exports = defineClass({
                 deferRendering: !tpl,
                 ownRenderer: true,
                 tpl: tpl,
-                url: url
+                url: url,
+                shadow: self.constructor.$shadow
             });
         }
         else if (tpl instanceof Template) {

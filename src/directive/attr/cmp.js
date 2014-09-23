@@ -4,7 +4,8 @@ var Directive = require("../../class/Directive.js"),
     data = require("../../func/dom/data.js"),
     getNodeConfig = require("../../func/dom/getNodeConfig.js"),
     extend = require("../../func/extend.js"),
-    resolveComponent = require("../../func/resolveComponent.js");
+    resolveComponent = require("../../func/resolveComponent.js"),
+    nsGet = require("../../../../metaphorjs-namespace/src/func/nsGet.js");
 
 (function(){
 
@@ -45,8 +46,11 @@ var Directive = require("../../class/Directive.js"),
             destroyScope: true
         }, nodeCfg, false, false);
 
+        var constr = nsGet(cmpName, true);
+
         resolveComponent(cmpName, cfg, scope, node);
-        return false;
+
+        return !!constr.$shadow;
     };
 
     cmpAttr.$breakScope = true;

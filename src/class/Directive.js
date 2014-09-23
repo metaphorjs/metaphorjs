@@ -100,16 +100,8 @@ module.exports = function(){
 
         registerTag: function registerTag(name, handler) {
             if (!nsGet("tag." + name, true)) {
-                tags.push({
-                    priority: priority,
-                    name: name,
-                    handler: nsAdd("tag." + name, handler)
-                });
+                nsAdd("tag." + name, handler)
             }
-        },
-
-        getTags: function getTags() {
-            return tags;
         }
 
     });

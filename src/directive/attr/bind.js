@@ -9,7 +9,8 @@ var Directive = require("../../class/Directive.js"),
     elemTextProp = require("../../var/elemTextProp.js"),
     TextRenderer = require("../../class/TextRenderer.js"),
     Scope = require("../../lib/Scope.js"),
-    Input = require("../../../../metaphorjs-input/src/metaphorjs.input.js");
+    Input = require("../../../../metaphorjs-input/src/metaphorjs.input.js"),
+    getNodeConfig = require("../../func/dom/getNodeConfig.js");
 
 
 Directive.registerAttribute("mjs-bind", 1000, defineClass({
@@ -24,14 +25,14 @@ Directive.registerAttribute("mjs-bind", 1000, defineClass({
 
     $init: function(scope, node, expr) {
 
-        var self    = this;
+        var self    = this,
+            cfg     = getNodeConfig(node, scope);
 
         self.isInput    = isField(node);
-        self.recursive  = getAttr(node, "mjs-recursive") !== null;
-        self.lockInput  = getAttr(node, "mjs-lock-input") !== null;
+        self.recursive  = cfg.recursive || getAttr(node, "mjs-recursive") !== null;
+        self.lockInput  = cfg.lockInput;
 
         removeAttr(node, "mjs-recursive");
-        removeAttr(node, "mjs-lock-input");
 
         if (self.isInput) {
             self.input  = new Input(node, self.onInputChange, self);

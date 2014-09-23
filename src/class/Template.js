@@ -15,7 +15,11 @@ var data = require("../func/dom/data.js"),
     ajax = require("../../../metaphorjs-ajax/src/metaphorjs.ajax.js"),
     ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
     removeAttr = require("../func/dom/removeAttr.js"),
-    defineClass = require("../../../metaphorjs-class/src/func/defineClass.js");
+    defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
+    shadowRootSupported = require("../var/shadowRootSupported.js"),
+    select = require("../../../metaphorjs-select/src/metaphorjs.select.js"),
+    getAttr = require("../func/dom/getAttr.js"),
+    setAttr = require("../func/dom/setAttr.js");
 
 
 
@@ -67,7 +71,11 @@ module.exports = function(){
         },
 
         isExpression = function(str) {
-            return str.substr(0,1) == '.';
+            if (str.substr(0,1) == '.') {
+                var second = str.substr(1,1);
+                return !(second == '.' || second == '/');
+            }
+            return false;
         };
 
 
@@ -81,6 +89,8 @@ module.exports = function(){
         _initial:           true,
         _fragment:          null,
         _id:                null,
+        _originalNode:      null,
+        _intendedShadow:    false,
 
         scope:              null,
         node:               null,
@@ -91,12 +101,18 @@ module.exports = function(){
         parentRenderer:     null,
         deferRendering:     false,
         replace:            false,
+        shadow:             false,
 
         $init: function(cfg) {
 
             var self    = this;
 
             extend(self, cfg, true, false);
+
+            if (!shadowRootSupported) {
+                self._intendedShadow = self.shadow;
+                self.shadow = false;
+            }
 
             self.id     = nextUid();
 
@@ -108,13 +124,18 @@ module.exports = function(){
 
             node && removeAttr(node, "mjs-include");
 
+            if (self.shadow) {
+                self._originalNode = node;
+                self.node = node = node.createShadowRoot();
+            }
+
             if (!node) {
                 self.deferRendering = true;
             }
 
             if (tpl) {
 
-                if (node && node.firstChild) {
+                if (node && node.firstChild && !self.shadow) {
                     data(node, "mjs-transclude", toFragment(node.childNodes));
                 }
 
@@ -122,8 +143,10 @@ module.exports = function(){
                     self.ownRenderer        = true;
                     self._watcher           = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
                 }
-
-                if (self.replace) {
+                else if (self.shadow) {
+                    self.ownRenderer        = true;
+                }
+                else if (self.replace) {
                     self.ownRenderer        = false;
                 }
 
@@ -239,6 +262,10 @@ module.exports = function(){
                 el.removeChild(el.firstChild);
             }
 
+            if (self._intendedShadow) {
+                self.makeTranscludes();
+            }
+
             if (self.replace) {
                 el.parentNode.replaceChild(clone(self._fragment), el);
             }
@@ -273,6 +300,29 @@ module.exports = function(){
             return deferred;
         },
 
+        makeTranscludes: function() {
+
+            var self    = this,
+                fr      = self._fragment,
+                cnts    = select("content", fr),
+                el, next,
+                tr, sel,
+                i, l;
+
+            for (i = 0, l = cnts.length; i < l;  i++) {
+
+                tr      = document.createElement("mjs-transclude");
+                el      = cnts[i];
+                next    = el.nextSibling;
+                sel     = getAttr(el, "select");
+
+                sel && setAttr(tr, "select", sel);
+
+                fr.removeChild(el);
+                fr.insertBefore(tr, next);
+            }
+        },
+
         onParentRendererDestroy: function() {
             this._renderer.$destroy();
             this.$destroy();
@@ -285,6 +335,10 @@ module.exports = function(){
         destroy: function() {
 
             var self = this;
+
+            if (self.shadow) {
+                self._originalNode.createShadowRoot();
+            }
 
             if (self._watcher) {
                 self._watcher.unsubscribeAndDestroy(self.onChange, self);

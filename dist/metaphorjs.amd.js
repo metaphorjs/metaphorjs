@@ -214,7 +214,7 @@ var nextUid = function(){
 
 function emptyFn(){};
 function getAttr(el, name) {
-    return el.getAttribute(name);
+    return el.getAttribute ? el.getAttribute(name) : null;
 };
 
 
@@ -590,16 +590,8 @@ var Directive = function(){
 
         registerTag: function registerTag(name, handler) {
             if (!nsGet("tag." + name, true)) {
-                tags.push({
-                    priority: priority,
-                    name: name,
-                    handler: nsAdd("tag." + name, handler)
-                });
+                nsAdd("tag." + name, handler)
             }
-        },
-
-        getTags: function getTags() {
-            return tags;
         }
 
     });
@@ -2255,6 +2247,9 @@ var clone = function clone(node) {
 
 
 
+var shadowRootSupported = !!elHtml.createShadowRoot;
+
+
 
 
 
@@ -2306,7 +2301,11 @@ var Template = function(){
         },
 
         isExpression = function(str) {
-            return str.substr(0,1) == '.';
+            if (str.substr(0,1) == '.') {
+                var second = str.substr(1,1);
+                return !(second == '.' || second == '/');
+            }
+            return false;
         };
 
 
@@ -2320,6 +2319,8 @@ var Template = function(){
         _initial:           true,
         _fragment:          null,
         _id:                null,
+        _originalNode:      null,
+        _intendedShadow:    false,
 
         scope:              null,
         node:               null,
@@ -2330,12 +2331,18 @@ var Template = function(){
         parentRenderer:     null,
         deferRendering:     false,
         replace:            false,
+        shadow:             false,
 
         $init: function(cfg) {
 
             var self    = this;
 
             extend(self, cfg, true, false);
+
+            if (!shadowRootSupported) {
+                self._intendedShadow = self.shadow;
+                self.shadow = false;
+            }
 
             self.id     = nextUid();
 
@@ -2347,13 +2354,18 @@ var Template = function(){
 
             node && removeAttr(node, "mjs-include");
 
+            if (self.shadow) {
+                self._originalNode = node;
+                self.node = node = node.createShadowRoot();
+            }
+
             if (!node) {
                 self.deferRendering = true;
             }
 
             if (tpl) {
 
-                if (node && node.firstChild) {
+                if (node && node.firstChild && !self.shadow) {
                     data(node, "mjs-transclude", toFragment(node.childNodes));
                 }
 
@@ -2361,8 +2373,10 @@ var Template = function(){
                     self.ownRenderer        = true;
                     self._watcher           = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
                 }
-
-                if (self.replace) {
+                else if (self.shadow) {
+                    self.ownRenderer        = true;
+                }
+                else if (self.replace) {
                     self.ownRenderer        = false;
                 }
 
@@ -2478,6 +2492,10 @@ var Template = function(){
                 el.removeChild(el.firstChild);
             }
 
+            if (self._intendedShadow) {
+                self.makeTranscludes();
+            }
+
             if (self.replace) {
                 el.parentNode.replaceChild(clone(self._fragment), el);
             }
@@ -2512,6 +2530,29 @@ var Template = function(){
             return deferred;
         },
 
+        makeTranscludes: function() {
+
+            var self    = this,
+                fr      = self._fragment,
+                cnts    = select("content", fr),
+                el, next,
+                tr, sel,
+                i, l;
+
+            for (i = 0, l = cnts.length; i < l;  i++) {
+
+                tr      = document.createElement("mjs-transclude");
+                el      = cnts[i];
+                next    = el.nextSibling;
+                sel     = getAttr(el, "select");
+
+                sel && setAttr(tr, "select", sel);
+
+                fr.removeChild(el);
+                fr.insertBefore(tr, next);
+            }
+        },
+
         onParentRendererDestroy: function() {
             this._renderer.$destroy();
             this.$destroy();
@@ -2524,6 +2565,10 @@ var Template = function(){
         destroy: function() {
 
             var self = this;
+
+            if (self.shadow) {
+                self._originalNode.createShadowRoot();
+            }
 
             if (self._watcher) {
                 self._watcher.unsubscribeAndDestroy(self.onChange, self);
@@ -2668,7 +2713,8 @@ var Component = defineClass({
                 deferRendering: !tpl,
                 ownRenderer: true,
                 tpl: tpl,
-                url: url
+                url: url,
+                shadow: self.constructor.$shadow
             });
         }
         else if (tpl instanceof Template) {
@@ -4115,6 +4161,7 @@ function resolveComponent(cmp, cfg, scope, node, args) {
             node: node,
             deferRendering: true,
             ownRenderer: true,
+            shadow: constr.$shadow,
             tpl: tpl,
             url: tplUrl
         });
@@ -4429,14 +4476,14 @@ Directive.registerAttribute("mjs-bind", 1000, defineClass({
 
     $init: function(scope, node, expr) {
 
-        var self    = this;
+        var self    = this,
+            cfg     = getNodeConfig(node, scope);
 
         self.isInput    = isField(node);
-        self.recursive  = getAttr(node, "mjs-recursive") !== null;
-        self.lockInput  = getAttr(node, "mjs-lock-input") !== null;
+        self.recursive  = cfg.recursive || getAttr(node, "mjs-recursive") !== null;
+        self.lockInput  = cfg.lockInput;
 
         removeAttr(node, "mjs-recursive");
-        removeAttr(node, "mjs-lock-input");
 
         if (self.isInput) {
             self.input  = new Input(node, self.onInputChange, self);
@@ -4650,8 +4697,11 @@ Directive.registerAttribute("mjs-cmp-prop", 200,
             destroyScope: true
         }, nodeCfg, false, false);
 
+        var constr = nsGet(cmpName, true);
+
         resolveComponent(cmpName, cfg, scope, node);
-        return false;
+
+        return !!constr.$shadow;
     };
 
     cmpAttr.$breakScope = true;
@@ -5491,7 +5541,7 @@ Directive.registerAttribute("mjs-view", 200, function(scope, node, cls) {
 
 
 
-Directive.registerAttribute("mjs-include", 900, function(scope, node, value, parentRenderer) {
+Directive.registerTag("mjs-include", function(scope, node, value, parentRenderer) {
 
     var tpl = new Template({
         scope: scope,
@@ -5507,7 +5557,7 @@ Directive.registerAttribute("mjs-include", 900, function(scope, node, value, par
 
 
 
-Directive.registerAttribute("mjs-transclude", 900, function(scope, node) {
+Directive.registerTag("mjs-transclude", function(scope, node) {
     return transclude(node);
 });
 

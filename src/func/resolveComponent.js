@@ -92,6 +92,7 @@ module.exports = function resolveComponent(cmp, cfg, scope, node, args) {
             node: node,
             deferRendering: true,
             ownRenderer: true,
+            shadow: constr.$shadow,
             tpl: tpl,
             url: tplUrl
         });
