@@ -7,15 +7,15 @@ var returnFalse = require("../func/returnFalse.js"),
 
 // from jQuery
 
-var NormalizedEvent = function(src) {
+var DomEvent = function(src) {
 
-    if (src instanceof NormalizedEvent) {
+    if (src instanceof DomEvent) {
         return src;
     }
 
     // Allow instantiation without the 'new' keyword
-    if (!(this instanceof NormalizedEvent)) {
-        return new NormalizedEvent(src);
+    if (!(this instanceof DomEvent)) {
+        return new DomEvent(src);
     }
 
 
@@ -79,7 +79,7 @@ var NormalizedEvent = function(src) {
 
 // Event is based on DOM3 Events as specified by the ECMAScript Language Binding
 // http://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
-extend(NormalizedEvent.prototype, {
+extend(DomEvent.prototype, {
 
     isDefaultPrevented: returnFalse,
     isPropagationStopped: returnFalse,
@@ -117,4 +117,4 @@ extend(NormalizedEvent.prototype, {
     }
 }, true, false);
 
-module.exports = NormalizedEvent;
+module.exports = DomEvent;

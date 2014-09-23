@@ -139,25 +139,24 @@ extend(Scope.prototype, {
     $destroy: function() {
 
         var self    = this,
-            param;
+            param, i;
 
         self.$$observable.trigger("destroy");
         self.$$observable.destroy();
 
-        self.$$observable = null;
-        self.$app = null;
-        self.$root = null;
-        self.$parent = null;
-
         if (self.$$watchers) {
             self.$$watchers.$destroyAll();
-            self.$$watchers = null;
         }
 
         for (param in self.$$historyWatchers) {
             self.$unwatchHistory(param);
         }
-        self.$$historyWatchers = null;
+
+        for (i in self) {
+            if (self.hasOwnProperty(i)) {
+                self[i] = null;
+            }
+        }
 
         self.$$destroyed = true;
     }

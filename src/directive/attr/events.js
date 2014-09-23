@@ -1,5 +1,5 @@
 
-var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
+var Directive = require("../../class/Directive.js"),
     createFunc = require("../../../../metaphorjs-watchable/src/func/createFunc.js"),
     normalizeEvent = require("../../func/event/normalizeEvent.js"),
     removeAttr = require("../../func/dom/removeAttr.js"),
@@ -24,11 +24,9 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
                 eventName = "keyup";
             }
 
-            registerAttributeHandler("mjs-" + name, 1000, function(scope, node, expr){
+            Directive.registerAttribute("mjs-" + name, 1000, function(scope, node, expr){
 
                 var fn  = createFunc(expr);
-
-                removeAttr(node, "mjs-" + name);
 
                 addListener(node, eventName, function(e){
 
@@ -40,22 +38,11 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
 
                     scope.$event = e;
 
-                    //try {
-                        fn(scope);
-                    //}
-                    //catch (thrownError) {
-                    //    error(thrownError);
-                    //}
+                    fn(scope);
 
-                    delete scope.$event;
+                    scope.$event = null;
 
-
-                    //try {
-                        scope.$root.$check();
-                    //}
-                    //catch (thrownError) {
-                    //    error(thrownError);
-                    //}
+                    scope.$root.$check();
 
                     e.preventDefault();
                     return false;

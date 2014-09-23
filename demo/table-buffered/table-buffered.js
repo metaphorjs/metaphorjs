@@ -4,13 +4,13 @@
     MetaphorJs.cs.define({
 
         $class: "My.BufferedTableCmp",
-        $extends: "MetaphorJs.cmp.Component",
+        $extends: "MetaphorJs.Component",
 
         initComponent: function() {
 
             var self  = this;
 
-            var store = new MetaphorJs.model.Store({
+            var store = new MetaphorJs.Store({
 
                 model: {
                     store: {
@@ -95,7 +95,7 @@
 
     MetaphorJs.cs.define({
         $class: "My.StaticTableCmp",
-        $extends: "MetaphorJs.cmp.Component",
+        $extends: "MetaphorJs.Component",
         initComponent: function() {
             this.scope.store = window.dataSource({start: 0, limit: 1000}, true);
         }

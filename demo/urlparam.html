@@ -4,7 +4,10 @@
     <title>MetaphorJs url param demo</title>
     <script src="../dev-test/metaphorjs.test.js"></script>
     <script>
-        MetaphorJs.cs.define("My.Cmp", "MetaphorJs.cmp.Component", {
+        MetaphorJs.cs.define({
+
+            $class: "My.Cmp",
+            $extends: "MetaphorJs.Component",
 
             initComponent: function() {
 

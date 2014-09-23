@@ -14,7 +14,7 @@
             <p>{{.item.post}}</p>
         </div>
     </div>
-    <form name="submitForm" mjs-validate mjs-validator-submit=".ctrl.submit()">
+    <form name="submitForm" mjs-validate data-submit=".ctrl.submit()">
         <input name="nickname" placeholder="Nickname"
                mjs-model=".nickname"
                mjs-class="{error: .submitForm.nickname.$invalid}"

@@ -1,5 +1,5 @@
 
-var Renderer = require("../view/Renderer.js"),
+var Renderer = require("../class/Renderer.js"),
     toFragment = require("./dom/toFragment.js");
 
 module.exports = function compile(htmlString, scope) {

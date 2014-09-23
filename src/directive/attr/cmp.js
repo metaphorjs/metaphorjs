@@ -1,5 +1,5 @@
 
-var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
+var Directive = require("../../class/Directive.js"),
     removeAttr = require("../../func/dom/removeAttr.js"),
     data = require("../../func/dom/data.js"),
     getNodeConfig = require("../../func/dom/getNodeConfig.js"),
@@ -51,6 +51,6 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
 
     cmpAttr.$breakScope = true;
 
-    registerAttributeHandler("mjs-cmp", 200, cmpAttr);
+    Directive.registerAttribute("mjs-cmp", 200, cmpAttr);
 
 }());

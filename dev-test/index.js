@@ -4,7 +4,7 @@ var defineClass = MetaphorJs.cs.define;
 defineClass({
 
     $class: "Test.MyApp2",
-    $extends: "MetaphorJs.cmp.App",
+    $extends: "MetaphorJs.App",
 
     initApp: function(node, scope, someValue) {
 
@@ -69,7 +69,7 @@ defineClass({
 defineClass({
 
     $class: "Test.MyView",
-    $extends: "MetaphorJs.cmp.View",
+    $extends: "MetaphorJs.View",
 
         route: [
             {
@@ -98,13 +98,13 @@ defineClass({
 
 defineClass({
     $class: "Test.MyRecord",
-    $extends: "MetaphorJs.model.Record"
+    $extends: "MetaphorJs.Record"
 });
 
 defineClass({
 
     $class: "Test.MyComponent",
-    $extends: "MetaphorJs.cmp.Component",
+    $extends: "MetaphorJs.Component",
 
         initComponent: function() {
 
@@ -122,7 +122,7 @@ defineClass({
                 }
             });
 
-            self.scope.store = new MetaphorJs.model.Store({
+            self.scope.store = new MetaphorJs.Store({
                 model: model
             });
 
@@ -155,7 +155,7 @@ defineClass({
 
         createDialog: function() {
 
-            var dialog = new MetaphorJs.cmp.Dialog({
+            var dialog = new MetaphorJs.DialogComponent({
                 dialogCfg: {
                     cls: {
                         dialog: "dialog"
@@ -199,7 +199,7 @@ defineClass({
 defineClass({
 
     $class: "Test.MyComponent2",
-    $extends: "MetaphorJs.cmp.Component",
+    $extends: "MetaphorJs.Component",
 
     template: 'cmp1-template',
 
@@ -216,7 +216,7 @@ defineClass({
 defineClass({
 
     $class: "Test.TplComponent",
-    $extends: "MetaphorJs.cmp.Component",
+    $extends: "MetaphorJs.Component",
 
     initComponent: function() {
 
@@ -235,14 +235,14 @@ defineClass({
 
 defineClass({
     $class: "Test.StringTemplate",
-    $extends: "MetaphorJs.cmp.Component"
+    $extends: "MetaphorJs.Component"
     }, {
     template: '<p>This template is inlined in components definition ({{.$root.a}})</p>'
 });
 
 defineClass({
     $class: "Test.DynamicComponent",
-    $extends: "MetaphorJs.cmp.Component"
+    $extends: "MetaphorJs.Component"
     }, {
     template: '<p>This component was created dynamically</p><div mjs-transclude></div>'
 });
@@ -250,7 +250,7 @@ defineClass({
 defineClass({
 
     $class: "Test.ChangeTemplate",
-    $extends: "MetaphorJs.cmp.Component",
+    $extends: "MetaphorJs.Component",
 
     template: '.tpl',
 
@@ -267,13 +267,13 @@ defineClass({
 
 defineClass({
     $class: "Test.ViewComponent1",
-    $extends: "MetaphorJs.cmp.Component",
+    $extends: "MetaphorJs.Component",
     template: '<p>View template 1</p><div mjs-transclude></div>'
 });
 
 defineClass({
     $class: "Test.ViewComponent2",
-    $extends: "MetaphorJs.cmp.Component",
+    $extends: "MetaphorJs.Component",
     template: '<p>View template 2</p><div mjs-transclude></div>'
 });
 

@@ -7,20 +7,20 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     setAttr = require("../func/dom/setAttr.js"),
     removeAttr = require("../func/dom/removeAttr.js"),
     isAttached = require("../func/dom/isAttached.js"),
-    Template = require("../view/Template.js"),
-    Scope = require("../lib/Scope.js");
+    extend = require("../func/extend.js"),
+    Template = require("./Template.js"),
+    Scope = require("../lib/Scope.js"),
+    ObservableMixin = require("../mixin/ObservableMixin.js");
 
-require("./Base.js");
 
 /**
  * @namespace MetaphorJs
- * @class MetaphorJs.cmp.Component
- * @extends MetaphorJs.cmp.Observable
+ * @class Component
  */
 module.exports = defineClass({
 
-    $class: "MetaphorJs.cmp.Component",
-    $extends: "MetaphorJs.cmp.Base",
+    $class: "MetaphorJs.Component",
+    $mixins: [ObservableMixin],
 
     /**
      * @access protected
@@ -99,7 +99,9 @@ module.exports = defineClass({
 
         var self    = this;
 
-        self.supr(cfg);
+        self.$super(cfg);
+
+        extend(self, cfg, true, false);
 
         if (!self.scope) {
             self.scope = new Scope;
@@ -309,7 +311,7 @@ module.exports = defineClass({
     onHide:         emptyFn,
 
     onParentRendererDestroy: function() {
-        this.destroy();
+        this.$destroy();
     },
 
     destroy:      function() {
@@ -317,7 +319,7 @@ module.exports = defineClass({
         var self    = this;
 
         if (self.template) {
-            self.template.destroy();
+            self.template.$destroy();
         }
 
         if (self.destroyEl) {
@@ -336,7 +338,7 @@ module.exports = defineClass({
             self.scope.$destroy();
         }
 
-        self.supr();
+        self.$super();
     }
 
 });

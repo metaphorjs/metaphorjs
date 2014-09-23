@@ -1,15 +1,14 @@
 
 
-var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
-    defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
+var defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
     animate = require("../../../../metaphorjs-animate/src/metaphorjs.animate.js"),
     getNodeConfig = require("../../func/dom/getNodeConfig.js"),
-    AttributeHandler = require("../../view/AttributeHandler.js");
+    Directive = require("../../class/Directive.js");
 
 
-registerAttributeHandler("mjs-show", 500, defineClass({
+Directive.registerAttribute("mjs-show", 500, defineClass({
 
-    $extends: AttributeHandler,
+    $extends: Directive,
 
     initial: true,
     display: "",
@@ -21,7 +20,7 @@ registerAttributeHandler("mjs-show", 500, defineClass({
 
         self.display = cfg.display || "";
 
-        self.supr(scope, node, expr);
+        self.$super(scope, node, expr);
     },
 
     runAnimation: function(show) {

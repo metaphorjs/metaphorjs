@@ -13,9 +13,7 @@ var Dialog = require('metaphorjs-dialog');
 var history = require('metaphorjs-history');
 
 var MetaphorJs = {
-    lib: {},
-    cmp: {},
-    view: {}
+
 };
 
 
@@ -363,25 +361,24 @@ extend(Scope.prototype, {
     $destroy: function() {
 
         var self    = this,
-            param;
+            param, i;
 
         self.$$observable.trigger("destroy");
         self.$$observable.destroy();
 
-        self.$$observable = null;
-        self.$app = null;
-        self.$root = null;
-        self.$parent = null;
-
         if (self.$$watchers) {
             self.$$watchers.$destroyAll();
-            self.$$watchers = null;
         }
 
         for (param in self.$$historyWatchers) {
             self.$unwatchHistory(param);
         }
-        self.$$historyWatchers = null;
+
+        for (i in self) {
+            if (self.hasOwnProperty(i)) {
+                self[i] = null;
+            }
+        }
 
         self.$$destroyed = true;
     }
@@ -506,6 +503,121 @@ var trim = function() {
 var createWatchable = Watchable.create;
 
 
+var nsAdd = ns.add;
+
+
+
+
+var Directive = function(){
+
+    var attributes          = [],
+        tags                = [],
+        attributesSorted    = false,
+
+        compare             = function(a, b) {
+            //if (a is less than b by some ordering criterion)
+            if (a.priority < b.priority) {
+                return -1;
+            }
+
+            //if (a is greater than b by the ordering criterion)
+            if (a.priority > b.priority) {
+                return 1;
+            }
+
+            // a must be equal to b
+            return 0;
+        };
+
+    return defineClass({
+
+        $class: "Directive",
+
+        watcher: null,
+        scope: null,
+        node: null,
+        expr: null,
+
+        autoOnChange: true,
+
+        $init: function(scope, node, expr) {
+
+            var self        = this,
+                val;
+
+            expr            = trim(expr);
+
+            self.node       = node;
+            self.expr       = expr;
+            self.scope      = scope;
+            self.watcher    = createWatchable(scope, expr, self.onChange, self, null, ns);
+
+            if (self.autoOnChange && (val = self.watcher.getLastResult()) != undf) {
+                self.onChange(val, undf);
+            }
+
+            scope.$on("destroy", self.onScopeDestroy, self);
+        },
+
+        onScopeDestroy: function() {
+            this.$destroy();
+        },
+
+        onChange: function() {},
+
+        destroy: function() {
+            var self    = this;
+
+            if (self.watcher) {
+                self.watcher.unsubscribeAndDestroy(self.onChange, self);
+            }
+
+            self.$super();
+        }
+    }, {
+
+
+        registerAttribute: function registerAttribute(name, priority, handler) {
+            if (!nsGet("attr." + name, true)) {
+                attributes.push({
+                    priority: priority,
+                    name: name,
+                    handler: nsAdd("attr." + name, handler)
+                });
+                attributesSorted = false;
+            }
+        },
+
+        getAttributes: function getAttributes() {
+            if (!attributesSorted) {
+                attributes.sort(compare);
+                attributesSorted = true;
+            }
+            return attributes;
+        },
+
+        registerTag: function registerTag(name, handler) {
+            if (!nsGet("tag." + name, true)) {
+                tags.push({
+                    priority: priority,
+                    name: name,
+                    handler: nsAdd("tag." + name, handler)
+                });
+            }
+        },
+
+        getTags: function getTags() {
+            return tags;
+        }
+
+    });
+
+}();
+
+
+
+
+
 
 
 var TextRenderer = function(){
@@ -535,31 +647,9 @@ var TextRenderer = function(){
             return new TextRenderer(scope, origin, parent, userData, recursive);
         };
 
-    var TextRenderer = function(scope, origin, parent, userData, recursive) {
+    var TextRenderer = defineClass({
 
-        var self        = this;
-
-        self.id         = nextUid();
-        self.origin     = origin;
-        self.scope      = scope;
-        self.parent     = parent;
-        self.isRoot     = !parent;
-        self.data       = userData;
-        self.lang       = scope.$app ? scope.$app.lang : null;
-
-        if (recursive === true || recursive === false) {
-            self.recursive = recursive;
-        }
-
-        self.watchers   = [];
-        self.children   = [];
-
-        self.dataChangeDelegate = bind(self.doDataChange, self);
-        self.processed  = self.processText(origin);
-        self.render();
-    };
-
-    extend(TextRenderer.prototype, {
+        $class: "TextRenderer",
 
         id: null,
         parent: null,
@@ -575,6 +665,30 @@ var TextRenderer = function(){
         dataChangeDelegate: null,
         changeTmt: null,
         lang: null,
+
+        $init: function(scope, origin, parent, userData, recursive) {
+
+            var self        = this;
+
+            self.id         = nextUid();
+            self.origin     = origin;
+            self.scope      = scope;
+            self.parent     = parent;
+            self.isRoot     = !parent;
+            self.data       = userData;
+            self.lang       = scope.$app ? scope.$app.lang : null;
+
+            if (recursive === true || recursive === false) {
+                self.recursive = recursive;
+            }
+
+            self.watchers   = [];
+            self.children   = [];
+
+            self.dataChangeDelegate = bind(self.doDataChange, self);
+            self.processed  = self.processText(origin);
+            self.render();
+        },
 
         subscribe: function(fn, context) {
             return observer.on(this.id, fn, context);
@@ -630,8 +744,8 @@ var TextRenderer = function(){
         processText: function(text) {
 
             /*
-            arguably, str += "" is faster than separators.push() + separators.join()
-            well, at least in my Firefox it is so.
+             arguably, str += "" is faster than separators.push() + separators.join()
+             well, at least in my Firefox it is so.
              */
 
             var self        = this,
@@ -640,7 +754,7 @@ var TextRenderer = function(){
                 startIndex,
                 endIndex,
                 result      = "";
-                //separators  = [];
+            //separators  = [];
 
             // regular keys
             while(index < textLength) {
@@ -787,7 +901,7 @@ var TextRenderer = function(){
 
             for (i = -1, l = ch.length; ++i < l; ){
                 if (ch[i] instanceof TextRenderer) {
-                    ch[i].destroy();
+                    ch[i].$destroy();
                 }
             }
 
@@ -808,8 +922,7 @@ var TextRenderer = function(){
 
         destroy: function() {
 
-            var self    = this,
-                i;
+            var self = this;
 
             self.destroyChildren();
             self.destroyWatchers();
@@ -819,17 +932,11 @@ var TextRenderer = function(){
             if (self.changeTmt) {
                 clearTimeout(self.changeTmt);
             }
-
-            for (i in self) {
-                if (self.hasOwnProperty(i)){
-                    self[i] = null;
-                }
-            }
         }
 
-    }, true, false);
-
-    TextRenderer.create = factory;
+    }, {
+        create: factory
+    });
 
     return TextRenderer;
 }();
@@ -888,76 +995,6 @@ var data = function(){
     };
 
 }();
-
-
-var nsAdd = ns.add;
-
-
-var directives = function() {
-
-    var attributeHandlers   = [],
-        tagHandlers         = [],
-        attributesSorted    = false,
-        tagsSorted          = false,
-
-        compare             = function(a, b) {
-            //if (a is less than b by some ordering criterion)
-            if (a.priority < b.priority) {
-                return -1;
-            }
-
-            //if (a is greater than b by the ordering criterion)
-            if (a.priority > b.priority) {
-                return 1;
-            }
-
-            // a must be equal to b
-            return 0;
-        };
-
-    return {
-        registerAttributeHandler: function registerAttributeHandler(name, priority, handler) {
-            if (!nsGet("attr." + name, true)) {
-                attributeHandlers.push({
-                    priority: priority,
-                    name: name,
-                    handler: nsAdd("attr." + name, handler)
-                });
-                attributesSorted = false;
-            }
-        },
-
-        getAttributeHandlers: function getAttributeHandlers() {
-            if (!attributesSorted) {
-                attributeHandlers.sort(compare);
-                attributesSorted = true;
-            }
-            return attributeHandlers;
-        },
-
-        registerTagHandler: function registerTagHandler(name, priority, handler) {
-            if (!nsGet("tag." + name, true)) {
-                tagHandlers.push({
-                    priority: priority,
-                    name: name,
-                    handler: nsAdd("tag." + name, handler)
-                });
-                tagsSorted = false;
-            }
-        },
-
-        getTagHandlers: function getTagHandlers() {
-            if (!tagsSorted) {
-                tagHandlers.sort(compare);
-                tagsSorted = true;
-            }
-            return tagHandlers;
-        }
-    };
-}();
-
-
-var getAttributeHandlers = directives.getAttributeHandlers;
 var aIndexOf    = Array.prototype.indexOf;
 
 if (!aIndexOf) {
@@ -1048,14 +1085,12 @@ var Renderer = function(){
                     return;
                 }
                 else {
-                    //children = toArray(res);
                     children = slice.call(res);
                 }
             }
 
             if (!children.length) {
                 children    = toArray(el.childNodes);
-                //children = slice.call(el.childNodes);
             }
 
             len = children.length;
@@ -1137,34 +1172,33 @@ var Renderer = function(){
 
         observer = new Observable;
 
-    var Renderer = function(el, scope, parent) {
+    return defineClass({
 
-        var self            = this;
-
-        self.id             = nextUid();
-        self.el             = el;
-        self.scope          = scope;
-        self.texts          = [];
-        self.parent         = parent;
-
-        if (scope instanceof Scope) {
-            scope.$on("destroy", self.destroy, self);
-        }
-
-        if (parent) {
-            parent.on("destroy", self.destroy, self);
-        }
-    };
-
-    extend(Renderer.prototype, {
+        $class: "Renderer",
 
         id: null,
         el: null,
         scope: null,
         texts: null,
         parent: null,
-        destroyed: false,
-        _observable: null,
+
+        $init: function(el, scope, parent) {
+            var self            = this;
+
+            self.id             = nextUid();
+            self.el             = el;
+            self.scope          = scope;
+            self.texts          = [];
+            self.parent         = parent;
+
+            if (scope instanceof Scope) {
+                scope.$on("destroy", self.$destroy, self);
+            }
+
+            if (parent) {
+                parent.on("destroy", self.$destroy, self);
+            }
+        },
 
         on: function(event, fn, context) {
             return observer.on(event + '-' + this.id, fn, context);
@@ -1190,10 +1224,10 @@ var Renderer = function(){
 
             var self    = this,
                 scope   = f.$isolateScope ?
-                            parentScope.$newIsolated() :
-                            (f.$breakScope  ?
-                                parentScope.$new() :
-                                parentScope),
+                          parentScope.$newIsolated() :
+                          (f.$breakScope  ?
+                           parentScope.$new() :
+                           parentScope),
                 app     = parentScope.$app,
                 inject  = {
                     $scope: scope,
@@ -1249,7 +1283,7 @@ var Renderer = function(){
             else if (nodeType == 1) {
 
                 if (!handlers) {
-                    handlers = getAttributeHandlers();
+                    handlers = Directive.getAttributes();
                 }
 
                 var tag     = node.tagName.toLowerCase(),
@@ -1288,7 +1322,7 @@ var Renderer = function(){
 
                         res     = self.runHandler(handlers[i].handler, scope, node, attrValue);
 
-                        delete map[name];
+                        map[name] = null;
 
                         if (res === false) {
                             return false;
@@ -1318,7 +1352,7 @@ var Renderer = function(){
 
                 for (i in map) {
 
-                    //if (!nsGet(n, true)) {
+                    if (map[i] !== null) {
 
                         textRenderer = createText(scope, map[i], null, texts.length, recursive);
 
@@ -1328,11 +1362,11 @@ var Renderer = function(){
                             texts.push({
                                 node: node,
                                 attr: i,
-                                tr: textRenderer
+                                tr:   textRenderer
                             });
                             self.renderText(texts.length - 1);
                         }
-                    //}
+                    }
                 }
 
                 return nodes.length ? nodes : true;
@@ -1389,28 +1423,17 @@ var Renderer = function(){
                 texts   = self.texts,
                 i, len;
 
-            if (self.destroyed) {
-                return;
-            }
-            self.destroyed  = true;
-
-            for (i = -1, len = texts.length; ++i < len; texts[i].tr.destroy()) {}
+            for (i = -1, len = texts.length; ++i < len; texts[i].tr.$destroy()) {}
 
             if (self.parent) {
-                self.parent.un("destroy", self.destroy, self);
+                self.parent.un("destroy", self.$destroy, self);
             }
-
-            self.texts = null;
-            self.el = null;
-            self.scope = null;
-            self.parent = null;
 
             observer.trigger("destroy-" + self.id);
         }
-    }, true, false);
 
+    });
 
-    return Renderer;
 }();
 
 
@@ -1460,21 +1483,6 @@ var Provider = function(){
     extend(Provider.prototype, {
 
         store: null,
-
-        getApi: function() {
-
-            var self = this;
-
-            return {
-                value: bind(self.value, self),
-                constant: bind(self.constant, self),
-                factory: bind(self.factory, self),
-                service: bind(self.service, self),
-                provider: bind(self.provider, self),
-                resolve: bind(self.resolve, self),
-                inject: bind(self.inject, self)
-            };
-        },
 
         instantiate: function(fn, context, args, isClass) {
 
@@ -1900,6 +1908,12 @@ var Text = function(){
             else {
                 return strings[def];
             }
+        },
+
+        destroy: function() {
+
+            this.store = null;
+
         }
 
     }, true, false);
@@ -1916,94 +1930,128 @@ var Text = function(){
 
 
 
-
-
-
 /**
- * @namespace MetaphorJs
- * @class MetaphorJs.cmp.Base
+ * @mixin ObservableMixin
  */
-defineClass({
-
-    $class: "MetaphorJs.cmp.Base",
+var ObservableMixin = ns.add("mixin.Observable", {
 
     /**
-     * @var bool
-     * @access protected
+     * @type {Observable}
      */
-    destroyed:      false,
+    $$observable: null,
 
-    /**
-     * @var MetaphorJs.lib.Observable
-     * @access private
-     */
-    _observable:    null,
+    $beforeInit: function(cfg) {
 
-    /**
-     * @param {object} cfg
-     */
-    $init: function(cfg) {
+        var self = this;
 
-        var self    = this;
-        cfg         = cfg || {};
+        self.$$observable = new Observable;
 
-        self.$$observable    = new Observable;
-        extend(self, self.$$observable.getApi(), true, false);
+        if (cfg && cfg.callback) {
+            var ls = cfg.callback,
+                context = ls.context,
+                i;
 
-        if (cfg.callback) {
+            ls.context = null;
 
-            var cb      = cfg.callback,
-                scope   = cb.scope || self;
-
-            delete cb.scope;
-
-            for (var k in cb) {
-                if (cb.hasOwnProperty(k)) {
-                    self.on(k, cb[k], scope);
+            for (i in ls) {
+                if (ls[i]) {
+                    self.$$observable.on(i, ls[i], context || self);
                 }
             }
 
-            delete cfg.callback;
+            cfg.callback = null;
         }
-
-        extend(self, cfg, true, false);
     },
 
-    /**
-     * @method
-     */
-    destroy:    function() {
+    on: function() {
+        var o = this.$$observable;
+        return o.on.apply(o, arguments);
+    },
 
-        var self    = this;
+    un: function() {
+        var o = this.$$observable;
+        return o.un.apply(o, arguments);
+    },
 
-        if (self.destroyed) {
-            return;
-        }
+    once: function() {
+        var o = this.$$observable;
+        return o.once.apply(o, arguments);
+    },
 
-        if (self.trigger('beforedestroy', self) === false) {
-            return false;
-        }
+    trigger: function() {
+        var o = this.$$observable;
+        return o.trigger.apply(o, arguments);
+    },
 
-        self.onDestroy();
-        self.destroyed  = true;
+    $beforeDestroy: function() {
+        this.$$observable.trigger("beforedestroy", this);
+    },
 
-        self.trigger('destroy', self);
-
+    $afterDestroy: function() {
+        var self = this;
+        self.$$observable.trigger("destroy", self);
         self.$$observable.destroy();
         self.$$observable = null;
-
-        self.supr();
-    },
-
-    /**
-     * @method
-     * @access protected
-     */
-    onDestroy:      emptyFn
+    }
 });
 
 
+var ProviderMixin = {
 
+    /**
+     * @type {Provider}
+     */
+    $$provider: null,
+
+    $beforeInit: function() {
+
+        this.$$provider = new Provider;
+
+    },
+
+    value: function() {
+        var p = this.$$provider;
+        return p.value.apply(p, arguments);
+    },
+
+    constant: function() {
+        var p = this.$$provider;
+        return p.constant.apply(p, arguments);
+    },
+
+    factory: function() {
+        var p = this.$$provider;
+        return p.factory.apply(p, arguments);
+    },
+
+    service: function() {
+        var p = this.$$provider;
+        return p.service.apply(p, arguments);
+    },
+
+    provider: function() {
+        var p = this.$$provider;
+        return p.provider.apply(p, arguments);
+    },
+
+    resolve: function() {
+        var p = this.$$provider;
+        return p.resolve.apply(p, arguments);
+    },
+
+    inject: function() {
+        var p = this.$$provider;
+        return p.inject.apply(p, arguments);
+    },
+
+    $afterDestroy: function() {
+
+        this.$$provider.destroy();
+        this.$$provider = null;
+
+    }
+
+};
 
 
 
@@ -2011,8 +2059,8 @@ defineClass({
 
 defineClass({
 
-    $class: "MetaphorJs.cmp.App",
-    $extends: "MetaphorJs.cmp.Base",
+    $class: "App",
+    $mixins: [ObservableMixin, ProviderMixin],
 
     lang: null,
     scope: null,
@@ -2024,23 +2072,14 @@ defineClass({
 
         var self        = this,
             scope       = data instanceof Scope ? data : new Scope(data),
-            provider,
-            observable,
             args;
 
+        removeAttr(node, "mjs-app");
+
         scope.$app      = self;
-        self.supr();
+        self.$super();
 
-        provider        = new Provider;
-        observable      = new Observable;
         self.lang       = new Text;
-
-        // provider's storage is hidden from everyone
-        extend(self, provider.getApi(), true, false);
-        self.destroyProvider    = bind(provider.destroy, provider);
-
-        extend(self, observable.getApi(), true, false);
-        self.destroyObservable  = bind(observable.destroy, observable);
 
         self.scope          = scope;
         self.cmpListeners   = {};
@@ -2130,21 +2169,13 @@ defineClass({
 
     destroy: function() {
 
-        var self    = this,
-            i;
+        var self    = this;
 
-        self.destroyObservable();
-        self.destroyProvider();
-        self.renderer.destroy();
+        self.renderer.$destroy();
         self.scope.$destroy();
+        self.lang.destroy();
 
-        for (i in self) {
-            if (self.hasOwnProperty(i)) {
-                self[i] = null;
-            }
-        }
-
-        self.supr();
+        self.$super();
     }
 
 });
@@ -2287,64 +2318,9 @@ var Template = function(){
         };
 
 
+    return defineClass({
 
-    var Template = function(cfg) {
-
-        var self    = this;
-
-        extend(self, cfg, true, false);
-
-        self.id     = nextUid();
-
-        self.tpl && (self.tpl = trim(self.tpl));
-        self.url && (self.url = trim(self.url));
-
-        var node    = self.node,
-            tpl     = self.tpl || self.url;
-
-        node && removeAttr(node, "mjs-include");
-
-        if (!node) {
-            self.deferRendering = true;
-        }
-
-        if (tpl) {
-
-            if (node && node.firstChild) {
-                data(node, "mjs-transclude", toFragment(node.childNodes));
-            }
-
-            if (isExpression(tpl) && !self.replace) {
-                self.ownRenderer        = true;
-                self._watcher           = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
-            }
-
-            if (self.replace) {
-                self.ownRenderer        = false;
-            }
-
-            self.initPromise = self.resolveTemplate();
-
-            if (!self.deferRendering || !self.ownRenderer) {
-                self.initPromise.done(self.applyTemplate, self);
-            }
-
-            if (self.ownRenderer && self.parentRenderer) {
-                self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
-            }
-        }
-        else {
-            if (!self.deferRendering && self.ownRenderer) {
-                self.doRender();
-            }
-        }
-
-        if (self.scope instanceof Scope) {
-            self.scope.$on("destroy", self.onScopeDestroy, self);
-        }
-    };
-
-    extend(Template.prototype, {
+        $class:             "Template",
 
         _watcher:           null,
         _tpl:               null,
@@ -2362,6 +2338,63 @@ var Template = function(){
         parentRenderer:     null,
         deferRendering:     false,
         replace:            false,
+
+        $init: function(cfg) {
+
+            var self    = this;
+
+            extend(self, cfg, true, false);
+
+            self.id     = nextUid();
+
+            self.tpl && (self.tpl = trim(self.tpl));
+            self.url && (self.url = trim(self.url));
+
+            var node    = self.node,
+                tpl     = self.tpl || self.url;
+
+            node && removeAttr(node, "mjs-include");
+
+            if (!node) {
+                self.deferRendering = true;
+            }
+
+            if (tpl) {
+
+                if (node && node.firstChild) {
+                    data(node, "mjs-transclude", toFragment(node.childNodes));
+                }
+
+                if (isExpression(tpl) && !self.replace) {
+                    self.ownRenderer        = true;
+                    self._watcher           = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
+                }
+
+                if (self.replace) {
+                    self.ownRenderer        = false;
+                }
+
+                self.initPromise = self.resolveTemplate();
+
+                if (!self.deferRendering || !self.ownRenderer) {
+                    self.initPromise.done(self.applyTemplate, self);
+                }
+
+                if (self.ownRenderer && self.parentRenderer) {
+                    self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
+                }
+            }
+            else {
+                if (!self.deferRendering && self.ownRenderer) {
+                    self.doRender();
+                }
+            }
+
+            if (self.scope instanceof Scope) {
+                self.scope.$on("destroy", self.onScopeDestroy, self);
+            }
+        },
+
 
         doRender: function() {
             var self = this;
@@ -2409,19 +2442,19 @@ var Template = function(){
             var self    = this,
                 url     = self.url,
                 tpl     = self._watcher ?
-                            self._watcher.getLastResult() :
-                            (self.tpl || url);
+                          self._watcher.getLastResult() :
+                          (self.tpl || url);
 
             var returnPromise = new Promise;
 
             new Promise(function(resolve){
-                    if (url) {
-                        resolve(getTemplate(tpl) || loadTemplate(url));
-                    }
-                    else {
-                        resolve(getTemplate(tpl) || toFragment(tpl));
-                    }
-                })
+                if (url) {
+                    resolve(getTemplate(tpl) || loadTemplate(url));
+                }
+                else {
+                    resolve(getTemplate(tpl) || toFragment(tpl));
+                }
+            })
                 .done(function(fragment){
                     self._fragment = fragment;
                     returnPromise.resolve(!self.ownRenderer ? self.node : false);
@@ -2436,7 +2469,7 @@ var Template = function(){
             var self    = this;
 
             if (self._renderer) {
-                self._renderer.destroy();
+                self._renderer.$destroy();
                 self._renderer = null;
             }
 
@@ -2488,45 +2521,28 @@ var Template = function(){
         },
 
         onParentRendererDestroy: function() {
-
-            this._renderer.destroy();
-            this.destroy();
-
-            this._renderer = null;
+            this._renderer.$destroy();
+            this.$destroy();
         },
 
         onScopeDestroy: function() {
-            this.destroy();
-
-            // renderer itself subscribes to scope's destroy event
-            this._renderer = null;
+            this.$destroy();
         },
 
         destroy: function() {
 
-            var self    = this,
-                i;
-
+            var self = this;
 
             if (self._watcher) {
                 self._watcher.unsubscribeAndDestroy(self.onChange, self);
             }
-
-            for (i in self) {
-                if (self.hasOwnProperty(i)) {
-                    self[i] = null;
-                }
-            }
         }
 
-    }, true, false);
-
-    Template.getTemplate = getTemplate;
-    Template.loadTemplate = loadTemplate;
-
-    return Template;
+    }, {
+        getTemplate: getTemplate,
+        loadTemplate: loadTemplate
+    });
 }();
-
 
 
 
@@ -2535,13 +2551,12 @@ var Template = function(){
 
 /**
  * @namespace MetaphorJs
- * @class MetaphorJs.cmp.Component
- * @extends MetaphorJs.cmp.Observable
+ * @class Component
  */
-defineClass({
+var Component = defineClass({
 
-    $class: "MetaphorJs.cmp.Component",
-    $extends: "MetaphorJs.cmp.Base",
+    $class: "MetaphorJs.Component",
+    $mixins: [ObservableMixin],
 
     /**
      * @access protected
@@ -2620,7 +2635,9 @@ defineClass({
 
         var self    = this;
 
-        self.supr(cfg);
+        self.$super(cfg);
+
+        extend(self, cfg, true, false);
 
         if (!self.scope) {
             self.scope = new Scope;
@@ -2830,7 +2847,7 @@ defineClass({
     onHide:         emptyFn,
 
     onParentRendererDestroy: function() {
-        this.destroy();
+        this.$destroy();
     },
 
     destroy:      function() {
@@ -2838,7 +2855,7 @@ defineClass({
         var self    = this;
 
         if (self.template) {
-            self.template.destroy();
+            self.template.$destroy();
         }
 
         if (self.destroyEl) {
@@ -2857,7 +2874,7 @@ defineClass({
             self.scope.$destroy();
         }
 
-        self.supr();
+        self.$super();
     }
 
 });
@@ -2933,161 +2950,244 @@ var stopAnimation = function(el) {
 
 
 
-/**
- * @param {Element} el
- * @param {String} cls
- * @returns {boolean}
- */
-function hasClass(el, cls) {
-    return cls ? getClsReg(cls).test(el.className) : false;
-};
-
-
-/**
- * @param {Element} el
- * @param {String} cls
- */
-function addClass(el, cls) {
-    if (cls && !hasClass(el, cls)) {
-        el.className += " " + cls;
-    }
+function isNumber(value) {
+    return varType(value) === 1;
 };
 
 
 
-function resolveComponent(cmp, cfg, scope, node, args) {
 
-    var hasCfg  = cfg !== false;
+var Queue = function(cfg) {
 
-    cfg         = cfg || {};
-    args        = args || [];
+    var self = this;
 
-    scope       = scope || cfg.scope; // || new Scope;
-    node        = node || cfg.node;
+    cfg = cfg || {};
 
-    cfg.scope   = cfg.scope || scope;
-    cfg.node    = cfg.node || node;
+    self._queue = [];
+    self._map = {};
+    self.id = "$$" + nextUid();
 
-    var constr      = isString(cmp) ? nsGet(cmp) : cmp;
-
-    if (!constr) {
-        throw "Component " + cmp + " not found";
+    for (var i in cfg) {
+        self[i] = cfg[i];
     }
+};
 
-    if (scope && constr.$isolateScope) {
-        cfg.scope   = scope = scope.$newIsolated();
+
+Queue.REPLACE = 1;
+Queue.ONCE = 2;
+Queue.MULTIPLE = 3;
+Queue.ONCE_EVER = 3;
+
+
+extend(Queue.prototype, {
+
+    _queue: null,
+    _map: null,
+    _nextRequested: false,
+    _running: false,
+
+    length: 0,
+    id: null,
+    async: true,
+    auto: true,
+    thenable: false,
+    stack: false,
+    context: null,
+    mode: Queue.MULTIPLE,
+
+    add: function(fn, context, args, mode, prepend, async) {
+
+        var self    = this,
+            qid     = self.id,
+            id      = fn[qid] || nextUid(),
+            item    = {
+                id: id,
+                fn: fn,
+                context: context,
+                args: args,
+                async: async
+            };
+
+        mode = mode || self.mode;
+
+        if (mode == Queue.ONCE_EVER && fn[qid]) {
+            return fn[qid];
+        }
+
+        fn[qid] = id;
+
+        if (self._map[id]) {
+            if (mode == Queue.REPLACE) {
+                self.remove(id);
+            }
+            else if (mode == Queue.ONCE) {
+                return id;
+            }
+        }
+
+        self._queue[prepend ? "unshift" : "push"](item);
+        self._map[id] = item;
+
+        self.length = self._queue.length;
+
+        if (self.auto) {
+            self.next();
+        }
+
+        return id;
+    },
+
+    append: function(fn, context, args, mode, async) {
+        return this.add(fn, context, args, mode, false, async);
+    },
+
+    prepend: function(fn, context, args, mode, async) {
+        return this.add(fn, context, args, mode, true, async);
+    },
+
+    remove: function(id) {
+        var self = this,
+            queue = self._queue,
+            i, l;
+
+        for (i = 0, l = queue.length; i < l; i++) {
+            if (queue[i].id == id) {
+                queue.splice(i, 1);
+                break;
+            }
+        }
+        delete self._map[id];
+    },
+
+    next: function() {
+
+        var self    = this,
+            item;
+
+        if (self._running) {
+            self._nextRequested = true;
+            return;
+        }
+
+        self._nextRequested = false;
+
+        item = self._queue[self.stack ? "pop" : "shift"]();
+        self.length = self._queue.length;
+
+        if (!item) {
+            return;
+        }
+
+        self._running = true;
+
+        delete self._map[item.id];
+
+        if (!self.async && !item.async) {
+            try {
+                self._processResult(item.fn.apply(item.context || self.context, item.args || []));
+            }
+            catch (thrown) {
+                error(thrown);
+                self._finish();
+                throw thrown;
+            }
+        }
+        else {
+            var timeout = 0;
+            if (isNumber(item.async)) {
+                timeout = item.async;
+            }
+            else if (isNumber(self.async)) {
+                timeout = self.async;
+            }
+            async(function(){
+                try {
+                    self._processResult(item.fn.apply(item.context || self.context, item.args || []));
+                }
+                catch (thrown) {
+                    error(thrown);
+                    self._finish();
+                    throw thrown;
+                }
+            }, null, null, timeout);
+        }
+    },
+
+    _processResult: function(res) {
+        var self = this;
+        if (self.thenable && isThenable(res)) {
+            res.then(function(){self._finish()}, function(){self._finish()});
+        }
+        else {
+            self._finish();
+        }
+        return res;
+    },
+
+    _finish: function() {
+        var self = this;
+        self._running = false;
+        if (self.auto || self._nextRequested) {
+            self.next();
+        }
+    },
+
+    destroy: function() {
+
+        var self = this;
+
+        self._queue = null;
+        self._map = null;
+        self.context = null;
+        self._nextRequested = false;
+        self._running = false;
+        self.next = emptyFn;
+
     }
+}, true, false);
 
-    var i,
-        defers      = [],
-        tpl         = constr.template || cfg.template || null,
-        tplUrl      = constr.templateUrl || cfg.templateUrl || null,
-        app         = scope ? scope.$app : null,
-        gProvider   = Provider.global(),
-        injectFn    = app ? app.inject : gProvider.inject,
-        injectCt    = app ? app : gProvider,
-        cloak       = node ? getAttr(node, "mjs-cloak") : null,
-        inject      = {
-            $node: node || null,
-            $scope: scope || null,
-            $config: cfg || null,
-            $args: args || null
-        };
 
-    if (constr.resolve) {
 
-        for (i in constr.resolve) {
-            (function(name){
-                var d = new Promise,
-                    fn;
 
-                defers.push(d.done(function(value){
-                    inject[name] = value;
-                    cfg[name] = value;
-                    args.push(value);
-                }));
 
-                fn = constr.resolve[i];
+function isPrimitive(value) {
+    var vt = varType(value);
+    return vt < 3 && vt > -1;
+};
 
-                if (isFunction(fn)) {
-                    d.resolve(fn(scope, node));
-                }
-                else if (isString(fn)) {
-                    d.resolve(injectFn.resolve(fn));
-                }
-                else {
-                    d.resolve(
-                        injectFn.call(
-                            injectCt, fn, null, extend({}, inject, cfg, false, false)
-                        )
-                    );
-                }
 
-            }(i));
+var raf = function() {
+
+    var raf,
+        cancel;
+
+    if (typeof window != strUndef) {
+        var w   = window;
+        raf     = w.requestAnimationFrame ||
+                    w.webkitRequestAnimationFrame ||
+                    w.mozRequestAnimationFrame;
+        cancel  = w.cancelAnimationFrame ||
+                    w.webkitCancelAnimationFrame ||
+                    w.mozCancelAnimationFrame ||
+                    w.webkitCancelRequestAnimationFrame;
+
+        if (raf) {
+            return function(fn) {
+                var id = raf(fn);
+                return function() {
+                    cancel(id);
+                };
+            };
         }
     }
 
-    if (hasCfg && (tpl || tplUrl)) {
-
-        cfg.template = new Template({
-            scope: scope,
-            node: node,
-            deferRendering: true,
-            ownRenderer: true,
-            tpl: tpl,
-            url: tplUrl
-        });
-
-        defers.push(cfg.template.initPromise);
-
-        if (node && node.firstChild) {
-            data(node, "mjs-transclude", toFragment(node.childNodes));
+    return function(fn) {
+        var id = setTimeout(fn, 0);
+        return function() {
+            clearTimeout(id);
         }
-    }
-
-    hasCfg && args.unshift(cfg);
-
-    var p;
-
-    if (defers.length) {
-        p = new Promise;
-
-        Promise.all(defers).done(function(){
-            p.resolve(
-                injectFn.call(
-                    injectCt, constr, null, extend({}, inject, cfg, false, false), args
-                )
-            );
-        });
-    }
-    else {
-        p = Promise.resolve(
-            injectFn.call(
-                injectCt, constr, null, extend({}, inject, cfg, false, false), args
-            )
-        );
-    }
-
-    if (node && p.isPending() && cloak !== null) {
-        cloak ? addClass(node, cloak) : node.style.visibility = "hidden";
-        p.then(function() {
-            cloak ? removeClass(node, cloak) : node.style.visibility = "";
-        });
-    }
-
-    if (node) {
-        p.then(function(){
-            removeClass(node, "mjs-cloak");
-        });
-    }
-
-    return p;
-};
-
-
-
-
-var currentUrl = history.currentUrl;
+    };
+}();
 
 
 var functionFactory = function() {
@@ -3334,12 +3434,756 @@ function getNodeConfig(node, scope, expr) {
     return cfg;
 };
 
+var ListRenderer = defineClass({
+
+    $class: "ListRenderer",
+
+    id: null,
+
+    model: null,
+    itemName: null,
+    tpl: null,
+    renderers: null,
+    parentEl: null,
+    prevEl: null,
+    nextEl: null,
+    trackBy: null,
+    trackByWatcher: null,
+    animateMove: false,
+    animate: false,
+    trackByFn: null,
+    griDelegate: null,
+
+    queue: null,
+
+    buffered: false,
+    bufferPlugin: null,
+
+    $constructor: function(scope, node, expr) {
+
+        var self    = this,
+            cfg     = getNodeConfig(node, scope);
+
+        self.animateMove    = !cfg.buffered && cfg.animateMove && animate.cssAnimations;
+        self.animate        = !cfg.buffered && (getAttr(node, "mjs-animate") !== null || cfg.animate);
+        self.id             = cfg.id || nextUid();
+
+        removeAttr(node, "mjs-animate");
+
+        if (self.animate && self.animateMove) {
+            self.$plugins.push("ListAnimatedMove");
+        }
+        if (cfg.observable) {
+            self.$plugins.push("Observable");
+        }
+
+        if (cfg.buffered) {
+            self.buffered = true;
+            self.$plugins.push("ListBuffered");
+        }
+    },
+
+    $init: function(scope, node, expr) {
+
+        var self = this;
+
+        removeAttr(node, "mjs-include");
+
+        self.parseExpr(expr);
+
+        self.tpl        = node;
+        self.renderers  = [];
+        self.prevEl     = node.previousSibling;
+        self.nextEl     = node.nextSibling;
+        self.parentEl   = node.parentNode;
+        self.node       = node;
+        self.scope      = scope;
+
+        self.queue      = new Queue({
+            async: false, auto: true, thenable: true,
+            stack: false, context: self, mode: Queue.ONCE
+        });
+
+        self.parentEl.removeChild(node);
+
+        self.afterInit(scope, node);
+
+        self.queue.add(self.render, self, [toArray(self.watcher.getLastResult())]);
+    },
+
+    afterInit: function(scope, node) {
+
+        var self        = this,
+            cfg         = getNodeConfig(node, scope);
+
+        self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
+        self.trackBy    = cfg.trackBy;
+        if (self.trackBy && self.trackBy != '$') {
+            self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, null, ns);
+        }
+        else if (self.trackBy != '$' && !self.watcher.hasInputPipes()) {
+            self.trackBy    = '$$'+self.watcher.id;
+        }
+
+        self.griDelegate = bind(self.scopeGetRawIndex, self);
+    },
+
+    trigger: emptyFn,
+
+    /*
+     * <!-- render and re-render
+     */
+
+    render: function(list) {
+
+        var self        = this,
+            renderers   = self.renderers,
+            tpl         = self.tpl,
+            parent      = self.parentEl,
+            next        = self.nextEl,
+            buffered    = self.buffered,
+            fragment    = document.createDocumentFragment(),
+            el,
+            i, len;
+
+        for (i = 0, len = list.length; i < len; i++) {
+            el = tpl.cloneNode(true);
+            renderers.push(self.createItem(el, list, i));
+            if (!buffered) {
+                fragment.appendChild(el);
+                renderers[i].attached = true;
+            }
+        }
+
+        if (!buffered) {
+            self.doUpdate();
+            parent.insertBefore(fragment, next);
+        }
+        else {
+            self.bufferPlugin.getScrollOffset();
+            self.bufferPlugin.updateScrollBuffer();
+        }
+
+        self.trigger("render", self);
+    },
+
+    doUpdate: function(start, end, action, renderOnly) {
+
+        var self        = this,
+            renderers   = self.renderers,
+            index       = start || 0,
+            cnt         = renderers.length,
+            x           = end || cnt - 1,
+            list        = self.watcher.getLastResult(),
+            trackByFn   = self.getTrackByFunction();
+
+        if (x > cnt - 1) {
+            x = cnt - 1;
+        }
+
+        for (; index <= x; index++) {
+
+            if (action && renderers[index].action != action) {
+                continue;
+            }
+
+            self.renderItem(index, renderers, list, trackByFn, renderOnly);
+        }
+    },
+
+    renderItem: function(index, rs, list, trackByFn, renderOnly) {
+
+        var self = this;
+
+        list = list || self.watcher.getLastResult();
+        rs = rs || self.renderers;
+        trackByFn = trackByFn || self.getTrackByFunction();
+
+        var item        = rs[index],
+            scope       = item.scope,
+            last        = rs.length - 1,
+            even        = !(index % 2);
+
+        if (renderOnly && item.rendered) {
+            return;
+        }
+
+        scope.$index    = index;
+        scope.$first    = index === 0;
+        scope.$last     = index === last;
+        scope.$even     = even;
+        scope.$odd      = !even;
+        scope.$trackId  = trackByFn(list[index]);
+        scope.$getRawIndex = self.griDelegate;
+
+        if (!item.renderer) {
+
+            item.renderer  = new Renderer(item.el, scope);
+            item.renderer.process();
+            item.rendered = true;
+        }
+        else {
+            scope.$check();
+        }
+    },
+
+
+    createItem: function(el, list, index) {
+
+        var self        = this,
+            iname       = self.itemName,
+            itemScope   = self.scope.$new();
+
+        itemScope[iname]    = self.getListItem(list, index);
+
+        return {
+            index: index,
+            action: "enter",
+            el: el,
+            scope: itemScope,
+            attached: false,
+            rendered: false
+        };
+    },
+
+    /*
+     * render and re-render -->
+     */
+
+    /*
+     * <!-- reflect changes
+     */
+
+    onChange: function(current, prev) {
+        var self = this;
+        self.queue.prepend(self.applyChanges, self, [prev], Queue.REPLACE);
+    },
+
+    applyChanges: function(prevList) {
+
+        var self        = this,
+            renderers   = self.renderers,
+            tpl         = self.tpl,
+            index       = 0,
+            list        = toArray(self.watcher.getLastResult()),
+            updateStart = null,
+            animateMove = self.animateMove,
+            animateAll  = self.animate,
+            newrs       = [],
+            iname       = self.itemName,
+            origrs      = renderers.slice(),
+            doesMove    = false,
+            prevr,
+            prevrInx,
+            i, len,
+            r,
+            action,
+            translates,
+            prs         = self.watcher.getMovePrescription(prevList, self.getTrackByFunction(), list);
+
+
+        // redefine renderers
+        for (i = 0, len = prs.length; i < len; i++) {
+
+            action = prs[i];
+
+            if (isNumber(action)) {
+                prevrInx    = action;
+                prevr       = renderers[prevrInx];
+
+                if (prevrInx != index && isNull(updateStart)) {
+                    updateStart = i;
+                }
+
+                prevr.action = "move";
+                prevr.scope[iname] = self.getListItem(list, i);
+                doesMove = animateMove;
+
+                newrs.push(prevr);
+                renderers[prevrInx] = null;
+                index++;
+            }
+            else {
+                if (isNull(updateStart)) {
+                    updateStart = i;
+                }
+                r = self.createItem(tpl.cloneNode(true), list, i);
+                newrs.push(r);
+                // add new elements to old renderers
+                // so that we could correctly determine positions
+            }
+        }
+
+        self.renderers  = newrs;
+
+
+        if (animateAll) {
+
+            self.doUpdate(updateStart, null, "enter");
+
+            if (doesMove) {
+                translates = self.calculateTranslates(newrs, origrs, renderers);
+            }
+
+            var animPromises    = [],
+                startAnimation  = new Promise,
+                applyFrom       = new Promise,
+                donePromise     = new Promise,
+                animReady       = Promise.counter(newrs.length),
+                startCallback   = function(){
+                    animReady.countdown();
+                    return startAnimation;
+                };
+
+            // destroy old renderers and remove old elements
+            for (i = 0, len = renderers.length; i < len; i++) {
+                r = renderers[i];
+                if (r) {
+                    r.scope.$destroy();
+
+                    stopAnimation(r.el);
+                    animPromises.push(animate(r.el, "leave", null, false, ns)
+                        .done(function(el){
+                            el.style.visibility = "hidden";
+                        }));
+                }
+            }
+
+            for (i = 0, len = newrs.length; i < len; i++) {
+                r = newrs[i];
+                stopAnimation(r.el);
+
+                r.action == "enter" ?
+                animPromises.push(animate(r.el, "enter", startCallback, false, ns)) :
+                animPromises.push(
+                    self.moveAnimation(
+                        r.el,
+                        doesMove ? translates[i][0] : null,
+                        doesMove ? translates[i][1] : null,
+                        startCallback,
+                        applyFrom
+                    )
+                );
+            }
+
+            animReady.done(function(){
+                raf(function(){
+                    applyFrom.resolve();
+                    self.applyDomPositions(renderers);
+                    if (!doesMove) {
+                        self.doUpdate(updateStart, null, "move");
+                    }
+                    raf(function(){
+                        startAnimation.resolve();
+                    });
+                    self.trigger("change", self);
+                });
+            });
+
+            Promise.all(animPromises).always(function(){
+                raf(function(){
+                    self.doUpdate(updateStart || 0);
+                    self.removeOldElements(renderers);
+                    if (doesMove) {
+                        self.doUpdate(updateStart, null, "move");
+                        for (i = 0, len = newrs.length; i < len; i++) {
+                            r = newrs[i];
+                            r.el.style[animate.prefixes.transform] = null;
+                            r.el.style[animate.prefixes.transform] = "";
+                        }
+                    }
+                    donePromise.resolve();
+                });
+            });
+
+            return donePromise;
+        }
+        else {
+            if (!self.buffered) {
+                self.applyDomPositions();
+                self.doUpdate(updateStart || 0);
+                self.removeOldElements(renderers);
+            }
+            else {
+                self.bufferPlugin.getScrollOffset();
+                self.removeOldElements(renderers);
+                self.queue.append(self.bufferPlugin.updateScrollBuffer, self.bufferPlugin, [true]);
+            }
+            self.trigger("change", self);
+        }
+    },
+
+
+    removeOldElements: function(rs) {
+        var i, len, r,
+            parent = this.parentEl;
+
+        for (i = 0, len = rs.length; i < len; i++) {
+            r = rs[i];
+            if (r && r.attached) {
+                r.attached = false;
+                parent.removeChild(r.el);
+            }
+        }
+    },
+
+
+    applyDomPositions: function(oldrs) {
+
+        var self        = this,
+            rs          = self.renderers,
+            parent      = self.parentEl,
+            prevEl      = self.prevEl,
+            fc          = prevEl ? prevEl.nextSibling : parent.firstChild,
+            next,
+            i, l, el, r;
+
+        for (i = 0, l = rs.length; i < l; i++) {
+            r = rs[i];
+            el = r.el;
+
+            if (oldrs && oldrs[i]) {
+                next = oldrs[i].el.nextSibling;
+            }
+            else {
+                next = i > 0 ? (rs[i-1].el.nextSibling || fc) : fc;
+            }
+
+            if (next && el.nextSibling !== next) {
+                parent.insertBefore(el, next);
+            }
+            else if (!next) {
+                parent.appendChild(el);
+            }
+            r.attached = true;
+
+        }
+    },
+
+    /*
+     * reflect changes -->
+     */
+
+
+    /*
+     * <!-- configurable item functions
+     */
+
+
+    getListItem: function(list, index) {
+        return list[index];
+    },
+
+    onChangeTrackBy: function(val) {
+        this.trackByFn = null;
+        this.trackBy = val;
+    },
+
+    getTrackByFunction: function() {
+
+        var self = this,
+            trackBy;
+
+        if (!self.trackByFn) {
+
+            trackBy = self.trackBy;
+
+            if (!trackBy || trackBy == '$') {
+                self.trackByFn = function(item) {
+                    return isPrimitive(item) ? item : undf;
+                };
+            }
+            else if (isFunction(trackBy)) {
+                self.trackByFn = trackBy;
+            }
+            else {
+                self.trackByFn = function(item){
+                    return item && !isPrimitive(item) ? item[trackBy] : undf;
+                };
+            }
+        }
+
+        return self.trackByFn;
+    },
+
+
+    scopeGetRawIndex: function(id) {
+
+        if (id === undf) {
+            return -1;
+        }
+
+        var self        = this,
+            list        = self.watcher.getUnfilteredValue(),
+            trackByFn   = self.getTrackByFunction(),
+            i, l;
+
+        for (i = 0, l = list.length; i < l; i++) {
+            if (trackByFn(list[i]) === id) {
+                return i;
+            }
+        }
+
+        return -1;
+    },
+
+    /*
+     * configurable item functions -->
+     */
+
+
+    /*
+     * <!-- move animation - plugin.ListAnimatedMove
+     */
+
+    getNodePositions: function(tmp, rs, oldrs) {
+        return {};
+    },
+
+    calculateTranslates: function(newRenderers, origRenderers, withDeletes) {
+        return [];
+    },
+
+    moveAnimation: function(el, to, from, startCallback, applyFrom) {
+        return animate(el, "move", startCallback, false, ns);
+    },
+
+    /*
+     * move animation -->
+     */
+
+
+    /*
+     * <!-- buffered list
+     */
+
+
+    scrollTo: function() {
+        // not implemented
+    },
+
+
+    /*
+     * buffered list -->
+     */
+
+
+    parseExpr: function(expr) {
+
+        var tmp = expr.split(" "),
+            i, len,
+            model, name,
+            row;
+
+        for (i = 0, len = tmp.length; i < len; i++) {
+
+            row = tmp[i];
+
+            if (row == "" || row == "in") {
+                continue;
+            }
+
+            if (!name) {
+                name = row;
+            }
+            else {
+                model = tmp.slice(i).join(" ");
+                break;
+            }
+        }
+
+        this.model = model;
+        this.itemName = name || "item";
+    },
+
+
+    destroy: function() {
+
+        var self        = this,
+            renderers   = self.renderers,
+            i, len;
+
+        for (i = 0, len = renderers.length; i < len; i++) {
+            renderers[i].renderer.$destroy();
+        }
+
+        if (self.trackByWatcher) {
+            self.trackByWatcher.unsubscribeAndDestroy();
+        }
+
+        self.queue.destroy();
+        self.watcher.unsubscribeAndDestroy(self.onChange, self);
+    }
+
+}, {
+    $stopRenderer: true,
+    $registerBy: "id"
+});
+
+
+
+/**
+ * @param {Element} el
+ * @param {String} cls
+ * @returns {boolean}
+ */
+function hasClass(el, cls) {
+    return cls ? getClsReg(cls).test(el.className) : false;
+};
+
+
+/**
+ * @param {Element} el
+ * @param {String} cls
+ */
+function addClass(el, cls) {
+    if (cls && !hasClass(el, cls)) {
+        el.className += " " + cls;
+    }
+};
+
+
+
+function resolveComponent(cmp, cfg, scope, node, args) {
+
+    var hasCfg  = cfg !== false;
+
+    cfg         = cfg || {};
+    args        = args || [];
+
+    scope       = scope || cfg.scope; // || new Scope;
+    node        = node || cfg.node;
+
+    cfg.scope   = cfg.scope || scope;
+    cfg.node    = cfg.node || node;
+
+    var constr      = isString(cmp) ? nsGet(cmp) : cmp;
+
+    if (!constr) {
+        throw "Component " + cmp + " not found";
+    }
+
+    if (scope && constr.$isolateScope) {
+        cfg.scope   = scope = scope.$newIsolated();
+    }
+
+    var i,
+        defers      = [],
+        tpl         = constr.template || cfg.template || null,
+        tplUrl      = constr.templateUrl || cfg.templateUrl || null,
+        app         = scope ? scope.$app : null,
+        gProvider   = Provider.global(),
+        injectFn    = app ? app.inject : gProvider.inject,
+        injectCt    = app ? app : gProvider,
+        cloak       = node ? getAttr(node, "mjs-cloak") : null,
+        inject      = {
+            $node: node || null,
+            $scope: scope || null,
+            $config: cfg || null,
+            $args: args || null
+        };
+
+    if (constr.resolve) {
+
+        for (i in constr.resolve) {
+            (function(name){
+                var d = new Promise,
+                    fn;
+
+                defers.push(d.done(function(value){
+                    inject[name] = value;
+                    cfg[name] = value;
+                    args.push(value);
+                }));
+
+                fn = constr.resolve[i];
+
+                if (isFunction(fn)) {
+                    d.resolve(fn(scope, node));
+                }
+                else if (isString(fn)) {
+                    d.resolve(injectFn.resolve(fn));
+                }
+                else {
+                    d.resolve(
+                        injectFn.call(
+                            injectCt, fn, null, extend({}, inject, cfg, false, false)
+                        )
+                    );
+                }
+
+            }(i));
+        }
+    }
+
+    if (hasCfg && (tpl || tplUrl)) {
+
+        cfg.template = new Template({
+            scope: scope,
+            node: node,
+            deferRendering: true,
+            ownRenderer: true,
+            tpl: tpl,
+            url: tplUrl
+        });
+
+        defers.push(cfg.template.initPromise);
+
+        if (node && node.firstChild) {
+            data(node, "mjs-transclude", toFragment(node.childNodes));
+        }
+    }
+
+    hasCfg && args.unshift(cfg);
+
+    var p;
+
+    if (defers.length) {
+        p = new Promise;
+
+        Promise.all(defers).done(function(){
+            p.resolve(
+                injectFn.call(
+                    injectCt, constr, null, extend({}, inject, cfg, false, false), args
+                )
+            );
+        });
+    }
+    else {
+        p = Promise.resolve(
+            injectFn.call(
+                injectCt, constr, null, extend({}, inject, cfg, false, false), args
+            )
+        );
+    }
+
+    if (node && p.isPending() && cloak !== null) {
+        cloak ? addClass(node, cloak) : node.style.visibility = "hidden";
+        p.then(function() {
+            cloak ? removeClass(node, cloak) : node.style.visibility = "";
+        });
+    }
+
+    if (node) {
+        p.then(function(){
+            removeClass(node, "mjs-cloak");
+        });
+    }
+
+    return p;
+};
+
+
+
+
+var currentUrl = history.currentUrl;
+
 
 
 
 defineClass({
 
-    $class: "MetaphorJs.cmp.View",
+    $class: "View",
 
     /**
      * [
@@ -3495,7 +4339,7 @@ defineClass({
             }
 
             return resolveComponent(
-                    route.cmp || "MetaphorJs.cmp.Component",
+                    route.cmp || "MetaphorJs.Component",
                     cfg,
                     cfg.scope,
                     node,
@@ -3517,7 +4361,7 @@ defineClass({
         animate(node, "enter", function(){
 
             var cfg     = isObject(cmp) ? cmp : {},
-                cls     = (isString(cmp) ? cmp : null) || "MetaphorJs.cmp.Component",
+                cls     = (isString(cmp) ? cmp : null) || "MetaphorJs.Component",
                 scope   = cfg.scope || self.scope.$new();
 
             cfg.destroyEl = false;
@@ -3548,15 +4392,12 @@ defineClass({
         self.scope = null;
         self.currentComponent = null;
 
-        self.supr();
+        self.$super();
     }
 });
 
 
 
-
-
-var registerAttributeHandler = directives.registerAttributeHandler;
 function returnFalse() {
     return false;
 };
@@ -3564,7 +4405,7 @@ function returnFalse() {
 
 
 
-registerAttributeHandler("mjs-app", 100, returnFalse);
+Directive.registerAttribute("mjs-app", 100, returnFalse);
 function isField(el) {
     var tag	= el.nodeName.toLowerCase(),
         type = el.type;
@@ -3584,66 +4425,9 @@ var elemTextProp = function(){
 
 
 
-var AttributeHandler = defineClass({
+Directive.registerAttribute("mjs-bind", 1000, defineClass({
 
-    $class: "MetaphorJs.view.AttributeHandler",
-
-    watcher: null,
-    scope: null,
-    node: null,
-    expr: null,
-
-    autoOnChange: true,
-
-    $init: function(scope, node, expr) {
-
-        var self        = this,
-            val;
-
-        expr            = trim(expr);
-
-        self.node       = node;
-        self.expr       = expr;
-        self.scope      = scope;
-        self.watcher    = createWatchable(scope, expr, self.onChange, self, null, ns);
-
-        if (self.autoOnChange && (val = self.watcher.getLastResult()) != undf) {
-            self.onChange(val, undf);
-        }
-
-        scope.$on("destroy", self.onScopeDestroy, self);
-    },
-
-    onScopeDestroy: function() {
-        this.destroy();
-    },
-
-    onChange: function() {},
-
-    destroy: function() {
-        var self    = this;
-
-        self.node = null;
-        self.scope = null;
-
-        if (self.watcher) {
-            self.watcher.unsubscribeAndDestroy(self.onChange, self);
-            self.watcher = null;
-        }
-
-        self.supr();
-    }
-});
-
-
-
-
-
-
-
-registerAttributeHandler("mjs-bind", 1000, defineClass({
-
-    $extends: AttributeHandler,
+    $extends: Directive,
 
     isInput: false,
     input: null,
@@ -3678,7 +4462,7 @@ registerAttributeHandler("mjs-bind", 1000, defineClass({
             }
         }
         else {
-            self.supr(scope, node, expr);
+            self.$super(scope, node, expr);
         }
     },
 
@@ -3720,7 +4504,7 @@ registerAttributeHandler("mjs-bind", 1000, defineClass({
         var self    = this;
 
         if (self.textRenderer) {
-            self.textRenderer.destroy();
+            self.textRenderer.$destroy();
             self.textRenderer = null;
         }
 
@@ -3729,7 +4513,7 @@ registerAttributeHandler("mjs-bind", 1000, defineClass({
             self.input = null;
         }
 
-        self.supr();
+        self.$super();
     }
 }));
 
@@ -3737,7 +4521,7 @@ registerAttributeHandler("mjs-bind", 1000, defineClass({
 
 
 
-registerAttributeHandler("mjs-bind-html", 1000, defineClass({
+Directive.registerAttribute("mjs-bind-html", 1000, defineClass({
 
     $extends: "attr.mjs-bind",
 
@@ -3787,9 +4571,9 @@ registerAttributeHandler("mjs-bind-html", 1000, defineClass({
         }
     };
 
-    registerAttributeHandler("mjs-class", 1000, defineClass({
+    Directive.registerAttribute("mjs-class", 1000, defineClass({
 
-        $extends: AttributeHandler,
+        $extends: Directive,
 
         initial: true,
 
@@ -3827,7 +4611,7 @@ registerAttributeHandler("mjs-bind-html", 1000, defineClass({
 
 
 
-registerAttributeHandler("mjs-cmp-prop", 200,
+Directive.registerAttribute("mjs-cmp-prop", 200,
     ['$parentCmp', '$node', '$attrValue', function(parentCmp, node, expr){
     if (parentCmp) {
         parentCmp[expr] = node;
@@ -3880,1492 +4664,20 @@ registerAttributeHandler("mjs-cmp-prop", 200,
 
     cmpAttr.$breakScope = true;
 
-    registerAttributeHandler("mjs-cmp", 200, cmpAttr);
+    Directive.registerAttribute("mjs-cmp", 200, cmpAttr);
 
 }());
 
 
-registerAttributeHandler("mjs-config", 50, function(scope, node, expr){
+Directive.registerAttribute("mjs-config", 50, function(scope, node, expr){
     getNodeConfig(node, scope, expr);
 });
 
 
-function isNumber(value) {
-    return varType(value) === 1;
-};
 
 
 
-
-var Queue = function(cfg) {
-
-    var self = this;
-
-    cfg = cfg || {};
-
-    self._queue = [];
-    self._map = {};
-    self.id = "$$" + nextUid();
-
-    for (var i in cfg) {
-        self[i] = cfg[i];
-    }
-};
-
-
-Queue.REPLACE = 1;
-Queue.ONCE = 2;
-Queue.MULTIPLE = 3;
-Queue.ONCE_EVER = 3;
-
-
-extend(Queue.prototype, {
-
-    _queue: null,
-    _map: null,
-    _nextRequested: false,
-    _running: false,
-
-    length: 0,
-    id: null,
-    async: true,
-    auto: true,
-    thenable: false,
-    stack: false,
-    context: null,
-    mode: Queue.MULTIPLE,
-
-    add: function(fn, context, args, mode, prepend, async) {
-
-        var self    = this,
-            qid     = self.id,
-            id      = fn[qid] || nextUid(),
-            item    = {
-                id: id,
-                fn: fn,
-                context: context,
-                args: args,
-                async: async
-            };
-
-        mode = mode || self.mode;
-
-        if (mode == Queue.ONCE_EVER && fn[qid]) {
-            return fn[qid];
-        }
-
-        fn[qid] = id;
-
-        if (self._map[id]) {
-            if (mode == Queue.REPLACE) {
-                self.remove(id);
-            }
-            else if (mode == Queue.ONCE) {
-                return id;
-            }
-        }
-
-        self._queue[prepend ? "unshift" : "push"](item);
-        self._map[id] = item;
-
-        self.length = self._queue.length;
-
-        if (self.auto) {
-            self.next();
-        }
-
-        return id;
-    },
-
-    append: function(fn, context, args, mode, async) {
-        return this.add(fn, context, args, mode, false, async);
-    },
-
-    prepend: function(fn, context, args, mode, async) {
-        return this.add(fn, context, args, mode, true, async);
-    },
-
-    remove: function(id) {
-        var self = this,
-            queue = self._queue,
-            i, l;
-
-        for (i = 0, l = queue.length; i < l; i++) {
-            if (queue[i].id == id) {
-                queue.splice(i, 1);
-                break;
-            }
-        }
-        delete self._map[id];
-    },
-
-    next: function() {
-
-        var self    = this,
-            item;
-
-        if (self._running) {
-            self._nextRequested = true;
-            return;
-        }
-
-        self._nextRequested = false;
-
-        item = self._queue[self.stack ? "pop" : "shift"]();
-        self.length = self._queue.length;
-
-        if (!item) {
-            return;
-        }
-
-        self._running = true;
-
-        delete self._map[item.id];
-
-        if (!self.async && !item.async) {
-            try {
-                self._processResult(item.fn.apply(item.context || self.context, item.args || []));
-            }
-            catch (thrown) {
-                error(thrown);
-                self._finish();
-                throw thrown;
-            }
-        }
-        else {
-            var timeout = 0;
-            if (isNumber(item.async)) {
-                timeout = item.async;
-            }
-            else if (isNumber(self.async)) {
-                timeout = self.async;
-            }
-            async(function(){
-                try {
-                    self._processResult(item.fn.apply(item.context || self.context, item.args || []));
-                }
-                catch (thrown) {
-                    error(thrown);
-                    self._finish();
-                    throw thrown;
-                }
-            }, null, null, timeout);
-        }
-    },
-
-    _processResult: function(res) {
-        var self = this;
-        if (self.thenable && isThenable(res)) {
-            res.then(function(){self._finish()}, function(){self._finish()});
-        }
-        else {
-            self._finish();
-        }
-        return res;
-    },
-
-    _finish: function() {
-        var self = this;
-        self._running = false;
-        if (self.auto || self._nextRequested) {
-            self.next();
-        }
-    },
-
-    destroy: function() {
-
-        var self = this;
-
-        self._queue = null;
-        self._map = null;
-        self.context = null;
-        self._nextRequested = false;
-        self._running = false;
-        self.next = emptyFn;
-
-    }
-}, true, false);
-
-
-
-
-
-function isPrimitive(value) {
-    var vt = varType(value);
-    return vt < 3 && vt > -1;
-};
-
-
-var raf = function() {
-
-    var raf,
-        cancel;
-
-    if (typeof window != strUndef) {
-        var w   = window;
-        raf     = w.requestAnimationFrame ||
-                    w.webkitRequestAnimationFrame ||
-                    w.mozRequestAnimationFrame;
-        cancel  = w.cancelAnimationFrame ||
-                    w.webkitCancelAnimationFrame ||
-                    w.mozCancelAnimationFrame ||
-                    w.webkitCancelRequestAnimationFrame;
-
-        if (raf) {
-            return function(fn) {
-                var id = raf(fn);
-                return function() {
-                    cancel(id);
-                };
-            };
-        }
-    }
-
-    return function(fn) {
-        var id = setTimeout(fn, 0);
-        return function() {
-            clearTimeout(id);
-        }
-    };
-}();
-var getStyle = function() {
-
-    if (window.getComputedStyle) {
-        return function (node, prop, numeric) {
-            if (node === window) {
-                return prop? (numeric ? 0 : null) : {};
-            }
-            var style = getComputedStyle(node, null),
-                val = prop ? style[prop] : style;
-
-            return numeric ? parseFloat(val) || 0 : val;
-        };
-    }
-
-    return function(node, prop, numeric) {
-        var style   = node.currentStyle || node.style || {},
-            val     = prop ? style[prop] : style;
-        return numeric ? parseFloat(val) || 0 : val;
-    };
-
-}();
-
-
-var getScrollParent = function() {
-
-    var rOvf        = /(auto|scroll)/,
-        body,
-
-        overflow    = function (node) {
-            var style = getStyle(node);
-            return style["overflow"] + style["overflowY"] + style["overflowY"];
-        },
-
-        scroll      = function (node) {
-            return rOvf.test(overflow(node));
-        };
-
-    return function getScrollParent(node) {
-
-        if (!body) {
-            body = document.body;
-        }
-
-        var parent = node;
-
-        while (parent) {
-            if (parent === body) {
-                return window;
-            }
-            if (scroll(parent)) {
-                return parent;
-            }
-            parent = parent.parentNode;
-        }
-
-        return window;
-    };
-}();
-
-
-var getScrollTopOrLeft = function(vertical) {
-
-    var defaultST,
-        wProp = vertical ? "pageYOffset" : "pageXOffset",
-        sProp = vertical ? "scrollTop" : "scrollLeft",
-        doc = document,
-        body = doc.body,
-        html = doc.documentElement;
-
-    if(window[wProp] !== undf) {
-        //most browsers except IE before #9
-        defaultST = function(){
-            return window[wProp];
-        };
-    }
-    else{
-        if (html.clientHeight) {
-            defaultST = function() {
-                return html[sProp];
-            };
-        }
-        else {
-            defaultST = function() {
-                return body[sProp];
-            };
-        }
-    }
-
-    return function(node) {
-        if (!node || node === window) {
-            return defaultST();
-        }
-        else if (node && node.nodeType == 1 &&
-            node !== body && node !== html) {
-            return node[sProp];
-        }
-        else {
-            return defaultST();
-        }
-    }
-
-};
-
-
-var getScrollTop = getScrollTopOrLeft(true);
-
-
-var getScrollLeft = getScrollTopOrLeft(false);
-function addListener(el, event, func) {
-    if (el.attachEvent) {
-        el.attachEvent('on' + event, func);
-    } else {
-        el.addEventListener(event, func, false);
-    }
-};
-
-function removeListener(el, event, func) {
-    if (el.detachEvent) {
-        el.detachEvent('on' + event, func);
-    } else {
-        el.removeEventListener(event, func, false);
-    }
-};
-
-
-
-function getOffsetParent(node) {
-
-    var offsetParent = node.offsetParent || elHtml;
-
-    while (offsetParent && (offsetParent != elHtml &&
-                              getStyle(offsetParent, "position") == "static")) {
-        offsetParent = offsetParent.offsetParent;
-    }
-
-    return offsetParent || elHtml;
-
-};
-
-
-function getOffset(node) {
-
-    var box = {top: 0, left: 0};
-
-    // Make sure it's not a disconnected DOM node
-    if (!isAttached(node) || node === window) {
-        return box;
-    }
-
-    // Support: BlackBerry 5, iOS 3 (original iPhone)
-    // If we don't have gBCR, just use 0,0 rather than error
-    if (node.getBoundingClientRect ) {
-        box = node.getBoundingClientRect();
-    }
-
-    return {
-        top: box.top + getScrollTop() - elHtml.clientTop,
-        left: box.left + getScrollLeft() - elHtml.clientLeft
-    };
-};
-
-
-function getPosition(node, to) {
-
-    var offsetParent, offset,
-        parentOffset = {top: 0, left: 0};
-
-    if (node === window || node === elHtml) {
-        return parentOffset;
-    }
-
-    // Fixed elements are offset from window (parentOffset = {top:0, left: 0},
-    // because it is its only offset parent
-    if (getStyle(node, "position" ) == "fixed") {
-        // Assume getBoundingClientRect is there when computed position is fixed
-        offset = node.getBoundingClientRect();
-    }
-    else if (to) {
-        var thisOffset = getOffset(node),
-            toOffset = getOffset(to),
-            position = {
-                left: thisOffset.left - toOffset.left,
-                top: thisOffset.top - toOffset.top
-            };
-
-        if (position.left < 0) {
-            position.left = 0;
-        }
-        if (position.top < 0) {
-            position.top = 0;
-        }
-        return position;
-    }
-    else {
-        // Get *real* offsetParent
-        offsetParent = getOffsetParent(node);
-
-        // Get correct offsets
-        offset = getOffset(node);
-
-        if (offsetParent !== elHtml) {
-            parentOffset = getOffset(offsetParent);
-        }
-
-        // Add offsetParent borders
-        parentOffset.top += getStyle(offsetParent, "borderTopWidth", true);
-        parentOffset.left += getStyle(offsetParent, "borderLeftWidth", true);
-    }
-
-    // Subtract parent offsets and element margins
-    return {
-        top: offset.top - parentOffset.top - getStyle(node, "marginTop", true),
-        left: offset.left - parentOffset.left - getStyle(node, "marginLeft", true)
-    };
-};
-
-var ListRenderer = defineClass(
-
-    function(scope, node, expr) {
-
-        var self    = this;
-        self.commonInit(scope, node, expr);
-        self.init(scope, node, expr);
-
-        self.queue.add(self.render, self, [toArray(self.watcher.getLastResult())]);
-    },
-    {
-
-        id: null,
-
-        observable: null,
-        model: null,
-        itemName: null,
-        tpl: null,
-        renderers: null,
-        parentEl: null,
-        prevEl: null,
-        nextEl: null,
-        trackBy: null,
-        trackByWatcher: null,
-        animateMove: false,
-        animate: false,
-        trackByFn: null,
-        griDelegate: null,
-
-        queue: null,
-
-        buffered: false,
-        itemSize: null,
-        itemsOffsite: 1,
-        bufferState: null,
-        scrollOffset: 0,
-        horizontal: false,
-        bufferEventDelegate: null,
-        topStub: null,
-        botStub: null,
-
-        commonInit: function(scope, node, expr) {
-
-            var self = this;
-
-            removeAttr(node, "mjs-include");
-
-            self.parseExpr(expr);
-
-            self.tpl        = node;
-            self.renderers  = [];
-            self.prevEl     = node.previousSibling;
-            self.nextEl     = node.nextSibling;
-            self.parentEl   = node.parentNode;
-            self.node       = node;
-            self.scope      = scope;
-
-            self.queue      = new Queue({
-                async: false, auto: true, thenable: true,
-                stack: false, context: self, mode: Queue.ONCE
-            });
-
-            var cfg         = getNodeConfig(node, scope);
-
-            self.animateMove= !cfg.buffered && cfg.animateMove && animate.cssAnimations;
-            self.animate    = !cfg.buffered && (getAttr(node, "mjs-animate") !== null || cfg.animate);
-            removeAttr(node, "mjs-animate");
-
-            self.id         = cfg.id || nextUid();
-
-            if (cfg.observable) {
-                self.observable = new Observable;
-                extend(self, self.observable.getApi(), true, false);
-            }
-
-            self.parentEl.removeChild(node);
-
-            if (cfg.buffered) {
-                self.initBuffering(cfg);
-            }
-        },
-
-        init: function(scope, node) {
-
-            var self        = this,
-                cfg         = data(node, "config") || {};
-
-            self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
-            self.trackBy    = cfg.trackBy;
-            if (self.trackBy && self.trackBy != '$') {
-                self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, null, ns);
-            }
-            else if (self.trackBy != '$' && !self.watcher.hasInputPipes()) {
-                self.trackBy    = '$$'+self.watcher.id;
-            }
-
-            self.griDelegate = bind(self.scopeGetRawIndex, self);
-        },
-
-        triggerIf: function() {
-            if (this.observable) {
-                this.trigger.apply(null, arguments);
-            }
-        },
-
-        /*
-         * <!-- render and re-render
-         */
-
-        render: function(list) {
-
-            var self        = this,
-                renderers   = self.renderers,
-                tpl         = self.tpl,
-                parent      = self.parentEl,
-                next        = self.nextEl,
-                buffered    = self.buffered,
-                fragment    = document.createDocumentFragment(),
-                el,
-                i, len;
-
-            for (i = 0, len = list.length; i < len; i++) {
-                el = tpl.cloneNode(true);
-                renderers.push(self.createItem(el, list, i));
-                if (!buffered) {
-                    fragment.appendChild(el);
-                    renderers[i].attached = true;
-                }
-            }
-
-            if (!buffered) {
-                self.doUpdate();
-                parent.insertBefore(fragment, next);
-            }
-            else {
-                self.getScrollOffset();
-                self.updateScrollBuffer();
-            }
-
-            self.triggerIf("render", self);
-        },
-
-        doUpdate: function(start, end, action, renderOnly) {
-
-            var self        = this,
-                renderers   = self.renderers,
-                index       = start || 0,
-                cnt         = renderers.length,
-                x           = end || cnt - 1,
-                list        = self.watcher.getLastResult(),
-                trackByFn   = self.getTrackByFunction();
-
-            if (x > cnt - 1) {
-                x = cnt - 1;
-            }
-
-            for (; index <= x; index++) {
-
-                if (action && renderers[index].action != action) {
-                    continue;
-                }
-
-                self.renderItem(index, renderers, list, trackByFn, renderOnly);
-            }
-        },
-
-        renderItem: function(index, rs, list, trackByFn, renderOnly) {
-
-            var self = this;
-
-            list = list || self.watcher.getLastResult();
-            rs = rs || self.renderers;
-            trackByFn = trackByFn || self.getTrackByFunction();
-
-            var item        = rs[index],
-                scope       = item.scope,
-                last        = rs.length - 1,
-                even        = !(index % 2);
-
-            if (renderOnly && item.rendered) {
-                return;
-            }
-
-            scope.$index    = index;
-            scope.$first    = index === 0;
-            scope.$last     = index === last;
-            scope.$even     = even;
-            scope.$odd      = !even;
-            scope.$trackId  = trackByFn(list[index]);
-            scope.$getRawIndex = self.griDelegate;
-
-            if (!item.renderer) {
-
-                item.renderer  = new Renderer(item.el, scope);
-                item.renderer.process();
-                item.rendered = true;
-            }
-            else {
-                scope.$check();
-            }
-        },
-
-
-        createItem: function(el, list, index) {
-
-            var self        = this,
-                iname       = self.itemName,
-                itemScope   = self.scope.$new();
-
-            itemScope[iname]    = self.getListItem(list, index);
-
-            return {
-                index: index,
-                action: "enter",
-                el: el,
-                scope: itemScope,
-                attached: false,
-                rendered: false
-            };
-        },
-
-        /*
-         * render and re-render -->
-         */
-
-        /*
-         * <!-- reflect changes
-         */
-
-        onChange: function(current, prev) {
-            var self = this;
-            self.queue.prepend(self.applyChanges, self, [prev], Queue.REPLACE);
-        },
-
-        applyChanges: function(prevList) {
-
-            var self        = this,
-                renderers   = self.renderers,
-                tpl         = self.tpl,
-                index       = 0,
-                list        = toArray(self.watcher.getLastResult()),
-                updateStart = null,
-                animateMove = self.animateMove,
-                animateAll  = self.animate,
-                newrs       = [],
-                iname       = self.itemName,
-                origrs      = renderers.slice(),
-                doesMove    = false,
-                prevr,
-                prevrInx,
-                i, len,
-                r,
-                action,
-                translates,
-                prs         = self.watcher.getMovePrescription(prevList, self.getTrackByFunction(), list);
-
-
-            // redefine renderers
-            for (i = 0, len = prs.length; i < len; i++) {
-
-                action = prs[i];
-
-                if (isNumber(action)) {
-                    prevrInx    = action;
-                    prevr       = renderers[prevrInx];
-
-                    if (prevrInx != index && isNull(updateStart)) {
-                        updateStart = i;
-                    }
-
-                    prevr.action = "move";
-                    prevr.scope[iname] = self.getListItem(list, i);
-                    doesMove = animateMove;
-
-                    newrs.push(prevr);
-                    renderers[prevrInx] = null;
-                    index++;
-                }
-                else {
-                    if (isNull(updateStart)) {
-                        updateStart = i;
-                    }
-                    r = self.createItem(tpl.cloneNode(true), list, i);
-                    newrs.push(r);
-                    // add new elements to old renderers
-                    // so that we could correctly determine positions
-                }
-            }
-
-            self.renderers  = newrs;
-
-
-            if (animateAll) {
-
-                self.doUpdate(updateStart, null, "enter");
-
-                if (doesMove) {
-                    translates = self.calculateTranslates(newrs, origrs, renderers);
-                }
-
-                var animPromises    = [],
-                    startAnimation  = new Promise,
-                    applyFrom       = new Promise,
-                    donePromise     = new Promise,
-                    animReady       = Promise.counter(newrs.length),
-                    startCallback   = function(){
-                        animReady.countdown();
-                        return startAnimation;
-                    };
-
-                // destroy old renderers and remove old elements
-                for (i = 0, len = renderers.length; i < len; i++) {
-                    r = renderers[i];
-                    if (r) {
-                        r.scope.$destroy();
-
-                        stopAnimation(r.el);
-                        animPromises.push(animate(r.el, "leave", null, false, ns)
-                            .done(function(el){
-                                el.style.visibility = "hidden";
-                            }));
-                    }
-                }
-
-                for (i = 0, len = newrs.length; i < len; i++) {
-                    r = newrs[i];
-                    stopAnimation(r.el);
-
-                    r.action == "enter" ?
-                    animPromises.push(animate(r.el, "enter", startCallback, false, ns)) :
-                    animPromises.push(
-                        self.moveAnimation(
-                            r.el,
-                            doesMove ? translates[i][0] : null,
-                            doesMove ? translates[i][1] : null,
-                            startCallback,
-                            applyFrom
-                        )
-                    );
-                }
-
-                animReady.done(function(){
-                    raf(function(){
-                        applyFrom.resolve();
-                        self.applyDomPositions(renderers);
-                        if (!doesMove) {
-                            self.doUpdate(updateStart, null, "move");
-                        }
-                        raf(function(){
-                            startAnimation.resolve();
-                        });
-                        self.triggerIf("change", self);
-                    });
-                });
-
-                Promise.all(animPromises).always(function(){
-                    raf(function(){
-                        self.doUpdate(updateStart || 0);
-                        self.removeOldElements(renderers);
-                        if (doesMove) {
-                            self.doUpdate(updateStart, null, "move");
-                            for (i = 0, len = newrs.length; i < len; i++) {
-                                r = newrs[i];
-                                r.el.style[animate.prefixes.transform] = null;
-                                r.el.style[animate.prefixes.transform] = "";
-                            }
-                        }
-                        donePromise.resolve();
-                    });
-                });
-
-                return donePromise;
-            }
-            else {
-                if (!self.buffered) {
-                    self.applyDomPositions();
-                    self.doUpdate(updateStart || 0);
-                    self.removeOldElements(renderers);
-                }
-                else {
-                    self.getScrollOffset();
-                    self.removeOldElements(renderers);
-                    self.queue.append(self.updateScrollBuffer, self, [true]);
-                }
-                self.triggerIf("change", self);
-            }
-        },
-
-
-        removeOldElements: function(rs) {
-            var i, len, r,
-                parent = this.parentEl;
-
-            for (i = 0, len = rs.length; i < len; i++) {
-                r = rs[i];
-                if (r && r.attached) {
-                    r.attached = false;
-                    parent.removeChild(r.el);
-                }
-            }
-        },
-
-
-        applyDomPositions: function(oldrs) {
-
-            var self        = this,
-                rs          = self.renderers,
-                parent      = self.parentEl,
-                prevEl      = self.prevEl,
-                fc          = prevEl ? prevEl.nextSibling : parent.firstChild,
-                next,
-                i, l, el, r;
-
-            for (i = 0, l = rs.length; i < l; i++) {
-                r = rs[i];
-                el = r.el;
-
-                if (oldrs && oldrs[i]) {
-                    next = oldrs[i].el.nextSibling;
-                }
-                else {
-                    next = i > 0 ? (rs[i-1].el.nextSibling || fc) : fc;
-                }
-
-                if (next && el.nextSibling !== next) {
-                    parent.insertBefore(el, next);
-                }
-                else if (!next) {
-                    parent.appendChild(el);
-                }
-                r.attached = true;
-
-            }
-        },
-
-        /*
-         * reflect changes -->
-         */
-
-
-        /*
-         * <!-- configurable item functions
-         */
-
-
-        getListItem: function(list, index) {
-            return list[index];
-        },
-
-        onChangeTrackBy: function(val) {
-            this.trackByFn = null;
-            this.trackBy = val;
-        },
-
-        getTrackByFunction: function() {
-
-            var self = this,
-                trackBy;
-
-            if (!self.trackByFn) {
-
-                trackBy = self.trackBy;
-
-                if (!trackBy || trackBy == '$') {
-                    self.trackByFn = function(item) {
-                        return isPrimitive(item) ? item : undf;
-                    };
-                }
-                else if (isFunction(trackBy)) {
-                    self.trackByFn = trackBy;
-                }
-                else {
-                    self.trackByFn = function(item){
-                        return item && !isPrimitive(item) ? item[trackBy] : undf;
-                    };
-                }
-            }
-
-            return self.trackByFn;
-        },
-
-
-        scopeGetRawIndex: function(id) {
-
-            if (id === undf) {
-                return -1;
-            }
-
-            var self        = this,
-                list        = self.watcher.getUnfilteredValue(),
-                trackByFn   = self.getTrackByFunction(),
-                i, l;
-
-            for (i = 0, l = list.length; i < l; i++) {
-                if (trackByFn(list[i]) === id) {
-                    return i;
-                }
-            }
-
-            return -1;
-        },
-
-        /*
-         * configurable item functions -->
-         */
-
-
-        /*
-         * <!-- move animation
-         */
-
-        getNodePositions: function(tmp, rs, oldrs) {
-
-            var nodes = [],
-                i, l, el, r,
-                tmpNode,
-                positions = {};
-
-            while(tmp.firstChild) {
-                tmp.removeChild(tmp.firstChild);
-            }
-            for (i = 0, l = rs.length; i < l; i++) {
-                if (oldrs && oldrs[i]) {
-                    tmpNode = oldrs[i].el.cloneNode(true);
-                    tmp.appendChild(tmpNode);
-                }
-                tmpNode = rs[i].el.cloneNode(true);
-                tmp.appendChild(tmpNode);
-                nodes.push(tmpNode);
-            }
-            for (i = 0, l = nodes.length; i < l; i++) {
-                el = nodes[i];
-                r = rs[i].renderer;
-                if (r) {
-                    positions[r.id] = {left: el.offsetLeft, top: el.offsetTop};
-                }
-            }
-
-
-            return positions;
-        },
-
-        calculateTranslates: function(newRenderers, origRenderers, withDeletes) {
-
-            var self        = this,
-                parent      = self.parentEl,
-                pp          = parent.parentNode,
-                tmp         = parent.cloneNode(true),
-                ofsW        = parent.offsetWidth,
-                translates  = [],
-                fl          = 0,
-                ft          = 0,
-                oldPositions,
-                insertPositions,
-                newPositions,
-                r, i, len, id,
-                style,
-                el;
-
-            style = tmp.style;
-            style.position = "absolute";
-            style.left = "-10000px";
-            style.visibility = "hidden";
-            style.width = ofsW + 'px';
-
-            pp.insertBefore(tmp, parent);
-            // correct width to compensate for padding and stuff
-            style.width = ofsW - (tmp.offsetWidth - ofsW) + "px";
-
-            // positions before change
-            oldPositions = self.getNodePositions(tmp, origRenderers);
-            // positions when items reordered but deleted items are still in place
-            insertPositions = self.getNodePositions(tmp, newRenderers, withDeletes);
-            // positions after old items removed from dom
-            newPositions = self.getNodePositions(tmp, newRenderers);
-
-            pp.removeChild(tmp);
-            tmp = null;
-
-            for (i = 0, len = newRenderers.length; i < len; i++) {
-                el = newRenderers[i].el;
-                r = newRenderers[i].renderer;
-                id = r.id;
-
-                if (i == 0) {
-                    fl = el.offsetLeft;
-                    ft = el.offsetTop;
-                }
-
-                translates.push([
-                    // to
-                    {
-                        left: (newPositions[id].left - fl) - (insertPositions[id].left - fl),
-                        top: (newPositions[id].top - ft) - (insertPositions[id].top - ft)
-                    },
-                    // from
-                    oldPositions[id] ? //insertPositions[id] &&
-                    {
-                        left: (oldPositions[id].left - fl) - (insertPositions[id].left - fl),
-                        top: (oldPositions[id].top - ft) - (insertPositions[id].top - ft)
-                    } : null
-                ]);
-            }
-
-            return translates;
-        },
-
-        moveAnimation: function(el, to, from, startCallback, applyFrom) {
-
-            var style = el.style;
-
-            applyFrom.done(function(){
-                if (from) {
-                    style[animate.prefixes.transform] = "translateX("+from.left+"px) translateY("+from.top+"px)";
-                }
-            });
-
-            return animate(
-                el,
-                "move",
-                startCallback,
-                false,
-                ns,
-                function(el, position, stage){
-                    if (position == 0 && stage != "start" && to) {
-                        style[animate.prefixes.transform] = "translateX("+to.left+"px) translateY("+to.top+"px)";
-                    }
-                });
-        },
-
-        /*
-         * move animation -->
-         */
-
-
-        /*
-         * <!-- buffered list
-         */
-
-        initScrollParent: function(cfg) {
-            var self = this;
-            self.scrollEl = getScrollParent(self.parentEl);
-        },
-
-        initScrollStubs: function(cfg) {
-
-            var self = this,
-                parent = self.parentEl,
-                prev = self.prevEl,
-                ofsTop,
-                ofsBot,
-                i,
-                style = {
-                    fontSize: 0,
-                    lineHeight: 0,
-                    padding: 0,
-                    paddingTop: 0,
-                    paddingLeft: 0,
-                    paddingBottom: 0,
-                    paddingRight: 0,
-                    margin: 0,
-                    marginLeft: 0,
-                    marginTop: 0,
-                    marginRight: 0,
-                    marginBottom: 0
-                };
-
-            self.topStub       = ofsTop = document.createElement(cfg.stub || "div");
-            self.botStub       = ofsBot = document.createElement(cfg.stub || "div");
-
-            addClass(ofsTop, "mjs-buffer-top");
-            addClass(ofsBot, "mjs-buffer-bottom");
-            for (i in style) {
-                ofsTop.style[i] = style[i];
-                ofsBot.style[i] = style[i];
-            }
-
-            parent.insertBefore(ofsTop, prev ? prev.nextSibling : parent.firstChild);
-            parent.insertBefore(ofsBot, self.nextEl);
-
-            self.prevEl     = ofsTop;
-            self.nextEl     = ofsBot;
-        },
-
-        initBuffering: function(cfg) {
-
-            var self = this;
-
-            self.buffered       = true;
-            self.itemSize       = cfg.itemSize;
-            self.itemsOffsite   = cfg.itemsOffsite || 5;
-            self.horizontal     = cfg.horizontal || false;
-
-            self.initScrollParent(cfg);
-            self.initScrollStubs(cfg);
-
-            self.bufferEventDelegate = bind(self.bufferUpdateEvent, self);
-
-            addListener(self.scrollEl, "scroll", self.bufferEventDelegate);
-            addListener(window, "resize", self.bufferEventDelegate);
-        },
-
-
-        getScrollOffset: function() {
-
-            var self        = this,
-                position    = getPosition(self.topStub, self.scrollEl),
-                ofs         = self.horizontal ? position.left : position.top;
-
-            return self.scrollOffset = ofs;
-        },
-
-        getBufferState: function(updateScrollOffset) {
-
-            var self        = this,
-                scrollEl    = self.scrollEl,
-                hor         = self.horizontal,
-                html        = document.documentElement,
-                size        = scrollEl === window ?
-                              (window[hor ? "innerWidth" : "innerHeight"] ||
-                               html[hor ? "clientWidth" : "clientHeight"]):
-                              scrollEl[hor ? "offsetWidth" : "offsetHeight"],
-                scroll      = hor ? getScrollLeft(scrollEl) : getScrollTop(scrollEl),
-                isize       = self.itemSize,
-                off         = self.itemsOffsite,
-                offset      = updateScrollOffset ? self.getScrollOffset() : self.scrollOffset,
-                cnt         = self.renderers.length,
-                viewFirst,
-                viewLast,
-                first,
-                last;
-
-
-            scroll  = Math.max(0, scroll + offset);
-            first   = Math.ceil(scroll / isize);
-
-            if (first < 0) {
-                first = 0;
-            }
-
-            viewFirst = first;
-
-            last    = viewLast = first + Math.ceil(size / isize);
-            first   = first > off ? first - off : 0;
-            last   += off;
-
-            if (last > cnt - 1) {
-                last = cnt - 1;
-            }
-
-            if (first > last) {
-                return self.bufferState;
-            }
-
-            return self.bufferState = {
-                first: first,
-                last: last,
-                viewFirst: viewFirst,
-                viewLast: viewLast,
-                ot: first * isize,
-                ob: (cnt - last - 1) * isize
-            };
-        },
-
-        updateStubs: function(bs) {
-            var self        = this,
-                hor         = self.horizontal;
-
-            self.topStub.style[hor ? "width" : "height"] = bs.ot + "px";
-            self.botStub.style[hor ? "width" : "height"] = bs.ob + "px";
-        },
-
-        bufferUpdateEvent: function() {
-            var self = this;
-            self.queue.add(self.updateScrollBuffer, self);
-        },
-
-
-        updateScrollBuffer: function(reset) {
-
-            var self        = this,
-                prev        = self.bufferState,
-                parent      = self.parentEl,
-                rs          = self.renderers,
-                bot         = self.botStub,
-                bs          = self.getBufferState(false),
-                promise     = new Promise,
-                fragment,
-                i, x, r;
-
-            if (!bs) {
-                return null;
-            }
-
-            if (!prev || bs.first != prev.first || bs.last != prev.last) {
-                self.triggerIf("bufferchange", self, bs, prev);
-            }
-
-            raf(function(){
-
-                if (reset || !prev || bs.last < prev.first || bs.first > prev.last){
-
-                    //remove old and append new
-                    if (prev) {
-                        for (i = prev.first, x = prev.last; i <= x; i++) {
-                            r = rs[i];
-                            if (r && r.attached) {
-                                parent.removeChild(r.el);
-                                r.attached = false;
-                            }
-                        }
-                    }
-                    fragment = document.createDocumentFragment();
-                    for (i = bs.first, x = bs.last; i <= x; i++) {
-                        r = rs[i];
-                        if (r) {
-                            if (!r.rendered) {
-                                self.renderItem(i);
-                            }
-                            fragment.appendChild(r.el);
-                            r.attached = true;
-                        }
-                    }
-
-                    parent.insertBefore(fragment, bot);
-
-                }
-                else {
-
-                    if (prev.first < bs.first) {
-                        for (i = prev.first, x = bs.first; i < x; i++) {
-                            r = rs[i];
-                            if (r && r.attached) {
-                                parent.removeChild(r.el);
-                                r.attached = false;
-                            }
-                        }
-                    }
-                    else if (prev.first > bs.first) {
-                        fragment = document.createDocumentFragment();
-                        for (i = bs.first, x = prev.first; i < x; i++) {
-                            r = rs[i];
-                            if (r) {
-                                if (!r.rendered) {
-                                    self.renderItem(i);
-                                }
-                                fragment.appendChild(r.el);
-                                r.attached = true;
-                            }
-                        }
-                        parent.insertBefore(fragment, rs[prev.first].el);
-                    }
-
-                    if (prev.last < bs.last) {
-                        fragment = document.createDocumentFragment();
-                        for (i = prev.last + 1, x = bs.last; i <= x; i++) {
-                            r = rs[i];
-                            if (r) {
-                                if (!r.rendered) {
-                                    self.renderItem(i);
-                                }
-                                fragment.appendChild(r.el);
-                                r.attached = true;
-                            }
-                        }
-                        parent.insertBefore(fragment, bot);
-                    }
-                    else if (prev.last > bs.last) {
-                        for (i = bs.last + 1, x = prev.last; i <= x; i++) {
-                            r = rs[i];
-                            if (r && r.attached) {
-                                parent.removeChild(r.el);
-                                r.attached = false;
-                            }
-                        }
-                    }
-                }
-
-                //var start = (new Date).getTime();
-
-                self.updateStubs(bs);
-
-                self.triggerIf("bufferupdate", self);
-
-
-
-                /*async(function(){
-                 // pre-render next
-                 if (!prev || prev.first < bs.first) {
-                 //self.doUpdate(bs.last, bs.last + (bs.last - bs.first), null, true);
-                 }
-
-                 self.onBufferStateChange(bs, prev);
-
-                 });*/
-                self.onBufferStateChange(bs, prev);
-
-                promise.resolve();
-            });
-
-            return promise;
-        },
-
-        // not finished: todo unbuffered and animation
-        scrollTo: function(index) {
-            var self    = this,
-                isize   = self.itemSize,
-                sp      = self.scrollEl || getScrollParent(self.parentEl),
-                hor     = self.horizontal,
-                prop    = hor ? "scrollLeft" : "scrollTop",
-                promise = new Promise,
-                pos;
-
-            if (self.buffered) {
-                self.queue.append(function(){
-
-                    raf(function(){
-                        pos     = isize * index;
-                        if (sp === window) {
-                            window.scrollTo(
-                                hor ? pos : getScrollLeft(),
-                                !hor ? pos : getScrollTop()
-                            );
-                        }
-                        else {
-                            sp[prop] = pos;
-                        }
-                        promise.resolve();
-                    });
-                    return promise;
-                });
-            }
-
-            return promise;
-        },
-
-        onBufferStateChange: function(bs, prev) {},
-
-        /*
-         * buffered list -->
-         */
-
-
-        parseExpr: function(expr) {
-
-            var tmp = expr.split(" "),
-                i, len,
-                model, name,
-                row;
-
-            for (i = 0, len = tmp.length; i < len; i++) {
-
-                row = tmp[i];
-
-                if (row == "" || row == "in") {
-                    continue;
-                }
-
-                if (!name) {
-                    name = row;
-                }
-                else {
-                    model = tmp.slice(i).join(" ");
-                    break;
-                }
-            }
-
-            this.model = model;
-            this.itemName = name || "item";
-        },
-
-
-        destroy: function() {
-
-            var self        = this,
-                renderers   = self.renderers,
-                parent      = self.parentEl,
-                i, len;
-
-            for (i = 0, len = renderers.length; i < len; i++) {
-                renderers[i].renderer.destroy();
-            }
-
-            if (self.trackByWatcher) {
-                self.trackByWatcher.unsubscribeAndDestroy();
-            }
-
-            if (self.buffered) {
-                parent.removeChild(self.topStub);
-                parent.removeChild(self.botStub);
-                removeListener(self.scrollEl, "scroll", self.bufferEventDelegate);
-                removeListener(window, "resize", self.bufferEventDelegate);
-            }
-
-
-            self.queue.destroy();
-            self.watcher.unsubscribeAndDestroy(self.onChange, self);
-
-
-            if (self.observable) {
-                self.trigger("destroy", self);
-                self.observable.destroy();
-            }
-
-            for (i in self) {
-                if (self.hasOwnProperty(i)) {
-                    self[i] = null;
-                }
-            }
-        }
-
-    }, {
-        $stopRenderer: true,
-        $registerBy: "id"
-});
-
-
-
-
-
-
-registerAttributeHandler("mjs-each", 100, ListRenderer);
+Directive.registerAttribute("mjs-each", 100, ListRenderer);
 
 
 
@@ -5378,15 +4690,15 @@ function returnTrue() {
 
 // from jQuery
 
-var NormalizedEvent = function(src) {
+var DomEvent = function(src) {
 
-    if (src instanceof NormalizedEvent) {
+    if (src instanceof DomEvent) {
         return src;
     }
 
     // Allow instantiation without the 'new' keyword
-    if (!(this instanceof NormalizedEvent)) {
-        return new NormalizedEvent(src);
+    if (!(this instanceof DomEvent)) {
+        return new DomEvent(src);
     }
 
 
@@ -5450,7 +4762,7 @@ var NormalizedEvent = function(src) {
 
 // Event is based on DOM3 Events as specified by the ECMAScript Language Binding
 // http://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
-extend(NormalizedEvent.prototype, {
+extend(DomEvent.prototype, {
 
     isDefaultPrevented: returnFalse,
     isPropagationStopped: returnFalse,
@@ -5491,9 +4803,16 @@ extend(NormalizedEvent.prototype, {
 
 
 function normalizeEvent(originalEvent) {
-    return new NormalizedEvent(originalEvent);
+    return new DomEvent(originalEvent);
 };
 
+function addListener(el, event, func) {
+    if (el.attachEvent) {
+        el.attachEvent('on' + event, func);
+    } else {
+        el.addEventListener(event, func, false);
+    }
+};
 
 
 (function(){
@@ -5513,11 +4832,9 @@ function normalizeEvent(originalEvent) {
                 eventName = "keyup";
             }
 
-            registerAttributeHandler("mjs-" + name, 1000, function(scope, node, expr){
+            Directive.registerAttribute("mjs-" + name, 1000, function(scope, node, expr){
 
                 var fn  = createFunc(expr);
-
-                removeAttr(node, "mjs-" + name);
 
                 addListener(node, eventName, function(e){
 
@@ -5529,22 +4846,11 @@ function normalizeEvent(originalEvent) {
 
                     scope.$event = e;
 
-                    //try {
-                        fn(scope);
-                    //}
-                    //catch (thrownError) {
-                    //    error(thrownError);
-                    //}
+                    fn(scope);
 
-                    delete scope.$event;
+                    scope.$event = null;
 
-
-                    //try {
-                        scope.$root.$check();
-                    //}
-                    //catch (thrownError) {
-                    //    error(thrownError);
-                    //}
+                    scope.$root.$check();
 
                     e.preventDefault();
                     return false;
@@ -5559,9 +4865,9 @@ function normalizeEvent(originalEvent) {
 
 
 
-registerAttributeHandler("mjs-show", 500, defineClass({
+Directive.registerAttribute("mjs-show", 500, defineClass({
 
-    $extends: AttributeHandler,
+    $extends: Directive,
 
     initial: true,
     display: "",
@@ -5573,7 +4879,7 @@ registerAttributeHandler("mjs-show", 500, defineClass({
 
         self.display = cfg.display || "";
 
-        self.supr(scope, node, expr);
+        self.$super(scope, node, expr);
     },
 
     runAnimation: function(show) {
@@ -5616,7 +4922,7 @@ registerAttributeHandler("mjs-show", 500, defineClass({
 
 
 
-registerAttributeHandler("mjs-hide", 500, defineClass({
+Directive.registerAttribute("mjs-hide", 500, defineClass({
 
     $extends: "attr.mjs-show",
 
@@ -5633,9 +4939,9 @@ registerAttributeHandler("mjs-hide", 500, defineClass({
 
 
 
-registerAttributeHandler("mjs-if", 500, defineClass({
+Directive.registerAttribute("mjs-if", 500, defineClass({
 
-    $extends: AttributeHandler,
+    $extends: Directive,
 
     parentEl: null,
     prevEl: null,
@@ -5649,7 +4955,7 @@ registerAttributeHandler("mjs-if", 500, defineClass({
         self.parentEl   = node.parentNode;
         self.prevEl     = node.previousSibling;
 
-        self.supr(scope, node, expr);
+        self.$super(scope, node, expr);
     },
 
     onScopeDestroy: function() {
@@ -5659,7 +4965,7 @@ registerAttributeHandler("mjs-if", 500, defineClass({
         self.prevEl = null;
         self.parentEl = null;
 
-        self.supr();
+        self.$super();
     },
 
     onChange: function() {
@@ -5699,12 +5005,12 @@ registerAttributeHandler("mjs-if", 500, defineClass({
 
 
 
-registerAttributeHandler("mjs-ignore", 0, returnFalse);
+Directive.registerAttribute("mjs-ignore", 0, returnFalse);
 
 
 
 
-registerAttributeHandler("mjs-include", 900, function(scope, node, tplExpr, parentRenderer){
+Directive.registerAttribute("mjs-include", 900, function(scope, node, tplExpr, parentRenderer){
 
     var tpl = new Template({
         scope: scope,
@@ -5724,8 +5030,7 @@ registerAttributeHandler("mjs-include", 900, function(scope, node, tplExpr, pare
 
 
 
-registerAttributeHandler("mjs-init", 250, function(scope, node, expr){
-    removeAttr(node, "mjs-init");
+Directive.registerAttribute("mjs-init", 250, function(scope, node, expr){
     createFunc(expr)(scope);
 });
 var uaString = navigator.userAgent.toLowerCase();
@@ -5750,9 +5055,9 @@ var isIE = function(){
 
 
 
-registerAttributeHandler("mjs-model", 1000, defineClass({
+Directive.registerAttribute("mjs-model", 1000, defineClass({
 
-    $extends: AttributeHandler,
+    $extends: Directive,
 
     inProg: false,
     input: null,
@@ -5769,7 +5074,7 @@ registerAttributeHandler("mjs-model", 1000, defineClass({
         self.input          = new Input(node, self.onInputChange, self);
         self.binding        = cfg.binding || "both";
 
-        self.supr(scope, node, expr);
+        self.$super(scope, node, expr);
 
         var inputValue      = self.input.getValue(),
             scopeValue      = self.watcher.getLastResult();
@@ -5816,10 +5121,8 @@ registerAttributeHandler("mjs-model", 1000, defineClass({
     destroy: function() {
 
         var self        = this;
-
         self.input.destroy();
-        self.input = null;
-        self.supr();
+        self.$super();
     },
 
 
@@ -5846,9 +5149,9 @@ registerAttributeHandler("mjs-model", 1000, defineClass({
 
 
 
-registerAttributeHandler("mjs-options", 100, defineClass({
+Directive.registerAttribute("mjs-options", 100, defineClass({
 
-    $extends: AttributeHandler,
+    $extends: Directive,
 
     model: null,
     getterFn: null,
@@ -5996,25 +5299,38 @@ registerAttributeHandler("mjs-options", 100, defineClass({
     var booleanAttrs = ["selected", "checked", "disabled", "readonly", "open", "required"],
         i, l;
 
+    var PropertyDirective = defineClass({
+
+        $extends: Directive,
+
+        propName: null,
+
+        $init: function(scope, node, expr, propName) {
+            this.propName = propName;
+            this.$super(scope, node, expr);
+        },
+
+        onChange: function(val) {
+
+            var name = this.propName;
+
+            val = !!val;
+
+            if (val) {
+                setAttr(this.node, name, name);
+            }
+            else {
+                removeAttr(this.node, name);
+            }
+        }
+    });
+
     for (i = 0, l = booleanAttrs.length; i < l; i++) {
         (function(name){
 
-            registerAttributeHandler("mjs-" + name, 1000, defineClass({
-
-                $extends: AttributeHandler,
-
-                onChange: function(val) {
-
-                    val = !!val;
-
-                    if (val) {
-                        setAttr(this.node, name, name);
-                    }
-                    else {
-                        removeAttr(this.node, name);
-                    }
-                }
-            }));
+            Directive.registerAttribute("mjs-" + name, 1000, function(scope, node, expr){
+                return new PropertyDirective(scope, node, expr, name);
+            });
 
         }(booleanAttrs[i]));
     }
@@ -6063,310 +5379,69 @@ var preloadImage = function() {
 
 }();
 
-var elBody = document.body;
 
 
-var boxSizingReliable = function() {
+Directive.registerAttribute("mjs-src", 1000, defineClass({
 
-    var boxSizingReliableVal;
+    $extends: Directive,
 
-    var computePixelPositionAndBoxSizingReliable = function() {
-
-        var container = document.createElement("div"),
-            div = document.createElement("div");
-
-        if (!div.style || !window.getComputedStyle) {
-            return false;
-        }
-
-        container.style.cssText = "border:0;width:0;height:0;top:0;left:-9999px;margin-top:1px;" +
-                                  "position:absolute";
-        container.appendChild(div);
-
-        div.style.cssText =
-            // Support: Firefox<29, Android 2.3
-            // Vendor-prefix box-sizing
-        "-webkit-box-sizing:border-box;-moz-box-sizing:border-box;" +
-        "box-sizing:border-box;display:block;margin-top:1%;top:1%;" +
-        "border:1px;padding:1px;width:4px;position:absolute";
-        div.innerHTML = "";
-        elBody.appendChild(container);
-
-        var divStyle = window.getComputedStyle(div, null),
-            ret = divStyle.width === "4px";
-
-        elBody.removeChild(container);
-
-        return ret;
-    };
-
-    return function boxSizingReliable() {
-        if (boxSizingReliableVal === undf) {
-            boxSizingReliableVal = computePixelPositionAndBoxSizingReliable();
-        }
-
-        return boxSizingReliableVal;
-    };
-}();
-// from jQuery
-
-
-
-var getDimensions = function(type, name) {
-
-    var rnumnonpx = new RegExp( "^([+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|))(?!px)[a-z%]+$", "i"),
-        cssExpand = [ "Top", "Right", "Bottom", "Left" ],
-        defaultExtra = !type ? "content" : (type == "inner" ? "padding" : "");
-
-    var augmentWidthOrHeight = function(elem, name, extra, isBorderBox, styles) {
-        var i = extra === (isBorderBox ? "border" : "content") ?
-                // If we already have the right measurement, avoid augmentation
-                4 :
-                // Otherwise initialize for horizontal or vertical properties
-                name === "width" ? 1 : 0,
-
-            val = 0;
-
-        for (; i < 4; i += 2) {
-            // Both box models exclude margin, so add it if we want it
-            if (extra === "margin") {
-                val += parseFloat(styles[extra + cssExpand[i]]);
-            }
-
-            if (isBorderBox) {
-                // border-box includes padding, so remove it if we want content
-                if (extra === "content") {
-                    val -= parseFloat(styles["padding" + cssExpand[i]]);
-                }
-
-                // At this point, extra isn't border nor margin, so remove border
-                if (extra !== "margin") {
-                    val -= parseFloat(styles["border" + cssExpand[i] + "Width"]);
-                }
-            } else {
-                // At this point, extra isn't content, so add padding
-                val += parseFloat(styles["padding" + cssExpand[i]]);
-
-                // At this point, extra isn't content nor padding, so add border
-                if (extra !== "padding") {
-                    val += parseFloat(styles["border" + cssExpand[i] + "Width"]);
-                }
-            }
-        }
-
-        return val;
-    };
-
-    var getWidthOrHeight = function(elem, name, extra, styles) {
-
-        // Start with offset property, which is equivalent to the border-box value
-        var valueIsBorderBox = true,
-            val = name === "width" ? elem.offsetWidth : elem.offsetHeight,
-            isBorderBox = styles["boxSizing"] === "border-box";
-
-        // Some non-html elements return undefined for offsetWidth, so check for null/undefined
-        // svg - https://bugzilla.mozilla.org/show_bug.cgi?id=649285
-        // MathML - https://bugzilla.mozilla.org/show_bug.cgi?id=491668
-        if ( val <= 0 || val == null ) {
-            val = elem.style[name];
-
-            // Computed unit is not pixels. Stop here and return.
-            if (rnumnonpx.test(val)) {
-                return val;
-            }
-
-            // Check for style in case a browser which returns unreliable values
-            // for getComputedStyle silently falls back to the reliable elem.style
-            valueIsBorderBox = isBorderBox &&
-                               (boxSizingReliable() || val === elem.style[name]);
-
-            // Normalize "", auto, and prepare for extra
-            val = parseFloat(val) || 0;
-        }
-
-        // Use the active box-sizing model to add/subtract irrelevant styles
-        return val +
-                 augmentWidthOrHeight(
-                     elem,
-                     name,
-                     extra || (isBorderBox ? "border" : "content"),
-                     valueIsBorderBox,
-                     styles
-                 );
-    };
-
-
-    return function getDimensions(elem, margin) {
-
-        if (elem === window) {
-            return elem.document.documentElement["client" + name];
-        }
-
-        // Get document width or height
-        if (elem.nodeType === 9) {
-            var doc = elem.documentElement;
-
-            // Either scroll[Width/Height] or offset[Width/Height] or client[Width/Height],
-            // whichever is greatest
-            return Math.max(
-                elem.body["scroll" + name], doc["scroll" + name],
-                elem.body["offset" + name], doc["offset" + name],
-                doc["client" + name]
-            );
-        }
-
-        return getWidthOrHeight(
-            elem,
-            name.toLowerCase(),
-            defaultExtra || (margin === true ? "margin" : "border"),
-            getStyle(elem)
-        );
-    };
-
-};
-
-
-var getWidth = getDimensions("", "Width");
-
-var getHeight = getDimensions("", "Height");
-
-
-
-registerAttributeHandler("mjs-src", 1000, defineClass({
-
-    $extends: AttributeHandler,
-
-    scrollEl: null,
-    scrollDelegate: null,
-    resizeDelegate: null,
-    position: null,
-    sw: null,
-    sh: null,
     queue: null,
-    checkVisibility: true,
     usePreload: true,
+
+    $constructor: function(scope, node, expr) {
+
+        var self = this,
+            cfg = getNodeConfig(node, scope);
+
+        if (cfg.deferred) {
+            self.$plugins.push("SrcDeferred");
+        }
+
+        self.$super(scope, node, expr);
+    },
 
     $init: function(scope, node, expr) {
 
         var self = this,
             cfg = getNodeConfig(node, scope);
 
-        if (cfg.deferred) {
-            self.scrollEl = getScrollParent(node);
-            self.scrollDelegate = bind(self.onScroll, self);
-            self.resizeDelegate = bind(self.onResize, self);
-
-            addListener(self.scrollEl, "scroll", self.scrollDelegate);
-            addListener(window, "resize", self.resizeDelegate);
-        }
-        else {
-            self.checkVisibility = false;
-        }
-
         if (cfg.noPreload) {
             self.usePreload = false;
         }
 
-        self.queue = new Queue({auto: true, async: true, mode: Queue.ONCE});
-
-        self.supr(scope, node, expr);
-
+        self.queue = new Queue({auto: true, async: true, mode: Queue.ONCE, thenable: true});
+        self.$super(scope, node, expr);
     },
 
-    isVisible: function() {
-
-        if (!this.checkVisibility) {
-            return true;
-        }
-
-        var self = this,
-            sEl = self.scrollEl,
-            st = getScrollTop(sEl),
-            sl = getScrollLeft(sEl),
-            w = self.sw,
-            h = self.sh,
-            t,l;
-
-        if (!self.position) {
-            self.position = getPosition(self.node, sEl);
-        }
-        if (!w) {
-            w = self.sw = getWidth(sEl);
-            h = self.sh = getHeight(sEl);
-        }
-
-        t = self.position.top;
-        l = self.position.left;
-
-        return (t > st && t < (st + h)) &&
-               (l > sl && l < (sl + w));
-    },
-
-    onScroll: function() {
-        var self = this;
-        self.queue.add(self.changeIfVisible, self);
-    },
-
-    onResize: function() {
-        var self = this;
-        self.position = null;
-        self.sw = null;
-        self.queue.add(self.changeIfVisible, self);
-    },
 
     onChange: function() {
         var self = this;
-        self.queue.add(self.changeIfVisible, self);
+        self.queue.add(self.doChange, self);
     },
 
-    changeIfVisible: function() {
-        var self    = this;
+    doChange: function() {
+        var self = this,
+            src = self.watcher.getLastResult();
 
-        if (self.isVisible()) {
-
-            var src = self.watcher.getLastResult();
-            self.stopWatching();
-            if (self.usePreload) {
-                preloadImage(src).done(function(){
-                    if (self && self.node) {
-                        raf(function(){
-                            self.node.src = src;
-                            setAttr(self.node, "src", src);
-                        });
-                    }
-                });
-            }
-            else {
-                self.node.src = src;
-                setAttr(self.node, "src", src);
-            }
+        if (self.usePreload) {
+            return preloadImage(src).done(function(){
+                if (self && self.node) {
+                    raf(function(){
+                        self.node.src = src;
+                        setAttr(self.node, "src", src);
+                    });
+                }
+            });
         }
-    },
-
-    stopWatching: function() {
-        var self = this;
-
-        if (self.scrollEl) {
-            removeListener(self.scrollEl, "scroll", self.scrollDelegate);
-            removeListener(window, "resize", self.resizeDelegate);
-
-            self.scrollDelegate = null;
-            self.resizeDelegate = null;
-            self.scrollEl = null;
-
-            self.queue.destroy();
-            self.queue = null;
-
-            self.checkVisibility = false;
+        else {
+            self.node.src = src;
+            setAttr(self.node, "src", src);
         }
     },
 
     destroy: function() {
-
-        var self = this;
-
-        self.stopWatching();
-        self.supr();
+        this.queue.destroy();
+        this.$super();
     }
 }));
 
@@ -6412,23 +5487,19 @@ function transclude(node) {
 };
 
 
-registerAttributeHandler("mjs-transclude", 1000, function(scope, node) {
+Directive.registerAttribute("mjs-transclude", 1000, function(scope, node) {
     return transclude(node);
 });
 
 
-registerAttributeHandler("mjs-view", 200, function(scope, node, cls) {
-    removeAttr(node, "mjs-view");
-    resolveComponent(cls || "MetaphorJs.cmp.View", {scope: scope, node: node}, scope, node)
+Directive.registerAttribute("mjs-view", 200, function(scope, node, cls) {
+    resolveComponent(cls || "MetaphorJs.View", {scope: scope, node: node}, scope, node)
     return false;
 });
 
 
 
-var registerTagHandler = directives.registerTagHandler;
-
-
-registerTagHandler("mjs-include", 900, function(scope, node, value, parentRenderer) {
+Directive.registerAttribute("mjs-include", 900, function(scope, node, value, parentRenderer) {
 
     var tpl = new Template({
         scope: scope,
@@ -6444,7 +5515,7 @@ registerTagHandler("mjs-include", 900, function(scope, node, value, parentRender
 
 
 
-registerTagHandler("mjs-transclude", 900, function(scope, node) {
+Directive.registerAttribute("mjs-transclude", 900, function(scope, node) {
     return transclude(node);
 });
 
@@ -6751,6 +5822,14 @@ nsAdd("filter.uppercase", function(val){
     return val.toUpperCase();
 });
 
+function removeListener(el, event, func) {
+    if (el.detachEvent) {
+        el.detachEvent('on' + event, func);
+    } else {
+        el.removeEventListener(event, func, false);
+    }
+};
+
 
 /**
  * @param {Function} fn
@@ -6806,15 +5885,12 @@ function onReady(fn) {
 
 function initApp(node, cls, data, autorun) {
 
-    removeAttr(node, "mjs-app");
-
     try {
-        var p = resolveComponent(cls || "MetaphorJs.cmp.App", false, data, node, [node, data]);
+        var p = resolveComponent(cls || "MetaphorJs.App", false, data, node, [node, data]);
 
         if (autorun !== false) {
             return p.done(function(app){
                 app.run();
-                return app;
             });
         }
         else {
@@ -6848,10 +5924,25 @@ function run() {
 var StoreRenderer = ListRenderer.$extend({
 
         store: null,
-        pullNext: false,
-        pullNextDelegate: null,
 
-        init: function(scope, node, expr) {
+        $constructor: function(scope, node, expr) {
+
+
+            var cfg = getNodeConfig(node, scope);
+
+            if (cfg.pullNext) {
+                if (cfg.buffered) {
+                    cfg.bufferedPullNext = true;
+                    cfg.buffered = false;
+                }
+                this.$plugins.push("ListPullNext");
+            }
+
+            this.$super(scope, node, expr);
+        },
+
+        afterInit: function(scope, node, expr) {
+
             var self            = this,
                 store;
 
@@ -6860,11 +5951,6 @@ var StoreRenderer = ListRenderer.$extend({
             self.trackByFn      = bind(store.getRecordId, store);
             self.griDelegate    = bind(store.indexOfId, store);
             self.bindStore(store, "on");
-
-            var cfg = getNodeConfig(node, scope);
-            if (!cfg.buffered && cfg.pullNext) {
-                self.initPullNext(cfg);
-            }
         },
 
 
@@ -6892,73 +5978,10 @@ var StoreRenderer = ListRenderer.$extend({
             self.watcher = null;
         },
 
-
-        initBuffering: function(cfg) {
-            var self = this;
-            self.supr(cfg);
-
-            self.pullNext = cfg.pullNext || false;
-        },
-
-        initPullNext: function(cfg) {
-            var self = this;
-            self.pullNext = true;
-            self.itemSize = cfg.itemSize;
-            self.initScrollParent();
-            self.getScrollOffset();
-            self.pullNextDelegate = bind(self.pullNextEvent, self);
-            addListener(self.scrollEl, "scroll", self.pullNextDelegate);
-            addListener(window, "resize", self.pullNextDelegate);
-        },
-
-        pullNextEvent: function() {
-            var self = this;
-            self.queue.append(self.updateStoreOnScroll, self);
-        },
-
-        updateStoreOnScroll: function() {
-            var self    = this,
-                prev    = self.bufferState,
-                bs      = self.getBufferState(),
-                cnt     = self.store.getLength();
-
-            if (!prev || bs.first != prev.first || bs.last != prev.last) {
-                self.triggerIf("bufferchange", self, bs, prev);
-            }
-
-            if (cnt - bs.last < (bs.last - bs.first) / 3 && !self.store.loading) {
-                self.store.addNextPage();
-                self.triggerIf("pull", self);
-            }
-        },
-
-        onBufferStateChange: function(bs, prev) {
-
-            var self = this,
-                cnt = self.store.getLength();
-
-            self.supr(bs, prev);
-
-            if (self.pullNext && cnt - bs.last < (bs.last - bs.first) / 3 && !self.store.loading) {
-                self.store.addNextPage();
-                self.triggerIf("pull", self);
-            }
-        },
-
-
         destroy: function() {
             var self = this;
             self.bindStore(self.store, "un");
-            self.store = null;
-
-            if (self.pullNext && !self.buffered) {
-                removeListener(self.scrollEl, "scroll", self.pullNextDelegate);
-                removeListener(window, "resize", self.pullNextDelegate);
-            }
-
-            self.pullNextDelegate = null;
-
-            self.supr();
+            self.$super();
         }
 
     },
@@ -6973,15 +5996,14 @@ var StoreRenderer = ListRenderer.$extend({
 
 
 
-
-registerAttributeHandler("mjs-each-in-store", 100, StoreRenderer);
+Directive.registerAttribute("mjs-each-in-store", 100, StoreRenderer);
 
 
 
 defineClass({
 
-    $class: "MetaphorJs.cmp.Dialog",
-    $extends: "MetaphorJs.cmp.Component",
+    $class: "DialogComponent",
+    $extends: Component,
 
     dialog: null,
     dialogPreset: null,
@@ -6992,7 +6014,7 @@ defineClass({
 
         var self    = this;
 
-        self.supr();
+        self.$super();
         self._createDialog();
         self._oldShow = self.show;
         self._oldHide = self.hide;
@@ -7032,7 +6054,7 @@ defineClass({
 
         if (!self.destroying) {
             self.dialog = null;
-            self.destroy();
+            self.$destroy();
         }
     },
 
@@ -7046,13 +6068,8 @@ defineClass({
             self.dialog.destroy();
         }
 
-        self.dialog = null;
-        self.dialogCfg = null;
-        self.dialogPreset = null;
+        self.$super();
 
-        self.supr();
-
-        self.destroying = false;
     }
 
 });
@@ -7074,7 +6091,7 @@ function eachNode(el, fn, context) {
 
 defineClass({
 
-    $class: "MetaphorJs.view.Validator",
+    $class: "MetaphorJs.ValidatorComponent",
 
     node: null,
     scope: null,
@@ -7103,9 +6120,10 @@ defineClass({
         var self    = this,
             node    = self.node,
             cfg     = {},
+            ncfg    = getNodeConfig(node),
             submit;
 
-        if (submit = node.getAttribute("mjs-validator-submit")) {
+        if (submit = ncfg.submit) {
             cfg.callback = cfg.callback || {};
             cfg.callback.submit = function(fn, scope){
                 return function() {
@@ -7117,8 +6135,6 @@ defineClass({
                     }
                 }
             }(createFunc(submit), self.scope);
-
-            node.removeAttribute("mjs-validator-submit")
         }
 
         return new Validator(node, cfg);
@@ -7140,7 +6156,7 @@ defineClass({
         var self    = this,
             scope   = self.scope,
             node    = self.node,
-            name    = node.getAttribute('name') || node.getAttribute('id') || '$form';
+            name    = getAttr(node, 'name') || getAttr(node, 'id') || '$form';
 
         scope[name] = self.scopeState;
     },
@@ -7168,7 +6184,7 @@ defineClass({
 
         for (i = -1, l = els.length; ++i < l;) {
             el = els[i];
-            name = el.getAttribute("name") || el.getAttribute('id');
+            name = getAttr(el, "name") || getAttr(el, 'id');
 
             if (name && !state[name]) {
                 state[name] = {
@@ -7270,10 +6286,10 @@ defineClass({
 
 });
 
-registerAttributeHandler("mjs-validate", 250, ['$scope', '$node', '$attrValue', '$renderer',
+Directive.registerAttribute("mjs-validate", 250, ['$scope', '$node', '$attrValue', '$renderer',
                                                function(scope, node, expr, renderer) {
 
-    var cls     = expr || "MetaphorJs.view.Validator",
+    var cls     = expr || "MetaphorJs.ValidatorComponent",
         constr  = nsGet(cls);
 
     if (!constr) {
@@ -7283,24 +6299,5 @@ registerAttributeHandler("mjs-validate", 250, ['$scope', '$node', '$attrValue', 
         new constr(node, scope, renderer);
     }
 }]);
-
-MetaphorJs['onReady'] = onReady;
-MetaphorJs['initApp'] = initApp;
-MetaphorJs['ns'] = ns;
-MetaphorJs['cs'] = cs;
-MetaphorJs['resolveComponent'] = resolveComponent;
-MetaphorJs['animate'] = animate;
-MetaphorJs['stopAnimation'] = stopAnimation;
-MetaphorJs['ajax'] = ajax;
-MetaphorJs['select'] = select;
-MetaphorJs['bind'] = bind;
-MetaphorJs['extend'] = extend;
-MetaphorJs['trim'] = trim;
-MetaphorJs['pushUrl'] = pushUrl;
-MetaphorJs['currentUrl'] = currentUrl;
-MetaphorJs['history'] = history;
-MetaphorJs['run'] = run;
-MetaphorJs.lib['Promise'] = Promise;
-MetaphorJs.lib['Observable'] = Observable;
 
 module.exports = MetaphorJs;

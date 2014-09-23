@@ -8,7 +8,8 @@ var nextUid = require("../func/nextUid.js"),
     Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
     isString = require("../func/isString.js"),
     isNull = require("../func/isNull.js"),
-    ns = require("../../../metaphorjs-namespace/src/var/ns.js");
+    ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
+    defineClass = require("../../../metaphorjs-class/src/func/defineClass.js");
 
 
 module.exports = function(){
@@ -38,31 +39,9 @@ module.exports = function(){
             return new TextRenderer(scope, origin, parent, userData, recursive);
         };
 
-    var TextRenderer = function(scope, origin, parent, userData, recursive) {
+    var TextRenderer = defineClass({
 
-        var self        = this;
-
-        self.id         = nextUid();
-        self.origin     = origin;
-        self.scope      = scope;
-        self.parent     = parent;
-        self.isRoot     = !parent;
-        self.data       = userData;
-        self.lang       = scope.$app ? scope.$app.lang : null;
-
-        if (recursive === true || recursive === false) {
-            self.recursive = recursive;
-        }
-
-        self.watchers   = [];
-        self.children   = [];
-
-        self.dataChangeDelegate = bind(self.doDataChange, self);
-        self.processed  = self.processText(origin);
-        self.render();
-    };
-
-    extend(TextRenderer.prototype, {
+        $class: "TextRenderer",
 
         id: null,
         parent: null,
@@ -78,6 +57,30 @@ module.exports = function(){
         dataChangeDelegate: null,
         changeTmt: null,
         lang: null,
+
+        $init: function(scope, origin, parent, userData, recursive) {
+
+            var self        = this;
+
+            self.id         = nextUid();
+            self.origin     = origin;
+            self.scope      = scope;
+            self.parent     = parent;
+            self.isRoot     = !parent;
+            self.data       = userData;
+            self.lang       = scope.$app ? scope.$app.lang : null;
+
+            if (recursive === true || recursive === false) {
+                self.recursive = recursive;
+            }
+
+            self.watchers   = [];
+            self.children   = [];
+
+            self.dataChangeDelegate = bind(self.doDataChange, self);
+            self.processed  = self.processText(origin);
+            self.render();
+        },
 
         subscribe: function(fn, context) {
             return observer.on(this.id, fn, context);
@@ -133,8 +136,8 @@ module.exports = function(){
         processText: function(text) {
 
             /*
-            arguably, str += "" is faster than separators.push() + separators.join()
-            well, at least in my Firefox it is so.
+             arguably, str += "" is faster than separators.push() + separators.join()
+             well, at least in my Firefox it is so.
              */
 
             var self        = this,
@@ -143,7 +146,7 @@ module.exports = function(){
                 startIndex,
                 endIndex,
                 result      = "";
-                //separators  = [];
+            //separators  = [];
 
             // regular keys
             while(index < textLength) {
@@ -290,7 +293,7 @@ module.exports = function(){
 
             for (i = -1, l = ch.length; ++i < l; ){
                 if (ch[i] instanceof TextRenderer) {
-                    ch[i].destroy();
+                    ch[i].$destroy();
                 }
             }
 
@@ -311,8 +314,7 @@ module.exports = function(){
 
         destroy: function() {
 
-            var self    = this,
-                i;
+            var self = this;
 
             self.destroyChildren();
             self.destroyWatchers();
@@ -322,17 +324,11 @@ module.exports = function(){
             if (self.changeTmt) {
                 clearTimeout(self.changeTmt);
             }
-
-            for (i in self) {
-                if (self.hasOwnProperty(i)){
-                    self[i] = null;
-                }
-            }
         }
 
-    }, true, false);
-
-    TextRenderer.create = factory;
+    }, {
+        create: factory
+    });
 
     return TextRenderer;
 }();

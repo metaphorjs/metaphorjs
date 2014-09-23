@@ -3,7 +3,7 @@
 MetaphorJs.cs.define({
 
     $class: "My.Flickr",
-    $extends: "MetaphorJs.cmp.Component",
+    $extends: "MetaphorJs.Component",
 
     store: null,
 
@@ -13,7 +13,7 @@ MetaphorJs.cs.define({
             scope = self.scope,
             store;
 
-        store = new MetaphorJs.model.Store({
+        store = new MetaphorJs.Store({
 
             model: {
                 store: {
@@ -32,7 +32,7 @@ MetaphorJs.cs.define({
             }
         });
 
-        self.supr();
+        self.$super();
         store.load();
 
         scope.store = store;

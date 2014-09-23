@@ -1,10 +1,8 @@
 
-var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
-    resolveComponent = require("../../func/resolveComponent.js"),
-    removeAttr = require("../../func/dom/removeAttr.js");
+var Directive = require("../../class/Directive.js"),
+    resolveComponent = require("../../func/resolveComponent.js");
 
-registerAttributeHandler("mjs-view", 200, function(scope, node, cls) {
-    removeAttr(node, "mjs-view");
-    resolveComponent(cls || "MetaphorJs.cmp.View", {scope: scope, node: node}, scope, node)
+Directive.registerAttribute("mjs-view", 200, function(scope, node, cls) {
+    resolveComponent(cls || "MetaphorJs.View", {scope: scope, node: node}, scope, node)
     return false;
 });

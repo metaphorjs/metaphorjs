@@ -23,7 +23,7 @@
     MetaphorJs.cs.define({
 
         $class: "My.App",
-        $extends: "MetaphorJs.cmp.App",
+        $extends: "MetaphorJs.App",
 
         initApp: function() {
             this.factory("$firebase", getFirebase, true);
@@ -35,7 +35,7 @@
     MetaphorJs.cs.define({
 
         $class: "My.ProjectsView",
-        $extends: "MetaphorJs.cmp.View",
+        $extends: "MetaphorJs.View",
 
         route: [
             {
@@ -62,7 +62,7 @@
     MetaphorJs.cs.define({
 
         $class: "My.ProjectsList",
-        $extends: "MetaphorJs.cmp.Component",
+        $extends: "MetaphorJs.Component",
 
         // instance properties and methods
         initComponent: function(cfg, fProjects) {
@@ -89,7 +89,7 @@
     MetaphorJs.cs.define({
 
         $class: "My.NewProject",
-        $extends: "MetaphorJs.cmp.Component",
+        $extends: "MetaphorJs.Component",
 
         firebase: null,
 
@@ -101,7 +101,7 @@
 
         save: function() {
             this.firebase.push(this.scope.project, function(){
-                MetaphorJs.pushUrl('/metaphorjs/demo/projects.html');
+                MetaphorJs.history.pushUrl('/metaphorjs/demo/projects.html');
             });
             return false;
         }
@@ -113,7 +113,7 @@
     MetaphorJs.cs.define({
 
         $class: "My.EditProject",
-        $extends: "MetaphorJs.cmp.Component",
+        $extends: "MetaphorJs.Component",
 
         initComponent: function(cfg, projects, projectId) {
 
@@ -130,7 +130,7 @@
             });
 
             if (!self.scope.project) {
-                MetaphorJs.pushUrl("/metaphorjs/demo/projects.html");
+                MetaphorJs.history.pushUrl("/metaphorjs/demo/projects.html");
             }
         },
 
@@ -141,14 +141,14 @@
                 site: p.site,
                 description: p.description || ""
             }, function() {
-                MetaphorJs.pushUrl("/metaphorjs/demo/projects.html");
+                MetaphorJs.history.pushUrl("/metaphorjs/demo/projects.html");
             })
         },
 
         remove: function() {
 
             this.scope.project.$ref.ref().remove(function(){
-                MetaphorJs.pushUrl("/metaphorjs/demo/projects.html");
+                MetaphorJs.history.pushUrl("/metaphorjs/demo/projects.html");
             });
         }
     }, {

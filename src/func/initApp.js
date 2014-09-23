@@ -6,15 +6,12 @@ var error = require("./error.js"),
 
 module.exports = function initApp(node, cls, data, autorun) {
 
-    removeAttr(node, "mjs-app");
-
     try {
-        var p = resolveComponent(cls || "MetaphorJs.cmp.App", false, data, node, [node, data]);
+        var p = resolveComponent(cls || "MetaphorJs.App", false, data, node, [node, data]);
 
         if (autorun !== false) {
             return p.done(function(app){
                 app.run();
-                return app;
             });
         }
         else {

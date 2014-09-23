@@ -29,21 +29,6 @@ module.exports = function(){
 
         store: null,
 
-        getApi: function() {
-
-            var self = this;
-
-            return {
-                value: bind(self.value, self),
-                constant: bind(self.constant, self),
-                factory: bind(self.factory, self),
-                service: bind(self.service, self),
-                provider: bind(self.provider, self),
-                resolve: bind(self.resolve, self),
-                inject: bind(self.inject, self)
-            };
-        },
-
         instantiate: function(fn, context, args, isClass) {
 
             if (fn.$instantiate) {

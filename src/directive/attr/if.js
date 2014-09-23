@@ -1,15 +1,14 @@
 
 
 
-var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
-    defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
+var defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
     animate = require("../../../../metaphorjs-animate/src/metaphorjs.animate.js"),
-    AttributeHandler = require("../../view/AttributeHandler.js");
+    Directive = require("../../class/Directive.js");
 
 
-registerAttributeHandler("mjs-if", 500, defineClass({
+Directive.registerAttribute("mjs-if", 500, defineClass({
 
-    $extends: AttributeHandler,
+    $extends: Directive,
 
     parentEl: null,
     prevEl: null,
@@ -23,7 +22,7 @@ registerAttributeHandler("mjs-if", 500, defineClass({
         self.parentEl   = node.parentNode;
         self.prevEl     = node.previousSibling;
 
-        self.supr(scope, node, expr);
+        self.$super(scope, node, expr);
     },
 
     onScopeDestroy: function() {
@@ -33,7 +32,7 @@ registerAttributeHandler("mjs-if", 500, defineClass({
         self.prevEl = null;
         self.parentEl = null;
 
-        self.supr();
+        self.$super();
     },
 
     onChange: function() {

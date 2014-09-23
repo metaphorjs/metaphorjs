@@ -1,21 +1,20 @@
 
 
-var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
+var Directive = require("../../class/Directive.js"),
     defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
     isField = require("../../func/dom/isField.js"),
     getAttr = require("../../func/dom/getAttr.js"),
     removeAttr = require("../../func/dom/removeAttr.js"),
     setValue = require("../../../../metaphorjs-input/src/func/setValue.js"),
     elemTextProp = require("../../var/elemTextProp.js"),
-    TextRenderer = require("../../view/TextRenderer.js"),
+    TextRenderer = require("../../class/TextRenderer.js"),
     Scope = require("../../lib/Scope.js"),
-    AttributeHandler = require("../../view/AttributeHandler.js"),
     Input = require("../../../../metaphorjs-input/src/metaphorjs.input.js");
 
 
-registerAttributeHandler("mjs-bind", 1000, defineClass({
+Directive.registerAttribute("mjs-bind", 1000, defineClass({
 
-    $extends: AttributeHandler,
+    $extends: Directive,
 
     isInput: false,
     input: null,
@@ -50,7 +49,7 @@ registerAttributeHandler("mjs-bind", 1000, defineClass({
             }
         }
         else {
-            self.supr(scope, node, expr);
+            self.$super(scope, node, expr);
         }
     },
 
@@ -92,7 +91,7 @@ registerAttributeHandler("mjs-bind", 1000, defineClass({
         var self    = this;
 
         if (self.textRenderer) {
-            self.textRenderer.destroy();
+            self.textRenderer.$destroy();
             self.textRenderer = null;
         }
 
@@ -101,6 +100,6 @@ registerAttributeHandler("mjs-bind", 1000, defineClass({
             self.input = null;
         }
 
-        self.supr();
+        self.$super();
     }
 }));

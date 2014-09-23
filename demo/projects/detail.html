@@ -1,4 +1,4 @@
-<form name="myForm" mjs-validate mjs-validator-submit=".ctrl.save()">
+<form name="myForm" mjs-validate data-submit=".ctrl.save()">
     <div class="control-group" mjs-class="{error: .myForm.name.$invalid && .myForm.name.$pristine === false}">
         <label>Name</label>
         <input type="text" name="name" mjs-model=".project.name" data-validate-required>

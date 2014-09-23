@@ -239,6 +239,12 @@ module.exports = function(){
             else {
                 return strings[def];
             }
+        },
+
+        destroy: function() {
+
+            this.store = null;
+
         }
 
     }, true, false);

@@ -1,9 +1,9 @@
 
-var registerTagHandler = require("../../func/directive/registerTagHandler.js"),
+var Directive = require("../../class/Directive.js"),
     getAttr = require("../../func/dom/getAttr.js"),
-    Template = require("../../view/Template.js");
+    Template = require("../../class/Template.js");
 
-registerTagHandler("mjs-include", 900, function(scope, node, value, parentRenderer) {
+Directive.registerAttribute("mjs-include", 900, function(scope, node, value, parentRenderer) {
 
     var tpl = new Template({
         scope: scope,

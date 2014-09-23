@@ -1,10 +1,9 @@
 
 
-var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
-    defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
+var defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
     removeAttr = require("../../func/dom/removeAttr.js"),
     setAttr = require("../../func/dom/setAttr.js"),
-    AttributeHandler = require("../../view/AttributeHandler.js");
+    Directive = require("../../class/Directive.js");
 
 
 (function(){
@@ -12,25 +11,38 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
     var booleanAttrs = ["selected", "checked", "disabled", "readonly", "open", "required"],
         i, l;
 
+    var PropertyDirective = defineClass({
+
+        $extends: Directive,
+
+        propName: null,
+
+        $init: function(scope, node, expr, propName) {
+            this.propName = propName;
+            this.$super(scope, node, expr);
+        },
+
+        onChange: function(val) {
+
+            var name = this.propName;
+
+            val = !!val;
+
+            if (val) {
+                setAttr(this.node, name, name);
+            }
+            else {
+                removeAttr(this.node, name);
+            }
+        }
+    });
+
     for (i = 0, l = booleanAttrs.length; i < l; i++) {
         (function(name){
 
-            registerAttributeHandler("mjs-" + name, 1000, defineClass({
-
-                $extends: AttributeHandler,
-
-                onChange: function(val) {
-
-                    val = !!val;
-
-                    if (val) {
-                        setAttr(this.node, name, name);
-                    }
-                    else {
-                        removeAttr(this.node, name);
-                    }
-                }
-            }));
+            Directive.registerAttribute("mjs-" + name, 1000, function(scope, node, expr){
+                return new PropertyDirective(scope, node, expr, name);
+            });
 
         }(booleanAttrs[i]));
     }

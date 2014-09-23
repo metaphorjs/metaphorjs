@@ -8,18 +8,20 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     slice = require("../func/array/slice.js"),
     getAttr = require("../func/dom/getAttr.js"),
     Scope = require("../lib/Scope.js"),
-    Renderer = require("../view/Renderer.js"),
-    Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
+    Renderer = require("../class/Renderer.js"),
     Provider = require("../lib/Provider.js"),
     Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
-    Text = require("../lib/Text.js");
+    Text = require("../lib/Text.js"),
+    removeAttr = require("../func/dom/removeAttr.js"),
+    ObservableMixin = require("../mixin/ObservableMixin.js"),
+    ProviderMixin = require("../mixin/ProviderMixin.js");
 
-require("./Base.js");
+
 
 module.exports = defineClass({
 
-    $class: "MetaphorJs.cmp.App",
-    $extends: "MetaphorJs.cmp.Base",
+    $class: "App",
+    $mixins: [ObservableMixin, ProviderMixin],
 
     lang: null,
     scope: null,
@@ -31,23 +33,14 @@ module.exports = defineClass({
 
         var self        = this,
             scope       = data instanceof Scope ? data : new Scope(data),
-            provider,
-            observable,
             args;
 
+        removeAttr(node, "mjs-app");
+
         scope.$app      = self;
-        self.supr();
+        self.$super();
 
-        provider        = new Provider;
-        observable      = new Observable;
         self.lang       = new Text;
-
-        // provider's storage is hidden from everyone
-        extend(self, provider.getApi(), true, false);
-        self.destroyProvider    = bind(provider.destroy, provider);
-
-        extend(self, observable.getApi(), true, false);
-        self.destroyObservable  = bind(observable.destroy, observable);
 
         self.scope          = scope;
         self.cmpListeners   = {};
@@ -137,21 +130,13 @@ module.exports = defineClass({
 
     destroy: function() {
 
-        var self    = this,
-            i;
+        var self    = this;
 
-        self.destroyObservable();
-        self.destroyProvider();
-        self.renderer.destroy();
+        self.renderer.$destroy();
         self.scope.$destroy();
+        self.lang.destroy();
 
-        for (i in self) {
-            if (self.hasOwnProperty(i)) {
-                self[i] = null;
-            }
-        }
-
-        self.supr();
+        self.$super();
     }
 
 });

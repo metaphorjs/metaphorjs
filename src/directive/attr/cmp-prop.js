@@ -1,8 +1,8 @@
 
 
-var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js");
+var Directive = require("../../class/Directive.js");
 
-registerAttributeHandler("mjs-cmp-prop", 200,
+Directive.registerAttribute("mjs-cmp-prop", 200,
     ['$parentCmp', '$node', '$attrValue', function(parentCmp, node, expr){
     if (parentCmp) {
         parentCmp[expr] = node;

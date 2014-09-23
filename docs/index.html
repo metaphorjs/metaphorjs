@@ -199,30 +199,46 @@
                     (MetaphorJs.cs)
                     which you can expose during <a href="#building">build phase</a> or later.</p>
                 <h3>MetaphorJs.cs</h3>
-                <pre><code class="language-javascript">
-MetaphorJs.cs.define(
-    function(firstName, lastName){
-        // you can provide a function as a first parameter
-        // it will be called before $init, before all mixin initializations
-        // and before plugin initialization. In fact,
-        // if you want to use plugins, this function must set them up
-        // (probably take them from config)
-        this.$plugins = [];
+                <pre><code class="language-javascript">// initialization cycle:
+// 1. $constructor (call parent constructor with this.$super())
+// 2. mixin's $beforeInit (mixins are not classes, they don't have $super(); '$beforeInit's
+//    are called in order mixins are specified)
+// 3. plugin's $beforeHostInit (plugins are classes, they their own $super())
+// 4. $init (call parent $init with this.$super())
+// 5. mixin's $afterInit
+// 6. plugin's $afterHostInit
 
-        // this constructor function can call parent constructor
-        this.supr();
-    }, {
+// destroy cycle (call instance.$destroy())
+// 1. mixin's $beforeDestroy method
+// 2. plugin's $beforeHostDestroy method
+// 3. instance's destroy() method
+// 4. mixin's $afterDestroy method
+// 5. plugin's $destroy method
+// the $destroy method will nullify all instance properties and methods.
+// if you want to prevent this, return false from your destroy() method.
+
+// define(methodsAndProperties, statics)
+MetaphorJs.cs.define({
     $class: "My.Person",
     firstName: null,
     lastName: null,
 
-    // $init method called after all $beforeInit and before all $afterInit
+    $constructor: function(firstName, lastName){
+        // if you want to use plugins, this function must set them up
+        // (probably take them from config)
+        // you can't define plugins in class's definition; this is "run-time" only.
+        this.$plugins = [...];
+
+        // call parent constructor
+        this.$super();
+    },
+
     // the class itself can't have $beforeInit and $afterInit methods
     // they come from mixins
     $init: function(firstName, lastName) {
         this.firstName = firstName;
         this.lastName = lastName;
-        this.supr();
+        this.$super();
     },
     getName: function() {
         return this.firstName + " " + this.lastName;
@@ -245,10 +261,10 @@ var mixin = {
 MetaphorJs.cs.define({
     $class: "My.ExtendedPerson",
     $extends: "My.Person",
-    $mixins: [mixin], // or ["namespace.key.of.mixin"]
+    $mixins: [mixin], // or ["MixinName"] where it was added to namespace as mixin.MixinName
     age: null,
     $init: function(firstName, lastName, age) {
-        this.supr(firstName, lastName);
+        this.$super(firstName, lastName);
         this.age = age;
     },
     getAge: function() {
@@ -259,7 +275,7 @@ MetaphorJs.cs.define({
 MetaphorJs.cs.define({
     $class: "PluginClass",
     $init: function(hostObject, hostObjectArguments) {
-        // plugin's constructor receives host object
+        // plugin's $init and $constructor receive host object
         // as the first parameter, and
         // host's arguments as the second.
     },
@@ -276,12 +292,11 @@ MetaphorJs.cs.define({
     // and yes, plugins can have their own plugins :)
 });
 
-MetaphorJs.cs.define(
-    function(cfg) {
+MetaphorJs.cs.define({
+    $class: "PluginHost",
+    $constructor: function(cfg) {
         this.$plugins = cfg.plugins;
-    }, {
-
-    $class: "PluginHost"
+    }
 });
 
 var host = new MetaphorJs.PluginHost({
@@ -292,7 +307,21 @@ var host = new MetaphorJs.PluginHost({
 // and there is a cs.BaseClass.$extend you can start with.
 var ClassWithoutName = MetaphorJs.My.ExtendedPerson.$extend({
     getAge: function() {
-        return this.supr() * 10;
+        return this.$super() * 10;
+    }
+});
+
+// you can also extend your own classes:
+var PrototypedClass = function() {
+    // this will become $constructor
+};
+PrototypedClass.prototype.someMethod = function(){};
+
+MetaphorJs.cs.define({
+    $class: "SomeClass",
+    $extends: PrototypedClass,
+    $constructor: function() {
+        this.$super(); // call PrototypedClass constructor
     }
 });
 

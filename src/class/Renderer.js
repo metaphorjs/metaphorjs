@@ -10,6 +10,7 @@ var nextUid = require("../func/nextUid.js"),
     select = require("../../../metaphorjs-select/src/metaphorjs.select.js"),
     nodeTextProp = require("../var/nodeTextProp.js"),
     Scope = require("../lib/Scope.js"),
+    Directive = require("./Directive.js"),
     Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
     TextRenderer = require("./TextRenderer.js"),
     slice = require("../func/array/slice.js"),
@@ -20,7 +21,7 @@ var nextUid = require("../func/nextUid.js"),
     data = require("../func/dom/data.js"),
     undf = require("../var/undf.js"),
     Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
-    getAttributeHandlers = require("../func/directive/getAttributeHandlers.js");
+    defineClass = require("../../../metaphorjs-class/src/func/defineClass.js");
 
 require("../func/array/aIndexOf.js");
 
@@ -41,14 +42,12 @@ module.exports = function(){
                     return;
                 }
                 else {
-                    //children = toArray(res);
                     children = slice.call(res);
                 }
             }
 
             if (!children.length) {
                 children    = toArray(el.childNodes);
-                //children = slice.call(el.childNodes);
             }
 
             len = children.length;
@@ -130,34 +129,33 @@ module.exports = function(){
 
         observer = new Observable;
 
-    var Renderer = function(el, scope, parent) {
+    return defineClass({
 
-        var self            = this;
-
-        self.id             = nextUid();
-        self.el             = el;
-        self.scope          = scope;
-        self.texts          = [];
-        self.parent         = parent;
-
-        if (scope instanceof Scope) {
-            scope.$on("destroy", self.destroy, self);
-        }
-
-        if (parent) {
-            parent.on("destroy", self.destroy, self);
-        }
-    };
-
-    extend(Renderer.prototype, {
+        $class: "Renderer",
 
         id: null,
         el: null,
         scope: null,
         texts: null,
         parent: null,
-        destroyed: false,
-        _observable: null,
+
+        $init: function(el, scope, parent) {
+            var self            = this;
+
+            self.id             = nextUid();
+            self.el             = el;
+            self.scope          = scope;
+            self.texts          = [];
+            self.parent         = parent;
+
+            if (scope instanceof Scope) {
+                scope.$on("destroy", self.$destroy, self);
+            }
+
+            if (parent) {
+                parent.on("destroy", self.$destroy, self);
+            }
+        },
 
         on: function(event, fn, context) {
             return observer.on(event + '-' + this.id, fn, context);
@@ -183,10 +181,10 @@ module.exports = function(){
 
             var self    = this,
                 scope   = f.$isolateScope ?
-                            parentScope.$newIsolated() :
-                            (f.$breakScope  ?
-                                parentScope.$new() :
-                                parentScope),
+                          parentScope.$newIsolated() :
+                          (f.$breakScope  ?
+                           parentScope.$new() :
+                           parentScope),
                 app     = parentScope.$app,
                 inject  = {
                     $scope: scope,
@@ -242,7 +240,7 @@ module.exports = function(){
             else if (nodeType == 1) {
 
                 if (!handlers) {
-                    handlers = getAttributeHandlers();
+                    handlers = Directive.getAttributes();
                 }
 
                 var tag     = node.tagName.toLowerCase(),
@@ -281,7 +279,7 @@ module.exports = function(){
 
                         res     = self.runHandler(handlers[i].handler, scope, node, attrValue);
 
-                        delete map[name];
+                        map[name] = null;
 
                         if (res === false) {
                             return false;
@@ -311,7 +309,7 @@ module.exports = function(){
 
                 for (i in map) {
 
-                    //if (!nsGet(n, true)) {
+                    if (map[i] !== null) {
 
                         textRenderer = createText(scope, map[i], null, texts.length, recursive);
 
@@ -321,11 +319,11 @@ module.exports = function(){
                             texts.push({
                                 node: node,
                                 attr: i,
-                                tr: textRenderer
+                                tr:   textRenderer
                             });
                             self.renderText(texts.length - 1);
                         }
-                    //}
+                    }
                 }
 
                 return nodes.length ? nodes : true;
@@ -382,27 +380,16 @@ module.exports = function(){
                 texts   = self.texts,
                 i, len;
 
-            if (self.destroyed) {
-                return;
-            }
-            self.destroyed  = true;
-
-            for (i = -1, len = texts.length; ++i < len; texts[i].tr.destroy()) {}
+            for (i = -1, len = texts.length; ++i < len; texts[i].tr.$destroy()) {}
 
             if (self.parent) {
-                self.parent.un("destroy", self.destroy, self);
+                self.parent.un("destroy", self.$destroy, self);
             }
-
-            self.texts = null;
-            self.el = null;
-            self.scope = null;
-            self.parent = null;
 
             observer.trigger("destroy-" + self.id);
         }
-    }, true, false);
 
+    });
 
-    return Renderer;
 }();
 

@@ -1,10 +1,8 @@
 
 
-var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
-    createFunc = require("../../../../metaphorjs-watchable/src/func/createFunc.js"),
-    removeAttr = require("../../func/dom/removeAttr.js");
+var Directive = require("../../class/Directive.js"),
+    createFunc = require("../../../../metaphorjs-watchable/src/func/createFunc.js");
 
-registerAttributeHandler("mjs-init", 250, function(scope, node, expr){
-    removeAttr(node, "mjs-init");
+Directive.registerAttribute("mjs-init", 250, function(scope, node, expr){
     createFunc(expr)(scope);
 });

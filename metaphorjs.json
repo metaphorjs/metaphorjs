@@ -1,5 +1,5 @@
 {
-    "version": "0.3.10",
+    "version": "0.3.11",
     "push": [
         "github"
     ],
@@ -30,7 +30,7 @@
             "target": "dist/metaphorjs.js",
             "files": [
                 "src/MetaphorJs.js",
-                "src/cmp/*",
+                "src/class/*",
                 "src/directive/attr/*",
                 "src/directive/tag/*",
                 "src/filter/*",
@@ -46,45 +46,8 @@
             "files": [
                 "../metaphorjs-model/src/*",
                 "../metaphorjs-model/src/directive/*",
-                "../metaphorjs-dialog/src/cmp/Dialog.js",
-                "../metaphorjs-validator/src/view/Validator.js",
-                [
-                    "../metaphorjs-history/src/func/currentUrl.js",
-                    {
-                        "as": "currentUrl"
-                    }
-                ],
-                [
-                    "../metaphorjs-history/src/func/pushUrl.js",
-                    {
-                        "as": "pushUrl"
-                    }
-                ]
-            ],
-            "expose": [
-                "onReady",
-                "initApp",
-                "ns",
-                "cs",
-                "resolveComponent",
-                "animate",
-                "stopAnimation",
-                "ajax",
-                "select",
-                "bind",
-                "extend",
-                "trim",
-                "pushUrl",
-                "currentUrl",
-                "history",
-                [
-                    "MetaphorJs.lib",
-                    "Promise"
-                ],
-                [
-                    "MetaphorJs.lib",
-                    "Observable"
-                ]
+                "../metaphorjs-dialog/src/cmp/DialogComponent.js",
+                "../metaphorjs-validator/src/view/Validator.js"
             ]
         },
         "npm": {
@@ -101,7 +64,7 @@
                     }
                 ],
                 "../metaphorjs-model/src/directive/*",
-                "../metaphorjs-dialog/src/cmp/Dialog.js",
+                "../metaphorjs-dialog/src/cmp/DialogComponent.js",
                 "../metaphorjs-validator/src/view/Validator.js"
             ],
             "omit": [
@@ -137,33 +100,7 @@
                 "metaphorjs-dialog": "Dialog",
                 "metaphorjs-history": "history"
             },
-            "exports": "MetaphorJs",
-            "expose": [
-                "onReady",
-                "initApp",
-                "ns",
-                "cs",
-                "resolveComponent",
-                "animate",
-                "stopAnimation",
-                "ajax",
-                "select",
-                "bind",
-                "extend",
-                "trim",
-                "pushUrl",
-                "currentUrl",
-                "history",
-                "run",
-                [
-                    "MetaphorJs.lib",
-                    "Promise"
-                ],
-                [
-                    "MetaphorJs.lib",
-                    "Observable"
-                ]
-            ]
+            "exports": "MetaphorJs"
         },
         "amd": {
             "target": "dist/metaphorjs.amd.js",
@@ -178,7 +115,7 @@
                     }
                 ],
                 "../metaphorjs-model/src/directive/*",
-                "../metaphorjs-dialog/src/cmp/Dialog.js",
+                "../metaphorjs-dialog/src/cmp/DialogComponent.js",
                 "../metaphorjs-validator/src/view/Validator.js"
             ],
             "omit": [
@@ -219,33 +156,7 @@
                     "metaphorjs-dialog": "Dialog",
                     "metaphorjs-history": "history"
                 }
-            },
-            "expose": [
-                "onReady",
-                "initApp",
-                "ns",
-                "cs",
-                "resolveComponent",
-                "animate",
-                "stopAnimation",
-                "ajax",
-                "select",
-                "bind",
-                "extend",
-                "trim",
-                "pushUrl",
-                "currentUrl",
-                "history",
-                "run",
-                [
-                    "MetaphorJs.lib",
-                    "Promise"
-                ],
-                [
-                    "MetaphorJs.lib",
-                    "Observable"
-                ]
-            ]
+            }
         },
         "test": {
             "auto": true,
@@ -257,13 +168,9 @@
                 "all"
             ],
             "files": [
-                "../metaphorjs-model/src/FirebaseStore.js",
-                [
-                    "src/func/compile.js",
-                    {
-                        "as": "compile"
-                    }
-                ]
+                "src/plugin/*",
+                "../metaphorjs-model/src/plugin/*",
+                "../metaphorjs-model/src/FirebaseStore.js"
             ],
             "expose": "all"
         }

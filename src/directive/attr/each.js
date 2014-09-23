@@ -1,8 +1,8 @@
 
 
 
-var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
-    ListRenderer = require("../../view/ListRenderer.js");
+var Directive = require("../../class/Directive.js"),
+    ListRenderer = require("../../class/ListRenderer.js");
 
 
-registerAttributeHandler("mjs-each", 100, ListRenderer);
+Directive.registerAttribute("mjs-each", 100, ListRenderer);

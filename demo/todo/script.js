@@ -1,7 +1,7 @@
 MetaphorJs.cs.define({
 
     $class: "My.Todo",
-    $extends: "MetaphorJs.cmp.Component",
+    $extends: "MetaphorJs.Component",
 
     initComponent: function() {
         this.scope.todos = [

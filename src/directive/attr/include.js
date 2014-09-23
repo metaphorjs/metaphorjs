@@ -1,9 +1,9 @@
 
 
-var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
-    Template = require("../../view/Template.js");
+var Directive = require("../../class/Directive.js"),
+    Template = require("../../class/Template.js");
 
-registerAttributeHandler("mjs-include", 900, function(scope, node, tplExpr, parentRenderer){
+Directive.registerAttribute("mjs-include", 900, function(scope, node, tplExpr, parentRenderer){
 
     var tpl = new Template({
         scope: scope,

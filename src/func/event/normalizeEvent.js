@@ -1,5 +1,5 @@
-var NormalizedEvent = require("../../lib/NormalizedEvent.js");
+var DomEvent = require("../../lib/DomEvent.js");
 
 module.exports = function normalizeEvent(originalEvent) {
-    return new NormalizedEvent(originalEvent);
+    return new DomEvent(originalEvent);
 };

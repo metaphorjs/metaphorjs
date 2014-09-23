@@ -1,11 +1,11 @@
 
 
-var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
+var Directive = require("../../class/Directive.js"),
     defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js");
 
 require("./bind.js");
 
-registerAttributeHandler("mjs-bind-html", 1000, defineClass({
+Directive.registerAttribute("mjs-bind-html", 1000, defineClass({
 
     $extends: "attr.mjs-bind",
 

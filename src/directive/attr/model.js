@@ -2,8 +2,7 @@
 
 
 
-var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
-    defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
+var defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
     async = require("../../func/async.js"),
     getAttr = require("../../func/dom/getAttr.js"),
     isIE = require("../../func/browser/isIE.js"),
@@ -11,14 +10,14 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
     Input = require("../../../../metaphorjs-input/src/metaphorjs.input.js"),
     Scope = require("../../lib/Scope.js"),
     isString = require("../../func/isString.js"),
-    AttributeHandler = require("../../view/AttributeHandler.js"),
+    Directive = require("../../class/Directive.js"),
     getNodeConfig = require("../../func/dom/getNodeConfig.js");
 
 
 
-registerAttributeHandler("mjs-model", 1000, defineClass({
+Directive.registerAttribute("mjs-model", 1000, defineClass({
 
-    $extends: AttributeHandler,
+    $extends: Directive,
 
     inProg: false,
     input: null,
@@ -35,7 +34,7 @@ registerAttributeHandler("mjs-model", 1000, defineClass({
         self.input          = new Input(node, self.onInputChange, self);
         self.binding        = cfg.binding || "both";
 
-        self.supr(scope, node, expr);
+        self.$super(scope, node, expr);
 
         var inputValue      = self.input.getValue(),
             scopeValue      = self.watcher.getLastResult();
@@ -82,10 +81,8 @@ registerAttributeHandler("mjs-model", 1000, defineClass({
     destroy: function() {
 
         var self        = this;
-
         self.input.destroy();
-        self.input = null;
-        self.supr();
+        self.$super();
     },
 
 

@@ -1,8 +1,7 @@
 
 
 
-var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
-    defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
+var defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
     createWatchable = require("../../../../metaphorjs-watchable/src/func/createWatchable.js"),
     toArray = require("../../func/array/toArray.js"),
     getValue = require("../../../../metaphorjs-input/src/func/getValue.js"),
@@ -14,12 +13,12 @@ var registerAttributeHandler = require("../../func/directive/registerAttributeHa
     isIE = require("../../func/browser/isIE.js"),
     createGetter = require("../../../../metaphorjs-watchable/src/func/createGetter.js"),
     ns = require("../../../../metaphorjs-namespace/src/var/ns.js"),
-    AttributeHandler = require("../../view/AttributeHandler.js");
+    Directive = require("../../class/Directive.js");
 
 
-registerAttributeHandler("mjs-options", 100, defineClass({
+Directive.registerAttribute("mjs-options", 100, defineClass({
 
-    $extends: AttributeHandler,
+    $extends: Directive,
 
     model: null,
     getterFn: null,

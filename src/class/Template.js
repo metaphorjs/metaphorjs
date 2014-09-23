@@ -14,7 +14,8 @@ var data = require("../func/dom/data.js"),
     Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
     ajax = require("../../../metaphorjs-ajax/src/metaphorjs.ajax.js"),
     ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
-    removeAttr = require("../func/dom/removeAttr.js");
+    removeAttr = require("../func/dom/removeAttr.js"),
+    defineClass = require("../../../metaphorjs-class/src/func/defineClass.js");
 
 
 
@@ -70,64 +71,9 @@ module.exports = function(){
         };
 
 
+    return defineClass({
 
-    var Template = function(cfg) {
-
-        var self    = this;
-
-        extend(self, cfg, true, false);
-
-        self.id     = nextUid();
-
-        self.tpl && (self.tpl = trim(self.tpl));
-        self.url && (self.url = trim(self.url));
-
-        var node    = self.node,
-            tpl     = self.tpl || self.url;
-
-        node && removeAttr(node, "mjs-include");
-
-        if (!node) {
-            self.deferRendering = true;
-        }
-
-        if (tpl) {
-
-            if (node && node.firstChild) {
-                data(node, "mjs-transclude", toFragment(node.childNodes));
-            }
-
-            if (isExpression(tpl) && !self.replace) {
-                self.ownRenderer        = true;
-                self._watcher           = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
-            }
-
-            if (self.replace) {
-                self.ownRenderer        = false;
-            }
-
-            self.initPromise = self.resolveTemplate();
-
-            if (!self.deferRendering || !self.ownRenderer) {
-                self.initPromise.done(self.applyTemplate, self);
-            }
-
-            if (self.ownRenderer && self.parentRenderer) {
-                self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
-            }
-        }
-        else {
-            if (!self.deferRendering && self.ownRenderer) {
-                self.doRender();
-            }
-        }
-
-        if (self.scope instanceof Scope) {
-            self.scope.$on("destroy", self.onScopeDestroy, self);
-        }
-    };
-
-    extend(Template.prototype, {
+        $class:             "Template",
 
         _watcher:           null,
         _tpl:               null,
@@ -145,6 +91,63 @@ module.exports = function(){
         parentRenderer:     null,
         deferRendering:     false,
         replace:            false,
+
+        $init: function(cfg) {
+
+            var self    = this;
+
+            extend(self, cfg, true, false);
+
+            self.id     = nextUid();
+
+            self.tpl && (self.tpl = trim(self.tpl));
+            self.url && (self.url = trim(self.url));
+
+            var node    = self.node,
+                tpl     = self.tpl || self.url;
+
+            node && removeAttr(node, "mjs-include");
+
+            if (!node) {
+                self.deferRendering = true;
+            }
+
+            if (tpl) {
+
+                if (node && node.firstChild) {
+                    data(node, "mjs-transclude", toFragment(node.childNodes));
+                }
+
+                if (isExpression(tpl) && !self.replace) {
+                    self.ownRenderer        = true;
+                    self._watcher           = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
+                }
+
+                if (self.replace) {
+                    self.ownRenderer        = false;
+                }
+
+                self.initPromise = self.resolveTemplate();
+
+                if (!self.deferRendering || !self.ownRenderer) {
+                    self.initPromise.done(self.applyTemplate, self);
+                }
+
+                if (self.ownRenderer && self.parentRenderer) {
+                    self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
+                }
+            }
+            else {
+                if (!self.deferRendering && self.ownRenderer) {
+                    self.doRender();
+                }
+            }
+
+            if (self.scope instanceof Scope) {
+                self.scope.$on("destroy", self.onScopeDestroy, self);
+            }
+        },
+
 
         doRender: function() {
             var self = this;
@@ -192,19 +195,19 @@ module.exports = function(){
             var self    = this,
                 url     = self.url,
                 tpl     = self._watcher ?
-                            self._watcher.getLastResult() :
-                            (self.tpl || url);
+                          self._watcher.getLastResult() :
+                          (self.tpl || url);
 
             var returnPromise = new Promise;
 
             new Promise(function(resolve){
-                    if (url) {
-                        resolve(getTemplate(tpl) || loadTemplate(url));
-                    }
-                    else {
-                        resolve(getTemplate(tpl) || toFragment(tpl));
-                    }
-                })
+                if (url) {
+                    resolve(getTemplate(tpl) || loadTemplate(url));
+                }
+                else {
+                    resolve(getTemplate(tpl) || toFragment(tpl));
+                }
+            })
                 .done(function(fragment){
                     self._fragment = fragment;
                     returnPromise.resolve(!self.ownRenderer ? self.node : false);
@@ -219,7 +222,7 @@ module.exports = function(){
             var self    = this;
 
             if (self._renderer) {
-                self._renderer.destroy();
+                self._renderer.$destroy();
                 self._renderer = null;
             }
 
@@ -271,42 +274,26 @@ module.exports = function(){
         },
 
         onParentRendererDestroy: function() {
-
-            this._renderer.destroy();
-            this.destroy();
-
-            this._renderer = null;
+            this._renderer.$destroy();
+            this.$destroy();
         },
 
         onScopeDestroy: function() {
-            this.destroy();
-
-            // renderer itself subscribes to scope's destroy event
-            this._renderer = null;
+            this.$destroy();
         },
 
         destroy: function() {
 
-            var self    = this,
-                i;
-
+            var self = this;
 
             if (self._watcher) {
                 self._watcher.unsubscribeAndDestroy(self.onChange, self);
             }
-
-            for (i in self) {
-                if (self.hasOwnProperty(i)) {
-                    self[i] = null;
-                }
-            }
         }
 
-    }, true, false);
-
-    Template.getTemplate = getTemplate;
-    Template.loadTemplate = loadTemplate;
-
-    return Template;
+    }, {
+        getTemplate: getTemplate,
+        loadTemplate: loadTemplate
+    });
 }();
 

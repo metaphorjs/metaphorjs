@@ -1,7 +1,7 @@
 
 
 
-var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
+var Directive = require("../../class/Directive.js"),
     returnFalse = require("../../func/returnFalse.js");
 
-registerAttributeHandler("mjs-app", 100, returnFalse);
+Directive.registerAttribute("mjs-app", 100, returnFalse);

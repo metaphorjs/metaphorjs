@@ -1,7 +1,7 @@
 
-var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
+var Directive = require("../../class/Directive.js"),
     transclude = require("../../func/dom/transclude.js");
 
-registerAttributeHandler("mjs-transclude", 1000, function(scope, node) {
+Directive.registerAttribute("mjs-transclude", 1000, function(scope, node) {
     return transclude(node);
 });

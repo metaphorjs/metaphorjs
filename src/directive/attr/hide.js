@@ -1,11 +1,11 @@
 
 
-var registerAttributeHandler = require("../../func/directive/registerAttributeHandler.js"),
+var Directive = require("../../class/Directive.js"),
     defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js");
 
 require("./show.js");
 
-registerAttributeHandler("mjs-hide", 500, defineClass({
+Directive.registerAttribute("mjs-hide", 500, defineClass({
 
     $extends: "attr.mjs-show",
 

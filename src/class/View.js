@@ -19,7 +19,7 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
 
 module.exports = defineClass({
 
-    $class: "MetaphorJs.cmp.View",
+    $class: "View",
 
     /**
      * [
@@ -175,7 +175,7 @@ module.exports = defineClass({
             }
 
             return resolveComponent(
-                    route.cmp || "MetaphorJs.cmp.Component",
+                    route.cmp || "MetaphorJs.Component",
                     cfg,
                     cfg.scope,
                     node,
@@ -197,7 +197,7 @@ module.exports = defineClass({
         animate(node, "enter", function(){
 
             var cfg     = isObject(cmp) ? cmp : {},
-                cls     = (isString(cmp) ? cmp : null) || "MetaphorJs.cmp.Component",
+                cls     = (isString(cmp) ? cmp : null) || "MetaphorJs.Component",
                 scope   = cfg.scope || self.scope.$new();
 
             cfg.destroyEl = false;
@@ -228,7 +228,7 @@ module.exports = defineClass({
         self.scope = null;
         self.currentComponent = null;
 
-        self.supr();
+        self.$super();
     }
 });
 
