@@ -1,6 +1,5 @@
 
-var elBody = require("../../../var/elBody.js"),
-    undf = require("../../../var/undf.js");
+var undf = require("../../../var/undf.js");
 
 module.exports = function() {
 
@@ -9,7 +8,8 @@ module.exports = function() {
     var computePixelPositionAndBoxSizingReliable = function() {
 
         var container = document.createElement("div"),
-            div = document.createElement("div");
+            div = document.createElement("div"),
+            body = document.body;
 
         if (!div.style || !window.getComputedStyle) {
             return false;
@@ -26,12 +26,12 @@ module.exports = function() {
         "box-sizing:border-box;display:block;margin-top:1%;top:1%;" +
         "border:1px;padding:1px;width:4px;position:absolute";
         div.innerHTML = "";
-        elBody.appendChild(container);
+        body.appendChild(container);
 
         var divStyle = window.getComputedStyle(div, null),
             ret = divStyle.width === "4px";
 
-        elBody.removeChild(container);
+        body.removeChild(container);
 
         return ret;
     };

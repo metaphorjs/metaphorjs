@@ -4,7 +4,6 @@
 
 var defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
     async = require("../../func/async.js"),
-    getAttr = require("../../func/dom/getAttr.js"),
     isIE = require("../../func/browser/isIE.js"),
     undf = require("../../var/undf.js"),
     Input = require("../../../../metaphorjs-input/src/metaphorjs.input.js"),

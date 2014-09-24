@@ -9,7 +9,6 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     getHeight = require("../func/dom/getHeight.js"),
     addListener = require("../func/event/addListener.js"),
     removeListener = require("../func/event/removeListener.js"),
-    getNodeConfig = require("../func/dom/getNodeConfig.js"),
     bind = require("../func/bind.js");
 
 module.exports = nsAdd("plugin.SrcDeferred", defineClass({

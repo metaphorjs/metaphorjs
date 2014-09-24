@@ -1,7 +1,6 @@
 var slice   = require("./array/slice.js"),
     isPlainObject = require("./isPlainObject.js"),
     isBool = require("./isBool.js"),
-    isNull = require('./isNull.js'),
     undf = require("../var/undf.js");
 
 

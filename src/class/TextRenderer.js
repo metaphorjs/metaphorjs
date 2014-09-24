@@ -3,10 +3,8 @@
 var nextUid = require("../func/nextUid.js"),
     bind = require("../func/bind.js"),
     trim = require("../func/trim.js"),
-    extend = require("../func/extend.js"),
     createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
     Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
-    isString = require("../func/isString.js"),
     isNull = require("../func/isNull.js"),
     ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
     defineClass = require("../../../metaphorjs-class/src/func/defineClass.js");

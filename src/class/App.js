@@ -1,15 +1,11 @@
 
 
 var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
-    bind = require("../func/bind.js"),
-    extend = require("../func/extend.js"),
-    nextUid = require("../func/nextUid.js"),
     emptyFn = require("../func/emptyFn.js"),
     slice = require("../func/array/slice.js"),
     getAttr = require("../func/dom/getAttr.js"),
     Scope = require("../lib/Scope.js"),
     Renderer = require("../class/Renderer.js"),
-    Provider = require("../lib/Provider.js"),
     Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
     Text = require("../lib/Text.js"),
     removeAttr = require("../func/dom/removeAttr.js"),

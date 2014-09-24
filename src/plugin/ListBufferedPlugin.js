@@ -1,6 +1,5 @@
 
 var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
-    ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
     nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
     addListener = require("../func/event/addListener.js"),
     removeListener = require("../func/event/removeListener.js"),

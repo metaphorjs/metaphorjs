@@ -1,4 +1,3 @@
-//#require isIE.js
 
 var isIE = require("./isIE.js"),
     undf = require("../../var/undf.js");

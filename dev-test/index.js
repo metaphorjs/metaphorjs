@@ -293,20 +293,24 @@ MetaphorJs.onReady(function(){
         ]
     };
     var start  = (new Date).getTime();
+    var el = document.getElementById("render");
 
-    //console.profile();
-    MetaphorJs.initApp(document.getElementById("render"), null, dataObj, false)
-        .done(function(app){
-            app.value("test", "123");
-            app.run();
-            window.mainApp = app;
-        });
-    //console.profileEnd();
+    if (el) {
 
-    var end  = (new Date).getTime();
+        //console.profile();
+        MetaphorJs.initApp(el, null, dataObj, false)
+            .done(function (app) {
+                app.value("test", "123");
+                app.run();
+                window.mainApp = app;
+            });
+        //console.profileEnd();
 
-    if (window.console) {
-        console.log("render time: ", end - start);
+        var end = (new Date).getTime();
+
+        if (window.console) {
+            console.log("render time: ", end - start);
+        }
     }
 
 });

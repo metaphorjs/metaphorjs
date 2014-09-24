@@ -1,7 +1,5 @@
 
 var Directive = require("../../class/Directive.js"),
-    removeAttr = require("../../func/dom/removeAttr.js"),
-    data = require("../../func/dom/data.js"),
     getNodeConfig = require("../../func/dom/getNodeConfig.js"),
     extend = require("../../func/extend.js"),
     resolveComponent = require("../../func/resolveComponent.js"),

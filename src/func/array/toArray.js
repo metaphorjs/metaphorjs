@@ -1,7 +1,5 @@
 
-var undf = require("../../var/undf.js"),
-    isString = require("../isString.js"),
-    varType = require("../varType.js");
+var undf = require("../../var/undf.js");
 
 /**
  * @param {*} list

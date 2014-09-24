@@ -22,9 +22,9 @@ require(["metaphorjs", "metaphorjs-model"], function(MetaphorJs) {
 
     window.MetaphorJs = MetaphorJs;
 
-    require(['/metaphorjs/test/index.js'], function(){
+    require(['/metaphorjs/dev-test/index.js'], function(){
         MetaphorJs.run();
-    })
+    });
 
 
 });

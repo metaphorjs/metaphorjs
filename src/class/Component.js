@@ -10,8 +10,7 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     extend = require("../func/extend.js"),
     Template = require("./Template.js"),
     Scope = require("../lib/Scope.js"),
-    ObservableMixin = require("../mixin/ObservableMixin.js"),
-    shadowRootSupported = require("../var/shadowRootSupported.js");
+    ObservableMixin = require("../mixin/ObservableMixin.js");
 
 
 /**

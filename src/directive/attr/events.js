@@ -2,10 +2,7 @@
 var Directive = require("../../class/Directive.js"),
     createFunc = require("../../../../metaphorjs-watchable/src/func/createFunc.js"),
     normalizeEvent = require("../../func/event/normalizeEvent.js"),
-    removeAttr = require("../../func/dom/removeAttr.js"),
-    addListener = require("../../func/event/addListener.js"),
-    Scope = require("../../lib/Scope.js"),
-    error = require("../../func/error.js");
+    addListener = require("../../func/event/addListener.js");
 
 (function(){
 

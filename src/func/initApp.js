@@ -1,6 +1,5 @@
 
 var error = require("./error.js"),
-    removeAttr = require("./dom/removeAttr.js"),
     resolveComponent = require("./resolveComponent.js"),
     Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js");
 

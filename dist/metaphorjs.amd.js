@@ -4,13 +4,16 @@ var getValue    = Input.getValue,
     setValue    = Input.setValue,
     is          = select.is,
     pushUrl     = history.pushUrl;
+
 var MetaphorJs = {
 
 };
 
 
 
+
 var ns  = new Namespace(MetaphorJs, "MetaphorJs");
+
 
 
 var cs = new Class(ns);
@@ -18,26 +21,23 @@ var cs = new Class(ns);
 
 
 
-var defineClass = cs.define;
-/**
- * @param {Function} fn
- * @param {*} context
- */
-var bind = Function.prototype.bind ?
-              function(fn, context){
-                  return fn.bind(context);
-              } :
-              function(fn, context) {
-                  return function() {
-                      return fn.apply(context, arguments);
-                  };
-              };
 
+var defineClass = cs.define;
+
+
+function emptyFn(){};
 
 
 var slice = Array.prototype.slice;
+
+function getAttr(el, name) {
+    return el.getAttribute ? el.getAttribute(name) : null;
+};
+
 var toString = Object.prototype.toString;
+
 var undf = undefined;
+
 
 
 
@@ -96,6 +96,7 @@ var varType = function(){
 }();
 
 
+
 function isPlainObject(value) {
     // IE < 9 returns [object Object] from toString(htmlElement)
     return typeof value == "object" &&
@@ -105,13 +106,10 @@ function isPlainObject(value) {
 
 };
 
-
 function isBool(value) {
     return value === true || value === false;
 };
-function isNull(value) {
-    return value === null;
-};
+
 
 
 /**
@@ -181,41 +179,6 @@ var extend = function(){
     return extend;
 }();
 
-/**
- * @returns {String}
- */
-var nextUid = function(){
-    var uid = ['0', '0', '0'];
-
-    // from AngularJs
-    return function nextUid() {
-        var index = uid.length;
-        var digit;
-
-        while(index) {
-            index--;
-            digit = uid[index].charCodeAt(0);
-            if (digit == 57 /*'9'*/) {
-                uid[index] = 'A';
-                return uid.join('');
-            }
-            if (digit == 90  /*'Z'*/) {
-                uid[index] = '0';
-            } else {
-                uid[index] = String.fromCharCode(digit + 1);
-                return uid.join('');
-            }
-        }
-        uid.unshift('0');
-        return uid.join('');
-    };
-}();
-
-
-function emptyFn(){};
-function getAttr(el, name) {
-    return el.getAttribute ? el.getAttribute(name) : null;
-};
 
 
 var Scope = function(cfg) {
@@ -382,6 +345,39 @@ extend(Scope.prototype, {
 
 
 /**
+ * @returns {String}
+ */
+var nextUid = function(){
+    var uid = ['0', '0', '0'];
+
+    // from AngularJs
+    return function nextUid() {
+        var index = uid.length;
+        var digit;
+
+        while(index) {
+            index--;
+            digit = uid[index].charCodeAt(0);
+            if (digit == 57 /*'9'*/) {
+                uid[index] = 'A';
+                return uid.join('');
+            }
+            if (digit == 90  /*'Z'*/) {
+                uid[index] = '0';
+            } else {
+                uid[index] = String.fromCharCode(digit + 1);
+                return uid.join('');
+            }
+        }
+        uid.unshift('0');
+        return uid.join('');
+    };
+}();
+
+
+
+
+/**
  * @param {*} value
  * @returns {boolean}
  */
@@ -389,11 +385,6 @@ function isArray(value) {
     return typeof value == "object" && varType(value) === 5;
 };
 
-
-function isString(value) {
-    return typeof value == "string" || value === ""+value;
-    //return typeof value == "string" || varType(value) === 0;
-};
 
 
 /**
@@ -412,9 +403,11 @@ function toArray(list) {
         return [];
     }
 };
+
 function isFunction(value) {
     return typeof value == 'function';
 };
+
 
 
 /**
@@ -436,42 +429,23 @@ function isThenable(any) {
 };
 
 
-var nsGet = ns.get;/**
- * @param {Function} fn
- * @param {Object} context
- * @param {[]} args
- * @param {number} timeout
- */
-function async(fn, context, args, timeout) {
-    setTimeout(function(){
-        fn.apply(context, args || []);
-    }, timeout || 0);
+
+var nsGet = ns.get;
+
+
+
+function isString(value) {
+    return typeof value == "string" || value === ""+value;
+    //return typeof value == "string" || varType(value) === 0;
 };
-var strUndef = "undefined";
 
-
-function error(e) {
-
-    var stack = e.stack || (new Error).stack;
-
-    if (typeof console != strUndef && console.log) {
-        async(function(){
-            console.log(e);
-            if (stack) {
-                console.log(stack);
-            }
-        });
-    }
-    else {
-        throw e;
-    }
-};
 
 
 var nodeTextProp = function(){
     var node    = document.createTextNode("");
     return isString(node.textContent) ? "textContent" : "nodeValue";
 }();
+
 
 
 /**
@@ -492,10 +466,13 @@ var trim = function() {
 
 
 
+
 var createWatchable = Watchable.create;
 
 
+
 var nsAdd = ns.add;
+
 
 
 
@@ -599,6 +576,27 @@ var Directive = function(){
 }();
 
 
+
+
+/**
+ * @param {Function} fn
+ * @param {*} context
+ */
+var bind = Function.prototype.bind ?
+              function(fn, context){
+                  return fn.bind(context);
+              } :
+              function(fn, context) {
+                  return function() {
+                      return fn.apply(context, arguments);
+                  };
+              };
+
+
+
+function isNull(value) {
+    return value === null;
+};
 
 
 
@@ -928,12 +926,15 @@ var TextRenderer = function(){
 
 
 
+
 function setAttr(el, name, value) {
     return el.setAttribute(name, value);
 };
+
 function removeAttr(el, name) {
     return el.removeAttribute(name);
 };
+
 function getAttrMap(node) {
     var map = {},
         i, l, a,
@@ -947,38 +948,6 @@ function getAttrMap(node) {
     return map;
 };
 
-
-
-var data = function(){
-
-    var dataCache   = {},
-
-        getNodeId   = function(el) {
-            return el._mjsid || (el._mjsid = nextUid());
-        };
-
-    /**
-     * @param {Element} el
-     * @param {String} key
-     * @param {*} value optional
-     */
-    return function data(el, key, value) {
-        var id  = getNodeId(el),
-            obj = dataCache[id];
-
-        if (value !== undf) {
-            if (!obj) {
-                obj = dataCache[id] = {};
-            }
-            obj[key] = value;
-            return value;
-        }
-        else {
-            return obj ? obj[key] : undf;
-        }
-    };
-
-}();
 var aIndexOf    = Array.prototype.indexOf;
 
 if (!aIndexOf) {
@@ -1045,6 +1014,7 @@ if (!aIndexOf) {
         return -1;
     };
 }
+
 
 
 
@@ -1423,240 +1393,6 @@ var Renderer = function(){
 
 
 
-function isObject(value) {
-    if (value === null || typeof value != "object") {
-        return false;
-    }
-    var vt = varType(value);
-    return vt > 2 || vt == -1;
-};
-
-
-var instantiate = function(fn, args) {
-
-    var Temp = function(){},
-        inst, ret;
-
-    Temp.prototype  = fn.prototype;
-    inst            = new Temp;
-    ret             = fn.apply(inst, args);
-
-    // If an object has been returned then return it otherwise
-    // return the original instance.
-    // (consistent with behaviour of the new operator)
-    return isObject(ret) || ret === false ? ret : inst;
-
-};
-
-
-
-
-var Provider = function(){
-
-    var VALUE       = 1,
-        CONSTANT    = 2,
-        FACTORY     = 3,
-        SERVICE     = 4,
-        PROVIDER    = 5,
-        globalProvider;
-
-    var Provider = function() {
-        this.store  = {};
-    };
-
-    extend(Provider.prototype, {
-
-        store: null,
-
-        instantiate: function(fn, context, args, isClass) {
-
-            if (fn.$instantiate) {
-                return fn.$instantiate.apply(fn, args);
-            }
-            else if (isClass) {
-                return instantiate(fn, args);
-            }
-            else {
-                return fn.apply(context, args);
-            }
-        },
-
-        inject: function(injectable, context, currentValues, callArgs, isClass) {
-
-            currentValues   = currentValues || {};
-            callArgs        = callArgs || [];
-
-            var self = this;
-
-            if (isFunction(injectable)) {
-
-                if (injectable.inject) {
-                    var tmp = slice.call(injectable.inject);
-                    tmp.push(injectable);
-                    injectable = tmp;
-                }
-                else {
-                    return self.instantiate(injectable, context, callArgs, isClass);
-                }
-            }
-
-            injectable  = slice.call(injectable);
-
-            var values  = [],
-                fn      = injectable.pop(),
-                i, l;
-
-            for (i = -1, l = injectable.length; ++i < l;
-                 values.push(self.resolve(injectable[i], currentValues))) {}
-
-            return Promise.all(values).then(function(values){
-                return self.instantiate(fn, context, values, isClass);
-            });
-        },
-
-        value: function(name, value) {
-            this.store[name] = {
-                type: VALUE,
-                value: value
-            };
-        },
-
-        constant: function(name, value) {
-            var store = this.store;
-            if (!store[name]) {
-                store[name] = {
-                    type: CONSTANT,
-                    value: value
-                };
-            }
-        },
-
-        factory: function(name, fn, context, singleton) {
-
-            if (isBool(context)) {
-                singleton = context;
-                context = null;
-            }
-
-            this.store[name] = {
-                type: FACTORY,
-                singleton: singleton,
-                fn: fn,
-                context: context
-            };
-        },
-
-        service: function(name, constr, singleton) {
-            this.store[name] = {
-                type: SERVICE,
-                singleton: singleton,
-                fn: constr
-            };
-        },
-
-        provider: function(name, constr) {
-
-            this.store[name + "Provider"] = {
-                name: name,
-                type: PROVIDER,
-                fn: constr,
-                instance: null
-            };
-        },
-
-
-        resolve: function(name, currentValues) {
-
-            var self    = this,
-                store   = self.store,
-                type,
-                item,
-                res;
-
-            if (currentValues[name] !== undf) {
-                return currentValues[name];
-            }
-
-            if (item = store[name]) {
-
-                type    = item.type;
-
-                if (type == VALUE || type == CONSTANT) {
-                    return item.value;
-                }
-                else if (type == FACTORY) {
-                    res = self.inject(item.fn, item.context, currentValues);
-                }
-                else if (type == SERVICE) {
-                    res = self.inject(item.fn, null, currentValues, null, true);
-                }
-                else if (type == PROVIDER) {
-
-                    if (!item.instance) {
-
-                        item.instance = Promise.resolve(
-                                self.inject(item.fn, null, currentValues)
-                            )
-                            .done(function(instance){
-                                item.instance = instance;
-                                store[item.name] = {
-                                    type: FACTORY,
-                                    fn: instance.$get,
-                                    context: instance
-                                };
-                            });
-                    }
-
-                    return item.instance;
-                }
-
-                if (item.singleton) {
-                    item.type = VALUE;
-                    item.value = res;
-
-                    if (type == FACTORY && isThenable(res)) {
-                        res.done(function(value){
-                            item.value = value;
-                        });
-                    }
-                }
-
-                return currentValues[name] = res;
-            }
-            else {
-
-                if (store[name + "Provider"]) {
-                    self.resolve(name + "Provider", currentValues);
-                    return self.resolve(name, currentValues);
-                }
-
-                if (self === globalProvider) {
-                    throw "Could not provide value for " + name;
-                }
-                else {
-                    return globalProvider.resolve(name);
-                }
-            }
-        },
-
-        destroy: function() {
-            this.store = null;
-            this.scope = null;
-        }
-
-    }, true, false);
-
-    Provider.global = function() {
-        return globalProvider;
-    };
-
-    globalProvider = new Provider;
-
-    return Provider;
-}();
-
-
-
 
 
 var Text = function(){
@@ -1914,6 +1650,7 @@ var Text = function(){
 
 
 
+
 /**
  * @mixin ObservableMixin
  */
@@ -1980,6 +1717,245 @@ var ObservableMixin = ns.add("mixin.Observable", {
 });
 
 
+
+function isObject(value) {
+    if (value === null || typeof value != "object") {
+        return false;
+    }
+    var vt = varType(value);
+    return vt > 2 || vt == -1;
+};
+
+
+
+var instantiate = function(fn, args) {
+
+    var Temp = function(){},
+        inst, ret;
+
+    Temp.prototype  = fn.prototype;
+    inst            = new Temp;
+    ret             = fn.apply(inst, args);
+
+    // If an object has been returned then return it otherwise
+    // return the original instance.
+    // (consistent with behaviour of the new operator)
+    return isObject(ret) || ret === false ? ret : inst;
+
+};
+
+
+
+
+
+var Provider = function(){
+
+    var VALUE       = 1,
+        CONSTANT    = 2,
+        FACTORY     = 3,
+        SERVICE     = 4,
+        PROVIDER    = 5,
+        globalProvider;
+
+    var Provider = function() {
+        this.store  = {};
+    };
+
+    extend(Provider.prototype, {
+
+        store: null,
+
+        instantiate: function(fn, context, args, isClass) {
+
+            if (fn.$instantiate) {
+                return fn.$instantiate.apply(fn, args);
+            }
+            else if (isClass) {
+                return instantiate(fn, args);
+            }
+            else {
+                return fn.apply(context, args);
+            }
+        },
+
+        inject: function(injectable, context, currentValues, callArgs, isClass) {
+
+            currentValues   = currentValues || {};
+            callArgs        = callArgs || [];
+
+            var self = this;
+
+            if (isFunction(injectable)) {
+
+                if (injectable.inject) {
+                    var tmp = slice.call(injectable.inject);
+                    tmp.push(injectable);
+                    injectable = tmp;
+                }
+                else {
+                    return self.instantiate(injectable, context, callArgs, isClass);
+                }
+            }
+
+            injectable  = slice.call(injectable);
+
+            var values  = [],
+                fn      = injectable.pop(),
+                i, l;
+
+            for (i = -1, l = injectable.length; ++i < l;
+                 values.push(self.resolve(injectable[i], currentValues))) {}
+
+            return Promise.all(values).then(function(values){
+                return self.instantiate(fn, context, values, isClass);
+            });
+        },
+
+        value: function(name, value) {
+            this.store[name] = {
+                type: VALUE,
+                value: value
+            };
+        },
+
+        constant: function(name, value) {
+            var store = this.store;
+            if (!store[name]) {
+                store[name] = {
+                    type: CONSTANT,
+                    value: value
+                };
+            }
+        },
+
+        factory: function(name, fn, context, singleton) {
+
+            if (isBool(context)) {
+                singleton = context;
+                context = null;
+            }
+
+            this.store[name] = {
+                type: FACTORY,
+                singleton: singleton,
+                fn: fn,
+                context: context
+            };
+        },
+
+        service: function(name, constr, singleton) {
+            this.store[name] = {
+                type: SERVICE,
+                singleton: singleton,
+                fn: constr
+            };
+        },
+
+        provider: function(name, constr) {
+
+            this.store[name + "Provider"] = {
+                name: name,
+                type: PROVIDER,
+                fn: constr,
+                instance: null
+            };
+        },
+
+
+        resolve: function(name, currentValues) {
+
+            var self    = this,
+                store   = self.store,
+                type,
+                item,
+                res;
+
+            if (currentValues[name] !== undf) {
+                return currentValues[name];
+            }
+
+            if (item = store[name]) {
+
+                type    = item.type;
+
+                if (type == VALUE || type == CONSTANT) {
+                    return item.value;
+                }
+                else if (type == FACTORY) {
+                    res = self.inject(item.fn, item.context, currentValues);
+                }
+                else if (type == SERVICE) {
+                    res = self.inject(item.fn, null, currentValues, null, true);
+                }
+                else if (type == PROVIDER) {
+
+                    if (!item.instance) {
+
+                        item.instance = Promise.resolve(
+                                self.inject(item.fn, null, currentValues)
+                            )
+                            .done(function(instance){
+                                item.instance = instance;
+                                store[item.name] = {
+                                    type: FACTORY,
+                                    fn: instance.$get,
+                                    context: instance
+                                };
+                            });
+                    }
+
+                    return item.instance;
+                }
+
+                if (item.singleton) {
+                    item.type = VALUE;
+                    item.value = res;
+
+                    if (type == FACTORY && isThenable(res)) {
+                        res.done(function(value){
+                            item.value = value;
+                        });
+                    }
+                }
+
+                return currentValues[name] = res;
+            }
+            else {
+
+                if (store[name + "Provider"]) {
+                    self.resolve(name + "Provider", currentValues);
+                    return self.resolve(name, currentValues);
+                }
+
+                if (self === globalProvider) {
+                    throw "Could not provide value for " + name;
+                }
+                else {
+                    return globalProvider.resolve(name);
+                }
+            }
+        },
+
+        destroy: function() {
+            this.store = null;
+            this.scope = null;
+        }
+
+    }, true, false);
+
+    Provider.global = function() {
+        return globalProvider;
+    };
+
+    globalProvider = new Provider;
+
+    return Provider;
+}();
+
+
+
+
+
 var ProviderMixin = {
 
     /**
@@ -2036,6 +2012,7 @@ var ProviderMixin = {
     }
 
 };
+
 
 
 
@@ -2166,7 +2143,9 @@ defineClass({
 
 
 
-var elHtml = document.documentElement;
+
+var documentElement = document.documentElement;
+
 
 
 var isAttached = function(){
@@ -2182,10 +2161,45 @@ var isAttached = function(){
                 return true;
             }
         }
-        return node === elHtml ? true : elHtml.contains(node);
+        return node === documentElement ? true : documentElement.contains(node);
     };
     return isAttached;
 }();
+
+
+
+
+var data = function(){
+
+    var dataCache   = {},
+
+        getNodeId   = function(el) {
+            return el._mjsid || (el._mjsid = nextUid());
+        };
+
+    /**
+     * @param {Element} el
+     * @param {String} key
+     * @param {*} value optional
+     */
+    return function data(el, key, value) {
+        var id  = getNodeId(el),
+            obj = dataCache[id];
+
+        if (value !== undf) {
+            if (!obj) {
+                obj = dataCache[id] = {};
+            }
+            obj[key] = value;
+            return value;
+        }
+        else {
+            return obj ? obj[key] : undf;
+        }
+    };
+
+}();
+
 
 
 function toFragment(nodes) {
@@ -2207,6 +2221,7 @@ function toFragment(nodes) {
 
     return fragment;
 };
+
 
 
 /**
@@ -2247,7 +2262,9 @@ var clone = function clone(node) {
 
 
 
-var shadowRootSupported = !!elHtml.createShadowRoot;
+
+var shadowRootSupported = !!documentElement.createShadowRoot;
+
 
 
 
@@ -2580,6 +2597,7 @@ var Template = function(){
         loadTemplate: loadTemplate
     });
 }();
+
 
 
 
@@ -2921,6 +2939,7 @@ var Component = defineClass({
  * @md-end-class
  */
 
+
 /**
  * @param {String} expr
  */
@@ -2934,6 +2953,7 @@ var getRegExp = function(){
 }();
 
 
+
 /**
  * @param {String} cls
  * @returns {RegExp}
@@ -2941,6 +2961,7 @@ var getRegExp = function(){
 function getClsReg(cls) {
     return getRegExp('(?:^|\\s)'+cls+'(?!\\S)');
 };
+
 
 
 /**
@@ -2952,6 +2973,7 @@ function removeClass(el, cls) {
         el.className = el.className.replace(getClsReg(cls), '');
     }
 };
+
 
 
 var stopAnimation = function(el) {
@@ -2986,11 +3008,45 @@ var stopAnimation = function(el) {
     data(el, "mjsAnimationQueue", null);
 };
 
+/**
+ * @param {Function} fn
+ * @param {Object} context
+ * @param {[]} args
+ * @param {number} timeout
+ */
+function async(fn, context, args, timeout) {
+    setTimeout(function(){
+        fn.apply(context, args || []);
+    }, timeout || 0);
+};
+
 
 
 function isNumber(value) {
     return varType(value) === 1;
 };
+
+var strUndef = "undefined";
+
+
+
+function error(e) {
+
+    var stack = e.stack || (new Error).stack;
+
+    if (typeof console != strUndef && console.log) {
+        async(function(){
+            console.log(e);
+            if (stack) {
+                console.log(stack);
+            }
+        });
+    }
+    else {
+        throw e;
+    }
+};
+
 
 
 
@@ -3188,10 +3244,12 @@ extend(Queue.prototype, {
 
 
 
+
 function isPrimitive(value) {
     var vt = varType(value);
     return vt < 3 && vt > -1;
 };
+
 
 
 var raf = function() {
@@ -3226,6 +3284,7 @@ var raf = function() {
         }
     };
 }();
+
 
 
 var functionFactory = function() {
@@ -3391,7 +3450,9 @@ var functionFactory = function() {
 }();
 
 
+
 var createGetter = functionFactory.createGetter;
+
 var rToCamelCase = /-./g;
 
 function toCamelCase(str) {
@@ -3399,6 +3460,7 @@ function toCamelCase(str) {
         return match.charAt(1).toUpperCase();
     });
 };
+
 
 
 var getNodeData = function() {
@@ -3441,6 +3503,7 @@ var getNodeData = function() {
 }();
 
 
+
 function getNodeConfig(node, scope, expr) {
 
     var cfg = data(node, "config"),
@@ -3471,6 +3534,7 @@ function getNodeConfig(node, scope, expr) {
 
     return cfg;
 };
+
 
 var ListRenderer = defineClass({
 
@@ -4060,6 +4124,7 @@ var ListRenderer = defineClass({
 
 
 
+
 /**
  * @param {Element} el
  * @param {String} cls
@@ -4068,6 +4133,7 @@ var ListRenderer = defineClass({
 function hasClass(el, cls) {
     return cls ? getClsReg(cls).test(el.className) : false;
 };
+
 
 
 /**
@@ -4079,6 +4145,7 @@ function addClass(el, cls) {
         el.className += " " + cls;
     }
 };
+
 
 
 
@@ -4215,7 +4282,9 @@ function resolveComponent(cmp, cfg, scope, node, args) {
 
 
 
+
 var currentUrl = history.currentUrl;
+
 
 
 
@@ -4437,6 +4506,7 @@ defineClass({
 
 
 
+
 function returnFalse() {
     return false;
 };
@@ -4444,7 +4514,9 @@ function returnFalse() {
 
 
 
+
 Directive.registerAttribute("mjs-app", 100, returnFalse);
+
 function isField(el) {
     var tag	= el.nodeName.toLowerCase(),
         type = el.type;
@@ -4456,10 +4528,12 @@ function isField(el) {
     return false;
 };
 
+
 var elemTextProp = function(){
     var node    = document.createElement("div");
     return isString(node.textContent) ? "textContent" : "innerText";
 }();
+
 
 
 
@@ -4560,6 +4634,7 @@ Directive.registerAttribute("mjs-bind", 1000, defineClass({
 
 
 
+
 Directive.registerAttribute("mjs-bind-html", 1000, defineClass({
 
     $extends: "attr.mjs-bind",
@@ -4568,6 +4643,7 @@ Directive.registerAttribute("mjs-bind-html", 1000, defineClass({
         this.node.innerHTML = val;
     }
 }));
+
 
 
 
@@ -4650,12 +4726,14 @@ Directive.registerAttribute("mjs-bind-html", 1000, defineClass({
 
 
 
+
 Directive.registerAttribute("mjs-cmp-prop", 200,
     ['$parentCmp', '$node', '$attrValue', function(parentCmp, node, expr){
     if (parentCmp) {
         parentCmp[expr] = node;
     }
 }]);
+
 
 
 (function(){
@@ -4711,9 +4789,11 @@ Directive.registerAttribute("mjs-cmp-prop", 200,
 }());
 
 
+
 Directive.registerAttribute("mjs-config", 50, function(scope, node, expr){
     getNodeConfig(node, scope, expr);
 });
+
 
 
 
@@ -4723,11 +4803,14 @@ Directive.registerAttribute("mjs-each", 100, ListRenderer);
 
 
 
+
 var createFunc = functionFactory.createFunc;
+
 
 function returnTrue() {
     return true;
 };
+
 
 
 // from jQuery
@@ -4844,9 +4927,11 @@ extend(DomEvent.prototype, {
 
 
 
+
 function normalizeEvent(originalEvent) {
     return new DomEvent(originalEvent);
 };
+
 
 function addListener(el, event, func) {
     if (el.attachEvent) {
@@ -4855,6 +4940,7 @@ function addListener(el, event, func) {
         el.addEventListener(event, func, false);
     }
 };
+
 
 
 (function(){
@@ -4902,6 +4988,7 @@ function addListener(el, event, func) {
     }
 
 }());
+
 
 
 
@@ -4964,6 +5051,7 @@ Directive.registerAttribute("mjs-show", 500, defineClass({
 
 
 
+
 Directive.registerAttribute("mjs-hide", 500, defineClass({
 
     $extends: "attr.mjs-show",
@@ -4976,6 +5064,7 @@ Directive.registerAttribute("mjs-hide", 500, defineClass({
         self.initial = false;
     }
 }));
+
 
 
 
@@ -5047,7 +5136,9 @@ Directive.registerAttribute("mjs-if", 500, defineClass({
 
 
 
+
 Directive.registerAttribute("mjs-ignore", 0, returnFalse);
+
 
 
 
@@ -5072,10 +5163,13 @@ Directive.registerAttribute("mjs-include", 900, function(scope, node, tplExpr, p
 
 
 
+
 Directive.registerAttribute("mjs-init", 250, function(scope, node, expr){
     createFunc(expr)(scope);
 });
+
 var uaString = navigator.userAgent.toLowerCase();
+
 
 
 var isIE = function(){
@@ -5090,6 +5184,7 @@ var isIE = function(){
         return msie;
     };
 }();
+
 
 
 
@@ -5191,6 +5286,7 @@ Directive.registerAttribute("mjs-model", 1000, defineClass({
 
 
 
+
 Directive.registerAttribute("mjs-options", 100, defineClass({
 
     $extends: Directive,
@@ -5284,6 +5380,8 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
             value       = getValue(node),
             def         = self.defOption,
             tmpScope    = self.scope.$new(),
+            msie        = isIE(),
+            parent, next,
             i, len;
 
         self.fragment   = document.createDocumentFragment();
@@ -5304,8 +5402,22 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
 
         tmpScope.$destroy();
 
+        // ie6 gives "unspecified error when trying to set option.selected"
+        // on node.appendChild(fragment);
+        // somehow this get fixed by detaching dom node
+        // and attaching it back
+        if (msie && msie < 8) {
+            next = node.nextSibling;
+            parent = node.parentNode;
+            parent.removeChild(node);
+        }
+
         node.appendChild(self.fragment);
         self.fragment = null;
+
+        if (msie && msie < 8) {
+            parent.insertBefore(node, next);
+        }
 
         setValue(node, value);
     },
@@ -5330,6 +5442,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
     }
 
 }));
+
 
 
 
@@ -5381,6 +5494,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
 
 
 
+
 var preloadImage = function() {
 
     var cache = {},
@@ -5420,6 +5534,7 @@ var preloadImage = function() {
     };
 
 }();
+
 
 
 
@@ -5488,6 +5603,7 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
 }));
 
 
+
 function parentData(node, key) {
 
     var val;
@@ -5502,6 +5618,7 @@ function parentData(node, key) {
 
     return undf;
 };
+
 
 
 function transclude(node) {
@@ -5529,15 +5646,18 @@ function transclude(node) {
 };
 
 
+
 Directive.registerAttribute("mjs-transclude", 1000, function(scope, node) {
     return transclude(node);
 });
+
 
 
 Directive.registerAttribute("mjs-view", 200, function(scope, node, cls) {
     resolveComponent(cls || "MetaphorJs.View", {scope: scope, node: node}, scope, node)
     return false;
 });
+
 
 
 
@@ -5557,9 +5677,11 @@ Directive.registerTag("mjs-include", function(scope, node, value, parentRenderer
 
 
 
+
 Directive.registerTag("mjs-transclude", function(scope, node) {
     return transclude(node);
 });
+
 
 
 
@@ -5650,9 +5772,11 @@ var filterArray = function(){
 }();
 
 
+
 nsAdd("filter.filter", function(val, scope, by, opt) {
     return filterArray(val, by, opt);
 });
+
 
 
 
@@ -5674,9 +5798,11 @@ nsAdd("filter.join", function(input, scope, separator) {
 });
 
 
+
 nsAdd("filter.l", function(key, scope) {
     return scope.$app.lang.get(key);
 });
+
 
 
 
@@ -5729,6 +5855,7 @@ nsAdd("filter.limitTo", function(input, scope, limit){
 
 
 
+
 nsAdd("filter.linkify", function(input, scope, target){
     target = target ? ' target="'+target+'"' : "";
     if (input) {
@@ -5740,10 +5867,13 @@ nsAdd("filter.linkify", function(input, scope, target){
 
 
 
+
 nsAdd("filter.lowercase", function(val){
     return val.toLowerCase();
 });
+
 var dateFormats = {};
+
 
 
 
@@ -5753,7 +5883,9 @@ nsAdd("filter.moment",  function(val, scope, format) {
     return moment(val).format(format);
 });
 
+
 var numberFormats = {};
+
 
 
 
@@ -5766,9 +5898,11 @@ nsAdd("filter.numeral",  function(val, scope, format) {
 });
 
 
+
 nsAdd("filter.p", function(key, scope, number) {
     return scope.$app.lang.plural(key, parseInt(number, 10) || 0);
 });
+
 
 
 function sortArray(arr, by, dir) {
@@ -5817,9 +5951,11 @@ function sortArray(arr, by, dir) {
 };
 
 
+
 nsAdd("filter.sortBy", function(val, scope, field, dir) {
     return sortArray(val, field, dir);
 });
+
 
 
 
@@ -5849,9 +5985,11 @@ nsAdd("filter.split", function(input, scope, sep, limit) {
 
 
 
+
 nsAdd("filter.toArray", function(input){
     return toArray(input);
 });
+
 
 
 nsAdd("filter.ucfirst", function(val){
@@ -5860,9 +5998,752 @@ nsAdd("filter.ucfirst", function(val){
 
 
 
+
 nsAdd("filter.uppercase", function(val){
     return val.toUpperCase();
 });
+
+
+
+/**
+ * @param {*} val
+ * @param {[]} arr
+ * @returns {boolean}
+ */
+function inArray(val, arr) {
+    return arr ? (aIndexOf.call(arr, val) != -1) : false;
+};
+
+
+
+function isDate(value) {
+    return varType(value) === 10;
+};
+
+
+
+function isRegExp(value) {
+    return varType(value) === 9;
+};
+
+function isWindow(obj) {
+    return obj === window ||
+           (obj && obj.document && obj.location && obj.alert && obj.setInterval);
+};
+
+
+
+// from Angular
+
+var equals = function(){
+
+    var equals = function equals(o1, o2) {
+        if (o1 === o2) return true;
+        if (o1 === null || o2 === null) return false;
+        if (o1 !== o1 && o2 !== o2) return true; // NaN === NaN
+        var t1 = typeof o1, t2 = typeof o2, length, key, keySet;
+        if (t1 == t2) {
+            if (t1 == 'object') {
+                if (isArray(o1)) {
+                    if (!isArray(o2)) return false;
+                    if ((length = o1.length) == o2.length) {
+                        for(key=0; key<length; key++) {
+                            if (!equals(o1[key], o2[key])) return false;
+                        }
+                        return true;
+                    }
+                } else if (isDate(o1)) {
+                    return isDate(o2) && o1.getTime() == o2.getTime();
+                } else if (isRegExp(o1) && isRegExp(o2)) {
+                    return o1.toString() == o2.toString();
+                } else {
+                    if (isWindow(o1) || isWindow(o2) || isArray(o2)) return false;
+                    keySet = {};
+                    for(key in o1) {
+                        if (key.charAt(0) == '$' || isFunction(o1[key])) {//&& typeof o1[key] == "object") {
+                            continue;
+                        }
+                        //if (isFunction(o1[key])) {
+                        //    continue;
+                        //}
+                        if (!equals(o1[key], o2[key])) {
+                            return false;
+                        }
+                        keySet[key] = true;
+                    }
+                    for(key in o2) {
+                        if (!keySet.hasOwnProperty(key) &&
+                            key.charAt(0) != '$' &&
+                            o2[key] !== undf &&
+                            !isFunction(o2[key])) return false;
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    return equals;
+}();
+
+
+
+function levenshteinArray(from, to) {
+
+    var m = from.length,
+        n = to.length,
+        D = new Array(m + 1),
+        P = new Array(m + 1),
+        i, j, c,
+        route,
+        cost,
+        dist,
+        ops = 0;
+
+    if (m == n && m == 0) {
+        return {
+            changes: 0,
+            distance: 0,
+            prescription: []
+        };
+    }
+
+    for (i = 0; i <= m; i++) {
+        D[i]    = new Array(n + 1);
+        P[i]    = new Array(n + 1);
+        D[i][0] = i;
+        P[i][0] = 'D';
+    }
+    for (i = 0; i <= n; i++) {
+        D[0][i] = i;
+        P[0][i] = 'I';
+    }
+
+    for (i = 1; i <= m; i++) {
+        for (j = 1; j <= n; j++) {
+            cost = (!equals(from[i - 1], to[j - 1])) ? 1 : 0;
+
+            if(D[i][j - 1] < D[i - 1][j] && D[i][j - 1] < D[i - 1][j - 1] + cost) {
+                //Insert
+                D[i][j] = D[i][j - 1] + 1;
+                P[i][j] = 'I';
+            }
+            else if(D[i - 1][j] < D[i - 1][j - 1] + cost) {
+                //Delete
+                D[i][j] = D[i - 1][j] + 1;
+                P[i][j] = 'D';
+            }
+            else {
+                //Replace or noop
+                D[i][j] = D[i - 1][j - 1] + cost;
+                if (cost == 1) {
+                    P[i][j] = 'R';
+                }
+                else {
+                    P[i][j] = '-';
+                }
+            }
+        }
+    }
+
+    //Prescription
+    route = [];
+    i = m;
+    j = n;
+
+    do {
+        c = P[i][j];
+        route.push(c);
+        if (c != '-') {
+            ops++;
+        }
+        if(c == 'R' || c == '-') {
+            i --;
+            j --;
+        }
+        else if(c == 'D') {
+            i --;
+        }
+        else {
+            j --;
+        }
+    } while((i != 0) || (j != 0));
+
+    dist = D[m][n];
+
+    return {
+        changes: ops / route.length,
+        distance: dist,
+        prescription: route.reverse()
+    };
+};
+
+
+
+/**
+ * @param {String} event
+ * @return {boolean}
+ */
+var browserHasEvent = function(){
+
+    var eventSupport = {};
+
+    return function browserHasEvent(event) {
+        // IE9 implements 'input' event it's so fubared that we rather pretend that it doesn't have
+        // it. In particular the event is not fired when backspace or delete key are pressed or
+        // when cut operation is performed.
+
+        if (eventSupport[event] === undf) {
+
+            if (event == 'input' && isIE() == 9) {
+                return eventSupport[event] = false;
+            }
+
+            var divElm = document.createElement('div');
+            eventSupport[event] = !!('on' + event in divElm);
+        }
+
+        return eventSupport[event];
+    };
+}();
+
+
+
+var isAndroid = function(){
+
+    var android = parseInt((/android (\d+)/.exec(uaString) || [])[1], 10) || false;
+
+    return function isAndroid() {
+        return android;
+    };
+
+}();
+
+
+
+function compile(htmlString, scope) {
+
+    var div = document.createElement("div");
+
+    div.innerHTML = htmlString;
+
+    var fragment = toFragment(div.childNodes);
+
+    var renderer = new Renderer(fragment, scope);
+    renderer.process();
+
+    return fragment;
+};
+
+
+
+var copy = function(){
+
+    var copy = function copy(source, dest){
+        if (isWindow(source)) {
+            throw new Error("Cannot copy window object");
+        }
+
+        if (!dest) {
+            dest = source;
+            if (source) {
+                if (isArray(source)) {
+                    dest = copy(source, []);
+                } else if (isDate(source)) {
+                    dest = new Date(source.getTime());
+                } else if (isRegExp(source)) {
+                    dest = new RegExp(source.source);
+                } else if (isPlainObject(source)) {
+                    dest = copy(source, {});
+                }
+            }
+        } else {
+            if (source === dest) {
+                throw new Error("Objects are identical");
+            }
+            if (isArray(source)) {
+                dest.length = 0;
+                for ( var i = 0, l = source.length; i < l; i++) {
+                    dest.push(copy(source[i]));
+                }
+            } else {
+                var key;
+                for (key in dest) {
+                    delete dest[key];
+                }
+                for (key in source) {
+                    if (source.hasOwnProperty(key)) {
+                        if (key.charAt(0) == '$' || isFunction(source[key])) {
+                            dest[key] = source[key];
+                        }
+                        else {
+                            dest[key] = copy(source[key]);
+                        }
+                    }
+                }
+            }
+        }
+        return dest;
+    };
+
+    return copy;
+}();
+
+
+
+/**
+ * @param {Element} el
+ * @param {String} selector
+ * @returns {boolean}
+ */
+var is = select.is;
+
+var delegates = {};
+
+
+
+
+function delegate(el, selector, event, fn) {
+
+    var key = selector + "-" + event,
+        listener    = function(e) {
+            e = normalizeEvent(e);
+            if (is(e.target, selector)) {
+                return fn(e);
+            }
+            return null;
+        };
+
+    if (!delegates[key]) {
+        delegates[key] = [];
+    }
+
+    delegates[key].push({el: el, ls: listener, fn: fn});
+
+    addListener(el, event, listener);
+};
+
+function eachNode(el, fn, context) {
+    var i, len,
+        children = el.childNodes;
+
+    if (fn.call(context, el) !== false) {
+        for(i =- 1, len = children.length>>>0;
+            ++i !== len;
+            eachNode(children[i], fn, context)){}
+    }
+};
+
+
+
+var getStyle = function() {
+
+    if (window.getComputedStyle) {
+        return function (node, prop, numeric) {
+            if (node === window) {
+                return prop? (numeric ? 0 : null) : {};
+            }
+            var style = getComputedStyle(node, null),
+                val = prop ? style[prop] : style;
+
+            return numeric ? parseFloat(val) || 0 : val;
+        };
+    }
+
+    return function(node, prop, numeric) {
+        var style   = node.currentStyle || node.style || {},
+            val     = prop ? style[prop] : style;
+        return numeric ? parseFloat(val) || 0 : val;
+    };
+
+}();
+
+
+
+var boxSizingReliable = function() {
+
+    var boxSizingReliableVal;
+
+    var computePixelPositionAndBoxSizingReliable = function() {
+
+        var container = document.createElement("div"),
+            div = document.createElement("div"),
+            body = document.body;
+
+        if (!div.style || !window.getComputedStyle) {
+            return false;
+        }
+
+        container.style.cssText = "border:0;width:0;height:0;top:0;left:-9999px;margin-top:1px;" +
+                                  "position:absolute";
+        container.appendChild(div);
+
+        div.style.cssText =
+            // Support: Firefox<29, Android 2.3
+            // Vendor-prefix box-sizing
+        "-webkit-box-sizing:border-box;-moz-box-sizing:border-box;" +
+        "box-sizing:border-box;display:block;margin-top:1%;top:1%;" +
+        "border:1px;padding:1px;width:4px;position:absolute";
+        div.innerHTML = "";
+        body.appendChild(container);
+
+        var divStyle = window.getComputedStyle(div, null),
+            ret = divStyle.width === "4px";
+
+        body.removeChild(container);
+
+        return ret;
+    };
+
+    return function boxSizingReliable() {
+        if (boxSizingReliableVal === undf) {
+            boxSizingReliableVal = computePixelPositionAndBoxSizingReliable();
+        }
+
+        return boxSizingReliableVal;
+    };
+}();
+
+// from jQuery
+
+
+
+var getDimensions = function(type, name) {
+
+    var rnumnonpx = new RegExp( "^([+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|))(?!px)[a-z%]+$", "i"),
+        cssExpand = [ "Top", "Right", "Bottom", "Left" ],
+        defaultExtra = !type ? "content" : (type == "inner" ? "padding" : "");
+
+    var augmentWidthOrHeight = function(elem, name, extra, isBorderBox, styles) {
+        var i = extra === (isBorderBox ? "border" : "content") ?
+                // If we already have the right measurement, avoid augmentation
+                4 :
+                // Otherwise initialize for horizontal or vertical properties
+                name === "width" ? 1 : 0,
+
+            val = 0;
+
+        for (; i < 4; i += 2) {
+            // Both box models exclude margin, so add it if we want it
+            if (extra === "margin") {
+                val += parseFloat(styles[extra + cssExpand[i]]);
+            }
+
+            if (isBorderBox) {
+                // border-box includes padding, so remove it if we want content
+                if (extra === "content") {
+                    val -= parseFloat(styles["padding" + cssExpand[i]]);
+                }
+
+                // At this point, extra isn't border nor margin, so remove border
+                if (extra !== "margin") {
+                    val -= parseFloat(styles["border" + cssExpand[i] + "Width"]);
+                }
+            } else {
+                // At this point, extra isn't content, so add padding
+                val += parseFloat(styles["padding" + cssExpand[i]]);
+
+                // At this point, extra isn't content nor padding, so add border
+                if (extra !== "padding") {
+                    val += parseFloat(styles["border" + cssExpand[i] + "Width"]);
+                }
+            }
+        }
+
+        return val;
+    };
+
+    var getWidthOrHeight = function(elem, name, extra, styles) {
+
+        // Start with offset property, which is equivalent to the border-box value
+        var valueIsBorderBox = true,
+            val = name === "width" ? elem.offsetWidth : elem.offsetHeight,
+            isBorderBox = styles["boxSizing"] === "border-box";
+
+        // Some non-html elements return undefined for offsetWidth, so check for null/undefined
+        // svg - https://bugzilla.mozilla.org/show_bug.cgi?id=649285
+        // MathML - https://bugzilla.mozilla.org/show_bug.cgi?id=491668
+        if ( val <= 0 || val == null ) {
+            val = elem.style[name];
+
+            // Computed unit is not pixels. Stop here and return.
+            if (rnumnonpx.test(val)) {
+                return val;
+            }
+
+            // Check for style in case a browser which returns unreliable values
+            // for getComputedStyle silently falls back to the reliable elem.style
+            valueIsBorderBox = isBorderBox &&
+                               (boxSizingReliable() || val === elem.style[name]);
+
+            // Normalize "", auto, and prepare for extra
+            val = parseFloat(val) || 0;
+        }
+
+        // Use the active box-sizing model to add/subtract irrelevant styles
+        return val +
+                 augmentWidthOrHeight(
+                     elem,
+                     name,
+                     extra || (isBorderBox ? "border" : "content"),
+                     valueIsBorderBox,
+                     styles
+                 );
+    };
+
+
+    return function getDimensions(elem, margin) {
+
+        if (elem === window) {
+            return elem.document.documentElement["client" + name];
+        }
+
+        // Get document width or height
+        if (elem.nodeType === 9) {
+            var doc = elem.documentElement;
+
+            // Either scroll[Width/Height] or offset[Width/Height] or client[Width/Height],
+            // whichever is greatest
+            return Math.max(
+                elem.body["scroll" + name], doc["scroll" + name],
+                elem.body["offset" + name], doc["offset" + name],
+                doc["client" + name]
+            );
+        }
+
+        return getWidthOrHeight(
+            elem,
+            name.toLowerCase(),
+            defaultExtra || (margin === true ? "margin" : "border"),
+            getStyle(elem)
+        );
+    };
+
+};
+
+
+var getHeight = getDimensions("", "Height");
+
+
+var getInnerHeight = getDimensions("inner", "Height");
+
+
+var getInnerWidth = getDimensions("inner", "Width");
+
+
+
+var getScrollTopOrLeft = function(vertical) {
+
+    var defaultST,
+        wProp = vertical ? "pageYOffset" : "pageXOffset",
+        sProp = vertical ? "scrollTop" : "scrollLeft",
+        doc = document,
+        body = doc.body,
+        html = doc.documentElement;
+
+    if(window[wProp] !== undf) {
+        //most browsers except IE before #9
+        defaultST = function(){
+            return window[wProp];
+        };
+    }
+    else{
+        if (html.clientHeight) {
+            defaultST = function() {
+                return html[sProp];
+            };
+        }
+        else {
+            defaultST = function() {
+                return body[sProp];
+            };
+        }
+    }
+
+    return function(node) {
+        if (!node || node === window) {
+            return defaultST();
+        }
+        else if (node && node.nodeType == 1 &&
+            node !== body && node !== html) {
+            return node[sProp];
+        }
+        else {
+            return defaultST();
+        }
+    }
+
+};
+
+
+
+var getScrollTop = getScrollTopOrLeft(true);
+
+
+
+var getScrollLeft = getScrollTopOrLeft(false);
+
+
+
+function getOffset(node) {
+
+    var box = {top: 0, left: 0};
+
+    // Make sure it's not a disconnected DOM node
+    if (!isAttached(node) || node === window) {
+        return box;
+    }
+
+    // Support: BlackBerry 5, iOS 3 (original iPhone)
+    // If we don't have gBCR, just use 0,0 rather than error
+    if (node.getBoundingClientRect ) {
+        box = node.getBoundingClientRect();
+    }
+
+    return {
+        top: box.top + getScrollTop() - documentElement.clientTop,
+        left: box.left + getScrollLeft() - documentElement.clientLeft
+    };
+};
+
+
+
+
+function getOffsetParent(node) {
+
+    var offsetParent = node.offsetParent || documentElement;
+
+    while (offsetParent && (offsetParent != documentElement &&
+                              getStyle(offsetParent, "position") == "static")) {
+        offsetParent = offsetParent.offsetParent;
+    }
+
+    return offsetParent || documentElement;
+
+};
+
+
+
+var getOuterHeight = getDimensions("outer", "Height");
+
+
+
+var getOuterWidth = getDimensions("outer", "Width");
+
+
+
+function getPosition(node, to) {
+
+    var offsetParent, offset,
+        parentOffset = {top: 0, left: 0};
+
+    if (node === window || node === documentElement) {
+        return parentOffset;
+    }
+
+    // Fixed elements are offset from window (parentOffset = {top:0, left: 0},
+    // because it is its only offset parent
+    if (getStyle(node, "position" ) == "fixed") {
+        // Assume getBoundingClientRect is there when computed position is fixed
+        offset = node.getBoundingClientRect();
+    }
+    else if (to) {
+        var thisOffset = getOffset(node),
+            toOffset = getOffset(to),
+            position = {
+                left: thisOffset.left - toOffset.left,
+                top: thisOffset.top - toOffset.top
+            };
+
+        if (position.left < 0) {
+            position.left = 0;
+        }
+        if (position.top < 0) {
+            position.top = 0;
+        }
+        return position;
+    }
+    else {
+        // Get *real* offsetParent
+        offsetParent = getOffsetParent(node);
+
+        // Get correct offsets
+        offset = getOffset(node);
+
+        if (offsetParent !== documentElement) {
+            parentOffset = getOffset(offsetParent);
+        }
+
+        // Add offsetParent borders
+        parentOffset.top += getStyle(offsetParent, "borderTopWidth", true);
+        parentOffset.left += getStyle(offsetParent, "borderLeftWidth", true);
+    }
+
+    // Subtract parent offsets and element margins
+    return {
+        top: offset.top - parentOffset.top - getStyle(node, "marginTop", true),
+        left: offset.left - parentOffset.left - getStyle(node, "marginLeft", true)
+    };
+};
+
+
+
+var getScrollParent = function() {
+
+    var rOvf        = /(auto|scroll)/,
+        body,
+
+        overflow    = function (node) {
+            var style = getStyle(node);
+            return style["overflow"] + style["overflowY"] + style["overflowY"];
+        },
+
+        scroll      = function (node) {
+            return rOvf.test(overflow(node));
+        };
+
+    return function getScrollParent(node) {
+
+        if (!body) {
+            body = document.body;
+        }
+
+        var parent = node;
+
+        while (parent) {
+            if (parent === body) {
+                return window;
+            }
+            if (scroll(parent)) {
+                return parent;
+            }
+            parent = parent.parentNode;
+        }
+
+        return window;
+    };
+}();
+
+
+
+var getWidth = getDimensions("", "Width");
+/**
+ * @param {Element} elem
+ * @returns {boolean}
+ */
+function isSubmittable(elem) {
+    var type	= elem.type ? elem.type.toLowerCase() : '';
+    return elem.nodeName.toLowerCase() == 'input' && type != 'radio' && type != 'checkbox';
+};
+/**
+ * @param {Element} el
+ * @returns {boolean}
+ */
+function isVisible(el) {
+    return !(el.offsetWidth <= 0 || el.offsetHeight <= 0);
+};
+
 
 function removeListener(el, event, func) {
     if (el.detachEvent) {
@@ -5871,6 +6752,7 @@ function removeListener(el, event, func) {
         el.removeEventListener(event, func, false);
     }
 };
+
 
 
 /**
@@ -5925,6 +6807,24 @@ function onReady(fn) {
 };
 
 
+
+function undelegate(el, selector, event, fn) {
+
+    var key = selector + "-" + event,
+        i, l,
+        ds;
+
+    if (ds = delegates[key]) {
+        for (i = -1, l = ds.length; ++i < l;) {
+            if (ds[i].el === el && ds[i].fn === fn) {
+                removeListener(el, event, ds[i].ls);
+            }
+        }
+    }
+};
+
+
+
 function initApp(node, cls, data, autorun) {
 
     try {
@@ -5946,6 +6846,130 @@ function initApp(node, cls, data, autorun) {
 };
 
 
+var intercept = function(origFn, interceptor, context, origContext, when, replaceValue) {
+
+    when = when || "before";
+
+    return function() {
+
+        var intrRes,
+            origRes;
+
+        if (when == "instead") {
+            return interceptor.apply(context || origContext, arguments);
+        }
+        else if (when == "before") {
+            intrRes = interceptor.apply(context || origContext, arguments);
+            origRes = intrRes !== false ? origFn.apply(origContext || context, arguments) : null;
+        }
+        else {
+            origRes = origFn.apply(origContext || context, arguments);
+            intrRes = interceptor.apply(context || origContext, arguments);
+        }
+
+        return replaceValue ? intrRes : origRes;
+    };
+};
+
+
+
+/**
+ * @param {*} any
+ * @returns {boolean}
+ */
+function isInjectable(any) {
+    return any && ((any.length && isFunction(any[any.length - 1])) ||
+                    any.inject);
+};
+// https://gist.github.com/jdalton/5e34d890105aca44399f
+
+var isNative = function() {
+
+    // Used to resolve the internal `[[Class]]` of values.
+    var toString = Object.prototype.toString;
+
+    // Used to resolve the decompiled source of functions.
+    var fnToString = Function.prototype.toString;
+
+    // Used to detect host constructors (Safari > 4; really typed array specific).
+    var reHostCtor = /^\[object .+?Constructor\]$/;
+
+    // Compile a regexp using a common native method as a template.
+    // We chose `Object#toString` because there's a good chance it is not being mucked with.
+    var reNative = RegExp('^' +
+                          // Coerce `Object#toString` to a string.
+                          String(toString)
+                              // Escape any special regexp characters.
+                              .replace(/[.*+?^${}()|[\]\/\\]/g, '\\$&')
+                              // Replace mentions of `toString` with `.*?` to keep the template generic.
+                              // Replace thing like `for ...` to support environments, like Rhino, which add extra
+                              // info such as method arity.
+                              .replace(/toString|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$'
+    );
+
+    return function isNative(value) {
+        var type = typeof value;
+        return type == 'function'
+            // Use `Function#toString` to bypass the value's own `toString` method
+            // and avoid being faked out.
+            ? (!('prototype' in value) || reNative.test(fnToString.call(value)))
+            // Fallback to a host object check because some environments will represent
+            // things like typed arrays as DOM methods which may not conform to the
+            // normal native pattern.
+            : (value && type == 'object' && reHostCtor.test(toString.call(value))) || false;
+    };
+
+}();
+
+
+
+function isUndefined(any) {
+    return typeof any == strUndef;
+};
+
+
+
+
+var parseJSON = function() {
+
+    return typeof JSON != strUndef ?
+           function(data) {
+               return JSON.parse(data);
+           } :
+           function(data) {
+               return (new Function("return " + data))();
+           };
+}();
+
+
+
+
+
+function parseXML(data, type) {
+
+    var xml, tmp;
+
+    if (!data || !isString(data)) {
+        return null;
+    }
+
+    // Support: IE9
+    try {
+        tmp = new DOMParser();
+        xml = tmp.parseFromString(data, type || "text/xml");
+    } catch (thrownError) {
+        xml = undf;
+    }
+
+    if (!xml || xml.getElementsByTagName("parsererror").length) {
+        throw "Invalid XML: " + data;
+    }
+
+    return xml;
+};
+
+
+
 function run() {
 
     onReady(function() {
@@ -5960,6 +6984,11 @@ function run() {
     });
 
 };
+
+function ucfirst(str) {
+    return str.substr(0, 1).toUpperCase() + str.substr(1);
+};
+
 
 
 
@@ -6038,7 +7067,9 @@ var StoreRenderer = ListRenderer.$extend({
 
 
 
+
 Directive.registerAttribute("mjs-each-in-store", 100, StoreRenderer);
+
 
 
 
@@ -6115,17 +7146,6 @@ defineClass({
     }
 
 });
-
-function eachNode(el, fn, context) {
-    var i, len,
-        children = el.childNodes;
-
-    if (fn.call(context, el) !== false) {
-        for(i =- 1, len = children.length>>>0;
-            ++i !== len;
-            eachNode(children[i], fn, context)){}
-    }
-};
 
 
 
@@ -6342,5 +7362,136 @@ Directive.registerAttribute("mjs-validate", 250, ['$scope', '$node', '$attrValue
     }
 }]);
 
+MetaphorJs['ns'] = ns;
+MetaphorJs['cs'] = cs;
+MetaphorJs['defineClass'] = defineClass;
+MetaphorJs['emptyFn'] = emptyFn;
+MetaphorJs['slice'] = slice;
+MetaphorJs['getAttr'] = getAttr;
+MetaphorJs['undf'] = undf;
+MetaphorJs['varType'] = varType;
+MetaphorJs['isPlainObject'] = isPlainObject;
+MetaphorJs['isBool'] = isBool;
+MetaphorJs['extend'] = extend;
+MetaphorJs['Scope'] = Scope;
+MetaphorJs['nextUid'] = nextUid;
+MetaphorJs['isArray'] = isArray;
+MetaphorJs['toArray'] = toArray;
+MetaphorJs['isFunction'] = isFunction;
+MetaphorJs['isThenable'] = isThenable;
+MetaphorJs['nsGet'] = nsGet;
+MetaphorJs['isString'] = isString;
+MetaphorJs['nodeTextProp'] = nodeTextProp;
+MetaphorJs['trim'] = trim;
+MetaphorJs['createWatchable'] = createWatchable;
+MetaphorJs['nsAdd'] = nsAdd;
+MetaphorJs['Directive'] = Directive;
+MetaphorJs['bind'] = bind;
+MetaphorJs['isNull'] = isNull;
+MetaphorJs['TextRenderer'] = TextRenderer;
+MetaphorJs['setAttr'] = setAttr;
+MetaphorJs['removeAttr'] = removeAttr;
+MetaphorJs['getAttrMap'] = getAttrMap;
+MetaphorJs['aIndexOf'] = aIndexOf;
+MetaphorJs['Renderer'] = Renderer;
+MetaphorJs['Text'] = Text;
+MetaphorJs['ObservableMixin'] = ObservableMixin;
+MetaphorJs['isObject'] = isObject;
+MetaphorJs['instantiate'] = instantiate;
+MetaphorJs['Provider'] = Provider;
+MetaphorJs['ProviderMixin'] = ProviderMixin;
+MetaphorJs['documentElement'] = documentElement;
+MetaphorJs['isAttached'] = isAttached;
+MetaphorJs['data'] = data;
+MetaphorJs['toFragment'] = toFragment;
+MetaphorJs['clone'] = clone;
+MetaphorJs['shadowRootSupported'] = shadowRootSupported;
+MetaphorJs['Template'] = Template;
+MetaphorJs['Component'] = Component;
+MetaphorJs['getRegExp'] = getRegExp;
+MetaphorJs['getClsReg'] = getClsReg;
+MetaphorJs['removeClass'] = removeClass;
+MetaphorJs['stopAnimation'] = stopAnimation;
+MetaphorJs['async'] = async;
+MetaphorJs['isNumber'] = isNumber;
+MetaphorJs['strUndef'] = strUndef;
+MetaphorJs['error'] = error;
+MetaphorJs['Queue'] = Queue;
+MetaphorJs['isPrimitive'] = isPrimitive;
+MetaphorJs['raf'] = raf;
+MetaphorJs['functionFactory'] = functionFactory;
+MetaphorJs['createGetter'] = createGetter;
+MetaphorJs['toCamelCase'] = toCamelCase;
+MetaphorJs['getNodeData'] = getNodeData;
+MetaphorJs['getNodeConfig'] = getNodeConfig;
+MetaphorJs['ListRenderer'] = ListRenderer;
+MetaphorJs['hasClass'] = hasClass;
+MetaphorJs['addClass'] = addClass;
+MetaphorJs['resolveComponent'] = resolveComponent;
+MetaphorJs['currentUrl'] = currentUrl;
+MetaphorJs['returnFalse'] = returnFalse;
+MetaphorJs['isField'] = isField;
+MetaphorJs['elemTextProp'] = elemTextProp;
+MetaphorJs['createFunc'] = createFunc;
+MetaphorJs['returnTrue'] = returnTrue;
+MetaphorJs['DomEvent'] = DomEvent;
+MetaphorJs['normalizeEvent'] = normalizeEvent;
+MetaphorJs['addListener'] = addListener;
+MetaphorJs['uaString'] = uaString;
+MetaphorJs['isIE'] = isIE;
+MetaphorJs['preloadImage'] = preloadImage;
+MetaphorJs['parentData'] = parentData;
+MetaphorJs['transclude'] = transclude;
+MetaphorJs['filterArray'] = filterArray;
+MetaphorJs['dateFormats'] = dateFormats;
+MetaphorJs['numberFormats'] = numberFormats;
+MetaphorJs['sortArray'] = sortArray;
+MetaphorJs['inArray'] = inArray;
+MetaphorJs['isDate'] = isDate;
+MetaphorJs['isRegExp'] = isRegExp;
+MetaphorJs['isWindow'] = isWindow;
+MetaphorJs['equals'] = equals;
+MetaphorJs['levenshteinArray'] = levenshteinArray;
+MetaphorJs['browserHasEvent'] = browserHasEvent;
+MetaphorJs['isAndroid'] = isAndroid;
+MetaphorJs['compile'] = compile;
+MetaphorJs['copy'] = copy;
+MetaphorJs['is'] = is;
+MetaphorJs['delegates'] = delegates;
+MetaphorJs['delegate'] = delegate;
+MetaphorJs['eachNode'] = eachNode;
+MetaphorJs['getStyle'] = getStyle;
+MetaphorJs['boxSizingReliable'] = boxSizingReliable;
+MetaphorJs['getDimensions'] = getDimensions;
+MetaphorJs['getHeight'] = getHeight;
+MetaphorJs['getInnerHeight'] = getInnerHeight;
+MetaphorJs['getInnerWidth'] = getInnerWidth;
+MetaphorJs['getScrollTopOrLeft'] = getScrollTopOrLeft;
+MetaphorJs['getScrollTop'] = getScrollTop;
+MetaphorJs['getScrollLeft'] = getScrollLeft;
+MetaphorJs['getOffset'] = getOffset;
+MetaphorJs['getOffsetParent'] = getOffsetParent;
+MetaphorJs['getOuterHeight'] = getOuterHeight;
+MetaphorJs['getOuterWidth'] = getOuterWidth;
+MetaphorJs['getPosition'] = getPosition;
+MetaphorJs['getScrollParent'] = getScrollParent;
+MetaphorJs['getWidth'] = getWidth;
+MetaphorJs['isSubmittable'] = isSubmittable;
+MetaphorJs['isVisible'] = isVisible;
+MetaphorJs['removeListener'] = removeListener;
+MetaphorJs['onReady'] = onReady;
+MetaphorJs['undelegate'] = undelegate;
+MetaphorJs['initApp'] = initApp;
+MetaphorJs['intercept'] = intercept;
+MetaphorJs['isInjectable'] = isInjectable;
+MetaphorJs['isNative'] = isNative;
+MetaphorJs['isUndefined'] = isUndefined;
+MetaphorJs['parseJSON'] = parseJSON;
+MetaphorJs['parseXML'] = parseXML;
+MetaphorJs['run'] = run;
+MetaphorJs['ucfirst'] = ucfirst;
+MetaphorJs['StoreRenderer'] = StoreRenderer;
+
 return MetaphorJs;
 });
+

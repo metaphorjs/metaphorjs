@@ -5,8 +5,7 @@ var async = require("../func/async.js"),
     isThenable = require("../func/isThenable.js"),
     emptyFn = require("../func/emptyFn.js"),
     isNumber = require("../func/isNumber.js"),
-    error = require("../func/error.js"),
-    Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js");
+    error = require("../func/error.js");
 
 
 

@@ -18,7 +18,9 @@ var MetaphorJs = {
 
 
 
+
 var ns  = new Namespace(MetaphorJs, "MetaphorJs");
+
 
 
 var cs = new Class(ns);
@@ -26,26 +28,23 @@ var cs = new Class(ns);
 
 
 
-var defineClass = cs.define;
-/**
- * @param {Function} fn
- * @param {*} context
- */
-var bind = Function.prototype.bind ?
-              function(fn, context){
-                  return fn.bind(context);
-              } :
-              function(fn, context) {
-                  return function() {
-                      return fn.apply(context, arguments);
-                  };
-              };
 
+var defineClass = cs.define;
+
+
+function emptyFn(){};
 
 
 var slice = Array.prototype.slice;
+
+function getAttr(el, name) {
+    return el.getAttribute ? el.getAttribute(name) : null;
+};
+
 var toString = Object.prototype.toString;
+
 var undf = undefined;
+
 
 
 
@@ -104,6 +103,7 @@ var varType = function(){
 }();
 
 
+
 function isPlainObject(value) {
     // IE < 9 returns [object Object] from toString(htmlElement)
     return typeof value == "object" &&
@@ -113,13 +113,10 @@ function isPlainObject(value) {
 
 };
 
-
 function isBool(value) {
     return value === true || value === false;
 };
-function isNull(value) {
-    return value === null;
-};
+
 
 
 /**
@@ -189,41 +186,6 @@ var extend = function(){
     return extend;
 }();
 
-/**
- * @returns {String}
- */
-var nextUid = function(){
-    var uid = ['0', '0', '0'];
-
-    // from AngularJs
-    return function nextUid() {
-        var index = uid.length;
-        var digit;
-
-        while(index) {
-            index--;
-            digit = uid[index].charCodeAt(0);
-            if (digit == 57 /*'9'*/) {
-                uid[index] = 'A';
-                return uid.join('');
-            }
-            if (digit == 90  /*'Z'*/) {
-                uid[index] = '0';
-            } else {
-                uid[index] = String.fromCharCode(digit + 1);
-                return uid.join('');
-            }
-        }
-        uid.unshift('0');
-        return uid.join('');
-    };
-}();
-
-
-function emptyFn(){};
-function getAttr(el, name) {
-    return el.getAttribute ? el.getAttribute(name) : null;
-};
 
 
 var Scope = function(cfg) {
@@ -390,6 +352,39 @@ extend(Scope.prototype, {
 
 
 /**
+ * @returns {String}
+ */
+var nextUid = function(){
+    var uid = ['0', '0', '0'];
+
+    // from AngularJs
+    return function nextUid() {
+        var index = uid.length;
+        var digit;
+
+        while(index) {
+            index--;
+            digit = uid[index].charCodeAt(0);
+            if (digit == 57 /*'9'*/) {
+                uid[index] = 'A';
+                return uid.join('');
+            }
+            if (digit == 90  /*'Z'*/) {
+                uid[index] = '0';
+            } else {
+                uid[index] = String.fromCharCode(digit + 1);
+                return uid.join('');
+            }
+        }
+        uid.unshift('0');
+        return uid.join('');
+    };
+}();
+
+
+
+
+/**
  * @param {*} value
  * @returns {boolean}
  */
@@ -397,11 +392,6 @@ function isArray(value) {
     return typeof value == "object" && varType(value) === 5;
 };
 
-
-function isString(value) {
-    return typeof value == "string" || value === ""+value;
-    //return typeof value == "string" || varType(value) === 0;
-};
 
 
 /**
@@ -420,9 +410,11 @@ function toArray(list) {
         return [];
     }
 };
+
 function isFunction(value) {
     return typeof value == 'function';
 };
+
 
 
 /**
@@ -444,42 +436,23 @@ function isThenable(any) {
 };
 
 
-var nsGet = ns.get;/**
- * @param {Function} fn
- * @param {Object} context
- * @param {[]} args
- * @param {number} timeout
- */
-function async(fn, context, args, timeout) {
-    setTimeout(function(){
-        fn.apply(context, args || []);
-    }, timeout || 0);
+
+var nsGet = ns.get;
+
+
+
+function isString(value) {
+    return typeof value == "string" || value === ""+value;
+    //return typeof value == "string" || varType(value) === 0;
 };
-var strUndef = "undefined";
 
-
-function error(e) {
-
-    var stack = e.stack || (new Error).stack;
-
-    if (typeof console != strUndef && console.log) {
-        async(function(){
-            console.log(e);
-            if (stack) {
-                console.log(stack);
-            }
-        });
-    }
-    else {
-        throw e;
-    }
-};
 
 
 var nodeTextProp = function(){
     var node    = document.createTextNode("");
     return isString(node.textContent) ? "textContent" : "nodeValue";
 }();
+
 
 
 /**
@@ -500,10 +473,13 @@ var trim = function() {
 
 
 
+
 var createWatchable = Watchable.create;
 
 
+
 var nsAdd = ns.add;
+
 
 
 
@@ -607,6 +583,27 @@ var Directive = function(){
 }();
 
 
+
+
+/**
+ * @param {Function} fn
+ * @param {*} context
+ */
+var bind = Function.prototype.bind ?
+              function(fn, context){
+                  return fn.bind(context);
+              } :
+              function(fn, context) {
+                  return function() {
+                      return fn.apply(context, arguments);
+                  };
+              };
+
+
+
+function isNull(value) {
+    return value === null;
+};
 
 
 
@@ -936,12 +933,15 @@ var TextRenderer = function(){
 
 
 
+
 function setAttr(el, name, value) {
     return el.setAttribute(name, value);
 };
+
 function removeAttr(el, name) {
     return el.removeAttribute(name);
 };
+
 function getAttrMap(node) {
     var map = {},
         i, l, a,
@@ -955,38 +955,6 @@ function getAttrMap(node) {
     return map;
 };
 
-
-
-var data = function(){
-
-    var dataCache   = {},
-
-        getNodeId   = function(el) {
-            return el._mjsid || (el._mjsid = nextUid());
-        };
-
-    /**
-     * @param {Element} el
-     * @param {String} key
-     * @param {*} value optional
-     */
-    return function data(el, key, value) {
-        var id  = getNodeId(el),
-            obj = dataCache[id];
-
-        if (value !== undf) {
-            if (!obj) {
-                obj = dataCache[id] = {};
-            }
-            obj[key] = value;
-            return value;
-        }
-        else {
-            return obj ? obj[key] : undf;
-        }
-    };
-
-}();
 var aIndexOf    = Array.prototype.indexOf;
 
 if (!aIndexOf) {
@@ -1053,6 +1021,7 @@ if (!aIndexOf) {
         return -1;
     };
 }
+
 
 
 
@@ -1431,240 +1400,6 @@ var Renderer = function(){
 
 
 
-function isObject(value) {
-    if (value === null || typeof value != "object") {
-        return false;
-    }
-    var vt = varType(value);
-    return vt > 2 || vt == -1;
-};
-
-
-var instantiate = function(fn, args) {
-
-    var Temp = function(){},
-        inst, ret;
-
-    Temp.prototype  = fn.prototype;
-    inst            = new Temp;
-    ret             = fn.apply(inst, args);
-
-    // If an object has been returned then return it otherwise
-    // return the original instance.
-    // (consistent with behaviour of the new operator)
-    return isObject(ret) || ret === false ? ret : inst;
-
-};
-
-
-
-
-var Provider = function(){
-
-    var VALUE       = 1,
-        CONSTANT    = 2,
-        FACTORY     = 3,
-        SERVICE     = 4,
-        PROVIDER    = 5,
-        globalProvider;
-
-    var Provider = function() {
-        this.store  = {};
-    };
-
-    extend(Provider.prototype, {
-
-        store: null,
-
-        instantiate: function(fn, context, args, isClass) {
-
-            if (fn.$instantiate) {
-                return fn.$instantiate.apply(fn, args);
-            }
-            else if (isClass) {
-                return instantiate(fn, args);
-            }
-            else {
-                return fn.apply(context, args);
-            }
-        },
-
-        inject: function(injectable, context, currentValues, callArgs, isClass) {
-
-            currentValues   = currentValues || {};
-            callArgs        = callArgs || [];
-
-            var self = this;
-
-            if (isFunction(injectable)) {
-
-                if (injectable.inject) {
-                    var tmp = slice.call(injectable.inject);
-                    tmp.push(injectable);
-                    injectable = tmp;
-                }
-                else {
-                    return self.instantiate(injectable, context, callArgs, isClass);
-                }
-            }
-
-            injectable  = slice.call(injectable);
-
-            var values  = [],
-                fn      = injectable.pop(),
-                i, l;
-
-            for (i = -1, l = injectable.length; ++i < l;
-                 values.push(self.resolve(injectable[i], currentValues))) {}
-
-            return Promise.all(values).then(function(values){
-                return self.instantiate(fn, context, values, isClass);
-            });
-        },
-
-        value: function(name, value) {
-            this.store[name] = {
-                type: VALUE,
-                value: value
-            };
-        },
-
-        constant: function(name, value) {
-            var store = this.store;
-            if (!store[name]) {
-                store[name] = {
-                    type: CONSTANT,
-                    value: value
-                };
-            }
-        },
-
-        factory: function(name, fn, context, singleton) {
-
-            if (isBool(context)) {
-                singleton = context;
-                context = null;
-            }
-
-            this.store[name] = {
-                type: FACTORY,
-                singleton: singleton,
-                fn: fn,
-                context: context
-            };
-        },
-
-        service: function(name, constr, singleton) {
-            this.store[name] = {
-                type: SERVICE,
-                singleton: singleton,
-                fn: constr
-            };
-        },
-
-        provider: function(name, constr) {
-
-            this.store[name + "Provider"] = {
-                name: name,
-                type: PROVIDER,
-                fn: constr,
-                instance: null
-            };
-        },
-
-
-        resolve: function(name, currentValues) {
-
-            var self    = this,
-                store   = self.store,
-                type,
-                item,
-                res;
-
-            if (currentValues[name] !== undf) {
-                return currentValues[name];
-            }
-
-            if (item = store[name]) {
-
-                type    = item.type;
-
-                if (type == VALUE || type == CONSTANT) {
-                    return item.value;
-                }
-                else if (type == FACTORY) {
-                    res = self.inject(item.fn, item.context, currentValues);
-                }
-                else if (type == SERVICE) {
-                    res = self.inject(item.fn, null, currentValues, null, true);
-                }
-                else if (type == PROVIDER) {
-
-                    if (!item.instance) {
-
-                        item.instance = Promise.resolve(
-                                self.inject(item.fn, null, currentValues)
-                            )
-                            .done(function(instance){
-                                item.instance = instance;
-                                store[item.name] = {
-                                    type: FACTORY,
-                                    fn: instance.$get,
-                                    context: instance
-                                };
-                            });
-                    }
-
-                    return item.instance;
-                }
-
-                if (item.singleton) {
-                    item.type = VALUE;
-                    item.value = res;
-
-                    if (type == FACTORY && isThenable(res)) {
-                        res.done(function(value){
-                            item.value = value;
-                        });
-                    }
-                }
-
-                return currentValues[name] = res;
-            }
-            else {
-
-                if (store[name + "Provider"]) {
-                    self.resolve(name + "Provider", currentValues);
-                    return self.resolve(name, currentValues);
-                }
-
-                if (self === globalProvider) {
-                    throw "Could not provide value for " + name;
-                }
-                else {
-                    return globalProvider.resolve(name);
-                }
-            }
-        },
-
-        destroy: function() {
-            this.store = null;
-            this.scope = null;
-        }
-
-    }, true, false);
-
-    Provider.global = function() {
-        return globalProvider;
-    };
-
-    globalProvider = new Provider;
-
-    return Provider;
-}();
-
-
-
 
 
 var Text = function(){
@@ -1922,6 +1657,7 @@ var Text = function(){
 
 
 
+
 /**
  * @mixin ObservableMixin
  */
@@ -1988,6 +1724,245 @@ var ObservableMixin = ns.add("mixin.Observable", {
 });
 
 
+
+function isObject(value) {
+    if (value === null || typeof value != "object") {
+        return false;
+    }
+    var vt = varType(value);
+    return vt > 2 || vt == -1;
+};
+
+
+
+var instantiate = function(fn, args) {
+
+    var Temp = function(){},
+        inst, ret;
+
+    Temp.prototype  = fn.prototype;
+    inst            = new Temp;
+    ret             = fn.apply(inst, args);
+
+    // If an object has been returned then return it otherwise
+    // return the original instance.
+    // (consistent with behaviour of the new operator)
+    return isObject(ret) || ret === false ? ret : inst;
+
+};
+
+
+
+
+
+var Provider = function(){
+
+    var VALUE       = 1,
+        CONSTANT    = 2,
+        FACTORY     = 3,
+        SERVICE     = 4,
+        PROVIDER    = 5,
+        globalProvider;
+
+    var Provider = function() {
+        this.store  = {};
+    };
+
+    extend(Provider.prototype, {
+
+        store: null,
+
+        instantiate: function(fn, context, args, isClass) {
+
+            if (fn.$instantiate) {
+                return fn.$instantiate.apply(fn, args);
+            }
+            else if (isClass) {
+                return instantiate(fn, args);
+            }
+            else {
+                return fn.apply(context, args);
+            }
+        },
+
+        inject: function(injectable, context, currentValues, callArgs, isClass) {
+
+            currentValues   = currentValues || {};
+            callArgs        = callArgs || [];
+
+            var self = this;
+
+            if (isFunction(injectable)) {
+
+                if (injectable.inject) {
+                    var tmp = slice.call(injectable.inject);
+                    tmp.push(injectable);
+                    injectable = tmp;
+                }
+                else {
+                    return self.instantiate(injectable, context, callArgs, isClass);
+                }
+            }
+
+            injectable  = slice.call(injectable);
+
+            var values  = [],
+                fn      = injectable.pop(),
+                i, l;
+
+            for (i = -1, l = injectable.length; ++i < l;
+                 values.push(self.resolve(injectable[i], currentValues))) {}
+
+            return Promise.all(values).then(function(values){
+                return self.instantiate(fn, context, values, isClass);
+            });
+        },
+
+        value: function(name, value) {
+            this.store[name] = {
+                type: VALUE,
+                value: value
+            };
+        },
+
+        constant: function(name, value) {
+            var store = this.store;
+            if (!store[name]) {
+                store[name] = {
+                    type: CONSTANT,
+                    value: value
+                };
+            }
+        },
+
+        factory: function(name, fn, context, singleton) {
+
+            if (isBool(context)) {
+                singleton = context;
+                context = null;
+            }
+
+            this.store[name] = {
+                type: FACTORY,
+                singleton: singleton,
+                fn: fn,
+                context: context
+            };
+        },
+
+        service: function(name, constr, singleton) {
+            this.store[name] = {
+                type: SERVICE,
+                singleton: singleton,
+                fn: constr
+            };
+        },
+
+        provider: function(name, constr) {
+
+            this.store[name + "Provider"] = {
+                name: name,
+                type: PROVIDER,
+                fn: constr,
+                instance: null
+            };
+        },
+
+
+        resolve: function(name, currentValues) {
+
+            var self    = this,
+                store   = self.store,
+                type,
+                item,
+                res;
+
+            if (currentValues[name] !== undf) {
+                return currentValues[name];
+            }
+
+            if (item = store[name]) {
+
+                type    = item.type;
+
+                if (type == VALUE || type == CONSTANT) {
+                    return item.value;
+                }
+                else if (type == FACTORY) {
+                    res = self.inject(item.fn, item.context, currentValues);
+                }
+                else if (type == SERVICE) {
+                    res = self.inject(item.fn, null, currentValues, null, true);
+                }
+                else if (type == PROVIDER) {
+
+                    if (!item.instance) {
+
+                        item.instance = Promise.resolve(
+                                self.inject(item.fn, null, currentValues)
+                            )
+                            .done(function(instance){
+                                item.instance = instance;
+                                store[item.name] = {
+                                    type: FACTORY,
+                                    fn: instance.$get,
+                                    context: instance
+                                };
+                            });
+                    }
+
+                    return item.instance;
+                }
+
+                if (item.singleton) {
+                    item.type = VALUE;
+                    item.value = res;
+
+                    if (type == FACTORY && isThenable(res)) {
+                        res.done(function(value){
+                            item.value = value;
+                        });
+                    }
+                }
+
+                return currentValues[name] = res;
+            }
+            else {
+
+                if (store[name + "Provider"]) {
+                    self.resolve(name + "Provider", currentValues);
+                    return self.resolve(name, currentValues);
+                }
+
+                if (self === globalProvider) {
+                    throw "Could not provide value for " + name;
+                }
+                else {
+                    return globalProvider.resolve(name);
+                }
+            }
+        },
+
+        destroy: function() {
+            this.store = null;
+            this.scope = null;
+        }
+
+    }, true, false);
+
+    Provider.global = function() {
+        return globalProvider;
+    };
+
+    globalProvider = new Provider;
+
+    return Provider;
+}();
+
+
+
+
+
 var ProviderMixin = {
 
     /**
@@ -2044,6 +2019,7 @@ var ProviderMixin = {
     }
 
 };
+
 
 
 
@@ -2174,7 +2150,9 @@ defineClass({
 
 
 
-var elHtml = document.documentElement;
+
+var documentElement = document.documentElement;
+
 
 
 var isAttached = function(){
@@ -2190,10 +2168,45 @@ var isAttached = function(){
                 return true;
             }
         }
-        return node === elHtml ? true : elHtml.contains(node);
+        return node === documentElement ? true : documentElement.contains(node);
     };
     return isAttached;
 }();
+
+
+
+
+var data = function(){
+
+    var dataCache   = {},
+
+        getNodeId   = function(el) {
+            return el._mjsid || (el._mjsid = nextUid());
+        };
+
+    /**
+     * @param {Element} el
+     * @param {String} key
+     * @param {*} value optional
+     */
+    return function data(el, key, value) {
+        var id  = getNodeId(el),
+            obj = dataCache[id];
+
+        if (value !== undf) {
+            if (!obj) {
+                obj = dataCache[id] = {};
+            }
+            obj[key] = value;
+            return value;
+        }
+        else {
+            return obj ? obj[key] : undf;
+        }
+    };
+
+}();
+
 
 
 function toFragment(nodes) {
@@ -2215,6 +2228,7 @@ function toFragment(nodes) {
 
     return fragment;
 };
+
 
 
 /**
@@ -2255,7 +2269,9 @@ var clone = function clone(node) {
 
 
 
-var shadowRootSupported = !!elHtml.createShadowRoot;
+
+var shadowRootSupported = !!documentElement.createShadowRoot;
+
 
 
 
@@ -2588,6 +2604,7 @@ var Template = function(){
         loadTemplate: loadTemplate
     });
 }();
+
 
 
 
@@ -2929,6 +2946,7 @@ var Component = defineClass({
  * @md-end-class
  */
 
+
 /**
  * @param {String} expr
  */
@@ -2942,6 +2960,7 @@ var getRegExp = function(){
 }();
 
 
+
 /**
  * @param {String} cls
  * @returns {RegExp}
@@ -2949,6 +2968,7 @@ var getRegExp = function(){
 function getClsReg(cls) {
     return getRegExp('(?:^|\\s)'+cls+'(?!\\S)');
 };
+
 
 
 /**
@@ -2960,6 +2980,7 @@ function removeClass(el, cls) {
         el.className = el.className.replace(getClsReg(cls), '');
     }
 };
+
 
 
 var stopAnimation = function(el) {
@@ -2994,11 +3015,45 @@ var stopAnimation = function(el) {
     data(el, "mjsAnimationQueue", null);
 };
 
+/**
+ * @param {Function} fn
+ * @param {Object} context
+ * @param {[]} args
+ * @param {number} timeout
+ */
+function async(fn, context, args, timeout) {
+    setTimeout(function(){
+        fn.apply(context, args || []);
+    }, timeout || 0);
+};
+
 
 
 function isNumber(value) {
     return varType(value) === 1;
 };
+
+var strUndef = "undefined";
+
+
+
+function error(e) {
+
+    var stack = e.stack || (new Error).stack;
+
+    if (typeof console != strUndef && console.log) {
+        async(function(){
+            console.log(e);
+            if (stack) {
+                console.log(stack);
+            }
+        });
+    }
+    else {
+        throw e;
+    }
+};
+
 
 
 
@@ -3196,10 +3251,12 @@ extend(Queue.prototype, {
 
 
 
+
 function isPrimitive(value) {
     var vt = varType(value);
     return vt < 3 && vt > -1;
 };
+
 
 
 var raf = function() {
@@ -3234,6 +3291,7 @@ var raf = function() {
         }
     };
 }();
+
 
 
 var functionFactory = function() {
@@ -3399,7 +3457,9 @@ var functionFactory = function() {
 }();
 
 
+
 var createGetter = functionFactory.createGetter;
+
 var rToCamelCase = /-./g;
 
 function toCamelCase(str) {
@@ -3407,6 +3467,7 @@ function toCamelCase(str) {
         return match.charAt(1).toUpperCase();
     });
 };
+
 
 
 var getNodeData = function() {
@@ -3449,6 +3510,7 @@ var getNodeData = function() {
 }();
 
 
+
 function getNodeConfig(node, scope, expr) {
 
     var cfg = data(node, "config"),
@@ -3479,6 +3541,7 @@ function getNodeConfig(node, scope, expr) {
 
     return cfg;
 };
+
 
 var ListRenderer = defineClass({
 
@@ -4068,6 +4131,7 @@ var ListRenderer = defineClass({
 
 
 
+
 /**
  * @param {Element} el
  * @param {String} cls
@@ -4076,6 +4140,7 @@ var ListRenderer = defineClass({
 function hasClass(el, cls) {
     return cls ? getClsReg(cls).test(el.className) : false;
 };
+
 
 
 /**
@@ -4087,6 +4152,7 @@ function addClass(el, cls) {
         el.className += " " + cls;
     }
 };
+
 
 
 
@@ -4223,7 +4289,9 @@ function resolveComponent(cmp, cfg, scope, node, args) {
 
 
 
+
 var currentUrl = history.currentUrl;
+
 
 
 
@@ -4445,6 +4513,7 @@ defineClass({
 
 
 
+
 function returnFalse() {
     return false;
 };
@@ -4452,7 +4521,9 @@ function returnFalse() {
 
 
 
+
 Directive.registerAttribute("mjs-app", 100, returnFalse);
+
 function isField(el) {
     var tag	= el.nodeName.toLowerCase(),
         type = el.type;
@@ -4464,10 +4535,12 @@ function isField(el) {
     return false;
 };
 
+
 var elemTextProp = function(){
     var node    = document.createElement("div");
     return isString(node.textContent) ? "textContent" : "innerText";
 }();
+
 
 
 
@@ -4568,6 +4641,7 @@ Directive.registerAttribute("mjs-bind", 1000, defineClass({
 
 
 
+
 Directive.registerAttribute("mjs-bind-html", 1000, defineClass({
 
     $extends: "attr.mjs-bind",
@@ -4576,6 +4650,7 @@ Directive.registerAttribute("mjs-bind-html", 1000, defineClass({
         this.node.innerHTML = val;
     }
 }));
+
 
 
 
@@ -4658,12 +4733,14 @@ Directive.registerAttribute("mjs-bind-html", 1000, defineClass({
 
 
 
+
 Directive.registerAttribute("mjs-cmp-prop", 200,
     ['$parentCmp', '$node', '$attrValue', function(parentCmp, node, expr){
     if (parentCmp) {
         parentCmp[expr] = node;
     }
 }]);
+
 
 
 (function(){
@@ -4719,9 +4796,11 @@ Directive.registerAttribute("mjs-cmp-prop", 200,
 }());
 
 
+
 Directive.registerAttribute("mjs-config", 50, function(scope, node, expr){
     getNodeConfig(node, scope, expr);
 });
+
 
 
 
@@ -4731,11 +4810,14 @@ Directive.registerAttribute("mjs-each", 100, ListRenderer);
 
 
 
+
 var createFunc = functionFactory.createFunc;
+
 
 function returnTrue() {
     return true;
 };
+
 
 
 // from jQuery
@@ -4852,9 +4934,11 @@ extend(DomEvent.prototype, {
 
 
 
+
 function normalizeEvent(originalEvent) {
     return new DomEvent(originalEvent);
 };
+
 
 function addListener(el, event, func) {
     if (el.attachEvent) {
@@ -4863,6 +4947,7 @@ function addListener(el, event, func) {
         el.addEventListener(event, func, false);
     }
 };
+
 
 
 (function(){
@@ -4910,6 +4995,7 @@ function addListener(el, event, func) {
     }
 
 }());
+
 
 
 
@@ -4972,6 +5058,7 @@ Directive.registerAttribute("mjs-show", 500, defineClass({
 
 
 
+
 Directive.registerAttribute("mjs-hide", 500, defineClass({
 
     $extends: "attr.mjs-show",
@@ -4984,6 +5071,7 @@ Directive.registerAttribute("mjs-hide", 500, defineClass({
         self.initial = false;
     }
 }));
+
 
 
 
@@ -5055,7 +5143,9 @@ Directive.registerAttribute("mjs-if", 500, defineClass({
 
 
 
+
 Directive.registerAttribute("mjs-ignore", 0, returnFalse);
+
 
 
 
@@ -5080,10 +5170,13 @@ Directive.registerAttribute("mjs-include", 900, function(scope, node, tplExpr, p
 
 
 
+
 Directive.registerAttribute("mjs-init", 250, function(scope, node, expr){
     createFunc(expr)(scope);
 });
+
 var uaString = navigator.userAgent.toLowerCase();
+
 
 
 var isIE = function(){
@@ -5098,6 +5191,7 @@ var isIE = function(){
         return msie;
     };
 }();
+
 
 
 
@@ -5199,6 +5293,7 @@ Directive.registerAttribute("mjs-model", 1000, defineClass({
 
 
 
+
 Directive.registerAttribute("mjs-options", 100, defineClass({
 
     $extends: Directive,
@@ -5292,6 +5387,8 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
             value       = getValue(node),
             def         = self.defOption,
             tmpScope    = self.scope.$new(),
+            msie        = isIE(),
+            parent, next,
             i, len;
 
         self.fragment   = document.createDocumentFragment();
@@ -5312,8 +5409,22 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
 
         tmpScope.$destroy();
 
+        // ie6 gives "unspecified error when trying to set option.selected"
+        // on node.appendChild(fragment);
+        // somehow this get fixed by detaching dom node
+        // and attaching it back
+        if (msie && msie < 8) {
+            next = node.nextSibling;
+            parent = node.parentNode;
+            parent.removeChild(node);
+        }
+
         node.appendChild(self.fragment);
         self.fragment = null;
+
+        if (msie && msie < 8) {
+            parent.insertBefore(node, next);
+        }
 
         setValue(node, value);
     },
@@ -5338,6 +5449,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
     }
 
 }));
+
 
 
 
@@ -5389,6 +5501,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
 
 
 
+
 var preloadImage = function() {
 
     var cache = {},
@@ -5428,6 +5541,7 @@ var preloadImage = function() {
     };
 
 }();
+
 
 
 
@@ -5496,6 +5610,7 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
 }));
 
 
+
 function parentData(node, key) {
 
     var val;
@@ -5510,6 +5625,7 @@ function parentData(node, key) {
 
     return undf;
 };
+
 
 
 function transclude(node) {
@@ -5537,15 +5653,18 @@ function transclude(node) {
 };
 
 
+
 Directive.registerAttribute("mjs-transclude", 1000, function(scope, node) {
     return transclude(node);
 });
+
 
 
 Directive.registerAttribute("mjs-view", 200, function(scope, node, cls) {
     resolveComponent(cls || "MetaphorJs.View", {scope: scope, node: node}, scope, node)
     return false;
 });
+
 
 
 
@@ -5565,9 +5684,11 @@ Directive.registerTag("mjs-include", function(scope, node, value, parentRenderer
 
 
 
+
 Directive.registerTag("mjs-transclude", function(scope, node) {
     return transclude(node);
 });
+
 
 
 
@@ -5658,9 +5779,11 @@ var filterArray = function(){
 }();
 
 
+
 nsAdd("filter.filter", function(val, scope, by, opt) {
     return filterArray(val, by, opt);
 });
+
 
 
 
@@ -5682,9 +5805,11 @@ nsAdd("filter.join", function(input, scope, separator) {
 });
 
 
+
 nsAdd("filter.l", function(key, scope) {
     return scope.$app.lang.get(key);
 });
+
 
 
 
@@ -5737,6 +5862,7 @@ nsAdd("filter.limitTo", function(input, scope, limit){
 
 
 
+
 nsAdd("filter.linkify", function(input, scope, target){
     target = target ? ' target="'+target+'"' : "";
     if (input) {
@@ -5748,10 +5874,13 @@ nsAdd("filter.linkify", function(input, scope, target){
 
 
 
+
 nsAdd("filter.lowercase", function(val){
     return val.toLowerCase();
 });
+
 var dateFormats = {};
+
 
 
 
@@ -5761,7 +5890,9 @@ nsAdd("filter.moment",  function(val, scope, format) {
     return moment(val).format(format);
 });
 
+
 var numberFormats = {};
+
 
 
 
@@ -5774,9 +5905,11 @@ nsAdd("filter.numeral",  function(val, scope, format) {
 });
 
 
+
 nsAdd("filter.p", function(key, scope, number) {
     return scope.$app.lang.plural(key, parseInt(number, 10) || 0);
 });
+
 
 
 function sortArray(arr, by, dir) {
@@ -5825,9 +5958,11 @@ function sortArray(arr, by, dir) {
 };
 
 
+
 nsAdd("filter.sortBy", function(val, scope, field, dir) {
     return sortArray(val, field, dir);
 });
+
 
 
 
@@ -5857,9 +5992,11 @@ nsAdd("filter.split", function(input, scope, sep, limit) {
 
 
 
+
 nsAdd("filter.toArray", function(input){
     return toArray(input);
 });
+
 
 
 nsAdd("filter.ucfirst", function(val){
@@ -5868,9 +6005,11 @@ nsAdd("filter.ucfirst", function(val){
 
 
 
+
 nsAdd("filter.uppercase", function(val){
     return val.toUpperCase();
 });
+
 
 function removeListener(el, event, func) {
     if (el.detachEvent) {
@@ -5879,6 +6018,7 @@ function removeListener(el, event, func) {
         el.removeEventListener(event, func, false);
     }
 };
+
 
 
 /**
@@ -5933,6 +6073,7 @@ function onReady(fn) {
 };
 
 
+
 function initApp(node, cls, data, autorun) {
 
     try {
@@ -5954,6 +6095,7 @@ function initApp(node, cls, data, autorun) {
 };
 
 
+
 function run() {
 
     onReady(function() {
@@ -5968,6 +6110,7 @@ function run() {
     });
 
 };
+
 
 
 
@@ -6046,7 +6189,9 @@ var StoreRenderer = ListRenderer.$extend({
 
 
 
+
 Directive.registerAttribute("mjs-each-in-store", 100, StoreRenderer);
+
 
 
 
@@ -6124,6 +6269,7 @@ defineClass({
 
 });
 
+
 function eachNode(el, fn, context) {
     var i, len,
         children = el.childNodes;
@@ -6134,6 +6280,7 @@ function eachNode(el, fn, context) {
             eachNode(children[i], fn, context)){}
     }
 };
+
 
 
 

@@ -7,7 +7,6 @@ var defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"
     getValue = require("../../../../metaphorjs-input/src/func/getValue.js"),
     setValue = require("../../../../metaphorjs-input/src/func/setValue.js"),
     error = require("../../func/error.js"),
-    removeAttr = require("../../func/dom/removeAttr.js"),
     setAttr = require("../../func/dom/setAttr.js"),
     undf = require("../../var/undf.js"),
     isIE = require("../../func/browser/isIE.js"),
@@ -109,6 +108,8 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
             value       = getValue(node),
             def         = self.defOption,
             tmpScope    = self.scope.$new(),
+            msie        = isIE(),
+            parent, next,
             i, len;
 
         self.fragment   = document.createDocumentFragment();
@@ -129,8 +130,22 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
 
         tmpScope.$destroy();
 
+        // ie6 gives "unspecified error when trying to set option.selected"
+        // on node.appendChild(fragment);
+        // somehow this get fixed by detaching dom node
+        // and attaching it back
+        if (msie && msie < 8) {
+            next = node.nextSibling;
+            parent = node.parentNode;
+            parent.removeChild(node);
+        }
+
         node.appendChild(self.fragment);
         self.fragment = null;
+
+        if (msie && msie < 8) {
+            parent.insertBefore(node, next);
+        }
 
         setValue(node, value);
     },

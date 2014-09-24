@@ -1,5 +1,5 @@
 
-var elHtml = require("../../var/elHtml.js"),
+var documentElement = require("../../var/documentElement.js"),
     isAttached = require("./isAttached.js"),
     getScrollTop = require("./getScrollTop.js"),
     getScrollLeft = require("./getScrollLeft.js");
@@ -20,7 +20,7 @@ module.exports = function getOffset(node) {
     }
 
     return {
-        top: box.top + getScrollTop() - elHtml.clientTop,
-        left: box.left + getScrollLeft() - elHtml.clientLeft
+        top: box.top + getScrollTop() - documentElement.clientTop,
+        left: box.left + getScrollLeft() - documentElement.clientLeft
     };
 };

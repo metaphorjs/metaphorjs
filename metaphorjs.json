@@ -1,5 +1,5 @@
 {
-    "version": "0.3.12",
+    "version": "0.3.13",
     "push": [
         "github"
     ],
@@ -24,39 +24,49 @@
             ]
         }
     ],
-    "build": {
-        "standalone": {
-            "wrap": true,
-            "target": "dist/metaphorjs.js",
+    "mixin": {
+        "core": {
             "files": [
                 "src/MetaphorJs.js",
                 "src/class/*",
-                "src/directive/attr/*",
-                "src/directive/tag/*",
+                "src/directive/**",
                 "src/filter/*",
                 "src/bootstrap/apps.js"
             ]
         },
         "all": {
+            "files": [
+                "core",
+                [
+                    "../metaphorjs-model/metaphorjs.json",
+                    "all"
+                ],
+                "../metaphorjs-dialog/src/cmp/DialogComponent.js",
+                "../metaphorjs-validator/src/view/Validator.js",
+                "src/plugin/**"
+            ]
+        }
+    },
+    "build": {
+        "standalone": {
+            "wrap": true,
+            "target": "dist/metaphorjs.js",
+            "files": [
+                "core"
+            ]
+        },
+        "all": {
             "wrap": true,
             "target": "dist/metaphorjs.all.js",
-            "prependFilesFrom": [
-                "standalone"
-            ],
             "files": [
-                "../metaphorjs-model/src/*",
-                "../metaphorjs-model/src/directive/*",
-                "../metaphorjs-dialog/src/cmp/DialogComponent.js",
-                "../metaphorjs-validator/src/view/Validator.js"
+                "all"
             ]
         },
         "npm": {
             "target": "dist/metaphorjs.npm.js",
             "compile": false,
-            "prependFilesFrom": [
-                "standalone"
-            ],
             "files": [
+                "core",
                 [
                     "src/func/run.js",
                     {
@@ -104,14 +114,12 @@
         },
         "amd": {
             "target": "dist/metaphorjs.amd.js",
-            "prependFilesFrom": [
-                "standalone"
-            ],
             "files": [
+                "core",
                 [
-                    "src/func/run.js",
+                    "src/func/**",
                     {
-                        "as": "run"
+                        "as": "*"
                     }
                 ],
                 "../metaphorjs-model/src/directive/*",
@@ -139,6 +147,7 @@
             "prepend": [
                 "src/amd/prepend.js"
             ],
+            "expose": "all",
             "define": {
                 "name": "metaphorjs",
                 "return": "MetaphorJs",
@@ -164,12 +173,8 @@
             "global": true,
             "compile": false,
             "target": "dev-test/metaphorjs.test.js",
-            "prependFilesFrom": [
-                "all"
-            ],
             "files": [
-                "src/plugin/*",
-                "../metaphorjs-model/src/plugin/*",
+                "all",
                 "../metaphorjs-model/src/FirebaseStore.js"
             ],
             "expose": "all"

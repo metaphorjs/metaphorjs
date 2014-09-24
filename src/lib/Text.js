@@ -3,7 +3,6 @@
 var isPlainObject = require("../func/isPlainObject.js"),
     isArray = require("../func/isArray.js"),
     extend = require("../func/extend.js"),
-    nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
     undf = require("../var/undf.js");
 
 module.exports = function(){

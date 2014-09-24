@@ -1,11 +1,9 @@
 
 
-var bind = require("../func/bind.js"),
-    extend = require("../func/extend.js"),
+var extend = require("../func/extend.js"),
     isThenable = require("../func/isThenable.js"),
     slice = require("../func/array/slice.js"),
     Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
-    isObject = require("../func/isObject.js"),
     isFunction = require("../func/isFunction.js"),
     undf = require("../var/undf.js"),
     isBool = require("../func/isBool.js"),

@@ -1,7 +1,6 @@
 
 var isArray = require("./isArray.js"),
     isRegExp = require("./isRegExp.js"),
-    isObject = require('./isObject.js'),
     isPlainObject = require("./isPlainObject.js"),
     isDate = require("./isDate.js"),
     isWindow = require("./isWindow.js"),

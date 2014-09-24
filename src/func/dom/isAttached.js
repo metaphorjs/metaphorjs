@@ -1,5 +1,5 @@
 
-var elHtml = require("../../var/elHtml.js");
+var documentElement = require("../../var/documentElement.js");
 
 module.exports = function(){
     var isAttached = function isAttached(node) {
@@ -14,7 +14,7 @@ module.exports = function(){
                 return true;
             }
         }
-        return node === elHtml ? true : elHtml.contains(node);
+        return node === documentElement ? true : documentElement.contains(node);
     };
     return isAttached;
 }();

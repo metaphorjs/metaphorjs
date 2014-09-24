@@ -2,7 +2,6 @@
 
 var trim = require("../func/trim.js"),
     createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
-    Scope = require("../lib/Scope.js"),
     undf = require("../var/undf.js"),
     ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
     defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),

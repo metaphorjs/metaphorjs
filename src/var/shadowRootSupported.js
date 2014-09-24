@@ -1,4 +1,4 @@
 
-var elHtml = require("./elHtml.js");
+var documentElement = require("./documentElement.js");
 
-module.exports = !!elHtml.createShadowRoot;
+module.exports = !!documentElement.createShadowRoot;

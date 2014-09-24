@@ -1,13 +1,10 @@
 
 
 var nextUid = require("../func/nextUid.js"),
-    extend = require("../func/extend.js"),
     isArray = require("../func/isArray.js"),
     toArray = require("../func/array/toArray.js"),
     isThenable = require("../func/isThenable.js"),
     nsGet = require("../../../metaphorjs-namespace/src/func/nsGet.js"),
-    error = require("../func/error.js"),
-    select = require("../../../metaphorjs-select/src/metaphorjs.select.js"),
     nodeTextProp = require("../var/nodeTextProp.js"),
     Scope = require("../lib/Scope.js"),
     Directive = require("./Directive.js"),
@@ -18,7 +15,6 @@ var nextUid = require("../func/nextUid.js"),
     setAttr = require("../func/dom/setAttr.js"),
     removeAttr = require("../func/dom/removeAttr.js"),
     getAttrMap = require("../func/dom/getAttrMap.js"),
-    data = require("../func/dom/data.js"),
     undf = require("../var/undf.js"),
     Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
     defineClass = require("../../../metaphorjs-class/src/func/defineClass.js");
