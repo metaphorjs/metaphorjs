@@ -119,16 +119,17 @@ function isBool(value) {
 
 
 
-/**
- * @param {Object} dst
- * @param {Object} src
- * @param {Object} src2 ... srcN
- * @param {boolean} override = false
- * @param {boolean} deep = false
- * @returns {*}
- */
+
 var extend = function(){
 
+    /**
+     * @param {Object} dst
+     * @param {Object} src
+     * @param {Object} src2 ... srcN
+     * @param {boolean} override = false
+     * @param {boolean} deep = false
+     * @returns {object}
+     */
     var extend = function extend() {
 
 
@@ -351,13 +352,13 @@ extend(Scope.prototype, {
 
 
 
-/**
- * @returns {String}
- */
 var nextUid = function(){
     var uid = ['0', '0', '0'];
 
     // from AngularJs
+    /**
+     * @returns {String}
+     */
     return function nextUid() {
         var index = uid.length;
         var digit;
@@ -456,6 +457,7 @@ var nodeTextProp = function(){
 
 
 /**
+ * @function trim
  * @param {String} value
  */
 var trim = function() {

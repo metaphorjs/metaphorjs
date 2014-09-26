@@ -2,6 +2,7 @@
 var isString = require("./isString.js");
 
 /**
+ * @function trim
  * @param {String} value
  */
 module.exports = function() {
