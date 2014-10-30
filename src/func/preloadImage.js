@@ -20,14 +20,15 @@ module.exports = function() {
             cacheCnt = 0;
         }
 
-        var img = document.createElement("img"),
+        var doc = window.document,
+            img = doc.createElement("img"),
             style = img.style,
             deferred = new Promise;
 
         addListener(img, "load", function() {
             cache[src] = true;
             cacheCnt++;
-            document.body.removeChild(img);
+            doc.body.removeChild(img);
             deferred.resolve(src);
         });
 
@@ -36,7 +37,7 @@ module.exports = function() {
         style.left = "-10000px";
         style.top = "0";
         img.src = src;
-        document.body.appendChild(img);
+        doc.body.appendChild(img);
 
         return deferred;
     };

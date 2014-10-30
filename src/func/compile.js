@@ -4,7 +4,7 @@ var Renderer = require("../class/Renderer.js"),
 
 module.exports = function compile(htmlString, scope) {
 
-    var div = document.createElement("div");
+    var div = window.document.createElement("div");
 
     div.innerHTML = htmlString;
 

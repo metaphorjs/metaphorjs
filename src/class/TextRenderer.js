@@ -3,6 +3,7 @@
 var nextUid = require("../func/nextUid.js"),
     bind = require("../func/bind.js"),
     trim = require("../func/trim.js"),
+    undf = require("../var/undf.js"),
     createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
     Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
     isNull = require("../func/isNull.js"),
@@ -279,6 +280,9 @@ module.exports = function(){
 
             for (i = -1, l = ws.length; ++i < l; ){
                 val     = ws[i].getLastResult();
+                if (val === undf) {
+                    val = "";
+                }
                 ch.push((rec && factory(scope, val, self, null, true)) || val);
             }
         },

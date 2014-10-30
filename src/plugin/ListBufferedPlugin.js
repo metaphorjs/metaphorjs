@@ -83,8 +83,8 @@ module.exports = nsAdd("plugin.ListBuffered", defineClass({
                 marginBottom: 0
             };
 
-        self.topStub       = ofsTop = document.createElement(cfg.stub || "div");
-        self.botStub       = ofsBot = document.createElement(cfg.stub || "div");
+        self.topStub       = ofsTop = window.document.createElement(cfg.stub || "div");
+        self.botStub       = ofsBot = window.document.createElement(cfg.stub || "div");
 
         addClass(ofsTop, "mjs-buffer-top");
         addClass(ofsBot, "mjs-buffer-bottom");
@@ -114,7 +114,7 @@ module.exports = nsAdd("plugin.ListBuffered", defineClass({
         var self        = this,
             scrollEl    = self.scrollEl,
             hor         = self.horizontal,
-            html        = document.documentElement,
+            html        = window.document.documentElement,
             size        = scrollEl === window ?
                           (window[hor ? "innerWidth" : "innerHeight"] ||
                            html[hor ? "clientWidth" : "clientHeight"]):
@@ -210,7 +210,7 @@ module.exports = nsAdd("plugin.ListBuffered", defineClass({
                         }
                     }
                 }
-                fragment = document.createDocumentFragment();
+                fragment = window.document.createDocumentFragment();
                 for (i = bs.first, x = bs.last; i <= x; i++) {
                     r = rs[i];
                     if (r) {
@@ -237,7 +237,7 @@ module.exports = nsAdd("plugin.ListBuffered", defineClass({
                     }
                 }
                 else if (prev.first > bs.first) {
-                    fragment = document.createDocumentFragment();
+                    fragment = window.document.createDocumentFragment();
                     for (i = bs.first, x = prev.first; i < x; i++) {
                         r = rs[i];
                         if (r) {
@@ -252,7 +252,7 @@ module.exports = nsAdd("plugin.ListBuffered", defineClass({
                 }
 
                 if (prev.last < bs.last) {
-                    fragment = document.createDocumentFragment();
+                    fragment = window.document.createDocumentFragment();
                     for (i = prev.last + 1, x = bs.last; i <= x; i++) {
                         r = rs[i];
                         if (r) {

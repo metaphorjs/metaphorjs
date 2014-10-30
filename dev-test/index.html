@@ -211,6 +211,10 @@
                 <div mjs-include="test-template" mjs-animate>
                     <p>transcluded text</p>
                 </div>
+                <label class="case-label">immediate (via tag)</label>
+                <mjs-include src="test-template">
+                    <p>transcluded text</p>
+                </mjs-include>
                 <label class="case-label">ajax</label>
                 <div mjs-include="template.html">
                     <p>Transcluded text</p>
@@ -350,6 +354,7 @@
                             {{ .$last ? "last" : "" }} -
                             {{ .$even ? "even" : "" }} -
                             {{ .$odd ? "odd" : "" }}
+                            <span mjs-if="$first">first11</span>
                         </label>
                         <a href="#" mjs-click=".$parent.list.splice(.$getRawIndex(.$trackId),1);">x</a>
                     </li>

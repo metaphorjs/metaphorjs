@@ -7,9 +7,10 @@ module.exports = function() {
 
     var computePixelPositionAndBoxSizingReliable = function() {
 
-        var container = document.createElement("div"),
-            div = document.createElement("div"),
-            body = document.body;
+        var doc = window.document,
+            container = doc.createElement("div"),
+            div = doc.createElement("div"),
+            body = doc.body;
 
         if (!div.style || !window.getComputedStyle) {
             return false;

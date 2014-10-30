@@ -1,17 +1,17 @@
 
 
-var documentElement = require("../../var/documentElement.js"),
-    getStyle = require("./getStyle.js");
+var getStyle = require("./getStyle.js");
 
 module.exports = function getOffsetParent(node) {
 
-    var offsetParent = node.offsetParent || documentElement;
+    var html = window.document.documentElement,
+        offsetParent = node.offsetParent || html;
 
-    while (offsetParent && (offsetParent != documentElement &&
+    while (offsetParent && (offsetParent != html &&
                               getStyle(offsetParent, "position") == "static")) {
         offsetParent = offsetParent.offsetParent;
     }
 
-    return offsetParent || documentElement;
+    return offsetParent || html;
 
 };

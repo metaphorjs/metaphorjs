@@ -8,7 +8,7 @@ chai.use(chaiAsPromised);
 var expect = chai.expect;
 
 browser.ignoreSynchronization = true;
-browser.get('http://127.0.0.1:3000/metaphorjs/dev-test/index.html');
+browser.get('http://127.0.0.1:4000/metaphorjs/dev-test/index.html');
 
 describe('Bindings (read only) #1', function() {
 
@@ -308,13 +308,14 @@ describe('Change value of .text via textarea', function() {
 
         expect(browser.driver.executeScript("return window.mainApp.scope.text"))
             .to.eventually.equal("New Text1");
-    });
 
-    it("should change #model-input value too", function(){
+        //element(by.id("model-input")).getAttribute("value").then(function(val){
+        //    console.log("got value", val)
+        //})
 
         expect(element(by.id("model-input")).getAttribute("value"))
             .to.eventually.equal("New Text1");
-
     });
+
 
 });

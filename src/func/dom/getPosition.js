@@ -1,15 +1,15 @@
 
 var getStyle = require("./getStyle.js"),
     getOffsetParent = require("./getOffsetParent.js"),
-    getOffset = require("./getOffset.js"),
-    documentElement = require("../../var/documentElement.js");
+    getOffset = require("./getOffset.js");
 
 module.exports = function getPosition(node, to) {
 
     var offsetParent, offset,
-        parentOffset = {top: 0, left: 0};
+        parentOffset = {top: 0, left: 0},
+        html = window.document.documentElement;
 
-    if (node === window || node === documentElement) {
+    if (node === window || node === html) {
         return parentOffset;
     }
 
@@ -42,7 +42,7 @@ module.exports = function getPosition(node, to) {
         // Get correct offsets
         offset = getOffset(node);
 
-        if (offsetParent !== documentElement) {
+        if (offsetParent !== html) {
             parentOffset = getOffset(offsetParent);
         }
 

@@ -1,22 +1,23 @@
 
-module.exports = function() {
+/*!window!*/
+
+module.exports = function(node, prop, numeric) {
+
+    var style, val;
 
     if (window.getComputedStyle) {
-        return function (node, prop, numeric) {
-            if (node === window) {
-                return prop? (numeric ? 0 : null) : {};
-            }
-            var style = getComputedStyle(node, null),
-                val = prop ? style[prop] : style;
 
-            return numeric ? parseFloat(val) || 0 : val;
-        };
+        if (node === window) {
+            return prop? (numeric ? 0 : null) : {};
+        }
+        style = getComputedStyle(node, null);
+        val = prop ? style[prop] : style;
+    }
+    else {
+        style = node.currentStyle || node.style || {};
+        val = prop ? style[prop] : style;
     }
 
-    return function(node, prop, numeric) {
-        var style   = node.currentStyle || node.style || {},
-            val     = prop ? style[prop] : style;
-        return numeric ? parseFloat(val) || 0 : val;
-    };
+    return numeric ? parseFloat(val) || 0 : val;
 
-}();
+};

@@ -1,15 +1,19 @@
 
-var uaString = require("../../var/uaString.js");
 
 module.exports = function(){
 
-    var msie    = parseInt((/msie (\d+)/.exec(uaString) || [])[1], 10);
-
-    if (isNaN(msie)) {
-        msie    = parseInt((/trident\/.*; rv:(\d+)/.exec(uaString) || [])[1], 10) || false;
-    }
+    var msie;
 
     return function isIE() {
+
+        if (msie === null) {
+            var ua = navigator.userAgent;
+            msie = parseInt((/msie (\d+)/i.exec(ua) || [])[1], 10);
+            if (isNaN(msie)) {
+                msie = parseInt((/trident\/.*; rv:(\d+)/i.exec(ua) || [])[1], 10) || false;
+            }
+        }
+
         return msie;
     };
 }();

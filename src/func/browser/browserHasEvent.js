@@ -21,7 +21,7 @@ module.exports = function(){
                 return eventSupport[event] = false;
             }
 
-            var divElm = document.createElement('div');
+            var divElm = window.document.createElement('div');
             eventSupport[event] = !!('on' + event in divElm);
         }
 

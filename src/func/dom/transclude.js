@@ -5,7 +5,7 @@ var parentData = require("../dom/parentData.js"),
     clone = require("../dom/clone.js"),
     toArray = require("../array/toArray.js");
 
-module.exports = function transclude(node) {
+module.exports = function transclude(node, replace) {
 
     var contents  = parentData(node, 'mjs-transclude');
 
@@ -20,8 +20,13 @@ module.exports = function transclude(node) {
             cloned      = clone(contents),
             children    = toArray(cloned.childNodes);
 
-        parent.removeChild(node);
-        parent.insertBefore(cloned, next);
+        if (replace) {
+            parent.removeChild(node);
+            parent.insertBefore(cloned, next);
+        }
+        else {
+            node.appendChild(cloned);
+        }
 
         return children;
     }

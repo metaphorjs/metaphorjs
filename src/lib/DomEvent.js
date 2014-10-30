@@ -45,7 +45,7 @@ var DomEvent = function(src) {
 
     // Calculate pageX/Y if missing and clientX/Y available
     if (self.pageX === undf && !isNull(src.clientX)) {
-        eventDoc = self.target ? self.target.ownerDocument || document : document;
+        eventDoc = self.target ? self.target.ownerDocument || window.document : window.document;
         doc = eventDoc.documentElement;
         body = eventDoc.body;
 

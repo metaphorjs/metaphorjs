@@ -18,7 +18,7 @@ module.exports = function() {
     return function getScrollParent(node) {
 
         if (!body) {
-            body = document.body;
+            body = window.document.body;
         }
 
         var parent = node;

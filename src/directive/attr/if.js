@@ -3,7 +3,8 @@
 
 var defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
     animate = require("../../../../metaphorjs-animate/src/metaphorjs.animate.js"),
-    Directive = require("../../class/Directive.js");
+    Directive = require("../../class/Directive.js"),
+    isAttached = require("../../func/dom/isAttached.js");
 
 
 Directive.registerAttribute("mjs-if", 500, defineClass({
@@ -23,6 +24,7 @@ Directive.registerAttribute("mjs-if", 500, defineClass({
         self.prevEl     = node.previousSibling;
 
         self.$super(scope, node, expr);
+
     },
 
     onScopeDestroy: function() {

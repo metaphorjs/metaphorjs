@@ -32,7 +32,7 @@ describe("MetaphorJs.app", function(){
 
     it("should compile text", function(){
 
-        var scope = new MetaphorJs.lib.Scope;
+        var scope = new MetaphorJs.Scope;
         scope.a = 1;
 
         var fragment = MetaphorJs.compile("<div>{{.a}}</div>", scope);

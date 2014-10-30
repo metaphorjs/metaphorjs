@@ -1,7 +1,9 @@
 (function(){
 "use strict";
 
+
 var MetaphorJs = {
+
 
 };
 
@@ -32,19 +34,21 @@ var varType = function(){
 
 
     /**
-        'string': 0,
-        'number': 1,
-        'boolean': 2,
-        'object': 3,
-        'function': 4,
-        'array': 5,
-        'null': 6,
-        'undefined': 7,
-        'NaN': 8,
-        'regexp': 9,
-        'date': 10
-    */
-
+     * 'string': 0,
+     * 'number': 1,
+     * 'boolean': 2,
+     * 'object': 3,
+     * 'function': 4,
+     * 'array': 5,
+     * 'null': 6,
+     * 'undefined': 7,
+     * 'NaN': 8,
+     * 'regexp': 9,
+     * 'date': 10,
+     * unknown: -1
+     * @param {*} value
+     * @returns {number}
+     */
     return function varType(val) {
 
         if (!val) {
@@ -102,25 +106,182 @@ function isObject(value) {
 
 
 
+var Cache = function(){
+
+    var globalCache;
+
+    /**
+     * @class Cache
+     * @param {bool} cacheRewritable
+     * @constructor
+     */
+    var Cache = function(cacheRewritable) {
+
+        var storage = {},
+
+            finders = [];
+
+        if (arguments.length == 0) {
+            cacheRewritable = true;
+        }
+
+        return {
+
+            /**
+             * @param {function} fn
+             * @param {object} context
+             * @param {bool} prepend
+             */
+            addFinder: function(fn, context, prepend) {
+                finders[prepend? "unshift" : "push"]({fn: fn, context: context});
+            },
+
+            /**
+             * @method
+             * @param {string} name
+             * @param {*} value
+             * @param {bool} rewritable
+             * @returns {*} value
+             */
+            add: function(name, value, rewritable) {
+
+                if (storage[name] && storage[name].rewritable === false) {
+                    return storage[name];
+                }
+
+                storage[name] = {
+                    rewritable: typeof rewritable != strUndef ? rewritable : cacheRewritable,
+                    value: value
+                };
+
+                return value;
+            },
+
+            /**
+             * @method
+             * @param {string} name
+             * @returns {*}
+             */
+            get: function(name) {
+
+                if (!storage[name]) {
+                    if (finders.length) {
+
+                        var i, l, res,
+                            self = this;
+
+                        for (i = 0, l = finders.length; i < l; i++) {
+
+                            res = finders[i].fn.call(finders[i].context, name, self);
+
+                            if (res !== undf) {
+                                return self.add(name, res, true);
+                            }
+                        }
+                    }
+
+                    return undf;
+                }
+
+                return storage[name].value;
+            },
+
+            /**
+             * @method
+             * @param {string} name
+             * @returns {*}
+             */
+            remove: function(name) {
+                var rec = storage[name];
+                if (rec && rec.rewritable === true) {
+                    delete storage[name];
+                }
+                return rec ? rec.value : undf;
+            },
+
+            /**
+             * @method
+             * @param {string} name
+             * @returns {boolean}
+             */
+            exists: function(name) {
+                return !!storage[name];
+            },
+
+            /**
+             * @param {function} fn
+             * @param {object} context
+             */
+            eachEntry: function(fn, context) {
+                var k;
+                for (k in storage) {
+                    fn.call(context, storage[k].value, k);
+                }
+            },
+
+            /**
+             * @method
+             */
+            destroy: function() {
+
+                var self = this;
+
+                if (self === globalCache) {
+                    globalCache = null;
+                }
+
+                storage = null;
+                cacheRewritable = null;
+
+                self.add = null;
+                self.get = null;
+                self.destroy = null;
+                self.exists = null;
+                self.remove = null;
+            }
+        };
+    };
+
+    /**
+     * @method
+     * @static
+     * @returns {Cache}
+     */
+    Cache.global = function() {
+
+        if (!globalCache) {
+            globalCache = new Cache(true);
+        }
+
+        return globalCache;
+    };
+
+    return Cache;
+
+}();
+
+
+
+
+
+/**
+ * @class Namespace
+ */
 var Namespace = function(){
+
 
     /**
      * @param {Object} root optional; usually window or global
      * @param {String} rootName optional. If you want custom object to be root and
-     * this object itself if the first level of namespace:<br>
-     * <pre><code class="language-javascript">
-     * var ns = MetaphorJs.lib.Namespace(window);
-     * ns.register("My.Test", something); // -> window.My.Test
-     * var privateNs = {};
-     * var ns = new MetaphorJs.lib.Namespace(privateNs, "privateNs");
-     * ns.register("privateNs.Test", something); // -> privateNs.Test
-     * </code></pre>
+     * this object itself if the first level of namespace: {@code ../examples/main.js}
+     * @param {Cache} cache optional
      * @constructor
      */
-    var Namespace   = function(root, rootName) {
+    var Namespace   = function(root, rootName, cache) {
 
-        var cache   = {},
-            self    = this;
+        cache       = cache || new Cache(false);
+        var self    = this,
+            rootL   = rootName ? rootName.length : null;
 
         if (!root) {
             if (typeof global != strUndef) {
@@ -132,13 +293,15 @@ var Namespace = function(){
         }
 
         var normalize   = function(ns) {
-            if (ns && rootName && ns.indexOf(rootName) !== 0) {
+            if (ns && rootName && ns.substr(0, rootL) != rootName) {
                 return rootName + "." + ns;
             }
             return ns;
         };
 
         var parseNs     = function(ns) {
+
+            ns = normalize(ns);
 
             var tmp     = ns.split("."),
                 i,
@@ -158,14 +321,9 @@ var Namespace = function(){
 
                     name    = tmp[i];
 
-                    if (rootName && i == 0) {
-                        if (name == rootName) {
-                            current = root;
-                            continue;
-                        }
-                        else {
-                            ns = rootName + "." + ns;
-                        }
+                    if (rootName && i == 0 && name == rootName) {
+                        current = root;
+                        continue;
                     }
 
                     if (current[name] === undf) {
@@ -175,30 +333,23 @@ var Namespace = function(){
                     current = current[name];
                 }
             }
-            else {
-                if (rootName) {
-                    ns = rootName + "." + ns;
-                }
-            }
 
             return [current, last, ns];
         };
 
         /**
          * Get namespace/cache object
-         * @function MetaphorJs.ns.get
+         * @method
          * @param {string} ns
          * @param {bool} cacheOnly
-         * @returns {object} constructor
+         * @returns {*}
          */
         var get       = function(ns, cacheOnly) {
 
-            if (cache[ns] !== undf) {
-                return cache[ns];
-            }
+            ns = normalize(ns);
 
-            if (rootName && cache[rootName + "." + ns] !== undf) {
-                return cache[rootName + "." + ns];
+            if (cache.exists(ns)) {
+                return cache.get(ns);
             }
 
             if (cacheOnly) {
@@ -215,11 +366,9 @@ var Namespace = function(){
 
                 name    = tmp[i];
 
-                if (rootName && i == 0) {
-                    if (name == rootName) {
-                        current = root;
-                        continue;
-                    }
+                if (rootName && i == 0 && name == rootName) {
+                    current = root;
+                    continue;
                 }
 
                 if (current[name] === undf) {
@@ -230,15 +379,15 @@ var Namespace = function(){
             }
 
             if (current) {
-                cache[ns] = current;
+                cache.add(ns, current);
             }
 
             return current;
         };
 
         /**
-         * Register class constructor
-         * @function MetaphorJs.ns.register
+         * Register item
+         * @method
          * @param {string} ns
          * @param {*} value
          */
@@ -251,40 +400,87 @@ var Namespace = function(){
             if (isObject(parent) && parent[name] === undf) {
 
                 parent[name]        = value;
-                cache[parse[2]]     = value;
+                cache.add(parse[2], value);
             }
 
             return value;
         };
 
         /**
-         * Class exists
-         * @function MetaphorJs.ns.exists
+         * Item exists
+         * @method
          * @param {string} ns
          * @returns boolean
          */
         var exists      = function(ns) {
-            return cache[ns] !== undf;
+            return get(ns, true) !== undf;
         };
 
         /**
-         * Add constructor to cache
-         * @function MetaphorJs.ns.add
+         * Add item only to the cache
+         * @function add
          * @param {string} ns
          * @param {*} value
          */
         var add = function(ns, value) {
-            if (rootName && ns.indexOf(rootName) !== 0) {
-                ns = rootName + "." + ns;
-            }
-            if (cache[ns] === undf) {
-                cache[ns] = value;
-            }
+
+            ns = normalize(ns);
+            cache.add(ns, value);
             return value;
         };
 
+        /**
+         * Remove item from cache
+         * @method
+         * @param {string} ns
+         */
         var remove = function(ns) {
-            delete cache[ns];
+            ns = normalize(ns);
+            cache.remove(ns);
+        };
+
+        /**
+         * Make alias in the cache
+         * @method
+         * @param {string} from
+         * @param {string} to
+         */
+        var makeAlias = function(from, to) {
+
+            from = normalize(from);
+            to = normalize(to);
+
+            var value = cache.get(from);
+
+            if (value !== undf) {
+                cache.add(to, value);
+            }
+        };
+
+        /**
+         * Destroy namespace and all classes in it
+         */
+        var destroy     = function() {
+
+            var self = this,
+                k;
+
+            if (self === globalNs) {
+                globalNs = null;
+            }
+
+            cache.eachEntry(function(entry){
+                if (entry && entry.$destroy) {
+                    entry.$destroy();
+                }
+            });
+
+            cache.destroy();
+            cache = null;
+
+            for (k in self) {
+                self[k] = null;
+            }
         };
 
         self.register   = register;
@@ -293,6 +489,8 @@ var Namespace = function(){
         self.add        = add;
         self.remove     = remove;
         self.normalize  = normalize;
+        self.makeAlias  = makeAlias;
+        self.destroy    = destroy;
     };
 
     Namespace.prototype.register = null;
@@ -301,9 +499,17 @@ var Namespace = function(){
     Namespace.prototype.add = null;
     Namespace.prototype.remove = null;
     Namespace.prototype.normalize = null;
+    Namespace.prototype.makeAlias = null;
+    Namespace.prototype.destroy = null;
 
     var globalNs;
 
+    /**
+     * Get global namespace
+     * @method
+     * @static
+     * @returns {*}
+     */
     Namespace.global = function() {
         if (!globalNs) {
             globalNs = new Namespace;
@@ -544,8 +750,6 @@ var Class = function(){
         };
 
 
-
-
     var Class = function(ns){
 
         if (!ns) {
@@ -626,6 +830,10 @@ var Class = function(){
         };
 
 
+        /**
+         * @class BaseClass
+         * @constructor
+         */
         var BaseClass = function() {
 
         };
@@ -646,19 +854,42 @@ var Class = function(){
             $beforeDestroy: [],
             $afterDestroy: [],
 
+            /**
+             * Get class name
+             * @method
+             * @returns {string}
+             */
             $getClass: function() {
                 return this.$class;
             },
 
+            /**
+             * Get parent class name
+             * @method
+             * @returns {null}
+             */
             $getParentClass: function() {
                 return this.$extends;
             },
 
+            /**
+             * Intercept method
+             * @method
+             * @param {string} method Intercepted method name
+             * @param {function} fn function to call before or after intercepted method
+             * @param {object} newContext optional interceptor's "this" object
+             * @param {string} when optional, when to call interceptor before | after | instead; default "before"
+             * @param {bool} replaceValue optional, return interceptor's return value or original method's; default false
+             */
             $intercept: function(method, fn, newContext, when, replaceValue) {
                 var self = this;
                 self[method] = intercept(self[method], fn, newContext || self, self, when, replaceValue);
             },
 
+            /**
+             * Implement new methods or properties on instance
+             * @param {object} methods
+             */
             $implement: function(methods) {
                 var $self = this.constructor;
                 if ($self && $self.$parent) {
@@ -666,6 +897,9 @@ var Class = function(){
                 }
             },
 
+            /**
+             * @method
+             */
             $destroy: function() {
 
                 var self    = this,
@@ -709,11 +943,21 @@ var Class = function(){
                 self.$destroyed = true;
             },
 
+            /**
+             * Implement your destroy actions here
+             * @method
+             */
             destroy: function(){}
         });
 
         BaseClass.$self = BaseClass;
 
+        /**
+         * Create an instance of current class.
+         * @method
+         * @static
+         * @returns {object} class instance
+         */
         BaseClass.$instantiate = function() {
 
             var cls = this,
@@ -739,6 +983,12 @@ var Class = function(){
             }
         };
 
+        /**
+         * Override class methods
+         * @method
+         * @static
+         * @param {object} methods
+         */
         BaseClass.$override = function(methods) {
             var $self = this.$self,
                 $parent = this.$parent;
@@ -748,22 +998,35 @@ var Class = function(){
             }
         };
 
+        /**
+         * Create new class based on current one
+         * @param {object} definition
+         * @param {object} statics
+         * @returns {function}
+         */
         BaseClass.$extend = function(definition, statics) {
             return define(definition, statics, this);
         };
 
-
         /**
-         * @namespace MetaphorJs
+         * Destroy class
          */
+        BaseClass.$destroy = function() {
+            var self = this,
+                k;
+
+            for (k in self) {
+                self[k] = null;
+            }
+        };
 
 
         /**
-         * Define class
-         * @function MetaphorJs.define
+         * @class Class
+         * @method
          * @param {object} definition
-         * @param {object} statics (optional)
-         * @return function New class constructor
+         * @param {object} statics
+         * @param {string|function} $extends
          */
         var define = function(definition, statics, $extends) {
 
@@ -858,11 +1121,12 @@ var Class = function(){
 
 
         /**
-         * Instantiate class
-         * @function MetaphorJs.create
+         * Instantiate class. Pass constructor parameters after "name"
+         * @method
          * @param {string} name Full name of the class
+         * @returns {object} class instance
          */
-        var instantiate = function(name) {
+        var factory = function(name) {
 
             var cls     = ns.get(name),
                 args    = slice.call(arguments, 1);
@@ -878,10 +1142,10 @@ var Class = function(){
 
         /**
          * Is cmp instance of cls
-         * @function MetaphorJs.is
+         * @method
          * @param {object} cmp
          * @param {string|object} cls
-         * @returns boolean
+         * @returns {boolean}
          */
         var isInstanceOf = function(cmp, cls) {
             var _cls    = isString(cls) ? ns.get(cls) : cls;
@@ -892,11 +1156,10 @@ var Class = function(){
 
         /**
          * Is one class subclass of another class
-         * @function MetaphorJs.isSubclass
+         * @method
          * @param {string|object} childClass
          * @param {string|object} parentClass
-         * @return bool
-         * @alias MetaphorJs.iss
+         * @return {bool}
          */
         var isSubclassOf = function(childClass, parentClass) {
 
@@ -927,10 +1190,30 @@ var Class = function(){
 
         var self    = this;
 
-        self.factory = instantiate;
+        self.factory = factory;
         self.isSubclassOf = isSubclassOf;
         self.isInstanceOf = isInstanceOf;
         self.define = define;
+
+        self.destroy = function(){
+
+            if (self === globalCs) {
+                globalCs = null;
+            }
+
+            BaseClass.$destroy();
+            BaseClass = null;
+
+            ns.destroy();
+            ns = null;
+
+            Class = null;
+
+        };
+
+        /**
+         * @type {function} BaseClass reference to the BaseClass class
+         */
         self.BaseClass = BaseClass;
 
     };
@@ -940,11 +1223,18 @@ var Class = function(){
         factory: null,
         isSubclassOf: null,
         isInstanceOf: null,
-        define: null
+        define: null,
+        destroy: null
     };
 
     var globalCs;
 
+    /**
+     * Get default global class manager
+     * @method
+     * @static
+     * @returns {Class}
+     */
     Class.global = function() {
         if (!globalCs) {
             globalCs = new Class(Namespace.global());
@@ -1055,8 +1345,7 @@ var bind = Function.prototype.bind ?
  * this.trigger("event");
  * </code></pre>
  *
- * @namespace MetaphorJs
- * @class MetaphorJs.lib.Observable
+ * @class Observable
  * @version 1.1
  * @author johann kuindji
  * @link https://github.com/kuindji/metaphorjs-observable
@@ -1094,6 +1383,7 @@ extend(Observable.prototype, {
     *   false -- do not return results except if handler returned "false". This is how
     *   normal observables work.<br>
     *   "all" -- return all results as array<br>
+    *   "merge" -- merge all results into one array (each result must be array)<br>
     *   "first" -- return result of the first handler<br>
     *   "last" -- return result of the last handler
     *   @required
@@ -1327,7 +1617,7 @@ extend(Observable.prototype, {
 
 
     /**
-    * Destroy specific event
+    * Destroy observable
     * @method
     * @md-not-inheritable
     * @access public
@@ -1388,7 +1678,8 @@ extend(Observable.prototype, {
 /**
  * This class is private - you can't create an event other than via Observable.
  * See MetaphorJs.lib.Observable reference.
- * @class MetaphorJs.lib.ObservableEvent
+ * @class ObservableEvent
+ * @private
  */
 var Event = function(name, returnResult) {
 
@@ -1407,6 +1698,11 @@ var Event = function(name, returnResult) {
 
 extend(Event.prototype, {
 
+    /**
+     * Get event name
+     * @method
+     * @returns {string}
+     */
     getName: function() {
         return this.name;
     },
@@ -1640,7 +1936,8 @@ extend(Event.prototype, {
             return null;
         }
 
-        var ret     = returnResult == "all" ? [] : null,
+        var ret     = returnResult == "all" || returnResult == "merge" ?
+                        [] : null,
             q, l,
             res;
 
@@ -1679,17 +1976,17 @@ extend(Event.prototype, {
             if (returnResult == "all") {
                 ret.push(res);
             }
-
-            if (returnResult == "first") {
+            else if (returnResult == "merge" && res) {
+                ret = ret.concat(res);
+            }
+            else if (returnResult == "first") {
                 return res;
             }
-
-            if (returnResult == "last") {
+            else if (returnResult == "last") {
                 ret = res;
             }
-
-            if (returnResult == false && res === false) {
-                break;
+            else if (returnResult == false && res === false) {
+                return false;
             }
         }
 
@@ -1707,6 +2004,7 @@ extend(Event.prototype, {
 /**
  * @function trim
  * @param {String} value
+ * @returns {string}
  */
 var trim = function() {
     // native trim is way faster: http://jsperf.com/angular-trim-test
@@ -2031,7 +2329,7 @@ function error(e) {
 
 var functionFactory = function() {
 
-    var REG_REPLACE_EXPR    = /(^|[^a-z0-9_$])(\.)([^0-9])/ig,
+    var REG_REPLACE_EXPR    = /(^|[^a-z0-9_$\]\)'"])(\.)([^0-9])/ig,
 
         f               = Function,
         fnBodyStart     = 'try {',
@@ -2110,6 +2408,7 @@ var functionFactory = function() {
         getterCacheCnt  = 0,
 
         createGetter    = function createGetter(expr) {
+
             try {
                 if (!getterCache[expr]) {
                     getterCacheCnt++;
@@ -2269,8 +2568,19 @@ var Watchable = function(){
 
         observable;
 
+    /**
+     * @class Watchable
+     */
 
-
+    /**
+     * @param {object} dataObj object containing observed property
+     * @param {string} code property name or custom code
+     * @param {function} fn optional listener
+     * @param {object} fnScope optional listener's "this" object
+     * @param {*} userData optional data to pass to the listener
+     * @param {Namespace} namespace optional namespace to get filters and pipes from
+     * @constructor
+     */
     var Watchable   = function(dataObj, code, fn, fnScope, userData, namespace) {
 
         if (!observable) {
@@ -2364,10 +2674,10 @@ var Watchable = function(){
             self.curr = self.prev = self.staticValue;
         }
 
-        if (useObserver) {
+        /*if (useObserver) {
             self.obsrvDelegate = bind(self.onObserverChange, self);
             Object.observe(self.obj, self.obsrvDelegate);
-        }
+        }*/
     };
 
     extend(Watchable.prototype, {
@@ -2459,7 +2769,7 @@ var Watchable = function(){
                 fn      = self.nsGet("filter." + name, true);
             }
             if (!fn) {
-                fn      = window[name] || dataObj[name];
+                fn      = (typeof window != "undefined" ? window[name] : null) || dataObj[name];
             }
 
             if (isFunction(fn)) {
@@ -2586,39 +2896,83 @@ var Watchable = function(){
             return val;
         },
 
+        /**
+         * Subscribe to the change event
+         * @method
+         * @param {function} fn listener
+         * @param {object} fnScope listener's "this" object
+         * @param {object} options see Observable's options in on()
+         */
         subscribe: function(fn, fnScope, options) {
             observable.on(this.id, fn, fnScope, options);
         },
 
+        /**
+         * Unsubscribe from change event
+         * @param {function} fn
+         * @param {object} fnScope
+         * @returns {*}
+         */
         unsubscribe: function(fn, fnScope) {
             return observable.un(this.id, fn, fnScope);
         },
 
+        /**
+         * @returns {boolean}
+         */
         hasPipes: function() {
             return this.pipes !== null;
         },
 
+        /**
+         * @returns {boolean}
+         */
         hasInputPipes: function() {
             return this.inputPipes != null;
         },
 
+        /**
+         * Get current value (filtered and via executing the code)
+         * @returns {*}
+         */
         getValue: function() {
             return this._getValue();
         },
 
+        /**
+         * Get last calculated value before filters were applied
+         * @returns {*}
+         */
         getUnfilteredValue: function() {
             return this.unfiltered || this.curr;
         },
 
+        /**
+         * Get previous value
+         * @returns {*}
+         */
         getPrevValue: function() {
             return this.prev;
         },
 
+        /**
+         * Get simple array change prescription
+         * @param {[]} from optional
+         * @param {[]} to optional
+         * @returns {[]}
+         */
         getPrescription: function(from, to) {
             to = to || this._getValue();
             return levenshteinArray(from || [], to || []).prescription;
         },
 
+        /**
+         * Get array change prescription with moves
+         * @param {[]} from
+         * @param {function} trackByFn
+         * @param {[]} to
+         * @returns {[]}
+         */
         getMovePrescription: function(from, trackByFn, to) {
 
             var self    = this;
@@ -2632,6 +2986,10 @@ var Watchable = function(){
             );
         },
 
+        /**
+         * Set value to observed property
+         * @param {*} val
+         */
         setValue: function(val) {
 
             var self    = this,
@@ -2710,18 +3068,35 @@ var Watchable = function(){
             return false;
         },
 
+        /**
+         * Check for changes
+         * @param {bool} async
+         * @returns {bool}
+         */
         check: function(async) {
             return this._check(async);
         },
 
+        /**
+         * Check all observed properties for changes
+         * @returns {bool}
+         */
         checkAll: function() {
             return this.obj.$$watchers.$checkAll();
         },
 
+        /**
+         * Get last calculated value (with filters and pipes)
+         * @returns {*}
+         */
         getLastResult: function() {
             return this.curr;
         },
 
+        /**
+         * Set time interval to check for changes periodically
+         * @param {number} ms
+         */
         setInterval: function(ms) {
 
             var self    = this;
@@ -2731,6 +3106,10 @@ var Watchable = function(){
             self.itv = setInterval(function(){self.check();}, ms);
         },
 
+        /**
+         * Clear check interval
+         * @method
+         */
         clearInterval: function() {
             var self    = this;
             if (self.itv) {
@@ -2739,6 +3118,12 @@ var Watchable = function(){
             }
         },
 
+        /**
+         * Unsubscribe and destroy if there are no other listeners
+         * @param {function} fn
+         * @param {object} fnScope
+         * @returns {boolean} true if destroyed
+         */
         unsubscribeAndDestroy: function(fn, fnScope) {
 
             var self    = this,
@@ -2756,6 +3141,9 @@ var Watchable = function(){
             return false;
         },
 
+        /**
+         * @method
+         */
         destroy: function() {
 
             var self    = this,
@@ -2806,6 +3194,17 @@ var Watchable = function(){
     }, true, false);
 
 
+    /**
+     * @method
+     * @static
+     * @param {object} obj
+     * @param {string} code
+     * @param {function} fn
+     * @param {object} fnScope
+     * @param {*} userData
+     * @param {Namespace} namespace
+     * @returns {Watchable}
+     */
     var create = function(obj, code, fn, fnScope, userData, namespace) {
 
             code = normalizeExpr(obj, trim(code));
@@ -2859,6 +3258,14 @@ var Watchable = function(){
             }
         },
 
+        /**
+         * @method
+         * @static
+         * @param {object} obj
+         * @param {string} code
+         * @param {function} fn
+         * @param {object} fnScope
+         */
         unsubscribeAndDestroy = function(obj, code, fn, fnScope) {
             code = trim(code);
 
@@ -2870,6 +3277,12 @@ var Watchable = function(){
             }
         },
 
+        /**
+         * Normalize expression
+         * @param {object} dataObj
+         * @param {string} expr
+         * @returns {string}
+         */
         normalizeExpr = function(dataObj, expr) {
             if (dataObj && expr) {
                 if (dataObj.hasOwnProperty(expr)) {
@@ -2886,7 +3299,12 @@ var Watchable = function(){
             return expr;
         },
 
-
+        /**
+         * Evaluate code against object
+         * @param {string} expr
+         * @param {object} scope
+         * @returns {*}
+         */
         evaluate    = function(expr, scope) {
             var val;
             if (val = isStatic(expr)) {
@@ -3102,10 +3520,15 @@ function toArray(list) {
  * @returns {Function|boolean}
  */
 function isThenable(any) {
-    if (!any || !any.then) {
+
+    // any.then must only be accessed once
+    // this is a promise/a+ requirement
+
+    if (!any) { //  || !any.then
         return false;
     }
     var then, t;
+
     //if (!any || (!isObject(any) && !isFunction(any))) {
     if (((t = typeof any) != "object" && t != "function")) {
         return false;
@@ -3117,13 +3540,6 @@ function isThenable(any) {
 
 
 var nsGet = ns.get;
-
-
-
-var nodeTextProp = function(){
-    var node    = document.createTextNode("");
-    return isString(node.textContent) ? "textContent" : "nodeValue";
-}();
 
 
 
@@ -3516,6 +3932,9 @@ var TextRenderer = function(){
 
             for (i = -1, l = ws.length; ++i < l; ){
                 val     = ws[i].getLastResult();
+                if (val === undf) {
+                    val = "";
+                }
                 ch.push((rec && factory(scope, val, self, null, true)) || val);
             }
         },
@@ -3672,19 +4091,54 @@ var Promise = function(){
 
 
     /**
-     * @param {Function} fn -- function(resolve, reject)
-     * @param {Object} fnScope
+     * @class Promise
+     */
+
+
+    /**
+     * @method Promise
+     * @param {Function} fn {
+     *  @description Function that accepts two parameters: resolve and reject functions.
+     *  @param {function} resolve {
+     *      @param {*} value
+     *  }
+     *  @param {function} reject {
+     *      @param {*} reason
+     *  }
+     * }
+     * @param {Object} context
      * @returns {Promise}
      * @constructor
      */
-    var Promise = function(fn, fnScope) {
+
+    /**
+     * @method Promise
+     * @param {Thenable} thenable
+     * @returns {Promise}
+     * @constructor
+     */
+
+    /**
+     * @method Promise
+     * @param {*} value Value to resolve promise with
+     * @returns {Promise}
+     * @constructor
+     */
+
+
+    /**
+     * @method Promise
+     * @returns {Promise}
+     * @constructor
+     */
+    var Promise = function(fn, context) {
 
         if (fn instanceof Promise) {
             return fn;
         }
 
         if (!(this instanceof Promise)) {
-            return new Promise(fn, fnScope);
+            return new Promise(fn, context);
         }
 
         var self = this,
@@ -3711,7 +4165,7 @@ var Promise = function(){
             }
             else if (isFunction(fn)) {
                 try {
-                    fn.call(fnScope,
+                    fn.call(context,
                             bind(self.resolve, self),
                             bind(self.reject, self));
                 }
@@ -3977,23 +4431,23 @@ var Promise = function(){
 
         /**
          * @param {Function} fn -- function to call when promise is resolved
-         * @param {Object} fnScope -- function's "this" object
+         * @param {Object} context -- function's "this" object
          * @returns {Promise} same promise
          */
-        done: function(fn, fnScope) {
+        done: function(fn, context) {
             var self    = this,
                 state   = self._state;
 
             if (state == FULFILLED && self._wait == 0) {
                 try {
-                    fn.call(fnScope || null, self._value);
+                    fn.call(context || null, self._value);
                 }
                 catch (thrown) {
                     error(thrown);
                 }
             }
             else if (state == PENDING) {
-                self._dones.push([fn, fnScope]);
+                self._dones.push([fn, context]);
             }
 
             return self;
@@ -4017,24 +4471,24 @@ var Promise = function(){
 
         /**
          * @param {Function} fn -- function to call when promise is rejected.
-         * @param {Object} fnScope -- function's "this" object
+         * @param {Object} context -- function's "this" object
          * @returns {Promise} same promise
          */
-        fail: function(fn, fnScope) {
+        fail: function(fn, context) {
 
             var self    = this,
                 state   = self._state;
 
             if (state == REJECTED && self._wait == 0) {
                 try {
-                    fn.call(fnScope || null, self._reason);
+                    fn.call(context || null, self._reason);
                 }
                 catch (thrown) {
                     error(thrown);
                 }
             }
             else if (state == PENDING) {
-                self._fails.push([fn, fnScope]);
+                self._fails.push([fn, context]);
             }
 
             return self;
@@ -4042,12 +4496,12 @@ var Promise = function(){
 
         /**
          * @param {Function} fn -- function to call when promise resolved or rejected
-         * @param {Object} fnScope -- function's "this" object
+         * @param {Object} context -- function's "this" object
          * @return {Promise} same promise
          */
-        always: function(fn, fnScope) {
-            this.done(fn, fnScope);
-            this.fail(fn, fnScope);
+        always: function(fn, context) {
+            this.done(fn, context);
+            this.fail(fn, context);
             return this;
         },
 
@@ -4094,6 +4548,13 @@ var Promise = function(){
     }, true, false);
 
 
+    /**
+     * @param {function} fn
+     * @param {object} context
+     * @param {[]} args
+     * @returns {Promise}
+     * @static
+     */
     Promise.fcall = function(fn, context, args) {
         return Promise.resolve(fn.apply(context, args || []));
     };
@@ -4101,6 +4562,7 @@ var Promise = function(){
     /**
      * @param {*} value
      * @returns {Promise}
+     * @static
      */
     Promise.resolve = function(value) {
         var p = new Promise;
@@ -4112,6 +4574,7 @@ var Promise = function(){
     /**
      * @param {*} reason
      * @returns {Promise}
+     * @static
      */
     Promise.reject = function(reason) {
         var p = new Promise;
@@ -4123,6 +4586,7 @@ var Promise = function(){
     /**
      * @param {[]} promises -- array of promises or resolve values
      * @returns {Promise}
+     * @static
      */
     Promise.all = function(promises) {
 
@@ -4177,6 +4641,7 @@ var Promise = function(){
      * @param {Promise|*} promise2
      * @param {Promise|*} promiseN
      * @returns {Promise}
+     * @static
      */
     Promise.when = function() {
         return Promise.all(arguments);
@@ -4185,6 +4650,7 @@ var Promise = function(){
     /**
      * @param {[]} promises -- array of promises or resolve values
      * @returns {Promise}
+     * @static
      */
     Promise.allResolved = function(promises) {
 
@@ -4229,6 +4695,7 @@ var Promise = function(){
     /**
      * @param {[]} promises -- array of promises or resolve values
      * @returns {Promise}
+     * @static
      */
     Promise.race = function(promises) {
 
@@ -4265,6 +4732,7 @@ var Promise = function(){
     /**
      * @param {[]} functions -- array of promises or resolve values or functions
      * @returns {Promise}
+     * @static
      */
     Promise.waterfall = function(functions) {
 
@@ -4410,7 +4878,12 @@ var Renderer = function(){
             }
 
             if (!children.length) {
-                children    = toArray(el.childNodes);
+                if (el.childNodes) {
+                    children    = toArray(el.childNodes);
+                }
+                else if (el.length) {
+                    children    = toArray(el);
+                }
             }
 
             len = children.length;
@@ -4462,11 +4935,7 @@ var Renderer = function(){
                 return;
             }
 
-
-            //if (el.nodeType) {
-                res = fn.call(fnScope, el);
-            //}
-
+            res = fn.call(fnScope, el);
 
             if (res !== false) {
 
@@ -4586,7 +5055,7 @@ var Renderer = function(){
             if (nodeType == 3) {
 
                 recursive       = getAttr(node.parentNode, "mjs-recursive") !== null;
-                textRenderer    = createText(scope, node[nodeTextProp], null, texts.length, recursive);
+                textRenderer    = createText(scope, node.textContent || node.nodeValue, null, texts.length, recursive);
 
                 if (textRenderer) {
                     textRenderer.subscribe(self.onTextChange, self);
@@ -4716,7 +5185,6 @@ var Renderer = function(){
                 res         = text.tr.getString(),
                 attrName    = text.attr;
 
-
             if (attrName) {
 
                 if (attrName == "value") {
@@ -4732,7 +5200,8 @@ var Renderer = function(){
                 setAttr(text.node, attrName, res);
             }
             else {
-                text.node[nodeTextProp] = res;
+                text.node.textContent = res;
+                text.node.nodeValue = res;
             }
         },
 
@@ -5353,6 +5822,63 @@ var ProviderMixin = {
 
 
 
+var destroy = function() {
+
+    var items = [];
+
+    var destroy = function destroyMetaphor(destroyWindow) {
+
+        var i, l, item,
+            k;
+
+        for (i = 0, l = items.length; i < l; i++) {
+            item = items[i];
+
+            if (item.$destroy) {
+                item.$destroy();
+            }
+            else if (item.destroy) {
+                item.destroy();
+            }
+        }
+
+        items = null;
+
+        if (cs && cs.destroy) {
+            cs.destroy();
+            cs = null;
+        }
+
+        if (ns && ns.destroy) {
+            ns.destroy();
+            ns = null;
+        }
+
+        for (k in MetaphorJs) {
+            MetaphorJs[k] = null;
+        }
+
+        MetaphorJs = null;
+
+        if (destroyWindow) {
+            for (k in window) {
+                if (window.hasOwnProperty(k)) {
+                    window[k] = null;
+                }
+            }
+        }
+    };
+
+    destroy.collect = function(item) {
+        items.push(item);
+    };
+
+    return destroy;
+
+}();
+
+
+
 
 
 
@@ -5372,6 +5898,8 @@ defineClass({
         var self        = this,
             scope       = data instanceof Scope ? data : new Scope(data),
             args;
+
+        destroy.collect(self);
 
         removeAttr(node, "mjs-app");
 
@@ -5481,13 +6009,9 @@ defineClass({
 
 
 
-
-var documentElement = document.documentElement;
-
-
-
 var isAttached = function(){
     var isAttached = function isAttached(node) {
+
         if (node === window) {
             return true;
         }
@@ -5499,7 +6023,10 @@ var isAttached = function(){
                 return true;
             }
         }
-        return node === documentElement ? true : documentElement.contains(node);
+
+        var html = window.document.documentElement;
+
+        return node === html ? true : html.contains(node);
     };
     return isAttached;
 }();
@@ -5542,10 +6069,11 @@ var data = function(){
 
 function toFragment(nodes) {
 
-    var fragment = document.createDocumentFragment();
+    var fragment = window.document.createDocumentFragment(),
+        i, l;
 
     if (isString(nodes)) {
-        var tmp = document.createElement('div');
+        var tmp = window.document.createElement('div');
         tmp.innerHTML = nodes;
         nodes = tmp.childNodes;
     }
@@ -5554,7 +6082,12 @@ function toFragment(nodes) {
         fragment.appendChild(nodes);
     }
     else {
-        for(var i =- 1, l = nodes.length>>>0; ++i !== l; fragment.appendChild(nodes[0])){}
+        if (nodes.item) {
+            for (i = -1, l = nodes.length >>> 0; ++i !== l; fragment.appendChild(nodes[0])) {}
+        }
+        else {
+            for (i = -1, l = nodes.length; ++i !== l; fragment.appendChild(nodes[i])) {}
+        }
     }
 
     return fragment;
@@ -5584,7 +6117,7 @@ var clone = function clone(node) {
                 return node.cloneNode(true);
             // text node
             case 3:
-                return document.createTextNode(node.innerText || node.textContent);
+                return window.document.createTextNode(node.innerText || node.textContent);
             // document fragment
             case 11:
                 return node.cloneNode(true);
@@ -5612,10 +6145,11 @@ var getAnimationPrefixes = function(){
         transitionend       = null,
         prefixes            = null,
 
+        probed              = false,
 
         detectCssPrefixes   = function() {
 
-            var el = document.createElement("div"),
+            var el = window.document.createElement("div"),
                 animation = false,
                 pfx,
                 i, len;
@@ -5652,18 +6186,25 @@ var getAnimationPrefixes = function(){
             return animation;
         };
 
-    if (detectCssPrefixes()) {
-        prefixes = {
-            animationDelay: animationDelay,
-            animationDuration: animationDuration,
-            transitionDelay: transitionDelay,
-            transitionDuration: transitionDuration,
-            transform: transform,
-            transitionend: transitionend
-        };
-    }
+
 
     return function() {
+
+        if (!probed) {
+            if (detectCssPrefixes()) {
+                prefixes = {
+                    animationDelay: animationDelay,
+                    animationDuration: animationDuration,
+                    transitionDelay: transitionDelay,
+                    transitionDuration: transitionDuration,
+                    transform: transform,
+                    transitionend: transitionend
+                };
+            }
+            probed = true;
+        }
+
+
         return prefixes;
     };
 }();
@@ -5695,14 +6236,22 @@ var getAnimationDuration = function(){
             return max;
         },
 
-        pfx                 = getAnimationPrefixes(),
-        animationDuration   = pfx ? pfx.animationDuration : null,
-        animationDelay      = pfx ? pfx.animationDelay : null,
-        transitionDuration  = pfx ? pfx.transitionDuration : null,
-        transitionDelay     = pfx ? pfx.transitionDelay : null;
+        pfx                 = false,
+        animationDuration   = null,
+        animationDelay      = null,
+        transitionDuration  = null,
+        transitionDelay     = null;
 
 
     return function(el) {
+
+        if (pfx === false) {
+            pfx = getAnimationPrefixes();
+            animationDuration = pfx ? pfx.animationDuration : null;
+            animationDelay = pfx ? pfx.animationDelay : null;
+            transitionDuration = pfx ? pfx.transitionDuration : null;
+            transitionDelay = pfx ? pfx.transitionDelay : null;
+        }
 
         if (!pfx) {
             return 0;
@@ -5724,13 +6273,15 @@ var getAnimationDuration = function(){
 }();
 
 
-/**
- * @param {String} expr
- */
+
 var getRegExp = function(){
 
     var cache = {};
 
+    /**
+     * @param {String} expr
+     * @returns RegExp
+     */
     return function getRegExp(expr) {
         return cache[expr] || (cache[expr] = new RegExp(expr));
     };
@@ -5884,9 +6435,8 @@ var animate = function(){
 
         animId          = 0,
 
-        prefixes        = getAnimationPrefixes(),
-
-        cssAnimations   = !!prefixes,
+        prefixes        = false,
+        cssAnimations   = false,
 
         dataParam       = "mjsAnimationQueue",
 
@@ -6012,6 +6562,11 @@ var animate = function(){
 
 
     var animate = function animate(el, animation, startCallback, checkIfEnabled, namespace, stepCallback) {
+
+        if (prefixes === false) {
+            prefixes        = getAnimationPrefixes();
+            cssAnimations   = !!prefixes;
+        }
 
         var deferred    = new Promise,
             queue       = data(el, dataParam) || [],
@@ -6225,7 +6780,7 @@ var select = function() {
         rRepAftPrn  = /\(.*/,
         rGetSquare  = /\[([^!~^*|$ [:=]+)([$^*|]?=)?([^ :\]]+)?\]/,
 
-        doc         = document,
+        doc         = window.document,
         bcn         = !!doc.getElementsByClassName,
         qsa         = !!doc.querySelectorAll,
 
@@ -7688,10 +8243,6 @@ var ajax = function(){
 
 
 
-var shadowRootSupported = !!documentElement.createShadowRoot;
-
-
-
 
 
 
@@ -7700,46 +8251,55 @@ var Template = function(){
 
     var observable      = new Observable,
 
-        tplCache        = {},
+        cache           = new Cache,
 
         getTemplate     = function(tplId) {
 
-            if (!tplCache[tplId]) {
-                var tplNode     = document.getElementById(tplId),
-                    tag;
+            var tpl = cache.get(tplId);
 
-                if (tplNode) {
+            if (typeof tpl == "string") {
+                tpl = toFragment(tpl);
+                cache.add(tplId, tpl);
+            }
 
-                    tag         = tplNode.tagName.toLowerCase();
+            return tpl;
+        },
 
-                    if (tag == "script") {
-                        var div = document.createElement("div");
-                        div.innerHTML = tplNode.innerHTML;
-                        tplCache[tplId] = toFragment(div.childNodes);
+        findTemplate = function(tplId) {
+
+            var tplNode     = window.document.getElementById(tplId),
+                tag;
+
+            if (tplNode) {
+
+                tag         = tplNode.tagName.toLowerCase();
+
+                if (tag == "script") {
+                    var div = window.document.createElement("div");
+                    div.innerHTML = tplNode.innerHTML;
+                    return toFragment(div.childNodes);
+                }
+                else {
+                    if ("content" in tplNode) {
+                        return tplNode.content;
                     }
                     else {
-                        if ("content" in tplNode) {
-                            tplCache[tplId] = tplNode.content;
-                        }
-                        else {
-                            tplCache[tplId] = toFragment(tplNode.childNodes);
-                        }
+                        return toFragment(tplNode.childNodes);
                     }
                 }
             }
-
-            return tplCache[tplId];
         },
 
         loadTemplate = function(tplUrl) {
-            if (!tplCache[tplUrl]) {
-                return tplCache[tplUrl] = ajax(tplUrl, {dataType: 'fragment'})
-                    .then(function(fragment){
-                        tplCache[tplUrl] = fragment;
-                        return fragment;
-                    });
+            if (!cache.exists(tplUrl)) {
+                return cache.add(tplUrl,
+                    ajax(tplUrl, {dataType: 'fragment'})
+                        .then(function(fragment){
+                            return cache.add(tplUrl, fragment);
+                        })
+                );
             }
-            return tplCache[tplUrl];
+            return cache.get(tplUrl);
         },
 
         isExpression = function(str) {
@@ -7750,6 +8310,7 @@ var Template = function(){
             return false;
         };
 
+    cache.addFinder(findTemplate);
 
     return defineClass({
 
@@ -7770,6 +8331,7 @@ var Template = function(){
         url:                null,
         ownRenderer:        false,
         initPromise:        null,
+        tplPromise:         null,
         parentRenderer:     null,
         deferRendering:     false,
         replace:            false,
@@ -7780,6 +8342,8 @@ var Template = function(){
             var self    = this;
 
             extend(self, cfg, true, false);
+
+            var shadowRootSupported = !!window.document.documentElement.createShadowRoot;
 
             if (!shadowRootSupported) {
                 self._intendedShadow = self.shadow;
@@ -7811,9 +8375,12 @@ var Template = function(){
                     data(node, "mjs-transclude", toFragment(node.childNodes));
                 }
 
-                if (isExpression(tpl) && !self.replace) {
+                if (isExpression(tpl)) {
+                    self._watcher = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
+                }
+
+                if (self._watcher && !self.replace) {
                     self.ownRenderer        = true;
-                    self._watcher           = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
                 }
                 else if (self.shadow) {
                     self.ownRenderer        = true;
@@ -7822,12 +8389,16 @@ var Template = function(){
                     self.ownRenderer        = false;
                 }
 
-                self.initPromise = self.resolveTemplate();
+                 self.resolveTemplate();
 
-                if (!self.deferRendering || !self.ownRenderer) {
-                    self.initPromise.done(self.applyTemplate, self);
+                if (self._watcher && self.replace) {
+                    self._watcher.unsubscribeAndDestroy(self.onChange, self);
+                    self._watcher = null;
                 }
 
+                if (!self.deferRendering || !self.ownRenderer) {
+                    self.tplPromise.done(self.applyTemplate, self);
+                }
                 if (self.ownRenderer && self.parentRenderer) {
                     self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
                 }
@@ -7873,8 +8444,8 @@ var Template = function(){
             if (self.deferRendering && self.node) {
 
                 self.deferRendering = false;
-                if (self.initPromise) {
-                    self.initPromise.done(tpl ? self.applyTemplate : self.doRender, self);
+                if (self.tplPromise) {
+                    self.tplPromise.done(tpl ? self.applyTemplate : self.doRender, self);
                     return self.initPromise;
                 }
                 else {
@@ -7893,7 +8464,12 @@ var Template = function(){
                           self._watcher.getLastResult() :
                           (self.tpl || url);
 
-            var returnPromise = new Promise;
+            self.initPromise    = new Promise;
+            self.tplPromise     = new Promise;
+
+            if (self.ownRenderer) {
+                self.initPromise.resolve(false);
+            }
 
             new Promise(function(resolve){
                 if (url) {
@@ -7905,11 +8481,13 @@ var Template = function(){
             })
                 .done(function(fragment){
                     self._fragment = fragment;
-                    returnPromise.resolve(!self.ownRenderer ? self.node : false);
+                    self.tplPromise.resolve();
+                    //!self.ownRenderer ? self.node : false
                 })
-                .fail(returnPromise.reject, returnPromise);
+                .fail(self.initPromise.reject, self.initPromise)
+                .fail(self.tplPromise.reject, self.tplPromise);
 
-            return returnPromise;
+
         },
 
         onChange: function() {
@@ -7939,10 +8517,26 @@ var Template = function(){
             }
 
             if (self.replace) {
-                el.parentNode.replaceChild(clone(self._fragment), el);
+
+                var frg = clone(self._fragment),
+                    transclude = data(el, "mjs-transclude"),
+                    children = slice.call(frg.childNodes);
+
+                if (transclude) {
+                    var tr = select("[mjs-transclude], mjs-transclude", frg);
+                    if (tr.length) {
+                        data(tr[0], "mjs-transclude", transclude);
+                    }
+                }
+
+                el.parentNode.replaceChild(frg, el);
+
+                self.node = children;
+                self.initPromise.resolve(children);
             }
             else {
                 el.appendChild(clone(self._fragment));
+                self.initPromise.resolve(self.node);
             }
 
             if (self.ownRenderer) {
@@ -7983,7 +8577,7 @@ var Template = function(){
 
             for (i = 0, l = cnts.length; i < l;  i++) {
 
-                tr      = document.createElement("mjs-transclude");
+                tr      = window.document.createElement("mjs-transclude");
                 el      = cnts[i];
                 next    = el.nextSibling;
                 sel     = getAttr(el, "select");
@@ -8018,8 +8612,7 @@ var Template = function(){
         }
 
     }, {
-        getTemplate: getTemplate,
-        loadTemplate: loadTemplate
+        cache: cache
     });
 }();
 
@@ -8185,7 +8778,7 @@ var Component = defineClass({
     _createNode: function() {
 
         var self    = this;
-        self.node   = document.createElement(self.tag || 'div');
+        self.node   = window.document.createElement(self.tag || 'div');
     },
 
     _initElement: function() {
@@ -8222,7 +8815,7 @@ var Component = defineClass({
             self.renderTo.appendChild(self.node);
         }
         else if (!isAttached(self.node)) {
-            document.body.appendChild(self.node);
+            window.document.body.appendChild(self.node);
         }
 
         self.rendered   = true;
@@ -8595,25 +9188,24 @@ var getNodeData = function() {
         return dataset;
     };
 
-    if (document.documentElement.dataset) {
-        return function(node) {
+
+    return function(node) {
+
+        if (node.dataset) {
             return node.dataset;
-        };
-    }
-    else {
-        return function(node) {
+        }
 
-            var dataset;
+        var dataset;
 
-            if ((dataset = data(node, "data")) !== undf) {
-                return dataset;
-            }
-
-            dataset = readDataSet(node);
-            data(node, "data", dataset);
+        if ((dataset = data(node, "data")) !== undf) {
             return dataset;
-        };
-    }
+        }
+
+        dataset = readDataSet(node);
+        data(node, "data", dataset);
+        return dataset;
+    };
+
 
 }();
 
@@ -8759,7 +9351,7 @@ var ListRenderer = defineClass({
             parent      = self.parentEl,
             next        = self.nextEl,
             buffered    = self.buffered,
-            fragment    = document.createDocumentFragment(),
+            fragment    = window.document.createDocumentFragment(),
             el,
             i, len;
 
@@ -8773,8 +9365,9 @@ var ListRenderer = defineClass({
         }
 
         if (!buffered) {
-            self.doUpdate();
             parent.insertBefore(fragment, next);
+            self.doUpdate();
+
         }
         else {
             self.bufferPlugin.getScrollOffset();
@@ -9420,7 +10013,7 @@ var DomEvent = function(src) {
 
     // Calculate pageX/Y if missing and clientX/Y available
     if (self.pageX === undf && !isNull(src.clientX)) {
-        eventDoc = self.target ? self.target.ownerDocument || document : document;
+        eventDoc = self.target ? self.target.ownerDocument || window.document : window.document;
         doc = eventDoc.documentElement;
         body = eventDoc.body;
 
@@ -9502,27 +10095,36 @@ function normalizeEvent(originalEvent) {
 
 
 
-var history = function(){
 
-    var win             = window,
-        history         = win.history,
-        location        = win.location,
+var mhistory = function(){
+
+    var win,
+        history,
+        location,
         observable      = new Observable,
-        exports         = {},
+        api             = {},
         params          = {},
 
-        listeners       = {
-            locationChange: [],
-            beforeLocationChange: []
-        },
-        windowLoaded    = false,
+        pushState,
+        replaceState,
+
+        windowLoaded    = typeof window == "undefined",
         rURL            = /(?:(\w+:))?(?:\/\/(?:[^@]*@)?([^\/:\?#]+)(?::([0-9]+))?)?([^\?#]*)(?:(\?[^#]+)|\?)?(?:(#.*))?/,
 
-        pushStateSupported  = !!history.pushState,
-        hashChangeSupported = "onhashchange" in win,
-        useHash             = pushStateSupported && (navigator.vendor || "").match(/Opera/);
+        pushStateSupported,
+        hashChangeSupported,
+        useHash;
 
-    extend(exports, observable.getApi());
+    observable.createEvent("beforeLocationChange", false);
+
+    var initWindow = function() {
+        win                 = window;
+        history             = win.history;
+        location            = win.location;
+        pushStateSupported  = !!history.pushState;
+        hashChangeSupported = "onhashchange" in win;
+        useHash             = pushStateSupported && (navigator.vendor || "").match(/Opera/);
+    };
 
     var preparePath = function(url) {
 
@@ -9650,33 +10252,25 @@ var history = function(){
             val     = getParam(i, url);
             params[i].value = val;
             if (val != prev) {
-                exports.trigger("change-" + i, val, prev, i, url);
+                observable.trigger("change-" + i, val, prev, i, url);
             }
         }
     };
 
     var onLocationChange = function(){
         var url = getCurrentUrl();
-        triggerEvent("locationChange", false, url);
+        triggerEvent("locationChange", url);
         checkParamChange(url);
     };
 
-    var triggerEvent = function triggerEvent(event, breakable, data) {
-
-        var url = data || getCurrentUrl(),
-            res;
-
-        for (var i = -1, l = listeners[event].length; ++i < l;){
-            res = listeners[event][i].call(null, url);
-            if (breakable && res === false) {
-                return false;
-            }
-        }
-
-        return exports.trigger(event, url);
+    var triggerEvent = function triggerEvent(event, data) {
+        var url = data || getCurrentUrl();
+        return observable.trigger(event, url);
     };
 
     var init = function() {
+
+        initWindow();
 
         // normal pushState
         if (pushStateSupported) {
@@ -9686,19 +10280,20 @@ var history = function(){
 
             addListener(win, "popstate", onLocationChange);
 
-            history.pushState = function(state, title, url) {
-                if (triggerEvent("beforeLocationChange", true, url) === false) {
+            pushState = function(url) {
+                if (triggerEvent("beforeLocationChange", url) === false) {
                     return false;
                 }
-                history.origPushState(state, title, preparePath(url));
+                history.origPushState(null, null, preparePath(url));
                 onLocationChange();
             };
 
-            history.replaceState = function(state, title, url) {
-                if (triggerEvent("beforeLocationChange", true, url) === false) {
+
+            replaceState = function(url) {
+                if (triggerEvent("beforeLocationChange", url) === false) {
                     return false;
                 }
-                history.origReplaceState(state, title, preparePath(url));
+                history.origReplaceState(null, null, preparePath(url));
                 onLocationChange();
             };
         }
@@ -9707,12 +10302,13 @@ var history = function(){
             // onhashchange
             if (hashChangeSupported) {
 
-                history.replaceState = history.pushState = function(state, title, url) {
-                    if (triggerEvent("beforeLocationChange", true, url) === false) {
+                replaceState = pushState = function(url) {
+                    if (triggerEvent("beforeLocationChange", url) === false) {
                         return false;
                     }
                     async(setHash, null, [preparePath(url)]);
                 };
+
                 addListener(win, "hashchange", onLocationChange);
             }
             // iframe
@@ -9722,10 +10318,10 @@ var history = function(){
                     initialUpdate = false;
 
                 var createFrame = function() {
-                    frame   = document.createElement("iframe");
+                    frame   = window.document.createElement("iframe");
                     frame.src = 'about:blank';
                     frame.style.display = 'none';
-                    document.body.appendChild(frame);
+                    window.document.body.appendChild(frame);
                 };
 
                 win.onIframeHistoryChange = function(val) {
@@ -9756,15 +10352,15 @@ var history = function(){
                 };
 
 
-                history.pushState = function(state, title, url) {
-                    if (triggerEvent("beforeLocationChange", true, url) === false) {
+                pushState = function(url) {
+                    if (triggerEvent("beforeLocationChange", url) === false) {
                         return false;
                     }
                     pushFrame(preparePath(url));
                 };
 
-                history.replaceState = function(state, title, url) {
-                    if (triggerEvent("beforeLocationChange", true, url) === false) {
+                replaceState = function(url) {
+                    if (triggerEvent("beforeLocationChange", url) === false) {
                         return false;
                     }
                     replaceFrame(preparePath(url));
@@ -9788,7 +10384,7 @@ var history = function(){
 
 
 
-        addListener(document.documentElement, "click", function(e) {
+        addListener(window.document.documentElement, "click", function(e) {
 
             e = normalizeEvent(e || win.event);
 
@@ -9817,65 +10413,77 @@ var history = function(){
             return null;
         });
 
-        history.initPushState = emptyFn;
-        exports.initPushState = emptyFn;
+        init = emptyFn;
     };
 
-    addListener(win, "load", function() {
+
+    addListener(window, "load", function() {
         windowLoaded = true;
     });
 
-    history.initPushState = init;
 
-    history.onBeforeChange = function(fn) {
-        listeners.beforeLocationChange.push(fn);
-    };
-    history.onChange = function(fn) {
-        listeners.locationChange.push(fn);
-    };
+    return extend(api, observable.getApi(), {
 
-    exports.pushUrl = function(url) {
-        history.pushState(null, null, url);
-    };
-    exports.replaceUrl = function(url) {
-        history.replaceState(null, null, url);
-    };
-    exports.currentUrl = function() {
-        return getCurrentUrl();
-    };
-    exports.initPushState = function() {
-        return init();
-    };
+        push: function(url) {
+            init();
+            history.pushState(null, null, url);
+        },
 
-    exports.getParam = function(name){
-        return params[name] ? params[name].value : null;
-    };
+        replace: function(url) {
+            init();
+            history.replaceState(null, null, url);
+        },
 
-    exports.addParam = function(name, extractor) {
-        if (!params[name]) {
-            if (!extractor) {
-                extractor = getRegExp(name + "=([^&]+)")
-            }
-            else if (!isFunction(extractor)) {
-                extractor = isString(extractor) ? getRegExp(extractor) : extractor;
-            }
+        current: function() {
+            init();
+            return getCurrentUrl();
+        },
 
-            params[name] = {
-                name: name,
-                value: null,
-                extractor: extractor
+        init: function() {
+            return init();
+        },
+
+        polyfill: function() {
+            init();
+            window.history.pushState = function(state, title, url) {
+                pushState(url);
             };
-            params[name].value = getParam(name, getCurrentUrl());
-        }
-    };
+            window.history.replaceState = function(state, title, url) {
+                replaceState(url);
+            };
+        },
 
-    return exports;
+        getParam: function(name){
+            return params[name] ? params[name].value : null;
+        },
+
+        addParam: function(name, extractor) {
+            init();
+            if (!params[name]) {
+                if (!extractor) {
+                    extractor = getRegExp(name + "=([^&]+)")
+                }
+                else if (!isFunction(extractor)) {
+                    extractor = isString(extractor) ? getRegExp(extractor) : extractor;
+                }
+
+                params[name] = {
+                    name: name,
+                    value: null,
+                    extractor: extractor
+                };
+                params[name].value = getParam(name, getCurrentUrl());
+            }
+        }
+
+    });
+
 }();
 
 
 
 
-var currentUrl = history.currentUrl;
+var currentUrl = mhistory.current;
 
 
 
@@ -9928,8 +10536,8 @@ defineClass({
         self.scope.$app.registerCmp(self, self.scope, "id");
 
         if (self.route) {
-            history.initPushState();
-            history.on("locationChange", self.onLocationChange, self);
+            mhistory.init();
+            mhistory.on("locationChange", self.onLocationChange, self);
             self.onLocationChange();
         }
         else if (self.cmp) {
@@ -10080,7 +10688,7 @@ defineClass({
         self.clearComponent();
 
         if (self.route) {
-            history.un("locationchange", self.onLocationChange, self);
+            mhistory.un("locationchange", self.onLocationChange, self);
             self.route = null;
         }
 
@@ -10289,12 +10897,6 @@ var setValue = function() {
         }
     };
 }();
-
-
-var elemTextProp = function(){
-    var node    = document.createElement("div");
-    return isString(node.textContent) ? "textContent" : "innerText";
-}();
 /**
  * @param {Element} elem
  * @returns {boolean}
@@ -10304,31 +10906,36 @@ function isSubmittable(elem) {
     return elem.nodeName.toLowerCase() == 'input' && type != 'radio' && type != 'checkbox';
 };
 
-var uaString = navigator.userAgent.toLowerCase();
-
-
-
 var isAndroid = function(){
 
-    var android = parseInt((/android (\d+)/.exec(uaString) || [])[1], 10) || false;
+    var android = null;
 
     return function isAndroid() {
+
+        if (android === null) {
+            android = parseInt((/android (\d+)/i.exec(navigator.userAgent) || [])[1], 10) || false;
+        }
+
         return android;
     };
 
 }();
 
 
-
 var isIE = function(){
 
-    var msie    = parseInt((/msie (\d+)/.exec(uaString) || [])[1], 10);
-
-    if (isNaN(msie)) {
-        msie    = parseInt((/trident\/.*; rv:(\d+)/.exec(uaString) || [])[1], 10) || false;
-    }
+    var msie;
 
     return function isIE() {
+
+        if (msie === null) {
+            var ua = navigator.userAgent;
+            msie = parseInt((/msie (\d+)/i.exec(ua) || [])[1], 10);
+            if (isNaN(msie)) {
+                msie = parseInt((/trident\/.*; rv:(\d+)/i.exec(ua) || [])[1], 10) || false;
+            }
+        }
+
         return msie;
     };
 }();
@@ -10354,7 +10961,7 @@ var browserHasEvent = function(){
                 return eventSupport[event] = false;
             }
 
-            var divElm = document.createElement('div');
+            var divElm = window.document.createElement('div');
             eventSupport[event] = !!('on' + event in divElm);
         }
 
@@ -10438,7 +11045,7 @@ extend(Input.prototype, {
             i, len;
 
 
-        self.radio  = radio = select("input[name="+name+"]");
+        self.radio  = radio = select("input[name="+name+"]", el.ownerDocument);
 
         self.onRadioInputChangeDelegate = bind(self.onRadioInputChange, self);
         self.listeners.push(["click", self.onRadioInputChangeDelegate]);
@@ -10727,7 +11334,7 @@ Directive.registerAttribute("mjs-bind", 1000, defineClass({
             self.input.setValue(val);
         }
         else {
-            self.node[elemTextProp] = val;
+            self.node[typeof self.node.textContent == "string" ? "textContent" : "innerText"] = val;
         }
     },
 
@@ -10762,6 +11369,20 @@ Directive.registerAttribute("mjs-bind-html", 1000, defineClass({
         this.node.innerHTML = val;
     }
 }));
+
+
+
+
+Directive.registerAttribute("mjs-break-if", 500, function(scope, node, expr){
+
+    var res = !!createGetter(expr)(scope);
+
+    if (res) {
+        node.parentNode.removeChild(node);
+    }
+
+    return !res;
+});
 
 
 
@@ -11071,6 +11692,7 @@ Directive.registerAttribute("mjs-if", 500, defineClass({
         self.prevEl     = node.previousSibling;
 
         self.$super(scope, node, expr);
+
     },
 
     onScopeDestroy: function() {
@@ -11312,7 +11934,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
         if (config.group !== self.prevGroup) {
 
             if (config.group){
-                self.groupEl = parent = document.createElement("optgroup");
+                self.groupEl = parent = window.document.createElement("optgroup");
                 setAttr(parent, "label", config.group);
                 if (config.disabledGroup) {
                     setAttr(parent, "disabled", "disabled");
@@ -11326,7 +11948,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
         }
         self.prevGroup  = config.group;
 
-        option  = document.createElement("option");
+        option  = window.document.createElement("option");
         setAttr(option, "value", config.value);
         option.text = config.name;
 
@@ -11351,7 +11973,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
             parent, next,
             i, len;
 
-        self.fragment   = document.createDocumentFragment();
+        self.fragment   = window.document.createDocumentFragment();
         self.prevGroup  = null;
         self.groupEl    = null;
 
@@ -11479,14 +12101,15 @@ var preloadImage = function() {
             cacheCnt = 0;
         }
 
-        var img = document.createElement("img"),
+        var doc = window.document,
+            img = doc.createElement("img"),
             style = img.style,
             deferred = new Promise;
 
         addListener(img, "load", function() {
             cache[src] = true;
             cacheCnt++;
-            document.body.removeChild(img);
+            doc.body.removeChild(img);
             deferred.resolve(src);
         });
 
@@ -11495,7 +12118,7 @@ var preloadImage = function() {
         style.left = "-10000px";
         style.top = "0";
         img.src = src;
-        document.body.appendChild(img);
+        doc.body.appendChild(img);
 
         return deferred;
     };
@@ -11588,7 +12211,7 @@ function parentData(node, key) {
 
 
 
-function transclude(node) {
+function transclude(node, replace) {
 
     var contents  = parentData(node, 'mjs-transclude');
 
@@ -11603,8 +12226,13 @@ function transclude(node) {
             cloned      = clone(contents),
             children    = toArray(cloned.childNodes);
 
-        parent.removeChild(node);
-        parent.insertBefore(cloned, next);
+        if (replace) {
+            parent.removeChild(node);
+            parent.insertBefore(cloned, next);
+        }
+        else {
+            node.appendChild(cloned);
+        }
 
         return children;
     }
@@ -11628,12 +12256,39 @@ Directive.registerAttribute("mjs-view", 200, function(scope, node, cls) {
 
 
 
+var tmpDumped = false;
+
+Directive.registerTag("mjs-if", function(scope, node) {
+
+    var expr = getAttr(node, "value"),
+        res = !!createGetter(expr)(scope);
+
+    if (!res) {
+        node.parentNode.removeChild(node);
+        return false;
+    }
+    else {
+        var nodes = toArray(node.childNodes),
+            frg = toFragment(node.childNodes),
+            next = node.nextSibling;
+
+        node.parentNode.insertBefore(frg, next);
+        node.parentNode.removeChild(node);
+
+        return nodes;
+    }
+
+});
+
+
+
 Directive.registerTag("mjs-include", function(scope, node, value, parentRenderer) {
+
 
     var tpl = new Template({
         scope: scope,
         node: node,
-        tpl: getAttr(node, "src"),
+        url: getAttr(node, "src"),
         parentRenderer: parentRenderer,
         replace: true
     });
@@ -11646,7 +12301,24 @@ Directive.registerTag("mjs-include", function(scope, node, value, parentRenderer
 
 
 Directive.registerTag("mjs-transclude", function(scope, node) {
-    return transclude(node);
+    return transclude(node, true);
+});
+
+
+
+nsAdd("filter.collect", function(input, scope, prop) {
+
+    var res = [],
+        i, l, val;
+
+    for (i = 0, l = input.length; i < l; i++) {
+        val = input[i][prop];
+        if (val != undf) {
+            res.push(val);
+        }
+    }
+
+    return res;
 });
 
 
@@ -11954,6 +12626,18 @@ nsAdd("filter.split", function(input, scope, sep, limit) {
 
 
 nsAdd("filter.toArray", function(input){
+
+    if (isPlainObject(input)) {
+        var list = [],
+            k;
+        for (k in input) {
+            if (input.hasOwnProperty(k)) {
+                list.push({key: k, value: input[k]});
+            }
+        }
+        return list;
+    }
+
     return toArray(input);
 });
 
@@ -11974,14 +12658,14 @@ nsAdd("filter.uppercase", function(val){
 
 /**
  * @param {Function} fn
+ * @param {Window} w optional window object
  */
-function onReady(fn) {
+function onReady(fn, w) {
 
     var done    = false,
         top     = true,
-        win     = window,
-        doc     = win.document,
-        root    = doc.documentElement,
+        win     = w || window,
+        root, doc,
 
         init    = function(e) {
             if (e.type == 'readystatechange' && doc.readyState != 'complete') {
@@ -12005,6 +12689,9 @@ function onReady(fn) {
 
             init('poll');
         };
+
+    doc     = win.document;
+    root    = doc.documentElement;
 
     if (doc.readyState == 'complete') {
         fn.call(win, 'lazy');
@@ -12047,18 +12734,24 @@ function initApp(node, cls, data, autorun) {
 
 
 
-function run() {
+function run(w, appData) {
+
+    var win = w || window;
+
+    if (!win) {
+        throw "Window object neither defined nor provided";
+    }
 
     onReady(function() {
 
-        var appNodes    = select("[mjs-app]"),
+        var appNodes    = select("[mjs-app]", win.document),
             i, l, el;
 
         for (i = -1, l = appNodes.length; ++i < l;){
             el      = appNodes[i];
-            initApp(el, getAttr(el, "mjs-app"), null, true);
+            initApp(el, getAttr(el, "mjs-app"), appData, true);
         }
-    });
+    }, win);
 
 };
 
@@ -12085,7 +12778,6 @@ var Model = function(){
 
 
     /**
-     * @namespace MetaphorJs
      * @class Model
      */
     return defineClass({
@@ -12111,7 +12803,6 @@ var Model = function(){
          *      @type {object} extra Extra params object
          *      @type {string|int|bool} ... other $.ajax({ properties })
          * }
-         * @name atom
          * @md-tmp model-atom
          */
 
@@ -12121,7 +12812,6 @@ var Model = function(){
          *      @type {string|object} save { @md-apply model-atom }
          *      @type {string|object} delete { @md-apply model-atom }
          * }
-         * @name group
          * @md-apply model-atom
          * @md-tmp model-group
          */
@@ -14758,7 +15448,7 @@ var Store = function(){
                 var id;
 
                 for (id in allStores) {
-                    if (fn.call(fnScope || window, allStores[id]) === false) {
+                    if (fn.call(fnScope, allStores[id]) === false) {
                         break;
                     }
                 }
@@ -14949,27 +15639,28 @@ var StoreRenderer = ListRenderer.$extend({
 Directive.registerAttribute("mjs-each-in-store", 100, StoreRenderer);
 
 
-var getStyle = function() {
+/*!window!*/
+
+var getStyle = function(node, prop, numeric) {
+
+    var style, val;
 
     if (window.getComputedStyle) {
-        return function (node, prop, numeric) {
-            if (node === window) {
-                return prop? (numeric ? 0 : null) : {};
-            }
-            var style = getComputedStyle(node, null),
-                val = prop ? style[prop] : style;
 
-            return numeric ? parseFloat(val) || 0 : val;
-        };
+        if (node === window) {
+            return prop? (numeric ? 0 : null) : {};
+        }
+        style = getComputedStyle(node, null);
+        val = prop ? style[prop] : style;
+    }
+    else {
+        style = node.currentStyle || node.style || {};
+        val = prop ? style[prop] : style;
     }
 
-    return function(node, prop, numeric) {
-        var style   = node.currentStyle || node.style || {},
-            val     = prop ? style[prop] : style;
-        return numeric ? parseFloat(val) || 0 : val;
-    };
+    return numeric ? parseFloat(val) || 0 : val;
 
-}();
+};
 
 
 
@@ -14990,7 +15681,7 @@ var getScrollParent = function() {
     return function getScrollParent(node) {
 
         if (!body) {
-            body = document.body;
+            body = window.document.body;
         }
 
         var parent = node;
@@ -15014,14 +15705,15 @@ var getScrollParent = function() {
 
 function getOffsetParent(node) {
 
-    var offsetParent = node.offsetParent || documentElement;
+    var html = window.document.documentElement,
+        offsetParent = node.offsetParent || html;
 
-    while (offsetParent && (offsetParent != documentElement &&
+    while (offsetParent && (offsetParent != html &&
                               getStyle(offsetParent, "position") == "static")) {
         offsetParent = offsetParent.offsetParent;
     }
 
-    return offsetParent || documentElement;
+    return offsetParent || html;
 
 };
 
@@ -15032,7 +15724,7 @@ var getScrollTopOrLeft = function(vertical) {
     var defaultST,
         wProp = vertical ? "pageYOffset" : "pageXOffset",
         sProp = vertical ? "scrollTop" : "scrollLeft",
-        doc = document,
+        doc = window.document,
         body = doc.body,
         html = doc.documentElement;
 
@@ -15082,7 +15774,8 @@ var getScrollLeft = getScrollTopOrLeft(false);
 
 function getOffset(node) {
 
-    var box = {top: 0, left: 0};
+    var box = {top: 0, left: 0},
+        html = window.document.documentElement;
 
     // Make sure it's not a disconnected DOM node
     if (!isAttached(node) || node === window) {
@@ -15096,8 +15789,8 @@ function getOffset(node) {
     }
 
     return {
-        top: box.top + getScrollTop() - documentElement.clientTop,
-        left: box.left + getScrollLeft() - documentElement.clientLeft
+        top: box.top + getScrollTop() - html.clientTop,
+        left: box.left + getScrollLeft() - html.clientLeft
     };
 };
 
@@ -15106,9 +15799,10 @@ function getOffset(node) {
 function getPosition(node, to) {
 
     var offsetParent, offset,
-        parentOffset = {top: 0, left: 0};
+        parentOffset = {top: 0, left: 0},
+        html = window.document.documentElement;
 
-    if (node === window || node === documentElement) {
+    if (node === window || node === html) {
         return parentOffset;
     }
 
@@ -15141,7 +15835,7 @@ function getPosition(node, to) {
         // Get correct offsets
         offset = getOffset(node);
 
-        if (offsetParent !== documentElement) {
+        if (offsetParent !== html) {
             parentOffset = getOffset(offsetParent);
         }
 
@@ -15229,8 +15923,8 @@ nsAdd("plugin.ListBuffered", defineClass({
                 marginBottom: 0
             };
 
-        self.topStub       = ofsTop = document.createElement(cfg.stub || "div");
-        self.botStub       = ofsBot = document.createElement(cfg.stub || "div");
+        self.topStub       = ofsTop = window.document.createElement(cfg.stub || "div");
+        self.botStub       = ofsBot = window.document.createElement(cfg.stub || "div");
 
         addClass(ofsTop, "mjs-buffer-top");
         addClass(ofsBot, "mjs-buffer-bottom");
@@ -15260,7 +15954,7 @@ nsAdd("plugin.ListBuffered", defineClass({
         var self        = this,
             scrollEl    = self.scrollEl,
             hor         = self.horizontal,
-            html        = document.documentElement,
+            html        = window.document.documentElement,
             size        = scrollEl === window ?
                           (window[hor ? "innerWidth" : "innerHeight"] ||
                            html[hor ? "clientWidth" : "clientHeight"]):
@@ -15356,7 +16050,7 @@ nsAdd("plugin.ListBuffered", defineClass({
                         }
                     }
                 }
-                fragment = document.createDocumentFragment();
+                fragment = window.document.createDocumentFragment();
                 for (i = bs.first, x = bs.last; i <= x; i++) {
                     r = rs[i];
                     if (r) {
@@ -15383,7 +16077,7 @@ nsAdd("plugin.ListBuffered", defineClass({
                     }
                 }
                 else if (prev.first > bs.first) {
-                    fragment = document.createDocumentFragment();
+                    fragment = window.document.createDocumentFragment();
                     for (i = bs.first, x = prev.first; i < x; i++) {
                         r = rs[i];
                         if (r) {
@@ -15398,7 +16092,7 @@ nsAdd("plugin.ListBuffered", defineClass({
                 }
 
                 if (prev.last < bs.last) {
-                    fragment = document.createDocumentFragment();
+                    fragment = window.document.createDocumentFragment();
                     for (i = prev.last + 1, x = bs.last; i <= x; i++) {
                         r = rs[i];
                         if (r) {
@@ -15573,9 +16267,10 @@ var boxSizingReliable = function() {
 
     var computePixelPositionAndBoxSizingReliable = function() {
 
-        var container = document.createElement("div"),
-            div = document.createElement("div"),
-            body = document.body;
+        var doc = window.document,
+            container = doc.createElement("div"),
+            div = doc.createElement("div"),
+            body = doc.body;
 
         if (!div.style || !window.getComputedStyle) {
             return false;
@@ -15806,7 +16501,7 @@ var Dialog = function(){
         names       = {t: 'top', r: 'right', b: 'bottom', l: 'left'},
         sides       = {t: ['l','r'], r: ['t','b'], b: ['r','l'], l: ['b','t']},
 
-        ie6         = document.all && !window.XMLHttpRequest;
+        ie6         = null;
 
     /*
      * Manager
@@ -15874,6 +16569,10 @@ var Dialog = function(){
      * Pointer
      */
     var Pointer     = function(dlg, cfg, inner) {
+
+        if (ie6 === null) {
+            ie6 = window.document.all && !window.XMLHttpRequest
+        }
 
         var el,
             self    = this,
@@ -15987,7 +16686,7 @@ var Dialog = function(){
 
                 // custom element
                 if (!size) {
-                    document.body.appendChild(el);
+                    window.document.body.appendChild(el);
                     switch (pri) {
                         case "t":
                         case "b": {
@@ -16098,8 +16797,8 @@ var Dialog = function(){
 
                     var direction   = self.detectPointerDirection(position);
 
-                    el          = document.createElement('div');
-                    var cmt     = document.createComment(" ");
+                    el          = window.document.createElement('div');
+                    var cmt     = window.document.createComment(" ");
 
                     el.appendChild(cmt);
 
@@ -16119,7 +16818,7 @@ var Dialog = function(){
                 }
                 else {
                     if (isString(cfg.el)) {
-                        var tmp = document.createElement("div");
+                        var tmp = window.document.createElement("div");
                         tmp.innerHTML = cfg.el;
                         el = tmp.firstChild;
                     }
@@ -18026,11 +18725,11 @@ var Dialog = function(){
                                 break;
 
                             case "_document":
-                                el  = [document];
+                                el  = [window.document];
                                 break;
 
                             case "_html":
-                                el  = [document.documentElement];
+                                el  = [window.document.documentElement];
                                 break;
 
                             case "_overlay":
@@ -18148,7 +18847,7 @@ var Dialog = function(){
                 if (state.position == "mouse") {
                     // now we can adjust tooltip's position according
                     // to mouse's position and set mousemove event listener
-                    addListener(document.documentElement, "mousemove", self.onMouseMove);
+                    addListener(window.document.documentElement, "mousemove", self.onMouseMove);
                 }
 
                 var cfgPos = cfg.position;
@@ -18256,7 +18955,7 @@ var Dialog = function(){
 
                 // if this tooltip is following the mouse, we reset event listeners
                 if (state.position == "mouse") {
-                    removeListener(document.documentElement, "mousemove", self.onMouseMove);
+                    removeListener(window.document.documentElement, "mousemove", self.onMouseMove);
                 }
 
                 var cfgPos = cfg.position;
@@ -18389,13 +19088,13 @@ var Dialog = function(){
                     }
                 }
                 else {
-                    var tmp = document.createElement("div");
+                    var tmp = window.document.createElement("div");
                     tmp.innerHTML = rnd.tpl;
                     elem = tmp.firstChild;
                 }
 
                 if (!elem) {
-                    elem = document.createElement("div");
+                    elem = window.document.createElement("div");
                 }
 
                 if (rnd.id) {
@@ -18416,7 +19115,7 @@ var Dialog = function(){
 
                 if (cfg.overlay.enabled) {
 
-                    overlay     = document.createElement("div");
+                    overlay     = window.document.createElement("div");
                     css(overlay, {
                         display:            "none",
                         position: 			"fixed",
@@ -18428,7 +19127,7 @@ var Dialog = function(){
                         backgroundColor: 	cfg.overlay.color
                     });
 
-                    document.body.appendChild(overlay);
+                    window.document.body.appendChild(overlay);
 
                     addListener(overlay, "click", self.onOverlayClick);
 
@@ -18444,7 +19143,7 @@ var Dialog = function(){
                     rnd.appendTo.appendChild(elem);
                 }
                 else if (rnd.appendTo !== false) {
-                    document.body.appendChild(elem);
+                    window.document.body.appendChild(elem);
                 }
 
                 if (rnd.zIndex) {
@@ -20130,7 +20829,7 @@ var Validator = function(){
                 self.errorBox = dom;
             }
             else {
-                self.errorBox = document.createElement(tag);
+                self.errorBox = window.document.createElement(tag);
                 self.errorBox.className = cls;
 
                 var r = self.input.radio,
@@ -21406,7 +22105,7 @@ var Validator = function(){
                 // since there can be a delay due to ajax checks and the form will be submitted later
                 // automatically, we need to create a hidden field
                 if (self.submitButton && /input|button/.test(self.submitButton.nodeName)) {
-                    self.hidden = document.createElement("input");
+                    self.hidden = window.document.createElement("input");
                     self.hidden.type = "hidden";
                     setAttr(self.hidden, "name", self.submitButton.name);
                     self.hidden.value = self.submitButton.value;

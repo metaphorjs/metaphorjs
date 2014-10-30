@@ -1,11 +1,13 @@
-define("metaphorjs", ['metaphorjs-observable', 'metaphorjs-promise', 'metaphorjs-ajax', 'metaphorjs-animate', 'metaphorjs-input', 'metaphorjs-class', 'metaphorjs-namespace', 'metaphorjs-select', 'metaphorjs-validator', 'metaphorjs-watchable', 'metaphorjs-dialog', 'metaphorjs-history'], function(Observable, Promise, ajax, animate, Input, Class, Namespace, select, Validator, Watchable, Dialog, history) {
+define("metaphorjs", ['metaphorjs-observable', 'metaphorjs-promise', 'metaphorjs-ajax', 'metaphorjs-animate', 'metaphorjs-input', 'metaphorjs-class', 'metaphorjs-namespace', 'metaphorjs-select', 'metaphorjs-validator', 'metaphorjs-watchable', 'metaphorjs-dialog', 'metaphorjs-history'], function(Observable, Promise, ajax, animate, Input, Class, Namespace, select, Validator, Watchable, Dialog, mhistory) {
 
 var getValue    = Input.getValue,
     setValue    = Input.setValue,
     is          = select.is,
     pushUrl     = history.pushUrl;
 
+
 var MetaphorJs = {
+
 
 };
 
@@ -56,19 +58,21 @@ var varType = function(){
 
 
     /**
-        'string': 0,
-        'number': 1,
-        'boolean': 2,
-        'object': 3,
-        'function': 4,
-        'array': 5,
-        'null': 6,
-        'undefined': 7,
-        'NaN': 8,
-        'regexp': 9,
-        'date': 10
-    */
-
+     * 'string': 0,
+     * 'number': 1,
+     * 'boolean': 2,
+     * 'object': 3,
+     * 'function': 4,
+     * 'array': 5,
+     * 'null': 6,
+     * 'undefined': 7,
+     * 'NaN': 8,
+     * 'regexp': 9,
+     * 'date': 10,
+     * unknown: -1
+     * @param {*} value
+     * @returns {number}
+     */
     return function varType(val) {
 
         if (!val) {
@@ -417,10 +421,15 @@ function isFunction(value) {
  * @returns {Function|boolean}
  */
 function isThenable(any) {
-    if (!any || !any.then) {
+
+    // any.then must only be accessed once
+    // this is a promise/a+ requirement
+
+    if (!any) { //  || !any.then
         return false;
     }
     var then, t;
+
     //if (!any || (!isObject(any) && !isFunction(any))) {
     if (((t = typeof any) != "object" && t != "function")) {
         return false;
@@ -442,16 +451,10 @@ function isString(value) {
 
 
 
-var nodeTextProp = function(){
-    var node    = document.createTextNode("");
-    return isString(node.textContent) ? "textContent" : "nodeValue";
-}();
-
-
-
 /**
  * @function trim
  * @param {String} value
+ * @returns {string}
  */
 var trim = function() {
     // native trim is way faster: http://jsperf.com/angular-trim-test
@@ -873,6 +876,9 @@ var TextRenderer = function(){
 
             for (i = -1, l = ws.length; ++i < l; ){
                 val     = ws[i].getLastResult();
+                if (val === undf) {
+                    val = "";
+                }
                 ch.push((rec && factory(scope, val, self, null, true)) || val);
             }
         },
@@ -1046,7 +1052,12 @@ var Renderer = function(){
             }
 
             if (!children.length) {
-                children    = toArray(el.childNodes);
+                if (el.childNodes) {
+                    children    = toArray(el.childNodes);
+                }
+                else if (el.length) {
+                    children    = toArray(el);
+                }
             }
 
             len = children.length;
@@ -1098,11 +1109,7 @@ var Renderer = function(){
                 return;
             }
 
-
-            //if (el.nodeType) {
-                res = fn.call(fnScope, el);
-            //}
-
+            res = fn.call(fnScope, el);
 
             if (res !== false) {
 
@@ -1222,7 +1229,7 @@ var Renderer = function(){
             if (nodeType == 3) {
 
                 recursive       = getAttr(node.parentNode, "mjs-recursive") !== null;
-                textRenderer    = createText(scope, node[nodeTextProp], null, texts.length, recursive);
+                textRenderer    = createText(scope, node.textContent || node.nodeValue, null, texts.length, recursive);
 
                 if (textRenderer) {
                     textRenderer.subscribe(self.onTextChange, self);
@@ -1352,7 +1359,6 @@ var Renderer = function(){
                 res         = text.tr.getString(),
                 attrName    = text.attr;
 
-
             if (attrName) {
 
                 if (attrName == "value") {
@@ -1368,7 +1374,8 @@ var Renderer = function(){
                 setAttr(text.node, attrName, res);
             }
             else {
-                text.node[nodeTextProp] = res;
+                text.node.textContent = res;
+                text.node.nodeValue = res;
             }
         },
 
@@ -2017,6 +2024,63 @@ var ProviderMixin = {
 
 
 
+var destroy = function() {
+
+    var items = [];
+
+    var destroy = function destroyMetaphor(destroyWindow) {
+
+        var i, l, item,
+            k;
+
+        for (i = 0, l = items.length; i < l; i++) {
+            item = items[i];
+
+            if (item.$destroy) {
+                item.$destroy();
+            }
+            else if (item.destroy) {
+                item.destroy();
+            }
+        }
+
+        items = null;
+
+        if (cs && cs.destroy) {
+            cs.destroy();
+            cs = null;
+        }
+
+        if (ns && ns.destroy) {
+            ns.destroy();
+            ns = null;
+        }
+
+        for (k in MetaphorJs) {
+            MetaphorJs[k] = null;
+        }
+
+        MetaphorJs = null;
+
+        if (destroyWindow) {
+            for (k in window) {
+                if (window.hasOwnProperty(k)) {
+                    window[k] = null;
+                }
+            }
+        }
+    };
+
+    destroy.collect = function(item) {
+        items.push(item);
+    };
+
+    return destroy;
+
+}();
+
+
+
 
 
 
@@ -2036,6 +2100,8 @@ defineClass({
         var self        = this,
             scope       = data instanceof Scope ? data : new Scope(data),
             args;
+
+        destroy.collect(self);
 
         removeAttr(node, "mjs-app");
 
@@ -2145,13 +2211,9 @@ defineClass({
 
 
 
-
-var documentElement = document.documentElement;
-
-
-
 var isAttached = function(){
     var isAttached = function isAttached(node) {
+
         if (node === window) {
             return true;
         }
@@ -2163,7 +2225,10 @@ var isAttached = function(){
                 return true;
             }
         }
-        return node === documentElement ? true : documentElement.contains(node);
+
+        var html = window.document.documentElement;
+
+        return node === html ? true : html.contains(node);
     };
     return isAttached;
 }();
@@ -2206,10 +2271,11 @@ var data = function(){
 
 function toFragment(nodes) {
 
-    var fragment = document.createDocumentFragment();
+    var fragment = window.document.createDocumentFragment(),
+        i, l;
 
     if (isString(nodes)) {
-        var tmp = document.createElement('div');
+        var tmp = window.document.createElement('div');
         tmp.innerHTML = nodes;
         nodes = tmp.childNodes;
     }
@@ -2218,7 +2284,12 @@ function toFragment(nodes) {
         fragment.appendChild(nodes);
     }
     else {
-        for(var i =- 1, l = nodes.length>>>0; ++i !== l; fragment.appendChild(nodes[0])){}
+        if (nodes.item) {
+            for (i = -1, l = nodes.length >>> 0; ++i !== l; fragment.appendChild(nodes[0])) {}
+        }
+        else {
+            for (i = -1, l = nodes.length; ++i !== l; fragment.appendChild(nodes[i])) {}
+        }
     }
 
     return fragment;
@@ -2248,7 +2319,7 @@ var clone = function clone(node) {
                 return node.cloneNode(true);
             // text node
             case 3:
-                return document.createTextNode(node.innerText || node.textContent);
+                return window.document.createTextNode(node.innerText || node.textContent);
             // document fragment
             case 11:
                 return node.cloneNode(true);
@@ -2263,9 +2334,163 @@ var clone = function clone(node) {
 
 
 
+var strUndef = "undefined";
 
 
-var shadowRootSupported = !!documentElement.createShadowRoot;
+
+var Cache = function(){
+
+    var globalCache;
+
+    /**
+     * @class Cache
+     * @param {bool} cacheRewritable
+     * @constructor
+     */
+    var Cache = function(cacheRewritable) {
+
+        var storage = {},
+
+            finders = [];
+
+        if (arguments.length == 0) {
+            cacheRewritable = true;
+        }
+
+        return {
+
+            /**
+             * @param {function} fn
+             * @param {object} context
+             * @param {bool} prepend
+             */
+            addFinder: function(fn, context, prepend) {
+                finders[prepend? "unshift" : "push"]({fn: fn, context: context});
+            },
+
+            /**
+             * @method
+             * @param {string} name
+             * @param {*} value
+             * @param {bool} rewritable
+             * @returns {*} value
+             */
+            add: function(name, value, rewritable) {
+
+                if (storage[name] && storage[name].rewritable === false) {
+                    return storage[name];
+                }
+
+                storage[name] = {
+                    rewritable: typeof rewritable != strUndef ? rewritable : cacheRewritable,
+                    value: value
+                };
+
+                return value;
+            },
+
+            /**
+             * @method
+             * @param {string} name
+             * @returns {*}
+             */
+            get: function(name) {
+
+                if (!storage[name]) {
+                    if (finders.length) {
+
+                        var i, l, res,
+                            self = this;
+
+                        for (i = 0, l = finders.length; i < l; i++) {
+
+                            res = finders[i].fn.call(finders[i].context, name, self);
+
+                            if (res !== undf) {
+                                return self.add(name, res, true);
+                            }
+                        }
+                    }
+
+                    return undf;
+                }
+
+                return storage[name].value;
+            },
+
+            /**
+             * @method
+             * @param {string} name
+             * @returns {*}
+             */
+            remove: function(name) {
+                var rec = storage[name];
+                if (rec && rec.rewritable === true) {
+                    delete storage[name];
+                }
+                return rec ? rec.value : undf;
+            },
+
+            /**
+             * @method
+             * @param {string} name
+             * @returns {boolean}
+             */
+            exists: function(name) {
+                return !!storage[name];
+            },
+
+            /**
+             * @param {function} fn
+             * @param {object} context
+             */
+            eachEntry: function(fn, context) {
+                var k;
+                for (k in storage) {
+                    fn.call(context, storage[k].value, k);
+                }
+            },
+
+            /**
+             * @method
+             */
+            destroy: function() {
+
+                var self = this;
+
+                if (self === globalCache) {
+                    globalCache = null;
+                }
+
+                storage = null;
+                cacheRewritable = null;
+
+                self.add = null;
+                self.get = null;
+                self.destroy = null;
+                self.exists = null;
+                self.remove = null;
+            }
+        };
+    };
+
+    /**
+     * @method
+     * @static
+     * @returns {Cache}
+     */
+    Cache.global = function() {
+
+        if (!globalCache) {
+            globalCache = new Cache(true);
+        }
+
+        return globalCache;
+    };
+
+    return Cache;
+
+}();
 
 
 
@@ -2277,46 +2502,55 @@ var Template = function(){
 
     var observable      = new Observable,
 
-        tplCache        = {},
+        cache           = new Cache,
 
         getTemplate     = function(tplId) {
 
-            if (!tplCache[tplId]) {
-                var tplNode     = document.getElementById(tplId),
-                    tag;
+            var tpl = cache.get(tplId);
 
-                if (tplNode) {
+            if (typeof tpl == "string") {
+                tpl = toFragment(tpl);
+                cache.add(tplId, tpl);
+            }
 
-                    tag         = tplNode.tagName.toLowerCase();
+            return tpl;
+        },
 
-                    if (tag == "script") {
-                        var div = document.createElement("div");
-                        div.innerHTML = tplNode.innerHTML;
-                        tplCache[tplId] = toFragment(div.childNodes);
+        findTemplate = function(tplId) {
+
+            var tplNode     = window.document.getElementById(tplId),
+                tag;
+
+            if (tplNode) {
+
+                tag         = tplNode.tagName.toLowerCase();
+
+                if (tag == "script") {
+                    var div = window.document.createElement("div");
+                    div.innerHTML = tplNode.innerHTML;
+                    return toFragment(div.childNodes);
+                }
+                else {
+                    if ("content" in tplNode) {
+                        return tplNode.content;
                     }
                     else {
-                        if ("content" in tplNode) {
-                            tplCache[tplId] = tplNode.content;
-                        }
-                        else {
-                            tplCache[tplId] = toFragment(tplNode.childNodes);
-                        }
+                        return toFragment(tplNode.childNodes);
                     }
                 }
             }
-
-            return tplCache[tplId];
         },
 
         loadTemplate = function(tplUrl) {
-            if (!tplCache[tplUrl]) {
-                return tplCache[tplUrl] = ajax(tplUrl, {dataType: 'fragment'})
-                    .then(function(fragment){
-                        tplCache[tplUrl] = fragment;
-                        return fragment;
-                    });
+            if (!cache.exists(tplUrl)) {
+                return cache.add(tplUrl,
+                    ajax(tplUrl, {dataType: 'fragment'})
+                        .then(function(fragment){
+                            return cache.add(tplUrl, fragment);
+                        })
+                );
             }
-            return tplCache[tplUrl];
+            return cache.get(tplUrl);
         },
 
         isExpression = function(str) {
@@ -2327,6 +2561,7 @@ var Template = function(){
             return false;
         };
 
+    cache.addFinder(findTemplate);
 
     return defineClass({
 
@@ -2347,6 +2582,7 @@ var Template = function(){
         url:                null,
         ownRenderer:        false,
         initPromise:        null,
+        tplPromise:         null,
         parentRenderer:     null,
         deferRendering:     false,
         replace:            false,
@@ -2357,6 +2593,8 @@ var Template = function(){
             var self    = this;
 
             extend(self, cfg, true, false);
+
+            var shadowRootSupported = !!window.document.documentElement.createShadowRoot;
 
             if (!shadowRootSupported) {
                 self._intendedShadow = self.shadow;
@@ -2388,9 +2626,12 @@ var Template = function(){
                     data(node, "mjs-transclude", toFragment(node.childNodes));
                 }
 
-                if (isExpression(tpl) && !self.replace) {
+                if (isExpression(tpl)) {
+                    self._watcher = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
+                }
+
+                if (self._watcher && !self.replace) {
                     self.ownRenderer        = true;
-                    self._watcher           = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
                 }
                 else if (self.shadow) {
                     self.ownRenderer        = true;
@@ -2399,12 +2640,16 @@ var Template = function(){
                     self.ownRenderer        = false;
                 }
 
-                self.initPromise = self.resolveTemplate();
+                 self.resolveTemplate();
 
-                if (!self.deferRendering || !self.ownRenderer) {
-                    self.initPromise.done(self.applyTemplate, self);
+                if (self._watcher && self.replace) {
+                    self._watcher.unsubscribeAndDestroy(self.onChange, self);
+                    self._watcher = null;
                 }
 
+                if (!self.deferRendering || !self.ownRenderer) {
+                    self.tplPromise.done(self.applyTemplate, self);
+                }
                 if (self.ownRenderer && self.parentRenderer) {
                     self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
                 }
@@ -2450,8 +2695,8 @@ var Template = function(){
             if (self.deferRendering && self.node) {
 
                 self.deferRendering = false;
-                if (self.initPromise) {
-                    self.initPromise.done(tpl ? self.applyTemplate : self.doRender, self);
+                if (self.tplPromise) {
+                    self.tplPromise.done(tpl ? self.applyTemplate : self.doRender, self);
                     return self.initPromise;
                 }
                 else {
@@ -2470,7 +2715,12 @@ var Template = function(){
                           self._watcher.getLastResult() :
                           (self.tpl || url);
 
-            var returnPromise = new Promise;
+            self.initPromise    = new Promise;
+            self.tplPromise     = new Promise;
+
+            if (self.ownRenderer) {
+                self.initPromise.resolve(false);
+            }
 
             new Promise(function(resolve){
                 if (url) {
@@ -2482,11 +2732,13 @@ var Template = function(){
             })
                 .done(function(fragment){
                     self._fragment = fragment;
-                    returnPromise.resolve(!self.ownRenderer ? self.node : false);
+                    self.tplPromise.resolve();
+                    //!self.ownRenderer ? self.node : false
                 })
-                .fail(returnPromise.reject, returnPromise);
+                .fail(self.initPromise.reject, self.initPromise)
+                .fail(self.tplPromise.reject, self.tplPromise);
 
-            return returnPromise;
+
         },
 
         onChange: function() {
@@ -2516,10 +2768,26 @@ var Template = function(){
             }
 
             if (self.replace) {
-                el.parentNode.replaceChild(clone(self._fragment), el);
+
+                var frg = clone(self._fragment),
+                    transclude = data(el, "mjs-transclude"),
+                    children = slice.call(frg.childNodes);
+
+                if (transclude) {
+                    var tr = select("[mjs-transclude], mjs-transclude", frg);
+                    if (tr.length) {
+                        data(tr[0], "mjs-transclude", transclude);
+                    }
+                }
+
+                el.parentNode.replaceChild(frg, el);
+
+                self.node = children;
+                self.initPromise.resolve(children);
             }
             else {
                 el.appendChild(clone(self._fragment));
+                self.initPromise.resolve(self.node);
             }
 
             if (self.ownRenderer) {
@@ -2560,7 +2828,7 @@ var Template = function(){
 
             for (i = 0, l = cnts.length; i < l;  i++) {
 
-                tr      = document.createElement("mjs-transclude");
+                tr      = window.document.createElement("mjs-transclude");
                 el      = cnts[i];
                 next    = el.nextSibling;
                 sel     = getAttr(el, "select");
@@ -2595,8 +2863,7 @@ var Template = function(){
         }
 
     }, {
-        getTemplate: getTemplate,
-        loadTemplate: loadTemplate
+        cache: cache
     });
 }();
 
@@ -2762,7 +3029,7 @@ var Component = defineClass({
     _createNode: function() {
 
         var self    = this;
-        self.node   = document.createElement(self.tag || 'div');
+        self.node   = window.document.createElement(self.tag || 'div');
     },
 
     _initElement: function() {
@@ -2799,7 +3066,7 @@ var Component = defineClass({
             self.renderTo.appendChild(self.node);
         }
         else if (!isAttached(self.node)) {
-            document.body.appendChild(self.node);
+            window.document.body.appendChild(self.node);
         }
 
         self.rendered   = true;
@@ -2942,13 +3209,15 @@ var Component = defineClass({
  */
 
 
-/**
- * @param {String} expr
- */
+
 var getRegExp = function(){
 
     var cache = {};
 
+    /**
+     * @param {String} expr
+     * @returns RegExp
+     */
     return function getRegExp(expr) {
         return cache[expr] || (cache[expr] = new RegExp(expr));
     };
@@ -3027,8 +3296,6 @@ function async(fn, context, args, timeout) {
 function isNumber(value) {
     return varType(value) === 1;
 };
-
-var strUndef = "undefined";
 
 
 
@@ -3291,7 +3558,7 @@ var raf = function() {
 
 var functionFactory = function() {
 
-    var REG_REPLACE_EXPR    = /(^|[^a-z0-9_$])(\.)([^0-9])/ig,
+    var REG_REPLACE_EXPR    = /(^|[^a-z0-9_$\]\)'"])(\.)([^0-9])/ig,
 
         f               = Function,
         fnBodyStart     = 'try {',
@@ -3370,6 +3637,7 @@ var functionFactory = function() {
         getterCacheCnt  = 0,
 
         createGetter    = function createGetter(expr) {
+
             try {
                 if (!getterCache[expr]) {
                     getterCacheCnt++;
@@ -3482,25 +3750,24 @@ var getNodeData = function() {
         return dataset;
     };
 
-    if (document.documentElement.dataset) {
-        return function(node) {
+
+    return function(node) {
+
+        if (node.dataset) {
             return node.dataset;
-        };
-    }
-    else {
-        return function(node) {
+        }
 
-            var dataset;
+        var dataset;
 
-            if ((dataset = data(node, "data")) !== undf) {
-                return dataset;
-            }
-
-            dataset = readDataSet(node);
-            data(node, "data", dataset);
+        if ((dataset = data(node, "data")) !== undf) {
             return dataset;
-        };
-    }
+        }
+
+        dataset = readDataSet(node);
+        data(node, "data", dataset);
+        return dataset;
+    };
+
 
 }();
 
@@ -3646,7 +3913,7 @@ var ListRenderer = defineClass({
             parent      = self.parentEl,
             next        = self.nextEl,
             buffered    = self.buffered,
-            fragment    = document.createDocumentFragment(),
+            fragment    = window.document.createDocumentFragment(),
             el,
             i, len;
 
@@ -3660,8 +3927,9 @@ var ListRenderer = defineClass({
         }
 
         if (!buffered) {
-            self.doUpdate();
             parent.insertBefore(fragment, next);
+            self.doUpdate();
+
         }
         else {
             self.bufferPlugin.getScrollOffset();
@@ -4285,7 +4553,7 @@ function resolveComponent(cmp, cfg, scope, node, args) {
 
 
 
-var currentUrl = history.currentUrl;
+var currentUrl = mhistory.current;
 
 
 
@@ -4338,8 +4606,8 @@ defineClass({
         self.scope.$app.registerCmp(self, self.scope, "id");
 
         if (self.route) {
-            history.initPushState();
-            history.on("locationChange", self.onLocationChange, self);
+            mhistory.init();
+            mhistory.on("locationChange", self.onLocationChange, self);
             self.onLocationChange();
         }
         else if (self.cmp) {
@@ -4490,7 +4758,7 @@ defineClass({
         self.clearComponent();
 
         if (self.route) {
-            history.un("locationchange", self.onLocationChange, self);
+            mhistory.un("locationchange", self.onLocationChange, self);
             self.route = null;
         }
 
@@ -4529,12 +4797,6 @@ function isField(el) {
     }
     return false;
 };
-
-
-var elemTextProp = function(){
-    var node    = document.createElement("div");
-    return isString(node.textContent) ? "textContent" : "innerText";
-}();
 
 
 
@@ -4610,7 +4872,7 @@ Directive.registerAttribute("mjs-bind", 1000, defineClass({
             self.input.setValue(val);
         }
         else {
-            self.node[elemTextProp] = val;
+            self.node[typeof self.node.textContent == "string" ? "textContent" : "innerText"] = val;
         }
     },
 
@@ -4645,6 +4907,20 @@ Directive.registerAttribute("mjs-bind-html", 1000, defineClass({
         this.node.innerHTML = val;
     }
 }));
+
+
+
+
+Directive.registerAttribute("mjs-break-if", 500, function(scope, node, expr){
+
+    var res = !!createGetter(expr)(scope);
+
+    if (res) {
+        node.parentNode.removeChild(node);
+    }
+
+    return !res;
+});
 
 
 
@@ -4855,7 +5131,7 @@ var DomEvent = function(src) {
 
     // Calculate pageX/Y if missing and clientX/Y available
     if (self.pageX === undf && !isNull(src.clientX)) {
-        eventDoc = self.target ? self.target.ownerDocument || document : document;
+        eventDoc = self.target ? self.target.ownerDocument || window.document : window.document;
         doc = eventDoc.documentElement;
         body = eventDoc.body;
 
@@ -5089,6 +5365,7 @@ Directive.registerAttribute("mjs-if", 500, defineClass({
         self.prevEl     = node.previousSibling;
 
         self.$super(scope, node, expr);
+
     },
 
     onScopeDestroy: function() {
@@ -5170,19 +5447,21 @@ Directive.registerAttribute("mjs-init", 250, function(scope, node, expr){
     createFunc(expr)(scope);
 });
 
-var uaString = navigator.userAgent.toLowerCase();
-
-
 
 var isIE = function(){
 
-    var msie    = parseInt((/msie (\d+)/.exec(uaString) || [])[1], 10);
-
-    if (isNaN(msie)) {
-        msie    = parseInt((/trident\/.*; rv:(\d+)/.exec(uaString) || [])[1], 10) || false;
-    }
+    var msie;
 
     return function isIE() {
+
+        if (msie === null) {
+            var ua = navigator.userAgent;
+            msie = parseInt((/msie (\d+)/i.exec(ua) || [])[1], 10);
+            if (isNaN(msie)) {
+                msie = parseInt((/trident\/.*; rv:(\d+)/i.exec(ua) || [])[1], 10) || false;
+            }
+        }
+
         return msie;
     };
 }();
@@ -5347,7 +5626,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
         if (config.group !== self.prevGroup) {
 
             if (config.group){
-                self.groupEl = parent = document.createElement("optgroup");
+                self.groupEl = parent = window.document.createElement("optgroup");
                 setAttr(parent, "label", config.group);
                 if (config.disabledGroup) {
                     setAttr(parent, "disabled", "disabled");
@@ -5361,7 +5640,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
         }
         self.prevGroup  = config.group;
 
-        option  = document.createElement("option");
+        option  = window.document.createElement("option");
         setAttr(option, "value", config.value);
         option.text = config.name;
 
@@ -5386,7 +5665,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
             parent, next,
             i, len;
 
-        self.fragment   = document.createDocumentFragment();
+        self.fragment   = window.document.createDocumentFragment();
         self.prevGroup  = null;
         self.groupEl    = null;
 
@@ -5514,14 +5793,15 @@ var preloadImage = function() {
             cacheCnt = 0;
         }
 
-        var img = document.createElement("img"),
+        var doc = window.document,
+            img = doc.createElement("img"),
             style = img.style,
             deferred = new Promise;
 
         addListener(img, "load", function() {
             cache[src] = true;
             cacheCnt++;
-            document.body.removeChild(img);
+            doc.body.removeChild(img);
             deferred.resolve(src);
         });
 
@@ -5530,7 +5810,7 @@ var preloadImage = function() {
         style.left = "-10000px";
         style.top = "0";
         img.src = src;
-        document.body.appendChild(img);
+        doc.body.appendChild(img);
 
         return deferred;
     };
@@ -5623,7 +5903,7 @@ function parentData(node, key) {
 
 
 
-function transclude(node) {
+function transclude(node, replace) {
 
     var contents  = parentData(node, 'mjs-transclude');
 
@@ -5638,8 +5918,13 @@ function transclude(node) {
             cloned      = clone(contents),
             children    = toArray(cloned.childNodes);
 
-        parent.removeChild(node);
-        parent.insertBefore(cloned, next);
+        if (replace) {
+            parent.removeChild(node);
+            parent.insertBefore(cloned, next);
+        }
+        else {
+            node.appendChild(cloned);
+        }
 
         return children;
     }
@@ -5663,12 +5948,39 @@ Directive.registerAttribute("mjs-view", 200, function(scope, node, cls) {
 
 
 
+var tmpDumped = false;
+
+Directive.registerTag("mjs-if", function(scope, node) {
+
+    var expr = getAttr(node, "value"),
+        res = !!createGetter(expr)(scope);
+
+    if (!res) {
+        node.parentNode.removeChild(node);
+        return false;
+    }
+    else {
+        var nodes = toArray(node.childNodes),
+            frg = toFragment(node.childNodes),
+            next = node.nextSibling;
+
+        node.parentNode.insertBefore(frg, next);
+        node.parentNode.removeChild(node);
+
+        return nodes;
+    }
+
+});
+
+
+
 Directive.registerTag("mjs-include", function(scope, node, value, parentRenderer) {
+
 
     var tpl = new Template({
         scope: scope,
         node: node,
-        tpl: getAttr(node, "src"),
+        url: getAttr(node, "src"),
         parentRenderer: parentRenderer,
         replace: true
     });
@@ -5681,7 +5993,24 @@ Directive.registerTag("mjs-include", function(scope, node, value, parentRenderer
 
 
 Directive.registerTag("mjs-transclude", function(scope, node) {
-    return transclude(node);
+    return transclude(node, true);
+});
+
+
+
+nsAdd("filter.collect", function(input, scope, prop) {
+
+    var res = [],
+        i, l, val;
+
+    for (i = 0, l = input.length; i < l; i++) {
+        val = input[i][prop];
+        if (val != undf) {
+            res.push(val);
+        }
+    }
+
+    return res;
 });
 
 
@@ -5989,6 +6318,18 @@ nsAdd("filter.split", function(input, scope, sep, limit) {
 
 
 nsAdd("filter.toArray", function(input){
+
+    if (isPlainObject(input)) {
+        var list = [],
+            k;
+        for (k in input) {
+            if (input.hasOwnProperty(k)) {
+                list.push({key: k, value: input[k]});
+            }
+        }
+        return list;
+    }
+
     return toArray(input);
 });
 
@@ -6004,230 +6345,12 @@ nsAdd("filter.ucfirst", function(val){
 nsAdd("filter.uppercase", function(val){
     return val.toUpperCase();
 });
-   Bud1            �                                                          1Scomp                                                 d o mlg1Scomp      �    d o mmoDDdutc  � ��      d o mmodDdutc  � �D      d o mph1Scomp     �                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @      �                                        @      �                                          @      �                                          @                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   E   �                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       DSDB                                 `                                                   @      �                                          @      �                                          @                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
-
-
-
-/**
- * @param {*} val
- * @param {[]} arr
- * @returns {boolean}
- */
-function inArray(val, arr) {
-    return arr ? (aIndexOf.call(arr, val) != -1) : false;
-};
-
-
-
-function isDate(value) {
-    return varType(value) === 10;
-};
-
-
-
-function isRegExp(value) {
-    return varType(value) === 9;
-};
-
-function isWindow(obj) {
-    return obj === window ||
-           (obj && obj.document && obj.location && obj.alert && obj.setInterval);
-};
-
-
-
-// from Angular
-
-var equals = function(){
-
-    var equals = function equals(o1, o2) {
-        if (o1 === o2) return true;
-        if (o1 === null || o2 === null) return false;
-        if (o1 !== o1 && o2 !== o2) return true; // NaN === NaN
-        var t1 = typeof o1, t2 = typeof o2, length, key, keySet;
-        if (t1 == t2) {
-            if (t1 == 'object') {
-                if (isArray(o1)) {
-                    if (!isArray(o2)) return false;
-                    if ((length = o1.length) == o2.length) {
-                        for(key=0; key<length; key++) {
-                            if (!equals(o1[key], o2[key])) return false;
-                        }
-                        return true;
-                    }
-                } else if (isDate(o1)) {
-                    return isDate(o2) && o1.getTime() == o2.getTime();
-                } else if (isRegExp(o1) && isRegExp(o2)) {
-                    return o1.toString() == o2.toString();
-                } else {
-                    if (isWindow(o1) || isWindow(o2) || isArray(o2)) return false;
-                    keySet = {};
-                    for(key in o1) {
-                        if (key.charAt(0) == '$' || isFunction(o1[key])) {//&& typeof o1[key] == "object") {
-                            continue;
-                        }
-                        //if (isFunction(o1[key])) {
-                        //    continue;
-                        //}
-                        if (!equals(o1[key], o2[key])) {
-                            return false;
-                        }
-                        keySet[key] = true;
-                    }
-                    for(key in o2) {
-                        if (!keySet.hasOwnProperty(key) &&
-                            key.charAt(0) != '$' &&
-                            o2[key] !== undf &&
-                            !isFunction(o2[key])) return false;
-                    }
-                    return true;
-                }
-            }
-        }
-        return false;
-    };
-
-    return equals;
-}();
-
-
-
-function levenshteinArray(from, to) {
-
-    var m = from.length,
-        n = to.length,
-        D = new Array(m + 1),
-        P = new Array(m + 1),
-        i, j, c,
-        route,
-        cost,
-        dist,
-        ops = 0;
-
-    if (m == n && m == 0) {
-        return {
-            changes: 0,
-            distance: 0,
-            prescription: []
-        };
-    }
-
-    for (i = 0; i <= m; i++) {
-        D[i]    = new Array(n + 1);
-        P[i]    = new Array(n + 1);
-        D[i][0] = i;
-        P[i][0] = 'D';
-    }
-    for (i = 0; i <= n; i++) {
-        D[0][i] = i;
-        P[0][i] = 'I';
-    }
-
-    for (i = 1; i <= m; i++) {
-        for (j = 1; j <= n; j++) {
-            cost = (!equals(from[i - 1], to[j - 1])) ? 1 : 0;
-
-            if(D[i][j - 1] < D[i - 1][j] && D[i][j - 1] < D[i - 1][j - 1] + cost) {
-                //Insert
-                D[i][j] = D[i][j - 1] + 1;
-                P[i][j] = 'I';
-            }
-            else if(D[i - 1][j] < D[i - 1][j - 1] + cost) {
-                //Delete
-                D[i][j] = D[i - 1][j] + 1;
-                P[i][j] = 'D';
-            }
-            else {
-                //Replace or noop
-                D[i][j] = D[i - 1][j - 1] + cost;
-                if (cost == 1) {
-                    P[i][j] = 'R';
-                }
-                else {
-                    P[i][j] = '-';
-                }
-            }
-        }
-    }
-
-    //Prescription
-    route = [];
-    i = m;
-    j = n;
-
-    do {
-        c = P[i][j];
-        route.push(c);
-        if (c != '-') {
-            ops++;
-        }
-        if(c == 'R' || c == '-') {
-            i --;
-            j --;
-        }
-        else if(c == 'D') {
-            i --;
-        }
-        else {
-            j --;
-        }
-    } while((i != 0) || (j != 0));
-
-    dist = D[m][n];
-
-    return {
-        changes: ops / route.length,
-        distance: dist,
-        prescription: route.reverse()
-    };
-};
-
-
-
-/**
- * @param {String} event
- * @return {boolean}
- */
-var browserHasEvent = function(){
-
-    var eventSupport = {};
-
-    return function browserHasEvent(event) {
-        // IE9 implements 'input' event it's so fubared that we rather pretend that it doesn't have
-        // it. In particular the event is not fired when backspace or delete key are pressed or
-        // when cut operation is performed.
-
-        if (eventSupport[event] === undf) {
-
-            if (event == 'input' && isIE() == 9) {
-                return eventSupport[event] = false;
-            }
-
-            var divElm = document.createElement('div');
-            eventSupport[event] = !!('on' + event in divElm);
-        }
-
-        return eventSupport[event];
-    };
-}();
-
-
-
-var isAndroid = function(){
-
-    var android = parseInt((/android (\d+)/.exec(uaString) || [])[1], 10) || false;
-
-    return function isAndroid() {
-        return android;
-    };
-
-}();
 
 
 
 function compile(htmlString, scope) {
 
-    var div = document.createElement("div");
+    var div = window.document.createElement("div");
 
     div.innerHTML = htmlString;
 
@@ -6237,6 +6360,18 @@ function compile(htmlString, scope) {
     renderer.process();
 
     return fragment;
+};
+
+
+
+function isRegExp(value) {
+    return varType(value) === 9;
+};
+
+
+
+function isDate(value) {
+    return varType(value) === 10;
 };
 
 
@@ -6300,598 +6435,66 @@ var copy = function() {
     return copy;
 }();
 
-
-
-/**
- * @param {Element} el
- * @param {String} selector
- * @returns {boolean}
- */
-var is = select.is;
-
-var delegates = {};
-
-
-
-
-function delegate(el, selector, event, fn) {
-
-    var key = selector + "-" + event,
-        listener    = function(e) {
-            e = normalizeEvent(e);
-            if (is(e.target, selector)) {
-                return fn(e);
-            }
-            return null;
-        };
-
-    if (!delegates[key]) {
-        delegates[key] = [];
-    }
-
-    delegates[key].push({el: el, ls: listener, fn: fn});
-
-    addListener(el, event, listener);
-};
-
-function eachNode(el, fn, context) {
-    var i, len,
-        children = el.childNodes;
-
-    if (fn.call(context, el) !== false) {
-        for(i =- 1, len = children.length>>>0;
-            ++i !== len;
-            eachNode(children[i], fn, context)){}
-    }
+function isWindow(obj) {
+    return obj === window ||
+           (obj && obj.document && obj.location && obj.alert && obj.setInterval);
 };
 
 
 
-var getStyle = function() {
+// from Angular
 
-    if (window.getComputedStyle) {
-        return function (node, prop, numeric) {
-            if (node === window) {
-                return prop? (numeric ? 0 : null) : {};
-            }
-            var style = getComputedStyle(node, null),
-                val = prop ? style[prop] : style;
+var equals = function(){
 
-            return numeric ? parseFloat(val) || 0 : val;
-        };
-    }
-
-    return function(node, prop, numeric) {
-        var style   = node.currentStyle || node.style || {},
-            val     = prop ? style[prop] : style;
-        return numeric ? parseFloat(val) || 0 : val;
-    };
-
-}();
-
-
-
-var boxSizingReliable = function() {
-
-    var boxSizingReliableVal;
-
-    var computePixelPositionAndBoxSizingReliable = function() {
-
-        var container = document.createElement("div"),
-            div = document.createElement("div"),
-            body = document.body;
-
-        if (!div.style || !window.getComputedStyle) {
-            return false;
-        }
-
-        container.style.cssText = "border:0;width:0;height:0;top:0;left:-9999px;margin-top:1px;" +
-                                  "position:absolute";
-        container.appendChild(div);
-
-        div.style.cssText =
-            // Support: Firefox<29, Android 2.3
-            // Vendor-prefix box-sizing
-        "-webkit-box-sizing:border-box;-moz-box-sizing:border-box;" +
-        "box-sizing:border-box;display:block;margin-top:1%;top:1%;" +
-        "border:1px;padding:1px;width:4px;position:absolute";
-        div.innerHTML = "";
-        body.appendChild(container);
-
-        var divStyle = window.getComputedStyle(div, null),
-            ret = divStyle.width === "4px";
-
-        body.removeChild(container);
-
-        return ret;
-    };
-
-    return function boxSizingReliable() {
-        if (boxSizingReliableVal === undf) {
-            boxSizingReliableVal = computePixelPositionAndBoxSizingReliable();
-        }
-
-        return boxSizingReliableVal;
-    };
-}();
-
-// from jQuery
-
-
-
-var getDimensions = function(type, name) {
-
-    var rnumnonpx = new RegExp( "^([+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|))(?!px)[a-z%]+$", "i"),
-        cssExpand = [ "Top", "Right", "Bottom", "Left" ],
-        defaultExtra = !type ? "content" : (type == "inner" ? "padding" : "");
-
-    var augmentWidthOrHeight = function(elem, name, extra, isBorderBox, styles) {
-        var i = extra === (isBorderBox ? "border" : "content") ?
-                // If we already have the right measurement, avoid augmentation
-                4 :
-                // Otherwise initialize for horizontal or vertical properties
-                name === "width" ? 1 : 0,
-
-            val = 0;
-
-        for (; i < 4; i += 2) {
-            // Both box models exclude margin, so add it if we want it
-            if (extra === "margin") {
-                val += parseFloat(styles[extra + cssExpand[i]]);
-            }
-
-            if (isBorderBox) {
-                // border-box includes padding, so remove it if we want content
-                if (extra === "content") {
-                    val -= parseFloat(styles["padding" + cssExpand[i]]);
-                }
-
-                // At this point, extra isn't border nor margin, so remove border
-                if (extra !== "margin") {
-                    val -= parseFloat(styles["border" + cssExpand[i] + "Width"]);
-                }
-            } else {
-                // At this point, extra isn't content, so add padding
-                val += parseFloat(styles["padding" + cssExpand[i]]);
-
-                // At this point, extra isn't content nor padding, so add border
-                if (extra !== "padding") {
-                    val += parseFloat(styles["border" + cssExpand[i] + "Width"]);
+    var equals = function equals(o1, o2) {
+        if (o1 === o2) return true;
+        if (o1 === null || o2 === null) return false;
+        if (o1 !== o1 && o2 !== o2) return true; // NaN === NaN
+        var t1 = typeof o1, t2 = typeof o2, length, key, keySet;
+        if (t1 == t2) {
+            if (t1 == 'object') {
+                if (isArray(o1)) {
+                    if (!isArray(o2)) return false;
+                    if ((length = o1.length) == o2.length) {
+                        for(key=0; key<length; key++) {
+                            if (!equals(o1[key], o2[key])) return false;
+                        }
+                        return true;
+                    }
+                } else if (isDate(o1)) {
+                    return isDate(o2) && o1.getTime() == o2.getTime();
+                } else if (isRegExp(o1) && isRegExp(o2)) {
+                    return o1.toString() == o2.toString();
+                } else {
+                    if (isWindow(o1) || isWindow(o2) || isArray(o2)) return false;
+                    keySet = {};
+                    for(key in o1) {
+                        if (key.charAt(0) == '$' || isFunction(o1[key])) {//&& typeof o1[key] == "object") {
+                            continue;
+                        }
+                        //if (isFunction(o1[key])) {
+                        //    continue;
+                        //}
+                        if (!equals(o1[key], o2[key])) {
+                            return false;
+                        }
+                        keySet[key] = true;
+                    }
+                    for(key in o2) {
+                        if (!keySet.hasOwnProperty(key) &&
+                            key.charAt(0) != '$' &&
+                            o2[key] !== undf &&
+                            !isFunction(o2[key])) return false;
+                    }
+                    return true;
                 }
             }
         }
-
-        return val;
+        return false;
     };
 
-    var getWidthOrHeight = function(elem, name, extra, styles) {
-
-        // Start with offset property, which is equivalent to the border-box value
-        var valueIsBorderBox = true,
-            val = name === "width" ? elem.offsetWidth : elem.offsetHeight,
-            isBorderBox = styles["boxSizing"] === "border-box";
-
-        // Some non-html elements return undefined for offsetWidth, so check for null/undefined
-        // svg - https://bugzilla.mozilla.org/show_bug.cgi?id=649285
-        // MathML - https://bugzilla.mozilla.org/show_bug.cgi?id=491668
-        if ( val <= 0 || val == null ) {
-            val = elem.style[name];
-
-            // Computed unit is not pixels. Stop here and return.
-            if (rnumnonpx.test(val)) {
-                return val;
-            }
-
-            // Check for style in case a browser which returns unreliable values
-            // for getComputedStyle silently falls back to the reliable elem.style
-            valueIsBorderBox = isBorderBox &&
-                               (boxSizingReliable() || val === elem.style[name]);
-
-            // Normalize "", auto, and prepare for extra
-            val = parseFloat(val) || 0;
-        }
-
-        // Use the active box-sizing model to add/subtract irrelevant styles
-        return val +
-                 augmentWidthOrHeight(
-                     elem,
-                     name,
-                     extra || (isBorderBox ? "border" : "content"),
-                     valueIsBorderBox,
-                     styles
-                 );
-    };
-
-
-    return function getDimensions(elem, margin) {
-
-        if (elem === window) {
-            return elem.document.documentElement["client" + name];
-        }
-
-        // Get document width or height
-        if (elem.nodeType === 9) {
-            var doc = elem.documentElement;
-
-            // Either scroll[Width/Height] or offset[Width/Height] or client[Width/Height],
-            // whichever is greatest
-            return Math.max(
-                elem.body["scroll" + name], doc["scroll" + name],
-                elem.body["offset" + name], doc["offset" + name],
-                doc["client" + name]
-            );
-        }
-
-        return getWidthOrHeight(
-            elem,
-            name.toLowerCase(),
-            defaultExtra || (margin === true ? "margin" : "border"),
-            getStyle(elem)
-        );
-    };
-
-};
-
-
-var getHeight = getDimensions("", "Height");
-
-
-var getInnerHeight = getDimensions("inner", "Height");
-
-
-var getInnerWidth = getDimensions("inner", "Width");
-
-
-
-var getScrollTopOrLeft = function(vertical) {
-
-    var defaultST,
-        wProp = vertical ? "pageYOffset" : "pageXOffset",
-        sProp = vertical ? "scrollTop" : "scrollLeft",
-        doc = document,
-        body = doc.body,
-        html = doc.documentElement;
-
-    if(window[wProp] !== undf) {
-        //most browsers except IE before #9
-        defaultST = function(){
-            return window[wProp];
-        };
-    }
-    else{
-        if (html.clientHeight) {
-            defaultST = function() {
-                return html[sProp];
-            };
-        }
-        else {
-            defaultST = function() {
-                return body[sProp];
-            };
-        }
-    }
-
-    return function(node) {
-        if (!node || node === window) {
-            return defaultST();
-        }
-        else if (node && node.nodeType == 1 &&
-            node !== body && node !== html) {
-            return node[sProp];
-        }
-        else {
-            return defaultST();
-        }
-    }
-
-};
-
-
-
-var getScrollTop = getScrollTopOrLeft(true);
-
-
-
-var getScrollLeft = getScrollTopOrLeft(false);
-
-
-
-function getOffset(node) {
-
-    var box = {top: 0, left: 0};
-
-    // Make sure it's not a disconnected DOM node
-    if (!isAttached(node) || node === window) {
-        return box;
-    }
-
-    // Support: BlackBerry 5, iOS 3 (original iPhone)
-    // If we don't have gBCR, just use 0,0 rather than error
-    if (node.getBoundingClientRect ) {
-        box = node.getBoundingClientRect();
-    }
-
-    return {
-        top: box.top + getScrollTop() - documentElement.clientTop,
-        left: box.left + getScrollLeft() - documentElement.clientLeft
-    };
-};
-
-
-
-
-function getOffsetParent(node) {
-
-    var offsetParent = node.offsetParent || documentElement;
-
-    while (offsetParent && (offsetParent != documentElement &&
-                              getStyle(offsetParent, "position") == "static")) {
-        offsetParent = offsetParent.offsetParent;
-    }
-
-    return offsetParent || documentElement;
-
-};
-
-
-
-var getOuterHeight = getDimensions("outer", "Height");
-
-
-
-var getOuterWidth = getDimensions("outer", "Width");
-
-
-
-function getPosition(node, to) {
-
-    var offsetParent, offset,
-        parentOffset = {top: 0, left: 0};
-
-    if (node === window || node === documentElement) {
-        return parentOffset;
-    }
-
-    // Fixed elements are offset from window (parentOffset = {top:0, left: 0},
-    // because it is its only offset parent
-    if (getStyle(node, "position" ) == "fixed") {
-        // Assume getBoundingClientRect is there when computed position is fixed
-        offset = node.getBoundingClientRect();
-    }
-    else if (to) {
-        var thisOffset = getOffset(node),
-            toOffset = getOffset(to),
-            position = {
-                left: thisOffset.left - toOffset.left,
-                top: thisOffset.top - toOffset.top
-            };
-
-        if (position.left < 0) {
-            position.left = 0;
-        }
-        if (position.top < 0) {
-            position.top = 0;
-        }
-        return position;
-    }
-    else {
-        // Get *real* offsetParent
-        offsetParent = getOffsetParent(node);
-
-        // Get correct offsets
-        offset = getOffset(node);
-
-        if (offsetParent !== documentElement) {
-            parentOffset = getOffset(offsetParent);
-        }
-
-        // Add offsetParent borders
-        parentOffset.top += getStyle(offsetParent, "borderTopWidth", true);
-        parentOffset.left += getStyle(offsetParent, "borderLeftWidth", true);
-    }
-
-    // Subtract parent offsets and element margins
-    return {
-        top: offset.top - parentOffset.top - getStyle(node, "marginTop", true),
-        left: offset.left - parentOffset.left - getStyle(node, "marginLeft", true)
-    };
-};
-
-
-
-var getScrollParent = function() {
-
-    var rOvf        = /(auto|scroll)/,
-        body,
-
-        overflow    = function (node) {
-            var style = getStyle(node);
-            return style["overflow"] + style["overflowY"] + style["overflowY"];
-        },
-
-        scroll      = function (node) {
-            return rOvf.test(overflow(node));
-        };
-
-    return function getScrollParent(node) {
-
-        if (!body) {
-            body = document.body;
-        }
-
-        var parent = node;
-
-        while (parent) {
-            if (parent === body) {
-                return window;
-            }
-            if (scroll(parent)) {
-                return parent;
-            }
-            parent = parent.parentNode;
-        }
-
-        return window;
-    };
+    return equals;
 }();
-
-
-
-var getWidth = getDimensions("", "Width");
-/**
- * @param {Element} elem
- * @returns {boolean}
- */
-function isSubmittable(elem) {
-    var type	= elem.type ? elem.type.toLowerCase() : '';
-    return elem.nodeName.toLowerCase() == 'input' && type != 'radio' && type != 'checkbox';
-};
-/**
- * @param {Element} el
- * @returns {boolean}
- */
-function isVisible(el) {
-    return !(el.offsetWidth <= 0 || el.offsetHeight <= 0);
-};
-
-
-function removeListener(el, event, func) {
-    if (el.detachEvent) {
-        el.detachEvent('on' + event, func);
-    } else {
-        el.removeEventListener(event, func, false);
-    }
-};
-
-
-
-/**
- * @param {Function} fn
- */
-function onReady(fn) {
-
-    var done    = false,
-        top     = true,
-        win     = window,
-        doc     = win.document,
-        root    = doc.documentElement,
-
-        init    = function(e) {
-            if (e.type == 'readystatechange' && doc.readyState != 'complete') {
-                return;
-            }
-
-            removeListener(e.type == 'load' ? win : doc, e.type, init);
-
-            if (!done && (done = true)) {
-                fn.call(win, e.type || e);
-            }
-        },
-
-        poll = function() {
-            try {
-                root.doScroll('left');
-            } catch(thrownError) {
-                setTimeout(poll, 50);
-                return;
-            }
-
-            init('poll');
-        };
-
-    if (doc.readyState == 'complete') {
-        fn.call(win, 'lazy');
-    }
-    else {
-        if (doc.createEventObject && root.doScroll) {
-            try {
-                top = !win.frameElement;
-            } catch(thrownError) {}
-
-            top && poll();
-        }
-        addListener(doc, 'DOMContentLoaded', init);
-        addListener(doc, 'readystatechange', init);
-        addListener(win, 'load', init);
-    }
-};
-
-
-
-function undelegate(el, selector, event, fn) {
-
-    var key = selector + "-" + event,
-        i, l,
-        ds;
-
-    if (ds = delegates[key]) {
-        for (i = -1, l = ds.length; ++i < l;) {
-            if (ds[i].el === el && ds[i].fn === fn) {
-                removeListener(el, event, ds[i].ls);
-            }
-        }
-    }
-};
-
-var fs = require("fs");
-
-var isFile = function(filePath) {
-    return fs.existsSync(filePath) && fs.lstatSync(filePath).isFile();
-};
-
-
-
-
-var isDir = function(dirPath) {
-    return fs.existsSync(dirPath) && fs.lstatSync(dirPath).isDirectory();
-};
-
-var path = require("path");
-
-var getFileList = function(directory) {
-
-    var fileList,
-        dir,
-        filePath,
-        levels = 0,
-        files = [];
-
-    if (directory.substr(directory.length - 1) == "*") {
-        levels++;
-    }
-    if (directory.substr(directory.length - 2) == "**") {
-        levels++;
-    }
-
-    if (levels) {
-        directory = directory.substr(0, directory.length - (levels + 1));
-    }
-    directory = path.normalize(directory);
-
-    var readDir = function(dir) {
-        fileList    = fs.readdirSync(dir);
-
-        fileList.forEach(function(filename) {
-            filePath = path.normalize(dir + "/" + filename);
-            if (isFile(filePath) && path.extname(filePath) == ".js") {
-                files.push(filePath);
-            }
-            else if (isDir(filePath) && levels > 1) {
-                readDir(filePath);
-            }
-        });
-    };
-
-
-    if (levels > 0 || isDir(directory)) {
-        readDir(directory);
-    }
-    else {
-        files    = [directory];
-    }
-
-    return files;
-};
 
 
 
@@ -7039,19 +6642,90 @@ function parseXML(data, type) {
 };
 
 
+function removeListener(el, event, func) {
+    if (el.detachEvent) {
+        el.detachEvent('on' + event, func);
+    } else {
+        el.removeEventListener(event, func, false);
+    }
+};
 
-function run() {
+
+
+/**
+ * @param {Function} fn
+ * @param {Window} w optional window object
+ */
+function onReady(fn, w) {
+
+    var done    = false,
+        top     = true,
+        win     = w || window,
+        root, doc,
+
+        init    = function(e) {
+            if (e.type == 'readystatechange' && doc.readyState != 'complete') {
+                return;
+            }
+
+            removeListener(e.type == 'load' ? win : doc, e.type, init);
+
+            if (!done && (done = true)) {
+                fn.call(win, e.type || e);
+            }
+        },
+
+        poll = function() {
+            try {
+                root.doScroll('left');
+            } catch(thrownError) {
+                setTimeout(poll, 50);
+                return;
+            }
+
+            init('poll');
+        };
+
+    doc     = win.document;
+    root    = doc.documentElement;
+
+    if (doc.readyState == 'complete') {
+        fn.call(win, 'lazy');
+    }
+    else {
+        if (doc.createEventObject && root.doScroll) {
+            try {
+                top = !win.frameElement;
+            } catch(thrownError) {}
+
+            top && poll();
+        }
+        addListener(doc, 'DOMContentLoaded', init);
+        addListener(doc, 'readystatechange', init);
+        addListener(win, 'load', init);
+    }
+};
+
+
+
+function run(w, appData) {
+
+    var win = w || window;
+
+    if (!win) {
+        throw "Window object neither defined nor provided";
+    }
 
     onReady(function() {
 
-        var appNodes    = select("[mjs-app]"),
+        var appNodes    = select("[mjs-app]", win.document),
             i, l, el;
 
         for (i = -1, l = appNodes.length; ++i < l;){
             el      = appNodes[i];
-            initApp(el, getAttr(el, "mjs-app"), null, true);
+            initApp(el, getAttr(el, "mjs-app"), appData, true);
         }
-    });
+    }, win);
 
 };
 
@@ -7216,6 +6890,19 @@ defineClass({
     }
 
 });
+
+
+function eachNode(el, fn, context) {
+    var i, len,
+        children = el.childNodes;
+
+    if (fn.call(context, el) !== false) {
+        for(i =- 1, len = children.length>>>0;
+            ++i !== len;
+            eachNode(children[i], fn, context)){}
+    }
+};
+
 
 
 
@@ -7451,7 +7138,6 @@ MetaphorJs['isFunction'] = isFunction;
 MetaphorJs['isThenable'] = isThenable;
 MetaphorJs['nsGet'] = nsGet;
 MetaphorJs['isString'] = isString;
-MetaphorJs['nodeTextProp'] = nodeTextProp;
 MetaphorJs['trim'] = trim;
 MetaphorJs['createWatchable'] = createWatchable;
 MetaphorJs['nsAdd'] = nsAdd;
@@ -7470,12 +7156,13 @@ MetaphorJs['isObject'] = isObject;
 MetaphorJs['instantiate'] = instantiate;
 MetaphorJs['Provider'] = Provider;
 MetaphorJs['ProviderMixin'] = ProviderMixin;
-MetaphorJs['documentElement'] = documentElement;
+MetaphorJs['destroy'] = destroy;
 MetaphorJs['isAttached'] = isAttached;
 MetaphorJs['data'] = data;
 MetaphorJs['toFragment'] = toFragment;
 MetaphorJs['clone'] = clone;
-MetaphorJs['shadowRootSupported'] = shadowRootSupported;
+MetaphorJs['strUndef'] = strUndef;
+MetaphorJs['Cache'] = Cache;
 MetaphorJs['Template'] = Template;
 MetaphorJs['Component'] = Component;
 MetaphorJs['getRegExp'] = getRegExp;
@@ -7484,7 +7171,6 @@ MetaphorJs['removeClass'] = removeClass;
 MetaphorJs['stopAnimation'] = stopAnimation;
 MetaphorJs['async'] = async;
 MetaphorJs['isNumber'] = isNumber;
-MetaphorJs['strUndef'] = strUndef;
 MetaphorJs['error'] = error;
 MetaphorJs['Queue'] = Queue;
 MetaphorJs['isPrimitive'] = isPrimitive;
@@ -7501,13 +7187,11 @@ MetaphorJs['resolveComponent'] = resolveComponent;
 MetaphorJs['currentUrl'] = currentUrl;
 MetaphorJs['returnFalse'] = returnFalse;
 MetaphorJs['isField'] = isField;
-MetaphorJs['elemTextProp'] = elemTextProp;
 MetaphorJs['createFunc'] = createFunc;
 MetaphorJs['returnTrue'] = returnTrue;
 MetaphorJs['DomEvent'] = DomEvent;
 MetaphorJs['normalizeEvent'] = normalizeEvent;
 MetaphorJs['addListener'] = addListener;
-MetaphorJs['uaString'] = uaString;
 MetaphorJs['isIE'] = isIE;
 MetaphorJs['preloadImage'] = preloadImage;
 MetaphorJs['parentData'] = parentData;
@@ -7516,45 +7200,12 @@ MetaphorJs['filterArray'] = filterArray;
 MetaphorJs['dateFormats'] = dateFormats;
 MetaphorJs['numberFormats'] = numberFormats;
 MetaphorJs['sortArray'] = sortArray;
-MetaphorJs['.DS_Store'] = .DS_Store;
-MetaphorJs['inArray'] = inArray;
-MetaphorJs['isDate'] = isDate;
+MetaphorJs['compile'] = compile;
 MetaphorJs['isRegExp'] = isRegExp;
+MetaphorJs['isDate'] = isDate;
+MetaphorJs['copy'] = copy;
 MetaphorJs['isWindow'] = isWindow;
 MetaphorJs['equals'] = equals;
-MetaphorJs['levenshteinArray'] = levenshteinArray;
-MetaphorJs['browserHasEvent'] = browserHasEvent;
-MetaphorJs['isAndroid'] = isAndroid;
-MetaphorJs['compile'] = compile;
-MetaphorJs['copy'] = copy;
-MetaphorJs['is'] = is;
-MetaphorJs['delegates'] = delegates;
-MetaphorJs['delegate'] = delegate;
-MetaphorJs['eachNode'] = eachNode;
-MetaphorJs['getStyle'] = getStyle;
-MetaphorJs['boxSizingReliable'] = boxSizingReliable;
-MetaphorJs['getDimensions'] = getDimensions;
-MetaphorJs['getHeight'] = getHeight;
-MetaphorJs['getInnerHeight'] = getInnerHeight;
-MetaphorJs['getInnerWidth'] = getInnerWidth;
-MetaphorJs['getScrollTopOrLeft'] = getScrollTopOrLeft;
-MetaphorJs['getScrollTop'] = getScrollTop;
-MetaphorJs['getScrollLeft'] = getScrollLeft;
-MetaphorJs['getOffset'] = getOffset;
-MetaphorJs['getOffsetParent'] = getOffsetParent;
-MetaphorJs['getOuterHeight'] = getOuterHeight;
-MetaphorJs['getOuterWidth'] = getOuterWidth;
-MetaphorJs['getPosition'] = getPosition;
-MetaphorJs['getScrollParent'] = getScrollParent;
-MetaphorJs['getWidth'] = getWidth;
-MetaphorJs['isSubmittable'] = isSubmittable;
-MetaphorJs['isVisible'] = isVisible;
-MetaphorJs['removeListener'] = removeListener;
-MetaphorJs['onReady'] = onReady;
-MetaphorJs['undelegate'] = undelegate;
-MetaphorJs['isFile'] = isFile;
-MetaphorJs['isDir'] = isDir;
-MetaphorJs['getFileList'] = getFileList;
 MetaphorJs['initApp'] = initApp;
 MetaphorJs['intercept'] = intercept;
 MetaphorJs['isInjectable'] = isInjectable;
@@ -7562,9 +7213,12 @@ MetaphorJs['isNative'] = isNative;
 MetaphorJs['isUndefined'] = isUndefined;
 MetaphorJs['parseJSON'] = parseJSON;
 MetaphorJs['parseXML'] = parseXML;
+MetaphorJs['removeListener'] = removeListener;
+MetaphorJs['onReady'] = onReady;
 MetaphorJs['run'] = run;
 MetaphorJs['ucfirst'] = ucfirst;
 MetaphorJs['StoreRenderer'] = StoreRenderer;
+MetaphorJs['eachNode'] = eachNode;
 
 return MetaphorJs;
 });

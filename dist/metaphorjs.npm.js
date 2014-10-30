@@ -1,18 +1,22 @@
+module.exports = function (window) {
+"use strict";
 var Observable = require('metaphorjs-observable');
 var Promise = require('metaphorjs-promise');
-var ajax = require('metaphorjs-ajax');
-var animate = require('metaphorjs-animate');
-var Input = require('metaphorjs-input');
+var ajax = require('metaphorjs-ajax')(window);
+var animate = require('metaphorjs-animate')(window);
+var Input = require('metaphorjs-input')(window);
 var Class = require('metaphorjs-class');
 var Namespace = require('metaphorjs-namespace');
-var model = require('metaphorjs-model');
-var select = require('metaphorjs-select');
-var Validator = require('metaphorjs-validator');
+var model = require('metaphorjs-model')(window);
+var select = require('metaphorjs-select')(window);
+var Validator = require('metaphorjs-validator')(window);
 var Watchable = require('metaphorjs-watchable');
-var Dialog = require('metaphorjs-dialog');
-var history = require('metaphorjs-history');
+var Dialog = require('metaphorjs-dialog')(window);
+var mhistory = require('metaphorjs-history')(window);
+
 
 var MetaphorJs = {
+
 
 };
 
@@ -63,19 +67,21 @@ var varType = function(){
 
 
     /**
-        'string': 0,
-        'number': 1,
-        'boolean': 2,
-        'object': 3,
-        'function': 4,
-        'array': 5,
-        'null': 6,
-        'undefined': 7,
-        'NaN': 8,
-        'regexp': 9,
-        'date': 10
-    */
-
+     * 'string': 0,
+     * 'number': 1,
+     * 'boolean': 2,
+     * 'object': 3,
+     * 'function': 4,
+     * 'array': 5,
+     * 'null': 6,
+     * 'undefined': 7,
+     * 'NaN': 8,
+     * 'regexp': 9,
+     * 'date': 10,
+     * unknown: -1
+     * @param {*} value
+     * @returns {number}
+     */
     return function varType(val) {
 
         if (!val) {
@@ -212,6 +218,7 @@ extend(Scope.prototype, {
     $parent: null,
     $root: null,
     $isRoot: false,
+    $level: 0,
     $$observable: null,
     $$watchers: null,
     $$historyWatchers: null,
@@ -223,13 +230,15 @@ extend(Scope.prototype, {
         return new Scope({
             $parent: self,
             $root: self.$root,
-            $app: self.$app
+            $app: self.$app,
+            $level: self.$level + 1
         });
     },
 
     $newIsolated: function() {
         return new Scope({
-            $app: this.$app
+            $app: this.$app,
+            $level: self.$level + 1
         });
     },
 
@@ -424,10 +433,15 @@ function isFunction(value) {
  * @returns {Function|boolean}
  */
 function isThenable(any) {
-    if (!any || !any.then) {
+
+    // any.then must only be accessed once
+    // this is a promise/a+ requirement
+
+    if (!any) { //  || !any.then
         return false;
     }
     var then, t;
+
     //if (!any || (!isObject(any) && !isFunction(any))) {
     if (((t = typeof any) != "object" && t != "function")) {
         return false;
@@ -449,16 +463,10 @@ function isString(value) {
 
 
 
-var nodeTextProp = function(){
-    var node    = document.createTextNode("");
-    return isString(node.textContent) ? "textContent" : "nodeValue";
-}();
-
-
-
 /**
  * @function trim
  * @param {String} value
+ * @returns {string}
  */
 var trim = function() {
     // native trim is way faster: http://jsperf.com/angular-trim-test
@@ -880,6 +888,9 @@ var TextRenderer = function(){
 
             for (i = -1, l = ws.length; ++i < l; ){
                 val     = ws[i].getLastResult();
+                if (val === undf) {
+                    val = "";
+                }
                 ch.push((rec && factory(scope, val, self, null, true)) || val);
             }
         },
@@ -1053,7 +1064,12 @@ var Renderer = function(){
             }
 
             if (!children.length) {
-                children    = toArray(el.childNodes);
+                if (el.childNodes) {
+                    children    = toArray(el.childNodes);
+                }
+                else if (el.length) {
+                    children    = toArray(el);
+                }
             }
 
             len = children.length;
@@ -1105,11 +1121,7 @@ var Renderer = function(){
                 return;
             }
 
-
-            //if (el.nodeType) {
-                res = fn.call(fnScope, el);
-            //}
-
+            res = fn.call(fnScope, el);
 
             if (res !== false) {
 
@@ -1229,7 +1241,7 @@ var Renderer = function(){
             if (nodeType == 3) {
 
                 recursive       = getAttr(node.parentNode, "mjs-recursive") !== null;
-                textRenderer    = createText(scope, node[nodeTextProp], null, texts.length, recursive);
+                textRenderer    = createText(scope, node.textContent || node.nodeValue, null, texts.length, recursive);
 
                 if (textRenderer) {
                     textRenderer.subscribe(self.onTextChange, self);
@@ -1359,7 +1371,6 @@ var Renderer = function(){
                 res         = text.tr.getString(),
                 attrName    = text.attr;
 
-
             if (attrName) {
 
                 if (attrName == "value") {
@@ -1375,7 +1386,8 @@ var Renderer = function(){
                 setAttr(text.node, attrName, res);
             }
             else {
-                text.node[nodeTextProp] = res;
+                text.node.textContent = res;
+                text.node.nodeValue = res;
             }
         },
 
@@ -2024,6 +2036,63 @@ var ProviderMixin = {
 
 
 
+var destroy = function() {
+
+    var items = [];
+
+    var destroy = function destroyMetaphor(destroyWindow) {
+
+        var i, l, item,
+            k;
+
+        for (i = 0, l = items.length; i < l; i++) {
+            item = items[i];
+
+            if (item.$destroy) {
+                item.$destroy();
+            }
+            else if (item.destroy) {
+                item.destroy();
+            }
+        }
+
+        items = null;
+
+        if (cs && cs.destroy) {
+            cs.destroy();
+            cs = null;
+        }
+
+        if (ns && ns.destroy) {
+            ns.destroy();
+            ns = null;
+        }
+
+        for (k in MetaphorJs) {
+            MetaphorJs[k] = null;
+        }
+
+        MetaphorJs = null;
+
+        if (destroyWindow) {
+            for (k in window) {
+                if (window.hasOwnProperty(k)) {
+                    window[k] = null;
+                }
+            }
+        }
+    };
+
+    destroy.collect = function(item) {
+        items.push(item);
+    };
+
+    return destroy;
+
+}();
+
+
+
 
 
 
@@ -2043,6 +2112,8 @@ defineClass({
         var self        = this,
             scope       = data instanceof Scope ? data : new Scope(data),
             args;
+
+        destroy.collect(self);
 
         removeAttr(node, "mjs-app");
 
@@ -2152,13 +2223,9 @@ defineClass({
 
 
 
-
-var documentElement = document.documentElement;
-
-
-
 var isAttached = function(){
     var isAttached = function isAttached(node) {
+
         if (node === window) {
             return true;
         }
@@ -2170,7 +2237,10 @@ var isAttached = function(){
                 return true;
             }
         }
-        return node === documentElement ? true : documentElement.contains(node);
+
+        var html = window.document.documentElement;
+
+        return node === html ? true : html.contains(node);
     };
     return isAttached;
 }();
@@ -2213,10 +2283,11 @@ var data = function(){
 
 function toFragment(nodes) {
 
-    var fragment = document.createDocumentFragment();
+    var fragment = window.document.createDocumentFragment(),
+        i, l;
 
     if (isString(nodes)) {
-        var tmp = document.createElement('div');
+        var tmp = window.document.createElement('div');
         tmp.innerHTML = nodes;
         nodes = tmp.childNodes;
     }
@@ -2225,7 +2296,12 @@ function toFragment(nodes) {
         fragment.appendChild(nodes);
     }
     else {
-        for(var i =- 1, l = nodes.length>>>0; ++i !== l; fragment.appendChild(nodes[0])){}
+        if (nodes.item) {
+            for (i = -1, l = nodes.length >>> 0; ++i !== l; fragment.appendChild(nodes[0])) {}
+        }
+        else {
+            for (i = -1, l = nodes.length; ++i !== l; fragment.appendChild(nodes[i])) {}
+        }
     }
 
     return fragment;
@@ -2255,7 +2331,7 @@ var clone = function clone(node) {
                 return node.cloneNode(true);
             // text node
             case 3:
-                return document.createTextNode(node.innerText || node.textContent);
+                return window.document.createTextNode(node.innerText || node.textContent);
             // document fragment
             case 11:
                 return node.cloneNode(true);
@@ -2270,9 +2346,163 @@ var clone = function clone(node) {
 
 
 
+var strUndef = "undefined";
 
 
-var shadowRootSupported = !!documentElement.createShadowRoot;
+
+var Cache = function(){
+
+    var globalCache;
+
+    /**
+     * @class Cache
+     * @param {bool} cacheRewritable
+     * @constructor
+     */
+    var Cache = function(cacheRewritable) {
+
+        var storage = {},
+
+            finders = [];
+
+        if (arguments.length == 0) {
+            cacheRewritable = true;
+        }
+
+        return {
+
+            /**
+             * @param {function} fn
+             * @param {object} context
+             * @param {bool} prepend
+             */
+            addFinder: function(fn, context, prepend) {
+                finders[prepend? "unshift" : "push"]({fn: fn, context: context});
+            },
+
+            /**
+             * @method
+             * @param {string} name
+             * @param {*} value
+             * @param {bool} rewritable
+             * @returns {*} value
+             */
+            add: function(name, value, rewritable) {
+
+                if (storage[name] && storage[name].rewritable === false) {
+                    return storage[name];
+                }
+
+                storage[name] = {
+                    rewritable: typeof rewritable != strUndef ? rewritable : cacheRewritable,
+                    value: value
+                };
+
+                return value;
+            },
+
+            /**
+             * @method
+             * @param {string} name
+             * @returns {*}
+             */
+            get: function(name) {
+
+                if (!storage[name]) {
+                    if (finders.length) {
+
+                        var i, l, res,
+                            self = this;
+
+                        for (i = 0, l = finders.length; i < l; i++) {
+
+                            res = finders[i].fn.call(finders[i].context, name, self);
+
+                            if (res !== undf) {
+                                return self.add(name, res, true);
+                            }
+                        }
+                    }
+
+                    return undf;
+                }
+
+                return storage[name].value;
+            },
+
+            /**
+             * @method
+             * @param {string} name
+             * @returns {*}
+             */
+            remove: function(name) {
+                var rec = storage[name];
+                if (rec && rec.rewritable === true) {
+                    delete storage[name];
+                }
+                return rec ? rec.value : undf;
+            },
+
+            /**
+             * @method
+             * @param {string} name
+             * @returns {boolean}
+             */
+            exists: function(name) {
+                return !!storage[name];
+            },
+
+            /**
+             * @param {function} fn
+             * @param {object} context
+             */
+            eachEntry: function(fn, context) {
+                var k;
+                for (k in storage) {
+                    fn.call(context, storage[k].value, k);
+                }
+            },
+
+            /**
+             * @method
+             */
+            destroy: function() {
+
+                var self = this;
+
+                if (self === globalCache) {
+                    globalCache = null;
+                }
+
+                storage = null;
+                cacheRewritable = null;
+
+                self.add = null;
+                self.get = null;
+                self.destroy = null;
+                self.exists = null;
+                self.remove = null;
+            }
+        };
+    };
+
+    /**
+     * @method
+     * @static
+     * @returns {Cache}
+     */
+    Cache.global = function() {
+
+        if (!globalCache) {
+            globalCache = new Cache(true);
+        }
+
+        return globalCache;
+    };
+
+    return Cache;
+
+}();
 
 
 
@@ -2284,46 +2514,55 @@ var Template = function(){
 
     var observable      = new Observable,
 
-        tplCache        = {},
+        cache           = new Cache,
 
         getTemplate     = function(tplId) {
 
-            if (!tplCache[tplId]) {
-                var tplNode     = document.getElementById(tplId),
-                    tag;
+            var tpl = cache.get(tplId);
 
-                if (tplNode) {
+            if (typeof tpl == "string") {
+                tpl = toFragment(tpl);
+                cache.add(tplId, tpl);
+            }
 
-                    tag         = tplNode.tagName.toLowerCase();
+            return tpl;
+        },
 
-                    if (tag == "script") {
-                        var div = document.createElement("div");
-                        div.innerHTML = tplNode.innerHTML;
-                        tplCache[tplId] = toFragment(div.childNodes);
+        findTemplate = function(tplId) {
+
+            var tplNode     = window.document.getElementById(tplId),
+                tag;
+
+            if (tplNode) {
+
+                tag         = tplNode.tagName.toLowerCase();
+
+                if (tag == "script") {
+                    var div = window.document.createElement("div");
+                    div.innerHTML = tplNode.innerHTML;
+                    return toFragment(div.childNodes);
+                }
+                else {
+                    if ("content" in tplNode) {
+                        return tplNode.content;
                     }
                     else {
-                        if ("content" in tplNode) {
-                            tplCache[tplId] = tplNode.content;
-                        }
-                        else {
-                            tplCache[tplId] = toFragment(tplNode.childNodes);
-                        }
+                        return toFragment(tplNode.childNodes);
                     }
                 }
             }
-
-            return tplCache[tplId];
         },
 
         loadTemplate = function(tplUrl) {
-            if (!tplCache[tplUrl]) {
-                return tplCache[tplUrl] = ajax(tplUrl, {dataType: 'fragment'})
-                    .then(function(fragment){
-                        tplCache[tplUrl] = fragment;
-                        return fragment;
-                    });
+            if (!cache.exists(tplUrl)) {
+                return cache.add(tplUrl,
+                    ajax(tplUrl, {dataType: 'fragment'})
+                        .then(function(fragment){
+                            return cache.add(tplUrl, fragment);
+                        })
+                );
             }
-            return tplCache[tplUrl];
+            return cache.get(tplUrl);
         },
 
         isExpression = function(str) {
@@ -2334,6 +2573,7 @@ var Template = function(){
             return false;
         };
 
+    cache.addFinder(findTemplate);
 
     return defineClass({
 
@@ -2354,6 +2594,7 @@ var Template = function(){
         url:                null,
         ownRenderer:        false,
         initPromise:        null,
+        tplPromise:         null,
         parentRenderer:     null,
         deferRendering:     false,
         replace:            false,
@@ -2364,6 +2605,8 @@ var Template = function(){
             var self    = this;
 
             extend(self, cfg, true, false);
+
+            var shadowRootSupported = !!window.document.documentElement.createShadowRoot;
 
             if (!shadowRootSupported) {
                 self._intendedShadow = self.shadow;
@@ -2395,9 +2638,12 @@ var Template = function(){
                     data(node, "mjs-transclude", toFragment(node.childNodes));
                 }
 
-                if (isExpression(tpl) && !self.replace) {
+                if (isExpression(tpl)) {
+                    self._watcher = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
+                }
+
+                if (self._watcher && !self.replace) {
                     self.ownRenderer        = true;
-                    self._watcher           = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
                 }
                 else if (self.shadow) {
                     self.ownRenderer        = true;
@@ -2406,12 +2652,16 @@ var Template = function(){
                     self.ownRenderer        = false;
                 }
 
-                self.initPromise = self.resolveTemplate();
+                 self.resolveTemplate();
 
-                if (!self.deferRendering || !self.ownRenderer) {
-                    self.initPromise.done(self.applyTemplate, self);
+                if (self._watcher && self.replace) {
+                    self._watcher.unsubscribeAndDestroy(self.onChange, self);
+                    self._watcher = null;
                 }
 
+                if (!self.deferRendering || !self.ownRenderer) {
+                    self.tplPromise.done(self.applyTemplate, self);
+                }
                 if (self.ownRenderer && self.parentRenderer) {
                     self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
                 }
@@ -2457,8 +2707,8 @@ var Template = function(){
             if (self.deferRendering && self.node) {
 
                 self.deferRendering = false;
-                if (self.initPromise) {
-                    self.initPromise.done(tpl ? self.applyTemplate : self.doRender, self);
+                if (self.tplPromise) {
+                    self.tplPromise.done(tpl ? self.applyTemplate : self.doRender, self);
                     return self.initPromise;
                 }
                 else {
@@ -2477,7 +2727,12 @@ var Template = function(){
                           self._watcher.getLastResult() :
                           (self.tpl || url);
 
-            var returnPromise = new Promise;
+            self.initPromise    = new Promise;
+            self.tplPromise     = new Promise;
+
+            if (self.ownRenderer) {
+                self.initPromise.resolve(false);
+            }
 
             new Promise(function(resolve){
                 if (url) {
@@ -2489,11 +2744,13 @@ var Template = function(){
             })
                 .done(function(fragment){
                     self._fragment = fragment;
-                    returnPromise.resolve(!self.ownRenderer ? self.node : false);
+                    self.tplPromise.resolve();
+                    //!self.ownRenderer ? self.node : false
                 })
-                .fail(returnPromise.reject, returnPromise);
+                .fail(self.initPromise.reject, self.initPromise)
+                .fail(self.tplPromise.reject, self.tplPromise);
 
-            return returnPromise;
+
         },
 
         onChange: function() {
@@ -2523,10 +2780,26 @@ var Template = function(){
             }
 
             if (self.replace) {
-                el.parentNode.replaceChild(clone(self._fragment), el);
+
+                var frg = clone(self._fragment),
+                    transclude = data(el, "mjs-transclude"),
+                    children = slice.call(frg.childNodes);
+
+                if (transclude) {
+                    var tr = select("[mjs-transclude], mjs-transclude", frg);
+                    if (tr.length) {
+                        data(tr[0], "mjs-transclude", transclude);
+                    }
+                }
+
+                el.parentNode.replaceChild(frg, el);
+
+                self.node = children;
+                self.initPromise.resolve(children);
             }
             else {
                 el.appendChild(clone(self._fragment));
+                self.initPromise.resolve(self.node);
             }
 
             if (self.ownRenderer) {
@@ -2567,7 +2840,7 @@ var Template = function(){
 
             for (i = 0, l = cnts.length; i < l;  i++) {
 
-                tr      = document.createElement("mjs-transclude");
+                tr      = window.document.createElement("mjs-transclude");
                 el      = cnts[i];
                 next    = el.nextSibling;
                 sel     = getAttr(el, "select");
@@ -2602,8 +2875,7 @@ var Template = function(){
         }
 
     }, {
-        getTemplate: getTemplate,
-        loadTemplate: loadTemplate
+        cache: cache
     });
 }();
 
@@ -2769,7 +3041,7 @@ var Component = defineClass({
     _createNode: function() {
 
         var self    = this;
-        self.node   = document.createElement(self.tag || 'div');
+        self.node   = window.document.createElement(self.tag || 'div');
     },
 
     _initElement: function() {
@@ -2806,7 +3078,7 @@ var Component = defineClass({
             self.renderTo.appendChild(self.node);
         }
         else if (!isAttached(self.node)) {
-            document.body.appendChild(self.node);
+            window.document.body.appendChild(self.node);
         }
 
         self.rendered   = true;
@@ -2949,13 +3221,15 @@ var Component = defineClass({
  */
 
 
-/**
- * @param {String} expr
- */
+
 var getRegExp = function(){
 
     var cache = {};
 
+    /**
+     * @param {String} expr
+     * @returns RegExp
+     */
     return function getRegExp(expr) {
         return cache[expr] || (cache[expr] = new RegExp(expr));
     };
@@ -3034,8 +3308,6 @@ function async(fn, context, args, timeout) {
 function isNumber(value) {
     return varType(value) === 1;
 };
-
-var strUndef = "undefined";
 
 
 
@@ -3298,7 +3570,7 @@ var raf = function() {
 
 var functionFactory = function() {
 
-    var REG_REPLACE_EXPR    = /(^|[^a-z0-9_$])(\.)([^0-9])/ig,
+    var REG_REPLACE_EXPR    = /(^|[^a-z0-9_$\]\)'"])(\.)([^0-9])/ig,
 
         f               = Function,
         fnBodyStart     = 'try {',
@@ -3377,6 +3649,7 @@ var functionFactory = function() {
         getterCacheCnt  = 0,
 
         createGetter    = function createGetter(expr) {
+
             try {
                 if (!getterCache[expr]) {
                     getterCacheCnt++;
@@ -3489,25 +3762,24 @@ var getNodeData = function() {
         return dataset;
     };
 
-    if (document.documentElement.dataset) {
-        return function(node) {
+
+    return function(node) {
+
+        if (node.dataset) {
             return node.dataset;
-        };
-    }
-    else {
-        return function(node) {
+        }
 
-            var dataset;
+        var dataset;
 
-            if ((dataset = data(node, "data")) !== undf) {
-                return dataset;
-            }
-
-            dataset = readDataSet(node);
-            data(node, "data", dataset);
+        if ((dataset = data(node, "data")) !== undf) {
             return dataset;
-        };
-    }
+        }
+
+        dataset = readDataSet(node);
+        data(node, "data", dataset);
+        return dataset;
+    };
+
 
 }();
 
@@ -3653,7 +3925,7 @@ var ListRenderer = defineClass({
             parent      = self.parentEl,
             next        = self.nextEl,
             buffered    = self.buffered,
-            fragment    = document.createDocumentFragment(),
+            fragment    = window.document.createDocumentFragment(),
             el,
             i, len;
 
@@ -3667,8 +3939,9 @@ var ListRenderer = defineClass({
         }
 
         if (!buffered) {
-            self.doUpdate();
             parent.insertBefore(fragment, next);
+            self.doUpdate();
+
         }
         else {
             self.bufferPlugin.getScrollOffset();
@@ -4292,7 +4565,7 @@ function resolveComponent(cmp, cfg, scope, node, args) {
 
 
 
-var currentUrl = history.currentUrl;
+var currentUrl = mhistory.current;
 
 
 
@@ -4345,8 +4618,8 @@ defineClass({
         self.scope.$app.registerCmp(self, self.scope, "id");
 
         if (self.route) {
-            history.initPushState();
-            history.on("locationChange", self.onLocationChange, self);
+            mhistory.init();
+            mhistory.on("locationChange", self.onLocationChange, self);
             self.onLocationChange();
         }
         else if (self.cmp) {
@@ -4497,7 +4770,7 @@ defineClass({
         self.clearComponent();
 
         if (self.route) {
-            history.un("locationchange", self.onLocationChange, self);
+            mhistory.un("locationchange", self.onLocationChange, self);
             self.route = null;
         }
 
@@ -4536,12 +4809,6 @@ function isField(el) {
     }
     return false;
 };
-
-
-var elemTextProp = function(){
-    var node    = document.createElement("div");
-    return isString(node.textContent) ? "textContent" : "innerText";
-}();
 
 
 
@@ -4617,7 +4884,7 @@ Directive.registerAttribute("mjs-bind", 1000, defineClass({
             self.input.setValue(val);
         }
         else {
-            self.node[elemTextProp] = val;
+            self.node[typeof self.node.textContent == "string" ? "textContent" : "innerText"] = val;
         }
     },
 
@@ -4652,6 +4919,20 @@ Directive.registerAttribute("mjs-bind-html", 1000, defineClass({
         this.node.innerHTML = val;
     }
 }));
+
+
+
+
+Directive.registerAttribute("mjs-break-if", 500, function(scope, node, expr){
+
+    var res = !!createGetter(expr)(scope);
+
+    if (res) {
+        node.parentNode.removeChild(node);
+    }
+
+    return !res;
+});
 
 
 
@@ -4862,7 +5143,7 @@ var DomEvent = function(src) {
 
     // Calculate pageX/Y if missing and clientX/Y available
     if (self.pageX === undf && !isNull(src.clientX)) {
-        eventDoc = self.target ? self.target.ownerDocument || document : document;
+        eventDoc = self.target ? self.target.ownerDocument || window.document : window.document;
         doc = eventDoc.documentElement;
         body = eventDoc.body;
 
@@ -5096,6 +5377,7 @@ Directive.registerAttribute("mjs-if", 500, defineClass({
         self.prevEl     = node.previousSibling;
 
         self.$super(scope, node, expr);
+
     },
 
     onScopeDestroy: function() {
@@ -5177,19 +5459,21 @@ Directive.registerAttribute("mjs-init", 250, function(scope, node, expr){
     createFunc(expr)(scope);
 });
 
-var uaString = navigator.userAgent.toLowerCase();
-
-
 
 var isIE = function(){
 
-    var msie    = parseInt((/msie (\d+)/.exec(uaString) || [])[1], 10);
-
-    if (isNaN(msie)) {
-        msie    = parseInt((/trident\/.*; rv:(\d+)/.exec(uaString) || [])[1], 10) || false;
-    }
+    var msie;
 
     return function isIE() {
+
+        if (msie === null) {
+            var ua = navigator.userAgent;
+            msie = parseInt((/msie (\d+)/i.exec(ua) || [])[1], 10);
+            if (isNaN(msie)) {
+                msie = parseInt((/trident\/.*; rv:(\d+)/i.exec(ua) || [])[1], 10) || false;
+            }
+        }
+
         return msie;
     };
 }();
@@ -5354,7 +5638,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
         if (config.group !== self.prevGroup) {
 
             if (config.group){
-                self.groupEl = parent = document.createElement("optgroup");
+                self.groupEl = parent = window.document.createElement("optgroup");
                 setAttr(parent, "label", config.group);
                 if (config.disabledGroup) {
                     setAttr(parent, "disabled", "disabled");
@@ -5368,7 +5652,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
         }
         self.prevGroup  = config.group;
 
-        option  = document.createElement("option");
+        option  = window.document.createElement("option");
         setAttr(option, "value", config.value);
         option.text = config.name;
 
@@ -5393,7 +5677,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
             parent, next,
             i, len;
 
-        self.fragment   = document.createDocumentFragment();
+        self.fragment   = window.document.createDocumentFragment();
         self.prevGroup  = null;
         self.groupEl    = null;
 
@@ -5521,14 +5805,15 @@ var preloadImage = function() {
             cacheCnt = 0;
         }
 
-        var img = document.createElement("img"),
+        var doc = window.document,
+            img = doc.createElement("img"),
             style = img.style,
             deferred = new Promise;
 
         addListener(img, "load", function() {
             cache[src] = true;
             cacheCnt++;
-            document.body.removeChild(img);
+            doc.body.removeChild(img);
             deferred.resolve(src);
         });
 
@@ -5537,7 +5822,7 @@ var preloadImage = function() {
         style.left = "-10000px";
         style.top = "0";
         img.src = src;
-        document.body.appendChild(img);
+        doc.body.appendChild(img);
 
         return deferred;
     };
@@ -5630,7 +5915,7 @@ function parentData(node, key) {
 
 
 
-function transclude(node) {
+function transclude(node, replace) {
 
     var contents  = parentData(node, 'mjs-transclude');
 
@@ -5645,8 +5930,13 @@ function transclude(node) {
             cloned      = clone(contents),
             children    = toArray(cloned.childNodes);
 
-        parent.removeChild(node);
-        parent.insertBefore(cloned, next);
+        if (replace) {
+            parent.removeChild(node);
+            parent.insertBefore(cloned, next);
+        }
+        else {
+            node.appendChild(cloned);
+        }
 
         return children;
     }
@@ -5670,12 +5960,38 @@ Directive.registerAttribute("mjs-view", 200, function(scope, node, cls) {
 
 
 
+
+Directive.registerTag("mjs-if", function(scope, node) {
+
+    var expr = getAttr(node, "value"),
+        res = !!createGetter(expr)(scope);
+
+    if (!res) {
+        node.parentNode.removeChild(node);
+        return false;
+    }
+    else {
+        var nodes = toArray(node.childNodes),
+            frg = toFragment(node.childNodes),
+            next = node.nextSibling;
+
+        node.parentNode.insertBefore(frg, next);
+        node.parentNode.removeChild(node);
+
+        return nodes;
+    }
+
+});
+
+
+
 Directive.registerTag("mjs-include", function(scope, node, value, parentRenderer) {
+
 
     var tpl = new Template({
         scope: scope,
         node: node,
-        tpl: getAttr(node, "src"),
+        url: getAttr(node, "src"),
         parentRenderer: parentRenderer,
         replace: true
     });
@@ -5687,8 +6003,61 @@ Directive.registerTag("mjs-include", function(scope, node, value, parentRenderer
 
 
 
+
+Directive.registerTag("mjs-tag", function(scope, node) {
+
+    var expr = getAttr(node, "value"),
+        tag = createGetter(expr)(scope);
+
+    if (!tag) {
+        node.parentNode.removeChild(node);
+        return false;
+    }
+    else {
+        var el = window.document.createElement(tag),
+            next = node.nextSibling,
+            attrMap = getAttrMap(node),
+            k;
+
+        while (node.firstChild) {
+            el.appendChild(node.firstChild);
+        }
+
+        delete attrMap['value'];
+
+        for (k in attrMap) {
+            setAttr(el, k, attrMap[k]);
+        }
+
+        node.parentNode.insertBefore(el, next);
+        node.parentNode.removeChild(node);
+
+        return [el];
+    }
+
+});
+
+
+
 Directive.registerTag("mjs-transclude", function(scope, node) {
-    return transclude(node);
+    return transclude(node, true);
+});
+
+
+
+nsAdd("filter.collect", function(input, scope, prop) {
+
+    var res = [],
+        i, l, val;
+
+    for (i = 0, l = input.length; i < l; i++) {
+        val = input[i][prop];
+        if (val != undf) {
+            res.push(val);
+        }
+    }
+
+    return res;
 });
 
 
@@ -5786,6 +6155,24 @@ nsAdd("filter.filter", function(val, scope, by, opt) {
     return filterArray(val, by, opt);
 });
 
+
+
+
+
+
+nsAdd("filter.get", function(val, scope, prop) {
+    var tmp = (""+prop).split("."),
+        key;
+
+    while (key = tmp.shift()) {
+        val = val[key];
+        if (val == undf) {
+            return undf;
+        }
+    }
+
+    return val;
+});
 
 
 
@@ -5996,6 +6383,18 @@ nsAdd("filter.split", function(input, scope, sep, limit) {
 
 
 nsAdd("filter.toArray", function(input){
+
+    if (isPlainObject(input)) {
+        var list = [],
+            k;
+        for (k in input) {
+            if (input.hasOwnProperty(k)) {
+                list.push({key: k, value: input[k]});
+            }
+        }
+        return list;
+    }
+
     return toArray(input);
 });
 
@@ -6025,14 +6424,14 @@ function removeListener(el, event, func) {
 
 /**
  * @param {Function} fn
+ * @param {Window} w optional window object
  */
-function onReady(fn) {
+function onReady(fn, w) {
 
     var done    = false,
         top     = true,
-        win     = window,
-        doc     = win.document,
-        root    = doc.documentElement,
+        win     = w || window,
+        root, doc,
 
         init    = function(e) {
             if (e.type == 'readystatechange' && doc.readyState != 'complete') {
@@ -6056,6 +6455,9 @@ function onReady(fn) {
 
             init('poll');
         };
+
+    doc     = win.document;
+    root    = doc.documentElement;
 
     if (doc.readyState == 'complete') {
         fn.call(win, 'lazy');
@@ -6098,18 +6500,24 @@ function initApp(node, cls, data, autorun) {
 
 
 
-function run() {
+function run(w, appData) {
+
+    var win = w || window;
+
+    if (!win) {
+        throw "Window object neither defined nor provided";
+    }
 
     onReady(function() {
 
-        var appNodes    = select("[mjs-app]"),
+        var appNodes    = select("[mjs-app]", win.document),
             i, l, el;
 
         for (i = -1, l = appNodes.length; ++i < l;){
             el      = appNodes[i];
-            initApp(el, getAttr(el, "mjs-app"), null, true);
+            initApp(el, getAttr(el, "mjs-app"), appData, true);
         }
-    });
+    }, win);
 
 };
 
@@ -6499,4 +6907,93 @@ Directive.registerAttribute("mjs-validate", 250, ['$scope', '$node', '$attrValue
     }
 }]);
 
-module.exports = MetaphorJs;
+MetaphorJs['ns'] = ns;
+MetaphorJs['cs'] = cs;
+MetaphorJs['defineClass'] = defineClass;
+MetaphorJs['emptyFn'] = emptyFn;
+MetaphorJs['slice'] = slice;
+MetaphorJs['getAttr'] = getAttr;
+MetaphorJs['undf'] = undf;
+MetaphorJs['varType'] = varType;
+MetaphorJs['isPlainObject'] = isPlainObject;
+MetaphorJs['isBool'] = isBool;
+MetaphorJs['extend'] = extend;
+MetaphorJs['Scope'] = Scope;
+MetaphorJs['nextUid'] = nextUid;
+MetaphorJs['isArray'] = isArray;
+MetaphorJs['toArray'] = toArray;
+MetaphorJs['isFunction'] = isFunction;
+MetaphorJs['isThenable'] = isThenable;
+MetaphorJs['nsGet'] = nsGet;
+MetaphorJs['isString'] = isString;
+MetaphorJs['trim'] = trim;
+MetaphorJs['createWatchable'] = createWatchable;
+MetaphorJs['nsAdd'] = nsAdd;
+MetaphorJs['Directive'] = Directive;
+MetaphorJs['bind'] = bind;
+MetaphorJs['isNull'] = isNull;
+MetaphorJs['TextRenderer'] = TextRenderer;
+MetaphorJs['setAttr'] = setAttr;
+MetaphorJs['removeAttr'] = removeAttr;
+MetaphorJs['getAttrMap'] = getAttrMap;
+MetaphorJs['aIndexOf'] = aIndexOf;
+MetaphorJs['Renderer'] = Renderer;
+MetaphorJs['Text'] = Text;
+MetaphorJs['ObservableMixin'] = ObservableMixin;
+MetaphorJs['isObject'] = isObject;
+MetaphorJs['instantiate'] = instantiate;
+MetaphorJs['Provider'] = Provider;
+MetaphorJs['ProviderMixin'] = ProviderMixin;
+MetaphorJs['destroy'] = destroy;
+MetaphorJs['isAttached'] = isAttached;
+MetaphorJs['data'] = data;
+MetaphorJs['toFragment'] = toFragment;
+MetaphorJs['clone'] = clone;
+MetaphorJs['strUndef'] = strUndef;
+MetaphorJs['Cache'] = Cache;
+MetaphorJs['Template'] = Template;
+MetaphorJs['Component'] = Component;
+MetaphorJs['getRegExp'] = getRegExp;
+MetaphorJs['getClsReg'] = getClsReg;
+MetaphorJs['removeClass'] = removeClass;
+MetaphorJs['stopAnimation'] = stopAnimation;
+MetaphorJs['async'] = async;
+MetaphorJs['isNumber'] = isNumber;
+MetaphorJs['error'] = error;
+MetaphorJs['Queue'] = Queue;
+MetaphorJs['isPrimitive'] = isPrimitive;
+MetaphorJs['raf'] = raf;
+MetaphorJs['functionFactory'] = functionFactory;
+MetaphorJs['createGetter'] = createGetter;
+MetaphorJs['toCamelCase'] = toCamelCase;
+MetaphorJs['getNodeData'] = getNodeData;
+MetaphorJs['getNodeConfig'] = getNodeConfig;
+MetaphorJs['ListRenderer'] = ListRenderer;
+MetaphorJs['hasClass'] = hasClass;
+MetaphorJs['addClass'] = addClass;
+MetaphorJs['resolveComponent'] = resolveComponent;
+MetaphorJs['currentUrl'] = currentUrl;
+MetaphorJs['returnFalse'] = returnFalse;
+MetaphorJs['isField'] = isField;
+MetaphorJs['createFunc'] = createFunc;
+MetaphorJs['returnTrue'] = returnTrue;
+MetaphorJs['DomEvent'] = DomEvent;
+MetaphorJs['normalizeEvent'] = normalizeEvent;
+MetaphorJs['addListener'] = addListener;
+MetaphorJs['isIE'] = isIE;
+MetaphorJs['preloadImage'] = preloadImage;
+MetaphorJs['parentData'] = parentData;
+MetaphorJs['transclude'] = transclude;
+MetaphorJs['filterArray'] = filterArray;
+MetaphorJs['dateFormats'] = dateFormats;
+MetaphorJs['numberFormats'] = numberFormats;
+MetaphorJs['sortArray'] = sortArray;
+MetaphorJs['removeListener'] = removeListener;
+MetaphorJs['onReady'] = onReady;
+MetaphorJs['initApp'] = initApp;
+MetaphorJs['run'] = run;
+MetaphorJs['StoreRenderer'] = StoreRenderer;
+MetaphorJs['eachNode'] = eachNode;
+return MetaphorJs;
+
+};

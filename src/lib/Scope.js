@@ -27,6 +27,7 @@ extend(Scope.prototype, {
     $parent: null,
     $root: null,
     $isRoot: false,
+    $level: 0,
     $$observable: null,
     $$watchers: null,
     $$historyWatchers: null,
@@ -38,13 +39,15 @@ extend(Scope.prototype, {
         return new Scope({
             $parent: self,
             $root: self.$root,
-            $app: self.$app
+            $app: self.$app,
+            $level: self.$level + 1
         });
     },
 
     $newIsolated: function() {
         return new Scope({
-            $app: this.$app
+            $app: this.$app,
+            $level: self.$level + 1
         });
     },
 

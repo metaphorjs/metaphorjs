@@ -4,14 +4,14 @@ var removeListener = require("../event/removeListener.js"),
 
 /**
  * @param {Function} fn
+ * @param {Window} w optional window object
  */
-module.exports = function onReady(fn) {
+module.exports = function onReady(fn, w) {
 
     var done    = false,
         top     = true,
-        win     = window,
-        doc     = win.document,
-        root    = doc.documentElement,
+        win     = w || window,
+        root, doc,
 
         init    = function(e) {
             if (e.type == 'readystatechange' && doc.readyState != 'complete') {
@@ -35,6 +35,9 @@ module.exports = function onReady(fn) {
 
             init('poll');
         };
+
+    doc     = win.document;
+    root    = doc.documentElement;
 
     if (doc.readyState == 'complete') {
         fn.call(win, 'lazy');

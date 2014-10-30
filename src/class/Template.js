@@ -3,12 +3,14 @@
 var data = require("../func/dom/data.js"),
     toFragment = require("../func/dom/toFragment.js"),
     clone = require("../func/dom/clone.js"),
+    slice = require("../func/array/slice.js"),
     animate = require("../../../metaphorjs-animate/src/metaphorjs.animate.js"),
     extend = require("../func/extend.js"),
     nextUid = require("../func/nextUid.js"),
     trim = require("../func/trim.js"),
     createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
     Renderer = require("./Renderer.js"),
+    Cache = require("../lib/Cache.js"),
     Scope = require("../lib/Scope.js"),
     Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
     Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
@@ -16,7 +18,6 @@ var data = require("../func/dom/data.js"),
     ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
     removeAttr = require("../func/dom/removeAttr.js"),
     defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
-    shadowRootSupported = require("../var/shadowRootSupported.js"),
     select = require("../../../metaphorjs-select/src/metaphorjs.select.js"),
     getAttr = require("../func/dom/getAttr.js"),
     setAttr = require("../func/dom/setAttr.js");
@@ -28,46 +29,55 @@ module.exports = function(){
 
     var observable      = new Observable,
 
-        tplCache        = {},
+        cache           = new Cache,
 
         getTemplate     = function(tplId) {
 
-            if (!tplCache[tplId]) {
-                var tplNode     = document.getElementById(tplId),
-                    tag;
+            var tpl = cache.get(tplId);
 
-                if (tplNode) {
+            if (typeof tpl == "string") {
+                tpl = toFragment(tpl);
+                cache.add(tplId, tpl);
+            }
 
-                    tag         = tplNode.tagName.toLowerCase();
+            return tpl;
+        },
 
-                    if (tag == "script") {
-                        var div = document.createElement("div");
-                        div.innerHTML = tplNode.innerHTML;
-                        tplCache[tplId] = toFragment(div.childNodes);
+        findTemplate = function(tplId) {
+
+            var tplNode     = window.document.getElementById(tplId),
+                tag;
+
+            if (tplNode) {
+
+                tag         = tplNode.tagName.toLowerCase();
+
+                if (tag == "script") {
+                    var div = window.document.createElement("div");
+                    div.innerHTML = tplNode.innerHTML;
+                    return toFragment(div.childNodes);
+                }
+                else {
+                    if ("content" in tplNode) {
+                        return tplNode.content;
                     }
                     else {
-                        if ("content" in tplNode) {
-                            tplCache[tplId] = tplNode.content;
-                        }
-                        else {
-                            tplCache[tplId] = toFragment(tplNode.childNodes);
-                        }
+                        return toFragment(tplNode.childNodes);
                     }
                 }
             }
-
-            return tplCache[tplId];
         },
 
         loadTemplate = function(tplUrl) {
-            if (!tplCache[tplUrl]) {
-                return tplCache[tplUrl] = ajax(tplUrl, {dataType: 'fragment'})
-                    .then(function(fragment){
-                        tplCache[tplUrl] = fragment;
-                        return fragment;
-                    });
+            if (!cache.exists(tplUrl)) {
+                return cache.add(tplUrl,
+                    ajax(tplUrl, {dataType: 'fragment'})
+                        .then(function(fragment){
+                            return cache.add(tplUrl, fragment);
+                        })
+                );
             }
-            return tplCache[tplUrl];
+            return cache.get(tplUrl);
         },
 
         isExpression = function(str) {
@@ -78,6 +88,7 @@ module.exports = function(){
             return false;
         };
 
+    cache.addFinder(findTemplate);
 
     return defineClass({
 
@@ -98,6 +109,7 @@ module.exports = function(){
         url:                null,
         ownRenderer:        false,
         initPromise:        null,
+        tplPromise:         null,
         parentRenderer:     null,
         deferRendering:     false,
         replace:            false,
@@ -108,6 +120,8 @@ module.exports = function(){
             var self    = this;
 
             extend(self, cfg, true, false);
+
+            var shadowRootSupported = !!window.document.documentElement.createShadowRoot;
 
             if (!shadowRootSupported) {
                 self._intendedShadow = self.shadow;
@@ -139,9 +153,12 @@ module.exports = function(){
                     data(node, "mjs-transclude", toFragment(node.childNodes));
                 }
 
-                if (isExpression(tpl) && !self.replace) {
+                if (isExpression(tpl)) {
+                    self._watcher = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
+                }
+
+                if (self._watcher && !self.replace) {
                     self.ownRenderer        = true;
-                    self._watcher           = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
                 }
                 else if (self.shadow) {
                     self.ownRenderer        = true;
@@ -150,12 +167,16 @@ module.exports = function(){
                     self.ownRenderer        = false;
                 }
 
-                self.initPromise = self.resolveTemplate();
+                 self.resolveTemplate();
 
-                if (!self.deferRendering || !self.ownRenderer) {
-                    self.initPromise.done(self.applyTemplate, self);
+                if (self._watcher && self.replace) {
+                    self._watcher.unsubscribeAndDestroy(self.onChange, self);
+                    self._watcher = null;
                 }
 
+                if (!self.deferRendering || !self.ownRenderer) {
+                    self.tplPromise.done(self.applyTemplate, self);
+                }
                 if (self.ownRenderer && self.parentRenderer) {
                     self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
                 }
@@ -201,8 +222,8 @@ module.exports = function(){
             if (self.deferRendering && self.node) {
 
                 self.deferRendering = false;
-                if (self.initPromise) {
-                    self.initPromise.done(tpl ? self.applyTemplate : self.doRender, self);
+                if (self.tplPromise) {
+                    self.tplPromise.done(tpl ? self.applyTemplate : self.doRender, self);
                     return self.initPromise;
                 }
                 else {
@@ -221,7 +242,12 @@ module.exports = function(){
                           self._watcher.getLastResult() :
                           (self.tpl || url);
 
-            var returnPromise = new Promise;
+            self.initPromise    = new Promise;
+            self.tplPromise     = new Promise;
+
+            if (self.ownRenderer) {
+                self.initPromise.resolve(false);
+            }
 
             new Promise(function(resolve){
                 if (url) {
@@ -233,11 +259,13 @@ module.exports = function(){
             })
                 .done(function(fragment){
                     self._fragment = fragment;
-                    returnPromise.resolve(!self.ownRenderer ? self.node : false);
+                    self.tplPromise.resolve();
+                    //!self.ownRenderer ? self.node : false
                 })
-                .fail(returnPromise.reject, returnPromise);
+                .fail(self.initPromise.reject, self.initPromise)
+                .fail(self.tplPromise.reject, self.tplPromise);
 
-            return returnPromise;
+
         },
 
         onChange: function() {
@@ -267,10 +295,26 @@ module.exports = function(){
             }
 
             if (self.replace) {
-                el.parentNode.replaceChild(clone(self._fragment), el);
+
+                var frg = clone(self._fragment),
+                    transclude = data(el, "mjs-transclude"),
+                    children = slice.call(frg.childNodes);
+
+                if (transclude) {
+                    var tr = select("[mjs-transclude], mjs-transclude", frg);
+                    if (tr.length) {
+                        data(tr[0], "mjs-transclude", transclude);
+                    }
+                }
+
+                el.parentNode.replaceChild(frg, el);
+
+                self.node = children;
+                self.initPromise.resolve(children);
             }
             else {
                 el.appendChild(clone(self._fragment));
+                self.initPromise.resolve(self.node);
             }
 
             if (self.ownRenderer) {
@@ -311,7 +355,7 @@ module.exports = function(){
 
             for (i = 0, l = cnts.length; i < l;  i++) {
 
-                tr      = document.createElement("mjs-transclude");
+                tr      = window.document.createElement("mjs-transclude");
                 el      = cnts[i];
                 next    = el.nextSibling;
                 sel     = getAttr(el, "select");
@@ -346,8 +390,7 @@ module.exports = function(){
         }
 
     }, {
-        getTemplate: getTemplate,
-        loadTemplate: loadTemplate
+        cache: cache
     });
 }();
 

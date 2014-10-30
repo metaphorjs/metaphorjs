@@ -20,24 +20,23 @@ module.exports = function() {
         return dataset;
     };
 
-    if (document.documentElement.dataset) {
-        return function(node) {
+
+    return function(node) {
+
+        if (node.dataset) {
             return node.dataset;
-        };
-    }
-    else {
-        return function(node) {
+        }
 
-            var dataset;
+        var dataset;
 
-            if ((dataset = data(node, "data")) !== undf) {
-                return dataset;
-            }
-
-            dataset = readDataSet(node);
-            data(node, "data", dataset);
+        if ((dataset = data(node, "data")) !== undf) {
             return dataset;
-        };
-    }
+        }
+
+        dataset = readDataSet(node);
+        data(node, "data", dataset);
+        return dataset;
+    };
+
 
 }();

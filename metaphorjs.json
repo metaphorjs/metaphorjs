@@ -5,16 +5,9 @@
     ],
     "test": [
         {
-            "service": {
-                "cmd": "webdriver-manager",
-                "args": [
-                    "start"
-                ],
-                "wait": 10000
-            },
-            "cmd": "protractor",
+            "cmd": "node",
             "args": [
-                "protractor.conf.js"
+                "run-protractor.js"
             ]
         },
         {
@@ -65,6 +58,11 @@
         "npm": {
             "target": "dist/metaphorjs.npm.js",
             "compile": false,
+            "wrap": {
+                "exported": true,
+                "deferred": true,
+                "args": ["window"]
+            },
             "files": [
                 "core",
                 [
@@ -98,29 +96,51 @@
             "require": {
                 "metaphorjs-observable": "Observable",
                 "metaphorjs-promise": "Promise",
-                "metaphorjs-ajax": "ajax",
-                "metaphorjs-animate": "animate",
-                "metaphorjs-input": "Input",
+                "metaphorjs-ajax": {
+                    "as": "ajax",
+                    "args": ["window"]
+                },
+                "metaphorjs-animate": {
+                    "as": "animate",
+                    "args": ["window"]
+                },
+                "metaphorjs-input": {
+                    "as": "Input",
+                    "args": ["window"]
+                },
                 "metaphorjs-class": "Class",
                 "metaphorjs-namespace": "Namespace",
-                "metaphorjs-model": "model",
-                "metaphorjs-select": "select",
-                "metaphorjs-validator": "Validator",
+                "metaphorjs-model": {
+                    "as": "model",
+                    "args": ["window"]
+                },
+                "metaphorjs-select": {
+                    "as": "select",
+                    "args": ["window"]
+                },
+                "metaphorjs-validator": {
+                    "as": "Validator",
+                    "args": ["window"]
+                },
                 "metaphorjs-watchable": "Watchable",
-                "metaphorjs-dialog": "Dialog",
-                "metaphorjs-history": "history"
+                "metaphorjs-dialog": {
+                    "as": "Dialog",
+                    "args": ["window"]
+                },
+                "metaphorjs-history": {
+                    "as": "mhistory",
+                    "args": ["window"]
+                }
             },
-            "exports": "MetaphorJs"
+            "expose": "all",
+            "returns": "MetaphorJs"
         },
         "amd": {
             "target": "dist/metaphorjs.amd.js",
             "files": [
                 "core",
                 [
-                    "src/func/**",
-                    {
-                        "as": "*"
-                    }
+                    "src/func/*", {"as": "*"}
                 ],
                 "../metaphorjs-model/src/directive/*",
                 "../metaphorjs-dialog/src/cmp/DialogComponent.js",
@@ -145,7 +165,7 @@
                 "../metaphorjs-history/src/metaphorjs.history.js"
             ],
             "prepend": [
-                "src/amd/prepend.js"
+                "src/stubs/amd.js"
             ],
             "expose": "all",
             "define": {
@@ -163,19 +183,19 @@
                     "metaphorjs-validator": "Validator",
                     "metaphorjs-watchable": "Watchable",
                     "metaphorjs-dialog": "Dialog",
-                    "metaphorjs-history": "history"
+                    "metaphorjs-history": "mhistory"
                 }
             }
         },
         "test": {
             "auto": true,
-            "wrap": true,
             "global": true,
             "compile": false,
             "target": "dev-test/metaphorjs.test.js",
             "files": [
                 "all",
-                "../metaphorjs-model/src/FirebaseStore.js"
+                "../metaphorjs-model/src/FirebaseStore.js",
+                ["src/func/compile.js", {"as": "*"}]
             ],
             "expose": "all"
         }

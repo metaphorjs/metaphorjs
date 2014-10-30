@@ -5,7 +5,6 @@ var nextUid = require("../func/nextUid.js"),
     toArray = require("../func/array/toArray.js"),
     isThenable = require("../func/isThenable.js"),
     nsGet = require("../../../metaphorjs-namespace/src/func/nsGet.js"),
-    nodeTextProp = require("../var/nodeTextProp.js"),
     Scope = require("../lib/Scope.js"),
     Directive = require("./Directive.js"),
     Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
@@ -43,7 +42,12 @@ module.exports = function(){
             }
 
             if (!children.length) {
-                children    = toArray(el.childNodes);
+                if (el.childNodes) {
+                    children    = toArray(el.childNodes);
+                }
+                else if (el.length) {
+                    children    = toArray(el);
+                }
             }
 
             len = children.length;
@@ -95,11 +99,7 @@ module.exports = function(){
                 return;
             }
 
-
-            //if (el.nodeType) {
-                res = fn.call(fnScope, el);
-            //}
-
+            res = fn.call(fnScope, el);
 
             if (res !== false) {
 
@@ -219,7 +219,7 @@ module.exports = function(){
             if (nodeType == 3) {
 
                 recursive       = getAttr(node.parentNode, "mjs-recursive") !== null;
-                textRenderer    = createText(scope, node[nodeTextProp], null, texts.length, recursive);
+                textRenderer    = createText(scope, node.textContent || node.nodeValue, null, texts.length, recursive);
 
                 if (textRenderer) {
                     textRenderer.subscribe(self.onTextChange, self);
@@ -349,7 +349,6 @@ module.exports = function(){
                 res         = text.tr.getString(),
                 attrName    = text.attr;
 
-
             if (attrName) {
 
                 if (attrName == "value") {
@@ -365,7 +364,8 @@ module.exports = function(){
                 setAttr(text.node, attrName, res);
             }
             else {
-                text.node[nodeTextProp] = res;
+                text.node.textContent = res;
+                text.node.nodeValue = res;
             }
         },
 

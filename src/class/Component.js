@@ -169,7 +169,7 @@ module.exports = defineClass({
     _createNode: function() {
 
         var self    = this;
-        self.node   = document.createElement(self.tag || 'div');
+        self.node   = window.document.createElement(self.tag || 'div');
     },
 
     _initElement: function() {
@@ -206,7 +206,7 @@ module.exports = defineClass({
             self.renderTo.appendChild(self.node);
         }
         else if (!isAttached(self.node)) {
-            document.body.appendChild(self.node);
+            window.document.body.appendChild(self.node);
         }
 
         self.rendered   = true;

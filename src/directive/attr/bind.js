@@ -6,7 +6,6 @@ var Directive = require("../../class/Directive.js"),
     getAttr = require("../../func/dom/getAttr.js"),
     removeAttr = require("../../func/dom/removeAttr.js"),
     setValue = require("../../../../metaphorjs-input/src/func/setValue.js"),
-    elemTextProp = require("../../var/elemTextProp.js"),
     TextRenderer = require("../../class/TextRenderer.js"),
     Scope = require("../../lib/Scope.js"),
     Input = require("../../../../metaphorjs-input/src/metaphorjs.input.js"),
@@ -83,7 +82,7 @@ Directive.registerAttribute("mjs-bind", 1000, defineClass({
             self.input.setValue(val);
         }
         else {
-            self.node[elemTextProp] = val;
+            self.node[typeof self.node.textContent == "string" ? "textContent" : "innerText"] = val;
         }
     },
 

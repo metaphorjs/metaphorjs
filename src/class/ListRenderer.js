@@ -129,7 +129,7 @@ module.exports = defineClass({
             parent      = self.parentEl,
             next        = self.nextEl,
             buffered    = self.buffered,
-            fragment    = document.createDocumentFragment(),
+            fragment    = window.document.createDocumentFragment(),
             el,
             i, len;
 
@@ -143,8 +143,9 @@ module.exports = defineClass({
         }
 
         if (!buffered) {
-            self.doUpdate();
             parent.insertBefore(fragment, next);
+            self.doUpdate();
+
         }
         else {
             self.bufferPlugin.getScrollOffset();

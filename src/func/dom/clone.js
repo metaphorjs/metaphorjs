@@ -23,7 +23,7 @@ var clone = function clone(node) {
                 return node.cloneNode(true);
             // text node
             case 3:
-                return document.createTextNode(node.innerText || node.textContent);
+                return window.document.createTextNode(node.innerText || node.textContent);
             // document fragment
             case 11:
                 return node.cloneNode(true);

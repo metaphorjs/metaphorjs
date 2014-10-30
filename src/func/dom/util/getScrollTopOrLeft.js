@@ -6,7 +6,7 @@ module.exports = function(vertical) {
     var defaultST,
         wProp = vertical ? "pageYOffset" : "pageXOffset",
         sProp = vertical ? "scrollTop" : "scrollLeft",
-        doc = document,
+        doc = window.document,
         body = doc.body,
         html = doc.documentElement;
 

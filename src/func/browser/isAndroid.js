@@ -1,11 +1,14 @@
 
-var uaString = require("../../var/uaString.js");
-
 module.exports = function(){
 
-    var android = parseInt((/android (\d+)/.exec(uaString) || [])[1], 10) || false;
+    var android = null;
 
     return function isAndroid() {
+
+        if (android === null) {
+            android = parseInt((/android (\d+)/i.exec(navigator.userAgent) || [])[1], 10) || false;
+        }
+
         return android;
     };
 

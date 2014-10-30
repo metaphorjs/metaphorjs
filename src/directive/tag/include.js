@@ -5,10 +5,11 @@ var Directive = require("../../class/Directive.js"),
 
 Directive.registerTag("mjs-include", function(scope, node, value, parentRenderer) {
 
+
     var tpl = new Template({
         scope: scope,
         node: node,
-        tpl: getAttr(node, "src"),
+        url: getAttr(node, "src"),
         parentRenderer: parentRenderer,
         replace: true
     });

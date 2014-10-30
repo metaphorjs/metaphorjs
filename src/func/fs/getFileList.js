@@ -4,10 +4,9 @@ var path = require("path"),
     isFile = require("./isFile.js"),
     isDir = require("./isDir.js");
 
-module.exports = function(directory) {
+module.exports = function(directory, ext) {
 
     var fileList,
-        dir,
         filePath,
         levels = 0,
         files = [];
@@ -29,8 +28,17 @@ module.exports = function(directory) {
 
         fileList.forEach(function(filename) {
             filePath = path.normalize(dir + "/" + filename);
-            if (isFile(filePath) && path.extname(filePath) == ".js") {
-                files.push(filePath);
+
+            if (isFile(filePath)) {
+                if (!ext) {
+                    files.push(filePath);
+                }
+                else if (typeof ext == "string" && path.extname(filePath).substr(1) == ext) {
+                    files.push(filePath);
+                }
+                else if (path.extname(filePath).substr(1).match(ext)) {
+                    files.push(filePath);
+                }
             }
             else if (isDir(filePath) && levels > 1) {
                 readDir(filePath);

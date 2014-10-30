@@ -1,8 +1,7 @@
 
-var documentElement = require("../../var/documentElement.js");
-
 module.exports = function(){
     var isAttached = function isAttached(node) {
+
         if (node === window) {
             return true;
         }
@@ -14,7 +13,10 @@ module.exports = function(){
                 return true;
             }
         }
-        return node === documentElement ? true : documentElement.contains(node);
+
+        var html = window.document.documentElement;
+
+        return node === html ? true : html.contains(node);
     };
     return isAttached;
 }();

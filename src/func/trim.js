@@ -4,6 +4,7 @@ var isString = require("./isString.js");
 /**
  * @function trim
  * @param {String} value
+ * @returns {string}
  */
 module.exports = function() {
     // native trim is way faster: http://jsperf.com/angular-trim-test

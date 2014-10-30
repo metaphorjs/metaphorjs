@@ -10,7 +10,8 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     Text = require("../lib/Text.js"),
     removeAttr = require("../func/dom/removeAttr.js"),
     ObservableMixin = require("../mixin/ObservableMixin.js"),
-    ProviderMixin = require("../mixin/ProviderMixin.js");
+    ProviderMixin = require("../mixin/ProviderMixin.js"),
+    destroy = require("../func/destroy.js");
 
 
 
@@ -30,6 +31,8 @@ module.exports = defineClass({
         var self        = this,
             scope       = data instanceof Scope ? data : new Scope(data),
             args;
+
+        destroy.collect(self);
 
         removeAttr(node, "mjs-app");
 

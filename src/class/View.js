@@ -13,7 +13,7 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     isString = require("../func/isString.js"),
     ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
     nextUid = require("../func/nextUid.js"),
-    history = require("../../../metaphorjs-history/src/metaphorjs.history.js"),
+    mhistory = require("../../../metaphorjs-history/src/metaphorjs.history.js"),
     getNodeConfig = require("../func/dom/getNodeConfig.js");
 
 
@@ -64,8 +64,8 @@ module.exports = defineClass({
         self.scope.$app.registerCmp(self, self.scope, "id");
 
         if (self.route) {
-            history.initPushState();
-            history.on("locationChange", self.onLocationChange, self);
+            mhistory.init();
+            mhistory.on("locationChange", self.onLocationChange, self);
             self.onLocationChange();
         }
         else if (self.cmp) {
@@ -216,7 +216,7 @@ module.exports = defineClass({
         self.clearComponent();
 
         if (self.route) {
-            history.un("locationchange", self.onLocationChange, self);
+            mhistory.un("locationchange", self.onLocationChange, self);
             self.route = null;
         }
 

@@ -73,7 +73,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
         if (config.group !== self.prevGroup) {
 
             if (config.group){
-                self.groupEl = parent = document.createElement("optgroup");
+                self.groupEl = parent = window.document.createElement("optgroup");
                 setAttr(parent, "label", config.group);
                 if (config.disabledGroup) {
                     setAttr(parent, "disabled", "disabled");
@@ -87,7 +87,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
         }
         self.prevGroup  = config.group;
 
-        option  = document.createElement("option");
+        option  = window.document.createElement("option");
         setAttr(option, "value", config.value);
         option.text = config.name;
 
@@ -112,7 +112,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
             parent, next,
             i, len;
 
-        self.fragment   = document.createDocumentFragment();
+        self.fragment   = window.document.createDocumentFragment();
         self.prevGroup  = null;
         self.groupEl    = null;
 
