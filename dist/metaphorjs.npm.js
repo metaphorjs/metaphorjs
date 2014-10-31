@@ -5961,6 +5961,39 @@ Directive.registerAttribute("mjs-view", 200, function(scope, node, cls) {
 
 
 
+Directive.registerTag("mjs-bind-html", function(scope, node) {
+
+    var expr    = getAttr(node, "value"),
+        text    = createGetter(expr)(scope),
+        frg     = toFragment(text),
+        next    = node.nextSibling,
+        nodes   = toArray(frg.childNodes);
+
+    node.parentNode.insertBefore(frg, next);
+    node.parentNode.removeChild(node);
+
+    return nodes;
+});
+
+
+
+
+Directive.registerTag("mjs-bind", function(scope, node) {
+
+    var expr    = getAttr(node, "value"),
+        text    = createGetter(expr)(scope),
+        frg     = window.document.createTextNode(text),
+        next    = node.nextSibling;
+
+    node.parentNode.insertBefore(frg, next);
+    node.parentNode.removeChild(node);
+
+    return [frg];
+});
+
+
+
+
 Directive.registerTag("mjs-if", function(scope, node) {
 
     var expr = getAttr(node, "value"),

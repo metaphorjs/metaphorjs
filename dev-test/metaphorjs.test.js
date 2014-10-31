@@ -1319,15 +1319,13 @@ var bind = Function.prototype.bind ?
  * <p>A javascript event system implementing two patterns - observable and collector.</p>
  *
  * <p>Observable:</p>
- * <pre><code class="language-javascript">
- * var o = new MetaphorJs.lib.Observable;
+ * <pre><code class="language-javascript">var o = new Observable;
  * o.on("event", function(x, y, z){ console.log([x, y, z]) });
  * o.trigger("event", 1, 2, 3); // [1, 2, 3]
  * </code></pre>
  *
  * <p>Collector:</p>
- * <pre><code class="language-javascript">
- * var o = new MetaphorJs.lib.Observable;
+ * <pre><code class="language-javascript">var o = new Observable;
  * o.createEvent("collectStuff", "all");
  * o.on("collectStuff", function(){ return 1; });
  * o.on("collectStuff", function(){ return 2; });
@@ -1336,8 +1334,7 @@ var bind = Function.prototype.bind ?
  *
  * <p>Although all methods are public there is getApi() method that allows you
  * extending your own objects without overriding "destroy" (which you probably have)</p>
- * <pre><code class="language-javascript">
- * var o = new MetaphorJs.lib.Observable;
+ * <pre><code class="language-javascript">var o = new Observable;
  * $.extend(this, o.getApi());
  * this.on("event", function(){ alert("ok") });
  * this.trigger("event");
@@ -1360,11 +1357,10 @@ extend(Observable.prototype, {
     /**
     * <p>You don't have to call this function unless you want to pass returnResult param.
     * This function will be automatically called from on() with
-    * <code class="language-javascript">returnResult = false</code>,
+    * <code>returnResult = false</code>,
     * so if you want to receive handler's return values, create event first, then call on().</p>
     *
-    * <pre><code class="language-javascript">
-    * var observable = new MetaphorJs.lib.Observable;
+    * <pre><code class="language-javascript">var observable = new Observable;
     * observable.createEvent("collectStuff", "all");
     * observable.on("collectStuff", function(){ return 1; });
     * observable.on("collectStuff", function(){ return 2; });
@@ -1386,7 +1382,7 @@ extend(Observable.prototype, {
     *   "last" -- return result of the last handler
     *   @required
     * }
-    * @return MetaphorJs.lib.ObservableEvent
+    * @return {ObservableEvent}
     */
     createEvent: function(name, returnResult) {
         name = name.toLowerCase();
@@ -1401,7 +1397,7 @@ extend(Observable.prototype, {
     * @method
     * @access public
     * @param {string} name Event name
-    * @return MetaphorJs.lib.ObservableEvent|undefined
+    * @return {ObservableEvent|undefined}
     */
     getEvent: function(name) {
         name = name.toLowerCase();
@@ -1675,7 +1671,7 @@ extend(Observable.prototype, {
 
 /**
  * This class is private - you can't create an event other than via Observable.
- * See MetaphorJs.lib.Observable reference.
+ * See Observable reference.
  * @class ObservableEvent
  * @private
  */
@@ -12254,6 +12250,39 @@ Directive.registerAttribute("mjs-view", 200, function(scope, node, cls) {
     return false;
 });
 
+
+
+
+
+Directive.registerTag("mjs-bind-html", function(scope, node) {
+
+    var expr    = getAttr(node, "value"),
+        text    = createGetter(expr)(scope),
+        frg     = toFragment(text),
+        next    = node.nextSibling,
+        nodes   = toArray(frg.childNodes);
+
+    node.parentNode.insertBefore(frg, next);
+    node.parentNode.removeChild(node);
+
+    return nodes;
+});
+
+
+
+
+Directive.registerTag("mjs-bind", function(scope, node) {
+
+    var expr    = getAttr(node, "value"),
+        text    = createGetter(expr)(scope),
+        frg     = window.document.createTextNode(text),
+        next    = node.nextSibling;
+
+    node.parentNode.insertBefore(frg, next);
+    node.parentNode.removeChild(node);
+
+    return [frg];
+});
 
 
 
