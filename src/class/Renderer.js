@@ -42,12 +42,7 @@ module.exports = function(){
             }
 
             if (!children.length) {
-                if (el.childNodes) {
-                    children    = toArray(el.childNodes);
-                }
-                else if (el.length) {
-                    children    = toArray(el);
-                }
+                children = toArray(el.childNodes || el);
             }
 
             len = children.length;
@@ -330,7 +325,12 @@ module.exports = function(){
 
         process: function() {
             var self    = this;
-            eachNode(self.el, self.processNode, self, self.onProcessingFinished, {countdown: 1});
+            if (self.el.nodeType) {
+                eachNode(self.el, self.processNode, self, self.onProcessingFinished, {countdown: 1});
+            }
+            else {
+                nodeChildren(null, self.el, self.processNode, self, self.onProcessingFinished, {countdown: 0});
+            }
         },
 
         onProcessingFinished: function() {

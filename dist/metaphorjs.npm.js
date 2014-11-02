@@ -611,6 +611,74 @@ var bind = Function.prototype.bind ?
 
 
 
+/**
+ * @param {string} str
+ * @param {string} separator
+ * @param {bool} allowEmpty
+ * @returns {[]}
+ */
+var split = function(str, separator, allowEmpty) {
+
+    var l       = str.length,
+        sl      = separator.length,
+        i       = 0,
+        prev    = 0,
+        prevChar= "",
+        inQDbl  = false,
+        inQSng  = false,
+        parts   = [],
+        esc     = "\\",
+        char;
+
+    if (!sl) {
+        return [str];
+    }
+
+    for (; i < l; i++) {
+
+        char = str.charAt(i);
+
+        if (char == esc) {
+            i++;
+            continue;
+        }
+
+        if (char == '"') {
+            inQDbl = !inQDbl;
+            continue;
+        }
+        if (char == "'") {
+            inQSng = !inQSng;
+            continue;
+        }
+
+        if (!inQDbl && !inQSng) {
+            if ((sl == 1 && char == separator) ||
+                (sl > 1 && str.substring(i, i + sl) == separator)) {
+
+                if (str.substr(i - 1, sl) == separator ||
+                    str.substr(i + 1, sl) == separator) {
+
+                    if (!allowEmpty) {
+                        i += (sl - 1);
+                        continue;
+                    }
+                }
+
+                parts.push(str.substring(prev, i).replace(esc + separator, separator));
+                prev = i + sl;
+                i += (sl - 1);
+            }
+        }
+
+        prevChar = char;
+    }
+
+    parts.push(str.substring(prev).replace(esc + separator, separator));
+
+    return parts;
+};
+
 function isNull(value) {
     return value === null;
 };
@@ -823,7 +891,7 @@ var TextRenderer = function(){
 
             if (isLang) {
                 expr        = trim(expr);
-                var tmp     = expr.split("|"),
+                var tmp     = split(expr, "|"),
                     key     = trim(tmp[0]);
                 if (key.substr(0, 1) != ".") {
                     tmp[0]  = "'" + key + "'";
@@ -1064,12 +1132,7 @@ var Renderer = function(){
             }
 
             if (!children.length) {
-                if (el.childNodes) {
-                    children    = toArray(el.childNodes);
-                }
-                else if (el.length) {
-                    children    = toArray(el);
-                }
+                children = toArray(el.childNodes || el);
             }
 
             len = children.length;
@@ -1352,7 +1415,12 @@ var Renderer = function(){
 
         process: function() {
             var self    = this;
-            eachNode(self.el, self.processNode, self, self.onProcessingFinished, {countdown: 1});
+            if (self.el.nodeType) {
+                eachNode(self.el, self.processNode, self, self.onProcessingFinished, {countdown: 1});
+            }
+            else {
+                nodeChildren(null, self.el, self.processNode, self, self.onProcessingFinished, {countdown: 0});
+            }
         },
 
         onProcessingFinished: function() {
@@ -2290,6 +2358,10 @@ function toFragment(nodes) {
         var tmp = window.document.createElement('div');
         tmp.innerHTML = nodes;
         nodes = tmp.childNodes;
+    }
+
+    if (!nodes) {
+        return fragment;
     }
 
     if (nodes.nodeType) {
@@ -3259,6 +3331,10 @@ function removeClass(el, cls) {
 
 
 
+/**
+ * @function animate.stop
+ * @param {Element} el
+ */
 var stopAnimation = function(el) {
 
     var queue = data(el, "mjsAnimationQueue"),
@@ -3817,6 +3893,90 @@ function getNodeConfig(node, scope, expr) {
 };
 
 
+
+var getAnimationPrefixes = function(){
+
+    var domPrefixes         = ['Moz', 'Webkit', 'ms', 'O', 'Khtml'],
+        animationDelay      = "animationDelay",
+        animationDuration   = "animationDuration",
+        transitionDelay     = "transitionDelay",
+        transitionDuration  = "transitionDuration",
+        transform           = "transform",
+        transitionend       = null,
+        prefixes            = null,
+
+        probed              = false,
+
+        detectCssPrefixes   = function() {
+
+            var el = window.document.createElement("div"),
+                animation = false,
+                pfx,
+                i, len;
+
+            if (el.style['animationName'] !== undf) {
+                animation = true;
+            }
+            else {
+                for(i = 0, len = domPrefixes.length; i < len; i++) {
+                    pfx = domPrefixes[i];
+                    if (el.style[ pfx + 'AnimationName' ] !== undf) {
+                        animation           = true;
+                        animationDelay      = pfx + "AnimationDelay";
+                        animationDuration   = pfx + "AnimationDuration";
+                        transitionDelay     = pfx + "TransitionDelay";
+                        transitionDuration  = pfx + "TransitionDuration";
+                        transform           = pfx + "Transform";
+                        break;
+                    }
+                }
+            }
+
+            if (animation) {
+                if('ontransitionend' in window) {
+                    // Chrome/Saf (+ Mobile Saf)/Android
+                    transitionend = 'transitionend';
+                }
+                else if('onwebkittransitionend' in window) {
+                    // Chrome/Saf (+ Mobile Saf)/Android
+                    transitionend = 'webkitTransitionEnd';
+                }
+            }
+
+            return animation;
+        };
+
+
+    /**
+     * @function animate.getPrefixes
+     * @returns {object}
+     */
+    return function() {
+
+        if (!probed) {
+            if (detectCssPrefixes()) {
+                prefixes = {
+                    animationDelay: animationDelay,
+                    animationDuration: animationDuration,
+                    transitionDelay: transitionDelay,
+                    transitionDuration: transitionDuration,
+                    transform: transform,
+                    transitionend: transitionend
+                };
+            }
+            else {
+                prefixes = {};
+            }
+
+            probed = true;
+        }
+
+
+        return prefixes;
+    };
+}();
+
+
 var ListRenderer = defineClass({
 
     $class: "ListRenderer",
@@ -3836,6 +3996,7 @@ var ListRenderer = defineClass({
     animate: false,
     trackByFn: null,
     griDelegate: null,
+    tagMode: false,
 
     queue: null,
 
@@ -3847,8 +4008,11 @@ var ListRenderer = defineClass({
         var self    = this,
             cfg     = getNodeConfig(node, scope);
 
-        self.animateMove    = !cfg.buffered && cfg.animateMove && animate.cssAnimations;
-        self.animate        = !cfg.buffered && (getAttr(node, "mjs-animate") !== null || cfg.animate);
+        self.tagMode        = node.nodeName.toLowerCase() == "mjs-each";
+        self.animateMove    = !self.tagMode && !cfg.buffered &&
+                                cfg.animateMove && animate.cssAnimationSupported();
+        self.animate        = !self.tagMode && !cfg.buffered &&
+                                (getAttr(node, "mjs-animate") !== null || cfg.animate);
         self.id             = cfg.id || nextUid();
 
         removeAttr(node, "mjs-animate");
@@ -3858,6 +4022,10 @@ var ListRenderer = defineClass({
         }
         if (cfg.observable) {
             self.$plugins.push("Observable");
+        }
+
+        if (self.tagMode) {
+            cfg.buffered = false;
         }
 
         if (cfg.buffered) {
@@ -3872,14 +4040,18 @@ var ListRenderer = defineClass({
 
         removeAttr(node, "mjs-include");
 
+        if (self.tagMode) {
+            expr = getAttr(node, "value");
+        }
+
         self.parseExpr(expr);
 
-        self.tpl        = node;
+        self.tpl        = self.tagMode ? toFragment(node.childNodes) : node;
         self.renderers  = [];
         self.prevEl     = node.previousSibling;
         self.nextEl     = node.nextSibling;
         self.parentEl   = node.parentNode;
-        self.node       = node;
+        self.node       = null; //node;
         self.scope      = scope;
 
         self.queue      = new Queue({
@@ -4016,14 +4188,18 @@ var ListRenderer = defineClass({
 
         var self        = this,
             iname       = self.itemName,
-            itemScope   = self.scope.$new();
+            itemScope   = self.scope.$new(),
+            tm          = self.tagMode;
 
         itemScope[iname]    = self.getListItem(list, index);
+        el = tm ? toArray(el.childNodes) : el;
 
         return {
             index: index,
             action: "enter",
             el: el,
+            firstEl: tm ? el[0] : el,
+            lastEl: tm ? el[el.length - 1] : el,
             scope: itemScope,
             attached: false,
             rendered: false
@@ -4166,14 +4342,15 @@ var ListRenderer = defineClass({
 
             Promise.all(animPromises).always(function(){
                 raf(function(){
+                    var prefixes = getAnimationPrefixes();
                     self.doUpdate(updateStart || 0);
                     self.removeOldElements(renderers);
                     if (doesMove) {
                         self.doUpdate(updateStart, null, "move");
                         for (i = 0, len = newrs.length; i < len; i++) {
                             r = newrs[i];
-                            r.el.style[animate.prefixes.transform] = null;
-                            r.el.style[animate.prefixes.transform] = "";
+                            r.el.style[prefixes.transform] = null;
+                            r.el.style[prefixes.transform] = "";
                         }
                     }
                     donePromise.resolve();
@@ -4200,13 +4377,21 @@ var ListRenderer = defineClass({
 
     removeOldElements: function(rs) {
         var i, len, r,
+            j, jl,
             parent = this.parentEl;
 
         for (i = 0, len = rs.length; i < len; i++) {
             r = rs[i];
             if (r && r.attached) {
                 r.attached = false;
-                parent.removeChild(r.el);
+                if (!self.tagMode) {
+                    parent.removeChild(r.el);
+                }
+                else {
+                    for (j = 0, jl = r.el.length; j < jl; j++) {
+                        parent.removeChild(r.el[j]);
+                    }
+                }
             }
         }
     },
@@ -4218,6 +4403,7 @@ var ListRenderer = defineClass({
             rs          = self.renderers,
             parent      = self.parentEl,
             prevEl      = self.prevEl,
+            tm          = self.tagMode,
             fc          = prevEl ? prevEl.nextSibling : parent.firstChild,
             next,
             i, l, el, r;
@@ -4227,20 +4413,22 @@ var ListRenderer = defineClass({
             el = r.el;
 
             if (oldrs && oldrs[i]) {
-                next = oldrs[i].el.nextSibling;
+                next = oldrs[i].lastEl.nextSibling;
             }
             else {
-                next = i > 0 ? (rs[i-1].el.nextSibling || fc) : fc;
+                next = i > 0 ? (rs[i-1].lastEl.nextSibling || fc) : fc;
             }
 
-            if (next && el.nextSibling !== next) {
-                parent.insertBefore(el, next);
+            if (r.firstEl !== next) {
+                if (next && r.lastEl.nextSibling !== next) {
+                    parent.insertBefore(tm ? toFragment(el) : el, next);
+                }
+                else if (!next) {
+                    parent.appendChild(tm ? toFragment(el) : el);
+                }
             }
-            else if (!next) {
-                parent.appendChild(el);
-            }
+
             r.attached = true;
-
         }
     },
 
@@ -5964,13 +6152,17 @@ Directive.registerAttribute("mjs-view", 200, function(scope, node, cls) {
 Directive.registerTag("mjs-bind-html", function(scope, node) {
 
     var expr    = getAttr(node, "value"),
-        text    = createGetter(expr)(scope),
+        w       = createWatchable(scope, expr, null, null, null, ns),
+        text    = w.getLastResult(),
+        //text    = createGetter(expr)(scope),
         frg     = toFragment(text),
         next    = node.nextSibling,
         nodes   = toArray(frg.childNodes);
 
     node.parentNode.insertBefore(frg, next);
     node.parentNode.removeChild(node);
+
+    w.unsubscribeAndDestroy();
 
     return nodes;
 });
@@ -5990,6 +6182,11 @@ Directive.registerTag("mjs-bind", function(scope, node) {
 
     return [frg];
 });
+
+
+
+Directive.registerTag("mjs-each", ListRenderer);
+
 
 
 
@@ -6964,6 +7161,7 @@ MetaphorJs['createWatchable'] = createWatchable;
 MetaphorJs['nsAdd'] = nsAdd;
 MetaphorJs['Directive'] = Directive;
 MetaphorJs['bind'] = bind;
+MetaphorJs['split'] = split;
 MetaphorJs['isNull'] = isNull;
 MetaphorJs['TextRenderer'] = TextRenderer;
 MetaphorJs['setAttr'] = setAttr;
@@ -7001,6 +7199,7 @@ MetaphorJs['createGetter'] = createGetter;
 MetaphorJs['toCamelCase'] = toCamelCase;
 MetaphorJs['getNodeData'] = getNodeData;
 MetaphorJs['getNodeConfig'] = getNodeConfig;
+MetaphorJs['getAnimationPrefixes'] = getAnimationPrefixes;
 MetaphorJs['ListRenderer'] = ListRenderer;
 MetaphorJs['hasClass'] = hasClass;
 MetaphorJs['addClass'] = addClass;

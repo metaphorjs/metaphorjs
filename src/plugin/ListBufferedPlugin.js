@@ -198,6 +198,8 @@ module.exports = nsAdd("plugin.ListBuffered", defineClass({
 
         raf(function(){
 
+            //TODO: account for tag mode
+
             if (reset || !prev || bs.last < prev.first || bs.first > prev.last){
 
                 //remove old and append new

@@ -2,7 +2,8 @@
 var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
     nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
-    animate = require("../../../metaphorjs-animate/src/metaphorjs.animate.js");
+    animate = require("../../../metaphorjs-animate/src/metaphorjs.animate.js"),
+    getAnimationPrefixes = require("../../../metaphorjs-animate/src/func/getAnimationPrefixes.js");
 
 module.exports = nsAdd("plugin.ListAnimatedMove", defineClass({
 
@@ -111,7 +112,8 @@ module.exports = nsAdd("plugin.ListAnimatedMove", defineClass({
 
                 applyFrom.done(function(){
                     if (from) {
-                        style[animate.prefixes.transform] = "translateX("+from.left+"px) translateY("+from.top+"px)";
+                        var prefixes = getAnimationPrefixes();
+                        style[prefixes.transform] = "translateX("+from.left+"px) translateY("+from.top+"px)";
                     }
                 });
 
@@ -123,7 +125,8 @@ module.exports = nsAdd("plugin.ListAnimatedMove", defineClass({
                     ns,
                     function(el, position, stage){
                         if (position == 0 && stage != "start" && to) {
-                            style[animate.prefixes.transform] = "translateX("+to.left+"px) translateY("+to.top+"px)";
+                            var prefixes = getAnimationPrefixes();
+                            style[prefixes.transform] = "translateX("+to.left+"px) translateY("+to.top+"px)";
                         }
                     });
             }

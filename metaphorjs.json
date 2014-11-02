@@ -56,6 +56,7 @@
             ]
         },
         "npm": {
+            "auto": true,
             "target": "dist/metaphorjs.npm.js",
             "compile": false,
             "wrap": {

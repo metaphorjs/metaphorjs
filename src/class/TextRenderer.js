@@ -4,6 +4,7 @@ var nextUid = require("../func/nextUid.js"),
     bind = require("../func/bind.js"),
     trim = require("../func/trim.js"),
     undf = require("../var/undf.js"),
+    split = require("../func/split.js"),
     createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
     Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
     isNull = require("../func/isNull.js"),
@@ -215,7 +216,7 @@ module.exports = function(){
 
             if (isLang) {
                 expr        = trim(expr);
-                var tmp     = expr.split("|"),
+                var tmp     = split(expr, "|"),
                     key     = trim(tmp[0]);
                 if (key.substr(0, 1) != ".") {
                     tmp[0]  = "'" + key + "'";

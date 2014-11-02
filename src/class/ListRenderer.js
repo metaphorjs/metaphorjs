@@ -19,7 +19,8 @@ var createWatchable = require("../../../metaphorjs-watchable/src/func/createWatc
     Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
     raf = require("../../../metaphorjs-animate/src/func/raf.js"),
     getNodeConfig = require("../func/dom/getNodeConfig.js"),
-    defineClass = require("../../../metaphorjs-class/src/func/defineClass.js");
+    defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
+    getAnimationPrefixes = require("../../../metaphorjs-animate/src/func/getAnimationPrefixes.js");
 
 module.exports = defineClass({
 
@@ -40,6 +41,7 @@ module.exports = defineClass({
     animate: false,
     trackByFn: null,
     griDelegate: null,
+    tagMode: false,
 
     queue: null,
 
@@ -51,8 +53,11 @@ module.exports = defineClass({
         var self    = this,
             cfg     = getNodeConfig(node, scope);
 
-        self.animateMove    = !cfg.buffered && cfg.animateMove && animate.cssAnimations;
-        self.animate        = !cfg.buffered && (getAttr(node, "mjs-animate") !== null || cfg.animate);
+        self.tagMode        = node.nodeName.toLowerCase() == "mjs-each";
+        self.animateMove    = !self.tagMode && !cfg.buffered &&
+                                cfg.animateMove && animate.cssAnimationSupported();
+        self.animate        = !self.tagMode && !cfg.buffered &&
+                                (getAttr(node, "mjs-animate") !== null || cfg.animate);
         self.id             = cfg.id || nextUid();
 
         removeAttr(node, "mjs-animate");
@@ -62,6 +67,10 @@ module.exports = defineClass({
         }
         if (cfg.observable) {
             self.$plugins.push("Observable");
+        }
+
+        if (self.tagMode) {
+            cfg.buffered = false;
         }
 
         if (cfg.buffered) {
@@ -76,14 +85,18 @@ module.exports = defineClass({
 
         removeAttr(node, "mjs-include");
 
+        if (self.tagMode) {
+            expr = getAttr(node, "value");
+        }
+
         self.parseExpr(expr);
 
-        self.tpl        = node;
+        self.tpl        = self.tagMode ? toFragment(node.childNodes) : node;
         self.renderers  = [];
         self.prevEl     = node.previousSibling;
         self.nextEl     = node.nextSibling;
         self.parentEl   = node.parentNode;
-        self.node       = node;
+        self.node       = null; //node;
         self.scope      = scope;
 
         self.queue      = new Queue({
@@ -220,14 +233,18 @@ module.exports = defineClass({
 
         var self        = this,
             iname       = self.itemName,
-            itemScope   = self.scope.$new();
+            itemScope   = self.scope.$new(),
+            tm          = self.tagMode;
 
         itemScope[iname]    = self.getListItem(list, index);
+        el = tm ? toArray(el.childNodes) : el;
 
         return {
             index: index,
             action: "enter",
             el: el,
+            firstEl: tm ? el[0] : el,
+            lastEl: tm ? el[el.length - 1] : el,
             scope: itemScope,
             attached: false,
             rendered: false
@@ -370,14 +387,15 @@ module.exports = defineClass({
 
             Promise.all(animPromises).always(function(){
                 raf(function(){
+                    var prefixes = getAnimationPrefixes();
                     self.doUpdate(updateStart || 0);
                     self.removeOldElements(renderers);
                     if (doesMove) {
                         self.doUpdate(updateStart, null, "move");
                         for (i = 0, len = newrs.length; i < len; i++) {
                             r = newrs[i];
-                            r.el.style[animate.prefixes.transform] = null;
-                            r.el.style[animate.prefixes.transform] = "";
+                            r.el.style[prefixes.transform] = null;
+                            r.el.style[prefixes.transform] = "";
                         }
                     }
                     donePromise.resolve();
@@ -404,13 +422,21 @@ module.exports = defineClass({
 
     removeOldElements: function(rs) {
         var i, len, r,
+            j, jl,
             parent = this.parentEl;
 
         for (i = 0, len = rs.length; i < len; i++) {
             r = rs[i];
             if (r && r.attached) {
                 r.attached = false;
-                parent.removeChild(r.el);
+                if (!self.tagMode) {
+                    parent.removeChild(r.el);
+                }
+                else {
+                    for (j = 0, jl = r.el.length; j < jl; j++) {
+                        parent.removeChild(r.el[j]);
+                    }
+                }
             }
         }
     },
@@ -422,6 +448,7 @@ module.exports = defineClass({
             rs          = self.renderers,
             parent      = self.parentEl,
             prevEl      = self.prevEl,
+            tm          = self.tagMode,
             fc          = prevEl ? prevEl.nextSibling : parent.firstChild,
             next,
             i, l, el, r;
@@ -431,20 +458,22 @@ module.exports = defineClass({
             el = r.el;
 
             if (oldrs && oldrs[i]) {
-                next = oldrs[i].el.nextSibling;
+                next = oldrs[i].lastEl.nextSibling;
             }
             else {
-                next = i > 0 ? (rs[i-1].el.nextSibling || fc) : fc;
+                next = i > 0 ? (rs[i-1].lastEl.nextSibling || fc) : fc;
             }
 
-            if (next && el.nextSibling !== next) {
-                parent.insertBefore(el, next);
+            if (r.firstEl !== next) {
+                if (next && r.lastEl.nextSibling !== next) {
+                    parent.insertBefore(tm ? toFragment(el) : el, next);
+                }
+                else if (!next) {
+                    parent.appendChild(tm ? toFragment(el) : el);
+                }
             }
-            else if (!next) {
-                parent.appendChild(el);
-            }
+
             r.attached = true;
-
         }
     },
 

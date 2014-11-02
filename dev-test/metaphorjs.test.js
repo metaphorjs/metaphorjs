@@ -1355,10 +1355,9 @@ var Observable = function() {
 extend(Observable.prototype, {
 
     /**
-    * <p>You don't have to call this function unless you want to pass returnResult param.
-    * This function will be automatically called from on() with
-    * <code>returnResult = false</code>,
-    * so if you want to receive handler's return values, create event first, then call on().</p>
+    * You don't have to call this function unless you want to pass returnResult param.
+    * This function will be automatically called from on() with <code>returnResult = false</code>,
+    * so if you want to receive handler's return values, create event first, then call on().
     *
     * <pre><code class="language-javascript">var observable = new Observable;
     * observable.createEvent("collectStuff", "all");
@@ -1379,7 +1378,7 @@ extend(Observable.prototype, {
     *   "all" -- return all results as array<br>
     *   "merge" -- merge all results into one array (each result must be array)<br>
     *   "first" -- return result of the first handler<br>
-    *   "last" -- return result of the last handler
+    *   "last" -- return result of the last handler<br>
     *   @required
     * }
     * @return {ObservableEvent}
@@ -2013,6 +2012,74 @@ var trim = function() {
     };
 }();
 
+/**
+ * @param {string} str
+ * @param {string} separator
+ * @param {bool} allowEmpty
+ * @returns {[]}
+ */
+var split = function(str, separator, allowEmpty) {
+
+    var l       = str.length,
+        sl      = separator.length,
+        i       = 0,
+        prev    = 0,
+        prevChar= "",
+        inQDbl  = false,
+        inQSng  = false,
+        parts   = [],
+        esc     = "\\",
+        char;
+
+    if (!sl) {
+        return [str];
+    }
+
+    for (; i < l; i++) {
+
+        char = str.charAt(i);
+
+        if (char == esc) {
+            i++;
+            continue;
+        }
+
+        if (char == '"') {
+            inQDbl = !inQDbl;
+            continue;
+        }
+        if (char == "'") {
+            inQSng = !inQSng;
+            continue;
+        }
+
+        if (!inQDbl && !inQSng) {
+            if ((sl == 1 && char == separator) ||
+                (sl > 1 && str.substring(i, i + sl) == separator)) {
+
+                if (str.substr(i - 1, sl) == separator ||
+                    str.substr(i + 1, sl) == separator) {
+
+                    if (!allowEmpty) {
+                        i += (sl - 1);
+                        continue;
+                    }
+                }
+
+                parts.push(str.substring(prev, i).replace(esc + separator, separator));
+                prev = i + sl;
+                i += (sl - 1);
+            }
+        }
+
+        prevChar = char;
+    }
+
+    parts.push(str.substring(prev).replace(esc + separator, separator));
+
+    return parts;
+};
+
 
 
 function isDate(value) {
@@ -2622,8 +2689,8 @@ var Watchable = function(){
         }
 
         if (type == "expr") {
-            code        = self._processInputPipes(code, dataObj);
-            code        = self._processPipes(code, dataObj);
+            code        = self._parsePipes(code, dataObj, true);
+            code        = self._parsePipes(code, dataObj, false);
 
             if (self.inputPipes || self.pipes) {
                 code    = normalizeExpr(dataObj, code);
@@ -2715,41 +2782,34 @@ var Watchable = function(){
         },
 
 
-        _processInputPipes: function(text, dataObj) {
+        _parsePipes: function(text, dataObj, input) {
 
-            if (text.indexOf('>>') == -1) {
+            var self        = this,
+                separator   = input ? ">>" : "|",
+                propName    = input ? "inputPipes" : "pipes",
+                cb          = input ? self.onInputParamChange : self.onPipeParamChange;
+
+            if (text.indexOf(separator) == -1) {
                 return text;
             }
 
-            var self        = this,
-                index       = 0,
-                textLength  = text.length,
-                pipes       = [],
-                pIndex,
-                prev, next, pipe,
-                ret         = text;
+            var parts   = split(text, separator),
+                ret     = input ? parts.pop() : parts.shift(),
+                pipes   = [],
+                pipe,
+                i, l;
 
-            while(index < textLength && (pIndex  = text.indexOf('>>', index)) != -1) {
-
-                    prev = text.charAt(pIndex -1);
-                    next = text.charAt(pIndex + 2);
-
-                    if (prev != '\\' && prev != "'" && prev != '"' && next != "'" && next != '"') {
-                        pipe = trim(text.substring(index, pIndex)).split(":");
-                        ret = text.substr(pIndex + 2);
-                        self._addPipe(pipes, pipe, dataObj, self.onInputParamChange);
-                    }
-
-                    index = pIndex + 2;
+            for(i = 0, l = parts.length; i < l; i++) {
+                pipe = split(trim(parts[i]), ':');
+                self._addPipe(pipes, pipe, dataObj, cb);
             }
 
             if (pipes.length) {
-                self.inputPipes = pipes;
+                self[propName] = pipes;
             }
 
             return trim(ret);
         },
-
 
         _addPipe: function(pipes, pipe, dataObj, onParamChange) {
 
@@ -2773,56 +2833,6 @@ var Watchable = function(){
 
                 pipes.push([fn, pipe, ws]);
             }
-        },
-
-        _processPipes: function(text, dataObj) {
-
-            if (text.indexOf('|') == -1) {
-                return text;
-            }
-
-            var self        = this,
-                index       = 0,
-                textLength  = text.length,
-                pipes       = [],
-                pIndex,
-                prev, next, pipe,
-                found       = false,
-                ret         = text;
-
-            while(index < textLength) {
-
-                if ((pIndex  = text.indexOf('|', index)) != -1) {
-
-                    prev = text.charAt(pIndex -1);
-                    next = text.charAt(pIndex + 1);
-
-                    if (prev != '|' && prev != "'" && prev != '"' && next != '|' && next != "'" && next != '"') {
-                        if (!found) {
-                            found = true;
-                            ret = trim(text.substring(0, pIndex));
-                        }
-                        else {
-                            pipe = trim(text.substring(index, pIndex)).split(":");
-                            self._addPipe(pipes, pipe, dataObj);
-                        }
-                    }
-                    index = pIndex + 1;
-                }
-                else {
-                    if (found) {
-                        pipe = trim(text.substr(index)).split(":");
-                        self._addPipe(pipes, pipe, dataObj, self.onPipeParamChange);
-                    }
-                    break;
-                }
-            }
-
-            if (pipes.length) {
-                self.pipes = pipes;
-            }
-
-            return ret;
         },
 
 
@@ -3864,7 +3874,7 @@ var TextRenderer = function(){
 
             if (isLang) {
                 expr        = trim(expr);
-                var tmp     = expr.split("|"),
+                var tmp     = split(expr, "|"),
                     key     = trim(tmp[0]);
                 if (key.substr(0, 1) != ".") {
                     tmp[0]  = "'" + key + "'";
@@ -4875,12 +4885,7 @@ var Renderer = function(){
             }
 
             if (!children.length) {
-                if (el.childNodes) {
-                    children    = toArray(el.childNodes);
-                }
-                else if (el.length) {
-                    children    = toArray(el);
-                }
+                children = toArray(el.childNodes || el);
             }
 
             len = children.length;
@@ -5163,7 +5168,12 @@ var Renderer = function(){
 
         process: function() {
             var self    = this;
-            eachNode(self.el, self.processNode, self, self.onProcessingFinished, {countdown: 1});
+            if (self.el.nodeType) {
+                eachNode(self.el, self.processNode, self, self.onProcessingFinished, {countdown: 1});
+            }
+            else {
+                nodeChildren(null, self.el, self.processNode, self, self.onProcessingFinished, {countdown: 0});
+            }
         },
 
         onProcessingFinished: function() {
@@ -6075,6 +6085,10 @@ function toFragment(nodes) {
         nodes = tmp.childNodes;
     }
 
+    if (!nodes) {
+        return fragment;
+    }
+
     if (nodes.nodeType) {
         fragment.appendChild(nodes);
     }
@@ -6184,7 +6198,10 @@ var getAnimationPrefixes = function(){
         };
 
 
-
+    /**
+     * @function animate.getPrefixes
+     * @returns {object}
+     */
     return function() {
 
         if (!probed) {
@@ -6198,6 +6215,10 @@ var getAnimationPrefixes = function(){
                     transitionend: transitionend
                 };
             }
+            else {
+                prefixes = {};
+            }
+
             probed = true;
         }
 
@@ -6240,6 +6261,11 @@ var getAnimationDuration = function(){
         transitionDelay     = null;
 
 
+    /**
+     * @function animate.getDuration
+     * @param {Element} el
+     * @returns {number}
+     */
     return function(el) {
 
         if (pfx === false) {
@@ -6308,6 +6334,10 @@ function removeClass(el, cls) {
 
 
 
+/**
+ * @function animate.stop
+ * @param {Element} el
+ */
 var stopAnimation = function(el) {
 
     var queue = data(el, "mjsAnimationQueue"),
@@ -6451,6 +6481,15 @@ var animate = function(){
         },
 
 
+        cssAnimSupported= function(){
+            if (prefixes === false) {
+                prefixes        = getAnimationPrefixes();
+                cssAnimations   = !!prefixes;
+            }
+            return cssAnimations;
+        },
+
+
 
         nextInQueue     = function(el) {
             var queue = data(el, dataParam),
@@ -6558,12 +6597,23 @@ var animate = function(){
         };
 
 
+    /**
+     * @function animate
+     * @param {Element} el Element being animated
+     * @param {string|function|[]|object} animation {
+     *  'string' - registered animation name,<br>
+     *  'function' - fn(el, callback) - your own animation<br>
+     *  'array' - array or stages (class names)<br>
+     *  'array' - [{before}, {after}] - jquery animation<br>
+     *  'object' - {stages, fn, before, after, options, context, duration, start}
+     * }
+     * @param {function} startCallback call this function before animation begins
+     * @param {bool} checkIfEnabled check if mjs-animate attribute is present
+     * @param {MetaphorJs.Namespace} namespace registered animations storage
+     * @param {function} stepCallback call this function between stages
+     * @returns {MetaphorJs.Promise}
+     */
     var animate = function animate(el, animation, startCallback, checkIfEnabled, namespace, stepCallback) {
-
-        if (prefixes === false) {
-            prefixes        = getAnimationPrefixes();
-            cssAnimations   = !!prefixes;
-        }
 
         var deferred    = new Promise,
             queue       = data(el, dataParam) || [],
@@ -6617,7 +6667,7 @@ var animate = function(){
             }
 
 
-            if (cssAnimations && stages) {
+            if (cssAnimSupported() && stages) {
 
                 queue.push({
                     el: el,
@@ -6703,8 +6753,14 @@ var animate = function(){
     };
 
     animate.stop = stopAnimation;
-    animate.prefixes = prefixes;
-    animate.cssAnimations = cssAnimations;
+    animate.getPrefixes = getAnimationPrefixes;
+    animate.getDuration = getAnimationDuration;
+
+    /**
+     * @function animate.cssAnimationSupported
+     * @returns {bool}
+     */
+    animate.cssAnimationSupported = cssAnimSupported;
 
     return animate;
 }();
@@ -9259,6 +9315,7 @@ var ListRenderer = defineClass({
     animate: false,
     trackByFn: null,
     griDelegate: null,
+    tagMode: false,
 
     queue: null,
 
@@ -9270,8 +9327,11 @@ var ListRenderer = defineClass({
         var self    = this,
             cfg     = getNodeConfig(node, scope);
 
-        self.animateMove    = !cfg.buffered && cfg.animateMove && animate.cssAnimations;
-        self.animate        = !cfg.buffered && (getAttr(node, "mjs-animate") !== null || cfg.animate);
+        self.tagMode        = node.nodeName.toLowerCase() == "mjs-each";
+        self.animateMove    = !self.tagMode && !cfg.buffered &&
+                                cfg.animateMove && animate.cssAnimationSupported();
+        self.animate        = !self.tagMode && !cfg.buffered &&
+                                (getAttr(node, "mjs-animate") !== null || cfg.animate);
         self.id             = cfg.id || nextUid();
 
         removeAttr(node, "mjs-animate");
@@ -9281,6 +9341,10 @@ var ListRenderer = defineClass({
         }
         if (cfg.observable) {
             self.$plugins.push("Observable");
+        }
+
+        if (self.tagMode) {
+            cfg.buffered = false;
         }
 
         if (cfg.buffered) {
@@ -9295,14 +9359,18 @@ var ListRenderer = defineClass({
 
         removeAttr(node, "mjs-include");
 
+        if (self.tagMode) {
+            expr = getAttr(node, "value");
+        }
+
         self.parseExpr(expr);
 
-        self.tpl        = node;
+        self.tpl        = self.tagMode ? toFragment(node.childNodes) : node;
         self.renderers  = [];
         self.prevEl     = node.previousSibling;
         self.nextEl     = node.nextSibling;
         self.parentEl   = node.parentNode;
-        self.node       = node;
+        self.node       = null; //node;
         self.scope      = scope;
 
         self.queue      = new Queue({
@@ -9439,14 +9507,18 @@ var ListRenderer = defineClass({
 
         var self        = this,
             iname       = self.itemName,
-            itemScope   = self.scope.$new();
+            itemScope   = self.scope.$new(),
+            tm          = self.tagMode;
 
         itemScope[iname]    = self.getListItem(list, index);
+        el = tm ? toArray(el.childNodes) : el;
 
         return {
             index: index,
             action: "enter",
             el: el,
+            firstEl: tm ? el[0] : el,
+            lastEl: tm ? el[el.length - 1] : el,
             scope: itemScope,
             attached: false,
             rendered: false
@@ -9589,14 +9661,15 @@ var ListRenderer = defineClass({
 
             Promise.all(animPromises).always(function(){
                 raf(function(){
+                    var prefixes = getAnimationPrefixes();
                     self.doUpdate(updateStart || 0);
                     self.removeOldElements(renderers);
                     if (doesMove) {
                         self.doUpdate(updateStart, null, "move");
                         for (i = 0, len = newrs.length; i < len; i++) {
                             r = newrs[i];
-                            r.el.style[animate.prefixes.transform] = null;
-                            r.el.style[animate.prefixes.transform] = "";
+                            r.el.style[prefixes.transform] = null;
+                            r.el.style[prefixes.transform] = "";
                         }
                     }
                     donePromise.resolve();
@@ -9623,13 +9696,21 @@ var ListRenderer = defineClass({
 
     removeOldElements: function(rs) {
         var i, len, r,
+            j, jl,
             parent = this.parentEl;
 
         for (i = 0, len = rs.length; i < len; i++) {
             r = rs[i];
             if (r && r.attached) {
                 r.attached = false;
-                parent.removeChild(r.el);
+                if (!self.tagMode) {
+                    parent.removeChild(r.el);
+                }
+                else {
+                    for (j = 0, jl = r.el.length; j < jl; j++) {
+                        parent.removeChild(r.el[j]);
+                    }
+                }
             }
         }
     },
@@ -9641,6 +9722,7 @@ var ListRenderer = defineClass({
             rs          = self.renderers,
             parent      = self.parentEl,
             prevEl      = self.prevEl,
+            tm          = self.tagMode,
             fc          = prevEl ? prevEl.nextSibling : parent.firstChild,
             next,
             i, l, el, r;
@@ -9650,20 +9732,22 @@ var ListRenderer = defineClass({
             el = r.el;
 
             if (oldrs && oldrs[i]) {
-                next = oldrs[i].el.nextSibling;
+                next = oldrs[i].lastEl.nextSibling;
             }
             else {
-                next = i > 0 ? (rs[i-1].el.nextSibling || fc) : fc;
+                next = i > 0 ? (rs[i-1].lastEl.nextSibling || fc) : fc;
             }
 
-            if (next && el.nextSibling !== next) {
-                parent.insertBefore(el, next);
+            if (r.firstEl !== next) {
+                if (next && r.lastEl.nextSibling !== next) {
+                    parent.insertBefore(tm ? toFragment(el) : el, next);
+                }
+                else if (!next) {
+                    parent.appendChild(tm ? toFragment(el) : el);
+                }
             }
-            else if (!next) {
-                parent.appendChild(el);
-            }
+
             r.attached = true;
-
         }
     },
 
@@ -12257,13 +12341,17 @@ Directive.registerAttribute("mjs-view", 200, function(scope, node, cls) {
 Directive.registerTag("mjs-bind-html", function(scope, node) {
 
     var expr    = getAttr(node, "value"),
-        text    = createGetter(expr)(scope),
+        w       = createWatchable(scope, expr, null, null, null, ns),
+        text    = w.getLastResult(),
+        //text    = createGetter(expr)(scope),
         frg     = toFragment(text),
         next    = node.nextSibling,
         nodes   = toArray(frg.childNodes);
 
     node.parentNode.insertBefore(frg, next);
     node.parentNode.removeChild(node);
+
+    w.unsubscribeAndDestroy();
 
     return nodes;
 });
@@ -12283,6 +12371,11 @@ Directive.registerTag("mjs-bind", function(scope, node) {
 
     return [frg];
 });
+
+
+
+Directive.registerTag("mjs-each", ListRenderer);
+
 
 
 
@@ -16120,6 +16213,8 @@ nsAdd("plugin.ListBuffered", defineClass({
         }
 
         raf(function(){
+
+            //TODO: account for tag mode
 
             if (reset || !prev || bs.last < prev.first || bs.first > prev.last){
 
@@ -22739,7 +22834,8 @@ nsAdd("plugin.ListAnimatedMove", defineClass({
 
                 applyFrom.done(function(){
                     if (from) {
-                        style[animate.prefixes.transform] = "translateX("+from.left+"px) translateY("+from.top+"px)";
+                        var prefixes = getAnimationPrefixes();
+                        style[prefixes.transform] = "translateX("+from.left+"px) translateY("+from.top+"px)";
                     }
                 });
 
@@ -22751,7 +22847,8 @@ nsAdd("plugin.ListAnimatedMove", defineClass({
                     ns,
                     function(el, position, stage){
                         if (position == 0 && stage != "start" && to) {
-                            style[animate.prefixes.transform] = "translateX("+to.left+"px) translateY("+to.top+"px)";
+                            var prefixes = getAnimationPrefixes();
+                            style[prefixes.transform] = "translateX("+to.left+"px) translateY("+to.top+"px)";
                         }
                     });
             }
@@ -22934,6 +23031,7 @@ MetaphorJs['nextUid'] = nextUid;
 MetaphorJs['bind'] = bind;
 MetaphorJs['Observable'] = Observable;
 MetaphorJs['trim'] = trim;
+MetaphorJs['split'] = split;
 MetaphorJs['isDate'] = isDate;
 MetaphorJs['isRegExp'] = isRegExp;
 MetaphorJs['isWindow'] = isWindow;

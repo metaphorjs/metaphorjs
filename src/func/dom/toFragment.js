@@ -12,6 +12,10 @@ module.exports = function toFragment(nodes) {
         nodes = tmp.childNodes;
     }
 
+    if (!nodes) {
+        return fragment;
+    }
+
     if (nodes.nodeType) {
         fragment.appendChild(nodes);
     }

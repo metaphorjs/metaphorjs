@@ -335,7 +335,7 @@
         <div class="cases">
 
             <div class="case double">
-                <h4>mjs-each</h4>
+                <h4>mjs-each (attr)</h4>
                 <input mjs-model=".newItem" mjs-enter="if (.newItem) {.list.push({bool: false, txt: .newItem}); .newItem = '';}"/>
                 <input type="button"
                        mjs-disabled="!.newItem"
@@ -354,7 +354,6 @@
                             {{ .$last ? "last" : "" }} -
                             {{ .$even ? "even" : "" }} -
                             {{ .$odd ? "odd" : "" }}
-                            <span mjs-if="$first">first11</span>
                         </label>
                         <a href="#" mjs-click=".$parent.list.splice(.$getRawIndex(.$trackId),1);">x</a>
                     </li>
@@ -364,6 +363,25 @@
                 <a href="#" mjs-click=".sortBy='asc'">asc</a>
                 <a href="#" mjs-click=".sortBy='desc'">desc</a>
 
+            </div>
+
+            <div class="case double">
+                <h4>mjs-each (tag)</h4>
+
+                <mjs-each value="item in .list | filter:.listFilter | sortBy:'txt':.sortBy">
+                    <div>
+                        <label mjs-class="{cls3: .item.bool}">
+                            <input type="checkbox" mjs-model=".item.bool"/>
+                            {{.$index}} -
+                            {{.item.txt}} -
+                            {{ .$first ? "first" : "" }} -
+                            {{ .$last ? "last" : "" }} -
+                            {{ .$even ? "even" : "" }} -
+                            {{ .$odd ? "odd" : "" }}
+                        </label>
+                        <a href="#" mjs-click=".$parent.list.splice(.$getRawIndex(.$trackId),1);">x</a>
+                    </div>
+                </mjs-each>
             </div>
 
             <div class="case double" mjs-cmp="Test.MyComponent as ctrl">
