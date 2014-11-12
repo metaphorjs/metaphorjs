@@ -4,7 +4,7 @@
     "authors": [
         "kuindji <kuindji@gmail.com>"
     ],
-    "description": "Javascript app framework",
+    "description": "MetaphorJs app framework",
     "main": "dist/metaphorjs.amd.min.js",
     "moduleType": [
         "amd"
@@ -16,7 +16,7 @@
         "app"
     ],
     "license": "MIT",
-    "homepage": "https://github.com/kuindji/metaphorjs",
+    "homepage": "https://github.com/metaphorjs/metaphorjs",
     "ignore": [
         "node_modules",
         "bower_components",

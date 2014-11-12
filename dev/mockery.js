@@ -80,7 +80,10 @@ var mockModule = function(name) {
 
     main    = dir +'/' + pkg.main;
 
-    mockery.registerMock(name, require(main));
+    if (fs.existsSync(main)) {
+        mockery.registerMock(name, require(main));
+    }
+
     mocked[name] = true;
 };
 

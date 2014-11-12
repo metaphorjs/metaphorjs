@@ -6498,6 +6498,24 @@ nsAdd("filter.lowercase", function(val){
     return val.toLowerCase();
 });
 
+
+
+nsAdd("filter.map", function(array, scope, fnName) {
+
+    var i, l,
+        fn = nsGet(fnName, true) ||
+                window[fnName] ||
+                createGetter(fnName)(scope);
+
+    if (fn) {
+        for (i = 0, l = array.length; i < l; i++) {
+            array[i] = fn(array[i]);
+        }
+    }
+
+    return array;
+});
+
 var dateFormats = {};
 
 

@@ -104,4 +104,11 @@ describe("split function", function(){
         assert.equal("'b|d'", parts[1]);
         assert.equal("c", parts[2]);
     });
+
+    it("should parse this", function() {
+        var str = '.item.plainFlags.type | map:\'filter.typeRef\' | join:" | "',
+        parts = split(str, "|");
+
+        assert.equal(3, parts.length);
+    });
 });

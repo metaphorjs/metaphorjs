@@ -264,6 +264,7 @@ var Cache = function(){
 
 /**
  * @class Namespace
+ * @code ../examples/main.js
  */
 var Namespace = function(){
 
@@ -271,7 +272,7 @@ var Namespace = function(){
     /**
      * @param {Object} root optional; usually window or global
      * @param {String} rootName optional. If you want custom object to be root and
-     * this object itself if the first level of namespace: {@code ../examples/main.js}
+     * this object itself is the first level of namespace
      * @param {Cache} cache optional
      * @constructor
      */
@@ -457,6 +458,7 @@ var Namespace = function(){
 
         /**
          * Destroy namespace and all classes in it
+         * @method
          */
         var destroy     = function() {
 
@@ -506,7 +508,7 @@ var Namespace = function(){
      * Get global namespace
      * @method
      * @static
-     * @returns {*}
+     * @returns {Namespace}
      */
     Namespace.global = function() {
         if (!globalNs) {
@@ -830,6 +832,9 @@ var Class = function(){
 
         /**
          * @class BaseClass
+         * @description All classes defined with MetaphorJs.Class extend this class.
+         * You can access it via <code>cs.BaseClass</code>. Basically,
+         * <code>cs.define({});</code> is the same as <code>cs.BaseClass.$extend({})</code>.
          * @constructor
          */
         var BaseClass = function() {
@@ -864,7 +869,7 @@ var Class = function(){
             /**
              * Get parent class name
              * @method
-             * @returns {null}
+             * @returns {string | null}
              */
             $getParentClass: function() {
                 return this.$extends;
@@ -896,6 +901,7 @@ var Class = function(){
             },
 
             /**
+             * Destroy instance
              * @method
              */
             $destroy: function() {
@@ -921,13 +927,13 @@ var Class = function(){
                     }
                 }
 
-                res = self.destroy();
+                res = self.destroy.apply(self, arguments);
 
                 for (i = -1, l = before.length; ++i < l;
                      after[i].apply(self, arguments)){}
 
                 for (i = 0, l = plugins.length; i < l; i++) {
-                    plugins[i].$destroy();
+                    plugins[i].$destroy.apply(plugins[i], arguments);
                 }
 
                 if (res !== false) {
@@ -941,19 +947,16 @@ var Class = function(){
                 self.$destroyed = true;
             },
 
-            /**
-             * Implement your destroy actions here
-             * @method
-             */
             destroy: function(){}
         });
 
         BaseClass.$self = BaseClass;
 
         /**
-         * Create an instance of current class.
+         * Create an instance of current class. Same as cs.factory(name)
          * @method
          * @static
+         * @code var myObj = My.Class.$instantiate(arg1, arg2, ...);
          * @returns {object} class instance
          */
         BaseClass.$instantiate = function() {
@@ -982,7 +985,7 @@ var Class = function(){
         };
 
         /**
-         * Override class methods
+         * Override class methods (on prototype level, not on instance level)
          * @method
          * @static
          * @param {object} methods
@@ -1008,6 +1011,7 @@ var Class = function(){
 
         /**
          * Destroy class
+         * @method
          */
         BaseClass.$destroy = function() {
             var self = this,
@@ -1018,13 +1022,43 @@ var Class = function(){
             }
         };
 
-
         /**
          * @class Class
+         * @code ../examples/main.js
+         */
+
+        /**
+         * @method Class
+         * @constructor
+         * @param {Namespace} ns optional namespace. See metaphorjs-namespace repository
+         */
+
+        /**
          * @method
-         * @param {object} definition
-         * @param {object} statics
-         * @param {string|function} $extends
+         * @param {object} definition {
+         *  @description Class properties and methods (all optional). Try not to use
+         *  objects and arrays as properties for instance property will modify prototype property.
+         *  @description All $beforeInit and $afterInit and $init functions receive same
+         *  arguments as passed to the constructor.
+         *  @description All $beforeDestroy, $afterDestroy and destroy() function receive
+         *  same arguments as $destroy().
+         *  @type {string} $class optional
+         *  @type {string} $extends optional
+         *  @type {array} $mixins optional
+         *  @type {function} $constructor optional
+         *  @type {function} $init optional
+         *  @type {function} $beforeInit if this is a mixin
+         *  @type {function} $afterInit if this is a mixin
+         *  @type {function} $beforeHostInit if this is a plugin
+         *  @type {function} $afterHostInit if this is a plugin
+         *  @type {function} $beforeDestroy if this is a mixin
+         *  @type {function} $afterDestroy if this is a mixin
+         *  @type {function} $beforeHostDestroy if this is a plugin
+         *  @type {function} destroy your own destroy function
+         * }
+         * @param {object} statics any statis properties or methods
+         * @param {string|function} $extends this is a private parameter; use definition.$extends
+         * @code var cls = cs.define({$class: "Name"});
          */
         var define = function(definition, statics, $extends) {
 
@@ -1121,6 +1155,7 @@ var Class = function(){
         /**
          * Instantiate class. Pass constructor parameters after "name"
          * @method
+         * @code cs.factory("My.Class.Name", arg1, arg2, ...);
          * @param {string} name Full name of the class
          * @returns {object} class instance
          */
@@ -1141,6 +1176,8 @@ var Class = function(){
         /**
          * Is cmp instance of cls
          * @method
+         * @code cs.instanceOf(myObj, "My.Class");
+         * @code cs.instanceOf(myObj, My.Class);
          * @param {object} cmp
          * @param {string|object} cls
          * @returns {boolean}
@@ -1155,6 +1192,10 @@ var Class = function(){
         /**
          * Is one class subclass of another class
          * @method
+         * @code cs.isSubclassOf("My.Subclass", "My.Class");
+         * @code cs.isSubclassOf(myObj, "My.Class");
+         * @code cs.isSubclassOf("My.Subclass", My.Class);
+         * @code cs.isSubclassOf(myObj, My.Class);
          * @param {string|object} childClass
          * @param {string|object} parentClass
          * @return {bool}
@@ -1210,7 +1251,7 @@ var Class = function(){
         };
 
         /**
-         * @type {function} BaseClass reference to the BaseClass class
+         * @type {BaseClass} BaseClass reference to the BaseClass class
          */
         self.BaseClass = BaseClass;
 
@@ -1356,7 +1397,7 @@ extend(Observable.prototype, {
 
     /**
     * You don't have to call this function unless you want to pass returnResult param.
-    * This function will be automatically called from on() with <code>returnResult = false</code>,
+    * This function will be automatically called from {@link on} with <code>returnResult = false</code>,
     * so if you want to receive handler's return values, create event first, then call on().
     *
     * <pre><code class="language-javascript">var observable = new Observable;
@@ -1407,7 +1448,6 @@ extend(Observable.prototype, {
     * Subscribe to an event or register collector function.
     * @method
     * @access public
-    * @md-save on
     * @param {string} name {
     *       Event name
     *       @required
@@ -1445,9 +1485,8 @@ extend(Observable.prototype, {
     },
 
     /**
-    * Same as on(), but options.limit is forcefully set to 1.
+    * Same as {@link Observable.on}, but options.limit is forcefully set to 1.
     * @method
-    * @md-apply on
     * @access public
     */
     once: function(name, fn, context, options) {
@@ -12687,6 +12726,24 @@ nsAdd("filter.lowercase", function(val){
     return val.toLowerCase();
 });
 
+
+
+nsAdd("filter.map", function(array, scope, fnName) {
+
+    var i, l,
+        fn = nsGet(fnName, true) ||
+                window[fnName] ||
+                createGetter(fnName)(scope);
+
+    if (fn) {
+        for (i = 0, l = array.length; i < l; i++) {
+            array[i] = fn(array[i]);
+        }
+    }
+
+    return array;
+});
+
 var dateFormats = {};
 
 
@@ -19959,6 +20016,9 @@ function eachNode(el, fn, context) {
 
 
 
+var rUrl = /^((https?|ftp):\/\/|)(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+;=]|:|@)|\/|\?)*)?$/i;
+
+
 
 
 
@@ -20106,7 +20166,7 @@ var Validator = function(){
         // http://docs.jquery.com/Plugins/Validation/Methods/url
         url: function(value, element) {
             // contributed by Scott Gonzalez: http://projects.scottsplayground.com/iri/
-            return empty(value, element) || /^((https?|ftp):\/\/|)(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+;=]|:|@)|\/|\?)*)?$/i.test(value);
+            return empty(value, element) || rUrl.test(value);
             //	/^(https?|ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(\#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+;=]|:|@)|\/|\?)*)?$/i.test(value);
         },
 
@@ -23146,6 +23206,7 @@ MetaphorJs['delegate'] = delegate;
 MetaphorJs['undelegate'] = undelegate;
 MetaphorJs['Dialog'] = Dialog;
 MetaphorJs['eachNode'] = eachNode;
+MetaphorJs['rUrl'] = rUrl;
 MetaphorJs['Validator'] = Validator;
 MetaphorJs['getWidth'] = getWidth;
 MetaphorJs['getHeight'] = getHeight;
