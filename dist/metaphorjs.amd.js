@@ -5612,6 +5612,16 @@ Directive.registerAttribute("mjs-ignore", 0, returnFalse);
 
 
 
+Directive.registerAttribute("mjs-include-file", 900, function(scope, node, filePath){
+
+    var r = require,
+        fs = r("fs");
+
+    node.innerHTML = fs.readFileSync(filePath).toString();
+});
+
+
+
 
 Directive.registerAttribute("mjs-include", 900, function(scope, node, tplExpr, parentRenderer){
 
