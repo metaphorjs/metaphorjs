@@ -1,6 +1,5 @@
 
-var Directive = require("../../class/Directive.js"),
-    Template = require("../../class/Template.js");
+var Directive = require("../../class/Directive.js");
 
 Directive.registerAttribute("mjs-include-file", 900, function(scope, node, filePath){
 
