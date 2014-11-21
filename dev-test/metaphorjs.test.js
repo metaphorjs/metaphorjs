@@ -2394,7 +2394,7 @@ function levenshteinArray(from, to) {
  * @param {number} timeout
  */
 function async(fn, context, args, timeout) {
-    setTimeout(function(){
+    return setTimeout(function(){
         fn.apply(context, args || []);
     }, timeout || 0);
 };
@@ -6461,22 +6461,319 @@ var raf = function() {
     };
 }();
 
-function addListener(el, event, func) {
-    if (el.attachEvent) {
-        el.attachEvent('on' + event, func);
-    } else {
-        el.addEventListener(event, func, false);
-    }
+
+function returnTrue() {
+    return true;
 };
 
 
-function removeListener(el, event, func) {
-    if (el.detachEvent) {
-        el.detachEvent('on' + event, func);
-    } else {
-        el.removeEventListener(event, func, false);
+
+// from jQuery
+
+var DomEvent = function(src) {
+
+    if (src instanceof DomEvent) {
+        return src;
     }
+
+    // Allow instantiation without the 'new' keyword
+    if (!(this instanceof DomEvent)) {
+        return new DomEvent(src);
+    }
+
+
+    var self    = this;
+
+    for (var i in src) {
+        if (!self[i]) {
+            try {
+                self[i] = src[i];
+            }
+            catch (thrownError){}
+        }
+    }
+
+
+    // Event object
+    self.originalEvent = src;
+    self.type = src.type;
+
+    if (!self.target && src.srcElement) {
+        self.target = src.srcElement;
+    }
+
+
+    var eventDoc, doc, body,
+        button = src.button;
+
+    // Calculate pageX/Y if missing and clientX/Y available
+    if (self.pageX === undf && !isNull(src.clientX)) {
+        eventDoc = self.target ? self.target.ownerDocument || window.document : window.document;
+        doc = eventDoc.documentElement;
+        body = eventDoc.body;
+
+        self.pageX = src.clientX +
+                      ( doc && doc.scrollLeft || body && body.scrollLeft || 0 ) -
+                      ( doc && doc.clientLeft || body && body.clientLeft || 0 );
+        self.pageY = src.clientY +
+                      ( doc && doc.scrollTop  || body && body.scrollTop  || 0 ) -
+                      ( doc && doc.clientTop  || body && body.clientTop  || 0 );
+    }
+
+    // Add which for click: 1 === left; 2 === middle; 3 === right
+    // Note: button is not normalized, so don't use it
+    if ( !self.which && button !== undf ) {
+        self.which = ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
+    }
+
+    // Events bubbling up the document may have been marked as prevented
+    // by a handler lower down the tree; reflect the correct value.
+    self.isDefaultPrevented = src.defaultPrevented ||
+                              src.defaultPrevented === undf &&
+                                  // Support: Android<4.0
+                              src.returnValue === false ?
+                              returnTrue :
+                              returnFalse;
+
+
+    // Create a timestamp if incoming event doesn't have one
+    self.timeStamp = src && src.timeStamp || (new Date).getTime();
 };
+
+// Event is based on DOM3 Events as specified by the ECMAScript Language Binding
+// http://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
+extend(DomEvent.prototype, {
+
+    isDefaultPrevented: returnFalse,
+    isPropagationStopped: returnFalse,
+    isImmediatePropagationStopped: returnFalse,
+
+    preventDefault: function() {
+        var e = this.originalEvent;
+
+        this.isDefaultPrevented = returnTrue;
+        e.returnValue = false;
+
+        if ( e && e.preventDefault ) {
+            e.preventDefault();
+        }
+    },
+    stopPropagation: function() {
+        var e = this.originalEvent;
+
+        this.isPropagationStopped = returnTrue;
+
+        if ( e && e.stopPropagation ) {
+            e.stopPropagation();
+        }
+    },
+    stopImmediatePropagation: function() {
+        var e = this.originalEvent;
+
+        this.isImmediatePropagationStopped = returnTrue;
+
+        if ( e && e.stopImmediatePropagation ) {
+            e.stopImmediatePropagation();
+        }
+
+        this.stopPropagation();
+    }
+}, true, false);
+
+
+
+
+function normalizeEvent(originalEvent) {
+    return new DomEvent(originalEvent);
+};
+
+
+// from jquery.mousewheel plugin
+
+
+
+var mousewheelHandler = function(e) {
+
+    function shouldAdjustOldDeltas(orgEvent, absDelta) {
+        // If this is an older event and the delta is divisable by 120,
+        // then we are assuming that the browser is treating this as an
+        // older mouse wheel event and that we should divide the deltas
+        // by 40 to try and get a more usable deltaFactor.
+        // Side note, this actually impacts the reported scroll distance
+        // in older browsers and can cause scrolling to be slower than native.
+        // Turn this off by setting $.event.special.mousewheel.settings.adjustOldDeltas to false.
+        return orgEvent.type === 'mousewheel' && absDelta % 120 === 0;
+    }
+
+    function nullLowestDelta() {
+        lowestDelta = null;
+    }
+
+    var toBind = ( 'onwheel' in document || document.documentMode >= 9 ) ?
+                 ['wheel'] : ['mousewheel', 'DomMouseScroll', 'MozMousePixelScroll'],
+        nullLowestDeltaTimeout, lowestDelta;
+
+    var mousewheelHandler = function(fn) {
+
+        return function(e) {
+
+            var event = normalizeEvent(e || window.event),
+                args = slice.call(arguments, 1),
+                delta = 0,
+                deltaX = 0,
+                deltaY = 0,
+                absDelta = 0,
+                offsetX = 0,
+                offsetY = 0;
+
+
+            event.type = 'mousewheel';
+
+            // Old school scrollwheel delta
+            if ('detail'      in event) { deltaY = event.detail * -1; }
+            if ('wheelDelta'  in event) { deltaY = event.wheelDelta; }
+            if ('wheelDeltaY' in event) { deltaY = event.wheelDeltaY; }
+            if ('wheelDeltaX' in event) { deltaX = event.wheelDeltaX * -1; }
+
+            // Firefox < 17 horizontal scrolling related to DOMMouseScroll event
+            if ('axis' in event && event.axis === event.HORIZONTAL_AXIS) {
+                deltaX = deltaY * -1;
+                deltaY = 0;
+            }
+
+            // Set delta to be deltaY or deltaX if deltaY is 0 for backwards compatabilitiy
+            delta = deltaY === 0 ? deltaX : deltaY;
+
+            // New school wheel delta (wheel event)
+            if ('deltaY' in event) {
+                deltaY = event.deltaY * -1;
+                delta = deltaY;
+            }
+            if ('deltaX' in event) {
+                deltaX = event.deltaX;
+                if (deltaY === 0) { delta = deltaX * -1; }
+            }
+
+            // No change actually happened, no reason to go any further
+            if (deltaY === 0 && deltaX === 0) { return; }
+
+            // Store lowest absolute delta to normalize the delta values
+            absDelta = Math.max(Math.abs(deltaY), Math.abs(deltaX));
+
+            if (!lowestDelta || absDelta < lowestDelta) {
+                lowestDelta = absDelta;
+
+                // Adjust older deltas if necessary
+                if (shouldAdjustOldDeltas(event, absDelta)) {
+                    lowestDelta /= 40;
+                }
+            }
+
+            // Adjust older deltas if necessary
+            if (shouldAdjustOldDeltas(event, absDelta)) {
+                // Divide all the things by 40!
+                delta /= 40;
+                deltaX /= 40;
+                deltaY /= 40;
+            }
+
+            // Get a whole, normalized value for the deltas
+            delta = Math[delta >= 1 ? 'floor' : 'ceil'](delta / lowestDelta);
+            deltaX = Math[deltaX >= 1 ? 'floor' : 'ceil'](deltaX / lowestDelta);
+            deltaY = Math[deltaY >= 1 ? 'floor' : 'ceil'](deltaY / lowestDelta);
+
+            // Normalise offsetX and offsetY properties
+            if (this.getBoundingClientRect) {
+                var boundingRect = this.getBoundingClientRect();
+                offsetX = event.clientX - boundingRect.left;
+                offsetY = event.clientY - boundingRect.top;
+            }
+
+            // Add information to the event object
+            event.deltaX = deltaX;
+            event.deltaY = deltaY;
+            event.deltaFactor = lowestDelta;
+            event.offsetX = offsetX;
+            event.offsetY = offsetY;
+            // Go ahead and set deltaMode to 0 since we converted to pixels
+            // Although this is a little odd since we overwrite the deltaX/Y
+            // properties with normalized deltas.
+            event.deltaMode = 0;
+
+            // Add event and delta to the front of the arguments
+            args.unshift(event, delta, deltaX, deltaY);
+
+            // Clearout lowestDelta after sometime to better
+            // handle multiple device types that give different
+            // a different lowestDelta
+            // Ex: trackpad = 3 and mouse wheel = 120
+            if (nullLowestDeltaTimeout) { clearTimeout(nullLowestDeltaTimeout); }
+            nullLowestDeltaTimeout = setTimeout(nullLowestDelta, 200);
+
+
+
+            return fn.apply(this, args);
+        }
+    };
+
+    mousewheelHandler.events = function() {
+        var doc = window.document;
+        return ( 'onwheel' in doc || doc.documentMode >= 9 ) ?
+               ['wheel'] : ['mousewheel', 'DomMouseScroll', 'MozMousePixelScroll'];
+    };
+
+    return mousewheelHandler;
+
+}();
+
+
+
+var addListener = function(){
+
+    var fn = null,
+        prefix = null;
+
+    return function addListener(el, event, func) {
+
+        if (fn === null) {
+            fn = el.attachEvent ? "attachEvent" : "addEventListener";
+            prefix = el.attachEvent ? "on" : "";
+        }
+
+
+        if (event == "mousewheel") {
+            func = mousewheelHandler(func);
+            var events = mousewheelHandler.events(),
+                i, l;
+            for (i = 0, l = events.length; i < l; i++) {
+                el[fn](prefix + events[i], func, false);
+            }
+        }
+        else {
+            el[fn](prefix + event, func, false);
+        }
+
+        return func;
+    }
+
+}();
+
+
+var removeListener = function(){
+
+    var fn = null,
+        prefix = null;
+
+    return function removeListener(el, event, func) {
+
+        if (fn === null) {
+            fn = el.detachEvent ? "detachEvent" : "removeEventListener";
+            prefix = el.detachEvent ? "on" : "";
+        }
+
+        el[fn](prefix + event, func);
+    }
+}();
 
 
 
@@ -6549,10 +6846,6 @@ var animate = function(){
 
             var finishStage = function() {
 
-                //if (prefixes.transitionend) {
-                //    removeListener(el, prefixes.transitionend, finishStage);
-                //}
-
                 if (stopped()) {
                     return;
                 }
@@ -6578,6 +6871,7 @@ var animate = function(){
             var setStage = function() {
 
                 if (!stopped()) {
+
                     addClass(el, stages[position] + "-active");
 
                     Promise.resolve(stepCallback && stepCallback(el, position, "active"))
@@ -6587,15 +6881,7 @@ var animate = function(){
                                 var duration = getAnimationDuration(el);
 
                                 if (duration) {
-                                    // i don't understand how transitionend works.
-                                    // it just doesn't fire sometimes! :(
-
-                                    //if (prefixes.transitionend) {
-                                    //    addListener(el, prefixes.transitionend, finishStage);
-                                    //}
-                                    //else {
-                                        callTimeout(finishStage, (new Date).getTime(), duration);
-                                    //}
+                                    callTimeout(finishStage, (new Date).getTime(), duration);
                                 }
                                 else {
                                     raf(finishStage);
@@ -8793,6 +9079,8 @@ var Component = defineClass({
 
         var self    = this;
 
+        cfg = cfg || {};
+
         self.$super(cfg);
 
         extend(self, cfg, true, false);
@@ -9073,7 +9361,7 @@ var Queue = function(cfg) {
 Queue.REPLACE = 1;
 Queue.ONCE = 2;
 Queue.MULTIPLE = 3;
-Queue.ONCE_EVER = 3;
+Queue.ONCE_EVER = 4;
 
 
 extend(Queue.prototype, {
@@ -9154,6 +9442,10 @@ extend(Queue.prototype, {
             }
         }
         delete self._map[id];
+    },
+
+    isEmpty: function() {
+        return this.length == 0;
     },
 
     next: function() {
@@ -10077,133 +10369,6 @@ function resolveComponent(cmp, cfg, scope, node, args) {
     return p;
 };
 
-
-
-
-function returnTrue() {
-    return true;
-};
-
-
-
-// from jQuery
-
-var DomEvent = function(src) {
-
-    if (src instanceof DomEvent) {
-        return src;
-    }
-
-    // Allow instantiation without the 'new' keyword
-    if (!(this instanceof DomEvent)) {
-        return new DomEvent(src);
-    }
-
-
-    var self    = this;
-
-    for (var i in src) {
-        if (!self[i]) {
-            try {
-                self[i] = src[i];
-            }
-            catch (thrownError){}
-        }
-    }
-
-
-    // Event object
-    self.originalEvent = src;
-    self.type = src.type;
-
-    if (!self.target && src.srcElement) {
-        self.target = src.srcElement;
-    }
-
-
-    var eventDoc, doc, body,
-        button = src.button;
-
-    // Calculate pageX/Y if missing and clientX/Y available
-    if (self.pageX === undf && !isNull(src.clientX)) {
-        eventDoc = self.target ? self.target.ownerDocument || window.document : window.document;
-        doc = eventDoc.documentElement;
-        body = eventDoc.body;
-
-        self.pageX = src.clientX +
-                      ( doc && doc.scrollLeft || body && body.scrollLeft || 0 ) -
-                      ( doc && doc.clientLeft || body && body.clientLeft || 0 );
-        self.pageY = src.clientY +
-                      ( doc && doc.scrollTop  || body && body.scrollTop  || 0 ) -
-                      ( doc && doc.clientTop  || body && body.clientTop  || 0 );
-    }
-
-    // Add which for click: 1 === left; 2 === middle; 3 === right
-    // Note: button is not normalized, so don't use it
-    if ( !self.which && button !== undf ) {
-        self.which = ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
-    }
-
-    // Events bubbling up the document may have been marked as prevented
-    // by a handler lower down the tree; reflect the correct value.
-    self.isDefaultPrevented = src.defaultPrevented ||
-                              src.defaultPrevented === undf &&
-                                  // Support: Android<4.0
-                              src.returnValue === false ?
-                              returnTrue :
-                              returnFalse;
-
-
-    // Create a timestamp if incoming event doesn't have one
-    self.timeStamp = src && src.timeStamp || (new Date).getTime();
-};
-
-// Event is based on DOM3 Events as specified by the ECMAScript Language Binding
-// http://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
-extend(DomEvent.prototype, {
-
-    isDefaultPrevented: returnFalse,
-    isPropagationStopped: returnFalse,
-    isImmediatePropagationStopped: returnFalse,
-
-    preventDefault: function() {
-        var e = this.originalEvent;
-
-        this.isDefaultPrevented = returnTrue;
-        e.returnValue = false;
-
-        if ( e && e.preventDefault ) {
-            e.preventDefault();
-        }
-    },
-    stopPropagation: function() {
-        var e = this.originalEvent;
-
-        this.isPropagationStopped = returnTrue;
-
-        if ( e && e.stopPropagation ) {
-            e.stopPropagation();
-        }
-    },
-    stopImmediatePropagation: function() {
-        var e = this.originalEvent;
-
-        this.isImmediatePropagationStopped = returnTrue;
-
-        if ( e && e.stopImmediatePropagation ) {
-            e.stopImmediatePropagation();
-        }
-
-        this.stopPropagation();
-    }
-}, true, false);
-
-
-
-
-function normalizeEvent(originalEvent) {
-    return new DomEvent(originalEvent);
-};
 
 
 
@@ -11657,6 +11822,73 @@ Directive.registerAttribute("mjs-each", 100, ListRenderer);
 
 
 
+var handleDomEvent = function(node, scope, cfg){
+
+    var handler,
+        keyCode,
+        preventDefault = true,
+        returnValue = false,
+        stopPropagation = false,
+        events = cfg.event,
+        i, l;
+
+    if (typeof events == "string") {
+        events = events.split(",");
+    }
+
+    handler = cfg.handler;
+    cfg.preventDefault !== undf && (preventDefault = cfg.preventDefault);
+    cfg.stopPropagation !== undf && (stopPropagation = cfg.stopPropagation);
+    cfg.returnValue !== undf && (returnValue = cfg.returnValue);
+    cfg.keyCode !== undf && (keyCode = cfg.keyCode);
+
+    var fn = function(e){
+
+        e = normalizeEvent(e || window.event);
+
+        if (keyCode) {
+            if (typeof keyCode == "number" && keyCode != e.keyCode) {
+                return null;
+            }
+            else if (keyCode.indexOf(e.keyCode) == -1) {
+                return null;
+            }
+        }
+
+        scope.$event = e;
+
+        if (handler) {
+            handler(scope);
+        }
+
+        scope.$event = null;
+
+        scope.$root.$check();
+
+        stopPropagation && e.stopPropagation();
+        preventDefault && e.preventDefault();
+
+        return returnValue;
+    };
+
+    for (i = 0, l = events.length; i < l; i++) {
+        addListener(node, trim(events[i]), fn);
+    }
+
+    return fn;
+};
+
+
+
+(function() {
+
+    Directive.registerAttribute("mjs-event", 1000, function(scope, node, expr){
+        handleDomEvent(node, scope, createGetter(expr)(scope));
+    });
+}());
+
+
+
 var createFunc = functionFactory.createFunc;
 
 
@@ -11665,43 +11897,32 @@ var createFunc = functionFactory.createFunc;
 
     var events = ['click', 'dblclick', 'mousedown', 'mouseup', 'mouseover',
                   'mouseout', 'mousemove', 'keydown', 'keyup', 'keypress', 'submit',
-                  'focus', 'blur', 'copy', 'cut', 'paste', 'enter'],
+                  'focus', 'blur', 'copy', 'cut', 'paste', 'mousewheel',
+                  'touchstart', 'touchend', 'touchcancel', 'touchleave', 'touchmove'],
         i, len;
 
     for (i = 0, len = events.length; i < len; i++) {
 
         (function(name){
 
-            var eventName = name;
-
-            if (eventName == "enter") {
-                eventName = "keyup";
-            }
-
             Directive.registerAttribute("mjs-" + name, 1000, function(scope, node, expr){
 
-                var fn  = createFunc(expr);
+                var cfg = {};
 
-                addListener(node, eventName, function(e){
+                if (expr.substr(0,1) == '{') {
+                    cfg = createGetter(expr)(scope);
+                }
+                else {
+                    cfg.handler = createFunc(expr);
+                }
 
-                    e = normalizeEvent(e || window.event);
+                cfg.event = name;
 
-                    if (name == "enter" && e.keyCode != 13) {
-                        return null;
-                    }
-
-                    scope.$event = e;
-
-                    fn(scope);
-
-                    scope.$event = null;
-
-                    scope.$root.$check();
-
-                    e.preventDefault();
-                    return false;
-                });
+                handleDomEvent(node, scope, cfg);
             });
+
+
+
         }(events[i]));
     }
 
@@ -17637,9 +17858,15 @@ var Dialog = function(){
              * Prevent scrolling
              * true = "body"
              * @type {bool|string|Element}
+             */
+            preventScroll:  false,
+
+            /**
+             * When showing, set css display to this value
+             * @type {string}
              * @md-stack remove
              */
-            preventScroll:  false
+            display: "block"
         },
 
 
@@ -17673,6 +17900,12 @@ var Dialog = function(){
              * @type {bool}
              */
             destroy:        false,
+
+            /**
+             * Remove element from DOM after hide
+             * @type {bool}
+             */
+            remove:         false,
 
             /**
              * See show.animate
@@ -18140,11 +18373,16 @@ var Dialog = function(){
                     change = true;
                 }
 
-                if (isString(newTarget)) {
+                var isStr = isString(newTarget);
+
+                if (isStr && newTarget.substr(0,1) != "#") {
                     state.dynamicTarget = true;
                     state.target        = null;
                 }
                 else {
+                    if (isStr) {
+                        newTarget       = select(newTarget).shift();
+                    }
                     state.dynamicTarget = false;
                     state.target        = newTarget;
                 }
@@ -18163,7 +18401,7 @@ var Dialog = function(){
              * @return {Element}
              */
             getTarget: function() {
-                return state.dynamicTarget ? state.dynamicTargetEl : cfg.target;
+                return state.dynamicTarget ? state.dynamicTargetEl : state.target;
             },
 
             /**
@@ -18306,7 +18544,7 @@ var Dialog = function(){
                 if (state.visible && state.hideTimeout) {
 
                     window.clearTimeout(state.hideTimeout);
-                    state.hideTimeout = window.setTimeout(self.hide, cfg.hide.timeout);
+                    state.hideTimeout = async(self.hide, self, null, cfg.hide.timeout);
 
                     /*debug-start*/
                     if (cfg.debug) {
@@ -18418,9 +18656,7 @@ var Dialog = function(){
                 self.toggleTitleAttribute(false);
 
                 if (scfg.delay && !immediately) {
-                    state.showDelay = window.setTimeout(function(){
-                        self.showAfterDelay(e);
-                    }, scfg.delay);
+                    state.showDelay = async(self.showAfterDelay, self, [e], scfg.delay);
                 }
                 else {
                     self.showAfterDelay(e, immediately);
@@ -18538,9 +18774,7 @@ var Dialog = function(){
                 }
 
                 if (cfg.hide.delay && !immediately) {
-                    state.hideDelay = window.setTimeout(function(){
-                        self.hideAfterDelay(e);
-                    }, cfg.hide.delay);
+                    state.hideDelay = async(self.hideAfterDelay, self, [e], cfg.hide.delay);
                 }
                 else {
                     self.hideAfterDelay(e, immediately);
@@ -18879,6 +19113,16 @@ var Dialog = function(){
                 self.setPositionType();
                 self.setTarget(cfg.target);
 
+                if (cfg.target && cfg.useHref) {
+                    var href = getAttr(self.getTarget(), "href");
+                    if (href.substr(0, 1) == "#") {
+                        cfg.render.el = href;
+                    }
+                    else {
+                        cfg.ajax.url = href;
+                    }
+                }
+
                 if (cfg.pointer.size || cfg.pointer.el) {
                     pnt = new Pointer(self, cfg.pointer);
                 }
@@ -19077,10 +19321,6 @@ var Dialog = function(){
                     return;
                 }
 
-                if (!cfg.position.manual) {
-                    self.reposition(e);
-                }
-
                 // tooltip is following the mouse
                 if (state.position == "mouse") {
                     // now we can adjust tooltip's position according
@@ -19107,6 +19347,14 @@ var Dialog = function(){
                     }
                     /*debug-end*/
                     return;
+                }
+
+                if (cfg.hide.remove) {
+                    self.appendElem();
+                }
+
+                if (!cfg.position.manual) {
+                    self.reposition(e);
                 }
 
                 if (overlay) {
@@ -19159,18 +19407,18 @@ var Dialog = function(){
                 addClass(elem, cfg.cls.visible);
 
                 if (!cfg.render.keepVisible) {
-                    elem.style.display = "";
+                    elem.style.display = cfg.show.display || "block";
                 }
 
 
                 // if it has to be shown only for a limited amount of time,
                 // we set timeout.
                 if (cfg.hide.timeout) {
-                    state.hideTimeout = window.setTimeout(self.hide, cfg.hide.timeout);
+                    state.hideTimeout = async(self.hide, self, null, cfg.hide.timeout);
                 }
 
                 if (cfg.show.focus) {
-                    window.setTimeout(self.setFocus, 20);
+                    async(self.setFocus, self, null, 20);
                 }
 
                 self.trigger('show', api, e);
@@ -19282,15 +19530,21 @@ var Dialog = function(){
                         self.destroyElem();
                     }
                     else {
-                        state.destroyDelay = window.setTimeout(self.destroyElem, lt);
+                        state.destroyDelay = async(self.destroyElem, self, null, lt);
                     }
                 }
 
                 if (elem && cfg.hide.destroy) {
-                    window.setTimeout(function(){
+                    raf(function(){
                         data(elem, cfg.instanceName, null);
                         self.destroy();
-                    }, 0);
+                    });
+                }
+
+                if (elem && cfg.hide.remove) {
+                    raf(function(){
+                        self.removeElem();
+                    });
                 }
             },
 
@@ -19365,7 +19619,7 @@ var Dialog = function(){
                         backgroundColor: 	cfg.overlay.color
                     });
 
-                    window.document.body.appendChild(overlay);
+                    //window.document.body.appendChild(overlay);
 
                     addListener(overlay, "click", self.onOverlayClick);
 
@@ -19377,11 +19631,15 @@ var Dialog = function(){
                     }
                 }
 
-                if (rnd.appendTo) {
+                /*if (rnd.appendTo) {
                     rnd.appendTo.appendChild(elem);
                 }
                 else if (rnd.appendTo !== false) {
                     window.document.body.appendChild(elem);
+                }*/
+
+                if (!cfg.hide.remove) {
+                    self.appendElem();
                 }
 
                 if (rnd.zIndex) {
@@ -19459,14 +19717,22 @@ var Dialog = function(){
 
                 return animate(elem, a, function(){
                     if (section == "show" && !skipDisplay) {
-                        if (isOverlay) {
-                            overlay.style.display = "";
-                        }
-                        else {
-                            elem.style.display = "";
-                        }
+
+                        var p = new Promise;
+
+                        raf(function(){
+                            if (isOverlay) {
+                                overlay.style.display = "";
+                            }
+                            else {
+                                elem.style.display = cfg.show.display || "block";
+                            }
+                            p.resolve();
+                        });
+
+                        return p;
                     }
-                });
+                }, false);
             },
 
             toggleTitleAttribute: function(state) {
@@ -19502,7 +19768,7 @@ var Dialog = function(){
 
                 if (hidden) {
                     css(elem, {left: "-1000px"});
-                    elem.style.display = "";
+                    elem.style.display = cfg.show.display;
                 }
 
                 size    = {
@@ -19858,6 +20124,36 @@ var Dialog = function(){
                 }
             },
 
+
+            removeElem: function() {
+                if (overlay) {
+                    overlay.parentNode.removeChild(overlay);
+                }
+
+                if (elem) {
+                    elem.parentNode.removeChild(elem);
+                }
+            },
+
+            appendElem: function() {
+
+                var body    = window.document.body,
+                    rnd	    = cfg.render;
+
+                if (overlay) {
+                    body.appendChild(overlay);
+                }
+
+                if (elem) {
+                    if (rnd.appendTo) {
+                        rnd.appendTo.appendChild(elem);
+                    }
+                    else if (rnd.appendTo !== false) {
+                        body.appendChild(elem);
+                    }
+                }
+            },
+
             destroyElem: function() {
 
                 self.setHandlers("unbind", "_self");
@@ -19889,16 +20185,6 @@ var Dialog = function(){
 
         for (var c in cfg.callback) {
             api.on(c, cfg.callback[c], defaultScope);
-        }
-
-        if (cfg.target && cfg.useHref) {
-            var href = getAttr(cfg.target, "href");
-            if (href.substr(0, 1) == "#") {
-                cfg.render.el = href;
-            }
-            else {
-                cfg.ajax.url = href;
-            }
         }
 
         self.init();
@@ -23143,6 +23429,10 @@ MetaphorJs['stopAnimation'] = stopAnimation;
 MetaphorJs['hasClass'] = hasClass;
 MetaphorJs['addClass'] = addClass;
 MetaphorJs['raf'] = raf;
+MetaphorJs['returnTrue'] = returnTrue;
+MetaphorJs['DomEvent'] = DomEvent;
+MetaphorJs['normalizeEvent'] = normalizeEvent;
+MetaphorJs['mousewheelHandler'] = mousewheelHandler;
 MetaphorJs['addListener'] = addListener;
 MetaphorJs['removeListener'] = removeListener;
 MetaphorJs['animate'] = animate;
@@ -23159,9 +23449,6 @@ MetaphorJs['getNodeData'] = getNodeData;
 MetaphorJs['getNodeConfig'] = getNodeConfig;
 MetaphorJs['ListRenderer'] = ListRenderer;
 MetaphorJs['resolveComponent'] = resolveComponent;
-MetaphorJs['returnTrue'] = returnTrue;
-MetaphorJs['DomEvent'] = DomEvent;
-MetaphorJs['normalizeEvent'] = normalizeEvent;
 MetaphorJs['mhistory'] = mhistory;
 MetaphorJs['currentUrl'] = currentUrl;
 MetaphorJs['isField'] = isField;
@@ -23173,6 +23460,7 @@ MetaphorJs['isAndroid'] = isAndroid;
 MetaphorJs['isIE'] = isIE;
 MetaphorJs['browserHasEvent'] = browserHasEvent;
 MetaphorJs['Input'] = Input;
+MetaphorJs['handleDomEvent'] = handleDomEvent;
 MetaphorJs['createFunc'] = createFunc;
 MetaphorJs['preloadImage'] = preloadImage;
 MetaphorJs['parentData'] = parentData;

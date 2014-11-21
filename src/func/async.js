@@ -5,7 +5,7 @@
  * @param {number} timeout
  */
 module.exports = function async(fn, context, args, timeout) {
-    setTimeout(function(){
+    return setTimeout(function(){
         fn.apply(context, args || []);
     }, timeout || 0);
 };

@@ -99,6 +99,8 @@ module.exports = defineClass({
 
         var self    = this;
 
+        cfg = cfg || {};
+
         self.$super(cfg);
 
         extend(self, cfg, true, false);

@@ -28,7 +28,7 @@ var Queue = function(cfg) {
 Queue.REPLACE = 1;
 Queue.ONCE = 2;
 Queue.MULTIPLE = 3;
-Queue.ONCE_EVER = 3;
+Queue.ONCE_EVER = 4;
 
 
 extend(Queue.prototype, {
@@ -109,6 +109,10 @@ extend(Queue.prototype, {
             }
         }
         delete self._map[id];
+    },
+
+    isEmpty: function() {
+        return this.length == 0;
     },
 
     next: function() {
