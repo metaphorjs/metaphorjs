@@ -12544,6 +12544,9 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
         if (cfg.noPreload) {
             self.usePreload = false;
         }
+        else {
+            node.style.visibility = "hidden"
+        }
 
         self.queue = new Queue({auto: true, async: true, mode: Queue.ONCE, thenable: true});
         self.$super(scope, node, expr);
@@ -12565,6 +12568,7 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
                     raf(function(){
                         self.node.src = src;
                         setAttr(self.node, "src", src);
+                        self.node.style.visibility = "";
                     });
                 }
             });
