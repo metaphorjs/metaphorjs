@@ -130,6 +130,8 @@ module.exports = function(){
 
             self.id     = nextUid();
 
+            observable.createEvent("rendered-" + self.id, false, true);
+
             self.tpl && (self.tpl = trim(self.tpl));
             self.url && (self.url = trim(self.url));
 

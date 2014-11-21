@@ -2700,6 +2700,8 @@ var Template = function(){
 
             self.id     = nextUid();
 
+            observable.createEvent("rendered-" + self.id, false, true);
+
             self.tpl && (self.tpl = trim(self.tpl));
             self.url && (self.url = trim(self.url));
 
@@ -7169,6 +7171,14 @@ defineClass({
         self.dialog.on("destroy", self.onDialogDestroy, self);
     },
 
+    // skips the append part
+    onRenderingFinished: function() {
+        var self = this;
+        self.rendered   = true;
+        self.afterRender();
+        self.trigger('afterrender', self);
+    },
+
     show: function() {
         this.dialog.show();
         this.$super();
@@ -7350,6 +7360,7 @@ defineClass({
             }
         }
 
+        state.$$validator = self.validator;
         state.$invalid = false;
         state.$pristine = true;
         state.$submit = bind(self.validator.onSubmit, self.validator);
