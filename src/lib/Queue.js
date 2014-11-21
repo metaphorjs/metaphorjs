@@ -5,7 +5,8 @@ var async = require("../func/async.js"),
     isThenable = require("../func/isThenable.js"),
     emptyFn = require("../func/emptyFn.js"),
     isNumber = require("../func/isNumber.js"),
-    error = require("../func/error.js");
+    error = require("../func/error.js"),
+    raf = require("../../../metaphorjs-animate/src/func/raf.js");
 
 
 
@@ -156,7 +157,8 @@ extend(Queue.prototype, {
             else if (isNumber(self.async)) {
                 timeout = self.async;
             }
-            async(function(){
+
+            var fn = function(){
                 try {
                     self._processResult(item.fn.apply(item.context || self.context, item.args || []));
                 }
@@ -165,7 +167,14 @@ extend(Queue.prototype, {
                     self._finish();
                     throw thrown;
                 }
-            }, null, null, timeout);
+            };
+
+            if (item.async == "raf" || (!item.async && self.async == "raf")) {
+                raf(fn);
+            }
+            else {
+                async(fn, null, null, timeout);
+            }
         }
     },
 

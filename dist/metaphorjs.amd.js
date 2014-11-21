@@ -3423,6 +3423,41 @@ function error(e) {
 
 
 
+var raf = function() {
+
+    var raf,
+        cancel;
+
+    if (typeof window != strUndef) {
+        var w   = window;
+        raf     = w.requestAnimationFrame ||
+                    w.webkitRequestAnimationFrame ||
+                    w.mozRequestAnimationFrame;
+        cancel  = w.cancelAnimationFrame ||
+                    w.webkitCancelAnimationFrame ||
+                    w.mozCancelAnimationFrame ||
+                    w.webkitCancelRequestAnimationFrame;
+
+        if (raf) {
+            return function(fn) {
+                var id = raf(fn);
+                return function() {
+                    cancel(id);
+                };
+            };
+        }
+    }
+
+    return function(fn) {
+        var id = setTimeout(fn, 0);
+        return function() {
+            clearTimeout(id);
+        }
+    };
+}();
+
+
+
 
 
 var Queue = function(cfg) {
@@ -3572,7 +3607,8 @@ extend(Queue.prototype, {
             else if (isNumber(self.async)) {
                 timeout = self.async;
             }
-            async(function(){
+
+            var fn = function(){
                 try {
                     self._processResult(item.fn.apply(item.context || self.context, item.args || []));
                 }
@@ -3581,7 +3617,14 @@ extend(Queue.prototype, {
                     self._finish();
                     throw thrown;
                 }
-            }, null, null, timeout);
+            };
+
+            if (item.async == "raf" || (!item.async && self.async == "raf")) {
+                raf(fn);
+            }
+            else {
+                async(fn, null, null, timeout);
+            }
         }
     },
 
@@ -3627,41 +3670,6 @@ function isPrimitive(value) {
     var vt = varType(value);
     return vt < 3 && vt > -1;
 };
-
-
-
-var raf = function() {
-
-    var raf,
-        cancel;
-
-    if (typeof window != strUndef) {
-        var w   = window;
-        raf     = w.requestAnimationFrame ||
-                    w.webkitRequestAnimationFrame ||
-                    w.mozRequestAnimationFrame;
-        cancel  = w.cancelAnimationFrame ||
-                    w.webkitCancelAnimationFrame ||
-                    w.mozCancelAnimationFrame ||
-                    w.webkitCancelRequestAnimationFrame;
-
-        if (raf) {
-            return function(fn) {
-                var id = raf(fn);
-                return function() {
-                    cancel(id);
-                };
-            };
-        }
-    }
-
-    return function(fn) {
-        var id = setTimeout(fn, 0);
-        return function() {
-            clearTimeout(id);
-        }
-    };
-}();
 
 
 
@@ -7749,9 +7757,9 @@ MetaphorJs['stopAnimation'] = stopAnimation;
 MetaphorJs['async'] = async;
 MetaphorJs['isNumber'] = isNumber;
 MetaphorJs['error'] = error;
+MetaphorJs['raf'] = raf;
 MetaphorJs['Queue'] = Queue;
 MetaphorJs['isPrimitive'] = isPrimitive;
-MetaphorJs['raf'] = raf;
 MetaphorJs['functionFactory'] = functionFactory;
 MetaphorJs['createGetter'] = createGetter;
 MetaphorJs['toCamelCase'] = toCamelCase;

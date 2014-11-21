@@ -9498,7 +9498,8 @@ extend(Queue.prototype, {
             else if (isNumber(self.async)) {
                 timeout = self.async;
             }
-            async(function(){
+
+            var fn = function(){
                 try {
                     self._processResult(item.fn.apply(item.context || self.context, item.args || []));
                 }
@@ -9507,7 +9508,14 @@ extend(Queue.prototype, {
                     self._finish();
                     throw thrown;
                 }
-            }, null, null, timeout);
+            };
+
+            if (item.async == "raf" || (!item.async && self.async == "raf")) {
+                raf(fn);
+            }
+            else {
+                async(fn, null, null, timeout);
+            }
         }
     },
 
