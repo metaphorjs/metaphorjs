@@ -65,24 +65,35 @@ module.exports = defineClass({
      */
     destroyEl:      true,
 
+    /**
+     * @var {bool}
+     */
     destroyScope:   false,
 
     /**
-     * @var {MetaphorJs.view.Scope}
+     * @var {Scope}
      */
     scope:          null,
 
     /**
-     * @var {MetaphorJs.view.Template}
+     * @var {Template}
      */
     template:       null,
 
+    /**
+     * @var string
+     */
     templateUrl:    null,
 
     /**
      * @var string
      */
     tag:            null,
+
+    /**
+     * @var string
+     */
+    as:             null,
 
 
     /**
@@ -109,8 +120,8 @@ module.exports = defineClass({
             self.scope = new Scope;
         }
 
-        if (cfg.as) {
-            self.scope[cfg.as] = self;
+        if (self.as) {
+            self.scope[self.as] = self;
         }
 
         if (self.node) {

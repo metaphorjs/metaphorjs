@@ -1265,7 +1265,7 @@ var Renderer = function(){
                     $renderer: self
                 },
                 args    = [scope, node, value, self],
-                inst    = app.inject(f, null, inject, args);
+                inst    = app ? app.inject(f, null, inject, args) : f.apply(null, args);
 
             if (app && f.$registerBy && inst) {
                 if (isThenable(inst)) {
@@ -3000,24 +3000,35 @@ var Component = defineClass({
      */
     destroyEl:      true,
 
+    /**
+     * @var {bool}
+     */
     destroyScope:   false,
 
     /**
-     * @var {MetaphorJs.view.Scope}
+     * @var {Scope}
      */
     scope:          null,
 
     /**
-     * @var {MetaphorJs.view.Template}
+     * @var {Template}
      */
     template:       null,
 
+    /**
+     * @var string
+     */
     templateUrl:    null,
 
     /**
      * @var string
      */
     tag:            null,
+
+    /**
+     * @var string
+     */
+    as:             null,
 
 
     /**
@@ -3044,8 +3055,8 @@ var Component = defineClass({
             self.scope = new Scope;
         }
 
-        if (cfg.as) {
-            self.scope[cfg.as] = self;
+        if (self.as) {
+            self.scope[self.as] = self;
         }
 
         if (self.node) {
@@ -7454,9 +7465,23 @@ function eachNode(el, fn, context) {
 
 
 
+Directive.registerAttribute("mjs-validate", 250, function(scope, node, expr, renderer) {
+
+    var cls     = expr || "ValidatorComponent",
+        constr  = nsGet(cls);
+
+    if (!constr) {
+        error(new Error("Class '"+cls+"' not found"));
+    }
+    else {
+        new constr(node, scope, renderer);
+    }
+});
+
+
 defineClass({
 
-    $class: "MetaphorJs.ValidatorComponent",
+    $class: "ValidatorComponent",
 
     node: null,
     scope: null,
@@ -7651,19 +7676,6 @@ defineClass({
 
 });
 
-Directive.registerAttribute("mjs-validate", 250, ['$scope', '$node', '$attrValue', '$renderer',
-                                               function(scope, node, expr, renderer) {
-
-    var cls     = expr || "MetaphorJs.ValidatorComponent",
-        constr  = nsGet(cls);
-
-    if (!constr) {
-        error(new Error("Class '"+cls+"' not found"));
-    }
-    else {
-        new constr(node, scope, renderer);
-    }
-}]);
 
 MetaphorJs['ns'] = ns;
 MetaphorJs['cs'] = cs;

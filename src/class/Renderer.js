@@ -184,7 +184,7 @@ module.exports = function(){
                     $renderer: self
                 },
                 args    = [scope, node, value, self],
-                inst    = app.inject(f, null, inject, args);
+                inst    = app ? app.inject(f, null, inject, args) : f.apply(null, args);
 
             if (app && f.$registerBy && inst) {
                 if (isThenable(inst)) {

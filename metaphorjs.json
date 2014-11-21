@@ -36,7 +36,7 @@
                     "all"
                 ],
                 "../metaphorjs-dialog/src/cmp/DialogComponent.js",
-                "../metaphorjs-validator/src/view/Validator.js",
+                "../metaphorjs-validator/src/cmp/ValidatorComponent.js",
                 "src/plugin/**"
             ]
         }
@@ -75,7 +75,7 @@
                 ],
                 "../metaphorjs-model/src/directive/*",
                 "../metaphorjs-dialog/src/cmp/DialogComponent.js",
-                "../metaphorjs-validator/src/view/Validator.js"
+                "../metaphorjs-validator/src/cmp/ValidatorComponent.js"
             ],
             "omit": [
                 "src/bootstrap/apps.js",
@@ -146,7 +146,7 @@
                 ],
                 "../metaphorjs-model/src/directive/*",
                 "../metaphorjs-dialog/src/cmp/DialogComponent.js",
-                "../metaphorjs-validator/src/view/Validator.js"
+                "../metaphorjs-validator/src/cmp/ValidatorComponent.js"
             ],
             "omit": [
                 "src/bootstrap/apps.js",
