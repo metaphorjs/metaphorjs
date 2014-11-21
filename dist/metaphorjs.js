@@ -3462,6 +3462,19 @@ extend(Scope.prototype, {
         return undf;
     },
 
+    $set: function(key, value) {
+        var self = this;
+        if (typeof key == "string") {
+            this[key] = value;
+        }
+        else {
+            for (var k in key) {
+                self[k] = key[k];
+            }
+        }
+        this.$check();
+    },
+
     $$onParentDestroy: function() {
         this.$destroy();
     },

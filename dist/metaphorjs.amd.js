@@ -279,6 +279,19 @@ extend(Scope.prototype, {
         return undf;
     },
 
+    $set: function(key, value) {
+        var self = this;
+        if (typeof key == "string") {
+            this[key] = value;
+        }
+        else {
+            for (var k in key) {
+                self[k] = key[k];
+            }
+        }
+        this.$check();
+    },
+
     $$onParentDestroy: function() {
         this.$destroy();
     },
@@ -7385,13 +7398,10 @@ defineClass({
 
     initComponent: function() {
 
-
         var self    = this;
 
         self.$super();
         self._createDialog();
-        self._oldShow = self.show;
-        self._oldHide = self.hide;
     },
 
     _getDialogCfg: function() {
@@ -7410,17 +7420,27 @@ defineClass({
 
         var self    = this;
         self.dialog = new Dialog(self.dialogPreset, self._getDialogCfg());
-        self.dialog.on("show", self._oldShow, self);
-        self.dialog.on("hide", self._oldHide, self);
+        self.dialog.on("show", self.onDialogShow, self);
+        self.dialog.on("hide", self.onDialogHide, self);
         self.dialog.on("destroy", self.onDialogDestroy, self);
     },
 
     show: function() {
         this.dialog.show();
+        this.$super();
     },
 
     hide: function() {
         this.dialog.hide();
+        this.$super();
+    },
+
+    onDialogShow: function() {
+        this.show();
+    },
+
+    onDialogHide: function() {
+        this.hide();
     },
 
     onDialogDestroy: function() {
@@ -7590,8 +7610,6 @@ defineClass({
         state.$pristine = true;
         state.$submit = bind(self.validator.onSubmit, self.validator);
         state.$reset = bind(self.validator.reset, self.validator);
-
-        window.formState = state;
     },
 
     onDisplayStateChange: function(vld, state) {
