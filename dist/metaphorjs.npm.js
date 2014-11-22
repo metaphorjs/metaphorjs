@@ -7383,7 +7383,7 @@ defineClass({
             var i, l, f,
                 fields = self.fields;
 
-            for (i = 0, l = fields.lenght; i < l; i++) {
+            for (i = 0, l = fields.length; i < l; i++) {
                 f = state[fields[i]];
                 if (f.$real) {
                     state[fields[i]] = f.$real;
@@ -7405,7 +7405,7 @@ defineClass({
             i, l, f,
             fields = self.fields;
 
-        for (i = 0, l = fields.lenght; i < l; i++) {
+        for (i = 0, l = fields.length; i < l; i++) {
             f = state[fields[i]];
             f.$error = null;
             f.$errorMessage = null;
