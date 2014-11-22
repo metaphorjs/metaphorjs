@@ -11,6 +11,11 @@ module.exports = function(directory, ext) {
         levels = 0,
         files = [];
 
+    if (!directory) {
+        return [];
+    }
+
+
     if (directory.substr(directory.length - 1) == "*") {
         levels++;
     }
