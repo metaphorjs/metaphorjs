@@ -5134,6 +5134,13 @@ var Renderer = function(){
                 }
             }
 
+            if (typeof inst == "function") {
+                self.on("destroy", inst);
+            }
+            else if (inst && inst.$destroy) {
+                self.on("destroy", inst.$destroy, inst);
+            }
+
             return f.$stopRenderer ? false : inst;
         },
 
@@ -8795,7 +8802,7 @@ var Template = function(){
 
                 if (isExpression(tpl)) {
                     self._watcher = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
-                }
+               }
 
                 if (self._watcher && !self.replace) {
                     self.ownRenderer        = true;
@@ -8889,7 +8896,7 @@ var Template = function(){
                 self.initPromise.resolve(false);
             }
 
-            new Promise(function(resolve){
+            return new Promise(function(resolve){
                 if (url) {
                     resolve(getTemplate(tpl) || loadTemplate(url));
                 }
@@ -11327,6 +11334,13 @@ var browserHasEvent = function(){
 
 var Input = function(el, changeFn, changeFnContext) {
 
+    if (el.$$input) {
+        if (changeFn) {
+            el.$$input.on("change", changeFn, changeFnContext);
+        }
+        return el.$$input;
+    }
+
     var self    = this,
         cfg     = getNodeConfig(el),
         type;
@@ -11368,6 +11382,8 @@ extend(Input.prototype, {
 
         self.observable.destroy();
         self._addOrRemoveListeners(removeListener);
+
+        self.el.$$input = null;
 
         for (i in self) {
             if (self.hasOwnProperty(i)) {
@@ -11649,6 +11665,14 @@ extend(Input.prototype, {
 
 
 }, true, false);
+
+
+Input.get = function(node) {
+    if (node.$$input) {
+        return node.$$input;
+    }
+    return new Input(node);
+};
 
 Input.getValue = getValue;
 Input.setValue = setValue;
@@ -12127,9 +12151,7 @@ Directive.registerAttribute("mjs-hide", 500, defineClass({
 
 
 
-Directive.registerAttribute("mjs-if", 500, defineClass({
-
-    $extends: Directive,
+Directive.registerAttribute("mjs-if", 500, Directive.$extend({
 
     parentEl: null,
     prevEl: null,
@@ -12238,14 +12260,30 @@ Directive.registerAttribute("mjs-init", 250, function(scope, node, expr){
 
 
 
+Directive.registerAttribute("mjs-key", 1000, function(scope, node, expr){
+
+    var cfg = createGetter(expr)(scope),
+        handler = cfg.handler,
+        context = cfg.context || scope;
+
+    delete cfg.handler;
+    delete cfg.context;
+
+    Input.get(node).onKey(cfg, handler, context);
+
+    return function() {
+        Input.get(node).unKey(cfg, handler, context);
+    };
+});
 
 
 
 
 
-Directive.registerAttribute("mjs-model", 1000, defineClass({
 
-    $extends: Directive,
+
+
+Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
 
     inProg: false,
     input: null,
@@ -12259,8 +12297,10 @@ Directive.registerAttribute("mjs-model", 1000, defineClass({
             cfg     = getNodeConfig(node, scope);
 
         self.node           = node;
-        self.input          = new Input(node, self.onInputChange, self);
+        self.input          = Input.get(node);
         self.binding        = cfg.binding || "both";
+
+        self.input.onChange(self.onInputChange, self);
 
         self.$super(scope, node, expr);
 
@@ -23029,6 +23069,7 @@ defineClass({
     validator: null,
     scopeState: null,
     fields: null,
+    formName: null,
 
     $init: function(node, scope, renderer) {
 
@@ -23039,6 +23080,7 @@ defineClass({
         self.scopeState = {};
         self.fields     = [];
         self.validator  = self.createValidator();
+        self.formName   = getAttr(node, 'name') || getAttr(node, 'id') || '$form';
 
         self.initScope();
         self.initScopeState();
@@ -23047,6 +23089,8 @@ defineClass({
         // wait for the renderer to finish
         // before making judgements :)
         renderer.once("rendered", self.validator.check, self.validator);
+        renderer.on("destroy", self.$destroy, self);
+        scope.$on("destroy", self.$destroy, self);
     },
 
     createValidator: function() {
@@ -23088,11 +23132,11 @@ defineClass({
 
         var self    = this,
             scope   = self.scope,
-            node    = self.node,
-            name    = getAttr(node, 'name') || getAttr(node, 'id') || '$form';
+            name    = self.formName;
 
         scope[name] = self.scopeState;
     },
+
 
     initScopeState: function() {
 
@@ -23218,6 +23262,19 @@ defineClass({
         }
 
         self.scope.$check();
+    },
+
+
+    destroy: function() {
+        var self = this;
+
+        if (!self.destroyed) {
+            self.validator.destroy();
+        }
+
+        if (self.scope) {
+            delete self.scope[self.formName];
+        }
     }
 
 });

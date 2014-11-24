@@ -2,8 +2,7 @@
 
 
 
-var defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
-    async = require("../../func/async.js"),
+var async = require("../../func/async.js"),
     isIE = require("../../func/browser/isIE.js"),
     undf = require("../../var/undf.js"),
     Input = require("../../../../metaphorjs-input/src/metaphorjs.input.js"),
@@ -14,9 +13,7 @@ var defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"
 
 
 
-Directive.registerAttribute("mjs-model", 1000, defineClass({
-
-    $extends: Directive,
+Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
 
     inProg: false,
     input: null,
@@ -30,8 +27,10 @@ Directive.registerAttribute("mjs-model", 1000, defineClass({
             cfg     = getNodeConfig(node, scope);
 
         self.node           = node;
-        self.input          = new Input(node, self.onInputChange, self);
+        self.input          = Input.get(node);
         self.binding        = cfg.binding || "both";
+
+        self.input.onChange(self.onInputChange, self);
 
         self.$super(scope, node, expr);
 

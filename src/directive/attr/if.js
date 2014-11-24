@@ -1,15 +1,12 @@
 
 
 
-var defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
-    animate = require("../../../../metaphorjs-animate/src/metaphorjs.animate.js"),
+var animate = require("../../../../metaphorjs-animate/src/metaphorjs.animate.js"),
     Directive = require("../../class/Directive.js"),
     isAttached = require("../../func/dom/isAttached.js");
 
 
-Directive.registerAttribute("mjs-if", 500, defineClass({
-
-    $extends: Directive,
+Directive.registerAttribute("mjs-if", 500, Directive.$extend({
 
     parentEl: null,
     prevEl: null,

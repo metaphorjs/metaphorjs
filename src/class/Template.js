@@ -157,7 +157,7 @@ module.exports = function(){
 
                 if (isExpression(tpl)) {
                     self._watcher = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
-                }
+               }
 
                 if (self._watcher && !self.replace) {
                     self.ownRenderer        = true;
@@ -251,7 +251,7 @@ module.exports = function(){
                 self.initPromise.resolve(false);
             }
 
-            new Promise(function(resolve){
+            return new Promise(function(resolve){
                 if (url) {
                     resolve(getTemplate(tpl) || loadTemplate(url));
                 }
