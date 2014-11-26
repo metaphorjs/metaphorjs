@@ -8757,6 +8757,7 @@ var Template = function(){
         deferRendering:     false,
         replace:            false,
         shadow:             false,
+        animationEnabled:   true,
 
         $init: function(cfg) {
 
@@ -8837,6 +8838,9 @@ var Template = function(){
             }
         },
 
+        setAnimation: function(state) {
+            this.animationEnabled = state;
+        },
 
         doRender: function() {
             var self = this;
@@ -8905,7 +8909,6 @@ var Template = function(){
                 .done(function(fragment){
                     self._fragment = fragment;
                     self.tplPromise.resolve();
-                    //!self.ownRenderer ? self.node : false
                 })
                 .fail(self.initPromise.reject, self.initPromise)
                 .fail(self.tplPromise.reject, self.tplPromise);
@@ -8973,7 +8976,7 @@ var Template = function(){
                 el          = self.node,
                 deferred    = new Promise;
 
-            if (!self._initial) {
+            if (!self._initial && self.animationEnabled) {
                 animate(el, "leave", null, true)
                     .done(self.doApplyTemplate, self)
                     .done(deferred.resolve, deferred);
@@ -9186,13 +9189,16 @@ var Component = defineClass({
                 ownRenderer: true,
                 tpl: tpl,
                 url: url,
-                shadow: self.constructor.$shadow
+                shadow: self.constructor.$shadow,
+                animationEnabled: !self.hidden
             });
         }
         else if (tpl instanceof Template) {
             // it may have just been created
             self.template.node = self.node;
         }
+
+        self.template.on("rendered", self.onRenderingFinished, self);
 
         if (self.parentRenderer) {
             self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
@@ -9239,8 +9245,6 @@ var Component = defineClass({
         }
 
         self.trigger('render', self);
-
-        self.template.on("rendered", self.onRenderingFinished, self);
         self.template.startRendering();
     },
 
@@ -9273,6 +9277,12 @@ var Component = defineClass({
             return false;
         }
 
+        if (!self.rendered) {
+            self.render();
+        }
+
+        self.template.setAnimation(true);
+
         self.node.style.display = "block";
 
         self.hidden = false;
@@ -9292,6 +9302,8 @@ var Component = defineClass({
         if (self.trigger('beforehide', self) === false) {
             return false;
         }
+
+        self.template.setAnimation(false);
 
         self.node.style.display = "none";
 
@@ -20390,6 +20402,8 @@ defineClass({
     dialogPreset: null,
     dialogCfg: null,
 
+    hidden: true,
+
     initComponent: function() {
 
         var self    = this;
@@ -20416,6 +20430,8 @@ defineClass({
         self.dialog = new Dialog(self.dialogPreset, self._getDialogCfg());
         self.dialog.on("show", self.onDialogShow, self);
         self.dialog.on("hide", self.onDialogHide, self);
+        self.dialog.on("beforeshow", self.onBeforeDialogShow, self);
+        self.dialog.on("beforehide", self.onBeforeDialogHide, self);
         self.dialog.on("destroy", self.onDialogDestroy, self);
     },
 
@@ -20429,20 +20445,39 @@ defineClass({
 
     show: function() {
         this.dialog.show();
-        this.$super();
     },
 
     hide: function() {
         this.dialog.hide();
-        this.$super();
+    },
+
+    onBeforeDialogShow: function() {
+
+        var self = this;
+        if (!self.rendered) {
+            self.render();
+        }
+
+        self.template.setAnimation(true);
+        self.hidden = false;
     },
 
     onDialogShow: function() {
-        this.show();
+        var self = this;
+        self.onShow();
+        self.trigger("show", self);
+    },
+
+    onBeforeDialogHide: function() {
+
     },
 
     onDialogHide: function() {
-        this.hide();
+        var self = this;
+        self.template.setAnimation(false);
+        self.hidden = true;
+        self.onHide();
+        self.trigger("hide", self);
     },
 
     onDialogDestroy: function() {
@@ -20883,7 +20918,7 @@ var Validator = function(){
                 true, true
         );
 
-        self.input          = new Input(elem);
+        self.input          = Input.get(elem);
         self.input.onChange(self.onInputChange, self);
         self.input.onKey(13, self.onInputSubmit, self);
 

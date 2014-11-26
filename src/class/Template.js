@@ -114,6 +114,7 @@ module.exports = function(){
         deferRendering:     false,
         replace:            false,
         shadow:             false,
+        animationEnabled:   true,
 
         $init: function(cfg) {
 
@@ -194,6 +195,9 @@ module.exports = function(){
             }
         },
 
+        setAnimation: function(state) {
+            this.animationEnabled = state;
+        },
 
         doRender: function() {
             var self = this;
@@ -262,7 +266,6 @@ module.exports = function(){
                 .done(function(fragment){
                     self._fragment = fragment;
                     self.tplPromise.resolve();
-                    //!self.ownRenderer ? self.node : false
                 })
                 .fail(self.initPromise.reject, self.initPromise)
                 .fail(self.tplPromise.reject, self.tplPromise);
@@ -330,7 +333,7 @@ module.exports = function(){
                 el          = self.node,
                 deferred    = new Promise;
 
-            if (!self._initial) {
+            if (!self._initial && self.animationEnabled) {
                 animate(el, "leave", null, true)
                     .done(self.doApplyTemplate, self)
                     .done(deferred.resolve, deferred);

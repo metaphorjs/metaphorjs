@@ -154,13 +154,16 @@ module.exports = defineClass({
                 ownRenderer: true,
                 tpl: tpl,
                 url: url,
-                shadow: self.constructor.$shadow
+                shadow: self.constructor.$shadow,
+                animationEnabled: !self.hidden
             });
         }
         else if (tpl instanceof Template) {
             // it may have just been created
             self.template.node = self.node;
         }
+
+        self.template.on("rendered", self.onRenderingFinished, self);
 
         if (self.parentRenderer) {
             self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
@@ -207,8 +210,6 @@ module.exports = defineClass({
         }
 
         self.trigger('render', self);
-
-        self.template.on("rendered", self.onRenderingFinished, self);
         self.template.startRendering();
     },
 
@@ -241,6 +242,12 @@ module.exports = defineClass({
             return false;
         }
 
+        if (!self.rendered) {
+            self.render();
+        }
+
+        self.template.setAnimation(true);
+
         self.node.style.display = "block";
 
         self.hidden = false;
@@ -260,6 +267,8 @@ module.exports = defineClass({
         if (self.trigger('beforehide', self) === false) {
             return false;
         }
+
+        self.template.setAnimation(false);
 
         self.node.style.display = "none";
 
