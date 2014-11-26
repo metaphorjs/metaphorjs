@@ -1,6 +1,5 @@
 
 var Directive = require("../../class/Directive.js"),
-    createFunc = require("metaphorjs-watchable/src/func/createFunc.js"),
     createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     Input = require("metaphorjs-input/src/metaphorjs.input.js");
 
