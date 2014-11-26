@@ -11856,6 +11856,36 @@ Directive.registerAttribute("mjs-break-if", 500, function(scope, node, expr){
         }
     };
 
+    var flatten = function(obj) {
+
+        var list = {},
+            i, j, l;
+
+        if (!obj) {
+            return list;
+        }
+
+        if (isString(obj)) {
+            list[obj] = true;
+        }
+        else if (isArray(obj)) {
+            for (i = -1, l = obj.length; ++i < l; list[obj[i]] = true){}
+        }
+        else {
+            for (i in obj) {
+                if (i == '_') {
+                    for (j = -1, l = obj._.length; ++j < l;
+                         list[obj._[j]] = true){}
+                }
+                else {
+                    list[i] = obj[i];
+                }
+            }
+        }
+
+        return list;
+    };
+
     Directive.registerAttribute("mjs-class", 1000, defineClass({
 
         $extends: Directive,
@@ -11866,24 +11896,22 @@ Directive.registerAttribute("mjs-break-if", 500, function(scope, node, expr){
 
             var self    = this,
                 node    = self.node,
-                clss    = self.watcher.getLastResult(),
-                prev    = self.watcher.getPrevValue(),
+                clss    = flatten(self.watcher.getLastResult()),
+                prev    = flatten(self.watcher.getPrevValue()),
                 i;
 
             stopAnimation(node);
 
-            if (isString(clss)) {
-                if (prev) {
-                    toggleClass(node, prev, false, false);
+            for (i in prev) {
+                if (prev.hasOwnProperty(i)) {
+                    if (clss[i] === undf) {
+                        toggleClass(node, i, false, false);
+                    }
                 }
-                toggleClass(node, clss, null, !self.initial);
             }
-            else if (isArray(clss)) {
-                var l;
-                for (i = -1, l = clss.length; ++i < l; toggleClass(node, clss[i], true, !self.initial)){}
-            }
-            else {
-                for (i in clss) {
+
+            for (i in clss) {
+                if (clss.hasOwnProperty(i)) {
                     toggleClass(node, i, clss[i] ? true : false, !self.initial);
                 }
             }
