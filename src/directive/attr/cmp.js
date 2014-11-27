@@ -17,6 +17,8 @@ var Directive = require("../../class/Directive.js"),
             part,
             nodeCfg = getNodeConfig(node, scope);
 
+
+
         tmp     = expr.split(' ');
 
         for (i = 0, len = tmp.length; i < len; i++) {
@@ -36,6 +38,12 @@ var Directive = require("../../class/Directive.js"),
         }
 
 
+        var constr          = nsGet(cmpName, true),
+            sameScope       = nodeCfg.sameScope || constr.$sameScope,
+            isolateScope    = nodeCfg.isolateScope || constr.$isolateScope;
+
+        scope       = isolateScope ? scope.$newIsolated() : (sameScope ? scope : scope.$new());
+
         var cfg     = extend({
             scope: scope,
             node: node,
@@ -44,14 +52,12 @@ var Directive = require("../../class/Directive.js"),
             destroyScope: true
         }, nodeCfg, false, false);
 
-        var constr = nsGet(cmpName, true);
-
         resolveComponent(cmpName, cfg, scope, node);
 
         return !!constr.$shadow;
     };
 
-    cmpAttr.$breakScope = true;
+    cmpAttr.$breakScope = false;
 
     Directive.registerAttribute("mjs-cmp", 200, cmpAttr);
 

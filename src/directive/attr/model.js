@@ -5,7 +5,7 @@
 var async = require("../../func/async.js"),
     isIE = require("../../func/browser/isIE.js"),
     undf = require("../../var/undf.js"),
-    Input = require("../../../../metaphorjs-input/src/metaphorjs.input.js"),
+    Input = require("metaphorjs-input/src/metaphorjs.input.js"),
     Scope = require("../../lib/Scope.js"),
     isString = require("../../func/isString.js"),
     Directive = require("../../class/Directive.js"),
@@ -29,6 +29,7 @@ Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
         self.node           = node;
         self.input          = Input.get(node);
         self.binding        = cfg.binding || "both";
+
 
         self.input.onChange(self.onInputChange, self);
 

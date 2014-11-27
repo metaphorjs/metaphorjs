@@ -1,7 +1,7 @@
 
 var Directive = require("../../class/Directive.js"),
-    createFunc = require("../../../../metaphorjs-watchable/src/func/createFunc.js"),
-    createGetter = require("../../../../metaphorjs-watchable/src/func/createGetter.js"),
+    createFunc = require("metaphorjs-watchable/src/func/createFunc.js"),
+    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     handleDomEvent = require("../../func/event/handleDomEvent.js");
 
 (function(){
@@ -31,8 +31,6 @@ var Directive = require("../../class/Directive.js"),
 
                 handleDomEvent(node, scope, cfg);
             });
-
-
 
         }(events[i]));
     }

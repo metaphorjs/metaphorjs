@@ -4,10 +4,8 @@ var nextUid = require("../func/nextUid.js"),
     isArray = require("../func/isArray.js"),
     toArray = require("../func/array/toArray.js"),
     isThenable = require("../func/isThenable.js"),
-    nsGet = require("../../../metaphorjs-namespace/src/func/nsGet.js"),
     Scope = require("../lib/Scope.js"),
     Directive = require("./Directive.js"),
-    Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
     TextRenderer = require("./TextRenderer.js"),
     slice = require("../func/array/slice.js"),
     getAttr = require("../func/dom/getAttr.js"),
@@ -15,8 +13,11 @@ var nextUid = require("../func/nextUid.js"),
     removeAttr = require("../func/dom/removeAttr.js"),
     getAttrMap = require("../func/dom/getAttrMap.js"),
     undf = require("../var/undf.js"),
-    Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
-    defineClass = require("../../../metaphorjs-class/src/func/defineClass.js");
+
+    Observable = require("metaphorjs-observable/src/metaphorjs.observable.js"),
+    nsGet = require("metaphorjs-namespace/src/func/nsGet.js"),
+    Promise = require("metaphorjs-promise/src/metaphorjs.promise.js"),
+    defineClass = require("metaphorjs-class/src/func/defineClass.js");
 
 require("../func/array/aIndexOf.js");
 

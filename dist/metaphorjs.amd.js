@@ -456,10 +456,6 @@ function isThenable(any) {
 
 
 
-var nsGet = ns.get;
-
-
-
 function isString(value) {
     return typeof value == "string" || value === ""+value;
     //return typeof value == "string" || varType(value) === 0;
@@ -493,6 +489,10 @@ var createWatchable = Watchable.create;
 
 
 var nsAdd = ns.add;
+
+
+
+var nsGet = ns.get;
 
 
 
@@ -5304,6 +5304,8 @@ Directive.registerAttribute("mjs-cmp-prop", 200,
             part,
             nodeCfg = getNodeConfig(node, scope);
 
+
+
         tmp     = expr.split(' ');
 
         for (i = 0, len = tmp.length; i < len; i++) {
@@ -5323,6 +5325,12 @@ Directive.registerAttribute("mjs-cmp-prop", 200,
         }
 
 
+        var constr          = nsGet(cmpName, true),
+            sameScope       = nodeCfg.sameScope || constr.$sameScope,
+            isolateScope    = nodeCfg.isolateScope || constr.$isolateScope;
+
+        scope       = isolateScope ? scope.$newIsolated() : (sameScope ? scope : scope.$new());
+
         var cfg     = extend({
             scope: scope,
             node: node,
@@ -5331,14 +5339,12 @@ Directive.registerAttribute("mjs-cmp-prop", 200,
             destroyScope: true
         }, nodeCfg, false, false);
 
-        var constr = nsGet(cmpName, true);
-
         resolveComponent(cmpName, cfg, scope, node);
 
         return !!constr.$shadow;
     };
 
-    cmpAttr.$breakScope = true;
+    cmpAttr.$breakScope = false;
 
     Directive.registerAttribute("mjs-cmp", 200, cmpAttr);
 
@@ -5756,8 +5762,6 @@ var createFunc = functionFactory.createFunc;
                 handleDomEvent(node, scope, cfg);
             });
 
-
-
         }(events[i]));
     }
 
@@ -6011,6 +6015,7 @@ Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
         self.node           = node;
         self.input          = Input.get(node);
         self.binding        = cfg.binding || "both";
+
 
         self.input.onChange(self.onInputChange, self);
 
@@ -7844,11 +7849,11 @@ MetaphorJs['isArray'] = isArray;
 MetaphorJs['toArray'] = toArray;
 MetaphorJs['isFunction'] = isFunction;
 MetaphorJs['isThenable'] = isThenable;
-MetaphorJs['nsGet'] = nsGet;
 MetaphorJs['isString'] = isString;
 MetaphorJs['trim'] = trim;
 MetaphorJs['createWatchable'] = createWatchable;
 MetaphorJs['nsAdd'] = nsAdd;
+MetaphorJs['nsGet'] = nsGet;
 MetaphorJs['Directive'] = Directive;
 MetaphorJs['bind'] = bind;
 MetaphorJs['split'] = split;
