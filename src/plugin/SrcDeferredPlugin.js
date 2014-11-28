@@ -31,10 +31,9 @@ module.exports = nsAdd("plugin.SrcDeferred", defineClass({
 
     },
 
-    $beforeHostInit: function(directive, args) {
+    $beforeHostInit: function(scope, node) {
 
-        var self = this,
-            node = args[1];
+        var self = this;
 
         self.scrollEl = getScrollParent(node);
         self.scrollDelegate = bind(self.onScroll, self);

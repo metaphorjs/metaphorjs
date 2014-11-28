@@ -1,12 +1,13 @@
 
 
-var defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
+var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
+    raf = require("metaphorjs-animate/src/func/raf.js"),
     preloadImage = require("../../func/preloadImage.js"),
     setAttr = require("../../func/dom/setAttr.js"),
     Directive = require("../../class/Directive.js"),
     Queue = require("../../lib/Queue.js"),
-    raf = require("../../../../metaphorjs-animate/src/func/raf.js"),
-    getNodeConfig = require("../../func/dom/getNodeConfig.js");
+    getNodeConfig = require("../../func/dom/getNodeConfig.js"),
+    trim = require("../../func/trim.js");
 
 Directive.registerAttribute("mjs-src", 1000, defineClass({
 
@@ -21,7 +22,17 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
             cfg = getNodeConfig(node, scope);
 
         if (cfg.deferred) {
-            self.$plugins.push("SrcDeferred");
+            self.$plugins.push("plugin.SrcDeferred");
+        }
+        if (cfg.preloadSize) {
+            self.$plugins.push("plugin.SrcSize");
+        }
+        if (cfg.srcPlugin) {
+            var tmp = cfg.srcPlugin.split(","),
+                i, l;
+            for (i = 0, l = tmp.length; i < l; i++) {
+                self.$plugins.push(trim(tmp[i]));
+            }
         }
 
         self.$super(scope, node, expr);
@@ -50,6 +61,7 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
     },
 
     doChange: function() {
+
         var self = this,
             src = self.watcher.getLastResult();
 
@@ -59,6 +71,7 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
                     raf(function(){
                         self.node.src = src;
                         setAttr(self.node, "src", src);
+                        self.onSrcChanged();
                         self.node.style.visibility = "";
                     });
                 }
@@ -67,7 +80,12 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
         else {
             self.node.src = src;
             setAttr(self.node, "src", src);
+            self.onSrcChanged();
         }
+    },
+
+    onSrcChanged: function() {
+
     },
 
     destroy: function() {

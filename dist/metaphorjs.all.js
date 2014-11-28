@@ -799,7 +799,7 @@ var Class = function(){
 
                         if (isString(plugin)) {
                             plCls = plugin;
-                            plugin = ns.get("plugin." + plugin, true);
+                            plugin = ns.get(plugin, true);
                             if (!plugin) {
                                 throw plCls + " not found";
                             }
@@ -885,10 +885,13 @@ var Class = function(){
              * @param {object} newContext optional interceptor's "this" object
              * @param {string} when optional, when to call interceptor before | after | instead; default "before"
              * @param {bool} replaceValue optional, return interceptor's return value or original method's; default false
+             * @returns {function} original method
              */
             $intercept: function(method, fn, newContext, when, replaceValue) {
-                var self = this;
-                self[method] = intercept(self[method], fn, newContext || self, self, when, replaceValue);
+                var self = this,
+                    orig = self[method];
+                self[method] = intercept(orig, fn, newContext || self, self, when, replaceValue);
+                return orig;
             },
 
             /**
@@ -2898,7 +2901,13 @@ var Watchable = function(){
                 name    = pipe.shift(),
                 fn      = null,
                 ws      = [],
+                negative= false,
                 i, l;
+
+            if (name.substr(0,1) == "!") {
+                name = name.substr(1);
+                negative = true;
+            }
 
             if (self.nsGet) {
                 fn      = self.nsGet("filter." + name, true);
@@ -2912,7 +2921,7 @@ var Watchable = function(){
                 for (i = -1, l = pipe.length; ++i < l;
                      ws.push(create(dataObj, pipe[i], onParamChange, self, null, self.namespace))) {}
 
-                pipes.push([fn, pipe, ws]);
+                pipes.push([fn, pipe, ws, negative]);
             }
         },
 
@@ -2963,10 +2972,12 @@ var Watchable = function(){
                     self    = this,
                     jlen    = pipes.length,
                     dataObj = self.obj,
+                    neg,
                     z, zl;
 
                 for (j = 0; j < jlen; j++) {
                     exprs   = pipes[j][1];
+                    neg     = pipes[j][3];
                     args    = [];
                     for (z = -1, zl = exprs.length; ++z < zl;
                          args.push(evaluate(exprs[z], dataObj))){}
@@ -2975,6 +2986,10 @@ var Watchable = function(){
                     args.unshift(val);
 
                     val     = pipes[j][0].apply(null, args);
+
+                    if (neg) {
+                        val = !val;
+                    }
                 }
             }
 
@@ -9746,10 +9761,10 @@ var ListRenderer = defineClass({
         removeAttr(node, "mjs-animate");
 
         if (self.animate && self.animateMove) {
-            self.$plugins.push("ListAnimatedMove");
+            self.$plugins.push("plugin.ListAnimatedMove");
         }
         if (cfg.observable) {
-            self.$plugins.push("Observable");
+            self.$plugins.push("plugin.Observable");
         }
 
         if (self.tagMode) {
@@ -9758,7 +9773,7 @@ var ListRenderer = defineClass({
 
         if (cfg.buffered) {
             self.buffered = true;
-            self.$plugins.push("ListBuffered");
+            self.$plugins.push("plugin.ListBuffered");
         }
     },
 
@@ -12717,7 +12732,17 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
             cfg = getNodeConfig(node, scope);
 
         if (cfg.deferred) {
-            self.$plugins.push("SrcDeferred");
+            self.$plugins.push("plugin.SrcDeferred");
+        }
+        if (cfg.preloadSize) {
+            self.$plugins.push("plugin.SrcSize");
+        }
+        if (cfg.srcPlugin) {
+            var tmp = cfg.srcPlugin.split(","),
+                i, l;
+            for (i = 0, l = tmp.length; i < l; i++) {
+                self.$plugins.push(trim(tmp[i]));
+            }
         }
 
         self.$super(scope, node, expr);
@@ -12746,6 +12771,7 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
     },
 
     doChange: function() {
+
         var self = this,
             src = self.watcher.getLastResult();
 
@@ -12755,6 +12781,7 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
                     raf(function(){
                         self.node.src = src;
                         setAttr(self.node, "src", src);
+                        self.onSrcChanged();
                         self.node.style.visibility = "";
                     });
                 }
@@ -12763,7 +12790,12 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
         else {
             self.node.src = src;
             setAttr(self.node, "src", src);
+            self.onSrcChanged();
         }
+    },
+
+    onSrcChanged: function() {
+
     },
 
     destroy: function() {
@@ -13233,6 +13265,24 @@ nsAdd("filter.numeral",  function(val, scope, format) {
 
 nsAdd("filter.p", function(key, scope, number) {
     return scope.$app.lang.plural(key, parseInt(number, 10) || 0);
+});
+
+
+
+nsAdd("filter.preloaded", function(val, scope) {
+
+    var promise = preloadImage(val);
+
+    if (promise.isFulfilled()) {
+        return true;
+    }
+    else {
+        promise.done(function(){
+            scope.$check();
+        });
+        return false;
+    }
+
 });
 
 
@@ -16267,7 +16317,7 @@ var StoreRenderer = ListRenderer.$extend({
                     cfg.bufferedPullNext = true;
                     cfg.buffered = false;
                 }
-                this.$plugins.push("ListPullNext");
+                this.$plugins.push("plugin.ListPullNext");
             }
 
             this.$super(scope, node, expr);
@@ -19621,7 +19671,9 @@ var Dialog = function(){
                     });
                 }
                 else {
-                    self.showAfterAnimation(e);
+                    raf(function(){
+                        self.showAfterAnimation(e);
+                    });
                 }
             },
 
@@ -19733,7 +19785,9 @@ var Dialog = function(){
                     });
                 }
                 else {
-                    self.hideAfterAnimation(e);
+                    raf(function(){
+                        self.hideAfterAnimation(e);
+                    });
                 }
             },
 
@@ -20368,11 +20422,19 @@ var Dialog = function(){
 
             removeElem: function() {
                 if (overlay && overlay.parentNode) {
-                    overlay.parentNode.removeChild(overlay);
+                    raf(function(){
+                        if (!state.visible) {
+                            overlay.parentNode.removeChild(overlay);
+                        }
+                    });
                 }
 
                 if (elem && elem.parentNode) {
-                    elem.parentNode.removeChild(elem);
+                    raf(function(){
+                        if (!state.visible) {
+                            elem.parentNode.removeChild(elem);
+                        }
+                    });
                 }
             },
 
@@ -23556,10 +23618,9 @@ nsAdd("plugin.SrcDeferred", defineClass({
 
     },
 
-    $beforeHostInit: function(directive, args) {
+    $beforeHostInit: function(scope, node) {
 
-        var self = this,
-            node = args[1];
+        var self = this;
 
         self.scrollEl = getScrollParent(node);
         self.scrollDelegate = bind(self.onScroll, self);
@@ -23636,6 +23697,74 @@ nsAdd("plugin.SrcDeferred", defineClass({
 
     $beforeHostDestroy: function(){
         this.stopWatching();
+    }
+
+}));
+
+
+
+nsAdd("plugin.SrcSize", defineClass({
+
+    directive: null,
+
+    width: null,
+    height: null,
+
+    origOnChange: null,
+
+    $init: function(directive) {
+
+        var self = this;
+        self.directive = directive;
+
+        self.origOnChange = directive.$intercept("onSrcChanged", self.onSrcChanged, self, "after");
+    },
+
+    $afterHostInit: function(scope, node) {
+
+        var cfg     = getNodeConfig(node, scope),
+            size    = cfg.preloadSize,
+            style   = node.style;
+
+        if (size != "attr") {
+            size    = createGetter(size)(scope);
+        }
+
+        var width   = size == "attr" ? parseInt(getAttr(node, "width"), 10) : size.width,
+            height  = size == "attr" ? parseInt(getAttr(node, "height"), 10) : size.height;
+
+        if (width || height) {
+            style.display = "block";
+        }
+
+        if (width) {
+            style.width = width + "px";
+        }
+        if (height) {
+            style.height = height + "px";
+        }
+    },
+
+    onSrcChanged: function() {
+
+        var self        = this,
+            directive   = self.directive,
+            node        = directive.node,
+            style       = node.style;
+
+        directive.onSrcChanged = self.origOnChange;
+
+        if (style.removeProperty) {
+            style.removeProperty('width');
+            style.removeProperty('height');
+            style.removeProperty('display');
+        } else {
+            style.removeAttribute('width');
+            style.removeAttribute('height');
+            style.removeAttribute('display');
+        }
+
+        self.$destroy();
     }
 
 }));

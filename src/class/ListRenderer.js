@@ -63,10 +63,10 @@ module.exports = defineClass({
         removeAttr(node, "mjs-animate");
 
         if (self.animate && self.animateMove) {
-            self.$plugins.push("ListAnimatedMove");
+            self.$plugins.push("plugin.ListAnimatedMove");
         }
         if (cfg.observable) {
-            self.$plugins.push("Observable");
+            self.$plugins.push("plugin.Observable");
         }
 
         if (self.tagMode) {
@@ -75,7 +75,7 @@ module.exports = defineClass({
 
         if (cfg.buffered) {
             self.buffered = true;
-            self.$plugins.push("ListBuffered");
+            self.$plugins.push("plugin.ListBuffered");
         }
     },
 
