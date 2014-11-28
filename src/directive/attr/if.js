@@ -1,9 +1,10 @@
 
 
 
-var animate = require("../../../../metaphorjs-animate/src/metaphorjs.animate.js"),
+var animate = require("metaphorjs-animate/src/metaphorjs.animate.js"),
     Directive = require("../../class/Directive.js"),
-    isAttached = require("../../func/dom/isAttached.js");
+    isAttached = require("../../func/dom/isAttached.js"),
+    getNodeConfig = require("../../func/dom/getNodeConfig.js");
 
 
 Directive.registerAttribute("mjs-if", 500, Directive.$extend({
@@ -12,6 +13,7 @@ Directive.registerAttribute("mjs-if", 500, Directive.$extend({
     prevEl: null,
     el: null,
     initial: true,
+    cfg: null,
 
     $init: function(scope, node, expr) {
 
@@ -54,16 +56,28 @@ Directive.registerAttribute("mjs-if", 500, Directive.$extend({
         };
 
         if (val) {
-            if (!isAttached(node)) {
+            //if (!isAttached(node)) {
                 self.initial ? show() : animate(node, "enter", show, true);
-            }
+            //}
         }
         else {
-            if (isAttached(node)) {
+            if (node.parentNode) {
                 self.initial ? hide() : animate(node, "leave", null, true).done(hide);
             }
         }
 
-        self.initial = false;
+
+        if (self.initial) {
+            self.initial = false;
+        }
+        else {
+            if (!self.cfg) {
+                self.cfg = getNodeConfig(node, self.scope);
+            }
+            if (self.cfg.ifOnce) {
+                self.$destroy();
+            }
+        }
     }
+
 }));
