@@ -1,7 +1,7 @@
 
 
-var defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
-    animate = require("../../../../metaphorjs-animate/src/metaphorjs.animate.js"),
+var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
+    animate = require("metaphorjs-animate/src/metaphorjs.animate.js"),
     getNodeConfig = require("../../func/dom/getNodeConfig.js"),
     Directive = require("../../class/Directive.js");
 

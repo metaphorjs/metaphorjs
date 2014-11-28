@@ -1,8 +1,6 @@
 
 var Directive = require("../../class/Directive.js"),
-    createFunc = require("metaphorjs-watchable/src/func/createFunc.js"),
-    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
-    handleDomEvent = require("../../func/event/handleDomEvent.js");
+    EventHandler = require("../../lib/EventHandler.js");
 
 (function(){
 
@@ -18,21 +16,17 @@ var Directive = require("../../class/Directive.js"),
 
             Directive.registerAttribute("mjs-" + name, 1000, function(scope, node, expr){
 
-                var cfg = {};
+                var eh = new EventHandler(scope, node, expr, name);
 
-                if (expr.substr(0,1) == '{') {
-                    cfg = createGetter(expr)(scope);
-                }
-                else {
-                    cfg.handler = createFunc(expr);
-                }
-
-                cfg.event = name;
-
-                handleDomEvent(node, scope, cfg);
+                return function(){
+                    eh.$destroy();
+                    eh = null;
+                };
             });
 
         }(events[i]));
     }
+
+    events = null;
 
 }());

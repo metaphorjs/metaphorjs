@@ -12052,74 +12052,187 @@ Directive.registerAttribute("mjs-each", 100, ListRenderer);
 
 
 
-var handleDomEvent = function(node, scope, cfg){
+var EventHandler = defineClass({
 
-    var handler,
-        keyCode,
-        preventDefault = true,
-        returnValue = false,
-        stopPropagation = false,
-        events = cfg.event,
-        i, l;
+    cfg: null,
+    scope: null,
+    node: null,
+    listeners: null,
+    event: null,
 
-    if (typeof events == "string") {
-        events = events.split(",");
-    }
+    $init: function(scope, node, cfg, event) {
 
-    handler = cfg.handler;
-    cfg.preventDefault !== undf && (preventDefault = cfg.preventDefault);
-    cfg.stopPropagation !== undf && (stopPropagation = cfg.stopPropagation);
-    cfg.returnValue !== undf && (returnValue = cfg.returnValue);
-    cfg.keyCode !== undf && (keyCode = cfg.keyCode);
+        var self = this,
+            tmp;
 
-    var fn = function(e){
+        self.event = event;
 
-        e = normalizeEvent(e || window.event);
+        cfg = cfg || {};
 
-        if (keyCode) {
-            if (typeof keyCode == "number" && keyCode != e.keyCode) {
-                return null;
+        if (typeof cfg == "string") {
+
+            var fc = cfg.substr(0,1);
+
+            if (fc == '{') {
+                self.watcher = createWatchable(scope, cfg, self.onConfigChange, self);
+                cfg = self.watcher.getLastResult();
             }
-            else if (keyCode.indexOf(e.keyCode) == -1) {
-                return null;
+            else if (fc == '=') {
+                cfg = cfg.substr(1);
+                self.watcher = createWatchable(scope, cfg, self.onConfigChange, self);
+                cfg = self.watcher.getLastResult();
+            }
+            else {
+                var handler = createGetter(cfg);
+                cfg = {
+                    handler: handler
+                };
             }
         }
 
-        scope.$event = e;
+        self.prepareConfig(cfg);
 
-        if (handler) {
-            handler(scope);
+        self.listeners  = [];
+        self.scope      = scope;
+        self.node       = node;
+
+        self.up();
+    },
+
+    prepareConfig: function(cfg) {
+
+        var tmp,
+            event = this.event;
+
+        if (cfg.event) {
+            tmp = {};
+            var events = cfg.event.split(","),
+                i, l;
+
+            delete cfg.event;
+
+            for (i = 0, l = events.length; i < l; i++) {
+                tmp[trim(events[i])] = cfg;
+            }
+
+            cfg = tmp;
+        }
+        else if (event) {
+            tmp = {};
+            tmp[event] = cfg;
+            cfg = tmp;
         }
 
-        scope.$event = null;
+        this.cfg = cfg;
+    },
 
-        scope.$root.$check();
+    onConfigChange: function(val) {
+        var self = this;
+        self.down();
+        self.prepareConfig(val);
+        self.up();
+    },
 
-        stopPropagation && e.stopPropagation();
-        preventDefault && e.preventDefault();
+    createHandler: function(cfg) {
 
-        return returnValue;
-    };
+        var scope = this.scope;
 
-    for (i = 0, l = events.length; i < l; i++) {
-        addListener(node, trim(events[i]), fn);
+        return function(e){
+
+            var keyCode,
+                preventDefault = true,
+                returnValue = false,
+                stopPropagation = false;
+
+            cfg.preventDefault !== undf && (preventDefault = cfg.preventDefault);
+            cfg.stopPropagation !== undf && (stopPropagation = cfg.stopPropagation);
+            cfg.returnValue !== undf && (returnValue = cfg.returnValue);
+            cfg.keyCode !== undf && (keyCode = cfg.keyCode);
+
+            e = normalizeEvent(e || window.event);
+
+            if (keyCode) {
+                if (typeof keyCode == "number" && keyCode != e.keyCode) {
+                    return null;
+                }
+                else if (keyCode.indexOf(e.keyCode) == -1) {
+                    return null;
+                }
+            }
+
+            scope.$event = e;
+
+            if (cfg.handler) {
+                cfg.handler.call(cfg.context || null, scope);
+            }
+
+            scope.$event = null;
+
+            scope.$root.$check();
+
+            stopPropagation && e.stopPropagation();
+            preventDefault && e.preventDefault();
+
+            return returnValue;
+        };
+    },
+
+    up: function() {
+
+        var self    = this,
+            cfg     = self.cfg,
+            ls      = self.listeners,
+            node    = self.node,
+            handler,
+            event;
+
+        for (event in cfg) {
+            if (cfg.if === undf || cfg.if) {
+                handler = self.createHandler(cfg[event]);
+                ls.push([event, handler]);
+                addListener(node, event, handler);
+            }
+        }
+    },
+
+    down: function() {
+
+        var self    = this,
+            ls      = self.listeners,
+            node    = self.node,
+            i, l;
+
+        for (i = 0, l = ls.length; i < l; i++) {
+            removeListener(node, ls[i][0], ls[i][1]);
+        }
+
+        self.listeners = [];
+    },
+
+    destroy: function() {
+        var self = this;
+        self.down();
+        if (self.watcher) {
+            self.watcher.unsubscribeAndDestroy(self.onConfigChange, self);
+        }
     }
 
-    return fn;
-};
+});
 
 
 
 (function() {
 
     Directive.registerAttribute("mjs-event", 1000, function(scope, node, expr){
-        handleDomEvent(node, scope, createGetter(expr)(scope));
+
+        var eh = new EventHandler(scope, node, expr);
+
+        return function(){
+            eh.$destroy();
+            eh = null;
+        };
     });
 }());
-
-
-
-var createFunc = functionFactory.createFunc;
 
 
 
@@ -12137,22 +12250,18 @@ var createFunc = functionFactory.createFunc;
 
             Directive.registerAttribute("mjs-" + name, 1000, function(scope, node, expr){
 
-                var cfg = {};
+                var eh = new EventHandler(scope, node, expr, name);
 
-                if (expr.substr(0,1) == '{') {
-                    cfg = createGetter(expr)(scope);
-                }
-                else {
-                    cfg.handler = createFunc(expr);
-                }
-
-                cfg.event = name;
-
-                handleDomEvent(node, scope, cfg);
+                return function(){
+                    eh.$destroy();
+                    eh = null;
+                };
             });
 
         }(events[i]));
     }
+
+    events = null;
 
 }());
 
@@ -12349,6 +12458,10 @@ Directive.registerAttribute("mjs-include", 900, function(scope, node, tplExpr, p
     }
 });
 
+
+
+
+var createFunc = functionFactory.createFunc;
 
 
 
@@ -23899,7 +24012,7 @@ MetaphorJs['isAndroid'] = isAndroid;
 MetaphorJs['isIE'] = isIE;
 MetaphorJs['browserHasEvent'] = browserHasEvent;
 MetaphorJs['Input'] = Input;
-MetaphorJs['handleDomEvent'] = handleDomEvent;
+MetaphorJs['EventHandler'] = EventHandler;
 MetaphorJs['createFunc'] = createFunc;
 MetaphorJs['preloadImage'] = preloadImage;
 MetaphorJs['parentData'] = parentData;
