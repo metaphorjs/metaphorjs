@@ -61,6 +61,8 @@ module.exports = defineClass({
             self.id = nextUid();
         }
 
+        self.initView();
+
         self.scope.$app.registerCmp(self, self.scope, "id");
 
         if (self.route) {
@@ -72,6 +74,10 @@ module.exports = defineClass({
             self.watchable = createWatchable(self.scope, self.cmp, self.onCmpChange, self, null, ns);
             self.onCmpChange();
         }
+    },
+
+    initView: function() {
+
     },
 
     onCmpChange: function() {

@@ -4,6 +4,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     removeListener = require("../func/event/removeListener.js"),
     trim = require("../func/trim.js"),
     undf = require("../var/undf.js"),
+    extend = require("../func/extend.js"),
     normalizeEvent = require("../func/event/normalizeEvent.js"),
     createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js");
@@ -16,12 +17,14 @@ module.exports = defineClass({
     listeners: null,
     event: null,
 
-    $init: function(scope, node, cfg, event) {
+    $init: function(scope, node, cfg, event, defaults) {
 
         var self = this,
             tmp;
 
         self.event = event;
+
+        defaults = defaults || {};
 
         cfg = cfg || {};
 
@@ -46,7 +49,7 @@ module.exports = defineClass({
             }
         }
 
-        self.prepareConfig(cfg);
+        self.prepareConfig(cfg, defaults);
 
         self.listeners  = [];
         self.scope      = scope;
@@ -55,7 +58,7 @@ module.exports = defineClass({
         self.up();
     },
 
-    prepareConfig: function(cfg) {
+    prepareConfig: function(cfg, defaults) {
 
         var tmp,
             event = this.event;
@@ -78,6 +81,8 @@ module.exports = defineClass({
             tmp[event] = cfg;
             cfg = tmp;
         }
+
+        extend(cfg, defaults, false, false);
 
         this.cfg = cfg;
     },

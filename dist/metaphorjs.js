@@ -10918,6 +10918,8 @@ defineClass({
             self.id = nextUid();
         }
 
+        self.initView();
+
         self.scope.$app.registerCmp(self, self.scope, "id");
 
         if (self.route) {
@@ -10929,6 +10931,10 @@ defineClass({
             self.watchable = createWatchable(self.scope, self.cmp, self.onCmpChange, self, null, ns);
             self.onCmpChange();
         }
+    },
+
+    initView: function() {
+
     },
 
     onCmpChange: function() {
@@ -12069,12 +12075,14 @@ var EventHandler = defineClass({
     listeners: null,
     event: null,
 
-    $init: function(scope, node, cfg, event) {
+    $init: function(scope, node, cfg, event, defaults) {
 
         var self = this,
             tmp;
 
         self.event = event;
+
+        defaults = defaults || {};
 
         cfg = cfg || {};
 
@@ -12099,7 +12107,7 @@ var EventHandler = defineClass({
             }
         }
 
-        self.prepareConfig(cfg);
+        self.prepareConfig(cfg, defaults);
 
         self.listeners  = [];
         self.scope      = scope;
@@ -12108,7 +12116,7 @@ var EventHandler = defineClass({
         self.up();
     },
 
-    prepareConfig: function(cfg) {
+    prepareConfig: function(cfg, defaults) {
 
         var tmp,
             event = this.event;
@@ -12131,6 +12139,8 @@ var EventHandler = defineClass({
             tmp[event] = cfg;
             cfg = tmp;
         }
+
+        extend(cfg, defaults, false, false);
 
         this.cfg = cfg;
     },
@@ -12579,7 +12589,7 @@ Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
     onChange: function() {
 
         var self    = this,
-            val     = self.watcher.getLastResult(),
+            val     = self.watcher.getLastResult() || "",
             ie;
 
         if (self.binding != "input" && !self.inProg) {
@@ -12994,7 +13004,7 @@ Directive.registerAttribute("mjs-transclude", 1000, function(scope, node) {
 
 
 Directive.registerAttribute("mjs-view", 200, function(scope, node, cls) {
-    resolveComponent(cls || "MetaphorJs.View", {scope: scope, node: node}, scope, node)
+    resolveComponent(cls || "MetaphorJs.View", {scope: scope, node: node}, scope, node);
     return false;
 });
 

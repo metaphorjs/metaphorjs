@@ -88,7 +88,7 @@ Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
     onChange: function() {
 
         var self    = this,
-            val     = self.watcher.getLastResult(),
+            val     = self.watcher.getLastResult() || "",
             ie;
 
         if (self.binding != "input" && !self.inProg) {
