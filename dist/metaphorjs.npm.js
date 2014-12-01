@@ -551,7 +551,7 @@ var Directive = function(){
             self.scope      = scope;
             self.watcher    = createWatchable(scope, expr, self.onChange, self, null, ns);
 
-            if (self.autoOnChange && (val = self.watcher.getLastResult()) != undf) {
+            if (self.autoOnChange && (val = self.watcher.getLastResult()) !== undf) {
                 self.onChange(val, undf);
             }
 

@@ -3719,7 +3719,7 @@ var Directive = function(){
             self.scope      = scope;
             self.watcher    = createWatchable(scope, expr, self.onChange, self, null, ns);
 
-            if (self.autoOnChange && (val = self.watcher.getLastResult()) != undf) {
+            if (self.autoOnChange && (val = self.watcher.getLastResult()) !== undf) {
                 self.onChange(val, undf);
             }
 
@@ -7844,7 +7844,7 @@ var ajax = function(){
 
                 var stamp   = (new Date).getTime();
 
-                return rts.test(url) ?
+                url = rts.test(url) ?
                     // If there is already a '_' parameter, set its value
                        url.replace(rts, "$1_=" + stamp) :
                     // Otherwise add one to the end
@@ -20804,11 +20804,35 @@ var Validator = function(){
                     return l;
                 case 'input':
                     if (checkable(el)) {
-                        eachNode(el.form, function(node){
-                            if (node.type == el.type && node.name == el.name && node.checked) {
-                                l++;
+                        if (el.form) {
+                            eachNode(el.form, function (node) {
+                                if (node.type == el.type && node.name == el.name && node.checked) {
+                                    l++;
+                                }
+                            });
+                        }
+                        else {
+                            var parent,
+                                inputs,
+                                i, len;
+
+                            if (isAttached(el)) {
+                                parent  = el.ownerDocument;
                             }
-                        });
+                            else {
+                                parent = el;
+                                while (parent.parentNode) {
+                                    parent = parent.parentNode;
+                                }
+                            }
+
+                            inputs  = select("input[name="+name+"]", parent);
+                            for (i = 0, len = inputs.length; i < len; i++) {
+                                if (inputs[i].checked) {
+                                    l++;
+                                }
+                            }
+                        }
                         return l;
                     }
             }
