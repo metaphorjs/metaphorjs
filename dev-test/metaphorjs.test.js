@@ -10344,141 +10344,6 @@ var ListRenderer = defineClass({
 
 
 
-function resolveComponent(cmp, cfg, scope, node, args) {
-
-    var hasCfg  = cfg !== false;
-
-    cfg         = cfg || {};
-    args        = args || [];
-
-    scope       = scope || cfg.scope; // || new Scope;
-    node        = node || cfg.node;
-
-    cfg.scope   = cfg.scope || scope;
-    cfg.node    = cfg.node || node;
-
-    var constr      = isString(cmp) ? nsGet(cmp) : cmp;
-
-    if (!constr) {
-        throw "Component " + cmp + " not found";
-    }
-
-    if (scope && constr.$isolateScope) {
-        cfg.scope   = scope = scope.$newIsolated();
-    }
-
-    var i,
-        defers      = [],
-        tpl         = constr.template || cfg.template || null,
-        tplUrl      = constr.templateUrl || cfg.templateUrl || null,
-        app         = scope ? scope.$app : null,
-        gProvider   = Provider.global(),
-        injectFn    = app ? app.inject : gProvider.inject,
-        injectCt    = app ? app : gProvider,
-        cloak       = node ? getAttr(node, "mjs-cloak") : null,
-        inject      = {
-            $node: node || null,
-            $scope: scope || null,
-            $config: cfg || null,
-            $args: args || null
-        };
-
-    if (constr.resolve) {
-
-        for (i in constr.resolve) {
-            (function(name){
-                var d = new Promise,
-                    fn;
-
-                defers.push(d.done(function(value){
-                    inject[name] = value;
-                    cfg[name] = value;
-                    args.push(value);
-                }));
-
-                fn = constr.resolve[i];
-
-                if (isFunction(fn)) {
-                    d.resolve(fn(scope, node));
-                }
-                else if (isString(fn)) {
-                    d.resolve(injectFn.resolve(fn));
-                }
-                else {
-                    d.resolve(
-                        injectFn.call(
-                            injectCt, fn, null, extend({}, inject, cfg, false, false)
-                        )
-                    );
-                }
-
-            }(i));
-        }
-    }
-
-    if (hasCfg && (tpl || tplUrl)) {
-
-        cfg.template = new Template({
-            scope: scope,
-            node: node,
-            deferRendering: true,
-            ownRenderer: true,
-            shadow: constr.$shadow,
-            tpl: tpl,
-            url: tplUrl
-        });
-
-        defers.push(cfg.template.initPromise);
-
-        if (node && node.firstChild) {
-            data(node, "mjs-transclude", toFragment(node.childNodes));
-        }
-    }
-
-    hasCfg && args.unshift(cfg);
-
-    var p;
-
-    if (defers.length) {
-        p = new Promise;
-
-        Promise.all(defers).done(function(){
-            p.resolve(
-                injectFn.call(
-                    injectCt, constr, null, extend({}, inject, cfg, false, false), args
-                )
-            );
-        });
-    }
-    else {
-        p = Promise.resolve(
-            injectFn.call(
-                injectCt, constr, null, extend({}, inject, cfg, false, false), args
-            )
-        );
-    }
-
-    if (node && p.isPending() && cloak !== null) {
-        cloak ? addClass(node, cloak) : node.style.visibility = "hidden";
-        p.then(function() {
-            cloak ? removeClass(node, cloak) : node.style.visibility = "";
-        });
-    }
-
-    if (node) {
-        p.then(function(){
-            removeClass(node, "mjs-cloak");
-        });
-    }
-
-    return p;
-};
-
-
-
-
-
-
 var mhistory = function(){
 
     var win,
@@ -10658,8 +10523,8 @@ var mhistory = function(){
         // normal pushState
         if (pushStateSupported) {
 
-            history.origPushState       = history.pushState;
-            history.origReplaceState    = history.replaceState;
+            //history.origPushState       = history.pushState;
+            //history.origReplaceState    = history.replaceState;
 
             addListener(win, "popstate", onLocationChange);
 
@@ -10667,7 +10532,7 @@ var mhistory = function(){
                 if (triggerEvent("beforeLocationChange", url) === false) {
                     return false;
                 }
-                history.origPushState(null, null, preparePath(url));
+                history.pushState(null, null, preparePath(url));
                 onLocationChange();
             };
 
@@ -10676,7 +10541,7 @@ var mhistory = function(){
                 if (triggerEvent("beforeLocationChange", url) === false) {
                     return false;
                 }
-                history.origReplaceState(null, null, preparePath(url));
+                history.replaceState(null, null, preparePath(url));
                 onLocationChange();
             };
         }
@@ -10765,8 +10630,6 @@ var mhistory = function(){
             }
         }
 
-
-
         addListener(window.document.documentElement, "click", function(e) {
 
             e = normalizeEvent(e || win.event);
@@ -10786,6 +10649,10 @@ var mhistory = function(){
                     sameHostLink(href) && !samePathLink(href)) {
 
                     history.pushState(null, null, getPathFromUrl(href));
+
+                    if (pushStateSupported) {
+                        onLocationChange();
+                    }
 
                     e.preventDefault();
                     e.stopPropagation();
@@ -10871,6 +10738,141 @@ var currentUrl = mhistory.current;
 
 
 
+function resolveComponent(cmp, cfg, scope, node, args) {
+
+    var hasCfg  = cfg !== false;
+
+    cfg         = cfg || {};
+    args        = args || [];
+
+    scope       = scope || cfg.scope; // || new Scope;
+    node        = node || cfg.node;
+
+    cfg.scope   = cfg.scope || scope;
+    cfg.node    = cfg.node || node;
+
+    var constr      = isString(cmp) ? nsGet(cmp) : cmp;
+
+    if (!constr) {
+        throw "Component " + cmp + " not found";
+    }
+
+    if (scope && constr.$isolateScope) {
+        cfg.scope   = scope = scope.$newIsolated();
+    }
+
+    var i,
+        defers      = [],
+        tpl         = constr.template || cfg.template || null,
+        tplUrl      = constr.templateUrl || cfg.templateUrl || null,
+        app         = scope ? scope.$app : null,
+        gProvider   = Provider.global(),
+        injectFn    = app ? app.inject : gProvider.inject,
+        injectCt    = app ? app : gProvider,
+        cloak       = node ? getAttr(node, "mjs-cloak") : null,
+        inject      = {
+            $node: node || null,
+            $scope: scope || null,
+            $config: cfg || null,
+            $args: args || null
+        };
+
+    if (constr.resolve) {
+
+        for (i in constr.resolve) {
+            (function(name){
+                var d = new Promise,
+                    fn;
+
+                defers.push(d.done(function(value){
+                    inject[name] = value;
+                    cfg[name] = value;
+                    args.push(value);
+                }));
+
+                fn = constr.resolve[i];
+
+                if (isFunction(fn)) {
+                    d.resolve(fn(scope, node));
+                }
+                else if (isString(fn)) {
+                    d.resolve(injectFn.resolve(fn));
+                }
+                else {
+                    d.resolve(
+                        injectFn.call(
+                            injectCt, fn, null, extend({}, inject, cfg, false, false)
+                        )
+                    );
+                }
+
+            }(i));
+        }
+    }
+
+    if (hasCfg && (tpl || tplUrl)) {
+
+        cfg.template = new Template({
+            scope: scope,
+            node: node,
+            deferRendering: true,
+            ownRenderer: true,
+            shadow: constr.$shadow,
+            tpl: tpl,
+            url: tplUrl
+        });
+
+        defers.push(cfg.template.initPromise);
+
+        if (node && node.firstChild) {
+            data(node, "mjs-transclude", toFragment(node.childNodes));
+        }
+    }
+
+    hasCfg && args.unshift(cfg);
+
+    var p;
+
+    if (defers.length) {
+        p = new Promise;
+
+        Promise.all(defers).done(function(){
+            p.resolve(
+                injectFn.call(
+                    injectCt, constr, null, extend({}, inject, cfg, false, false), args
+                )
+            );
+        });
+    }
+    else {
+        p = Promise.resolve(
+            injectFn.call(
+                injectCt, constr, null, extend({}, inject, cfg, false, false), args
+            )
+        );
+    }
+
+    if (node && p.isPending() && cloak !== null) {
+        cloak ? addClass(node, cloak) : node.style.visibility = "hidden";
+        p.then(function() {
+            cloak ? removeClass(node, cloak) : node.style.visibility = "";
+        });
+    }
+
+    if (node) {
+        p.then(function(){
+            removeClass(node, "mjs-cloak");
+        });
+    }
+
+    return p;
+};
+
+
+
+
+
+
 
 defineClass({
 
@@ -10896,6 +10898,9 @@ defineClass({
     currentComponent: null,
     watchable: null,
     defaultCmp: null,
+
+    currentCls: null,
+    currentHtmlCls: null,
 
     $init: function(cfg)  {
 
@@ -10971,6 +10976,7 @@ defineClass({
         self.clearComponent();
 
         if (def) {
+            self.setRouteClasses(def);
             self.setRouteComponent(def, []);
         }
         else if (self.defaultCmp) {
@@ -10982,12 +10988,34 @@ defineClass({
         var self = this;
         stopAnimation(self.node);
         self.clearComponent();
+        self.setRouteClasses(route);
         self.setRouteComponent(route, matches);
+    },
+
+    setRouteClasses: function(route) {
+        var self    = this;
+
+        if (route.cls) {
+            self.currentCls = route.cls;
+            addClass(self.node, route.cls);
+        }
+        if (route.htmlCls) {
+            self.currentHtmlCls = route.htmlCls;
+            addClass(window.document.documentElement, route.htmlCls);
+        }
     },
 
     clearComponent: function() {
         var self    = this,
             node    = self.node;
+
+        if (self.currentCls) {
+            removeClass(self.node, self.currentCls);
+        }
+
+        if (self.currentHtmlCls) {
+            removeClass(window.document.documentElement, self.currentHtmlCls);
+        }
 
         if (self.currentComponent) {
 
@@ -24056,9 +24084,9 @@ MetaphorJs['toCamelCase'] = toCamelCase;
 MetaphorJs['getNodeData'] = getNodeData;
 MetaphorJs['getNodeConfig'] = getNodeConfig;
 MetaphorJs['ListRenderer'] = ListRenderer;
-MetaphorJs['resolveComponent'] = resolveComponent;
 MetaphorJs['mhistory'] = mhistory;
 MetaphorJs['currentUrl'] = currentUrl;
+MetaphorJs['resolveComponent'] = resolveComponent;
 MetaphorJs['isField'] = isField;
 MetaphorJs['getValue'] = getValue;
 MetaphorJs['inArray'] = inArray;

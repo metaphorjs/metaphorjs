@@ -4654,6 +4654,10 @@ var ListRenderer = defineClass({
 
 
 
+var currentUrl = mhistory.current;
+
+
+
 /**
  * @param {Element} el
  * @param {String} cls
@@ -4812,10 +4816,6 @@ function resolveComponent(cmp, cfg, scope, node, args) {
 
 
 
-var currentUrl = mhistory.current;
-
-
-
 
 
 defineClass({
@@ -4842,6 +4842,9 @@ defineClass({
     currentComponent: null,
     watchable: null,
     defaultCmp: null,
+
+    currentCls: null,
+    currentHtmlCls: null,
 
     $init: function(cfg)  {
 
@@ -4917,6 +4920,7 @@ defineClass({
         self.clearComponent();
 
         if (def) {
+            self.setRouteClasses(def);
             self.setRouteComponent(def, []);
         }
         else if (self.defaultCmp) {
@@ -4928,12 +4932,34 @@ defineClass({
         var self = this;
         stopAnimation(self.node);
         self.clearComponent();
+        self.setRouteClasses(route);
         self.setRouteComponent(route, matches);
+    },
+
+    setRouteClasses: function(route) {
+        var self    = this;
+
+        if (route.cls) {
+            self.currentCls = route.cls;
+            addClass(self.node, route.cls);
+        }
+        if (route.htmlCls) {
+            self.currentHtmlCls = route.htmlCls;
+            addClass(window.document.documentElement, route.htmlCls);
+        }
     },
 
     clearComponent: function() {
         var self    = this,
             node    = self.node;
+
+        if (self.currentCls) {
+            removeClass(self.node, self.currentCls);
+        }
+
+        if (self.currentHtmlCls) {
+            removeClass(window.document.documentElement, self.currentHtmlCls);
+        }
 
         if (self.currentComponent) {
 
@@ -7804,10 +7830,10 @@ MetaphorJs['getNodeData'] = getNodeData;
 MetaphorJs['getNodeConfig'] = getNodeConfig;
 MetaphorJs['getAnimationPrefixes'] = getAnimationPrefixes;
 MetaphorJs['ListRenderer'] = ListRenderer;
+MetaphorJs['currentUrl'] = currentUrl;
 MetaphorJs['hasClass'] = hasClass;
 MetaphorJs['addClass'] = addClass;
 MetaphorJs['resolveComponent'] = resolveComponent;
-MetaphorJs['currentUrl'] = currentUrl;
 MetaphorJs['returnFalse'] = returnFalse;
 MetaphorJs['isField'] = isField;
 MetaphorJs['returnTrue'] = returnTrue;

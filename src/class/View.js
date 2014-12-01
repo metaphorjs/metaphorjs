@@ -1,20 +1,25 @@
 
 
-var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
-    animate = require("../../../metaphorjs-animate/src/metaphorjs.animate.js"),
-    stopAnimation = require("../../../metaphorjs-animate/src/func/stopAnimation.js"),
+var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
+    animate = require("metaphorjs-animate/src/metaphorjs.animate.js"),
+    stopAnimation = require("metaphorjs-animate/src/func/stopAnimation.js"),
+    mhistory = require("metaphorjs-history/src/metaphorjs.history.js"),
+    createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
+    currentUrl = require("metaphorjs-history/src/func/currentUrl.js"),
+    ns = require("metaphorjs-namespace/src/var/ns.js"),
+
     extend = require("../func/extend.js"),
     data = require("../func/dom/data.js"),
     toFragment = require("../func/dom/toFragment.js"),
     resolveComponent = require("../func/resolveComponent.js"),
-    createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
-    currentUrl = require("../../../metaphorjs-history/src/func/currentUrl.js"),
     isObject = require("../func/isObject.js"),
     isString = require("../func/isString.js"),
-    ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
+
     nextUid = require("../func/nextUid.js"),
-    mhistory = require("../../../metaphorjs-history/src/metaphorjs.history.js"),
-    getNodeConfig = require("../func/dom/getNodeConfig.js");
+
+    getNodeConfig = require("../func/dom/getNodeConfig.js"),
+    addClass = require("../func/dom/addClass.js"),
+    removeClass = require("../func/dom/removeClass.js");
 
 
 module.exports = defineClass({
@@ -41,6 +46,9 @@ module.exports = defineClass({
     currentComponent: null,
     watchable: null,
     defaultCmp: null,
+
+    currentCls: null,
+    currentHtmlCls: null,
 
     $init: function(cfg)  {
 
@@ -116,6 +124,7 @@ module.exports = defineClass({
         self.clearComponent();
 
         if (def) {
+            self.setRouteClasses(def);
             self.setRouteComponent(def, []);
         }
         else if (self.defaultCmp) {
@@ -127,12 +136,34 @@ module.exports = defineClass({
         var self = this;
         stopAnimation(self.node);
         self.clearComponent();
+        self.setRouteClasses(route);
         self.setRouteComponent(route, matches);
+    },
+
+    setRouteClasses: function(route) {
+        var self    = this;
+
+        if (route.cls) {
+            self.currentCls = route.cls;
+            addClass(self.node, route.cls);
+        }
+        if (route.htmlCls) {
+            self.currentHtmlCls = route.htmlCls;
+            addClass(window.document.documentElement, route.htmlCls);
+        }
     },
 
     clearComponent: function() {
         var self    = this,
             node    = self.node;
+
+        if (self.currentCls) {
+            removeClass(self.node, self.currentCls);
+        }
+
+        if (self.currentHtmlCls) {
+            removeClass(window.document.documentElement, self.currentHtmlCls);
+        }
 
         if (self.currentComponent) {
 
