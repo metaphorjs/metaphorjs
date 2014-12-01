@@ -1,14 +1,14 @@
 
 var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     Observable = require("metaphorjs-observable/src/metaphorjs.observable.js"),
-    Queue = require("./Queue.js"),
     bind = require("../func/bind.js"),
     addListener = require("../func/event/addListener.js"),
     removeListener = require("../func/event/removeListener.js"),
     getWidth = require("../func/dom/getWidth.js"),
     getHeight = require("../func/dom/getHeight.js"),
     getScrollTop = require("../func/dom/getScrollTop.js"),
-    getScrollLeft = require("../func/dom/getScrollLeft.js");
+    getScrollLeft = require("../func/dom/getScrollLeft.js"),
+    raf = require("metaphorjs-animate/src/func/raf.js");
 
 
 module.exports = function(){
@@ -22,8 +22,13 @@ module.exports = function(){
         queue: null,
         observable: null,
         handlerDelegate: null,
+        triggerDelegate: null,
         watchers: null,
         breaks: null,
+        running: false,
+        lastEvent: null,
+        currentEvent: null,
+        interval: null,
 
         $init: function(node, event, interval) {
 
@@ -36,23 +41,51 @@ module.exports = function(){
 
             node[key] = self;
 
+
             self.breaks = {};
             self.watchers = {};
             self.node = node;
             self.event = event;
             self.observable = new Observable;
-            self.queue = new Queue({
-                async: interval
-            });
+            self.interval = interval || 0;
             self.handlerDelegate = bind(self.handler, self);
+            self.triggerDelegate = bind(self.trigger, self);
 
             self.up();
         },
 
         handler: function(e) {
             var self = this;
-            if (self.queue.isEmpty()) {
-                self.queue.add(self.trigger, self, [e]);
+            if (self.running) {
+                if (e) {
+                    self.lastEvent = e;
+                }
+            }
+            else {
+                self.next(e);
+            }
+        },
+
+        next: function(e) {
+
+            var self = this,
+                itv = self.interval;
+
+            e = e || self.lastEvent;
+
+            if (!e) {
+                return;
+            }
+
+            self.lastEvent = null;
+            self.running = true;
+            self.currentEvent = e;
+
+            if (itv == "raf") {
+                raf(self.triggerDelegate);
+            }
+            else {
+                setTimeout(self.triggerDelegate, itv);
             }
         },
 
@@ -137,8 +170,9 @@ module.exports = function(){
             this.observable.un(this.event, fn, context);
         },
 
-        trigger: function(e) {
+        trigger: function() {
             var self = this,
+                e = self.currentEvent,
                 ws = self.watchers,
                 bs = self.breaks,
                 node = self.node,
@@ -154,6 +188,11 @@ module.exports = function(){
             for (b in bs) {
                 bs[b].trigger(e);
             }
+
+            self.running = false;
+            self.currentEvent = null;
+
+            self.next();
         },
 
         up: function() {
