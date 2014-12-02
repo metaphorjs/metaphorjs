@@ -5914,7 +5914,9 @@ var EventHandler = defineClass({
 
             Directive.registerAttribute("mjs-" + name, 1000, function(scope, node, expr){
 
-                var eh = new EventHandler(scope, node, expr, name);
+                var eh = new EventHandler(scope, node, expr, name, {
+                    stopPropagation: true
+                });
 
                 return function(){
                     eh.$destroy();

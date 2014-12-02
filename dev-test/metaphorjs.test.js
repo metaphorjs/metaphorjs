@@ -10341,6 +10341,65 @@ var ListRenderer = defineClass({
 });
 
 
+var rParseLocation = /^(((([^:\/#\?]+:)?(?:(\/\/)((?:(([^:@\/#\?]+)(?:\:([^:@\/#\?]+))?)@)?(([^:\/#\?\]\[]+|\[[^\/\]@#?]+\])(?:\:([0-9]+))?))?)?)?((\/?(?:[^\/\?#]+\/+)*)([^\?#]*)))?(\?[^#]+)?)(#.*)?/;
+
+
+
+
+var parseLocation = function(url) {
+
+    var matches = url.match(rParseLocation) || [],
+        wl = (typeof window != "undefined" ? window.location : null) || {};
+
+    return {
+        protocol: matches[4] || wl.protocol || "http:",
+        hostname: matches[11] || wl.hostname || "",
+        host: ((matches[11] || "") + (matches[12] ? ":" + matches[12] : "")) || wl.host || "",
+        username: matches[8] || wl.username || "",
+        password: matches[9] || wl.password || "",
+        port: parseInt(matches[12], 10) || wl.port || "",
+        href: url,
+        path: (matches[13] || "/") + (matches[16] || ""),
+        pathname: matches[13] || "/",
+        search: matches[16] || "",
+        hash: matches[17] && matches[17] != "#" ? matches[17] : ""
+    };
+};
+
+var joinLocation = function(location, opt) {
+
+    var url = "";
+    opt = opt || {};
+
+    if (!opt.onlyPath) {
+        url += location.protocol + "//";
+
+        if (location.username && location.password) {
+            url += location.username + ":" + location.password + "@";
+        }
+
+        url += location.hostname;
+
+        if (location.hostname && location.port) {
+            url += ":" + location.port;
+        }
+    }
+
+    if (!opt.onlyHost) {
+        url += (location.pathname || "/");
+
+        if (location.search && location.search != "?") {
+            url += location.search;
+        }
+
+        if (location.hash && location.hash != "#") {
+            url += location.hash;
+        }
+    }
+
+    return url;
+};
+
 
 
 
@@ -10359,6 +10418,8 @@ var mhistory = function(){
         windowLoaded    = typeof window == "undefined",
         rURL            = /(?:(\w+:))?(?:\/\/(?:[^@]*@)?([^\/:\?#]+)(?::([0-9]+))?)?([^\?#]*)(?:(\?[^#]+)|\?)?(?:(#.*))?/,
 
+        prevLocation    = null,
+
         pushStateSupported,
         hashChangeSupported,
         useHash;
@@ -10372,81 +10433,75 @@ var mhistory = function(){
         pushStateSupported  = !!history.pushState;
         hashChangeSupported = "onhashchange" in win;
         useHash             = pushStateSupported && (navigator.vendor || "").match(/Opera/);
+        prevLocation        = extend({}, location, true, false);
     };
+
+
+    var hostsDiffer = function(prev, next) {
+
+        if (typeof prev == "string") {
+            prev = parseLocation(prev);
+        }
+        if (typeof next == "string") {
+            next = parseLocation(next);
+        }
+
+        var canBeEmpty = ["protocol", "host", "port"],
+            i, l,
+            k;
+
+        for (i = 0, l = canBeEmpty.length; i < l; i++) {
+            k = canBeEmpty[i];
+            if (prev[k] && next[k] && prev[k] != next[k]) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    var pathsDiffer = function(prev, next) {
+
+        if (typeof prev == "string") {
+            prev = parseLocation(prev);
+        }
+        if (typeof next == "string") {
+            next = parseLocation(next);
+        }
+
+        return hostsDiffer(prev, next) || prev.pathname != next.pathname ||
+            prev.search != next.search || prev.hash != next.hash;
+    };
+
+
+
+
+
+
+
+
 
     var preparePath = function(url) {
 
-        var base = location.protocol + '//' + location.hostname;
-        if (location.port) {
-            base += ':' + location.port;
-        }
-
-        url = url.replace(base, '');
-
-        if (!pushStateSupported) {
-            url = encodeURIComponent(url);
-        }
-
-        if (url.substr(0, 1) == "?") {
-            url = location.pathname + url;
-        }
-
-        if (useHash) {
-            url = url.replace("?", "#");
-        }
-
-        return url;
-    };
-
-    var sameHostLink = function(url) {
-
-        var matches = url.match(rURL);
-
-        if (matches[1] && location.protocol != matches[1]) {
-            return false;
-        }
-
-        if (matches[2] && location.hostname != matches[2]) {
-            return false;
-        }
-
-        if (!matches[2] && !matches[3]) {
-            return true;
-        }
-
-        return location.port == matches[3];
-    };
-
-    var getPathFromUrl  = function(url) {
-
-        url = "" + url;
-
-        // 0 - full url, 1 - protocol, 2 - host, 3 - port, 4 - path, 5 - search, 6 - hash
-        var matches = url.match(rURL),
-            path,
-            hash;
+        var loc = parseLocation(url);
 
         if (!pushStateSupported || useHash) {
-            hash    = matches[6];
-            if (hash.substr(0,1) == "!") {
-                path    = hash.substr(1);
-            }
+            loc.hash = "#!" + encodeURIComponent(loc.path);
+            loc.pathname = "/";
+            loc.search = "";
         }
 
-        if (!path) {
-            path    = matches[4];
-
-            if (matches[5]) {
-                path    += matches[5];
-            }
-        }
-
-        return path;
+        return joinLocation(loc, {onlyPath: true});
     };
 
-    var samePathLink = function(url) {
-        return getPathFromUrl(url) == getPathFromUrl(location);
-    };
+
+
+
+
+
+
+
+
 
     var setHash = function(hash) {
         if (hash) {
@@ -10458,23 +10513,27 @@ var mhistory = function(){
     };
 
     var getCurrentUrl = function() {
-        var loc;
+        var loc,
+            tmp;
 
         if (pushStateSupported) {
-            loc = location.pathname + location.search + location.hash;
+            //loc = location.pathname + location.search + location.hash;
+            loc = joinLocation(location);
         }
         else {
             loc = location.hash.substr(1);
+            tmp = extend({}, location, true, false);
 
             if (loc) {
                 if (loc.substr(0, 1) == "!") {
                     loc = loc.substr(1);
                 }
-                loc = decodeURIComponent(loc);
+                var p = decodeURIComponent(loc).split("?");
+                tmp.pathname = p[0];
+                tmp.search = p[1] ? "?" + p[1] : "";
             }
-            else {
-                loc = location.pathname + location.search;
-            }
+
+            loc = joinLocation(tmp);
         }
 
         return loc;
@@ -10505,10 +10564,22 @@ var mhistory = function(){
         }
     };
 
-    var onLocationChange = function(){
-        var url = getCurrentUrl();
+
+
+
+    var onLocationPush = function(url) {
+        prevLocation = extend({}, location, true, false);
         triggerEvent("locationChange", url);
         checkParamChange(url);
+    };
+
+    var onLocationPop = function() {
+        if (pathsDiffer(prevLocation, location)) {
+            var url = getCurrentUrl();
+            prevLocation = extend({}, location, true, false);
+            triggerEvent("locationChange", url);
+            checkParamChange(url);
+        }
     };
 
     var triggerEvent = function triggerEvent(event, data) {
@@ -10526,14 +10597,14 @@ var mhistory = function(){
             //history.origPushState       = history.pushState;
             //history.origReplaceState    = history.replaceState;
 
-            addListener(win, "popstate", onLocationChange);
+            addListener(win, "popstate", onLocationPop);
 
             pushState = function(url) {
                 if (triggerEvent("beforeLocationChange", url) === false) {
                     return false;
                 }
                 history.pushState(null, null, preparePath(url));
-                onLocationChange();
+                onLocationPush(url);
             };
 
 
@@ -10542,7 +10613,7 @@ var mhistory = function(){
                     return false;
                 }
                 history.replaceState(null, null, preparePath(url));
-                onLocationChange();
+                onLocationPush(url);
             };
         }
         else {
@@ -10557,7 +10628,7 @@ var mhistory = function(){
                     async(setHash, null, [preparePath(url)]);
                 };
 
-                addListener(win, "hashchange", onLocationChange);
+                addListener(win, "hashchange", onLocationPop);
             }
             // iframe
             else {
@@ -10576,7 +10647,7 @@ var mhistory = function(){
                     if (!initialUpdate) {
                         async(function(){
                             setHash(val);
-                            onLocationChange();
+                            onLocationPop();
                         });
                     }
                 };
@@ -10641,17 +10712,27 @@ var mhistory = function(){
                 a = a.parentNode;
             }
 
-            if (a) {
+            if (a && !e.isDefaultPrevented()) {
 
                 href = getAttr(a, "href");
 
-                if (href && href.substr(0,1) != "#" && !getAttr(a, "target") &&
-                    sameHostLink(href) && !samePathLink(href)) {
+                if (href == "#") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
 
-                    history.pushState(null, null, getPathFromUrl(href));
+                if (href && href.substr(0,1) != "#" && !getAttr(a, "target")) {
 
-                    if (pushStateSupported) {
-                        onLocationChange();
+                    var prev = extend({}, location, true, false),
+                        next = parseLocation(href);
+
+                    if (hostsDiffer(prev, next)) {
+                        return null;
+                    }
+
+                    if (pathsDiffer(prev, next)) {
+                        pushState(href);
                     }
 
                     e.preventDefault();
@@ -12295,7 +12376,9 @@ var EventHandler = defineClass({
 
             Directive.registerAttribute("mjs-" + name, 1000, function(scope, node, expr){
 
-                var eh = new EventHandler(scope, node, expr, name);
+                var eh = new EventHandler(scope, node, expr, name, {
+                    stopPropagation: true
+                });
 
                 return function(){
                     eh.$destroy();
@@ -17776,7 +17859,13 @@ var Dialog = function(){
     };
 
 
-
+    var defaultEventProcessor = function(dlg, e, type, returnMode){
+        if (type == "show" || !returnMode) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    };
 
     /*
      * Shorthands
@@ -18164,7 +18253,6 @@ var Dialog = function(){
         events: {
 
             /**
-             * You can also add "hide".
              * @type {object}
              * @md-stack add
              */
@@ -18175,33 +18263,39 @@ var Dialog = function(){
                  * @type {object}
                  * @md-stack add
                  */
-                click: {
+                "*": {
 
                     /**
-                     * @type {bool}
+                     * @type {function}
+                     * @md-stack remove 2
                      */
-                    preventDefault: 	true,
+                    process: defaultEventProcessor
+                }
+            },
 
-                    /**
-                     * @type {bool}
-                     */
-                    stopPropagation: 	true,
+            /**
+             * @type {object}
+             * @md-stack add
+             */
+            hide: {
 
-                    /**
-                     * @type {bool}
-                     */
-                    returnValue: 		false,
+                /**
+                 * You can also add any event you use to show/hide dialog.
+                 * @type {object}
+                 * @md-stack add
+                 */
+                "*": {
 
                     /**
                      * Must return "returnValue" which will be in its turn
                      * returned from event handler. If you provide this function
                      * preventDefault and stopPropagation options are ignored.
                      * @function
-                     * @param {MetaphorJs.lib.Dialog} dialog
+                     * @param {Dialog} dialog
                      * @param {Event} event
                      * @md-stack remove 3
                      */
-                    process:            null
+                    process: defaultEventProcessor
                 }
             }
         },
@@ -18966,7 +19060,8 @@ var Dialog = function(){
 
                 // if called as an event handler, we do not return api
                 var returnValue	= e && e.stopPropagation ? null : api,
-                    scfg        = cfg.show;
+                    scfg        = cfg.show,
+                    returnMode  = null;
 
                 // if tooltip is disabled, we do not stop propagation and do not return false.s
                 if (!api.isEnabled()) {
@@ -18977,26 +19072,15 @@ var Dialog = function(){
                     }
                     /*debug-end*/
 
-                    return returnValue;
+                    returnMode = "disabled";
+                    //return returnValue;
                 }
 
-                if (e && e.stopPropagation && cfg.events.show && cfg.events.show[e.type]) {
-                    var et = cfg.events.show[e.type];
-
-                    if (et.process) {
-                        returnValue	= et.process(api, e);
-                    }
-                    else {
-                        et.stopPropagation && e.stopPropagation();
-                        et.preventDefault && e.preventDefault();
-                        returnValue = et.returnValue;
-                    }
-                }
 
                 // if tooltip is already shown
                 // and hide timeout was set.
                 // we need to restart timer
-                if (state.visible && state.hideTimeout) {
+                if (!returnMode && state.visible && state.hideTimeout) {
 
                     window.clearTimeout(state.hideTimeout);
                     state.hideTimeout = async(self.hide, self, null, cfg.hide.timeout);
@@ -19007,12 +19091,13 @@ var Dialog = function(){
                     }
                     /*debug-end*/
 
-                    return returnValue;
+                    returnMode = "hidetimeout";
+                    //return returnValue;
                 }
 
                 // if tooltip was delayed to hide
                 // we cancel it.
-                if (state.hideDelay) {
+                if (!returnMode && state.hideDelay) {
 
                     window.clearTimeout(state.hideDelay);
                     state.hideDelay     = null;
@@ -19024,7 +19109,8 @@ var Dialog = function(){
                     }
                     /*debug-end*/
 
-                    return returnValue;
+                    returnMode = "hidedelay";
+                    //return returnValue;
                 }
 
 
@@ -19033,7 +19119,7 @@ var Dialog = function(){
                 // have some content, or empty content is allowed.
                 // also if beforeShow() returns false, we can't proceed
                 // if tooltip was frozen, we do not show or hide
-                if (state.frozen) {
+                if (!returnMode && state.frozen) {
 
                     /*debug-start*/
                     if (cfg.debug) {
@@ -19041,7 +19127,8 @@ var Dialog = function(){
                     }
                     /*debug-end*/
 
-                    return returnValue;
+                    returnMode = "frozen";
+                    //return returnValue;
                 }
 
                 // cancel delayed destroy
@@ -19058,19 +19145,22 @@ var Dialog = function(){
                     dtChanged = self.changeDynamicTarget(e);
                 }
 
-                if (state.visible) {
+                if (!returnMode && state.visible) {
                     if (!dtChanged) {
                         /*debug-start*/
                         if (cfg.debug) {
                             console.log("show: already shown", elem);
                         }
                         /*debug-end*/
-                        return returnValue;
+
+                        returnMode = "visible";
+                        //return returnValue;
                     }
                     else {
                         if (!cfg.render.fn) {
                             self.reposition(e);
-                            return returnValue;
+                            returnMode = "reposition";
+                            //return returnValue;
                         }
                         else {
                             self.hide(null, true);
@@ -19078,22 +19168,43 @@ var Dialog = function(){
                     }
                 }
 
-                // if tooltip is not rendered yet we render it
-                if (!elem) {
-                    self.render();
-                }
-                else if (dtChanged) {
-                    self.changeDynamicContent();
+                if (!returnMode) {
+                    // if tooltip is not rendered yet we render it
+                    if (!elem) {
+                        self.render();
+                    }
+                    else if (dtChanged) {
+                        self.changeDynamicContent();
+                    }
                 }
 
                 // if beforeShow callback returns false we stop.
-                if (self.trigger('beforeshow', api, e) === false) {
+                if (!returnMode && self.trigger('beforeshow', api, e) === false) {
                     /*debug-start*/
                     if (cfg.debug) {
                         console.log("show: beforeshow return false", api.getTarget());
                     }
                     /*debug-end*/
-                    return returnValue;
+
+                    returnMode = "beforeshow";
+                    //return returnValue;
+                }
+
+                if (e && e.stopPropagation && cfg.events.show && (cfg.events.show[e.type] || cfg.events.show['*'])) {
+                    var et = cfg.events.show[e.type] || cfg.events.show["*"];
+
+                    if (et.process) {
+                        returnValue	= et.process(api, e, "show", returnMode);
+                    }
+                    else {
+                        et.stopPropagation && e.stopPropagation();
+                        et.preventDefault && e.preventDefault();
+                        returnValue = et.returnValue;
+                    }
+                }
+
+                if (returnMode) {
+                    return returnMode;
                 }
 
                 // first, we stop all current animations
@@ -19133,20 +19244,9 @@ var Dialog = function(){
                 state.hideTimeout = null;
 
                 // if called as an event handler, we do not return api
-                var returnValue	 = e && e.stopPropagation ? null : api;
+                var returnValue	    = e && e.stopPropagation ? null : api,
+                    returnMode      = null;
 
-                if (e && e.stopPropagation && cfg.events.hide && cfg.events.hide[e.type]) {
-                    var et = cfg.events.hide[e.type];
-
-                    if (et.process) {
-                        returnValue = et.process(api, e);
-                    }
-                    else {
-                        if (et.stopPropagation) e.stopPropagation();
-                        if (et.preventDefault) e.preventDefault();
-                        returnValue = et.returnValue;
-                    }
-                }
 
                 // if the timer was set to hide the tooltip
                 // but then we needed to close tooltip immediately
@@ -19164,12 +19264,13 @@ var Dialog = function(){
                             elem, state.visible, self.isEnabled());
                     }
                     /*debug-end*/
-                    return returnValue;
+                    returnMode = !elem ? "noelem" : (!state.visible ? "hidden" : "disabled");
+                    //return returnValue;
                 }
 
                 // if tooltip is still waiting to be shown after delay timeout,
                 // we cancel this timeout and return.
-                if (state.showDelay) {
+                if (state.showDelay && !returnMode) {
 
                     if (cfg.hide.cancelShowDelay || cancelShowDelay) {
                         window.clearTimeout(state.showDelay);
@@ -19182,7 +19283,8 @@ var Dialog = function(){
                         }
                         /*debug-end*/
 
-                        return returnValue;
+                        returnMode = "cancel";
+                        //return returnValue;
                     }
                     else {
 
@@ -19192,27 +19294,48 @@ var Dialog = function(){
                         }
                         /*debug-end*/
 
-                        return returnValue;
+                        returnMode = "delay";
+                        //return returnValue;
                     }
                 }
 
                 // if tooltip was frozen, we do not show or hide
-                if (state.frozen) {
+                if (state.frozen && !returnMode) {
                     /*debug-start*/
                     if (cfg.debug) {
                         console.log("hide: frozen", self.getTarget());
                     }
                     /*debug-end*/
-                    return returnValue;
+                    returnMode = "frozen";
+                    //return returnValue;
                 }
 
                 // lets see what the callback will tell us
-                if (self.trigger('beforehide', api, e) === false) {
+                if (!returnMode && self.trigger('beforehide', api, e) === false) {
                     /*debug-start*/
                     if (cfg.debug) {
                         console.log("hide: beforehide returned false", self.getTarget());
                     }
                     /*debug-end*/
+                    returnMode = "beforehide";
+                    //return returnValue;
+                }
+
+
+                if (e && e.stopPropagation && cfg.events.hide && (cfg.events.hide[e.type] || cfg.events.hide["*"])) {
+                    var et = cfg.events.hide[e.type] || cfg.events.hide["*"];
+
+                    if (et.process) {
+                        returnValue = et.process(api, e, "hide", returnMode);
+                    }
+                    else {
+                        if (et.stopPropagation) e.stopPropagation();
+                        if (et.preventDefault) e.preventDefault();
+                        returnValue = et.returnValue;
+                    }
+                }
+
+                if (returnMode) {
                     return returnValue;
                 }
 
@@ -24084,6 +24207,9 @@ MetaphorJs['toCamelCase'] = toCamelCase;
 MetaphorJs['getNodeData'] = getNodeData;
 MetaphorJs['getNodeConfig'] = getNodeConfig;
 MetaphorJs['ListRenderer'] = ListRenderer;
+MetaphorJs['rParseLocation'] = rParseLocation;
+MetaphorJs['parseLocation'] = parseLocation;
+MetaphorJs['joinLocation'] = joinLocation;
 MetaphorJs['mhistory'] = mhistory;
 MetaphorJs['currentUrl'] = currentUrl;
 MetaphorJs['resolveComponent'] = resolveComponent;
