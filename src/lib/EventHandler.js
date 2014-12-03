@@ -6,6 +6,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     undf = require("../var/undf.js"),
     extend = require("../func/extend.js"),
     normalizeEvent = require("../func/event/normalizeEvent.js"),
+    EventBuffer = require("./EventBuffer.js"),
     createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js");
 
@@ -16,11 +17,11 @@ module.exports = defineClass({
     node: null,
     listeners: null,
     event: null,
+    buffers: null,
 
     $init: function(scope, node, cfg, event, defaults) {
 
-        var self = this,
-            tmp;
+        var self = this;
 
         self.event = event;
 
@@ -51,6 +52,7 @@ module.exports = defineClass({
 
         self.prepareConfig(cfg, defaults);
 
+        self.buffers    = {};
         self.listeners  = [];
         self.scope      = scope;
         self.node       = node;
@@ -94,9 +96,7 @@ module.exports = defineClass({
         self.up();
     },
 
-    createHandler: function(cfg) {
-
-        var scope = this.scope;
+    createHandler: function(cfg, scope) {
 
         return function(e){
 
@@ -143,15 +143,27 @@ module.exports = defineClass({
         var self    = this,
             cfg     = self.cfg,
             ls      = self.listeners,
+            bs      = self.buffers,
             node    = self.node,
+            scope   = self.scope,
+            buffer  = cfg.buffer,
             handler,
             event;
 
         for (event in cfg) {
             if (cfg.if === undf || cfg.if) {
-                handler = self.createHandler(cfg[event]);
+                handler = self.createHandler(cfg[event], scope);
                 ls.push([event, handler]);
-                addListener(node, event, handler);
+
+                if (buffer) {
+                    if (!bs[event]) {
+                        bs[event] = EventBuffer.get(node, event, buffer);
+                        bs[event].on(handler);
+                    }
+                }
+                else {
+                    addListener(node, event, handler);
+                }
             }
         }
     },
@@ -160,14 +172,29 @@ module.exports = defineClass({
 
         var self    = this,
             ls      = self.listeners,
+            bs      = self.buffers,
             node    = self.node,
+            buffer  = self.cfg.buffer,
+            event,
+            handler,
             i, l;
 
+
         for (i = 0, l = ls.length; i < l; i++) {
-            removeListener(node, ls[i][0], ls[i][1]);
+            event = ls[i][0];
+            handler = ls[i][1];
+            if (buffer) {
+                bs[event].un(handler);
+                if (bs[event].destroyIfIdle() === true) {
+                    delete bs[event];
+                }
+            }
+            else {
+                removeListener(node, event, handler);
+            }
         }
 
-        self.listeners = [];
+        self.listeners  = [];
     },
 
     destroy: function() {

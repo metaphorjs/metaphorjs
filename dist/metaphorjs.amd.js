@@ -5710,6 +5710,492 @@ var removeListener = function(){
     }
 }();
 
+/*!window!*/
+
+var getStyle = function(node, prop, numeric) {
+
+    var style, val;
+
+    if (window.getComputedStyle) {
+
+        if (node === window) {
+            return prop? (numeric ? 0 : null) : {};
+        }
+        style = getComputedStyle(node, null);
+        val = prop ? style[prop] : style;
+    }
+    else {
+        style = node.currentStyle || node.style || {};
+        val = prop ? style[prop] : style;
+    }
+
+    return numeric ? parseFloat(val) || 0 : val;
+
+};
+
+
+
+var boxSizingReliable = function() {
+
+    var boxSizingReliableVal;
+
+    var computePixelPositionAndBoxSizingReliable = function() {
+
+        var doc = window.document,
+            container = doc.createElement("div"),
+            div = doc.createElement("div"),
+            body = doc.body;
+
+        if (!div.style || !window.getComputedStyle) {
+            return false;
+        }
+
+        container.style.cssText = "border:0;width:0;height:0;top:0;left:-9999px;margin-top:1px;" +
+                                  "position:absolute";
+        container.appendChild(div);
+
+        div.style.cssText =
+            // Support: Firefox<29, Android 2.3
+            // Vendor-prefix box-sizing
+        "-webkit-box-sizing:border-box;-moz-box-sizing:border-box;" +
+        "box-sizing:border-box;display:block;margin-top:1%;top:1%;" +
+        "border:1px;padding:1px;width:4px;position:absolute";
+        div.innerHTML = "";
+        body.appendChild(container);
+
+        var divStyle = window.getComputedStyle(div, null),
+            ret = divStyle.width === "4px";
+
+        body.removeChild(container);
+
+        return ret;
+    };
+
+    return function boxSizingReliable() {
+        if (boxSizingReliableVal === undf) {
+            boxSizingReliableVal = computePixelPositionAndBoxSizingReliable();
+        }
+
+        return boxSizingReliableVal;
+    };
+}();
+
+// from jQuery
+
+
+
+var getDimensions = function(type, name) {
+
+    var rnumnonpx = new RegExp( "^([+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|))(?!px)[a-z%]+$", "i"),
+        cssExpand = [ "Top", "Right", "Bottom", "Left" ],
+        defaultExtra = !type ? "content" : (type == "inner" ? "padding" : "");
+
+    var augmentWidthOrHeight = function(elem, name, extra, isBorderBox, styles) {
+        var i = extra === (isBorderBox ? "border" : "content") ?
+                // If we already have the right measurement, avoid augmentation
+                4 :
+                // Otherwise initialize for horizontal or vertical properties
+                name === "width" ? 1 : 0,
+
+            val = 0;
+
+        for (; i < 4; i += 2) {
+            // Both box models exclude margin, so add it if we want it
+            if (extra === "margin") {
+                val += parseFloat(styles[extra + cssExpand[i]]);
+            }
+
+            if (isBorderBox) {
+                // border-box includes padding, so remove it if we want content
+                if (extra === "content") {
+                    val -= parseFloat(styles["padding" + cssExpand[i]]);
+                }
+
+                // At this point, extra isn't border nor margin, so remove border
+                if (extra !== "margin") {
+                    val -= parseFloat(styles["border" + cssExpand[i] + "Width"]);
+                }
+            } else {
+                // At this point, extra isn't content, so add padding
+                val += parseFloat(styles["padding" + cssExpand[i]]);
+
+                // At this point, extra isn't content nor padding, so add border
+                if (extra !== "padding") {
+                    val += parseFloat(styles["border" + cssExpand[i] + "Width"]);
+                }
+            }
+        }
+
+        return val;
+    };
+
+    var getWidthOrHeight = function(elem, name, extra, styles) {
+
+        // Start with offset property, which is equivalent to the border-box value
+        var valueIsBorderBox = true,
+            val = name === "width" ? elem.offsetWidth : elem.offsetHeight,
+            isBorderBox = styles["boxSizing"] === "border-box";
+
+        // Some non-html elements return undefined for offsetWidth, so check for null/undefined
+        // svg - https://bugzilla.mozilla.org/show_bug.cgi?id=649285
+        // MathML - https://bugzilla.mozilla.org/show_bug.cgi?id=491668
+        if ( val <= 0 || val == null ) {
+            val = elem.style[name];
+
+            // Computed unit is not pixels. Stop here and return.
+            if (rnumnonpx.test(val)) {
+                return val;
+            }
+
+            // Check for style in case a browser which returns unreliable values
+            // for getComputedStyle silently falls back to the reliable elem.style
+            valueIsBorderBox = isBorderBox &&
+                               (boxSizingReliable() || val === elem.style[name]);
+
+            // Normalize "", auto, and prepare for extra
+            val = parseFloat(val) || 0;
+        }
+
+        // Use the active box-sizing model to add/subtract irrelevant styles
+        return val +
+                 augmentWidthOrHeight(
+                     elem,
+                     name,
+                     extra || (isBorderBox ? "border" : "content"),
+                     valueIsBorderBox,
+                     styles
+                 );
+    };
+
+
+    return function getDimensions(elem, margin) {
+
+        if (elem === window) {
+            return elem.document.documentElement["client" + name];
+        }
+
+        // Get document width or height
+        if (elem.nodeType === 9) {
+            var doc = elem.documentElement;
+
+            // Either scroll[Width/Height] or offset[Width/Height] or client[Width/Height],
+            // whichever is greatest
+            return Math.max(
+                elem.body["scroll" + name], doc["scroll" + name],
+                elem.body["offset" + name], doc["offset" + name],
+                doc["client" + name]
+            );
+        }
+
+        return getWidthOrHeight(
+            elem,
+            name.toLowerCase(),
+            defaultExtra || (margin === true ? "margin" : "border"),
+            getStyle(elem)
+        );
+    };
+
+};
+
+
+
+var getWidth = getDimensions("", "Width");
+
+
+var getHeight = getDimensions("", "Height");
+
+
+
+var getScrollTopOrLeft = function(vertical) {
+
+    var defaultST,
+        wProp = vertical ? "pageYOffset" : "pageXOffset",
+        sProp = vertical ? "scrollTop" : "scrollLeft",
+        doc = window.document,
+        body = doc.body,
+        html = doc.documentElement;
+
+    if(window[wProp] !== undf) {
+        //most browsers except IE before #9
+        defaultST = function(){
+            return window[wProp];
+        };
+    }
+    else{
+        if (html.clientHeight) {
+            defaultST = function() {
+                return html[sProp];
+            };
+        }
+        else {
+            defaultST = function() {
+                return body[sProp];
+            };
+        }
+    }
+
+    return function(node) {
+        if (!node || node === window) {
+            return defaultST();
+        }
+        else if (node && node.nodeType == 1 &&
+            node !== body && node !== html) {
+            return node[sProp];
+        }
+        else {
+            return defaultST();
+        }
+    }
+
+};
+
+
+
+var getScrollTop = getScrollTopOrLeft(true);
+
+
+
+var getScrollLeft = getScrollTopOrLeft(false);
+
+
+
+
+var EventBuffer = function(){
+
+    var bufferKey = function(event, interval) {
+        return '$$' + event + "_" + interval;
+    };
+
+    var EventBuffer = defineClass({
+
+        queue: null,
+        observable: null,
+        handlerDelegate: null,
+        triggerDelegate: null,
+        watchers: null,
+        breaks: null,
+        running: false,
+        lastEvent: null,
+        currentEvent: null,
+        interval: null,
+
+        $init: function(node, event, interval) {
+
+            var self = this,
+                key = bufferKey(event, interval);
+
+            if (node[key]) {
+                return node[key];
+            }
+
+            node[key] = self;
+
+
+            self.breaks = {};
+            self.watchers = {};
+            self.node = node;
+            self.event = event;
+            self.observable = new Observable;
+            self.interval = interval || 0;
+            self.handlerDelegate = bind(self.handler, self);
+            self.triggerDelegate = bind(self.trigger, self);
+
+            self.up();
+        },
+
+        handler: function(e) {
+            var self = this;
+            if (self.running) {
+                if (e) {
+                    self.lastEvent = e;
+                }
+            }
+            else {
+                self.next(e);
+            }
+        },
+
+        next: function(e) {
+
+            var self = this,
+                itv = self.interval;
+
+            e = e || self.lastEvent;
+
+            if (!e) {
+                return;
+            }
+
+            self.lastEvent = null;
+            self.running = true;
+            self.currentEvent = e;
+
+            if (itv == "raf") {
+                raf(self.triggerDelegate);
+            }
+            else {
+                setTimeout(self.triggerDelegate, itv);
+            }
+        },
+
+        watchWidth: function() {
+            this.addWatcher("width", getWidth);
+        },
+
+        watchHeight: function() {
+            this.addWatcher("width", getHeight);
+        },
+
+        watchScrollTop: function() {
+            this.addWatcher("scrollTop", getScrollTop);
+        },
+
+        watchScrollLeft: function() {
+            this.addWatcher("scrollLeft", getScrollLeft);
+        },
+
+        addWatcher: function(name, fn, context) {
+            this.watchers[name] = {
+                fn: fn,
+                context: context,
+                prev: null,
+                current: parseInt(fn.call(context, this.node), 10)
+            };
+        },
+
+        removeWatcher: function(name) {
+            delete this.watchers[name];
+        },
+
+        breakFilter: function(l, args, event) {
+            var self        = this,
+                breakValue  = l.breakValue,
+                w           = self.watchers[event.watcher],
+                current     = w.current,
+                prev        = w.prev,
+                min         = Math.min(prev, current),
+                max         = Math.max(prev, current);
+
+            args[0].breakPosition = current < breakValue ? -1 : 1;
+
+            return min <= breakValue && breakValue <= max;
+        },
+
+        onBreak: function(watcher, breakValue, fn, context, options) {
+            var self = this,
+                name = watcher + "_" + breakValue;
+
+            options = options || {};
+            options.breakValue = breakValue;
+
+            if (!self.breaks[name]) {
+                self.breaks[name] = self.observable.createEvent(name, {
+                    watcher: watcher,
+                    triggerFilter: self.breakFilter,
+                    filterContext: self
+                });
+            }
+
+            self.breaks[name].on(fn, context, options);
+        },
+
+        unBreak: function(watcher, breakValue, fn, context, destroy) {
+            var self = this,
+                name = watcher + "_" + breakValue;
+            if (self.breaks[name]) {
+                self.breaks[name].un(fn, context);
+                if (!self.breaks[name].hasListener()) {
+                    self.breaks[name].destroy();
+                    delete self.breaks[name];
+                }
+            }
+            if (destroy) {
+                self.destroyIfIdle();
+            }
+        },
+
+        on: function(fn, context) {
+            this.observable.on(this.event, fn, context);
+        },
+
+        un: function(fn, context, destroy) {
+            var self = this;
+            self.observable.un(self.event, fn, context);
+            if (destroy) {
+                self.destroyIfIdle();
+            }
+        },
+
+        trigger: function() {
+            var self = this,
+                e = self.currentEvent,
+                ws = self.watchers,
+                bs = self.breaks,
+                node = self.node,
+                w, b;
+
+            self.observable.trigger(self.event, e);
+
+            for (w in ws) {
+                ws[w].prev = ws[w].current;
+                ws[w].current = parseInt(ws[w].fn.call(ws[w].context, node, e), 10);
+            }
+
+            for (b in bs) {
+                bs[b].trigger(e);
+            }
+
+            self.running = false;
+            self.currentEvent = null;
+
+            self.next();
+        },
+
+        up: function() {
+            var self = this;
+            addListener(self.node, self.event, self.handlerDelegate);
+        },
+
+        down: function() {
+            var self = this;
+            removeListener(self.node, self.event, self.handlerDelegate);
+        },
+
+        destroyIfIdle: function() {
+            if (!this.observable.hasListener()) {
+                this.$destroy();
+                return true;
+            }
+        },
+
+        destroy: function() {
+
+            var self = this;
+
+            self.down();
+            self.observable.destroy();
+            self.queue.destroy();
+
+        }
+
+    }, {
+        get: function(node, event, interval) {
+            var key = bufferKey(event, interval);
+
+            if (node[key]) {
+                return node[key];
+            }
+
+            return node[key] = new EventBuffer(node, event, interval);
+        }
+    });
+
+    return EventBuffer;
+
+}();
+
+
+
 
 
 var EventHandler = defineClass({
@@ -5719,11 +6205,11 @@ var EventHandler = defineClass({
     node: null,
     listeners: null,
     event: null,
+    buffers: null,
 
     $init: function(scope, node, cfg, event, defaults) {
 
-        var self = this,
-            tmp;
+        var self = this;
 
         self.event = event;
 
@@ -5754,6 +6240,7 @@ var EventHandler = defineClass({
 
         self.prepareConfig(cfg, defaults);
 
+        self.buffers    = {};
         self.listeners  = [];
         self.scope      = scope;
         self.node       = node;
@@ -5797,9 +6284,7 @@ var EventHandler = defineClass({
         self.up();
     },
 
-    createHandler: function(cfg) {
-
-        var scope = this.scope;
+    createHandler: function(cfg, scope) {
 
         return function(e){
 
@@ -5846,15 +6331,27 @@ var EventHandler = defineClass({
         var self    = this,
             cfg     = self.cfg,
             ls      = self.listeners,
+            bs      = self.buffers,
             node    = self.node,
+            scope   = self.scope,
+            buffer  = cfg.buffer,
             handler,
             event;
 
         for (event in cfg) {
             if (cfg.if === undf || cfg.if) {
-                handler = self.createHandler(cfg[event]);
+                handler = self.createHandler(cfg[event], scope);
                 ls.push([event, handler]);
-                addListener(node, event, handler);
+
+                if (buffer) {
+                    if (!bs[event]) {
+                        bs[event] = EventBuffer.get(node, event, buffer);
+                        bs[event].on(handler);
+                    }
+                }
+                else {
+                    addListener(node, event, handler);
+                }
             }
         }
     },
@@ -5863,14 +6360,29 @@ var EventHandler = defineClass({
 
         var self    = this,
             ls      = self.listeners,
+            bs      = self.buffers,
             node    = self.node,
+            buffer  = self.cfg.buffer,
+            event,
+            handler,
             i, l;
 
+
         for (i = 0, l = ls.length; i < l; i++) {
-            removeListener(node, ls[i][0], ls[i][1]);
+            event = ls[i][0];
+            handler = ls[i][1];
+            if (buffer) {
+                bs[event].un(handler);
+                if (bs[event].destroyIfIdle() === true) {
+                    delete bs[event];
+                }
+            }
+            else {
+                removeListener(node, event, handler);
+            }
         }
 
-        self.listeners = [];
+        self.listeners  = [];
     },
 
     destroy: function() {
@@ -8112,6 +8624,15 @@ MetaphorJs['normalizeEvent'] = normalizeEvent;
 MetaphorJs['mousewheelHandler'] = mousewheelHandler;
 MetaphorJs['addListener'] = addListener;
 MetaphorJs['removeListener'] = removeListener;
+MetaphorJs['getStyle'] = getStyle;
+MetaphorJs['boxSizingReliable'] = boxSizingReliable;
+MetaphorJs['getDimensions'] = getDimensions;
+MetaphorJs['getWidth'] = getWidth;
+MetaphorJs['getHeight'] = getHeight;
+MetaphorJs['getScrollTopOrLeft'] = getScrollTopOrLeft;
+MetaphorJs['getScrollTop'] = getScrollTop;
+MetaphorJs['getScrollLeft'] = getScrollLeft;
+MetaphorJs['EventBuffer'] = EventBuffer;
 MetaphorJs['EventHandler'] = EventHandler;
 MetaphorJs['createFunc'] = createFunc;
 MetaphorJs['isIE'] = isIE;

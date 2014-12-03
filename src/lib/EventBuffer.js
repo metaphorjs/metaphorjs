@@ -150,7 +150,7 @@ module.exports = function(){
             self.breaks[name].on(fn, context, options);
         },
 
-        unBreak: function(watcher, breakValue, fn, context) {
+        unBreak: function(watcher, breakValue, fn, context, destroy) {
             var self = this,
                 name = watcher + "_" + breakValue;
             if (self.breaks[name]) {
@@ -160,14 +160,21 @@ module.exports = function(){
                     delete self.breaks[name];
                 }
             }
+            if (destroy) {
+                self.destroyIfIdle();
+            }
         },
 
         on: function(fn, context) {
             this.observable.on(this.event, fn, context);
         },
 
-        un: function(fn, context) {
-            this.observable.un(this.event, fn, context);
+        un: function(fn, context, destroy) {
+            var self = this;
+            self.observable.un(self.event, fn, context);
+            if (destroy) {
+                self.destroyIfIdle();
+            }
         },
 
         trigger: function() {
@@ -203,6 +210,13 @@ module.exports = function(){
         down: function() {
             var self = this;
             removeListener(self.node, self.event, self.handlerDelegate);
+        },
+
+        destroyIfIdle: function() {
+            if (!this.observable.hasListener()) {
+                this.$destroy();
+                return true;
+            }
         },
 
         destroy: function() {
