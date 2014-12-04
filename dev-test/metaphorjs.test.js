@@ -9113,6 +9113,11 @@ var Component = defineClass({
     node:           null,
 
     /**
+     * @var string
+     */
+    cls:            null,
+
+    /**
      * @var string|Element
      * @access protected
      */
@@ -9201,9 +9206,12 @@ var Component = defineClass({
         }
 
         if (self.node) {
-            self.id = getAttr(self.node, "id");
-            if (self.id) {
+            var nodeId = getAttr(self.node, "id");
+            if (nodeId) {
                 self.originalId = true;
+                if (!self.id) {
+                    self.id = nodeId;
+                }
             }
         }
 
@@ -9211,6 +9219,10 @@ var Component = defineClass({
 
         if (!self.node) {
             self._createNode();
+        }
+
+        if (self.cls) {
+            addClass(self.node, self.cls);
         }
 
         self.initComponent.apply(self, arguments);
@@ -9430,6 +9442,9 @@ var Component = defineClass({
             removeAttr(self.node, "cmp-id");
             if (!self.originalId) {
                 removeAttr(self.node, "id");
+            }
+            if (self.cls) {
+                removeClass(self.node, self.cls);
             }
         }
 
@@ -11512,7 +11527,8 @@ var Input = function(el, changeFn, changeFnContext) {
 
     self.observable     = new Observable;
     self.el             = el;
-    self.inputType      = cfg.type || el.type.toLowerCase();
+    self.inputType      = el.type.toLowerCase();
+    self.dataType       = cfg.type || self.inputType;
     self.listeners      = [];
 
     if (changeFn) {
@@ -11524,6 +11540,7 @@ extend(Input.prototype, {
 
     el: null,
     inputType: null,
+    dataType: null,
     listeners: null,
     radio: null,
     keydownDelegate: null,
@@ -11709,13 +11726,18 @@ extend(Input.prototype, {
 
     processValue: function(val) {
 
-        switch (this.inputType) {
+        switch (this.dataType) {
             case "number":
                 val     = parseInt(val, 10);
                 if (isNaN(val)) {
                     val = 0;
                 }
                 break;
+            case "bool":
+            case "boolean":
+                return !(val === "false" || val === "0" || val === 0 ||
+                        val === "off" || val === false || val === "");
+
         }
 
         return val;
@@ -11726,7 +11748,7 @@ extend(Input.prototype, {
         var self    = this,
             val     = self.getValue();
 
-        self.observable.trigger("change", val);
+        self.observable.trigger("change", self.processValue(val));
     },
 
     onCheckboxInputChange: function() {
@@ -11734,7 +11756,9 @@ extend(Input.prototype, {
         var self    = this,
             node    = self.el;
 
-        self.observable.trigger("change", node.checked ? (getAttr(node, "value") || true) : false);
+        self.observable.trigger("change", self.processValue(
+            node.checked ? (getAttr(node, "value") || true) : false)
+        );
     },
 
     onRadioInputChange: function(e) {
@@ -11744,7 +11768,7 @@ extend(Input.prototype, {
         var self    = this,
             trg     = e.target || e.srcElement;
 
-        self.observable.trigger("change", trg.value);
+        self.observable.trigger("change", self.processValue(trg.value));
     },
 
     setValue: function(val) {
@@ -11754,17 +11778,19 @@ extend(Input.prototype, {
             radio,
             i, len;
 
+        val = self.processValue(val);
+
         if (type == "radio") {
 
             radio = self.radio;
 
             for (i = 0, len = radio.length; i < len; i++) {
-                radio[i].checked = radio[i].value == val;
+                radio[i].checked = self.processValue(radio[i].value) == val;
             }
         }
         else if (type == "checkbox") {
             var node        = self.el;
-            node.checked    = val === true || val == node.value;
+            node.checked    = val === true || val == self.processValue(node.value);
         }
         else {
             setValue(self.el, val);
@@ -11782,13 +11808,13 @@ extend(Input.prototype, {
             radio = self.radio;
             for (i = 0, l = radio.length; i < l; i++) {
                 if (radio[i].checked) {
-                    return radio[i].value;
+                    return self.processValue(radio[i].value);
                 }
             }
             return null;
         }
         else if (type == "checkbox") {
-            return self.el.checked ? (getAttr(self.el, "value") || true) : false;
+            return self.processValue(self.el.checked ? (getAttr(self.el, "value") || true) : false);
         }
         else {
             return self.processValue(getValue(self.el));
@@ -14389,7 +14415,9 @@ var Model = function(){
                 };
 
 
-            self.fields     = {};
+            if (!self.fields) {
+                self.fields = {};
+            }
 
             extend(self, defaults, false, true);
             extend(self, cfg, true, true);

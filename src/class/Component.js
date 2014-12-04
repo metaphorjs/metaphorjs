@@ -10,7 +10,9 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     extend = require("../func/extend.js"),
     Template = require("./Template.js"),
     Scope = require("../lib/Scope.js"),
-    ObservableMixin = require("../mixin/ObservableMixin.js");
+    ObservableMixin = require("../mixin/ObservableMixin.js"),
+    addClass = require("../func/dom/addClass.js"),
+    removeClass = require("../func/dom/removeClass.js");
 
 
 /**
@@ -35,6 +37,11 @@ module.exports = defineClass({
      * @access protected
      */
     node:           null,
+
+    /**
+     * @var string
+     */
+    cls:            null,
 
     /**
      * @var string|Element
@@ -125,9 +132,12 @@ module.exports = defineClass({
         }
 
         if (self.node) {
-            self.id = getAttr(self.node, "id");
-            if (self.id) {
+            var nodeId = getAttr(self.node, "id");
+            if (nodeId) {
                 self.originalId = true;
+                if (!self.id) {
+                    self.id = nodeId;
+                }
             }
         }
 
@@ -135,6 +145,10 @@ module.exports = defineClass({
 
         if (!self.node) {
             self._createNode();
+        }
+
+        if (self.cls) {
+            addClass(self.node, self.cls);
         }
 
         self.initComponent.apply(self, arguments);
@@ -354,6 +368,9 @@ module.exports = defineClass({
             removeAttr(self.node, "cmp-id");
             if (!self.originalId) {
                 removeAttr(self.node, "id");
+            }
+            if (self.cls) {
+                removeClass(self.node, self.cls);
             }
         }
 

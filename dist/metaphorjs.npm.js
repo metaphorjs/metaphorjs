@@ -2978,6 +2978,64 @@ var Template = function(){
 
 
 
+var getRegExp = function(){
+
+    var cache = {};
+
+    /**
+     * @param {String} expr
+     * @returns RegExp
+     */
+    return function getRegExp(expr) {
+        return cache[expr] || (cache[expr] = new RegExp(expr));
+    };
+}();
+
+
+
+/**
+ * @param {String} cls
+ * @returns {RegExp}
+ */
+function getClsReg(cls) {
+    return getRegExp('(?:^|\\s)'+cls+'(?!\\S)');
+};
+
+
+
+/**
+ * @param {Element} el
+ * @param {String} cls
+ * @returns {boolean}
+ */
+function hasClass(el, cls) {
+    return cls ? getClsReg(cls).test(el.className) : false;
+};
+
+
+
+/**
+ * @param {Element} el
+ * @param {String} cls
+ */
+function addClass(el, cls) {
+    if (cls && !hasClass(el, cls)) {
+        el.className += " " + cls;
+    }
+};
+
+
+
+/**
+ * @param {Element} el
+ * @param {String} cls
+ */
+function removeClass(el, cls) {
+    if (cls) {
+        el.className = el.className.replace(getClsReg(cls), '');
+    }
+};
+
 
 
 
@@ -3004,6 +3062,11 @@ var Component = defineClass({
      * @access protected
      */
     node:           null,
+
+    /**
+     * @var string
+     */
+    cls:            null,
 
     /**
      * @var string|Element
@@ -3094,9 +3157,12 @@ var Component = defineClass({
         }
 
         if (self.node) {
-            self.id = getAttr(self.node, "id");
-            if (self.id) {
+            var nodeId = getAttr(self.node, "id");
+            if (nodeId) {
                 self.originalId = true;
+                if (!self.id) {
+                    self.id = nodeId;
+                }
             }
         }
 
@@ -3104,6 +3170,10 @@ var Component = defineClass({
 
         if (!self.node) {
             self._createNode();
+        }
+
+        if (self.cls) {
+            addClass(self.node, self.cls);
         }
 
         self.initComponent.apply(self, arguments);
@@ -3324,6 +3394,9 @@ var Component = defineClass({
             if (!self.originalId) {
                 removeAttr(self.node, "id");
             }
+            if (self.cls) {
+                removeClass(self.node, self.cls);
+            }
         }
 
         if (self.destroyScope && self.scope) {
@@ -3340,41 +3413,6 @@ var Component = defineClass({
  */
 
 
-
-var getRegExp = function(){
-
-    var cache = {};
-
-    /**
-     * @param {String} expr
-     * @returns RegExp
-     */
-    return function getRegExp(expr) {
-        return cache[expr] || (cache[expr] = new RegExp(expr));
-    };
-}();
-
-
-
-/**
- * @param {String} cls
- * @returns {RegExp}
- */
-function getClsReg(cls) {
-    return getRegExp('(?:^|\\s)'+cls+'(?!\\S)');
-};
-
-
-
-/**
- * @param {Element} el
- * @param {String} cls
- */
-function removeClass(el, cls) {
-    if (cls) {
-        el.className = el.className.replace(getClsReg(cls), '');
-    }
-};
 
 
 
@@ -4655,29 +4693,6 @@ var ListRenderer = defineClass({
 
 
 var currentUrl = mhistory.current;
-
-
-
-/**
- * @param {Element} el
- * @param {String} cls
- * @returns {boolean}
- */
-function hasClass(el, cls) {
-    return cls ? getClsReg(cls).test(el.className) : false;
-};
-
-
-
-/**
- * @param {Element} el
- * @param {String} cls
- */
-function addClass(el, cls) {
-    if (cls && !hasClass(el, cls)) {
-        el.className += " " + cls;
-    }
-};
 
 
 
@@ -8326,10 +8341,12 @@ MetaphorJs['clone'] = clone;
 MetaphorJs['strUndef'] = strUndef;
 MetaphorJs['Cache'] = Cache;
 MetaphorJs['Template'] = Template;
-MetaphorJs['Component'] = Component;
 MetaphorJs['getRegExp'] = getRegExp;
 MetaphorJs['getClsReg'] = getClsReg;
+MetaphorJs['hasClass'] = hasClass;
+MetaphorJs['addClass'] = addClass;
 MetaphorJs['removeClass'] = removeClass;
+MetaphorJs['Component'] = Component;
 MetaphorJs['stopAnimation'] = stopAnimation;
 MetaphorJs['async'] = async;
 MetaphorJs['isNumber'] = isNumber;
@@ -8345,8 +8362,6 @@ MetaphorJs['getNodeConfig'] = getNodeConfig;
 MetaphorJs['getAnimationPrefixes'] = getAnimationPrefixes;
 MetaphorJs['ListRenderer'] = ListRenderer;
 MetaphorJs['currentUrl'] = currentUrl;
-MetaphorJs['hasClass'] = hasClass;
-MetaphorJs['addClass'] = addClass;
 MetaphorJs['resolveComponent'] = resolveComponent;
 MetaphorJs['returnFalse'] = returnFalse;
 MetaphorJs['isField'] = isField;
