@@ -11011,7 +11011,12 @@ defineClass({
     cmp: null,
     id: null,
 
+    currentViewId: null,
     currentComponent: null,
+    cmpCache: null,
+    domCache: null,
+    currentView: null,
+
     watchable: null,
     defaultCmp: null,
 
@@ -11037,6 +11042,9 @@ defineClass({
             self.id = nextUid();
         }
 
+        self.cmpCache = {};
+        self.domCache = {};
+
         self.initView();
 
         self.scope.$app.registerCmp(self, self.scope, "id");
@@ -11044,6 +11052,7 @@ defineClass({
         if (self.route) {
             mhistory.init();
             mhistory.on("locationChange", self.onLocationChange, self);
+            self.initRouteIds();
             self.onLocationChange();
         }
         else if (self.cmp) {
@@ -11054,6 +11063,17 @@ defineClass({
 
     initView: function() {
 
+    },
+
+    initRouteIds: function() {
+
+        var self = this,
+            routes = self.route,
+            i, l;
+
+        for (i = 0, l = routes.length; i < l; i++) {
+            routes[i].id = routes[i].id || nextUid();
+        }
     },
 
     onCmpChange: function() {
@@ -11073,6 +11093,7 @@ defineClass({
         var self    = this,
             url     = currentUrl(),
             routes  = self.route,
+            cview   = self.currentView || {},
             def,
             i, len,
             r, matches;
@@ -11089,19 +11110,29 @@ defineClass({
             }
         }
 
-        self.clearComponent();
-
         if (def) {
+            if (def.id == cview.id) {
+                return;
+            }
+            self.clearComponent();
             self.setRouteClasses(def);
             self.setRouteComponent(def, []);
         }
         else if (self.defaultCmp) {
+            self.clearComponent();
+            self.currentView = null;
             self.setComponent(self.defaultCmp);
         }
     },
 
     changeRouteComponent: function(route, matches) {
-        var self = this;
+        var self = this,
+            cview = self.currentView || {};
+
+        if (route.id == cview.id) {
+            return;
+        }
+
         stopAnimation(self.node);
         self.clearComponent();
         self.setRouteClasses(route);
@@ -11123,7 +11154,8 @@ defineClass({
 
     clearComponent: function() {
         var self    = this,
-            node    = self.node;
+            node    = self.node,
+            cview   = self.currentView || {};
 
         if (self.currentCls) {
             removeClass(self.node, self.currentCls);
@@ -11137,12 +11169,20 @@ defineClass({
 
             animate(node, "leave", null, true).done(function(){
 
-                self.currentComponent.destroy();
-                self.currentComponent = null;
-
-                while (node.firstChild) {
-                    node.removeChild(node.firstChild);
+                if (!cview.keepAlive) {
+                    self.currentComponent.destroy();
+                    while (node.firstChild) {
+                        node.removeChild(node.firstChild);
+                    }
                 }
+                else {
+                    var frg = self.domCache[cview.id];
+                    while (node.firstChild) {
+                        frg.appendChild(node.firstChild);
+                    }
+                }
+
+                self.currentComponent = null;
             });
         }
 
@@ -11153,6 +11193,8 @@ defineClass({
         var self    = this,
             node    = self.node,
             params  = route.params;
+
+        self.currentView = route;
 
         animate(node, "enter", function(){
 
@@ -11179,7 +11221,12 @@ defineClass({
                 for (i = -1, l = params.length; ++i < l; cfg[params[i]] = args[i]){}
             }
 
-            return resolveComponent(
+            if (self.cmpCache[route.id]) {
+                self.currentComponent = self.cmpCache[route.id];
+                node.appendChild(self.domCache[route.id]);
+            }
+            else {
+                return resolveComponent(
                     route.cmp || "MetaphorJs.Component",
                     cfg,
                     cfg.scope,
@@ -11187,9 +11234,15 @@ defineClass({
                     null,
                     args
                 )
-                .done(function(newCmp){
-                    self.currentComponent = newCmp;
-                });
+                    .done(function (newCmp) {
+                        self.currentComponent = newCmp;
+
+                        if (route.keepAlive) {
+                            self.cmpCache[route.id] = newCmp;
+                            self.domCache[route.id] = window.document.createDocumentFragment();
+                        }
+                    });
+            }
 
         }, true);
     },
