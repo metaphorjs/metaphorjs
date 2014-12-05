@@ -1,9 +1,15 @@
-var createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
+var createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
+    animate = require("metaphorjs-animate/src/metaphorjs.animate.js"),
+    stopAnimation = require("metaphorjs-animate/src/func/stopAnimation.js"),
+    ns = require("metaphorjs-namespace/src/var/ns.js"),
+    Promise = require("metaphorjs-promise/src/metaphorjs.promise.js"),
+    raf = require("metaphorjs-animate/src/func/raf.js"),
+    defineClass = require("metaphorjs-class/src/func/defineClass.js"),
+    getAnimationPrefixes = require("metaphorjs-animate/src/func/getAnimationPrefixes.js"),
+
     toArray = require("../func/array/toArray.js"),
     nextUid = require("../func/nextUid.js"),
     emptyFn = require("../func/emptyFn.js"),
-    animate = require("../../../metaphorjs-animate/src/metaphorjs.animate.js"),
-    stopAnimation = require("../../../metaphorjs-animate/src/func/stopAnimation.js"),
     Renderer = require("./Renderer.js"),
     Queue = require("../lib/Queue.js"),
     isNull = require("../func/isNull.js"),
@@ -11,16 +17,12 @@ var createWatchable = require("../../../metaphorjs-watchable/src/func/createWatc
     isPrimitive = require("../func/isPrimitive.js"),
     bind = require("../func/bind.js"),
     undf = require("../var/undf.js"),
-    ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
     isFunction = require("../func/isFunction.js"),
     async = require("../func/async.js"),
     getAttr = require("../func/dom/getAttr.js"),
     removeAttr = require("../func/dom/removeAttr.js"),
-    Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
-    raf = require("../../../metaphorjs-animate/src/func/raf.js"),
-    getNodeConfig = require("../func/dom/getNodeConfig.js"),
-    defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
-    getAnimationPrefixes = require("../../../metaphorjs-animate/src/func/getAnimationPrefixes.js");
+    getNodeConfig = require("../func/dom/getNodeConfig.js");
+    
 
 module.exports = defineClass({
 

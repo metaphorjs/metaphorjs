@@ -9758,6 +9758,7 @@ function getNodeConfig(node, scope, expr) {
     return cfg;
 };
 
+    
 
 var ListRenderer = defineClass({
 
@@ -14068,6 +14069,30 @@ var numberFormats = {};
 nsAdd("filter.numeral",  function(val, scope, format) {
     format  = numberFormats[format] || format;
     return numeral(val).format(format);
+});
+
+
+
+nsAdd("filter.offset", function(input, scope, offset){
+
+    var isS = isString(input);
+
+    if (!isArray(input) && !isS) {
+        return input;
+    }
+
+    if (Math.abs(Number(offset)) === Infinity) {
+        offset = Number(offset);
+    } else {
+        offset = parseInt(offset, 10);
+    }
+
+    if (isS) {
+        return input.substr(offset);
+    }
+    else {
+        return input.slice(offset);
+    }
 });
 
 

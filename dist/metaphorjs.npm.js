@@ -3452,6 +3452,125 @@ var stopAnimation = function(el) {
     data(el, "mjsAnimationQueue", null);
 };
 
+
+
+
+var raf = function() {
+
+    var raf,
+        cancel;
+
+    if (typeof window != strUndef) {
+        var w   = window;
+        raf     = w.requestAnimationFrame ||
+                    w.webkitRequestAnimationFrame ||
+                    w.mozRequestAnimationFrame;
+        cancel  = w.cancelAnimationFrame ||
+                    w.webkitCancelAnimationFrame ||
+                    w.mozCancelAnimationFrame ||
+                    w.webkitCancelRequestAnimationFrame;
+
+        if (raf) {
+            return function(fn) {
+                var id = raf(fn);
+                return function() {
+                    cancel(id);
+                };
+            };
+        }
+    }
+
+    return function(fn) {
+        var id = setTimeout(fn, 0);
+        return function() {
+            clearTimeout(id);
+        }
+    };
+}();
+
+
+
+var getAnimationPrefixes = function(){
+
+    var domPrefixes         = ['Moz', 'Webkit', 'ms', 'O', 'Khtml'],
+        animationDelay      = "animationDelay",
+        animationDuration   = "animationDuration",
+        transitionDelay     = "transitionDelay",
+        transitionDuration  = "transitionDuration",
+        transform           = "transform",
+        transitionend       = null,
+        prefixes            = null,
+
+        probed              = false,
+
+        detectCssPrefixes   = function() {
+
+            var el = window.document.createElement("div"),
+                animation = false,
+                pfx,
+                i, len;
+
+            if (el.style['animationName'] !== undf) {
+                animation = true;
+            }
+            else {
+                for(i = 0, len = domPrefixes.length; i < len; i++) {
+                    pfx = domPrefixes[i];
+                    if (el.style[ pfx + 'AnimationName' ] !== undf) {
+                        animation           = true;
+                        animationDelay      = pfx + "AnimationDelay";
+                        animationDuration   = pfx + "AnimationDuration";
+                        transitionDelay     = pfx + "TransitionDelay";
+                        transitionDuration  = pfx + "TransitionDuration";
+                        transform           = pfx + "Transform";
+                        break;
+                    }
+                }
+            }
+
+            if (animation) {
+                if('ontransitionend' in window) {
+                    // Chrome/Saf (+ Mobile Saf)/Android
+                    transitionend = 'transitionend';
+                }
+                else if('onwebkittransitionend' in window) {
+                    // Chrome/Saf (+ Mobile Saf)/Android
+                    transitionend = 'webkitTransitionEnd';
+                }
+            }
+
+            return animation;
+        };
+
+
+    /**
+     * @function animate.getPrefixes
+     * @returns {object}
+     */
+    return function() {
+
+        if (!probed) {
+            if (detectCssPrefixes()) {
+                prefixes = {
+                    animationDelay: animationDelay,
+                    animationDuration: animationDuration,
+                    transitionDelay: transitionDelay,
+                    transitionDuration: transitionDuration,
+                    transform: transform,
+                    transitionend: transitionend
+                };
+            }
+            else {
+                prefixes = {};
+            }
+
+            probed = true;
+        }
+
+
+        return prefixes;
+    };
+}();
 /**
  * @param {Function} fn
  * @param {Object} context
@@ -3488,41 +3607,6 @@ function error(e) {
         throw e;
     }
 };
-
-
-
-var raf = function() {
-
-    var raf,
-        cancel;
-
-    if (typeof window != strUndef) {
-        var w   = window;
-        raf     = w.requestAnimationFrame ||
-                    w.webkitRequestAnimationFrame ||
-                    w.mozRequestAnimationFrame;
-        cancel  = w.cancelAnimationFrame ||
-                    w.webkitCancelAnimationFrame ||
-                    w.mozCancelAnimationFrame ||
-                    w.webkitCancelRequestAnimationFrame;
-
-        if (raf) {
-            return function(fn) {
-                var id = raf(fn);
-                return function() {
-                    cancel(id);
-                };
-            };
-        }
-    }
-
-    return function(fn) {
-        var id = setTimeout(fn, 0);
-        return function() {
-            clearTimeout(id);
-        }
-    };
-}();
 
 
 
@@ -3989,90 +4073,7 @@ function getNodeConfig(node, scope, expr) {
     return cfg;
 };
 
-
-
-var getAnimationPrefixes = function(){
-
-    var domPrefixes         = ['Moz', 'Webkit', 'ms', 'O', 'Khtml'],
-        animationDelay      = "animationDelay",
-        animationDuration   = "animationDuration",
-        transitionDelay     = "transitionDelay",
-        transitionDuration  = "transitionDuration",
-        transform           = "transform",
-        transitionend       = null,
-        prefixes            = null,
-
-        probed              = false,
-
-        detectCssPrefixes   = function() {
-
-            var el = window.document.createElement("div"),
-                animation = false,
-                pfx,
-                i, len;
-
-            if (el.style['animationName'] !== undf) {
-                animation = true;
-            }
-            else {
-                for(i = 0, len = domPrefixes.length; i < len; i++) {
-                    pfx = domPrefixes[i];
-                    if (el.style[ pfx + 'AnimationName' ] !== undf) {
-                        animation           = true;
-                        animationDelay      = pfx + "AnimationDelay";
-                        animationDuration   = pfx + "AnimationDuration";
-                        transitionDelay     = pfx + "TransitionDelay";
-                        transitionDuration  = pfx + "TransitionDuration";
-                        transform           = pfx + "Transform";
-                        break;
-                    }
-                }
-            }
-
-            if (animation) {
-                if('ontransitionend' in window) {
-                    // Chrome/Saf (+ Mobile Saf)/Android
-                    transitionend = 'transitionend';
-                }
-                else if('onwebkittransitionend' in window) {
-                    // Chrome/Saf (+ Mobile Saf)/Android
-                    transitionend = 'webkitTransitionEnd';
-                }
-            }
-
-            return animation;
-        };
-
-
-    /**
-     * @function animate.getPrefixes
-     * @returns {object}
-     */
-    return function() {
-
-        if (!probed) {
-            if (detectCssPrefixes()) {
-                prefixes = {
-                    animationDelay: animationDelay,
-                    animationDuration: animationDuration,
-                    transitionDelay: transitionDelay,
-                    transitionDuration: transitionDuration,
-                    transform: transform,
-                    transitionend: transitionend
-                };
-            }
-            else {
-                prefixes = {};
-            }
-
-            probed = true;
-        }
-
-
-        return prefixes;
-    };
-}();
-
+    
 
 var ListRenderer = defineClass({
 
@@ -7608,6 +7609,30 @@ nsAdd("filter.numeral",  function(val, scope, format) {
 
 
 
+nsAdd("filter.offset", function(input, scope, offset){
+
+    var isS = isString(input);
+
+    if (!isArray(input) && !isS) {
+        return input;
+    }
+
+    if (Math.abs(Number(offset)) === Infinity) {
+        offset = Number(offset);
+    } else {
+        offset = parseInt(offset, 10);
+    }
+
+    if (isS) {
+        return input.substr(offset);
+    }
+    else {
+        return input.slice(offset);
+    }
+});
+
+
+
 nsAdd("filter.p", function(key, scope, number) {
     return scope.$app.lang.plural(key, parseInt(number, 10) || 0);
 });
@@ -8348,10 +8373,11 @@ MetaphorJs['addClass'] = addClass;
 MetaphorJs['removeClass'] = removeClass;
 MetaphorJs['Component'] = Component;
 MetaphorJs['stopAnimation'] = stopAnimation;
+MetaphorJs['raf'] = raf;
+MetaphorJs['getAnimationPrefixes'] = getAnimationPrefixes;
 MetaphorJs['async'] = async;
 MetaphorJs['isNumber'] = isNumber;
 MetaphorJs['error'] = error;
-MetaphorJs['raf'] = raf;
 MetaphorJs['Queue'] = Queue;
 MetaphorJs['isPrimitive'] = isPrimitive;
 MetaphorJs['functionFactory'] = functionFactory;
@@ -8359,7 +8385,6 @@ MetaphorJs['createGetter'] = createGetter;
 MetaphorJs['toCamelCase'] = toCamelCase;
 MetaphorJs['getNodeData'] = getNodeData;
 MetaphorJs['getNodeConfig'] = getNodeConfig;
-MetaphorJs['getAnimationPrefixes'] = getAnimationPrefixes;
 MetaphorJs['ListRenderer'] = ListRenderer;
 MetaphorJs['currentUrl'] = currentUrl;
 MetaphorJs['resolveComponent'] = resolveComponent;
