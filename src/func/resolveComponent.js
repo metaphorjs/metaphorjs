@@ -3,11 +3,12 @@
 var toFragment = require("./dom/toFragment.js"),
     data = require("./dom/data.js"),
     extend = require("./extend.js"),
+    error = require("./error.js"),
     addClass = require("./dom/addClass.js"),
     removeClass = require("./dom/removeClass.js"),
-    nsGet = require("../../../metaphorjs-namespace/src/func/nsGet.js"),
+    nsGet = require("metaphorjs-namespace/src/func/nsGet.js"),
     Template = require("../class/Template.js"),
-    Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
+    Promise = require("metaphorjs-promise/src/metaphorjs.promise.js"),
     Provider = require("../lib/Provider.js"),
     isString = require("./isString.js"),
     isFunction = require("./isFunction.js"),
@@ -59,6 +60,7 @@ module.exports = function resolveComponent(cmp, cfg, scope, node, args) {
                 var d = new Promise,
                     fn;
 
+
                 defers.push(d.done(function(value){
                     inject[name] = value;
                     cfg[name] = value;
@@ -80,6 +82,8 @@ module.exports = function resolveComponent(cmp, cfg, scope, node, args) {
                         )
                     );
                 }
+
+                d.fail(error);
 
             }(i));
         }

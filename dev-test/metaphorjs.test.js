@@ -2081,6 +2081,9 @@ extend(Event.prototype, {
             else if (returnResult == "first") {
                 return res;
             }
+            else if (returnResult == "nonempty" && res) {
+                return res;
+            }
             else if (returnResult == "last") {
                 ret = res;
             }
@@ -5813,8 +5816,7 @@ var Provider = function(){
             };
         },
 
-
-        resolve: function(name, currentValues) {
+        resolve: function(name, currentValues, callArgs) {
 
             var self    = this,
                 store   = self.store,
@@ -5834,10 +5836,10 @@ var Provider = function(){
                     return item.value;
                 }
                 else if (type == FACTORY) {
-                    res = self.inject(item.fn, item.context, currentValues);
+                    res = self.inject(item.fn, item.context, currentValues, callArgs);
                 }
                 else if (type == SERVICE) {
-                    res = self.inject(item.fn, null, currentValues, null, true);
+                    res = self.inject(item.fn, null, currentValues, callArgs, true);
                 }
                 else if (type == PROVIDER) {
 
@@ -5889,8 +5891,11 @@ var Provider = function(){
         },
 
         destroy: function() {
-            this.store = null;
-            this.scope = null;
+
+            var self = this;
+
+            self.store = null;
+            self.scope = null;
         }
 
     }, true, false);
@@ -6037,6 +6042,7 @@ defineClass({
     renderer: null,
     cmpListeners: null,
     components: null,
+    sourceObs: null,
 
     $init: function(node, data) {
 
@@ -6075,6 +6081,23 @@ defineClass({
         this.renderer.process();
     },
 
+    createSource: function(name, returnResult) {
+        var key = "source-" + name,
+            self = this;
+
+        if (!self.$$observable.getEvent(key)) {
+            self.$$observable.createEvent(key, returnResult || "nonempty");
+        }
+    },
+
+    registerSource: function(name, fn, context) {
+        this.on("source-" + name, fn, context);
+    },
+
+    collect: function(name) {
+        arguments[0] = "source-" + arguments[0];
+        return this.trigger.apply(this, arguments);
+    },
 
     getParentCmp: function(node) {
 
@@ -10900,6 +10923,7 @@ function resolveComponent(cmp, cfg, scope, node, args) {
                 var d = new Promise,
                     fn;
 
+
                 defers.push(d.done(function(value){
                     inject[name] = value;
                     cfg[name] = value;
@@ -10921,6 +10945,8 @@ function resolveComponent(cmp, cfg, scope, node, args) {
                         )
                     );
                 }
+
+                d.fail(error);
 
             }(i));
         }

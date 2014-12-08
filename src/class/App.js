@@ -6,7 +6,7 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     getAttr = require("../func/dom/getAttr.js"),
     Scope = require("../lib/Scope.js"),
     Renderer = require("../class/Renderer.js"),
-    Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
+    Promise = require("metaphorjs-promise/src/metaphorjs.promise.js"),
     Text = require("../lib/Text.js"),
     removeAttr = require("../func/dom/removeAttr.js"),
     ObservableMixin = require("../mixin/ObservableMixin.js"),
@@ -25,6 +25,7 @@ module.exports = defineClass({
     renderer: null,
     cmpListeners: null,
     components: null,
+    sourceObs: null,
 
     $init: function(node, data) {
 
@@ -63,6 +64,23 @@ module.exports = defineClass({
         this.renderer.process();
     },
 
+    createSource: function(name, returnResult) {
+        var key = "source-" + name,
+            self = this;
+
+        if (!self.$$observable.getEvent(key)) {
+            self.$$observable.createEvent(key, returnResult || "nonempty");
+        }
+    },
+
+    registerSource: function(name, fn, context) {
+        this.on("source-" + name, fn, context);
+    },
+
+    collect: function(name) {
+        arguments[0] = "source-" + arguments[0];
+        return this.trigger.apply(this, arguments);
+    },
 
     getParentCmp: function(node) {
 

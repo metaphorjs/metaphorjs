@@ -3,11 +3,13 @@
 var extend = require("../func/extend.js"),
     isThenable = require("../func/isThenable.js"),
     slice = require("../func/array/slice.js"),
-    Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
     isFunction = require("../func/isFunction.js"),
     undf = require("../var/undf.js"),
     isBool = require("../func/isBool.js"),
-    instantiate = require("../func/instantiate.js");
+    instantiate = require("../func/instantiate.js"),
+
+    Promise = require("metaphorjs-promise/src/metaphorjs.promise.js"),
+    Observable = require("metaphorjs-observable/src/metaphorjs.observable.js");
 
 
 module.exports = function(){
@@ -123,8 +125,7 @@ module.exports = function(){
             };
         },
 
-
-        resolve: function(name, currentValues) {
+        resolve: function(name, currentValues, callArgs) {
 
             var self    = this,
                 store   = self.store,
@@ -144,10 +145,10 @@ module.exports = function(){
                     return item.value;
                 }
                 else if (type == FACTORY) {
-                    res = self.inject(item.fn, item.context, currentValues);
+                    res = self.inject(item.fn, item.context, currentValues, callArgs);
                 }
                 else if (type == SERVICE) {
-                    res = self.inject(item.fn, null, currentValues, null, true);
+                    res = self.inject(item.fn, null, currentValues, callArgs, true);
                 }
                 else if (type == PROVIDER) {
 
@@ -199,8 +200,11 @@ module.exports = function(){
         },
 
         destroy: function() {
-            this.store = null;
-            this.scope = null;
+
+            var self = this;
+
+            self.store = null;
+            self.scope = null;
         }
 
     }, true, false);
