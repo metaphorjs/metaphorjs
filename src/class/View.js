@@ -7,6 +7,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     currentUrl = require("metaphorjs-history/src/func/currentUrl.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js"),
+    UrlParam = require("metaphorjs-history/src/lib/UrlParam.js"),
 
     extend = require("../func/extend.js"),
     data = require("../func/dom/data.js"),
@@ -83,8 +84,8 @@ module.exports = defineClass({
 
         if (self.route) {
             mhistory.init();
-            mhistory.on("locationChange", self.onLocationChange, self);
-            self.initRouteIds();
+            mhistory.on("locationchange", self.onLocationChange, self);
+            self.initRoutes();
             self.onLocationChange();
         }
         else if (self.cmp) {
@@ -97,26 +98,47 @@ module.exports = defineClass({
 
     },
 
-    initRouteIds: function() {
+    initRoutes: function() {
 
         var self = this,
             routes = self.route,
-            i, l;
+            params,
+            param,
+            route,
+            i, l,
+            j, z;
 
         for (i = 0, l = routes.length; i < l; i++) {
-            routes[i].id = routes[i].id || nextUid();
+            route = routes[i];
+            route.id = route.id || nextUid();
+
+            if (route.params) {
+                params = {};
+                for (j = 0, z = route.params.length; j < z; j++) {
+                    param = route.params[j];
+                    if (param.name) {
+                        params[param.name] = new UrlParam(extend({}, param, {enabled: false}, true, false));
+                    }
+                }
+                route.params = params;
+            }
         }
     },
+
+
+
+
 
     onCmpChange: function() {
 
         var self    = this,
             cmp     = self.watchable.getLastResult() || self.defaultCmp;
 
-        self.clearComponent();
-
         if (cmp) {
             self.setComponent(cmp);
+        }
+        else if (self.defaultCmp) {
+            self.setComponent(self.defaultCmp);
         }
     },
 
@@ -134,7 +156,7 @@ module.exports = defineClass({
             r = routes[i];
 
             if (r.reg && (matches = url.match(r.reg))) {
-                self.changeRouteComponent(r, matches);
+                self.setRouteComponent(r, matches);
                 return;
             }
             if (r['default'] && !def) {
@@ -143,46 +165,20 @@ module.exports = defineClass({
         }
 
         if (def) {
-            if (def.id == cview.id) {
-                return;
-            }
-            self.clearComponent();
-            self.setRouteClasses(def);
             self.setRouteComponent(def, []);
         }
         else if (self.defaultCmp) {
-            self.clearComponent();
-            self.currentView = null;
             self.setComponent(self.defaultCmp);
         }
     },
 
-    changeRouteComponent: function(route, matches) {
-        var self = this,
-            cview = self.currentView || {};
 
-        if (route.id == cview.id) {
-            return;
-        }
 
-        stopAnimation(self.node);
-        self.clearComponent();
-        self.setRouteClasses(route);
-        self.setRouteComponent(route, matches);
-    },
 
-    setRouteClasses: function(route) {
-        var self    = this;
 
-        if (route.cls) {
-            self.currentCls = route.cls;
-            addClass(self.node, route.cls);
-        }
-        if (route.htmlCls) {
-            self.currentHtmlCls = route.htmlCls;
-            addClass(window.document.documentElement, route.htmlCls);
-        }
-    },
+
+
+
 
     clearComponent: function() {
         var self    = this,
@@ -220,11 +216,48 @@ module.exports = defineClass({
 
     },
 
+
+
+
+
+    toggleRouteParams: function(route, fn) {
+
+        if (route.params) {
+            for (var i in route.params) {
+                route.params[i][fn]();
+            }
+        }
+    },
+
+    setRouteClasses: function(route) {
+        var self    = this;
+
+        if (route.cls) {
+            self.currentCls = route.cls;
+            addClass(self.node, route.cls);
+        }
+        if (route.htmlCls) {
+            self.currentHtmlCls = route.htmlCls;
+            addClass(window.document.documentElement, route.htmlCls);
+        }
+    },
+
     setRouteComponent: function(route, matches) {
 
         var self    = this,
             node    = self.node,
-            params  = route.params;
+            params  = route.params,
+            cview   = self.currentView || {};
+
+        if (route.id == cview.id) {
+            return;
+        }
+
+        self.toggleRouteParams(cview, "disable");
+        self.toggleRouteParams(route, "enable");
+        stopAnimation(self.node);
+        self.clearComponent();
+        self.setRouteClasses(route);
 
         self.currentView = route;
 
@@ -250,7 +283,8 @@ module.exports = defineClass({
             args.shift();
 
             if (params) {
-                for (i = -1, l = params.length; ++i < l; cfg[params[i]] = args[i]){}
+                extend(cfg, params, false, false);
+                //for (i = -1, l = params.length; ++i < l; cfg[params[i]] = args[i]){}
             }
 
             if (self.cmpCache[route.id]) {
@@ -279,10 +313,18 @@ module.exports = defineClass({
         }, true);
     },
 
+
+
+
+
     setComponent: function(cmp) {
 
         var self    = this,
             node    = self.node;
+
+        stopAnimation(self.node);
+        self.clearComponent();
+        self.currentView = null;
 
         animate(node, "enter", function(){
 
@@ -299,6 +341,10 @@ module.exports = defineClass({
         }, true);
     },
 
+
+
+
+
     destroy: function() {
 
         var self    = this;
@@ -307,6 +353,17 @@ module.exports = defineClass({
 
         if (self.route) {
             mhistory.un("locationchange", self.onLocationChange, self);
+
+            var i, l, j;
+
+            for (i = 0, l = self.route.length; i < l; i++) {
+                if (self.route[i].params) {
+                    for (j in self.route[i].params) {
+                        self.route[i].params[j].$destroy();
+                    }
+                }
+            }
+
             self.route = null;
         }
 

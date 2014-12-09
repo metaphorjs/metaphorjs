@@ -10468,13 +10468,11 @@ var mhistory = function(){
         location,
         observable      = new Observable,
         api             = {},
-        params          = {},
 
         pushState,
         replaceState,
 
         windowLoaded    = typeof window == "undefined",
-        rURL            = /(?:(\w+:))?(?:\/\/(?:[^@]*@)?([^\/:\?#]+)(?::([0-9]+))?)?([^\?#]*)(?:(\?[^#]+)|\?)?(?:(#.*))?/,
 
         prevLocation    = null,
 
@@ -10597,38 +10595,11 @@ var mhistory = function(){
         return loc;
     };
 
-    var getParam = function(name, url){
-        var ex = params[name].extractor;
-        if (isFunction(ex)) {
-            return ex(url, name);
-        }
-        else {
-            var match = url.match(ex);
-            return match ? match.pop() : null;
-        }
-    };
-
-    var checkParamChange = function(url){
-        var i,
-            prev, val;
-
-        for (i in params) {
-            prev    = params[i].value;
-            val     = getParam(i, url);
-            params[i].value = val;
-            if (val != prev) {
-                observable.trigger("change-" + i, val, prev, i, url);
-            }
-        }
-    };
-
-
 
 
     var onLocationPush = function(url) {
         prevLocation = extend({}, location, true, false);
         triggerEvent("locationChange", url);
-        checkParamChange(url);
     };
 
     var onLocationPop = function() {
@@ -10636,7 +10607,6 @@ var mhistory = function(){
             var url = getCurrentUrl();
             prevLocation = extend({}, location, true, false);
             triggerEvent("locationChange", url);
-            checkParamChange(url);
         }
     };
 
@@ -10840,31 +10810,7 @@ var mhistory = function(){
             window.history.replaceState = function(state, title, url) {
                 replaceState(url);
             };
-        },
-
-        getParam: function(name){
-            return params[name] ? params[name].value : null;
-        },
-
-        addParam: function(name, extractor) {
-            init();
-            if (!params[name]) {
-                if (!extractor) {
-                    extractor = getRegExp(name + "=([^&]+)")
-                }
-                else if (!isFunction(extractor)) {
-                    extractor = isString(extractor) ? getRegExp(extractor) : extractor;
-                }
-
-                params[name] = {
-                    name: name,
-                    value: null,
-                    extractor: extractor
-                };
-                params[name].value = getParam(name, getCurrentUrl());
-            }
         }
-
     });
 
 }();
@@ -10873,6 +10819,125 @@ var mhistory = function(){
 
 
 var currentUrl = mhistory.current;
+
+
+
+var UrlParam = (function(){
+
+    var cache = {};
+
+    var UrlParam = defineClass({
+
+        $mixins: [ObservableMixin],
+
+        extractor: null,
+        context: null,
+        regexp: null,
+        valueIndex: 1,
+        prev: null,
+        value: null,
+        enabled: true,
+
+        $init: function(cfg) {
+
+            var self = this;
+
+            extend(self, cfg, true, false);
+
+            if (self.regexp && isString(self.regexp)) {
+                self.regexp = getRegExp(self.regexp);
+            }
+
+            if (self.name && !self.regexp && !self.extractor) {
+                self.regexp = getRegExp(self.name + "=([^&]+)");
+            }
+
+            if (!self.regexp && !self.extractor) {
+                throw "Invalid UrlParam config, missing regexp or extractor";
+            }
+
+            if (self.enabled) {
+                self.enabled = false;
+                self.enable();
+            }
+        },
+
+        enable: function() {
+            var self = this;
+            if (!self.enabled) {
+                self.enabled = true;
+                mhistory.on("locationchange", self.onLocationChange, self);
+                self.onLocationChange(currentUrl());
+            }
+        },
+
+        disable: function() {
+            var self = this;
+            if (self.enabled) {
+                self.enabled = false;
+                mhistory.un("locationchange", self.onLocationChange, self);
+            }
+        },
+
+        onLocationChange: function(url) {
+
+            var self = this,
+                value = self.extractValue(url);
+
+            if (self.value != value) {
+                self.prev = self.value;
+                self.value = value;
+                self.trigger("change", value, self.prev);
+            }
+        },
+
+        extractValue: function(url) {
+            var self = this;
+            if (self.regexp) {
+                var match = url.match(self.regexp);
+                return match ? match[self.valueIndex] : null;
+            }
+            else if (self.extractor) {
+                return self.extractor.call(self.context, url);
+            }
+        },
+
+        getValue: function() {
+            return this.value;
+        },
+
+        getPrev: function() {
+            return this.prev;
+        },
+
+        destroyIfIdle: function() {
+
+            var self = this;
+            if (!self.$$observable.hasListener()) {
+                self.$destroy();
+            }
+        },
+
+        destroy: function() {
+            var self = this;
+            self.disable();
+        }
+
+    }, {
+
+        get: function(cfg) {
+            if (cfg.id && cache[cfg.id]) {
+                return cache[cfg.id];
+            }
+            else {
+                return new UrlParam(cfg);
+            }
+        }
+
+    });
+
+    return UrlParam;
+}());
 
 
 
@@ -11077,8 +11142,8 @@ defineClass({
 
         if (self.route) {
             mhistory.init();
-            mhistory.on("locationChange", self.onLocationChange, self);
-            self.initRouteIds();
+            mhistory.on("locationchange", self.onLocationChange, self);
+            self.initRoutes();
             self.onLocationChange();
         }
         else if (self.cmp) {
@@ -11091,26 +11156,47 @@ defineClass({
 
     },
 
-    initRouteIds: function() {
+    initRoutes: function() {
 
         var self = this,
             routes = self.route,
-            i, l;
+            params,
+            param,
+            route,
+            i, l,
+            j, z;
 
         for (i = 0, l = routes.length; i < l; i++) {
-            routes[i].id = routes[i].id || nextUid();
+            route = routes[i];
+            route.id = route.id || nextUid();
+
+            if (route.params) {
+                params = {};
+                for (j = 0, z = route.params.length; j < z; j++) {
+                    param = route.params[j];
+                    if (param.name) {
+                        params[param.name] = new UrlParam(extend({}, param, {enabled: false}, true, false));
+                    }
+                }
+                route.params = params;
+            }
         }
     },
+
+
+
+
 
     onCmpChange: function() {
 
         var self    = this,
             cmp     = self.watchable.getLastResult() || self.defaultCmp;
 
-        self.clearComponent();
-
         if (cmp) {
             self.setComponent(cmp);
+        }
+        else if (self.defaultCmp) {
+            self.setComponent(self.defaultCmp);
         }
     },
 
@@ -11128,7 +11214,7 @@ defineClass({
             r = routes[i];
 
             if (r.reg && (matches = url.match(r.reg))) {
-                self.changeRouteComponent(r, matches);
+                self.setRouteComponent(r, matches);
                 return;
             }
             if (r['default'] && !def) {
@@ -11137,46 +11223,20 @@ defineClass({
         }
 
         if (def) {
-            if (def.id == cview.id) {
-                return;
-            }
-            self.clearComponent();
-            self.setRouteClasses(def);
             self.setRouteComponent(def, []);
         }
         else if (self.defaultCmp) {
-            self.clearComponent();
-            self.currentView = null;
             self.setComponent(self.defaultCmp);
         }
     },
 
-    changeRouteComponent: function(route, matches) {
-        var self = this,
-            cview = self.currentView || {};
 
-        if (route.id == cview.id) {
-            return;
-        }
 
-        stopAnimation(self.node);
-        self.clearComponent();
-        self.setRouteClasses(route);
-        self.setRouteComponent(route, matches);
-    },
 
-    setRouteClasses: function(route) {
-        var self    = this;
 
-        if (route.cls) {
-            self.currentCls = route.cls;
-            addClass(self.node, route.cls);
-        }
-        if (route.htmlCls) {
-            self.currentHtmlCls = route.htmlCls;
-            addClass(window.document.documentElement, route.htmlCls);
-        }
-    },
+
+
+
 
     clearComponent: function() {
         var self    = this,
@@ -11214,11 +11274,48 @@ defineClass({
 
     },
 
+
+
+
+
+    toggleRouteParams: function(route, fn) {
+
+        if (route.params) {
+            for (var i in route.params) {
+                route.params[i][fn]();
+            }
+        }
+    },
+
+    setRouteClasses: function(route) {
+        var self    = this;
+
+        if (route.cls) {
+            self.currentCls = route.cls;
+            addClass(self.node, route.cls);
+        }
+        if (route.htmlCls) {
+            self.currentHtmlCls = route.htmlCls;
+            addClass(window.document.documentElement, route.htmlCls);
+        }
+    },
+
     setRouteComponent: function(route, matches) {
 
         var self    = this,
             node    = self.node,
-            params  = route.params;
+            params  = route.params,
+            cview   = self.currentView || {};
+
+        if (route.id == cview.id) {
+            return;
+        }
+
+        self.toggleRouteParams(cview, "disable");
+        self.toggleRouteParams(route, "enable");
+        stopAnimation(self.node);
+        self.clearComponent();
+        self.setRouteClasses(route);
 
         self.currentView = route;
 
@@ -11244,7 +11341,8 @@ defineClass({
             args.shift();
 
             if (params) {
-                for (i = -1, l = params.length; ++i < l; cfg[params[i]] = args[i]){}
+                extend(cfg, params, false, false);
+                //for (i = -1, l = params.length; ++i < l; cfg[params[i]] = args[i]){}
             }
 
             if (self.cmpCache[route.id]) {
@@ -11273,10 +11371,18 @@ defineClass({
         }, true);
     },
 
+
+
+
+
     setComponent: function(cmp) {
 
         var self    = this,
             node    = self.node;
+
+        stopAnimation(self.node);
+        self.clearComponent();
+        self.currentView = null;
 
         animate(node, "enter", function(){
 
@@ -11293,6 +11399,10 @@ defineClass({
         }, true);
     },
 
+
+
+
+
     destroy: function() {
 
         var self    = this;
@@ -11301,6 +11411,17 @@ defineClass({
 
         if (self.route) {
             mhistory.un("locationchange", self.onLocationChange, self);
+
+            var i, l, j;
+
+            for (i = 0, l = self.route.length; i < l; i++) {
+                if (self.route[i].params) {
+                    for (j in self.route[i].params) {
+                        self.route[i].params[j].$destroy();
+                    }
+                }
+            }
+
             self.route = null;
         }
 
@@ -24658,6 +24779,7 @@ MetaphorJs['parseLocation'] = parseLocation;
 MetaphorJs['joinLocation'] = joinLocation;
 MetaphorJs['mhistory'] = mhistory;
 MetaphorJs['currentUrl'] = currentUrl;
+MetaphorJs['UrlParam'] = UrlParam;
 MetaphorJs['resolveComponent'] = resolveComponent;
 MetaphorJs['isField'] = isField;
 MetaphorJs['getValue'] = getValue;
