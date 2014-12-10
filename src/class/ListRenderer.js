@@ -440,6 +440,9 @@ module.exports = defineClass({
                     }
                 }
             }
+            if (r && r.scope) {
+                r.scope.$destroy();
+            }
         }
     },
 

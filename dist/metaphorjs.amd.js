@@ -4508,6 +4508,9 @@ var ListRenderer = defineClass({
                     }
                 }
             }
+            if (r && r.scope) {
+                r.scope.$destroy();
+            }
         }
     },
 
@@ -7428,9 +7431,11 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
             });
         }
         else {
-            self.node.src = src;
-            setAttr(self.node, "src", src);
-            self.onSrcChanged();
+            if (self.node) {
+                self.node.src = src;
+                setAttr(self.node, "src", src);
+                self.onSrcChanged();
+            }
         }
     },
 
