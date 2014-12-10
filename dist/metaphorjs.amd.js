@@ -1969,6 +1969,9 @@ var Provider = function(){
                 item,
                 res;
 
+            currentValues = currentValues || {};
+            callArgs = callArgs || [];
+
             if (currentValues[name] !== undf) {
                 return currentValues[name];
             }
@@ -3888,7 +3891,10 @@ var functionFactory = function() {
                 args.push(null);
                 args.push(func);
 
-                if (returnsValue) {
+                val = func.apply(null, args);
+                return isFailed(val) ? undf : val;
+
+                /*if (returnsValue) {
                     val = func.apply(null, args);
                     while (isFailed(val) && !scope.$isRoot) {
                         scope = scope.$parent;
@@ -3899,7 +3905,7 @@ var functionFactory = function() {
                 }
                 else {
                     return func.apply(null, args);
-                }
+                }*/
 
                 /*if (returnsValue && isFailed(val)) {//) {
                     args = slice.call(arguments);

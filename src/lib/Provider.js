@@ -132,6 +132,9 @@ module.exports = function(){
                 item,
                 res;
 
+            currentValues = currentValues || {};
+            callArgs = callArgs || [];
+
             if (currentValues[name] !== undf) {
                 return currentValues[name];
             }

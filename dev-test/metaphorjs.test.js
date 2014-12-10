@@ -2549,7 +2549,10 @@ var functionFactory = function() {
                 args.push(null);
                 args.push(func);
 
-                if (returnsValue) {
+                val = func.apply(null, args);
+                return isFailed(val) ? undf : val;
+
+                /*if (returnsValue) {
                     val = func.apply(null, args);
                     while (isFailed(val) && !scope.$isRoot) {
                         scope = scope.$parent;
@@ -2560,7 +2563,7 @@ var functionFactory = function() {
                 }
                 else {
                     return func.apply(null, args);
-                }
+                }*/
 
                 /*if (returnsValue && isFailed(val)) {//) {
                     args = slice.call(arguments);
@@ -5823,6 +5826,9 @@ var Provider = function(){
                 type,
                 item,
                 res;
+
+            currentValues = currentValues || {};
+            callArgs = callArgs || [];
 
             if (currentValues[name] !== undf) {
                 return currentValues[name];
@@ -15765,6 +15771,12 @@ var Store = function(){
             idProp: null,
 
             /**
+             * @var {Promise}
+             * @access private
+             */
+            loadingPromise: null,
+
+            /**
              * @constructor
              * @name initialize
              * @param {object} options
@@ -16110,6 +16122,10 @@ var Store = function(){
                     lp      = ms.limit,
                     ps      = self.pageSize;
 
+                if (self.loadingPromise) {
+                    self.loadingPromise.abort();
+                }
+
                 options     = options || {};
 
                 if (self.local) {
@@ -16135,12 +16151,14 @@ var Store = function(){
 
                 self.trigger("loadingstart", self);
 
-                return self.model.loadStore(self, params)
-                    .done(function(response){
+                return self.loadingPromise = self.model.loadStore(self, params)
+                    .done(function(response) {
+                        self.loadingPromise = null;
                         self.ajaxData = self.model.lastAjaxResponse;
                         self._onModelLoadSuccess(response, options);
                     })
                     .fail(function(reason){
+                        self.loadingPromise = null;
                         self.ajaxData = self.model.lastAjaxResponse;
                         self._onModelLoadFail(reason, options);
                     });
