@@ -4,6 +4,10 @@ var nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
 
 nsAdd("filter.preloaded", function(val, scope) {
 
+    if (!val) {
+        return false;
+    }
+
     var promise = preloadImage(val);
 
     if (promise.isFulfilled()) {

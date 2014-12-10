@@ -7349,6 +7349,7 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
 
     queue: null,
     usePreload: true,
+    noCache: false,
 
     $constructor: function(scope, node, expr) {
 
@@ -7377,6 +7378,10 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
         var self = this,
             cfg = getNodeConfig(node, scope);
 
+        if (cfg.noCache) {
+            self.noCache = true;
+        }
+
         if (cfg.noPreload) {
             self.usePreload = false;
         }
@@ -7384,13 +7389,16 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
             node.style.visibility = "hidden"
         }
 
-        self.queue = new Queue({auto: true, async: true, mode: Queue.ONCE, thenable: true});
+        self.queue = new Queue({auto: true, async: true, mode: Queue.REPLACE, thenable: true});
         self.$super(scope, node, expr);
     },
 
 
     onChange: function() {
         var self = this;
+        if (self.usePreload) {
+            self.node.style.visibility = "hidden";
+        }
         self.queue.add(self.doChange, self);
     },
 
@@ -7398,6 +7406,14 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
 
         var self = this,
             src = self.watcher.getLastResult();
+
+        if (!src) {
+            return;
+        }
+
+        if (self.noCache) {
+            src += (src.indexOf("?") != -1 ? "&amp;" : "?") + "_" + (new Date).getTime();
+        }
 
         if (self.usePreload) {
             return preloadImage(src).done(function(){
@@ -7918,6 +7934,10 @@ nsAdd("filter.p", function(key, scope, number) {
 
 
 nsAdd("filter.preloaded", function(val, scope) {
+
+    if (!val) {
+        return false;
+    }
 
     var promise = preloadImage(val);
 
