@@ -3,7 +3,8 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
     createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     getNodeConfig = require("../func/dom/getNodeConfig.js"),
-    getAttr = require("../func/dom/getAttr.js");
+    getAttr = require("../func/dom/getAttr.js"),
+    removeStyle = require("../func/dom/removeStyle.js");
 
 module.exports = nsAdd("plugin.SrcSize", defineClass({
 
@@ -51,20 +52,13 @@ module.exports = nsAdd("plugin.SrcSize", defineClass({
 
         var self        = this,
             directive   = self.directive,
-            node        = directive.node,
-            style       = node.style;
+            node        = directive.node;
 
         directive.onSrcChanged = self.origOnChange;
 
-        if (style.removeProperty) {
-            style.removeProperty('width');
-            style.removeProperty('height');
-            style.removeProperty('display');
-        } else {
-            style.removeAttribute('width');
-            style.removeAttribute('height');
-            style.removeAttribute('display');
-        }
+        removeStyle(node, "width");
+        removeStyle(node, "height");
+        removeStyle(node, "display");
 
         self.$destroy();
     }

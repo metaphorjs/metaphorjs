@@ -18,6 +18,7 @@ module.exports = defineClass({
     listeners: null,
     event: null,
     buffers: null,
+    updateRoot: false,
 
     $init: function(scope, node, cfg, event, defaults) {
 
@@ -30,6 +31,8 @@ module.exports = defineClass({
         cfg = cfg || {};
 
         if (typeof cfg == "string") {
+
+            self.updateRoot = cfg.indexOf('$root') + cfg.indexOf('$parent') != -2;
 
             var fc = cfg.substr(0,1);
 
@@ -98,6 +101,8 @@ module.exports = defineClass({
 
     createHandler: function(cfg, scope) {
 
+        var updateRoot = this.updateRoot;
+
         return function(e){
 
             var keyCode,
@@ -129,8 +134,7 @@ module.exports = defineClass({
 
             scope.$event = null;
 
-            // no $root checking?
-            scope.$check();
+            updateRoot ? scope.$root.$check() : scope.$check();
 
             stopPropagation && e.stopPropagation();
             preventDefault && e.preventDefault();

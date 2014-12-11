@@ -18,6 +18,7 @@ Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
     inProg: false,
     input: null,
     binding: null,
+    updateRoot: false,
 
     autoOnChange: false,
 
@@ -29,7 +30,7 @@ Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
         self.node           = node;
         self.input          = Input.get(node);
         self.binding        = cfg.binding || "both";
-
+        self.updateRoot     = expr.indexOf('$root') + expr.indexOf('$parent') != -2;
 
         self.input.onChange(self.onInputChange, self);
 
@@ -68,7 +69,7 @@ Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
 
             self.inProg = true;
             if (scope instanceof Scope) {
-                scope.$root.$check();
+                self.updateRoot ? scope.$root.$check() : scope.$check();
             }
             else {
                 self.watcher.checkAll();

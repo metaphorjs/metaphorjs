@@ -34,9 +34,10 @@ var Directive = require("../../class/Directive.js"),
     Directive.registerAttribute("mjs-submit", 1000, function(scope, node, expr){
 
         var fn = createFunc(expr),
+            updateRoot = expr.indexOf('$root') + expr.indexOf('$parent') != -2,
             handler = function(){
                 fn(scope);
-                scope.$check();
+                updateRoot ? scope.$root.$check() : scope.$check();
             };
 
         Input.get(node).onKey(13, handler);

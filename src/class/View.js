@@ -56,6 +56,8 @@ module.exports = defineClass({
     currentCls: null,
     currentHtmlCls: null,
 
+    scrollOnChange: true,
+
     $init: function(cfg)  {
 
         var self    = this;
@@ -290,6 +292,7 @@ module.exports = defineClass({
             if (self.cmpCache[route.id]) {
                 self.currentComponent = self.cmpCache[route.id];
                 node.appendChild(self.domCache[route.id]);
+                node.scrollTop = 0;
             }
             else {
                 return resolveComponent(
@@ -301,6 +304,7 @@ module.exports = defineClass({
                     args
                 )
                     .done(function (newCmp) {
+                        node.scrollTop = 0;
                         self.currentComponent = newCmp;
 
                         if (route.keepAlive) {
@@ -335,6 +339,7 @@ module.exports = defineClass({
             cfg.destroyEl = false;
 
             return resolveComponent(cls, cfg, scope, node).done(function(newCmp){
+                node.scrollTop = 0;
                 self.currentComponent = newCmp;
             });
 

@@ -11125,6 +11125,8 @@ defineClass({
     currentCls: null,
     currentHtmlCls: null,
 
+    scrollOnChange: true,
+
     $init: function(cfg)  {
 
         var self    = this;
@@ -11359,6 +11361,7 @@ defineClass({
             if (self.cmpCache[route.id]) {
                 self.currentComponent = self.cmpCache[route.id];
                 node.appendChild(self.domCache[route.id]);
+                node.scrollTop = 0;
             }
             else {
                 return resolveComponent(
@@ -11370,6 +11373,7 @@ defineClass({
                     args
                 )
                     .done(function (newCmp) {
+                        node.scrollTop = 0;
                         self.currentComponent = newCmp;
 
                         if (route.keepAlive) {
@@ -11404,6 +11408,7 @@ defineClass({
             cfg.destroyEl = false;
 
             return resolveComponent(cls, cfg, scope, node).done(function(newCmp){
+                node.scrollTop = 0;
                 self.currentComponent = newCmp;
             });
 
@@ -12925,6 +12930,7 @@ var EventHandler = defineClass({
     listeners: null,
     event: null,
     buffers: null,
+    updateRoot: false,
 
     $init: function(scope, node, cfg, event, defaults) {
 
@@ -12937,6 +12943,8 @@ var EventHandler = defineClass({
         cfg = cfg || {};
 
         if (typeof cfg == "string") {
+
+            self.updateRoot = cfg.indexOf('$root') + cfg.indexOf('$parent') != -2;
 
             var fc = cfg.substr(0,1);
 
@@ -13005,6 +13013,8 @@ var EventHandler = defineClass({
 
     createHandler: function(cfg, scope) {
 
+        var updateRoot = this.updateRoot;
+
         return function(e){
 
             var keyCode,
@@ -13036,8 +13046,7 @@ var EventHandler = defineClass({
 
             scope.$event = null;
 
-            // no $root checking?
-            scope.$check();
+            updateRoot ? scope.$root.$check() : scope.$check();
 
             stopPropagation && e.stopPropagation();
             preventDefault && e.preventDefault();
@@ -13166,9 +13175,10 @@ var createFunc = functionFactory.createFunc;
     Directive.registerAttribute("mjs-submit", 1000, function(scope, node, expr){
 
         var fn = createFunc(expr),
+            updateRoot = expr.indexOf('$root') + expr.indexOf('$parent') != -2,
             handler = function(){
                 fn(scope);
-                scope.$check();
+                updateRoot ? scope.$root.$check() : scope.$check();
             };
 
         Input.get(node).onKey(13, handler);
@@ -13415,6 +13425,7 @@ Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
     inProg: false,
     input: null,
     binding: null,
+    updateRoot: false,
 
     autoOnChange: false,
 
@@ -13426,7 +13437,7 @@ Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
         self.node           = node;
         self.input          = Input.get(node);
         self.binding        = cfg.binding || "both";
-
+        self.updateRoot     = expr.indexOf('$root') + expr.indexOf('$parent') != -2;
 
         self.input.onChange(self.onInputChange, self);
 
@@ -13465,7 +13476,7 @@ Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
 
             self.inProg = true;
             if (scope instanceof Scope) {
-                scope.$root.$check();
+                self.updateRoot ? scope.$root.$check() : scope.$check();
             }
             else {
                 self.watcher.checkAll();
@@ -13888,6 +13899,53 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
     destroy: function() {
         this.queue.destroy();
         this.$super();
+    }
+}));
+
+var removeStyle = (function() {
+
+    var div = window.document.createElement("div");
+
+    if (div.style.removeProperty) {
+        return function(node, name) {
+            node.style.removeProperty(name);
+        };
+    }
+    else {
+        return function(node, name) {
+            node.style.removeAttribute(name);
+        };
+    }
+
+}());
+
+
+
+Directive.registerAttribute("mjs-style", 1000, Directive.$extend({
+
+    onChange: function() {
+
+        var self    = this,
+            node    = self.node,
+            style   = node.style,
+            props   = self.watcher.getLastResult(),
+            prev    = self.watcher.getPrevValue(),
+            k;
+
+        for (k in prev) {
+            if (props[k] === undf) {
+                removeStyle(node, k);
+            }
+        }
+
+        for (k in props) {
+            if (props[k]) {
+                style[k] = props[k];
+            }
+            else {
+                removeStyle(node, k);
+            }
+        }
     }
 }));
 
