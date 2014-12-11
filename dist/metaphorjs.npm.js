@@ -2263,11 +2263,9 @@ defineClass({
             id;
 
         while (parent) {
-
             if (id = getAttr(parent, "cmp-id")) {
                 return self.getCmp(id);
             }
-
             parent = parent.parentNode;
         }
 
@@ -5607,9 +5605,10 @@ Directive.registerAttribute("mjs-break-if", 500, function(scope, node, expr){
 
 Directive.registerAttribute("mjs-cmp-prop", 200,
     ['$parentCmp', '$node', '$attrValue', function(parentCmp, node, expr){
-    if (parentCmp) {
-        parentCmp[expr] = node;
-    }
+
+       if (parentCmp) {
+            parentCmp[expr] = node;
+       }
 }]);
 
 
@@ -7336,6 +7335,13 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
     }
 
 }());
+
+
+
+
+Directive.registerAttribute("mjs-scope-prop", 200, function(scope, node, expr){
+    scope[expr] = node;
+});
 
 
 

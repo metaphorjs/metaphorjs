@@ -89,11 +89,9 @@ module.exports = defineClass({
             id;
 
         while (parent) {
-
             if (id = getAttr(parent, "cmp-id")) {
                 return self.getCmp(id);
             }
-
             parent = parent.parentNode;
         }
 
