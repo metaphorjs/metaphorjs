@@ -6593,7 +6593,8 @@ var EventHandler = defineClass({
 
             scope.$event = null;
 
-            scope.$root.$check();
+            // no $root checking?
+            scope.$check();
 
             stopPropagation && e.stopPropagation();
             preventDefault && e.preventDefault();
@@ -6688,10 +6689,14 @@ var EventHandler = defineClass({
 
 
 
+var createFunc = functionFactory.createFunc;
+
+
+
 (function(){
 
     var events = ['click', 'dblclick', 'mousedown', 'mouseup', 'mouseover',
-                  'mouseout', 'mousemove', 'keydown', 'keyup', 'keypress', 'submit',
+                  'mouseout', 'mousemove', 'keydown', 'keyup', 'keypress',
                   'focus', 'blur', 'copy', 'cut', 'paste', 'mousewheel',
                   'touchstart', 'touchend', 'touchcancel', 'touchleave', 'touchmove'],
         i, len;
@@ -6714,6 +6719,23 @@ var EventHandler = defineClass({
 
         }(events[i]));
     }
+
+    Directive.registerAttribute("mjs-submit", 1000, function(scope, node, expr){
+
+        var fn = createFunc(expr),
+            handler = function(){
+                fn(scope);
+                scope.$check();
+            };
+
+        Input.get(node).onKey(13, handler);
+
+        return function() {
+            Input.get(node).unKey(13, handler);
+            handler = null;
+            fn = null;
+        };
+    });
 
     events = null;
 
@@ -6912,10 +6934,6 @@ Directive.registerAttribute("mjs-include", 900, function(scope, node, tplExpr, p
     }
 });
 
-
-
-
-var createFunc = functionFactory.createFunc;
 
 
 

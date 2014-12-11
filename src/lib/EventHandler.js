@@ -129,7 +129,8 @@ module.exports = defineClass({
 
             scope.$event = null;
 
-            scope.$root.$check();
+            // no $root checking?
+            scope.$check();
 
             stopPropagation && e.stopPropagation();
             preventDefault && e.preventDefault();
