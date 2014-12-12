@@ -8,6 +8,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     currentUrl = require("metaphorjs-history/src/func/currentUrl.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js"),
     UrlParam = require("metaphorjs-history/src/lib/UrlParam.js"),
+    raf = require("metaphorjs-animate/src/func/raf.js"),
 
     extend = require("../func/extend.js"),
     data = require("../func/dom/data.js"),
@@ -255,6 +256,8 @@ module.exports = defineClass({
             return;
         }
 
+        self.beforeRouteCmpChange(route);
+
         self.toggleRouteParams(cview, "disable");
         self.toggleRouteParams(route, "enable");
         stopAnimation(self.node);
@@ -272,8 +275,7 @@ module.exports = defineClass({
                     scope: route.$isolateScope ?
                            self.scope.$newIsolated() :
                            self.scope.$new()
-                },
-                i, l;
+                };
 
             if (route.as) {
                 cfg.as = route.as;
@@ -292,7 +294,8 @@ module.exports = defineClass({
             if (self.cmpCache[route.id]) {
                 self.currentComponent = self.cmpCache[route.id];
                 node.appendChild(self.domCache[route.id]);
-                node.scrollTop = 0;
+                self.afterRouteCmpChange();
+                self.afterCmpChange();
             }
             else {
                 return resolveComponent(
@@ -304,13 +307,15 @@ module.exports = defineClass({
                     args
                 )
                     .done(function (newCmp) {
-                        node.scrollTop = 0;
                         self.currentComponent = newCmp;
 
                         if (route.keepAlive) {
                             self.cmpCache[route.id] = newCmp;
                             self.domCache[route.id] = window.document.createDocumentFragment();
                         }
+
+                        self.afterRouteCmpChange();
+                        self.afterCmpChange();
                     });
             }
 
@@ -326,6 +331,8 @@ module.exports = defineClass({
         var self    = this,
             node    = self.node;
 
+        self.beforeCmpChange(cmp);
+
         stopAnimation(self.node);
         self.clearComponent();
         self.currentView = null;
@@ -339,14 +346,35 @@ module.exports = defineClass({
             cfg.destroyEl = false;
 
             return resolveComponent(cls, cfg, scope, node).done(function(newCmp){
-                node.scrollTop = 0;
                 self.currentComponent = newCmp;
+                self.afterCmpChange();
             });
 
         }, true);
     },
 
 
+
+    beforeRouteCmpChange: function(route) {
+
+    },
+
+    afterRouteCmpChange: function() {
+
+    },
+
+    beforeCmpChange: function(cmpCls) {
+
+    },
+
+    afterCmpChange: function() {
+        var self = this;
+        if (self.scrollOnChange) {
+            raf(function () {
+                self.node.scrollTop = 0;
+            });
+        }
+    },
 
 
 

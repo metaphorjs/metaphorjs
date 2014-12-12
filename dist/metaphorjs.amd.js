@@ -5208,6 +5208,8 @@ defineClass({
             return;
         }
 
+        self.beforeRouteCmpChange(route);
+
         self.toggleRouteParams(cview, "disable");
         self.toggleRouteParams(route, "enable");
         stopAnimation(self.node);
@@ -5225,8 +5227,7 @@ defineClass({
                     scope: route.$isolateScope ?
                            self.scope.$newIsolated() :
                            self.scope.$new()
-                },
-                i, l;
+                };
 
             if (route.as) {
                 cfg.as = route.as;
@@ -5245,7 +5246,8 @@ defineClass({
             if (self.cmpCache[route.id]) {
                 self.currentComponent = self.cmpCache[route.id];
                 node.appendChild(self.domCache[route.id]);
-                node.scrollTop = 0;
+                self.afterRouteCmpChange();
+                self.afterCmpChange();
             }
             else {
                 return resolveComponent(
@@ -5257,13 +5259,15 @@ defineClass({
                     args
                 )
                     .done(function (newCmp) {
-                        node.scrollTop = 0;
                         self.currentComponent = newCmp;
 
                         if (route.keepAlive) {
                             self.cmpCache[route.id] = newCmp;
                             self.domCache[route.id] = window.document.createDocumentFragment();
                         }
+
+                        self.afterRouteCmpChange();
+                        self.afterCmpChange();
                     });
             }
 
@@ -5279,6 +5283,8 @@ defineClass({
         var self    = this,
             node    = self.node;
 
+        self.beforeCmpChange(cmp);
+
         stopAnimation(self.node);
         self.clearComponent();
         self.currentView = null;
@@ -5292,14 +5298,35 @@ defineClass({
             cfg.destroyEl = false;
 
             return resolveComponent(cls, cfg, scope, node).done(function(newCmp){
-                node.scrollTop = 0;
                 self.currentComponent = newCmp;
+                self.afterCmpChange();
             });
 
         }, true);
     },
 
 
+
+    beforeRouteCmpChange: function(route) {
+
+    },
+
+    afterRouteCmpChange: function() {
+
+    },
+
+    beforeCmpChange: function(cmpCls) {
+
+    },
+
+    afterCmpChange: function() {
+        var self = this;
+        if (self.scrollOnChange) {
+            raf(function () {
+                self.node.scrollTop = 0;
+            });
+        }
+    },
 
 
 
