@@ -207,7 +207,9 @@ module.exports = defineClass({
         var self    = this,
             node    = self.node;
 
-        setAttr(node, "id", self.id);
+        if (!self.originalId) {
+            setAttr(node, "id", self.id);
+        }
         setAttr(node, "cmp-id", self.id);
 
         if (self.hidden) {

@@ -9310,7 +9310,9 @@ var Component = defineClass({
         var self    = this,
             node    = self.node;
 
-        setAttr(node, "id", self.id);
+        if (!self.originalId) {
+            setAttr(node, "id", self.id);
+        }
         setAttr(node, "cmp-id", self.id);
 
         if (self.hidden) {
@@ -19271,6 +19273,18 @@ var Dialog = function(){
             screenY:		false,
 
             /**
+             * Calculate position relative to this element (defaults to window)
+             * @type {string|Element}
+             */
+            base:           null,
+
+            /**
+             * Monitor window/selector/element scroll.
+             * @type {bool|string|Element}
+             */
+            scroll:         false,
+
+            /**
              * Monitor window resize.
              * @type {bool}
              * @md-stack remove
@@ -20585,6 +20599,17 @@ var Dialog = function(){
                 }
             },
 
+            getScrollEl: function(cfgScroll) {
+                if (cfgScroll === true || cfgScroll === false) {
+                    return window;
+                }
+                else if (typeof cfgScroll == "string") {
+                    return select(cfgScroll).shift();
+                }
+                else {
+                    return cfgScroll;
+                }
+            },
 
 
             showAfterDelay: function(e, immediately) {
@@ -20615,7 +20640,7 @@ var Dialog = function(){
                 }
 
                 if (cfgPos.scroll || cfgPos.screenX || cfgPos.screenY) {
-                    addListener(window, "scroll", self.onWindowScroll);
+                    addListener(self.getScrollEl(cfgPos.scroll), "scroll", self.onWindowScroll);
                 }
 
 
@@ -20733,7 +20758,7 @@ var Dialog = function(){
                 }
 
                 if (cfgPos.scroll || cfgPos.screenX || cfgPos.screenY) {
-                    removeListener(window, "scroll", self.onWindowScroll);
+                    removeListener(self.getScrollEl(cfgPos.scroll), "scroll", self.onWindowScroll);
                 }
 
                 // if afterdelay callback returns false we stop.
@@ -21049,6 +21074,23 @@ var Dialog = function(){
                 }
             },
 
+            getPositionBase: function() {
+                if (state.positionBase) {
+                    return state.positionBase;
+                }
+                var b;
+                if (b = cfg.position.base) {
+                    if (typeof b == "string") {
+                        state.positionBase = select(b).shift();
+                    }
+                    else {
+                        state.positionBase = b;
+                    }
+                    return state.positionBase;
+                }
+                return null;
+            },
+
             getDialogSize: function() {
 
                 var hidden  = cfg.cls.hidden ? hasClass(elem, cfg.cls.hidden) : !isVisible(elem),
@@ -21096,8 +21138,9 @@ var Dialog = function(){
                     return null;
                 }
 
-                var size    = self.getDialogSize(),
-                    offset  = getOffset(target),
+                var pBase   = self.getPositionBase(),
+                    size    = self.getDialogSize(),
+                    offset  = pBase ? getPosition(target, pBase) : getOffset(target),
                     tsize   = self.getTargetSize(),
                     pos     = {},
                     type    = type || cfg.position.type,
@@ -21259,15 +21302,16 @@ var Dialog = function(){
 
             getWindowPosition: function() {
 
-                var size    = self.getDialogSize(),
+                var pBase   = self.getPositionBase() || window,
+                    size    = self.getDialogSize(),
                     pos     = {},
                     type    = cfg.position.type.substr(1),
                     offsetX = cfg.position.offsetX,
                     offsetY = cfg.position.offsetY,
-                    st      = getScrollTop(),
-                    sl      = getScrollLeft(),
-                    ww      = getOuterWidth(window),
-                    wh      = getOuterHeight(window);
+                    st      = getScrollTop(pBase),
+                    sl      = getScrollLeft(pBase),
+                    ww      = getOuterWidth(pBase),
+                    wh      = getOuterHeight(pBase);
 
                 switch (type) {
                     case "c": {
@@ -21322,11 +21366,12 @@ var Dialog = function(){
 
             correctScreenPosition: function(pos, offsetX, offsetY) {
 
-                var size    = self.getDialogSize(),
-                    st      = getScrollTop(),
-                    sl      = getScrollLeft(),
-                    ww      = getOuterWidth(window),
-                    wh      = getOuterHeight(window);
+                var pBase   = self.getPositionBase(),
+                    size    = self.getDialogSize(),
+                    st      = getScrollTop(pBase),
+                    sl      = getScrollLeft(pBase),
+                    ww      = getOuterWidth(pBase),
+                    wh      = getOuterHeight(pBase);
 
                 if (offsetY && pos.y + size.height > wh + st - offsetY) {
                     pos.y   = wh + st - offsetY - size.height;
@@ -21509,10 +21554,9 @@ var Dialog = function(){
 
 
 
-defineClass({
+Component.$extend({
 
     $class: "DialogComponent",
-    $extends: Component,
 
     dialog: null,
     dialogPreset: null,
