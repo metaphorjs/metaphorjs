@@ -6028,8 +6028,6 @@ var removeListener = function(){
     }
 }();
 
-/*!window!*/
-
 var getStyle = function(node, prop, numeric) {
 
     var style, val;

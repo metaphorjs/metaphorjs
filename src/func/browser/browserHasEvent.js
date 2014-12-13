@@ -8,7 +8,8 @@ var isIE = require("./isIE.js"),
  */
 module.exports = function(){
 
-    var eventSupport = {};
+    var eventSupport = {},
+        divElm;
 
     return function browserHasEvent(event) {
         // IE9 implements 'input' event it's so fubared that we rather pretend that it doesn't have
@@ -20,8 +21,10 @@ module.exports = function(){
             if (event == 'input' && isIE() == 9) {
                 return eventSupport[event] = false;
             }
+            if (!divElm) {
+                divElm = window.document.createElement('div');
+            }
 
-            var divElm = window.document.createElement('div');
             eventSupport[event] = !!('on' + event in divElm);
         }
 

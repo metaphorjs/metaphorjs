@@ -904,6 +904,25 @@ var Class = function(){
             },
 
             /**
+             * Does this instance have a plugin
+             * @param cls
+             * @returns {bool}
+             */
+            $hasPlugin: function(cls) {
+                var pls = this.$plugins,
+                    i, l;
+                if (!cls) {
+                    return pls.length > 0;
+                }
+                for (i = 0, l = pls.length; i < l; i++) {
+                    if (isInstanceOf(pls[i], cls)) {
+                        return true;
+                    }
+                }
+                return false;
+            },
+
+            /**
              * Destroy instance
              * @method
              */
@@ -11731,7 +11750,8 @@ var isIE = function(){
  */
 var browserHasEvent = function(){
 
-    var eventSupport = {};
+    var eventSupport = {},
+        divElm;
 
     return function browserHasEvent(event) {
         // IE9 implements 'input' event it's so fubared that we rather pretend that it doesn't have
@@ -11743,8 +11763,10 @@ var browserHasEvent = function(){
             if (event == 'input' && isIE() == 9) {
                 return eventSupport[event] = false;
             }
+            if (!divElm) {
+                divElm = window.document.createElement('div');
+            }
 
-            var divElm = window.document.createElement('div');
             eventSupport[event] = !!('on' + event in divElm);
         }
 
@@ -12459,8 +12481,6 @@ Directive.registerAttribute("mjs-config", 50, function(scope, node, expr){
 
 Directive.registerAttribute("mjs-each", 100, ListRenderer);
 
-
-/*!window!*/
 
 var getStyle = function(node, prop, numeric) {
 

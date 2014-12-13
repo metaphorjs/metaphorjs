@@ -1,6 +1,4 @@
 
-/*!window!*/
-
 module.exports = function(node, prop, numeric) {
 
     var style, val;
