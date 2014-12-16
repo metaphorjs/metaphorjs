@@ -83,15 +83,37 @@ extend(Scope.prototype, {
         }
     },
 
+    $wrap: function(fn, context) {
+        var self = this,
+            name;
+
+        if (typeof fn == "string") {
+            name = fn;
+            fn = context[name];
+        }
+
+        var wrapper = function() {
+            var res = fn.apply(context, arguments);
+            self.$check();
+            return res;
+        };
+
+        if (name) {
+            context[name] = wrapper;
+        }
+
+        return wrapper;
+    },
+
     $get: function(key) {
 
-        var s       = this;
+        var s = this;
 
         while (s) {
             if (s[key] !== undf) {
                 return s[key];
             }
-            s       = s.$parent;
+            s = s.$parent;
         }
 
         return undf;

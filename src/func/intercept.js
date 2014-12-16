@@ -1,6 +1,14 @@
-
-
-module.exports = function(origFn, interceptor, context, origContext, when, replaceValue) {
+/**
+ * Function interceptor
+ * @param {function} origFn
+ * @param {function} interceptor
+ * @param {object|null} context
+ * @param {object|null} origContext
+ * @param {string} when
+ * @param {bool} replaceValue
+ * @returns {Function}
+ */
+module.exports = function intercept(origFn, interceptor, context, origContext, when, replaceValue) {
 
     when = when || "before";
 

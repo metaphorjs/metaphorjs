@@ -190,9 +190,7 @@ module.exports = function(){
                 }
             }
 
-            if (self.scope instanceof Scope) {
-                self.scope.$on("destroy", self.onScopeDestroy, self);
-            }
+            self.scope.$on("destroy", self.onScopeDestroy, self);
         },
 
         setAnimation: function(state) {

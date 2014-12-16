@@ -274,15 +274,37 @@ extend(Scope.prototype, {
         }
     },
 
+    $wrap: function(fn, context) {
+        var self = this,
+            name;
+
+        if (typeof fn == "string") {
+            name = fn;
+            fn = context[name];
+        }
+
+        var wrapper = function() {
+            var res = fn.apply(context, arguments);
+            self.$check();
+            return res;
+        };
+
+        if (name) {
+            context[name] = wrapper;
+        }
+
+        return wrapper;
+    },
+
     $get: function(key) {
 
-        var s       = this;
+        var s = this;
 
         while (s) {
             if (s[key] !== undf) {
                 return s[key];
             }
-            s       = s.$parent;
+            s = s.$parent;
         }
 
         return undf;
@@ -2788,9 +2810,7 @@ var Template = function(){
                 }
             }
 
-            if (self.scope instanceof Scope) {
-                self.scope.$on("destroy", self.onScopeDestroy, self);
-            }
+            self.scope.$on("destroy", self.onScopeDestroy, self);
         },
 
         setAnimation: function(state) {
@@ -4162,7 +4182,7 @@ var ListRenderer = defineClass({
 
         var self = this;
 
-        removeAttr(node, "mjs-include");
+        //removeAttr(node, "mjs-include");
 
         if (self.tagMode) {
             expr = getAttr(node, "value");

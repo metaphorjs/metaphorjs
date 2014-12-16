@@ -85,7 +85,7 @@ module.exports = defineClass({
 
         var self = this;
 
-        removeAttr(node, "mjs-include");
+        //removeAttr(node, "mjs-include");
 
         if (self.tagMode) {
             expr = getAttr(node, "value");
