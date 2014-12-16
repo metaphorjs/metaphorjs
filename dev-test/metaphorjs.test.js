@@ -12459,7 +12459,7 @@ Directive.registerAttribute("mjs-cmp-prop", 200,
 
         resolveComponent(cmpName, cfg, scope, node);
 
-        return !!constr.$shadow;
+        return constr.$resumeRenderer || !!constr.$shadow;
     };
 
     cmpAttr.$breakScope = false;
@@ -19906,7 +19906,7 @@ var Dialog = function(){
                     dtChanged = self.changeDynamicTarget(e);
                 }
 
-                if (!returnMode && state.visible) {
+                if (state.visible) {
                     if (!dtChanged) {
                         /*debug-start*/
                         if (cfg.debug) {
@@ -19914,7 +19914,7 @@ var Dialog = function(){
                         }
                         /*debug-end*/
 
-                        returnMode = "visible";
+                        returnMode = returnMode || "visible";
                         //return returnValue;
                     }
                     else {
@@ -19929,7 +19929,7 @@ var Dialog = function(){
                     }
                 }
 
-                if (!returnMode) {
+                if (!returnMode || dtChanged) {
                     // if tooltip is not rendered yet we render it
                     if (!elem) {
                         self.render();

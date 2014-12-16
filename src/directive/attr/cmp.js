@@ -54,7 +54,7 @@ var Directive = require("../../class/Directive.js"),
 
         resolveComponent(cmpName, cfg, scope, node);
 
-        return !!constr.$shadow;
+        return constr.$resumeRenderer || !!constr.$shadow;
     };
 
     cmpAttr.$breakScope = false;

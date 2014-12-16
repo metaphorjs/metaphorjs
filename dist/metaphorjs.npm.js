@@ -5691,7 +5691,7 @@ Directive.registerAttribute("mjs-cmp-prop", 200,
 
         resolveComponent(cmpName, cfg, scope, node);
 
-        return !!constr.$shadow;
+        return constr.$resumeRenderer || !!constr.$shadow;
     };
 
     cmpAttr.$breakScope = false;
