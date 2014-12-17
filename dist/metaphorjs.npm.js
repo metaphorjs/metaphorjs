@@ -8401,6 +8401,8 @@ Component.$extend({
     dialogPreset: null,
     dialogCfg: null,
 
+    dialogNode: null,
+
     hidden: true,
 
     initComponent: function() {
@@ -8417,7 +8419,7 @@ Component.$extend({
 
         return extend({}, self.dialogCfg, {
             render: {
-                el: self.node,
+                el: self.dialogNode || self.node,
                 keepInDOM: true
             }
         }, true, true);
