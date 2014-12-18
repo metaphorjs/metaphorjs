@@ -11,6 +11,7 @@ module.exports = ns.add("mixin.Observable", {
      * @type {Observable}
      */
     $$observable: null,
+    $$callbackContext: null,
 
     $beforeInit: function(cfg) {
 
@@ -32,6 +33,10 @@ module.exports = ns.add("mixin.Observable", {
             }
 
             cfg.callback = null;
+
+            if (context) {
+                self.$$callbackContext = context;
+            }
         }
     },
 
