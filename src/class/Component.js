@@ -241,7 +241,7 @@ module.exports = defineClass({
 
         self.rendered   = true;
         self.afterRender();
-        self.trigger('afterrender', self);
+        self.trigger('after-render', self);
     },
 
 
@@ -254,7 +254,7 @@ module.exports = defineClass({
         if (!self.hidden) {
             return;
         }
-        if (self.trigger('beforeshow', self) === false) {
+        if (self.trigger('before-show', self) === false) {
             return false;
         }
 
@@ -280,7 +280,7 @@ module.exports = defineClass({
         if (self.hidden) {
             return;
         }
-        if (self.trigger('beforehide', self) === false) {
+        if (self.trigger('before-hide', self) === false) {
             return false;
         }
 

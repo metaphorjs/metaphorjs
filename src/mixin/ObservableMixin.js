@@ -21,10 +21,11 @@ module.exports = ns.add("mixin.Observable", {
 
         if (cfg && cfg.callback) {
             var ls = cfg.callback,
-                context = ls.context,
+                context = ls.context || ls.scope,
                 i;
 
             ls.context = null;
+            ls.scope = null;
 
             for (i in ls) {
                 if (ls[i]) {
@@ -61,7 +62,7 @@ module.exports = ns.add("mixin.Observable", {
     },
 
     $beforeDestroy: function() {
-        this.$$observable.trigger("beforedestroy", this);
+        this.$$observable.trigger("before-destroy", this);
     },
 
     $afterDestroy: function() {

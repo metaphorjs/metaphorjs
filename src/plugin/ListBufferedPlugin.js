@@ -193,7 +193,7 @@ module.exports = nsAdd("plugin.ListBuffered", defineClass({
         }
 
         if (!prev || bs.first != prev.first || bs.last != prev.last) {
-            list.trigger("bufferchange", self, bs, prev);
+            list.trigger("buffer-change", self, bs, prev);
         }
 
         raf(function(){
@@ -279,7 +279,7 @@ module.exports = nsAdd("plugin.ListBuffered", defineClass({
             }
 
             self.updateStubs(bs);
-            list.trigger("bufferupdate", self);
+            list.trigger("buffer-update", self);
             self.onBufferStateChange(bs, prev);
 
             promise.resolve();

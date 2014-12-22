@@ -87,7 +87,7 @@ module.exports = defineClass({
 
         if (self.route) {
             mhistory.init();
-            mhistory.on("locationchange", self.onLocationChange, self);
+            mhistory.on("location-change", self.onLocationChange, self);
             self.initRoutes();
             self.onLocationChange();
         }
@@ -385,7 +385,7 @@ module.exports = defineClass({
         self.clearComponent();
 
         if (self.route) {
-            mhistory.un("locationchange", self.onLocationChange, self);
+            mhistory.un("location-change", self.onLocationChange, self);
 
             var i, l, j;
 

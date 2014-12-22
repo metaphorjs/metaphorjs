@@ -11,7 +11,6 @@ var data = require("../func/dom/data.js"),
     createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
     Renderer = require("./Renderer.js"),
     Cache = require("../lib/Cache.js"),
-    Scope = require("../lib/Scope.js"),
     Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js"),
     Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
     ajax = require("../../../metaphorjs-ajax/src/metaphorjs.ajax.js"),
@@ -55,6 +54,7 @@ module.exports = function(){
                 if (tag == "script") {
                     var div = window.document.createElement("div");
                     div.innerHTML = tplNode.innerHTML;
+                    tplNode.parentNode.removeChild(tplNode);
                     return toFragment(div.childNodes);
                 }
                 else {

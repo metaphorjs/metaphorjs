@@ -5707,10 +5707,11 @@ var ObservableMixin = ns.add("mixin.Observable", {
 
         if (cfg && cfg.callback) {
             var ls = cfg.callback,
-                context = ls.context,
+                context = ls.context || ls.scope,
                 i;
 
             ls.context = null;
+            ls.scope = null;
 
             for (i in ls) {
                 if (ls[i]) {
@@ -5747,7 +5748,7 @@ var ObservableMixin = ns.add("mixin.Observable", {
     },
 
     $beforeDestroy: function() {
-        this.$$observable.trigger("beforedestroy", this);
+        this.$$observable.trigger("before-destroy", this);
     },
 
     $afterDestroy: function() {
@@ -5757,6 +5758,7 @@ var ObservableMixin = ns.add("mixin.Observable", {
         self.$$observable = null;
     }
 });
+
 
 
 
@@ -8216,7 +8218,7 @@ var ajax = function(){
             self.createJsonp();
         }
 
-        if (globalEvents.trigger("beforeSend", opt, transport) === false) {
+        if (globalEvents.trigger("before-send", opt, transport) === false) {
             self._promise = Promise.reject();
         }
         if (opt.beforeSend && opt.beforeSend.call(opt.callbackScope, opt, transport) === false) {
@@ -8323,8 +8325,8 @@ var ajax = function(){
 
             data    = processData(data, opt, contentType);
 
-            if (globalEvents.hasListener("processResponse")) {
-                data    = globalEvents.trigger("processResponse", data, self._deferred);
+            if (globalEvents.hasListener("process-response")) {
+                data    = globalEvents.trigger("process-response", data, self._deferred);
             }
 
             if (opt.processResponse) {
@@ -8822,6 +8824,7 @@ var Template = function(){
                 if (tag == "script") {
                     var div = window.document.createElement("div");
                     div.innerHTML = tplNode.innerHTML;
+                    tplNode.parentNode.removeChild(tplNode);
                     return toFragment(div.childNodes);
                 }
                 else {
@@ -9396,7 +9399,7 @@ defineClass({
 
         self.rendered   = true;
         self.afterRender();
-        self.trigger('afterrender', self);
+        self.trigger('after-render', self);
     },
 
 
@@ -9409,7 +9412,7 @@ defineClass({
         if (!self.hidden) {
             return;
         }
-        if (self.trigger('beforeshow', self) === false) {
+        if (self.trigger('before-show', self) === false) {
             return false;
         }
 
@@ -9435,7 +9438,7 @@ defineClass({
         if (self.hidden) {
             return;
         }
-        if (self.trigger('beforehide', self) === false) {
+        if (self.trigger('before-hide', self) === false) {
             return false;
         }
 
@@ -10662,14 +10665,14 @@ var mhistory = function(){
 
     var onLocationPush = function(url) {
         prevLocation = extend({}, location, true, false);
-        triggerEvent("locationChange", url);
+        triggerEvent("location-change", url);
     };
 
     var onLocationPop = function() {
         if (pathsDiffer(prevLocation, location)) {
             var url = getCurrentUrl();
             prevLocation = extend({}, location, true, false);
-            triggerEvent("locationChange", url);
+            triggerEvent("location-change", url);
         }
     };
 
@@ -10691,7 +10694,7 @@ var mhistory = function(){
             addListener(win, "popstate", onLocationPop);
 
             pushState = function(url) {
-                if (triggerEvent("beforeLocationChange", url) === false) {
+                if (triggerEvent("before-location-change", url) === false) {
                     return false;
                 }
                 history.pushState(null, null, preparePath(url));
@@ -10700,7 +10703,7 @@ var mhistory = function(){
 
 
             replaceState = function(url) {
-                if (triggerEvent("beforeLocationChange", url) === false) {
+                if (triggerEvent("before-location-change", url) === false) {
                     return false;
                 }
                 history.replaceState(null, null, preparePath(url));
@@ -10713,7 +10716,7 @@ var mhistory = function(){
             if (hashChangeSupported) {
 
                 replaceState = pushState = function(url) {
-                    if (triggerEvent("beforeLocationChange", url) === false) {
+                    if (triggerEvent("before-location-change", url) === false) {
                         return false;
                     }
                     async(setHash, null, [preparePath(url)]);
@@ -10763,14 +10766,14 @@ var mhistory = function(){
 
 
                 pushState = function(url) {
-                    if (triggerEvent("beforeLocationChange", url) === false) {
+                    if (triggerEvent("before-location-change", url) === false) {
                         return false;
                     }
                     pushFrame(preparePath(url));
                 };
 
                 replaceState = function(url) {
-                    if (triggerEvent("beforeLocationChange", url) === false) {
+                    if (triggerEvent("before-location-change", url) === false) {
                         return false;
                     }
                     replaceFrame(preparePath(url));
@@ -10929,7 +10932,7 @@ var UrlParam = (function(){
             var self = this;
             if (!self.enabled) {
                 self.enabled = true;
-                mhistory.on("locationchange", self.onLocationChange, self);
+                mhistory.on("location-change", self.onLocationChange, self);
                 self.onLocationChange(currentUrl());
             }
         },
@@ -10938,7 +10941,7 @@ var UrlParam = (function(){
             var self = this;
             if (self.enabled) {
                 self.enabled = false;
-                mhistory.un("locationchange", self.onLocationChange, self);
+                mhistory.un("location-change", self.onLocationChange, self);
             }
         },
 
@@ -11207,7 +11210,7 @@ defineClass({
 
         if (self.route) {
             mhistory.init();
-            mhistory.on("locationchange", self.onLocationChange, self);
+            mhistory.on("location-change", self.onLocationChange, self);
             self.initRoutes();
             self.onLocationChange();
         }
@@ -11505,7 +11508,7 @@ defineClass({
         self.clearComponent();
 
         if (self.route) {
-            mhistory.un("locationchange", self.onLocationChange, self);
+            mhistory.un("location-change", self.onLocationChange, self);
 
             var i, l, j;
 
