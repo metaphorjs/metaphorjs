@@ -12863,12 +12863,14 @@ var EventBuffer = function(){
         },
 
         addWatcher: function(name, fn, context) {
-            this.watchers[name] = {
-                fn: fn,
-                context: context,
-                prev: null,
-                current: parseInt(fn.call(context, this.node), 10)
-            };
+            if (!this.watchers[name]) {
+                this.watchers[name] = {
+                    fn:      fn,
+                    context: context,
+                    prev:    null,
+                    current: parseInt(fn.call(context, this.node), 10)
+                };
+            }
         },
 
         removeWatcher: function(name) {
