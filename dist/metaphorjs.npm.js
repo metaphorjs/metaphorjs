@@ -2957,6 +2957,8 @@ var Template = function(){
                 self.initPromise.resolve(self.node);
             }
 
+            observable.trigger("before-render-" + self.id, self);
+
             if (self.ownRenderer) {
                 self.doRender();
             }
