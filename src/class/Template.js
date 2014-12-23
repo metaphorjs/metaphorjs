@@ -246,6 +246,10 @@ module.exports = function(){
                           self._watcher.getLastResult() :
                           (self.tpl || url);
 
+            if (self._watcher && !tpl) {
+                url     = null;
+            }
+
             self.initPromise    = new Promise;
             self.tplPromise     = new Promise;
 
@@ -253,13 +257,20 @@ module.exports = function(){
                 self.initPromise.resolve(false);
             }
 
-            return new Promise(function(resolve){
-                if (url) {
-                    resolve(getTemplate(tpl) || loadTemplate(url));
+            return new Promise(function(resolve, reject){
+                if (tpl || url) {
+
+                    if (url) {
+                        resolve(getTemplate(tpl) || loadTemplate(url));
+                    }
+                    else {
+                        resolve(getTemplate(tpl) || toFragment(tpl));
+                    }
                 }
                 else {
-                    resolve(getTemplate(tpl) || toFragment(tpl));
+                    reject();
                 }
+
             })
                 .done(function(fragment){
                     self._fragment = fragment;
@@ -267,8 +278,6 @@ module.exports = function(){
                 })
                 .fail(self.initPromise.reject, self.initPromise)
                 .fail(self.tplPromise.reject, self.tplPromise);
-
-
         },
 
         onChange: function() {

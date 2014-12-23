@@ -2874,6 +2874,10 @@ var Template = function(){
                           self._watcher.getLastResult() :
                           (self.tpl || url);
 
+            if (self._watcher && !tpl) {
+                url     = null;
+            }
+
             self.initPromise    = new Promise;
             self.tplPromise     = new Promise;
 
@@ -2881,13 +2885,20 @@ var Template = function(){
                 self.initPromise.resolve(false);
             }
 
-            return new Promise(function(resolve){
-                if (url) {
-                    resolve(getTemplate(tpl) || loadTemplate(url));
+            return new Promise(function(resolve, reject){
+                if (tpl || url) {
+
+                    if (url) {
+                        resolve(getTemplate(tpl) || loadTemplate(url));
+                    }
+                    else {
+                        resolve(getTemplate(tpl) || toFragment(tpl));
+                    }
                 }
                 else {
-                    resolve(getTemplate(tpl) || toFragment(tpl));
+                    reject();
                 }
+
             })
                 .done(function(fragment){
                     self._fragment = fragment;
@@ -2895,8 +2906,6 @@ var Template = function(){
                 })
                 .fail(self.initPromise.reject, self.initPromise)
                 .fail(self.tplPromise.reject, self.tplPromise);
-
-
         },
 
         onChange: function() {
@@ -12685,6 +12694,21 @@ Component.$extend({
     dialogNode: null,
 
     hidden: true,
+
+    target: null,
+    isTooltip: false,
+
+    $init: function(cfg) {
+
+        var self = this;
+
+        if (self.isTooltip) {
+            self.target = cfg.node;
+            cfg.node = null;
+        }
+
+        self.$super(cfg);
+    },
 
     initComponent: function() {
 
