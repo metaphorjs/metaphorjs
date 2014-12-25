@@ -29,7 +29,6 @@ module.exports = function(){
         store: null,
 
         instantiate: function(fn, context, args, isClass) {
-
             if (fn.$instantiate) {
                 return fn.$instantiate.apply(fn, args);
             }

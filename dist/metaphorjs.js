@@ -767,7 +767,7 @@ var Class = function(){
             ns = new Namespace;
         }
 
-        var createConstructor = function() {
+        var createConstructor = function(className) {
 
             return function() {
 
@@ -782,7 +782,7 @@ var Class = function(){
                     plCls;
 
                 if (!self) {
-                    throw "Must instantiate via new";
+                    throw "Must instantiate via new: " + className;
                 }
 
                 self.$plugins   = [];
@@ -1144,7 +1144,7 @@ var Class = function(){
                 }
             }
 
-            c = createConstructor();
+            c = createConstructor(name);
             prototype.constructor = c;
             c[proto] = prototype;
 
@@ -1894,7 +1894,7 @@ extend(Event.prototype, {
     once: function(fn, context, options) {
 
         options = options || {};
-        options.once = true;
+        options.limit = 1;
 
         return this.on(fn, context, options);
     },
@@ -5219,7 +5219,17 @@ var Renderer = function(){
                     $renderer: self
                 },
                 args    = [scope, node, value, self],
-                inst    = app ? app.inject(f, null, inject, args) : f.apply(null, args);
+                inst;
+
+            if (app) {
+                inst = app.inject(f, null, inject, args);
+            }
+            else if (f.$instantiate) {
+                inst = f.$instantiate.apply(f, args);
+            }
+            else {
+                inst = f.apply(null, args);
+            }
 
             if (app && f.$registerBy && inst) {
                 if (isThenable(inst)) {
@@ -5786,7 +5796,6 @@ var Provider = function(){
         store: null,
 
         instantiate: function(fn, context, args, isClass) {
-
             if (fn.$instantiate) {
                 return fn.$instantiate.apply(fn, args);
             }

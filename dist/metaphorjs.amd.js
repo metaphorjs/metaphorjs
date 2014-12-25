@@ -1300,7 +1300,17 @@ var Renderer = function(){
                     $renderer: self
                 },
                 args    = [scope, node, value, self],
-                inst    = app ? app.inject(f, null, inject, args) : f.apply(null, args);
+                inst;
+
+            if (app) {
+                inst = app.inject(f, null, inject, args);
+            }
+            else if (f.$instantiate) {
+                inst = f.$instantiate.apply(f, args);
+            }
+            else {
+                inst = f.apply(null, args);
+            }
 
             if (app && f.$registerBy && inst) {
                 if (isThenable(inst)) {
@@ -1895,7 +1905,6 @@ var Provider = function(){
         store: null,
 
         instantiate: function(fn, context, args, isClass) {
-
             if (fn.$instantiate) {
                 return fn.$instantiate.apply(fn, args);
             }
@@ -9215,6 +9224,8 @@ defineClass({
             return null;
         }
 
+        var otype = type;
+
         var pBase   = self.getPositionBase(),
             size    = dlg.getDialogSize(),
             offset  = pBase && !absolute ? getPosition(target, pBase) : getOffset(target),
@@ -9226,8 +9237,6 @@ defineClass({
             offsetX = cfg.position.offsetX,
             offsetY = cfg.position.offsetY,
             pntOfs  = dlg.pointer.getDialogPositionOffset(type);
-
-
 
         switch (pri) {
             case "t": {
@@ -9681,7 +9690,7 @@ defineClass({
     getDialogPositionOffset: function(position) {
         var self    = this,
             pp      = (self.detectPointerPosition(position) || "").substr(0,1),
-            dp      = self.dialog.getPosition().getPrimaryPosition(),
+            dp      = self.dialog.getPosition().getPrimaryPosition(position),
             ofs     = {x: 0, y: 0};
 
         if (!self.enabled) {
@@ -9719,7 +9728,8 @@ defineClass({
 
         if (sec) {
             sec = sec.substr(0, 1);
-            position += self.opposite[sec];
+            //position += self.opposite[sec];
+            position += sec;
         }
 
         return position;
@@ -10223,9 +10233,9 @@ defineClass({
             dialog = self.dialog,
             node = self.node;
 
-        if (node && node.parentNode) {
-            raf(function () {
-                if (!dialog.isVisible()) {
+        if (node) {
+            raf(function() {
+                if (!dialog.isVisible() && node.parentNode) {
                     node.parentNode.removeChild(node);
                 }
             });
@@ -12935,14 +12945,13 @@ var Dialog = (function(){
 
             removeListener(window, "resize", self.onWindowResizeDelegate);
             removeListener(window, "scroll", self.onWindowScrollDelegate);
+            self.setHandlers("unbind");
 
             self.destroyElem();
 
-            self.overlay.$destroy();
-            self.pointer.$destroy();
-            self.position.$destroy();
-
-            self.setHandlers("unbind");
+            self.overlay && self.overlay.$destroy();
+            self.pointer && self.pointer.$destroy();
+            self.position && self.position.$destroy();
         }
 
     }, {
