@@ -127,12 +127,14 @@ module.exports = defineClass({
             }
 
             scope.$event = e;
+            scope.$eventNode = self.node;
 
             if (cfg.handler) {
                 cfg.handler.call(cfg.context || null, scope);
             }
 
             scope.$event = null;
+            scope.$eventNode = null;
 
             updateRoot ? scope.$root.$check() : scope.$check();
 

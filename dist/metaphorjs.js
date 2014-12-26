@@ -696,6 +696,10 @@ var Class = function(){
                 ret             = fn.apply(self, arguments);
                 self.$super     = prev;
 
+                if (self.$destroyed) {
+                    self.$super = null;
+                }
+
                 return ret;
             };
         },
@@ -13166,12 +13170,14 @@ var EventHandler = defineClass({
             }
 
             scope.$event = e;
+            scope.$eventNode = self.node;
 
             if (cfg.handler) {
                 cfg.handler.call(cfg.context || null, scope);
             }
 
             scope.$event = null;
+            scope.$eventNode = null;
 
             updateRoot ? scope.$root.$check() : scope.$check();
 
