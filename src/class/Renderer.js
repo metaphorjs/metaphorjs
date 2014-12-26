@@ -14,9 +14,9 @@ var nextUid = require("../func/nextUid.js"),
     getAttrMap = require("../func/dom/getAttrMap.js"),
     undf = require("../var/undf.js"),
 
-    Observable = require("metaphorjs-observable/src/metaphorjs.observable.js"),
+    Observable = require("metaphorjs-observable/src/lib/Observable.js"),
     nsGet = require("metaphorjs-namespace/src/func/nsGet.js"),
-    Promise = require("metaphorjs-promise/src/metaphorjs.promise.js"),
+    Promise = require("metaphorjs-promise/src/lib/Promise.js"),
     defineClass = require("metaphorjs-class/src/func/defineClass.js");
 
 require("../func/array/aIndexOf.js");

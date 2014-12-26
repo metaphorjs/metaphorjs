@@ -8523,7 +8523,7 @@ function undelegate(el, selector, event, fn) {
 
 defineClass({
 
-    $class: "$dialog.position.Abstract",
+    $class: "dialog.position.Abstract",
     dialog: null,
     positionBase: null,
     correct: "solid",
@@ -8938,8 +8938,8 @@ function getPosition(node, to) {
 
 defineClass({
 
-    $class: "$dialog.position.Target",
-    $extends: "$dialog.position.Abstract",
+    $class: "dialog.position.Target",
+    $extends: "dialog.position.Abstract",
 
     getCoords: function(e, type, absolute) {
 
@@ -9059,8 +9059,8 @@ defineClass({
 
 defineClass({
 
-    $class: "$dialog.position.Mouse",
-    $extends: "$dialog.position.Target",
+    $class: "dialog.position.Mouse",
+    $extends: "dialog.position.Target",
     correct: "position",
 
     $init: function(dialog) {
@@ -9206,8 +9206,8 @@ defineClass({
 
 defineClass({
 
-    $class: "$dialog.position.Window",
-    $extends: "$dialog.position.Abstract",
+    $class: "dialog.position.Window",
+    $extends: "dialog.position.Abstract",
 
 
     getCoords: function(e) {
@@ -9296,8 +9296,8 @@ defineClass({
 
 defineClass({
 
-    $class: "$dialog.position.Custom",
-    $extends: "$dialog.position.Abstract",
+    $class: "dialog.position.Custom",
+    $extends: "dialog.position.Abstract",
 
     getCoords: function(e) {
 
@@ -9312,7 +9312,7 @@ defineClass({
 
 defineClass({
 
-    $class: "$dialog.pointer.Abstract",
+    $class: "dialog.pointer.Abstract",
     enabled: null,
     node: null,
     correctX: 0,
@@ -9565,8 +9565,8 @@ defineClass({
 
     defineClass({
 
-        $class: "$dialog.pointer.Html",
-        $extends: "$dialog.pointer.Abstract",
+        $class: "dialog.pointer.Html",
+        $extends: "dialog.pointer.Abstract",
 
         node: null,
         sub: null,
@@ -9603,7 +9603,7 @@ defineClass({
             newcfg.offset = 0;
             newcfg.inner = self.border;
 
-            self.sub = factory("$dialog.pointer.Html", self.dialog, newcfg);
+            self.sub = factory("dialog.pointer.Html", self.dialog, newcfg);
         },
 
 
@@ -9849,7 +9849,7 @@ defineClass({
 
 defineClass({
 
-    $class:         "$dialog.Overlay",
+    $class:         "dialog.Overlay",
     dialog:         null,
     enabled:		false,
     color:			'#000',
@@ -10040,7 +10040,7 @@ defineClass({
 
 
 defineClass({
-    $class: "$dialog.Manager",
+    $class: "dialog.Manager",
     all: null,
     groups: null,
 
@@ -10122,7 +10122,7 @@ defineClass({
 
 var Dialog = (function(){
 
-    var manager = factory("$dialog.Manager");
+    var manager = factory("dialog.Manager");
 
     var defaultEventProcessor = function(dlg, e, type, returnMode){
         if (type == "show" || !returnMode) {
@@ -11141,10 +11141,10 @@ var Dialog = (function(){
             if (cfg.modal) {
                 cfg.overlay.enabled = true;
             }
-            self.overlay    = factory("$dialog.Overlay", self);
+            self.overlay    = factory("dialog.Overlay", self);
 
             var pointerCls = ucfirst(cfg.pointer.$class || "Html");
-            self.pointer    = factory("$dialog.pointer." + pointerCls, self, cfg.pointer);
+            self.pointer    = factory("dialog.pointer." + pointerCls, self, cfg.pointer);
 
             if (isFunction(cfg.position.type)) {
                 self.positionGetType = cfg.position.type;
@@ -11199,7 +11199,7 @@ var Dialog = (function(){
 
         /**
          * Get dialog's pointer object
-         * @returns {$dialog.pointer.Abstract}
+         * @returns {dialog.pointer.Abstract}
          */
         getPointer: function() {
             return this.pointer;
@@ -11208,7 +11208,7 @@ var Dialog = (function(){
 
         /**
          * Get dialog's overlay object
-         * @returns {$dialog.Overlay}
+         * @returns {dialog.Overlay}
          */
         getOverlay: function() {
             return this.overlay;
@@ -12103,7 +12103,7 @@ var Dialog = (function(){
             }
 
             if (isFunction(type) || type == "custom") {
-                return "$dialog.position.Custom";
+                return "dialog.position.Custom";
             }
 
             var fc = type.substr(0, 1);
@@ -12112,13 +12112,13 @@ var Dialog = (function(){
                 return false;
             }
             else if (fc == "w") {
-                return "$dialog.position.Window";
+                return "dialog.position.Window";
             }
             else if (fc == "m") {
-                return "$dialog.position.Mouse";
+                return "dialog.position.Mouse";
             }
             else {
-                return "$dialog.position.Target";
+                return "dialog.position.Target";
             }
         },
 
@@ -13079,122 +13079,124 @@ defineClass({
 });
 
 
-MetaphorJs['ns'] = ns;
-MetaphorJs['cs'] = cs;
-MetaphorJs['defineClass'] = defineClass;
-MetaphorJs['emptyFn'] = emptyFn;
-MetaphorJs['slice'] = slice;
-MetaphorJs['getAttr'] = getAttr;
-MetaphorJs['undf'] = undf;
-MetaphorJs['varType'] = varType;
-MetaphorJs['isPlainObject'] = isPlainObject;
-MetaphorJs['isBool'] = isBool;
-MetaphorJs['extend'] = extend;
-MetaphorJs['Scope'] = Scope;
-MetaphorJs['nextUid'] = nextUid;
-MetaphorJs['isArray'] = isArray;
-MetaphorJs['toArray'] = toArray;
-MetaphorJs['isFunction'] = isFunction;
-MetaphorJs['isThenable'] = isThenable;
-MetaphorJs['isString'] = isString;
-MetaphorJs['trim'] = trim;
-MetaphorJs['createWatchable'] = createWatchable;
-MetaphorJs['nsAdd'] = nsAdd;
-MetaphorJs['nsGet'] = nsGet;
-MetaphorJs['Directive'] = Directive;
-MetaphorJs['bind'] = bind;
-MetaphorJs['split'] = split;
-MetaphorJs['isNull'] = isNull;
-MetaphorJs['TextRenderer'] = TextRenderer;
-MetaphorJs['setAttr'] = setAttr;
-MetaphorJs['removeAttr'] = removeAttr;
-MetaphorJs['getAttrMap'] = getAttrMap;
-MetaphorJs['aIndexOf'] = aIndexOf;
-MetaphorJs['Renderer'] = Renderer;
-MetaphorJs['Text'] = Text;
-MetaphorJs['ObservableMixin'] = ObservableMixin;
-MetaphorJs['isObject'] = isObject;
-MetaphorJs['instantiate'] = instantiate;
-MetaphorJs['Provider'] = Provider;
-MetaphorJs['ProviderMixin'] = ProviderMixin;
-MetaphorJs['destroy'] = destroy;
-MetaphorJs['isAttached'] = isAttached;
-MetaphorJs['data'] = data;
-MetaphorJs['toFragment'] = toFragment;
-MetaphorJs['clone'] = clone;
-MetaphorJs['strUndef'] = strUndef;
-MetaphorJs['Cache'] = Cache;
-MetaphorJs['Template'] = Template;
-MetaphorJs['getRegExp'] = getRegExp;
-MetaphorJs['getClsReg'] = getClsReg;
-MetaphorJs['hasClass'] = hasClass;
-MetaphorJs['addClass'] = addClass;
-MetaphorJs['removeClass'] = removeClass;
-MetaphorJs['Component'] = Component;
-MetaphorJs['stopAnimation'] = stopAnimation;
-MetaphorJs['raf'] = raf;
-MetaphorJs['getAnimationPrefixes'] = getAnimationPrefixes;
-MetaphorJs['async'] = async;
-MetaphorJs['isNumber'] = isNumber;
-MetaphorJs['error'] = error;
-MetaphorJs['Queue'] = Queue;
-MetaphorJs['isPrimitive'] = isPrimitive;
-MetaphorJs['functionFactory'] = functionFactory;
-MetaphorJs['createGetter'] = createGetter;
-MetaphorJs['toCamelCase'] = toCamelCase;
-MetaphorJs['getNodeData'] = getNodeData;
-MetaphorJs['getNodeConfig'] = getNodeConfig;
-MetaphorJs['ListRenderer'] = ListRenderer;
-MetaphorJs['currentUrl'] = currentUrl;
-MetaphorJs['UrlParam'] = UrlParam;
-MetaphorJs['resolveComponent'] = resolveComponent;
-MetaphorJs['returnFalse'] = returnFalse;
-MetaphorJs['isField'] = isField;
-MetaphorJs['returnTrue'] = returnTrue;
-MetaphorJs['DomEvent'] = DomEvent;
-MetaphorJs['normalizeEvent'] = normalizeEvent;
-MetaphorJs['mousewheelHandler'] = mousewheelHandler;
-MetaphorJs['addListener'] = addListener;
-MetaphorJs['removeListener'] = removeListener;
-MetaphorJs['getStyle'] = getStyle;
-MetaphorJs['boxSizingReliable'] = boxSizingReliable;
-MetaphorJs['getDimensions'] = getDimensions;
-MetaphorJs['getWidth'] = getWidth;
-MetaphorJs['getHeight'] = getHeight;
-MetaphorJs['getScrollTopOrLeft'] = getScrollTopOrLeft;
-MetaphorJs['getScrollTop'] = getScrollTop;
-MetaphorJs['getScrollLeft'] = getScrollLeft;
-MetaphorJs['EventBuffer'] = EventBuffer;
-MetaphorJs['EventHandler'] = EventHandler;
-MetaphorJs['createFunc'] = createFunc;
-MetaphorJs['isIE'] = isIE;
-MetaphorJs['preloadImage'] = preloadImage;
-MetaphorJs['removeStyle'] = removeStyle;
-MetaphorJs['parentData'] = parentData;
-MetaphorJs['transclude'] = transclude;
-MetaphorJs['filterArray'] = filterArray;
-MetaphorJs['dateFormats'] = dateFormats;
-MetaphorJs['numberFormats'] = numberFormats;
-MetaphorJs['sortArray'] = sortArray;
-MetaphorJs['onReady'] = onReady;
-MetaphorJs['initApp'] = initApp;
-MetaphorJs['run'] = run;
-MetaphorJs['StoreRenderer'] = StoreRenderer;
-MetaphorJs['factory'] = factory;
-MetaphorJs['setStyle'] = setStyle;
-MetaphorJs['isVisible'] = isVisible;
-MetaphorJs['is'] = is;
-MetaphorJs['ucfirst'] = ucfirst;
-MetaphorJs['getOuterWidth'] = getOuterWidth;
-MetaphorJs['getOuterHeight'] = getOuterHeight;
-MetaphorJs['delegates'] = delegates;
-MetaphorJs['delegate'] = delegate;
-MetaphorJs['undelegate'] = undelegate;
-MetaphorJs['getOffsetParent'] = getOffsetParent;
-MetaphorJs['getOffset'] = getOffset;
-MetaphorJs['getPosition'] = getPosition;
-MetaphorJs['Dialog'] = Dialog;
-MetaphorJs['eachNode'] = eachNode;
+var MetaphorJsExports = {};
+MetaphorJsExports['MetaphorJs'] = MetaphorJs;
+MetaphorJsExports['ns'] = ns;
+MetaphorJsExports['cs'] = cs;
+MetaphorJsExports['defineClass'] = defineClass;
+MetaphorJsExports['emptyFn'] = emptyFn;
+MetaphorJsExports['slice'] = slice;
+MetaphorJsExports['getAttr'] = getAttr;
+MetaphorJsExports['undf'] = undf;
+MetaphorJsExports['varType'] = varType;
+MetaphorJsExports['isPlainObject'] = isPlainObject;
+MetaphorJsExports['isBool'] = isBool;
+MetaphorJsExports['extend'] = extend;
+MetaphorJsExports['Scope'] = Scope;
+MetaphorJsExports['nextUid'] = nextUid;
+MetaphorJsExports['isArray'] = isArray;
+MetaphorJsExports['toArray'] = toArray;
+MetaphorJsExports['isFunction'] = isFunction;
+MetaphorJsExports['isThenable'] = isThenable;
+MetaphorJsExports['isString'] = isString;
+MetaphorJsExports['trim'] = trim;
+MetaphorJsExports['createWatchable'] = createWatchable;
+MetaphorJsExports['nsAdd'] = nsAdd;
+MetaphorJsExports['nsGet'] = nsGet;
+MetaphorJsExports['Directive'] = Directive;
+MetaphorJsExports['bind'] = bind;
+MetaphorJsExports['split'] = split;
+MetaphorJsExports['isNull'] = isNull;
+MetaphorJsExports['TextRenderer'] = TextRenderer;
+MetaphorJsExports['setAttr'] = setAttr;
+MetaphorJsExports['removeAttr'] = removeAttr;
+MetaphorJsExports['getAttrMap'] = getAttrMap;
+MetaphorJsExports['aIndexOf'] = aIndexOf;
+MetaphorJsExports['Renderer'] = Renderer;
+MetaphorJsExports['Text'] = Text;
+MetaphorJsExports['ObservableMixin'] = ObservableMixin;
+MetaphorJsExports['isObject'] = isObject;
+MetaphorJsExports['instantiate'] = instantiate;
+MetaphorJsExports['Provider'] = Provider;
+MetaphorJsExports['ProviderMixin'] = ProviderMixin;
+MetaphorJsExports['destroy'] = destroy;
+MetaphorJsExports['isAttached'] = isAttached;
+MetaphorJsExports['data'] = data;
+MetaphorJsExports['toFragment'] = toFragment;
+MetaphorJsExports['clone'] = clone;
+MetaphorJsExports['strUndef'] = strUndef;
+MetaphorJsExports['Cache'] = Cache;
+MetaphorJsExports['Template'] = Template;
+MetaphorJsExports['getRegExp'] = getRegExp;
+MetaphorJsExports['getClsReg'] = getClsReg;
+MetaphorJsExports['hasClass'] = hasClass;
+MetaphorJsExports['addClass'] = addClass;
+MetaphorJsExports['removeClass'] = removeClass;
+MetaphorJsExports['Component'] = Component;
+MetaphorJsExports['stopAnimation'] = stopAnimation;
+MetaphorJsExports['raf'] = raf;
+MetaphorJsExports['getAnimationPrefixes'] = getAnimationPrefixes;
+MetaphorJsExports['async'] = async;
+MetaphorJsExports['isNumber'] = isNumber;
+MetaphorJsExports['error'] = error;
+MetaphorJsExports['Queue'] = Queue;
+MetaphorJsExports['isPrimitive'] = isPrimitive;
+MetaphorJsExports['functionFactory'] = functionFactory;
+MetaphorJsExports['createGetter'] = createGetter;
+MetaphorJsExports['toCamelCase'] = toCamelCase;
+MetaphorJsExports['getNodeData'] = getNodeData;
+MetaphorJsExports['getNodeConfig'] = getNodeConfig;
+MetaphorJsExports['ListRenderer'] = ListRenderer;
+MetaphorJsExports['currentUrl'] = currentUrl;
+MetaphorJsExports['UrlParam'] = UrlParam;
+MetaphorJsExports['resolveComponent'] = resolveComponent;
+MetaphorJsExports['returnFalse'] = returnFalse;
+MetaphorJsExports['isField'] = isField;
+MetaphorJsExports['returnTrue'] = returnTrue;
+MetaphorJsExports['DomEvent'] = DomEvent;
+MetaphorJsExports['normalizeEvent'] = normalizeEvent;
+MetaphorJsExports['mousewheelHandler'] = mousewheelHandler;
+MetaphorJsExports['addListener'] = addListener;
+MetaphorJsExports['removeListener'] = removeListener;
+MetaphorJsExports['getStyle'] = getStyle;
+MetaphorJsExports['boxSizingReliable'] = boxSizingReliable;
+MetaphorJsExports['getDimensions'] = getDimensions;
+MetaphorJsExports['getWidth'] = getWidth;
+MetaphorJsExports['getHeight'] = getHeight;
+MetaphorJsExports['getScrollTopOrLeft'] = getScrollTopOrLeft;
+MetaphorJsExports['getScrollTop'] = getScrollTop;
+MetaphorJsExports['getScrollLeft'] = getScrollLeft;
+MetaphorJsExports['EventBuffer'] = EventBuffer;
+MetaphorJsExports['EventHandler'] = EventHandler;
+MetaphorJsExports['createFunc'] = createFunc;
+MetaphorJsExports['isIE'] = isIE;
+MetaphorJsExports['preloadImage'] = preloadImage;
+MetaphorJsExports['removeStyle'] = removeStyle;
+MetaphorJsExports['parentData'] = parentData;
+MetaphorJsExports['transclude'] = transclude;
+MetaphorJsExports['filterArray'] = filterArray;
+MetaphorJsExports['dateFormats'] = dateFormats;
+MetaphorJsExports['numberFormats'] = numberFormats;
+MetaphorJsExports['sortArray'] = sortArray;
+MetaphorJsExports['onReady'] = onReady;
+MetaphorJsExports['initApp'] = initApp;
+MetaphorJsExports['run'] = run;
+MetaphorJsExports['StoreRenderer'] = StoreRenderer;
+MetaphorJsExports['factory'] = factory;
+MetaphorJsExports['setStyle'] = setStyle;
+MetaphorJsExports['isVisible'] = isVisible;
+MetaphorJsExports['is'] = is;
+MetaphorJsExports['ucfirst'] = ucfirst;
+MetaphorJsExports['getOuterWidth'] = getOuterWidth;
+MetaphorJsExports['getOuterHeight'] = getOuterHeight;
+MetaphorJsExports['delegates'] = delegates;
+MetaphorJsExports['delegate'] = delegate;
+MetaphorJsExports['undelegate'] = undelegate;
+MetaphorJsExports['getOffsetParent'] = getOffsetParent;
+MetaphorJsExports['getOffset'] = getOffset;
+MetaphorJsExports['getPosition'] = getPosition;
+MetaphorJsExports['Dialog'] = Dialog;
+MetaphorJsExports['eachNode'] = eachNode;
 return MetaphorJs;
 
 };

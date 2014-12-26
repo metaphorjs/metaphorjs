@@ -1,7 +1,7 @@
 
 var error = require("./error.js"),
     resolveComponent = require("./resolveComponent.js"),
-    Promise = require("../../../metaphorjs-promise/src/metaphorjs.promise.js");
+    Promise = require("../../../metaphorjs-promise/src/lib/Promise.js");
 
 module.exports = function initApp(node, cls, data, autorun) {
 

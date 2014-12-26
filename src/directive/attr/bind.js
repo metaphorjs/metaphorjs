@@ -8,7 +8,7 @@ var Directive = require("../../class/Directive.js"),
     setValue = require("../../../../metaphorjs-input/src/func/setValue.js"),
     TextRenderer = require("../../class/TextRenderer.js"),
     Scope = require("../../lib/Scope.js"),
-    Input = require("../../../../metaphorjs-input/src/metaphorjs.input.js"),
+    Input = require("../../../../metaphorjs-input/src/lib/Input.js"),
     getNodeConfig = require("../../func/dom/getNodeConfig.js");
 
 

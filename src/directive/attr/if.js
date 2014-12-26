@@ -1,7 +1,7 @@
 
 
 
-var animate = require("metaphorjs-animate/src/metaphorjs.animate.js"),
+var animate = require("metaphorjs-animate/src/func/animate.js"),
     Directive = require("../../class/Directive.js"),
     isAttached = require("../../func/dom/isAttached.js"),
     getNodeConfig = require("../../func/dom/getNodeConfig.js");

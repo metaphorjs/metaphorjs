@@ -8,7 +8,7 @@ var extend = require("../func/extend.js"),
     isBool = require("../func/isBool.js"),
     instantiate = require("../func/instantiate.js"),
 
-    Promise = require("metaphorjs-promise/src/metaphorjs.promise.js");
+    Promise = require("metaphorjs-promise/src/lib/Promise.js");
 
 
 module.exports = function(){

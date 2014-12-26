@@ -1,9 +1,9 @@
 
 
 var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
-    animate = require("metaphorjs-animate/src/metaphorjs.animate.js"),
+    animate = require("metaphorjs-animate/src/func/animate.js"),
     stopAnimation = require("metaphorjs-animate/src/func/stopAnimation.js"),
-    mhistory = require("metaphorjs-history/src/metaphorjs.history.js"),
+    mhistory = require("metaphorjs-history/src/lib/History.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     currentUrl = require("metaphorjs-history/src/func/currentUrl.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js"),

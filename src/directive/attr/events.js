@@ -2,7 +2,7 @@
 var Directive = require("../../class/Directive.js"),
     EventHandler = require("../../lib/EventHandler.js"),
     createFunc = require("metaphorjs-watchable/src/func/createFunc.js"),
-    Input = require("metaphorjs-input/src/metaphorjs.input.js");
+    Input = require("metaphorjs-input/src/lib/Input.js");
 
 (function(){
 

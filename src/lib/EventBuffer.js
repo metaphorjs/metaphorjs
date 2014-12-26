@@ -1,6 +1,6 @@
 
 var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
-    Observable = require("metaphorjs-observable/src/metaphorjs.observable.js"),
+    Observable = require("metaphorjs-observable/src/lib/Observable.js"),
     bind = require("../func/bind.js"),
     addListener = require("../func/event/addListener.js"),
     removeListener = require("../func/event/removeListener.js"),

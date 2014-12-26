@@ -1,6 +1,6 @@
 
-var Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
-    ns = require("../../../metaphorjs-namespace/src/var/ns.js");
+var Observable = require("metaphorjs-observable/src/lib/Observable.js"),
+    ns = require("metaphorjs-namespace/src/var/ns.js");
 
 /**
  * @mixin ObservableMixin

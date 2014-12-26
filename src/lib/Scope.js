@@ -1,6 +1,6 @@
 
-var Observable = require("../../../metaphorjs-observable/src/metaphorjs.observable.js"),
-    Watchable = require("../../../metaphorjs-watchable/src/metaphorjs.watchable.js"),
+var Observable = require("metaphorjs-observable/src/lib/Observable.js"),
+    Watchable = require("metaphorjs-watchable/src/lib/Watchable.js"),
     extend = require("../func/extend.js"),
     undf = require("../var/undf.js");
 

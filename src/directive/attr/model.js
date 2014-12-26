@@ -5,7 +5,7 @@
 var async = require("../../func/async.js"),
     isIE = require("../../func/browser/isIE.js"),
     undf = require("../../var/undf.js"),
-    Input = require("metaphorjs-input/src/metaphorjs.input.js"),
+    Input = require("metaphorjs-input/src/lib/Input.js"),
     Scope = require("../../lib/Scope.js"),
     isString = require("../../func/isString.js"),
     Directive = require("../../class/Directive.js"),

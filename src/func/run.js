@@ -1,7 +1,7 @@
 
 var onReady = require("../func/dom/onReady.js"),
     initApp = require("../func/initApp.js"),
-    select  = require("../../../metaphorjs-select/src/metaphorjs.select.js"),
+    select  = require("../../../metaphorjs-select/src/func/select.js"),
     getAttr = require("../func/dom/getAttr.js");
 
 module.exports = function run(w, appData) {
