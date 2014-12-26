@@ -1,6 +1,6 @@
 
 
-var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
+var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     emptyFn = require("../func/emptyFn.js"),
     nextUid = require("../func/nextUid.js"),
     getAttr = require("../func/dom/getAttr.js"),
@@ -10,10 +10,10 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     extend = require("../func/extend.js"),
     Template = require("./Template.js"),
     Scope = require("../lib/Scope.js"),
-    ObservableMixin = require("../mixin/ObservableMixin.js"),
     addClass = require("../func/dom/addClass.js"),
     removeClass = require("../func/dom/removeClass.js");
 
+require("metaphorjs-observable/src/mixin/Observable.js");
 
 /**
  * @namespace MetaphorJs
@@ -21,8 +21,8 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
  */
 module.exports = defineClass({
 
-    $class: "MetaphorJs.Component",
-    $mixins: [ObservableMixin],
+    $class: "Component",
+    $mixins: ["mixin.Observable"],
 
     /**
      * @access protected

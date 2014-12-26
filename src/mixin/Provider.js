@@ -1,7 +1,9 @@
 
-var Provider = require("../lib/Provider.js");
+var Provider = require("../lib/Provider.js"),
+    ns = require("metaphorjs-namespace/src/var/ns.js");
 
-module.exports = {
+
+module.exports = ns.register("mixin.Provider", {
 
     /**
      * @type {Provider}
@@ -56,4 +58,4 @@ module.exports = {
 
     }
 
-};
+});

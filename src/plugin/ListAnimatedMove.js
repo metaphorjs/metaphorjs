@@ -1,11 +1,12 @@
 
-var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
-    ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
-    nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
-    animate = require("../../../metaphorjs-animate/src/func/animate.js"),
-    getAnimationPrefixes = require("../../../metaphorjs-animate/src/func/getAnimationPrefixes.js");
+var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
+    ns = require("metaphorjs-namespace/src/var/ns.js"),
+    animate = require("metaphorjs-animate/src/func/animate.js"),
+    getAnimationPrefixes = require("metaphorjs-animate/src/func/getAnimationPrefixes.js");
 
-module.exports = nsAdd("plugin.ListAnimatedMove", defineClass({
+module.exports = defineClass({
+
+    $class: "plugin.ListAnimatedMove",
 
     $init: function(list) {
 
@@ -134,4 +135,4 @@ module.exports = nsAdd("plugin.ListAnimatedMove", defineClass({
 
     }
 
-}));
+});

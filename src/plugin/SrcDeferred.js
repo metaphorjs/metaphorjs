@@ -1,6 +1,5 @@
 
 var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
-    nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
     getScrollParent = require("../func/dom/getScrollParent.js"),
     getPosition = require("../func/dom/getPosition.js"),
     getScrollTop = require("../func/dom/getScrollTop.js"),
@@ -11,7 +10,9 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     removeListener = require("../func/event/removeListener.js"),
     bind = require("../func/bind.js");
 
-module.exports = nsAdd("plugin.SrcDeferred", defineClass({
+module.exports = defineClass({
+
+    $class: "plugin.SrcDeferred",
 
     directive: null,
 
@@ -112,4 +113,4 @@ module.exports = nsAdd("plugin.SrcDeferred", defineClass({
         this.stopWatching();
     }
 
-}));
+});

@@ -35,8 +35,8 @@
                     "metaphorjs-model/metaphorjs.json",
                     "all"
                 ],
-                "metaphorjs-dialog/src/cmp/DialogComponent.js",
-                "metaphorjs-validator/src/cmp/ValidatorComponent.js",
+                "metaphorjs-dialog/src/class/dialog/Component.js",
+                "metaphorjs-validator/src/directive/**",
                 "src/plugin/**"
             ]
         }
@@ -74,8 +74,8 @@
                     }
                 ],
                 "metaphorjs-model/src/directive/*",
-                "metaphorjs-dialog/src/cmp/DialogComponent.js",
-                "metaphorjs-validator/src/cmp/ValidatorComponent.js"
+                "metaphorjs-dialog/src/class/dialog/Component.js",
+                "metaphorjs-validator/src/directive/**"
             ],
             "omit": [
                 "src/bootstrap/apps.js",
@@ -144,8 +144,8 @@
                     "src/func/*", {"as": "*"}
                 ],
                 "metaphorjs-model/src/directive/*",
-                "metaphorjs-dialog/src/cmp/DialogComponent.js",
-                "metaphorjs-validator/src/cmp/ValidatorComponent.js"
+                "metaphorjs-dialog/src/class/dialog/Component.js",
+                "metaphorjs-validator/src/directive/**"
             ],
             "omit": [
                 "src/bootstrap/apps.js",

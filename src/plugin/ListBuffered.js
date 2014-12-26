@@ -1,6 +1,5 @@
 
 var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
-    nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
     addListener = require("../func/event/addListener.js"),
     removeListener = require("../func/event/removeListener.js"),
     getNodeConfig = require("../func/dom/getNodeConfig.js"),
@@ -13,7 +12,9 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     Promise = require("../../../metaphorjs-promise/src/lib/Promise.js"),
     raf = require('../../../metaphorjs-animate/src/func/raf.js');
 
-module.exports = nsAdd("plugin.ListBuffered", defineClass({
+module.exports = defineClass({
+
+    $class: "plugin.ListBuffered",
 
     list: null,
 
@@ -336,4 +337,4 @@ module.exports = nsAdd("plugin.ListBuffered", defineClass({
         removeListener(self.scrollEl, "scroll", self.bufferEventDelegate);
         removeListener(window, "resize", self.bufferEventDelegate);
     }
-}));
+});

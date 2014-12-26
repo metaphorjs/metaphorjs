@@ -1138,7 +1138,7 @@ var Class = function(){
                 for (i = 0, l = mixins.length; i < l; i++) {
                     mixin = mixins[i];
                     if (isString(mixin)) {
-                        mixin = ns.get("mixin." + mixin, true);
+                        mixin = ns.get(mixin, true);
                     }
                     mixinToPrototype(prototype, mixin);
                 }
@@ -5713,10 +5713,67 @@ var Text = function(){
 
 
 
+var destroy = function() {
+
+    var items = [];
+
+    var destroy = function destroyMetaphor(destroyWindow) {
+
+        var i, l, item,
+            k;
+
+        for (i = 0, l = items.length; i < l; i++) {
+            item = items[i];
+
+            if (item.$destroy) {
+                item.$destroy();
+            }
+            else if (item.destroy) {
+                item.destroy();
+            }
+        }
+
+        items = null;
+
+        if (cs && cs.destroy) {
+            cs.destroy();
+            cs = null;
+        }
+
+        if (ns && ns.destroy) {
+            ns.destroy();
+            ns = null;
+        }
+
+        for (k in MetaphorJs) {
+            MetaphorJs[k] = null;
+        }
+
+        MetaphorJs = null;
+
+        if (destroyWindow) {
+            for (k in window) {
+                if (window.hasOwnProperty(k)) {
+                    window[k] = null;
+                }
+            }
+        }
+    };
+
+    destroy.collect = function(item) {
+        items.push(item);
+    };
+
+    return destroy;
+
+}();
+
+
+
 /**
- * @mixin ObservableMixin
+ * @mixin Observable
  */
-var ObservableMixin = ns.add("mixin.Observable", {
+ns.register("mixin.Observable", {
 
     /**
      * @type {Observable}
@@ -6001,7 +6058,8 @@ var Provider = function(){
 
 
 
-var ProviderMixin = {
+
+ns.register("mixin.Provider", {
 
     /**
      * @type {Provider}
@@ -6056,64 +6114,8 @@ var ProviderMixin = {
 
     }
 
-};
+});
 
-
-
-var destroy = function() {
-
-    var items = [];
-
-    var destroy = function destroyMetaphor(destroyWindow) {
-
-        var i, l, item,
-            k;
-
-        for (i = 0, l = items.length; i < l; i++) {
-            item = items[i];
-
-            if (item.$destroy) {
-                item.$destroy();
-            }
-            else if (item.destroy) {
-                item.destroy();
-            }
-        }
-
-        items = null;
-
-        if (cs && cs.destroy) {
-            cs.destroy();
-            cs = null;
-        }
-
-        if (ns && ns.destroy) {
-            ns.destroy();
-            ns = null;
-        }
-
-        for (k in MetaphorJs) {
-            MetaphorJs[k] = null;
-        }
-
-        MetaphorJs = null;
-
-        if (destroyWindow) {
-            for (k in window) {
-                if (window.hasOwnProperty(k)) {
-                    window[k] = null;
-                }
-            }
-        }
-    };
-
-    destroy.collect = function(item) {
-        items.push(item);
-    };
-
-    return destroy;
-
-}();
 
 
 
@@ -6123,7 +6125,7 @@ var destroy = function() {
 defineClass({
 
     $class: "App",
-    $mixins: [ObservableMixin, ProviderMixin],
+    $mixins: ["mixin.Observable", "mixin.Provider"],
 
     lang: null,
     scope: null,
@@ -9208,14 +9210,15 @@ var Template = function(){
 
 
 
+
 /**
  * @namespace MetaphorJs
  * @class Component
  */
 defineClass({
 
-    $class: "MetaphorJs.Component",
-    $mixins: [ObservableMixin],
+    $class: "Component",
+    $mixins: ["mixin.Observable"],
 
     /**
      * @access protected
@@ -9879,7 +9882,8 @@ function getNodeConfig(node, scope, expr) {
     return cfg;
 };
 
-    
+
+
 
 var ListRenderer = defineClass({
 
@@ -10923,13 +10927,15 @@ var currentUrl = mhistory.current;
 
 
 
+
+
 var UrlParam = (function(){
 
     var cache = {};
 
     var UrlParam = defineClass({
 
-        $mixins: [ObservableMixin],
+        $mixins: ["mixin.Observable"],
 
         extractor: null,
         context: null,

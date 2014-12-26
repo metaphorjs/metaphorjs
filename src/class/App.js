@@ -9,16 +9,15 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     Promise = require("metaphorjs-promise/src/lib/Promise.js"),
     Text = require("../lib/Text.js"),
     removeAttr = require("../func/dom/removeAttr.js"),
-    ObservableMixin = require("../mixin/ObservableMixin.js"),
-    ProviderMixin = require("../mixin/ProviderMixin.js"),
     destroy = require("../func/destroy.js");
 
-
+require("metaphorjs-observable/src/mixin/Observable.js");
+require("../mixin/Provider.js");
 
 module.exports = defineClass({
 
     $class: "App",
-    $mixins: [ObservableMixin, ProviderMixin],
+    $mixins: ["mixin.Observable", "mixin.Provider"],
 
     lang: null,
     scope: null,

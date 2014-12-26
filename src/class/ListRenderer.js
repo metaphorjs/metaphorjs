@@ -22,7 +22,8 @@ var createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"
     getAttr = require("../func/dom/getAttr.js"),
     removeAttr = require("../func/dom/removeAttr.js"),
     getNodeConfig = require("../func/dom/getNodeConfig.js");
-    
+
+
 
 module.exports = defineClass({
 

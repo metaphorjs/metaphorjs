@@ -1138,7 +1138,7 @@ var Class = function(){
                 for (i = 0, l = mixins.length; i < l; i++) {
                     mixin = mixins[i];
                     if (isString(mixin)) {
-                        mixin = ns.get("mixin." + mixin, true);
+                        mixin = ns.get(mixin, true);
                     }
                     mixinToPrototype(prototype, mixin);
                 }
@@ -5713,10 +5713,67 @@ var Text = function(){
 
 
 
+var destroy = function() {
+
+    var items = [];
+
+    var destroy = function destroyMetaphor(destroyWindow) {
+
+        var i, l, item,
+            k;
+
+        for (i = 0, l = items.length; i < l; i++) {
+            item = items[i];
+
+            if (item.$destroy) {
+                item.$destroy();
+            }
+            else if (item.destroy) {
+                item.destroy();
+            }
+        }
+
+        items = null;
+
+        if (cs && cs.destroy) {
+            cs.destroy();
+            cs = null;
+        }
+
+        if (ns && ns.destroy) {
+            ns.destroy();
+            ns = null;
+        }
+
+        for (k in MetaphorJs) {
+            MetaphorJs[k] = null;
+        }
+
+        MetaphorJs = null;
+
+        if (destroyWindow) {
+            for (k in window) {
+                if (window.hasOwnProperty(k)) {
+                    window[k] = null;
+                }
+            }
+        }
+    };
+
+    destroy.collect = function(item) {
+        items.push(item);
+    };
+
+    return destroy;
+
+}();
+
+
+
 /**
- * @mixin ObservableMixin
+ * @mixin Observable
  */
-var ObservableMixin = ns.add("mixin.Observable", {
+ns.register("mixin.Observable", {
 
     /**
      * @type {Observable}
@@ -6001,7 +6058,8 @@ var Provider = function(){
 
 
 
-var ProviderMixin = {
+
+ns.register("mixin.Provider", {
 
     /**
      * @type {Provider}
@@ -6056,64 +6114,8 @@ var ProviderMixin = {
 
     }
 
-};
+});
 
-
-
-var destroy = function() {
-
-    var items = [];
-
-    var destroy = function destroyMetaphor(destroyWindow) {
-
-        var i, l, item,
-            k;
-
-        for (i = 0, l = items.length; i < l; i++) {
-            item = items[i];
-
-            if (item.$destroy) {
-                item.$destroy();
-            }
-            else if (item.destroy) {
-                item.destroy();
-            }
-        }
-
-        items = null;
-
-        if (cs && cs.destroy) {
-            cs.destroy();
-            cs = null;
-        }
-
-        if (ns && ns.destroy) {
-            ns.destroy();
-            ns = null;
-        }
-
-        for (k in MetaphorJs) {
-            MetaphorJs[k] = null;
-        }
-
-        MetaphorJs = null;
-
-        if (destroyWindow) {
-            for (k in window) {
-                if (window.hasOwnProperty(k)) {
-                    window[k] = null;
-                }
-            }
-        }
-    };
-
-    destroy.collect = function(item) {
-        items.push(item);
-    };
-
-    return destroy;
-
-}();
 
 
 
@@ -6123,7 +6125,7 @@ var destroy = function() {
 defineClass({
 
     $class: "App",
-    $mixins: [ObservableMixin, ProviderMixin],
+    $mixins: ["mixin.Observable", "mixin.Provider"],
 
     lang: null,
     scope: null,
@@ -9208,14 +9210,15 @@ var Template = function(){
 
 
 
+
 /**
  * @namespace MetaphorJs
  * @class Component
  */
 var Component = defineClass({
 
-    $class: "MetaphorJs.Component",
-    $mixins: [ObservableMixin],
+    $class: "Component",
+    $mixins: ["mixin.Observable"],
 
     /**
      * @access protected
@@ -9879,7 +9882,8 @@ function getNodeConfig(node, scope, expr) {
     return cfg;
 };
 
-    
+
+
 
 var ListRenderer = defineClass({
 
@@ -10923,13 +10927,15 @@ var currentUrl = mhistory.current;
 
 
 
+
+
 var UrlParam = (function(){
 
     var cache = {};
 
     var UrlParam = defineClass({
 
-        $mixins: [ObservableMixin],
+        $mixins: ["mixin.Observable"],
 
         extractor: null,
         context: null,
@@ -15410,6 +15416,7 @@ var Model = function(){
 
 
 
+
 /**
  * @namespace MetaphorJs
  * @class Record
@@ -15417,7 +15424,7 @@ var Model = function(){
 var Record = defineClass({
 
     $class: "Record",
-    $mixins: [ObservableMixin],
+    $mixins: ["mixin.Observable"],
 
     /**
      * @var mixed
@@ -15837,8 +15844,8 @@ var Store = function(){
      */
     return defineClass({
 
-            $class:         "MetaphorJs.Store",
-            $mixins:        [ObservableMixin],
+            $class:         "Store",
+            $mixins:        ["mixin.Observable"],
 
             /**
              * @var {string}
@@ -17620,6 +17627,7 @@ defineClass({
 
 var StoreRenderer = ListRenderer.$extend({
 
+        $class: "StoreRenderer",
         store: null,
 
         $constructor: function(scope, node, expr) {
@@ -17835,7 +17843,9 @@ function getPosition(node, to) {
 
 
 
-nsAdd("plugin.ListBuffered", defineClass({
+defineClass({
+
+    $class: "plugin.ListBuffered",
 
     list: null,
 
@@ -18158,14 +18168,15 @@ nsAdd("plugin.ListBuffered", defineClass({
         removeListener(self.scrollEl, "scroll", self.bufferEventDelegate);
         removeListener(window, "resize", self.bufferEventDelegate);
     }
-}));
+});
 
 
 
 
 
-nsAdd("plugin.ListPullNext", defineClass({
+defineClass({
 
+    $class: "plugin.ListPullNext",
     $extends: "plugin.ListBuffered",
 
     buffered: false,
@@ -18221,7 +18232,7 @@ nsAdd("plugin.ListPullNext", defineClass({
     }
 
 
-}));
+});
 
 
 function setStyle(el, name, value) {
@@ -19263,7 +19274,7 @@ defineClass({
         };
 
 
-    defineClass({
+    return defineClass({
 
         $class: "dialog.pointer.Html",
         $extends: "dialog.pointer.Abstract",
@@ -19803,6 +19814,7 @@ defineClass({
     }
 
 });
+
 
 
 
@@ -20781,7 +20793,7 @@ var Dialog = (function(){
     var Dialog = defineClass({
 
         $class:             "Dialog",
-        $mixins:            [ObservableMixin],
+        $mixins:            ["mixin.Observable"],
 
         id:                 null,
         node:               null,
@@ -22396,7 +22408,7 @@ var Dialog = (function(){
 
 Component.$extend({
 
-    $class: "DialogComponent",
+    $class: "dialog.Component",
 
     dialog: null,
     dialogPreset: null,
@@ -22869,6 +22881,7 @@ ns.register("validator.format", function(str, params) {
 
 
 
+
 (function(){
 
     /* ***************************** FIELD ****************************************** */
@@ -22976,7 +22989,7 @@ ns.register("validator.format", function(str, params) {
 
     var Field = defineClass({
         $class: "validator.Field",
-        $mixins: [ObservableMixin],
+        $mixins: ["mixin.Observable"],
 
         vldr:           null,
         elem:           null,
@@ -23803,7 +23816,7 @@ ns.register("validator.format", function(str, params) {
 
     var Group = defineClass({
         $class: "validator.Group",
-        $mixins: [ObservableMixin],
+        $mixins: ["mixin.Observable"],
 
         fields:         null,
         rules:          null,
@@ -24324,7 +24337,7 @@ var Validator = (function(){
     var Validator = defineClass({
 
         $class: "Validator",
-        $mixins: [ObservableMixin],
+        $mixins: ["mixin.Observable"],
 
         id:             null,
         el:             null,
@@ -25139,23 +25152,10 @@ var Validator = (function(){
 
 
 
-Directive.registerAttribute("mjs-validate", 250, function(scope, node, expr, renderer) {
-
-    var cls     = expr || "ValidatorComponent",
-        constr  = nsGet(cls);
-
-    if (!constr) {
-        error(new Error("Class '"+cls+"' not found"));
-    }
-    else {
-        new constr(node, scope, renderer);
-    }
-});
-
 
 defineClass({
 
-    $class: "ValidatorComponent",
+    $class: "validator.Component",
 
     node: null,
     scope: null,
@@ -25381,7 +25381,28 @@ defineClass({
 
 
 
-nsAdd("plugin.ListAnimatedMove", defineClass({
+
+
+Directive.registerAttribute("mjs-validate", 250, function(scope, node, expr, renderer) {
+
+    var cls     = expr || "validator.Component",
+        constr  = nsGet(cls);
+
+    if (!constr) {
+        error(new Error("Class '"+cls+"' not found"));
+    }
+    else {
+        new constr(node, scope, renderer);
+    }
+});
+
+
+
+
+
+defineClass({
+
+    $class: "plugin.ListAnimatedMove",
 
     $init: function(list) {
 
@@ -25510,31 +25531,13 @@ nsAdd("plugin.ListAnimatedMove", defineClass({
 
     }
 
-}));
+});
 
 
 
-nsAdd("plugin.Observable", defineClass({
+defineClass({
 
-    $mixins: [ObservableMixin],
-
-    $init: function(cmp) {
-
-        cmp.$implement({
-            $$observable: this.$$observable,
-            on: this.on,
-            once: this.once,
-            un: this.un,
-            trigger: this.trigger
-        });
-
-    }
-
-}));
-
-
-
-nsAdd("plugin.SrcDeferred", defineClass({
+    $class: "plugin.SrcDeferred",
 
     directive: null,
 
@@ -25635,12 +25638,13 @@ nsAdd("plugin.SrcDeferred", defineClass({
         this.stopWatching();
     }
 
-}));
+});
 
 
 
-nsAdd("plugin.SrcSize", defineClass({
+defineClass({
 
+    $class: "plugin.SrcSize",
     directive: null,
 
     width: null,
@@ -25696,6 +25700,6 @@ nsAdd("plugin.SrcSize", defineClass({
         self.$destroy();
     }
 
-}));
+});
 
 }());

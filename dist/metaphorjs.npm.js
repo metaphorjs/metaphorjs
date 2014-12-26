@@ -1792,10 +1792,67 @@ var Text = function(){
 
 
 
+var destroy = function() {
+
+    var items = [];
+
+    var destroy = function destroyMetaphor(destroyWindow) {
+
+        var i, l, item,
+            k;
+
+        for (i = 0, l = items.length; i < l; i++) {
+            item = items[i];
+
+            if (item.$destroy) {
+                item.$destroy();
+            }
+            else if (item.destroy) {
+                item.destroy();
+            }
+        }
+
+        items = null;
+
+        if (cs && cs.destroy) {
+            cs.destroy();
+            cs = null;
+        }
+
+        if (ns && ns.destroy) {
+            ns.destroy();
+            ns = null;
+        }
+
+        for (k in MetaphorJs) {
+            MetaphorJs[k] = null;
+        }
+
+        MetaphorJs = null;
+
+        if (destroyWindow) {
+            for (k in window) {
+                if (window.hasOwnProperty(k)) {
+                    window[k] = null;
+                }
+            }
+        }
+    };
+
+    destroy.collect = function(item) {
+        items.push(item);
+    };
+
+    return destroy;
+
+}();
+
+
+
 /**
- * @mixin ObservableMixin
+ * @mixin Observable
  */
-var ObservableMixin = ns.add("mixin.Observable", {
+ns.register("mixin.Observable", {
 
     /**
      * @type {Observable}
@@ -2108,7 +2165,8 @@ var Provider = function(){
 
 
 
-var ProviderMixin = {
+
+ns.register("mixin.Provider", {
 
     /**
      * @type {Provider}
@@ -2163,64 +2221,8 @@ var ProviderMixin = {
 
     }
 
-};
+});
 
-
-
-var destroy = function() {
-
-    var items = [];
-
-    var destroy = function destroyMetaphor(destroyWindow) {
-
-        var i, l, item,
-            k;
-
-        for (i = 0, l = items.length; i < l; i++) {
-            item = items[i];
-
-            if (item.$destroy) {
-                item.$destroy();
-            }
-            else if (item.destroy) {
-                item.destroy();
-            }
-        }
-
-        items = null;
-
-        if (cs && cs.destroy) {
-            cs.destroy();
-            cs = null;
-        }
-
-        if (ns && ns.destroy) {
-            ns.destroy();
-            ns = null;
-        }
-
-        for (k in MetaphorJs) {
-            MetaphorJs[k] = null;
-        }
-
-        MetaphorJs = null;
-
-        if (destroyWindow) {
-            for (k in window) {
-                if (window.hasOwnProperty(k)) {
-                    window[k] = null;
-                }
-            }
-        }
-    };
-
-    destroy.collect = function(item) {
-        items.push(item);
-    };
-
-    return destroy;
-
-}();
 
 
 
@@ -2230,7 +2232,7 @@ var destroy = function() {
 defineClass({
 
     $class: "App",
-    $mixins: [ObservableMixin, ProviderMixin],
+    $mixins: ["mixin.Observable", "mixin.Provider"],
 
     lang: null,
     scope: null,
@@ -3109,14 +3111,15 @@ function removeClass(el, cls) {
 
 
 
+
 /**
  * @namespace MetaphorJs
  * @class Component
  */
 var Component = defineClass({
 
-    $class: "MetaphorJs.Component",
-    $mixins: [ObservableMixin],
+    $class: "Component",
+    $mixins: ["mixin.Observable"],
 
     /**
      * @access protected
@@ -4147,7 +4150,8 @@ function getNodeConfig(node, scope, expr) {
     return cfg;
 };
 
-    
+
+
 
 var ListRenderer = defineClass({
 
@@ -4774,13 +4778,15 @@ var currentUrl = mhistory.current;
 
 
 
+
+
 var UrlParam = (function(){
 
     var cache = {};
 
     var UrlParam = defineClass({
 
-        $mixins: [ObservableMixin],
+        $mixins: ["mixin.Observable"],
 
         extractor: null,
         context: null,
@@ -8344,6 +8350,7 @@ function run(w, appData) {
 
 var StoreRenderer = ListRenderer.$extend({
 
+        $class: "StoreRenderer",
         store: null,
 
         $constructor: function(scope, node, expr) {
@@ -9563,7 +9570,7 @@ defineClass({
         };
 
 
-    defineClass({
+    return defineClass({
 
         $class: "dialog.pointer.Html",
         $extends: "dialog.pointer.Abstract",
@@ -10103,6 +10110,7 @@ defineClass({
     }
 
 });
+
 
 
 
@@ -11081,7 +11089,7 @@ var Dialog = (function(){
     var Dialog = defineClass({
 
         $class:             "Dialog",
-        $mixins:            [ObservableMixin],
+        $mixins:            ["mixin.Observable"],
 
         id:                 null,
         node:               null,
@@ -12696,7 +12704,7 @@ var Dialog = (function(){
 
 Component.$extend({
 
-    $class: "DialogComponent",
+    $class: "dialog.Component",
 
     dialog: null,
     dialogPreset: null,
@@ -12840,23 +12848,10 @@ function eachNode(el, fn, context) {
 
 
 
-Directive.registerAttribute("mjs-validate", 250, function(scope, node, expr, renderer) {
-
-    var cls     = expr || "ValidatorComponent",
-        constr  = nsGet(cls);
-
-    if (!constr) {
-        error(new Error("Class '"+cls+"' not found"));
-    }
-    else {
-        new constr(node, scope, renderer);
-    }
-});
-
 
 defineClass({
 
-    $class: "ValidatorComponent",
+    $class: "validator.Component",
 
     node: null,
     scope: null,
@@ -13079,6 +13074,25 @@ defineClass({
 });
 
 
+
+
+
+
+
+Directive.registerAttribute("mjs-validate", 250, function(scope, node, expr, renderer) {
+
+    var cls     = expr || "validator.Component",
+        constr  = nsGet(cls);
+
+    if (!constr) {
+        error(new Error("Class '"+cls+"' not found"));
+    }
+    else {
+        new constr(node, scope, renderer);
+    }
+});
+
+
 var MetaphorJsExports = {};
 MetaphorJsExports['MetaphorJs'] = MetaphorJs;
 MetaphorJsExports['ns'] = ns;
@@ -13114,12 +13128,10 @@ MetaphorJsExports['getAttrMap'] = getAttrMap;
 MetaphorJsExports['aIndexOf'] = aIndexOf;
 MetaphorJsExports['Renderer'] = Renderer;
 MetaphorJsExports['Text'] = Text;
-MetaphorJsExports['ObservableMixin'] = ObservableMixin;
+MetaphorJsExports['destroy'] = destroy;
 MetaphorJsExports['isObject'] = isObject;
 MetaphorJsExports['instantiate'] = instantiate;
 MetaphorJsExports['Provider'] = Provider;
-MetaphorJsExports['ProviderMixin'] = ProviderMixin;
-MetaphorJsExports['destroy'] = destroy;
 MetaphorJsExports['isAttached'] = isAttached;
 MetaphorJsExports['data'] = data;
 MetaphorJsExports['toFragment'] = toFragment;

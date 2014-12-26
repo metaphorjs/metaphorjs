@@ -1,13 +1,13 @@
 
 var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
-    nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
     createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     getNodeConfig = require("../func/dom/getNodeConfig.js"),
     getAttr = require("../func/dom/getAttr.js"),
     removeStyle = require("../func/dom/removeStyle.js");
 
-module.exports = nsAdd("plugin.SrcSize", defineClass({
+module.exports = defineClass({
 
+    $class: "plugin.SrcSize",
     directive: null,
 
     width: null,
@@ -63,4 +63,4 @@ module.exports = nsAdd("plugin.SrcSize", defineClass({
         self.$destroy();
     }
 
-}));
+});
