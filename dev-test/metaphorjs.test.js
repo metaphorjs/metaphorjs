@@ -11316,7 +11316,6 @@ defineClass({
         var self    = this,
             url     = currentUrl(),
             routes  = self.route,
-            cview   = self.currentView || {},
             def,
             i, len,
             r, matches;
