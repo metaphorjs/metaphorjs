@@ -183,6 +183,17 @@ var extend = function(){
 
     return extend;
 }();
+/**
+ * @param {Function} fn
+ * @param {Object} context
+ * @param {[]} args
+ * @param {number} timeout
+ */
+function async(fn, context, args, timeout) {
+    return setTimeout(function(){
+        fn.apply(context, args || []);
+    }, timeout || 0);
+};
 
 
 
@@ -215,6 +226,7 @@ extend(Scope.prototype, {
     $$historyWatchers: null,
     $$checking: false,
     $$destroyed: false,
+    $$tmt: null,
 
     $new: function() {
         var self = this;
@@ -332,6 +344,13 @@ extend(Scope.prototype, {
         }
     },
 
+    $scheduleCheck: function(timeout) {
+        var self = this;
+        if (!self.$$tmt) {
+            self.$tmt = async(self.$check, self, null, timeout);
+        }
+    },
+
     $check: function() {
         var self = this,
             changes;
@@ -340,6 +359,11 @@ extend(Scope.prototype, {
             return;
         }
         self.$$checking = true;
+
+        if (self.$$tmt) {
+            clearTimeout(self.$$tmt);
+            self.$$tmt = null;
+        }
 
         if (self.$$watchers) {
             changes = self.$$watchers.$checkAll();
@@ -357,10 +381,8 @@ extend(Scope.prototype, {
     },
 
     $reset: function(resetVars) {
-
         var self = this;
         self.$$observable.trigger("reset");
-
     },
 
     $destroy: function() {
@@ -3653,17 +3675,6 @@ var getAnimationPrefixes = function(){
         return prefixes;
     };
 }();
-/**
- * @param {Function} fn
- * @param {Object} context
- * @param {[]} args
- * @param {number} timeout
- */
-function async(fn, context, args, timeout) {
-    return setTimeout(function(){
-        fn.apply(context, args || []);
-    }, timeout || 0);
-};
 
 
 
@@ -7445,7 +7456,7 @@ var preloadImage = function() {
         cacheCnt = 0;
 
 
-    return function preloadImage(src) {
+    var preloadImage = function preloadImage(src) {
 
         if (cache[src]) {
             return Promise.resolve(src);
@@ -7506,6 +7517,15 @@ var preloadImage = function() {
 
         return deferred;
     };
+
+    preloadImage.check = function(src) {
+        if (cache[src]) {
+            return true;
+        }
+        return loading[src] || false;
+    };
+
+    return preloadImage;
 
 }();
 
@@ -7623,6 +7643,7 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
                 setAttr(self.node, "src", src);
                 self.onSrcChanged();
                 self.node.style.visibility = "";
+                self.scope.$scheduleCheck(50);
             });
         }
         self.lastPromise = null;
@@ -8191,13 +8212,17 @@ nsAdd("filter.preloaded", function(val, scope) {
         return false;
     }
 
-    var promise = preloadImage(val);
+    var promise = preloadImage.check(val);
+
+    if (promise === true || promise === false) {
+        return promise;
+    }
 
     if (promise.isFulfilled()) {
         return true;
     }
     else {
-        promise.done(function(){
+        promise.always(function(){
             scope.$check();
         });
         return false;
@@ -13461,6 +13486,7 @@ MetaphorJsExports['varType'] = varType;
 MetaphorJsExports['isPlainObject'] = isPlainObject;
 MetaphorJsExports['isBool'] = isBool;
 MetaphorJsExports['extend'] = extend;
+MetaphorJsExports['async'] = async;
 MetaphorJsExports['Scope'] = Scope;
 MetaphorJsExports['nextUid'] = nextUid;
 MetaphorJsExports['isArray'] = isArray;
@@ -13503,7 +13529,6 @@ MetaphorJsExports['Component'] = Component;
 MetaphorJsExports['stopAnimation'] = stopAnimation;
 MetaphorJsExports['raf'] = raf;
 MetaphorJsExports['getAnimationPrefixes'] = getAnimationPrefixes;
-MetaphorJsExports['async'] = async;
 MetaphorJsExports['isNumber'] = isNumber;
 MetaphorJsExports['error'] = error;
 MetaphorJsExports['Queue'] = Queue;

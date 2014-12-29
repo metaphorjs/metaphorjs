@@ -120,6 +120,7 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
                 setAttr(self.node, "src", src);
                 self.onSrcChanged();
                 self.node.style.visibility = "";
+                self.scope.$scheduleCheck(50);
             });
         }
         self.lastPromise = null;

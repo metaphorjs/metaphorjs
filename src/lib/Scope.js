@@ -2,7 +2,8 @@
 var Observable = require("metaphorjs-observable/src/lib/Observable.js"),
     Watchable = require("metaphorjs-watchable/src/lib/Watchable.js"),
     extend = require("../func/extend.js"),
-    undf = require("../var/undf.js");
+    undf = require("../var/undf.js"),
+    async = require("../func/async.js");
 
 var Scope = function(cfg) {
     var self    = this;
@@ -33,6 +34,7 @@ extend(Scope.prototype, {
     $$historyWatchers: null,
     $$checking: false,
     $$destroyed: false,
+    $$tmt: null,
 
     $new: function() {
         var self = this;
@@ -150,6 +152,13 @@ extend(Scope.prototype, {
         }
     },
 
+    $scheduleCheck: function(timeout) {
+        var self = this;
+        if (!self.$$tmt) {
+            self.$tmt = async(self.$check, self, null, timeout);
+        }
+    },
+
     $check: function() {
         var self = this,
             changes;
@@ -158,6 +167,11 @@ extend(Scope.prototype, {
             return;
         }
         self.$$checking = true;
+
+        if (self.$$tmt) {
+            clearTimeout(self.$$tmt);
+            self.$$tmt = null;
+        }
 
         if (self.$$watchers) {
             changes = self.$$watchers.$checkAll();
@@ -175,10 +189,8 @@ extend(Scope.prototype, {
     },
 
     $reset: function(resetVars) {
-
         var self = this;
         self.$$observable.trigger("reset");
-
     },
 
     $destroy: function() {

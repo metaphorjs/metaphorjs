@@ -10,7 +10,7 @@ module.exports = function() {
         cacheCnt = 0;
 
 
-    return function preloadImage(src) {
+    var preloadImage = function preloadImage(src) {
 
         if (cache[src]) {
             return Promise.resolve(src);
@@ -71,5 +71,14 @@ module.exports = function() {
 
         return deferred;
     };
+
+    preloadImage.check = function(src) {
+        if (cache[src]) {
+            return true;
+        }
+        return loading[src] || false;
+    };
+
+    return preloadImage;
 
 }();

@@ -1,20 +1,24 @@
 
-var nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
+var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
     preloadImage = require("../func/preloadImage.js");
 
-nsAdd("filter.preloaded", function(val, scope) {
+module.exports = nsAdd("filter.preloaded", function(val, scope) {
 
     if (!val) {
         return false;
     }
 
-    var promise = preloadImage(val);
+    var promise = preloadImage.check(val);
+
+    if (promise === true || promise === false) {
+        return promise;
+    }
 
     if (promise.isFulfilled()) {
         return true;
     }
     else {
-        promise.done(function(){
+        promise.always(function(){
             scope.$check();
         });
         return false;
