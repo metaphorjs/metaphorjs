@@ -356,6 +356,13 @@ extend(Scope.prototype, {
         }
     },
 
+    $reset: function(resetVars) {
+
+        var self = this;
+        self.$$observable.trigger("reset");
+
+    },
+
     $destroy: function() {
 
         var self    = this,
@@ -569,16 +576,26 @@ var Directive = function(){
             }
 
             scope.$on("destroy", self.onScopeDestroy, self);
+            scope.$on("reset", self.onScopeReset, self);
         },
 
         onScopeDestroy: function() {
             this.$destroy();
         },
 
+        onScopeReset: function() {
+
+        },
+
         onChange: function() {},
 
         destroy: function() {
             var self    = this;
+
+            if (self.scope) {
+                self.scope.$un("destroy", self.onScopeDestroy, self);
+                self.scope.$un("reset", self.onScopeReset, self);
+            }
 
             if (self.watcher) {
                 self.watcher.unsubscribeAndDestroy(self.onChange, self);
@@ -7424,6 +7441,7 @@ Directive.registerAttribute("mjs-scope-prop", 200, function(scope, node, expr){
 var preloadImage = function() {
 
     var cache = {},
+        loading = {},
         cacheCnt = 0;
 
 
@@ -7431,6 +7449,10 @@ var preloadImage = function() {
 
         if (cache[src]) {
             return Promise.resolve(src);
+        }
+
+        if (loading[src]) {
+            return loading[src];
         }
 
         if (cacheCnt > 1000) {
@@ -7443,12 +7465,37 @@ var preloadImage = function() {
             style = img.style,
             deferred = new Promise;
 
+        loading[src] = deferred;
+
+        deferred.always(function(){
+            delete loading[src];
+        });
+
         addListener(img, "load", function() {
             cache[src] = true;
             cacheCnt++;
-            doc.body.removeChild(img);
-            deferred.resolve(src);
+            if (img && img.parentNode) {
+                img.parentNode.removeChild(img);
+            }
+            if (deferred) {
+                deferred.resolve(src);
+            }
+            img = null;
+            style = null;
+            deferred = null;
         });
+
+        deferred.abort = function() {
+            if (img && img.parentNode) {
+                img.parentNode.removeChild(img);
+            }
+            if (deferred) {
+                deferred.reject();
+            }
+            img = null;
+            style = null;
+            deferred = null;
+        };
 
         style.position = "absolute";
         style.visibility = "hidden";
@@ -7472,6 +7519,9 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
     queue: null,
     usePreload: true,
     noCache: false,
+
+    lastPromise: null,
+    src: null,
 
     $constructor: function(scope, node, expr) {
 
@@ -7518,6 +7568,7 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
 
     onChange: function() {
         var self = this;
+        self.cancelPrevious();
         if (self.usePreload) {
             self.node.style.visibility = "hidden";
         }
@@ -7533,21 +7584,14 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
             return;
         }
 
+        self.src = src;
+
         if (self.noCache) {
             src += (src.indexOf("?") != -1 ? "&amp;" : "?") + "_" + (new Date).getTime();
         }
 
         if (self.usePreload) {
-            return preloadImage(src).done(function(){
-                if (self && self.node) {
-                    raf(function(){
-                        self.node.src = src;
-                        setAttr(self.node, "src", src);
-                        self.onSrcChanged();
-                        self.node.style.visibility = "";
-                    });
-                }
-            });
+            self.lastPromise = preloadImage(src).done(self.onImagePreloaded, self);
         }
         else {
             if (self.node) {
@@ -7558,13 +7602,50 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
         }
     },
 
+    cancelPrevious: function() {
+        var self = this;
+
+        if (self.lastPromise) {
+            if (self.lastPromise.isPending()) {
+                self.lastPromise.abort();
+            }
+            self.lastPromise = null;
+        }
+    },
+
+    onImagePreloaded: function() {
+        var self = this,
+            src = self.src;
+
+        if (self && self.node) {
+            raf(function(){
+                self.node.src = src;
+                setAttr(self.node, "src", src);
+                self.onSrcChanged();
+                self.node.style.visibility = "";
+            });
+        }
+        self.lastPromise = null;
+    },
+
     onSrcChanged: function() {
 
     },
 
-    destroy: function() {
-        this.queue.destroy();
+    onScopeReset: function() {
+        this.cancelPrevious();
         this.$super();
+    },
+
+    destroy: function() {
+
+        var self = this;
+
+        if (!self.$destroyed) {
+            self.cancelPrevious();
+            self.queue.destroy();
+            self.$super();
+        }
     }
 }));
 

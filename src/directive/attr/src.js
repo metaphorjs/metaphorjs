@@ -17,6 +17,9 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
     usePreload: true,
     noCache: false,
 
+    lastPromise: null,
+    src: null,
+
     $constructor: function(scope, node, expr) {
 
         var self = this,
@@ -62,6 +65,7 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
 
     onChange: function() {
         var self = this;
+        self.cancelPrevious();
         if (self.usePreload) {
             self.node.style.visibility = "hidden";
         }
@@ -77,21 +81,14 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
             return;
         }
 
+        self.src = src;
+
         if (self.noCache) {
             src += (src.indexOf("?") != -1 ? "&amp;" : "?") + "_" + (new Date).getTime();
         }
 
         if (self.usePreload) {
-            return preloadImage(src).done(function(){
-                if (self && self.node) {
-                    raf(function(){
-                        self.node.src = src;
-                        setAttr(self.node, "src", src);
-                        self.onSrcChanged();
-                        self.node.style.visibility = "";
-                    });
-                }
-            });
+            self.lastPromise = preloadImage(src).done(self.onImagePreloaded, self);
         }
         else {
             if (self.node) {
@@ -102,12 +99,49 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
         }
     },
 
+    cancelPrevious: function() {
+        var self = this;
+
+        if (self.lastPromise) {
+            if (self.lastPromise.isPending()) {
+                self.lastPromise.abort();
+            }
+            self.lastPromise = null;
+        }
+    },
+
+    onImagePreloaded: function() {
+        var self = this,
+            src = self.src;
+
+        if (self && self.node) {
+            raf(function(){
+                self.node.src = src;
+                setAttr(self.node, "src", src);
+                self.onSrcChanged();
+                self.node.style.visibility = "";
+            });
+        }
+        self.lastPromise = null;
+    },
+
     onSrcChanged: function() {
 
     },
 
-    destroy: function() {
-        this.queue.destroy();
+    onScopeReset: function() {
+        this.cancelPrevious();
         this.$super();
+    },
+
+    destroy: function() {
+
+        var self = this;
+
+        if (!self.$destroyed) {
+            self.cancelPrevious();
+            self.queue.destroy();
+            self.$super();
+        }
     }
 }));

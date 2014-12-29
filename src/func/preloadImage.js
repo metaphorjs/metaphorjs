@@ -6,6 +6,7 @@ var addListener = require("./event/addListener.js"),
 module.exports = function() {
 
     var cache = {},
+        loading = {},
         cacheCnt = 0;
 
 
@@ -13,6 +14,10 @@ module.exports = function() {
 
         if (cache[src]) {
             return Promise.resolve(src);
+        }
+
+        if (loading[src]) {
+            return loading[src];
         }
 
         if (cacheCnt > 1000) {
@@ -25,12 +30,37 @@ module.exports = function() {
             style = img.style,
             deferred = new Promise;
 
+        loading[src] = deferred;
+
+        deferred.always(function(){
+            delete loading[src];
+        });
+
         addListener(img, "load", function() {
             cache[src] = true;
             cacheCnt++;
-            doc.body.removeChild(img);
-            deferred.resolve(src);
+            if (img && img.parentNode) {
+                img.parentNode.removeChild(img);
+            }
+            if (deferred) {
+                deferred.resolve(src);
+            }
+            img = null;
+            style = null;
+            deferred = null;
         });
+
+        deferred.abort = function() {
+            if (img && img.parentNode) {
+                img.parentNode.removeChild(img);
+            }
+            if (deferred) {
+                deferred.reject();
+            }
+            img = null;
+            style = null;
+            deferred = null;
+        };
 
         style.position = "absolute";
         style.visibility = "hidden";

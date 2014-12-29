@@ -174,6 +174,13 @@ extend(Scope.prototype, {
         }
     },
 
+    $reset: function(resetVars) {
+
+        var self = this;
+        self.$$observable.trigger("reset");
+
+    },
+
     $destroy: function() {
 
         var self    = this,

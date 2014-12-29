@@ -58,16 +58,26 @@ module.exports = function(){
             }
 
             scope.$on("destroy", self.onScopeDestroy, self);
+            scope.$on("reset", self.onScopeReset, self);
         },
 
         onScopeDestroy: function() {
             this.$destroy();
         },
 
+        onScopeReset: function() {
+
+        },
+
         onChange: function() {},
 
         destroy: function() {
             var self    = this;
+
+            if (self.scope) {
+                self.scope.$un("destroy", self.onScopeDestroy, self);
+                self.scope.$un("reset", self.onScopeReset, self);
+            }
 
             if (self.watcher) {
                 self.watcher.unsubscribeAndDestroy(self.onChange, self);
