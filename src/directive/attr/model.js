@@ -39,7 +39,7 @@ Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
         var inputValue      = self.input.getValue(),
             scopeValue      = self.watcher.getLastResult();
 
-        if (scopeValue != inputValue) {
+        if (scopeValue !== inputValue) {
             // scope value takes priority
             if (self.binding != "input" && scopeValue != undf) {
                 self.onChange(scopeValue);
@@ -89,7 +89,7 @@ Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
     onChange: function() {
 
         var self    = this,
-            val     = self.watcher.getLastResult() || "",
+            val     = self.watcher.getLastResult(),
             ie;
 
         if (self.binding != "input" && !self.inProg) {

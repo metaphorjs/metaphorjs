@@ -200,12 +200,14 @@ module.exports = defineClass({
             animate(node, "leave", null, true).done(function(){
 
                 if (!cview.keepAlive) {
-                    self.currentComponent.destroy();
+                    self.currentComponent.$destroy();
                     while (node.firstChild) {
                         node.removeChild(node.firstChild);
                     }
                 }
                 else {
+                    self.currentComponent.releaseNode();
+                    self.currentComponent.trigger("view-hide", self, self.currentComponent);
                     var frg = self.domCache[cview.id];
                     while (node.firstChild) {
                         frg.appendChild(node.firstChild);
@@ -293,6 +295,8 @@ module.exports = defineClass({
             if (self.cmpCache[route.id]) {
                 self.currentComponent = self.cmpCache[route.id];
                 node.appendChild(self.domCache[route.id]);
+                self.currentComponent.initNode();
+                self.currentComponent.trigger("view-show", self, self.currentComponent);
                 self.afterRouteCmpChange();
                 self.afterCmpChange();
             }

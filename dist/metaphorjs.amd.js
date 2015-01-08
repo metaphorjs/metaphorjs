@@ -3274,9 +3274,7 @@ var Component = defineClass({
             self._createNode();
         }
 
-        if (self.cls) {
-            addClass(self.node, self.cls);
-        }
+
 
         self.initComponent.apply(self, arguments);
 
@@ -3337,7 +3335,32 @@ var Component = defineClass({
         if (!self.originalId) {
             setAttr(node, "id", self.id);
         }
+
+        self.initNode();
+    },
+
+    releaseNode: function() {
+
+        var self = this,
+            node = self.node;
+
+        removeAttr(node, "cmp-id");
+
+        if (self.cls) {
+            removeClass(node, self.cls);
+        }
+    },
+
+    initNode: function() {
+
+        var self = this,
+            node = self.node;
+
         setAttr(node, "cmp-id", self.id);
+
+        if (self.cls) {
+            addClass(node, self.cls);
+        }
 
         if (self.hidden) {
             node.style.display = "none";
@@ -3494,13 +3517,12 @@ var Component = defineClass({
             }
         }
         else {
-            removeAttr(self.node, "cmp-id");
+
             if (!self.originalId) {
                 removeAttr(self.node, "id");
             }
-            if (self.cls) {
-                removeClass(self.node, self.cls);
-            }
+
+            self.releaseNode();
         }
 
         if (self.destroyScope && self.scope) {
@@ -5234,12 +5256,14 @@ defineClass({
             animate(node, "leave", null, true).done(function(){
 
                 if (!cview.keepAlive) {
-                    self.currentComponent.destroy();
+                    self.currentComponent.$destroy();
                     while (node.firstChild) {
                         node.removeChild(node.firstChild);
                     }
                 }
                 else {
+                    self.currentComponent.releaseNode();
+                    self.currentComponent.trigger("view-hide", self, self.currentComponent);
                     var frg = self.domCache[cview.id];
                     while (node.firstChild) {
                         frg.appendChild(node.firstChild);
@@ -5327,6 +5351,8 @@ defineClass({
             if (self.cmpCache[route.id]) {
                 self.currentComponent = self.cmpCache[route.id];
                 node.appendChild(self.domCache[route.id]);
+                self.currentComponent.initNode();
+                self.currentComponent.trigger("view-show", self, self.currentComponent);
                 self.afterRouteCmpChange();
                 self.afterCmpChange();
             }
@@ -6504,8 +6530,8 @@ var EventBuffer = function(){
             }
         },
 
-        on: function(fn, context) {
-            this.observable.on(this.event, fn, context);
+        on: function(fn, context, options) {
+            this.observable.on(this.event, fn, context, options);
         },
 
         un: function(fn, context, destroy) {
@@ -6616,12 +6642,12 @@ var EventHandler = defineClass({
 
             if (fc == '{') {
                 self.watcher = createWatchable(scope, cfg, self.onConfigChange, self);
-                cfg = self.watcher.getLastResult();
+                cfg = extend({}, self.watcher.getLastResult(), true, true);
             }
             else if (fc == '=') {
                 cfg = cfg.substr(1);
                 self.watcher = createWatchable(scope, cfg, self.onConfigChange, self);
-                cfg = self.watcher.getLastResult();
+                cfg = extend({}, self.watcher.getLastResult(), true, true);
             }
             else {
                 var handler = createGetter(cfg);
@@ -6672,6 +6698,7 @@ var EventHandler = defineClass({
 
     onConfigChange: function(val) {
         var self = this;
+        val = extend({}, val, true, true);
         self.down();
         self.prepareConfig(val);
         self.up();
@@ -7133,7 +7160,7 @@ Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
         var inputValue      = self.input.getValue(),
             scopeValue      = self.watcher.getLastResult();
 
-        if (scopeValue != inputValue) {
+        if (scopeValue !== inputValue) {
             // scope value takes priority
             if (self.binding != "input" && scopeValue != undf) {
                 self.onChange(scopeValue);
@@ -7183,7 +7210,7 @@ Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
     onChange: function() {
 
         var self    = this,
-            val     = self.watcher.getLastResult() || "",
+            val     = self.watcher.getLastResult(),
             ie;
 
         if (self.binding != "input" && !self.inProg) {

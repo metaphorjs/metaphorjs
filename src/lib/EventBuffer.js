@@ -167,8 +167,8 @@ module.exports = function(){
             }
         },
 
-        on: function(fn, context) {
-            this.observable.on(this.event, fn, context);
+        on: function(fn, context, options) {
+            this.observable.on(this.event, fn, context, options);
         },
 
         un: function(fn, context, destroy) {

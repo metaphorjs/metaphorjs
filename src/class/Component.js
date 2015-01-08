@@ -147,9 +147,7 @@ module.exports = defineClass({
             self._createNode();
         }
 
-        if (self.cls) {
-            addClass(self.node, self.cls);
-        }
+
 
         self.initComponent.apply(self, arguments);
 
@@ -210,7 +208,32 @@ module.exports = defineClass({
         if (!self.originalId) {
             setAttr(node, "id", self.id);
         }
+
+        self.initNode();
+    },
+
+    releaseNode: function() {
+
+        var self = this,
+            node = self.node;
+
+        removeAttr(node, "cmp-id");
+
+        if (self.cls) {
+            removeClass(node, self.cls);
+        }
+    },
+
+    initNode: function() {
+
+        var self = this,
+            node = self.node;
+
         setAttr(node, "cmp-id", self.id);
+
+        if (self.cls) {
+            addClass(node, self.cls);
+        }
 
         if (self.hidden) {
             node.style.display = "none";
@@ -367,13 +390,12 @@ module.exports = defineClass({
             }
         }
         else {
-            removeAttr(self.node, "cmp-id");
+
             if (!self.originalId) {
                 removeAttr(self.node, "id");
             }
-            if (self.cls) {
-                removeClass(self.node, self.cls);
-            }
+
+            self.releaseNode();
         }
 
         if (self.destroyScope && self.scope) {

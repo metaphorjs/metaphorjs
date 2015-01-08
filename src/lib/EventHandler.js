@@ -38,12 +38,12 @@ module.exports = defineClass({
 
             if (fc == '{') {
                 self.watcher = createWatchable(scope, cfg, self.onConfigChange, self);
-                cfg = self.watcher.getLastResult();
+                cfg = extend({}, self.watcher.getLastResult(), true, true);
             }
             else if (fc == '=') {
                 cfg = cfg.substr(1);
                 self.watcher = createWatchable(scope, cfg, self.onConfigChange, self);
-                cfg = self.watcher.getLastResult();
+                cfg = extend({}, self.watcher.getLastResult(), true, true);
             }
             else {
                 var handler = createGetter(cfg);
@@ -94,6 +94,7 @@ module.exports = defineClass({
 
     onConfigChange: function(val) {
         var self = this;
+        val = extend({}, val, true, true);
         self.down();
         self.prepareConfig(val);
         self.up();
