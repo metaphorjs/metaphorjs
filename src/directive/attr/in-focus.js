@@ -1,8 +1,6 @@
 
 
 var Directive = require("../../class/Directive.js"),
-    getNodeConfig = require("../../func/dom/getNodeConfig.js"),
-    raf = require("metaphorjs-animate/src/func/raf.js"),
     async = require("../../func/async.js");
 
 
