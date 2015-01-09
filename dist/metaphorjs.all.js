@@ -13756,6 +13756,24 @@ Directive.registerAttribute("mjs-ignore", 0, returnFalse);
 
 
 
+
+
+Directive.registerAttribute("mjs-in-focus", 500, Directive.$extend({
+
+    onChange: function() {
+
+        var self    = this;
+
+        if (self.watcher.getLastResult()) {
+            async(self.node.focus, self.node, [], 300);
+        }
+    }
+
+}));
+
+
+
+
 Directive.registerAttribute("mjs-include-file", 900, function(scope, node, filePath){
 
     var r = require,

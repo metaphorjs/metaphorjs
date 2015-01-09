@@ -1,6 +1,6 @@
 
 
-var defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
+var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     removeAttr = require("../../func/dom/removeAttr.js"),
     setAttr = require("../../func/dom/setAttr.js"),
     Directive = require("../../class/Directive.js");
