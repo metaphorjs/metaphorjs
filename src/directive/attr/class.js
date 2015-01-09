@@ -1,9 +1,9 @@
 
 
 var Directive = require("../../class/Directive.js"),
-    defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
-    animate = require("../../../../metaphorjs-animate/src/func/animate.js"),
-    stopAnimation = require("../../../../metaphorjs-animate/src/func/stopAnimation.js"),
+    defineClass = require("metaphorjs-class/src/func/defineClass.js"),
+    animate = require("metaphorjs-animate/src/func/animate.js"),
+    stopAnimation = require("metaphorjs-animate/src/func/stopAnimation.js"),
     addClass = require("../../func/dom/addClass.js"),
     removeClass = require("../../func/dom/removeClass.js"),
     hasClass = require("../../func/dom/hasClass.js"),

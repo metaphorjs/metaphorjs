@@ -6983,6 +6983,7 @@ var animate = function(){
 
         // no animation happened
 
+
         if (startCallback) {
             var promise = startCallback(el);
             if (isThenable(promise)) {
@@ -6991,12 +6992,17 @@ var animate = function(){
                 });
             }
             else {
-                deferred.resolve(el);
+                //raf(function(){
+                    deferred.resolve(el);
+                //});
             }
         }
         else {
-            deferred.resolve(el);
+            //raf(function(){
+                deferred.resolve(el);
+            //});
         }
+
 
         return deferred;
     };
@@ -9173,7 +9179,7 @@ var Template = function(){
             var self    = this,
                 tpl     = self.tpl || self.url;
 
-            if (self.deferRendering && self.node) {
+            if (self.deferRendering && (self.node || self.node === false)) {
 
                 self.deferRendering = false;
                 if (self.tplPromise) {
@@ -9246,10 +9252,14 @@ var Template = function(){
         doApplyTemplate: function() {
 
             var self    = this,
-                el      = self.node;
+                el      = self.node,
+                frg,
+                children;
 
-            while (el.firstChild) {
-                el.removeChild(el.firstChild);
+            if (el) {
+                while (el.firstChild) {
+                    el.removeChild(el.firstChild);
+                }
             }
 
             if (self._intendedShadow) {
@@ -9258,9 +9268,10 @@ var Template = function(){
 
             if (self.replace) {
 
-                var frg = clone(self._fragment),
-                    transclude = data(el, "mjs-transclude"),
-                    children = slice.call(frg.childNodes);
+                var transclude = el ? data(el, "mjs-transclude") : null;
+
+                frg = clone(self._fragment);
+                children = slice.call(frg.childNodes);
 
                 if (transclude) {
                     var tr = select("[mjs-transclude], mjs-transclude", frg);
@@ -9269,14 +9280,21 @@ var Template = function(){
                     }
                 }
 
-                el.parentNode.replaceChild(frg, el);
+                if (el) {
+                    el.parentNode.replaceChild(frg, el);
+                }
 
                 self.node = children;
                 self.initPromise.resolve(children);
             }
             else {
-                el.appendChild(clone(self._fragment));
-                self.initPromise.resolve(self.node);
+                if (el) {
+                    el.appendChild(clone(self._fragment));
+                }
+                else {
+                    self.node = el = clone(self._fragment);
+                }
+                self.initPromise.resolve(el);
             }
 
             observable.trigger("before-render-" + self.id, self);
@@ -9422,6 +9440,7 @@ var Component = defineClass({
      */
     destroyEl:      true,
 
+
     /**
      * @var {bool}
      */
@@ -9493,10 +9512,9 @@ var Component = defineClass({
 
         self.id = self.id || "cmp-" + nextUid();
 
-        if (!self.node) {
+        if (!self.node && self.node !== false) {
             self._createNode();
         }
-
 
 
         self.initComponent.apply(self, arguments);
@@ -9531,7 +9549,9 @@ var Component = defineClass({
             self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
         }
 
-        self._initElement();
+        if (self.node) {
+            self._initElement();
+        }
 
         if (self.autoRender) {
 
@@ -9605,6 +9625,22 @@ var Component = defineClass({
     onRenderingFinished: function() {
         var self = this;
 
+        if (!self.node) {
+            self.node = self.template.node;
+            if (self.node.nodeType == 11) { // document fragment
+                var ch = self.node.childNodes,
+                    i, l;
+                for (i = 0, l = ch.length; i < l; i++) {
+                    if (ch[i].nodeType == 1) {
+                        self.node = ch[i];
+                        break;
+                    }
+                }
+            }
+
+            self._initElement();
+        }
+
         if (self.renderTo) {
             self.renderTo.appendChild(self.node);
         }
@@ -9636,12 +9672,19 @@ var Component = defineClass({
         }
 
         self.template.setAnimation(true);
-
-        self.node.style.display = "block";
+        self.showApply();
 
         self.hidden = false;
         self.onShow();
         self.trigger("show", self);
+    },
+
+    showApply: function() {
+        var self = this;
+        if (self.node) {
+            self.node.style.display = "block";
+        }
+
     },
 
     /**
@@ -9658,12 +9701,28 @@ var Component = defineClass({
         }
 
         self.template.setAnimation(false);
-
-        self.node.style.display = "none";
+        self.hideApply();
 
         self.hidden = true;
         self.onHide();
         self.trigger("hide", self);
+    },
+
+    hideApply: function() {
+        var self = this;
+        if (self.node) {
+            self.node.style.display = "none";
+        }
+    },
+
+    freezeByView: function() {
+        var self = this;
+        self.releaseNode();
+    },
+
+    unfreezeByView: function() {
+        var self = this;
+        self.initNode();
     },
 
     /**
@@ -9735,11 +9794,11 @@ var Component = defineClass({
         }
 
         if (self.destroyEl) {
-            if (isAttached(self.node)) {
+            if (self.node && isAttached(self.node)) {
                 self.node.parentNode.removeChild(self.node);
             }
         }
-        else {
+        else if (self.node) {
 
             if (!self.originalId) {
                 removeAttr(self.node, "id");
@@ -11560,7 +11619,7 @@ defineClass({
                     }
                 }
                 else {
-                    self.currentComponent.releaseNode();
+                    self.currentComponent.freezeByView();
                     self.currentComponent.trigger("view-hide", self, self.currentComponent);
                     var frg = self.domCache[cview.id];
                     while (node.firstChild) {
@@ -11649,7 +11708,7 @@ defineClass({
             if (self.cmpCache[route.id]) {
                 self.currentComponent = self.cmpCache[route.id];
                 node.appendChild(self.domCache[route.id]);
-                self.currentComponent.initNode();
+                self.currentComponent.unfreezeByView();
                 self.currentComponent.trigger("view-show", self, self.currentComponent);
                 self.afterRouteCmpChange();
                 self.afterCmpChange();
@@ -13022,7 +13081,6 @@ var EventBuffer = function(){
 
     var EventBuffer = defineClass({
 
-        queue: null,
         observable: null,
         handlerDelegate: null,
         triggerDelegate: null,
@@ -13032,6 +13090,7 @@ var EventBuffer = function(){
         lastEvent: null,
         currentEvent: null,
         interval: null,
+        id: null,
 
         $init: function(node, event, interval) {
 
@@ -13044,7 +13103,7 @@ var EventBuffer = function(){
 
             node[key] = self;
 
-
+            self.id = key;
             self.breaks = {};
             self.watchers = {};
             self.node = node;
@@ -13218,7 +13277,7 @@ var EventBuffer = function(){
         },
 
         destroyIfIdle: function() {
-            if (!this.observable.hasListener()) {
+            if (this.observable && !this.observable.hasListener()) {
                 this.$destroy();
                 return true;
             }
@@ -13228,9 +13287,10 @@ var EventBuffer = function(){
 
             var self = this;
 
+            delete self.node[self.id];
+
             self.down();
             self.observable.destroy();
-            self.queue.destroy();
 
         }
 

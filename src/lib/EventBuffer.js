@@ -19,7 +19,6 @@ module.exports = function(){
 
     var EventBuffer = defineClass({
 
-        queue: null,
         observable: null,
         handlerDelegate: null,
         triggerDelegate: null,
@@ -29,6 +28,7 @@ module.exports = function(){
         lastEvent: null,
         currentEvent: null,
         interval: null,
+        id: null,
 
         $init: function(node, event, interval) {
 
@@ -41,7 +41,7 @@ module.exports = function(){
 
             node[key] = self;
 
-
+            self.id = key;
             self.breaks = {};
             self.watchers = {};
             self.node = node;
@@ -215,7 +215,7 @@ module.exports = function(){
         },
 
         destroyIfIdle: function() {
-            if (!this.observable.hasListener()) {
+            if (this.observable && !this.observable.hasListener()) {
                 this.$destroy();
                 return true;
             }
@@ -225,9 +225,10 @@ module.exports = function(){
 
             var self = this;
 
+            delete self.node[self.id];
+
             self.down();
             self.observable.destroy();
-            self.queue.destroy();
 
         }
 

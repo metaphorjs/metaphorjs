@@ -4,20 +4,20 @@ var data = require("../func/dom/data.js"),
     toFragment = require("../func/dom/toFragment.js"),
     clone = require("../func/dom/clone.js"),
     slice = require("../func/array/slice.js"),
-    animate = require("../../../metaphorjs-animate/src/func/animate.js"),
+    animate = require("metaphorjs-animate/src/func/animate.js"),
     extend = require("../func/extend.js"),
     nextUid = require("../func/nextUid.js"),
     trim = require("../func/trim.js"),
-    createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
+    createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     Renderer = require("./Renderer.js"),
     Cache = require("../lib/Cache.js"),
-    Promise = require("../../../metaphorjs-promise/src/lib/Promise.js"),
-    Observable = require("../../../metaphorjs-observable/src/lib/Observable.js"),
-    ajax = require("../../../metaphorjs-ajax/src/func/ajax.js"),
-    ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
+    Promise = require("metaphorjs-promise/src/lib/Promise.js"),
+    Observable = require("metaphorjs-observable/src/lib/Observable.js"),
+    ajax = require("metaphorjs-ajax/src/func/ajax.js"),
+    ns = require("metaphorjs-namespace/src/var/ns.js"),
     removeAttr = require("../func/dom/removeAttr.js"),
-    defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
-    select = require("../../../metaphorjs-select/src/func/select.js"),
+    defineClass = require("metaphorjs-class/src/func/defineClass.js"),
+    select = require("metaphorjs-select/src/func/select.js"),
     getAttr = require("../func/dom/getAttr.js"),
     setAttr = require("../func/dom/setAttr.js");
 
@@ -223,7 +223,7 @@ module.exports = function(){
             var self    = this,
                 tpl     = self.tpl || self.url;
 
-            if (self.deferRendering && self.node) {
+            if (self.deferRendering && (self.node || self.node === false)) {
 
                 self.deferRendering = false;
                 if (self.tplPromise) {
@@ -296,10 +296,14 @@ module.exports = function(){
         doApplyTemplate: function() {
 
             var self    = this,
-                el      = self.node;
+                el      = self.node,
+                frg,
+                children;
 
-            while (el.firstChild) {
-                el.removeChild(el.firstChild);
+            if (el) {
+                while (el.firstChild) {
+                    el.removeChild(el.firstChild);
+                }
             }
 
             if (self._intendedShadow) {
@@ -308,9 +312,10 @@ module.exports = function(){
 
             if (self.replace) {
 
-                var frg = clone(self._fragment),
-                    transclude = data(el, "mjs-transclude"),
-                    children = slice.call(frg.childNodes);
+                var transclude = el ? data(el, "mjs-transclude") : null;
+
+                frg = clone(self._fragment);
+                children = slice.call(frg.childNodes);
 
                 if (transclude) {
                     var tr = select("[mjs-transclude], mjs-transclude", frg);
@@ -319,14 +324,21 @@ module.exports = function(){
                     }
                 }
 
-                el.parentNode.replaceChild(frg, el);
+                if (el) {
+                    el.parentNode.replaceChild(frg, el);
+                }
 
                 self.node = children;
                 self.initPromise.resolve(children);
             }
             else {
-                el.appendChild(clone(self._fragment));
-                self.initPromise.resolve(self.node);
+                if (el) {
+                    el.appendChild(clone(self._fragment));
+                }
+                else {
+                    self.node = el = clone(self._fragment);
+                }
+                self.initPromise.resolve(el);
             }
 
             observable.trigger("before-render-" + self.id, self);

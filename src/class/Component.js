@@ -72,6 +72,7 @@ module.exports = defineClass({
      */
     destroyEl:      true,
 
+
     /**
      * @var {bool}
      */
@@ -143,10 +144,9 @@ module.exports = defineClass({
 
         self.id = self.id || "cmp-" + nextUid();
 
-        if (!self.node) {
+        if (!self.node && self.node !== false) {
             self._createNode();
         }
-
 
 
         self.initComponent.apply(self, arguments);
@@ -181,7 +181,9 @@ module.exports = defineClass({
             self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
         }
 
-        self._initElement();
+        if (self.node) {
+            self._initElement();
+        }
 
         if (self.autoRender) {
 
@@ -255,6 +257,22 @@ module.exports = defineClass({
     onRenderingFinished: function() {
         var self = this;
 
+        if (!self.node) {
+            self.node = self.template.node;
+            if (self.node.nodeType == 11) { // document fragment
+                var ch = self.node.childNodes,
+                    i, l;
+                for (i = 0, l = ch.length; i < l; i++) {
+                    if (ch[i].nodeType == 1) {
+                        self.node = ch[i];
+                        break;
+                    }
+                }
+            }
+
+            self._initElement();
+        }
+
         if (self.renderTo) {
             self.renderTo.appendChild(self.node);
         }
@@ -286,12 +304,19 @@ module.exports = defineClass({
         }
 
         self.template.setAnimation(true);
-
-        self.node.style.display = "block";
+        self.showApply();
 
         self.hidden = false;
         self.onShow();
         self.trigger("show", self);
+    },
+
+    showApply: function() {
+        var self = this;
+        if (self.node) {
+            self.node.style.display = "block";
+        }
+
     },
 
     /**
@@ -308,12 +333,28 @@ module.exports = defineClass({
         }
 
         self.template.setAnimation(false);
-
-        self.node.style.display = "none";
+        self.hideApply();
 
         self.hidden = true;
         self.onHide();
         self.trigger("hide", self);
+    },
+
+    hideApply: function() {
+        var self = this;
+        if (self.node) {
+            self.node.style.display = "none";
+        }
+    },
+
+    freezeByView: function() {
+        var self = this;
+        self.releaseNode();
+    },
+
+    unfreezeByView: function() {
+        var self = this;
+        self.initNode();
     },
 
     /**
@@ -385,11 +426,11 @@ module.exports = defineClass({
         }
 
         if (self.destroyEl) {
-            if (isAttached(self.node)) {
+            if (self.node && isAttached(self.node)) {
                 self.node.parentNode.removeChild(self.node);
             }
         }
-        else {
+        else if (self.node) {
 
             if (!self.originalId) {
                 removeAttr(self.node, "id");
