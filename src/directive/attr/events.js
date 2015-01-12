@@ -19,7 +19,7 @@ var Directive = require("../../class/Directive.js"),
             Directive.registerAttribute("mjs-" + name, 1000, function(scope, node, expr){
 
                 var eh = new EventHandler(scope, node, expr, name, {
-                    stopPropagation: true
+                    preventDefault: true
                 });
 
                 return function(){

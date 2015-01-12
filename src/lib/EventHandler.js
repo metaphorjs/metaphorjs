@@ -19,12 +19,14 @@ module.exports = defineClass({
     event: null,
     buffers: null,
     updateRoot: false,
+    prevEvent: null,
 
     $init: function(scope, node, cfg, event, defaults) {
 
         var self = this;
 
         self.event = event;
+        self.prevEvent = {};
 
         defaults = defaults || {};
 
@@ -53,12 +55,12 @@ module.exports = defineClass({
             }
         }
 
-        self.prepareConfig(cfg, defaults);
-
         self.buffers    = {};
         self.listeners  = [];
         self.scope      = scope;
         self.node       = node;
+
+        self.prepareConfig(cfg, defaults);
 
         self.up();
     },
@@ -68,12 +70,12 @@ module.exports = defineClass({
         var tmp,
             event = this.event;
 
+        extend(cfg, defaults, false, false);
+
         if (cfg.event) {
             tmp = {};
             var events = cfg.event.split(","),
                 i, l;
-
-            delete cfg.event;
 
             for (i = 0, l = events.length; i < l; i++) {
                 tmp[trim(events[i])] = cfg;
@@ -86,8 +88,6 @@ module.exports = defineClass({
             tmp[event] = cfg;
             cfg = tmp;
         }
-
-        extend(cfg, defaults, false, false);
 
         this.cfg = cfg;
     },
@@ -102,13 +102,18 @@ module.exports = defineClass({
 
     createHandler: function(cfg, scope) {
 
-        var updateRoot = this.updateRoot;
+        var self        = this,
+            updateRoot  = self.updateRoot;
 
         return function(e){
 
+            if (self.$destroyed || self.$destroying) {
+                return;
+            }
+
             var keyCode,
-                preventDefault = true,
-                returnValue = false,
+                preventDefault = false,
+                returnValue = undf,
                 stopPropagation = false;
 
             cfg.preventDefault !== undf && (preventDefault = cfg.preventDefault);
@@ -129,20 +134,29 @@ module.exports = defineClass({
 
             scope.$event = e;
             scope.$eventNode = self.node;
+            scope.$prevEvent = self.prevEvent[e.type];
 
             if (cfg.handler) {
                 cfg.handler.call(cfg.context || null, scope);
             }
 
-            scope.$event = null;
-            scope.$eventNode = null;
-
-            updateRoot ? scope.$root.$check() : scope.$check();
-
             stopPropagation && e.stopPropagation();
             preventDefault && e.preventDefault();
 
-            return returnValue;
+            if (self.$destroyed || self.$destroying) {
+                return returnValue != undf ? returnValue : undf;
+            }
+
+            scope.$event = null;
+            scope.$eventNode = null;
+
+            self.prevEvent[e.type] = e;
+
+            updateRoot ? scope.$root.$check() : scope.$check();
+
+            if (returnValue !== undf) {
+                return returnValue;
+            }
         };
     },
 

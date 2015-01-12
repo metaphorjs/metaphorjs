@@ -1896,6 +1896,13 @@ ns.register("mixin.Observable", {
 
         self.$$observable = new Observable;
 
+        self.$initObservable(cfg);
+    },
+
+    $initObservable: function(cfg) {
+
+        var self = this;
+
         if (cfg && cfg.callback) {
             var ls = cfg.callback,
                 context = ls.context || ls.scope,
@@ -6677,12 +6684,14 @@ var EventHandler = defineClass({
     event: null,
     buffers: null,
     updateRoot: false,
+    prevEvent: null,
 
     $init: function(scope, node, cfg, event, defaults) {
 
         var self = this;
 
         self.event = event;
+        self.prevEvent = {};
 
         defaults = defaults || {};
 
@@ -6711,12 +6720,12 @@ var EventHandler = defineClass({
             }
         }
 
-        self.prepareConfig(cfg, defaults);
-
         self.buffers    = {};
         self.listeners  = [];
         self.scope      = scope;
         self.node       = node;
+
+        self.prepareConfig(cfg, defaults);
 
         self.up();
     },
@@ -6726,12 +6735,12 @@ var EventHandler = defineClass({
         var tmp,
             event = this.event;
 
+        extend(cfg, defaults, false, false);
+
         if (cfg.event) {
             tmp = {};
             var events = cfg.event.split(","),
                 i, l;
-
-            delete cfg.event;
 
             for (i = 0, l = events.length; i < l; i++) {
                 tmp[trim(events[i])] = cfg;
@@ -6744,8 +6753,6 @@ var EventHandler = defineClass({
             tmp[event] = cfg;
             cfg = tmp;
         }
-
-        extend(cfg, defaults, false, false);
 
         this.cfg = cfg;
     },
@@ -6760,13 +6767,18 @@ var EventHandler = defineClass({
 
     createHandler: function(cfg, scope) {
 
-        var updateRoot = this.updateRoot;
+        var self        = this,
+            updateRoot  = self.updateRoot;
 
         return function(e){
 
+            if (self.$destroyed || self.$destroying) {
+                return;
+            }
+
             var keyCode,
-                preventDefault = true,
-                returnValue = false,
+                preventDefault = false,
+                returnValue = undf,
                 stopPropagation = false;
 
             cfg.preventDefault !== undf && (preventDefault = cfg.preventDefault);
@@ -6787,20 +6799,29 @@ var EventHandler = defineClass({
 
             scope.$event = e;
             scope.$eventNode = self.node;
+            scope.$prevEvent = self.prevEvent[e.type];
 
             if (cfg.handler) {
                 cfg.handler.call(cfg.context || null, scope);
             }
 
-            scope.$event = null;
-            scope.$eventNode = null;
-
-            updateRoot ? scope.$root.$check() : scope.$check();
-
             stopPropagation && e.stopPropagation();
             preventDefault && e.preventDefault();
 
-            return returnValue;
+            if (self.$destroyed || self.$destroying) {
+                return returnValue != undf ? returnValue : undf;
+            }
+
+            scope.$event = null;
+            scope.$eventNode = null;
+
+            self.prevEvent[e.type] = e;
+
+            updateRoot ? scope.$root.$check() : scope.$check();
+
+            if (returnValue !== undf) {
+                return returnValue;
+            }
         };
     },
 
@@ -6909,7 +6930,7 @@ var createFunc = functionFactory.createFunc;
             Directive.registerAttribute("mjs-" + name, 1000, function(scope, node, expr){
 
                 var eh = new EventHandler(scope, node, expr, name, {
-                    stopPropagation: true
+                    preventDefault: true
                 });
 
                 return function(){
@@ -9698,13 +9719,14 @@ defineClass({
     $extends: "dialog.position.Abstract",
 
 
-    getCoords: function(e) {
+    getCoords: function(e, type) {
+
         var self    = this,
             dlg     = self.dialog,
             pBase   = self.getPositionBase() || window,
             size    = dlg.getDialogSize(),
             pos     = {},
-            type    = self.type.substr(1),
+            type    = (type || self.type).substr(1),
             offsetX = self.offsetX,
             offsetY = self.offsetY,
             st      = getScrollTop(pBase),
@@ -9763,17 +9785,23 @@ defineClass({
         return pos;
     },
 
-    getPrimaryPosition: function() {
-        return this.type.substr(1, 1);
+    getPrimaryPosition: function(type) {
+        return (type || this.type).substr(1, 1);
     },
 
-    getSecondaryPosition: function() {
-        return this.type.substr(2);
+    getSecondaryPosition: function(type) {
+        return (type || this.type).substr(2);
     },
 
-    // window positioning doesn't need correction
-    correctType: function() {},
-    correctPosition: function() {}
+
+    getAllPositions: function() {
+        return ["wt", "wr", "wb", "wl", "wrt", "wrb", "wlb", "wlt", "wc"];
+    },
+
+    correctPosition: function(e) {
+        return this.getCoords(e);
+    }
+
 });
 
 
@@ -9924,7 +9952,7 @@ defineClass({
     detectPointerPosition: function(dialogPosition) {
 
         var self = this,
-            pri, sec;
+            pri, sec, thr;
 
         if (self.position && !dialogPosition) {
             if (isFunction(self.position)) {
@@ -9935,6 +9963,7 @@ defineClass({
 
         pri = self.dialog.getPosition().getPrimaryPosition(dialogPosition);
         sec = self.dialog.getPosition().getSecondaryPosition(dialogPosition);
+        thr = sec.substr(1, 1);
 
         if (!pri) {
             return null;
@@ -9944,8 +9973,12 @@ defineClass({
 
         if (sec) {
             sec = sec.substr(0, 1);
-            //position += self.opposite[sec];
-            position += sec;
+            if (thr == "c") {
+                position += self.opposite[sec];
+            }
+            else {
+                position += sec;
+            }
         }
 
         return position;
@@ -12566,6 +12599,7 @@ var Dialog = (function(){
                                 self.positionGetType.call(self.$$callbackContext, self, e) :
                                 cfgPos.type,
                     cls     = self.getPositionClass(type);
+
 
 
                 cfgPos.type     = type;
