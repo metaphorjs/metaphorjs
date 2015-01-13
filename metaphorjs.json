@@ -91,7 +91,7 @@
                 "metaphorjs-select/src/func/select.js",
                 "metaphorjs-validator/src/class/Validator.js",
                 "metaphorjs-watchable/src/lib/Watchable.js",
-                "metaphorjs-dialog/src/class/Ddialog.js",
+                "metaphorjs-dialog/src/class/Dialog.js",
                 "metaphorjs-history/src/lib/History.js"
             ],
             "require": {
@@ -134,7 +134,8 @@
                 }
             },
             "expose": "all",
-            "returns": "MetaphorJs"
+            "exposeIn": "MetaphorJsExport",
+            "returns": "MetaphorJsExport"
         },
         "amd": {
             "target": "dist/metaphorjs.amd.js",
@@ -161,7 +162,7 @@
                 "metaphorjs-select/src/func/select.js",
                 "metaphorjs-validator/src/class/Validator.js",
                 "metaphorjs-watchable/src/lib/Watchable.js",
-                "metaphorjs-dialog/src/class/Ddialog.js",
+                "metaphorjs-dialog/src/class/Dialog.js",
                 "metaphorjs-history/src/lib/History.js"
             ],
             "prepend": [

@@ -35,13 +35,14 @@ module.exports = function(directory, ext) {
             filePath = path.normalize(dir + "/" + filename);
 
             if (isFile(filePath)) {
+
                 if (!ext) {
                     files.push(filePath);
                 }
                 else if (typeof ext == "string" && path.extname(filePath).substr(1) == ext) {
                     files.push(filePath);
                 }
-                else if (path.extname(filePath).substr(1).match(ext)) {
+                else if (typeof ext != "string" && path.extname(filePath).substr(1).match(ext)) {
                     files.push(filePath);
                 }
             }
