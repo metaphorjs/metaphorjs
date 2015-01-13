@@ -20,12 +20,14 @@ module.exports = function toFragment(nodes) {
         fragment.appendChild(nodes);
     }
     else {
+        // due to a bug in jsdom, we turn NodeList into array first
         if (nodes.item) {
-            for (i = -1, l = nodes.length >>> 0; ++i !== l; fragment.appendChild(nodes[0])) {}
+            var tmpNodes = nodes;
+            nodes = [];
+            for (i = -1, l = tmpNodes.length >>> 0; ++i !== l; nodes.push(tmpNodes[i])) {}
         }
-        else {
-            for (i = -1, l = nodes.length; ++i !== l; fragment.appendChild(nodes[i])) {}
-        }
+
+        for (i = -1, l = nodes.length; ++i !== l; fragment.appendChild(nodes[i])) {}
     }
 
     return fragment;
