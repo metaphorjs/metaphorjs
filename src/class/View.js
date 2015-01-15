@@ -12,6 +12,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
 
     extend = require("../func/extend.js"),
     data = require("../func/dom/data.js"),
+    async = require("../func/async.js"),
     toFragment = require("../func/dom/toFragment.js"),
     resolveComponent = require("../func/resolveComponent.js"),
     isObject = require("../func/isObject.js"),
@@ -200,7 +201,9 @@ module.exports = defineClass({
             animate(node, "leave", null, true).done(function(){
 
                 if (!cview.keepAlive) {
-                    self.currentComponent.$destroy();
+                    if (self.currentComponent) {
+                        self.currentComponent.$destroy();
+                    }
                     while (node.firstChild) {
                         node.removeChild(node.firstChild);
                     }
@@ -212,6 +215,9 @@ module.exports = defineClass({
                     while (node.firstChild) {
                         frg.appendChild(node.firstChild);
                     }
+                    if (cview.ttl) {
+                        cview.ttlTmt = async(self.onCmpTtl, self, [cview], cview.ttl);
+                    }
                 }
 
                 self.currentComponent = null;
@@ -220,6 +226,18 @@ module.exports = defineClass({
 
     },
 
+    onCmpTtl: function(route) {
+
+        var self = this,
+            id = route.id;
+        route.ttlTmt = null;
+
+        if (self.cmpCache[id]) {
+            self.cmpCache[id].$destroy();
+            delete self.cmpCache[id];
+            delete self.domCache[id];
+        }
+    },
 
 
 
@@ -255,6 +273,10 @@ module.exports = defineClass({
 
         if (route.id == cview.id) {
             return;
+        }
+
+        if (route.ttlTmt) {
+            clearTimeout(route.ttlTmt);
         }
 
         self.beforeRouteCmpChange(route);
@@ -313,8 +335,10 @@ module.exports = defineClass({
                         self.currentComponent = newCmp;
 
                         if (route.keepAlive) {
+                            newCmp[self.id] = route.id;
                             self.cmpCache[route.id] = newCmp;
                             self.domCache[route.id] = window.document.createDocumentFragment();
+                            newCmp.on("destroy", self.onCmpDestroy, self);
                         }
 
                         self.afterRouteCmpChange();
@@ -326,6 +350,16 @@ module.exports = defineClass({
     },
 
 
+    onCmpDestroy: function(cmp) {
+
+        var self = this,
+            routeId = cmp[self.id];
+
+        if (routeId && self.cmpCache[routeId]) {
+            delete self.cmpCache[routeId];
+            delete self.domCache[routeId];
+        }
+    },
 
 
 

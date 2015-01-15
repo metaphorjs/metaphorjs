@@ -7,6 +7,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     extend = require("../func/extend.js"),
     normalizeEvent = require("../func/event/normalizeEvent.js"),
     EventBuffer = require("./EventBuffer.js"),
+    createFunc = require("metaphorjs-watchable/src/func/createGetter.js"),
     createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js");
 
@@ -48,7 +49,7 @@ module.exports = defineClass({
                 cfg = extend({}, self.watcher.getLastResult(), true, true);
             }
             else {
-                var handler = createGetter(cfg);
+                var handler = createFunc(cfg);
                 cfg = {
                     handler: handler
                 };

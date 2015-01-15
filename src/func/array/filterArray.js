@@ -30,10 +30,10 @@ module.exports = function(){
                 return ""+value === ""+to;
             }
             else if (opt === true || opt === null || opt === undf) {
-                return ""+value.indexOf(to) != -1;
+                return (""+value).toLowerCase().indexOf((""+to).toLowerCase()) != -1;
             }
             else if (opt === false) {
-                return ""+value.indexOf(to) == -1;
+                return (""+value).toLowerCase().indexOf((""+to).toLowerCase()) == -1;
             }
             return false;
         },

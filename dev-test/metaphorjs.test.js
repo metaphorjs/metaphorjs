@@ -2740,10 +2740,11 @@ var functionFactory = function() {
         }
     };
 }();
+var createGetter, createFunc;
 
 
 
-var createGetter = functionFactory.createGetter;
+createGetter = createFunc = functionFactory.createGetter;
 
 
 
@@ -11652,7 +11653,9 @@ defineClass({
             animate(node, "leave", null, true).done(function(){
 
                 if (!cview.keepAlive) {
-                    self.currentComponent.$destroy();
+                    if (self.currentComponent) {
+                        self.currentComponent.$destroy();
+                    }
                     while (node.firstChild) {
                         node.removeChild(node.firstChild);
                     }
@@ -11664,6 +11667,9 @@ defineClass({
                     while (node.firstChild) {
                         frg.appendChild(node.firstChild);
                     }
+                    if (cview.ttl) {
+                        cview.ttlTmt = async(self.onCmpTtl, self, [cview], cview.ttl);
+                    }
                 }
 
                 self.currentComponent = null;
@@ -11672,6 +11678,18 @@ defineClass({
 
     },
 
+    onCmpTtl: function(route) {
+
+        var self = this,
+            id = route.id;
+        route.ttlTmt = null;
+
+        if (self.cmpCache[id]) {
+            self.cmpCache[id].$destroy();
+            delete self.cmpCache[id];
+            delete self.domCache[id];
+        }
+    },
 
 
 
@@ -11707,6 +11725,10 @@ defineClass({
 
         if (route.id == cview.id) {
             return;
+        }
+
+        if (route.ttlTmt) {
+            clearTimeout(route.ttlTmt);
         }
 
         self.beforeRouteCmpChange(route);
@@ -11765,8 +11787,10 @@ defineClass({
                         self.currentComponent = newCmp;
 
                         if (route.keepAlive) {
+                            newCmp[self.id] = route.id;
                             self.cmpCache[route.id] = newCmp;
                             self.domCache[route.id] = window.document.createDocumentFragment();
+                            newCmp.on("destroy", self.onCmpDestroy, self);
                         }
 
                         self.afterRouteCmpChange();
@@ -11778,6 +11802,16 @@ defineClass({
     },
 
 
+    onCmpDestroy: function(cmp) {
+
+        var self = this,
+            routeId = cmp[self.id];
+
+        if (routeId && self.cmpCache[routeId]) {
+            delete self.cmpCache[routeId];
+            delete self.domCache[routeId];
+        }
+    },
 
 
 
@@ -13391,7 +13425,7 @@ var EventHandler = defineClass({
                 cfg = extend({}, self.watcher.getLastResult(), true, true);
             }
             else {
-                var handler = createGetter(cfg);
+                var handler = createFunc(cfg);
                 cfg = {
                     handler: handler
                 };
@@ -14729,10 +14763,10 @@ var filterArray = function(){
                 return ""+value === ""+to;
             }
             else if (opt === true || opt === null || opt === undf) {
-                return ""+value.indexOf(to) != -1;
+                return (""+value).toLowerCase().indexOf((""+to).toLowerCase()) != -1;
             }
             else if (opt === false) {
-                return ""+value.indexOf(to) == -1;
+                return (""+value).toLowerCase().indexOf((""+to).toLowerCase()) == -1;
             }
             return false;
         },
@@ -18713,8 +18747,12 @@ function delegate(el, selector, event, fn) {
     var key = selector + "-" + event,
         listener    = function(e) {
             e = normalizeEvent(e);
-            if (is(e.target, selector)) {
-                return fn(e);
+            var trg = e.target;
+            while (trg) {
+                if (is(trg, selector)) {
+                    return fn(e);
+                }
+                trg = trg.parentNode;
             }
             return null;
         };
@@ -20106,7 +20144,8 @@ defineClass({
 
         if (node) {
             raf(function() {
-                if (!dialog.isVisible() && node.parentNode) {
+                //if (!dialog.isVisible() && node.parentNode) {
+                if (node.parentNode) {
                     node.parentNode.removeChild(node);
                 }
             });
@@ -26188,6 +26227,7 @@ MetaphorJsExports['async'] = async;
 MetaphorJsExports['error'] = error;
 MetaphorJsExports['functionFactory'] = functionFactory;
 MetaphorJsExports['createGetter'] = createGetter;
+MetaphorJsExports['createFunc'] = createFunc;
 MetaphorJsExports['createSetter'] = createSetter;
 MetaphorJsExports['Watchable'] = Watchable;
 MetaphorJsExports['Scope'] = Scope;
@@ -26265,7 +26305,6 @@ MetaphorJsExports['getScrollTop'] = getScrollTop;
 MetaphorJsExports['getScrollLeft'] = getScrollLeft;
 MetaphorJsExports['EventBuffer'] = EventBuffer;
 MetaphorJsExports['EventHandler'] = EventHandler;
-MetaphorJsExports['createFunc'] = createFunc;
 MetaphorJsExports['preloadImage'] = preloadImage;
 MetaphorJsExports['removeStyle'] = removeStyle;
 MetaphorJsExports['parentData'] = parentData;

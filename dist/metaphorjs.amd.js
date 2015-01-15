@@ -4197,10 +4197,11 @@ var functionFactory = function() {
         }
     };
 }();
+var createGetter, createFunc;
 
 
 
-var createGetter = functionFactory.createGetter;
+createGetter = createFunc = functionFactory.createGetter;
 
 var rToCamelCase = /-./g;
 
@@ -5348,7 +5349,9 @@ defineClass({
             animate(node, "leave", null, true).done(function(){
 
                 if (!cview.keepAlive) {
-                    self.currentComponent.$destroy();
+                    if (self.currentComponent) {
+                        self.currentComponent.$destroy();
+                    }
                     while (node.firstChild) {
                         node.removeChild(node.firstChild);
                     }
@@ -5360,6 +5363,9 @@ defineClass({
                     while (node.firstChild) {
                         frg.appendChild(node.firstChild);
                     }
+                    if (cview.ttl) {
+                        cview.ttlTmt = async(self.onCmpTtl, self, [cview], cview.ttl);
+                    }
                 }
 
                 self.currentComponent = null;
@@ -5368,6 +5374,18 @@ defineClass({
 
     },
 
+    onCmpTtl: function(route) {
+
+        var self = this,
+            id = route.id;
+        route.ttlTmt = null;
+
+        if (self.cmpCache[id]) {
+            self.cmpCache[id].$destroy();
+            delete self.cmpCache[id];
+            delete self.domCache[id];
+        }
+    },
 
 
 
@@ -5403,6 +5421,10 @@ defineClass({
 
         if (route.id == cview.id) {
             return;
+        }
+
+        if (route.ttlTmt) {
+            clearTimeout(route.ttlTmt);
         }
 
         self.beforeRouteCmpChange(route);
@@ -5461,8 +5483,10 @@ defineClass({
                         self.currentComponent = newCmp;
 
                         if (route.keepAlive) {
+                            newCmp[self.id] = route.id;
                             self.cmpCache[route.id] = newCmp;
                             self.domCache[route.id] = window.document.createDocumentFragment();
+                            newCmp.on("destroy", self.onCmpDestroy, self);
                         }
 
                         self.afterRouteCmpChange();
@@ -5474,6 +5498,16 @@ defineClass({
     },
 
 
+    onCmpDestroy: function(cmp) {
+
+        var self = this,
+            routeId = cmp[self.id];
+
+        if (routeId && self.cmpCache[routeId]) {
+            delete self.cmpCache[routeId];
+            delete self.domCache[routeId];
+        }
+    },
 
 
 
@@ -6745,7 +6779,7 @@ var EventHandler = defineClass({
                 cfg = extend({}, self.watcher.getLastResult(), true, true);
             }
             else {
-                var handler = createGetter(cfg);
+                var handler = createFunc(cfg);
                 cfg = {
                     handler: handler
                 };
@@ -8102,10 +8136,10 @@ var filterArray = function(){
                 return ""+value === ""+to;
             }
             else if (opt === true || opt === null || opt === undf) {
-                return ""+value.indexOf(to) != -1;
+                return (""+value).toLowerCase().indexOf((""+to).toLowerCase()) != -1;
             }
             else if (opt === false) {
-                return ""+value.indexOf(to) == -1;
+                return (""+value).toLowerCase().indexOf((""+to).toLowerCase()) == -1;
             }
             return false;
         },
@@ -9418,6 +9452,7 @@ MetaphorJsExports['Queue'] = Queue;
 MetaphorJsExports['isPrimitive'] = isPrimitive;
 MetaphorJsExports['functionFactory'] = functionFactory;
 MetaphorJsExports['createGetter'] = createGetter;
+MetaphorJsExports['createFunc'] = createFunc;
 MetaphorJsExports['toCamelCase'] = toCamelCase;
 MetaphorJsExports['getNodeData'] = getNodeData;
 MetaphorJsExports['getNodeConfig'] = getNodeConfig;
@@ -9443,7 +9478,6 @@ MetaphorJsExports['getScrollTop'] = getScrollTop;
 MetaphorJsExports['getScrollLeft'] = getScrollLeft;
 MetaphorJsExports['EventBuffer'] = EventBuffer;
 MetaphorJsExports['EventHandler'] = EventHandler;
-MetaphorJsExports['createFunc'] = createFunc;
 MetaphorJsExports['isIE'] = isIE;
 MetaphorJsExports['preloadImage'] = preloadImage;
 MetaphorJsExports['removeStyle'] = removeStyle;
