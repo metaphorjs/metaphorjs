@@ -99,6 +99,7 @@ extend(DomEvent.prototype, {
         var e = this.originalEvent;
 
         this.isPropagationStopped = returnTrue;
+        e.cancelBubble = true;
 
         if ( e && e.stopPropagation ) {
             e.stopPropagation();
