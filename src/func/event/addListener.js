@@ -9,8 +9,16 @@ module.exports = function(){
     return function addListener(el, event, func) {
 
         if (fn === null) {
-            fn = el.attachEvent ? "attachEvent" : "addEventListener";
-            prefix = el.attachEvent ? "on" : "";
+            if (el.addEventListener) {
+                fn = "addEventListener";
+                prefix = "";
+            }
+            else {
+                fn = "attachEvent";
+                prefix = "on";
+            }
+            //fn = el.attachEvent ? "attachEvent" : "addEventListener";
+            //prefix = el.attachEvent ? "on" : "";
         }
 
 

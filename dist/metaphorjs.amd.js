@@ -6218,8 +6218,16 @@ var addListener = function(){
     return function addListener(el, event, func) {
 
         if (fn === null) {
-            fn = el.attachEvent ? "attachEvent" : "addEventListener";
-            prefix = el.attachEvent ? "on" : "";
+            if (el.addEventListener) {
+                fn = "addEventListener";
+                prefix = "";
+            }
+            else {
+                fn = "attachEvent";
+                prefix = "on";
+            }
+            //fn = el.attachEvent ? "attachEvent" : "addEventListener";
+            //prefix = el.attachEvent ? "on" : "";
         }
 
 
@@ -6249,8 +6257,16 @@ var removeListener = function(){
     return function removeListener(el, event, func) {
 
         if (fn === null) {
-            fn = el.detachEvent ? "detachEvent" : "removeEventListener";
-            prefix = el.detachEvent ? "on" : "";
+            if (el.removeEventListener) {
+                fn = "removeEventListener";
+                prefix = "";
+            }
+            else {
+                fn = "detachEvent";
+                prefix = "on";
+            }
+            //fn = el.detachEvent ? "detachEvent" : "removeEventListener";
+            //prefix = el.detachEvent ? "on" : "";
         }
 
         el[fn](prefix + event, func);

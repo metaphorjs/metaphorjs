@@ -8,8 +8,16 @@ module.exports = function(){
     return function removeListener(el, event, func) {
 
         if (fn === null) {
-            fn = el.detachEvent ? "detachEvent" : "removeEventListener";
-            prefix = el.detachEvent ? "on" : "";
+            if (el.removeEventListener) {
+                fn = "removeEventListener";
+                prefix = "";
+            }
+            else {
+                fn = "detachEvent";
+                prefix = "on";
+            }
+            //fn = el.detachEvent ? "detachEvent" : "removeEventListener";
+            //prefix = el.detachEvent ? "on" : "";
         }
 
         el[fn](prefix + event, func);

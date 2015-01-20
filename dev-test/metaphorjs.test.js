@@ -8009,8 +8009,16 @@ var addListener = function(){
     return function addListener(el, event, func) {
 
         if (fn === null) {
-            fn = el.attachEvent ? "attachEvent" : "addEventListener";
-            prefix = el.attachEvent ? "on" : "";
+            if (el.addEventListener) {
+                fn = "addEventListener";
+                prefix = "";
+            }
+            else {
+                fn = "attachEvent";
+                prefix = "on";
+            }
+            //fn = el.attachEvent ? "attachEvent" : "addEventListener";
+            //prefix = el.attachEvent ? "on" : "";
         }
 
 
@@ -8091,10 +8099,23 @@ var addListener = function(){
             self._ajax          = ajax;
 
             if (opt.progress) {
-                addListener(xhr, "progress", bind(opt.progress, opt.context));
+                /*if (xhr.addEventListener) {
+                    xhr.addEventListener("progress", bind(opt.progress, opt.context));
+                }
+                else {
+                    addListener(xhr, "progress", bind(opt.progress, opt.context));
+                }*/
+                xhr.onprogress = bind(opt.progress, opt.context);
             }
             if (opt.uploadProgress && xhr.upload) {
-                addListener(xhr.upload, "progress", bind(opt.uploadProgress, opt.context));
+                /*if (xhr.addEventListener) {
+                    xhr.upload.addEventListener("progress", bind(opt.uploadProgress, opt.context));
+                }
+                else {
+                    addListener(xhr.upload, "progress", bind(opt.uploadProgress, opt.context));
+                }*/
+
+                xhr.upload.onprogress = bind(opt.uploadProgress, opt.context);
             }
 
             xhr.onreadystatechange = bind(self.onReadyStateChange, self);
@@ -8262,6 +8283,7 @@ defineClass({
     _deferred: null,
     _ajax: null,
     _el: null,
+    _sent: false,
 
     $init: function(opt, deferred, ajax) {
         var self        = this;
@@ -8291,12 +8313,27 @@ defineClass({
 
         self._el = frame;
 
-        try {
-            form.submit();
-        }
-        catch (thrownError) {
-            self._deferred.reject(thrownError);
-        }
+        var tries = 0;
+
+        var submit = function() {
+
+            tries++;
+
+            try {
+                form.submit();
+                self._sent = true;
+            }
+            catch (thrownError) {
+                if (tries > 2) {
+                    self._deferred.reject(thrownError);
+                }
+                else {
+                    async(submit, null, [], 1000);
+                }
+            }
+        };
+
+        submit();
     },
 
     onLoad: function() {
@@ -8305,6 +8342,10 @@ defineClass({
             frame   = self._el,
             doc,
             data;
+
+        if (!self._sent) {
+            return;
+        }
 
         if (self._opt && !self._opt.jsonp) {
 
@@ -8320,6 +8361,11 @@ defineClass({
     },
 
     onError: function(evt) {
+
+        if (!this._sent) {
+            return;
+        }
+
         this._deferred.reject(evt);
     },
 
@@ -8428,6 +8474,16 @@ defineClass({
             var params = [];
             buildParams(data, params, null);
             return params.join("&").replace(/%20/g, "+");
+        },
+
+        fixUrlDomain    = function(url) {
+
+            if (url.substr(0,1) == "/") {
+                return location.protocol + "//" + location.host + url;
+            }
+            else {
+                return url;
+            }
         },
 
         prepareUrl  = function(url, opt) {
@@ -8542,6 +8598,10 @@ defineClass({
         _removeForm: false,
 
         $init: function(opt) {
+
+            if (opt.url) {
+                opt.url = fixUrlDomain(opt.url);
+            }
 
             var self        = this,
                 href        = window ? window.location.href : "",
@@ -8714,7 +8774,7 @@ defineClass({
                     file = item[1];
                 }
                 else {
-                    if (item instanceof File) {
+                    if (window.File && item instanceof File) {
                         name = "upload" + (l > 1 ? "[]" : "");
                     }
                     else {
@@ -8723,7 +8783,7 @@ defineClass({
                     file = item;
                 }
 
-                if (!(file instanceof File)) {
+                if (!window.File || !(file instanceof File)) {
                     input = file;
                     file = null;
                 }
@@ -12109,8 +12169,16 @@ var removeListener = function(){
     return function removeListener(el, event, func) {
 
         if (fn === null) {
-            fn = el.detachEvent ? "detachEvent" : "removeEventListener";
-            prefix = el.detachEvent ? "on" : "";
+            if (el.removeEventListener) {
+                fn = "removeEventListener";
+                prefix = "";
+            }
+            else {
+                fn = "detachEvent";
+                prefix = "on";
+            }
+            //fn = el.detachEvent ? "detachEvent" : "removeEventListener";
+            //prefix = el.detachEvent ? "on" : "";
         }
 
         el[fn](prefix + event, func);
