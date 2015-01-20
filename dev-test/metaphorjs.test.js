@@ -5371,7 +5371,8 @@ var Renderer = function(){
                     map,
                     attrValue,
                     name,
-                    res;
+                    res,
+                    handler;
 
                 n = "tag." + tag;
                 if (f = nsGet(n, true)) {
@@ -5396,9 +5397,13 @@ var Renderer = function(){
 
                     if ((attrValue = map[name]) !== undf) {
 
-                        removeAttr(node, name);
+                        handler = handlers[i].handler;
 
-                        res     = self.runHandler(handlers[i].handler, scope, node, attrValue);
+                        if (!handler.$keepAttribute) {
+                            removeAttr(node, name);
+                        }
+
+                        res     = self.runHandler(handler, scope, node, attrValue);
 
                         map[name] = null;
 
@@ -10987,9 +10992,10 @@ var mhistory = function(){
         var loc = parseLocation(url);
 
         if (!pushStateSupported || useHash) {
-            loc.hash = "#!" + encodeURIComponent(loc.path);
-            loc.pathname = "/";
-            loc.search = "";
+            return loc.path;
+            //loc.hash = "#!" + encodeURIComponent(loc.path);
+            //loc.pathname = "/";
+            //loc.search = "";
         }
 
         return joinLocation(loc, {onlyPath: true});
@@ -11005,8 +11011,12 @@ var mhistory = function(){
 
 
     var setHash = function(hash) {
+
         if (hash) {
-            location.hash = "!" + hash;
+            if (hash.substr(0,1) != '#') {
+                hash = "!" + hash;
+            }
+            location.hash = hash;
         }
         else {
             location.hash = "";
@@ -13623,7 +13633,7 @@ var EventHandler = defineClass({
             event;
 
         for (event in cfg) {
-            if (cfg.if === undf || cfg.if) {
+            if (cfg['if'] === undf || cfg['if']) {
                 handler = self.createHandler(cfg[event], scope);
                 ls.push([event, handler]);
 

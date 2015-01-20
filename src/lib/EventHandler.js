@@ -174,7 +174,7 @@ module.exports = defineClass({
             event;
 
         for (event in cfg) {
-            if (cfg.if === undf || cfg.if) {
+            if (cfg['if'] === undf || cfg['if']) {
                 handler = self.createHandler(cfg[event], scope);
                 ls.push([event, handler]);
 

@@ -1426,7 +1426,8 @@ var Renderer = function(){
                     map,
                     attrValue,
                     name,
-                    res;
+                    res,
+                    handler;
 
                 n = "tag." + tag;
                 if (f = nsGet(n, true)) {
@@ -1451,9 +1452,13 @@ var Renderer = function(){
 
                     if ((attrValue = map[name]) !== undf) {
 
-                        removeAttr(node, name);
+                        handler = handlers[i].handler;
 
-                        res     = self.runHandler(handlers[i].handler, scope, node, attrValue);
+                        if (!handler.$keepAttribute) {
+                            removeAttr(node, name);
+                        }
+
+                        res     = self.runHandler(handler, scope, node, attrValue);
 
                         map[name] = null;
 
@@ -6934,7 +6939,7 @@ var EventHandler = defineClass({
             event;
 
         for (event in cfg) {
-            if (cfg.if === undf || cfg.if) {
+            if (cfg['if'] === undf || cfg['if']) {
                 handler = self.createHandler(cfg[event], scope);
                 ls.push([event, handler]);
 
