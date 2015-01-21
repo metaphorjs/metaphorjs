@@ -147,7 +147,8 @@ var extend = function(){
         }
 
         while (args.length) {
-            if (src = args.shift()) {
+            // IE < 9 fix: check for hasOwnProperty presence
+            if ((src = args.shift()) && src.hasOwnProperty) {
                 for (k in src) {
 
                     if (src.hasOwnProperty(k) && (value = src[k]) !== undf) {
@@ -1545,7 +1546,7 @@ var Renderer = function(){
                 setAttr(text.node, attrName, res);
             }
             else {
-                text.node.textContent = res;
+                //text.node.textContent = res;
                 text.node.nodeValue = res;
             }
         },
@@ -2947,6 +2948,8 @@ var Template = function(){
             return new Promise(function(resolve, reject){
                 if (tpl || url) {
 
+                    console.log(tpl || url)
+
                     if (url) {
                         resolve(getTemplate(tpl) || loadTemplate(url));
                     }
@@ -3002,7 +3005,8 @@ var Template = function(){
                 var transclude = el ? data(el, "mjs-transclude") : null;
 
                 frg = clone(self._fragment);
-                children = slice.call(frg.childNodes);
+
+                children = toArray(frg.childNodes);
 
                 if (transclude) {
                     var tr = select("[mjs-transclude], mjs-transclude", frg);
@@ -3012,6 +3016,8 @@ var Template = function(){
                 }
 
                 if (el) {
+                    //el.parentNode.insertBefore(frg, el);
+                    //el.parentNode.removeChild(el);
                     el.parentNode.replaceChild(frg, el);
                 }
 
@@ -3019,7 +3025,10 @@ var Template = function(){
                 self.initPromise.resolve(children);
             }
             else {
+
+
                 if (el) {
+                    console.log(self.tpl, self._fragment.childNodes.length)
                     el.appendChild(clone(self._fragment));
                 }
                 else {
@@ -4420,6 +4429,7 @@ var ListRenderer = defineClass({
             el,
             i, len;
 
+
         for (i = 0, len = list.length; i < len; i++) {
             el = tpl.cloneNode(true);
             renderers.push(self.createItem(el, list, i));
@@ -5489,6 +5499,7 @@ defineClass({
                     args
                 )
                     .done(function (newCmp) {
+
                         self.currentComponent = newCmp;
 
                         if (route.keepAlive) {

@@ -149,6 +149,7 @@ module.exports = defineClass({
             el,
             i, len;
 
+
         for (i = 0, len = list.length; i < len; i++) {
             el = tpl.cloneNode(true);
             renderers.push(self.createItem(el, list, i));

@@ -387,7 +387,7 @@ module.exports = function(){
                 setAttr(text.node, attrName, res);
             }
             else {
-                text.node.textContent = res;
+                //text.node.textContent = res;
                 text.node.nodeValue = res;
             }
         },

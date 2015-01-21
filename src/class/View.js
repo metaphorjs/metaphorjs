@@ -332,6 +332,7 @@ module.exports = defineClass({
                     args
                 )
                     .done(function (newCmp) {
+
                         self.currentComponent = newCmp;
 
                         if (route.keepAlive) {

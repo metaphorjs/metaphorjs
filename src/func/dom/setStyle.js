@@ -2,7 +2,7 @@
 
 module.exports = function setStyle(el, name, value) {
 
-    if (!el) {
+    if (!el || !el.style) {
         return;
     }
 

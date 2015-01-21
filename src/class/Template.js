@@ -4,6 +4,7 @@ var data = require("../func/dom/data.js"),
     toFragment = require("../func/dom/toFragment.js"),
     clone = require("../func/dom/clone.js"),
     slice = require("../func/array/slice.js"),
+    toArray = require("../func/array/toArray.js"),
     animate = require("metaphorjs-animate/src/func/animate.js"),
     extend = require("../func/extend.js"),
     nextUid = require("../func/nextUid.js"),
@@ -260,6 +261,8 @@ module.exports = function(){
             return new Promise(function(resolve, reject){
                 if (tpl || url) {
 
+                    console.log(tpl || url)
+
                     if (url) {
                         resolve(getTemplate(tpl) || loadTemplate(url));
                     }
@@ -315,7 +318,8 @@ module.exports = function(){
                 var transclude = el ? data(el, "mjs-transclude") : null;
 
                 frg = clone(self._fragment);
-                children = slice.call(frg.childNodes);
+
+                children = toArray(frg.childNodes);
 
                 if (transclude) {
                     var tr = select("[mjs-transclude], mjs-transclude", frg);
@@ -325,6 +329,8 @@ module.exports = function(){
                 }
 
                 if (el) {
+                    //el.parentNode.insertBefore(frg, el);
+                    //el.parentNode.removeChild(el);
                     el.parentNode.replaceChild(frg, el);
                 }
 
@@ -332,7 +338,10 @@ module.exports = function(){
                 self.initPromise.resolve(children);
             }
             else {
+
+
                 if (el) {
+                    console.log(self.tpl, self._fragment.childNodes.length)
                     el.appendChild(clone(self._fragment));
                 }
                 else {
