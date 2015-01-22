@@ -2948,8 +2948,6 @@ var Template = function(){
             return new Promise(function(resolve, reject){
                 if (tpl || url) {
 
-                    console.log(tpl || url)
-
                     if (url) {
                         resolve(getTemplate(tpl) || loadTemplate(url));
                     }
@@ -3028,7 +3026,6 @@ var Template = function(){
 
 
                 if (el) {
-                    console.log(self.tpl, self._fragment.childNodes.length)
                     el.appendChild(clone(self._fragment));
                 }
                 else {
@@ -7735,8 +7732,8 @@ var preloadImage = function() {
         style.visibility = "hidden";
         style.left = "-10000px";
         style.top = "0";
-        img.src = src;
         doc.body.appendChild(img);
+        img.src = src;
 
         return deferred;
     };
@@ -7834,7 +7831,10 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
         }
 
         if (self.usePreload) {
-            self.lastPromise = preloadImage(src).done(self.onImagePreloaded, self);
+            self.lastPromise = preloadImage(src);
+            if (self.lastPromise) {
+                self.lastPromise.done(self.onImagePreloaded, self);
+            }
         }
         else {
             if (self.node) {

@@ -66,8 +66,8 @@ module.exports = function() {
         style.visibility = "hidden";
         style.left = "-10000px";
         style.top = "0";
-        img.src = src;
         doc.body.appendChild(img);
+        img.src = src;
 
         return deferred;
     };

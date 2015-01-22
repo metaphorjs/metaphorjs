@@ -261,8 +261,6 @@ module.exports = function(){
             return new Promise(function(resolve, reject){
                 if (tpl || url) {
 
-                    console.log(tpl || url)
-
                     if (url) {
                         resolve(getTemplate(tpl) || loadTemplate(url));
                     }
@@ -341,7 +339,6 @@ module.exports = function(){
 
 
                 if (el) {
-                    console.log(self.tpl, self._fragment.childNodes.length)
                     el.appendChild(clone(self._fragment));
                 }
                 else {

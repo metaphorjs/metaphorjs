@@ -88,7 +88,10 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
         }
 
         if (self.usePreload) {
-            self.lastPromise = preloadImage(src).done(self.onImagePreloaded, self);
+            self.lastPromise = preloadImage(src);
+            if (self.lastPromise) {
+                self.lastPromise.done(self.onImagePreloaded, self);
+            }
         }
         else {
             if (self.node) {
