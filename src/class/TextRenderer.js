@@ -5,11 +5,11 @@ var nextUid = require("../func/nextUid.js"),
     trim = require("../func/trim.js"),
     undf = require("../var/undf.js"),
     split = require("../func/split.js"),
-    createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
-    Observable = require("../../../metaphorjs-observable/src/lib/Observable.js"),
+    createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
+    Observable = require("metaphorjs-observable/src/lib/Observable.js"),
     isNull = require("../func/isNull.js"),
-    ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
-    defineClass = require("../../../metaphorjs-class/src/func/defineClass.js");
+    ns = require("metaphorjs-namespace/src/var/ns.js"),
+    defineClass = require("metaphorjs-class/src/func/defineClass.js");
 
 
 module.exports = function(){

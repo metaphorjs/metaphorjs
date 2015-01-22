@@ -231,11 +231,13 @@ extend(Scope.prototype, {
     $root: null,
     $isRoot: false,
     $level: 0,
+    $static: false,
     $$observable: null,
     $$watchers: null,
     $$historyWatchers: null,
     $$checking: false,
     $$destroyed: false,
+
     $$tmt: null,
 
     $new: function() {
@@ -244,14 +246,16 @@ extend(Scope.prototype, {
             $parent: self,
             $root: self.$root,
             $app: self.$app,
-            $level: self.$level + 1
+            $level: self.$level + 1,
+            $static: self.$static
         });
     },
 
     $newIsolated: function() {
         return new Scope({
             $app: this.$app,
-            $level: self.$level + 1
+            $level: self.$level + 1,
+            $static: this.$static
         });
     },
 
@@ -365,7 +369,7 @@ extend(Scope.prototype, {
         var self = this,
             changes;
 
-        if (self.$$checking) {
+        if (self.$$checking || self.$static) {
             return;
         }
         self.$$checking = true;
@@ -400,6 +404,10 @@ extend(Scope.prototype, {
         var self    = this,
             param, i;
 
+        if (self.$$destroyed) {
+            return;
+        }
+        self.$$destroyed = true;
         self.$$observable.trigger("destroy");
         self.$$observable.destroy();
 
@@ -4713,7 +4721,8 @@ var ListRenderer = defineClass({
     removeOldElements: function(rs) {
         var i, len, r,
             j, jl,
-            parent = this.parentEl;
+            self    = this,
+            parent  = self.parentEl;
 
         for (i = 0, len = rs.length; i < len; i++) {
             r = rs[i];

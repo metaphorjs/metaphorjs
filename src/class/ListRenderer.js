@@ -427,7 +427,8 @@ module.exports = defineClass({
     removeOldElements: function(rs) {
         var i, len, r,
             j, jl,
-            parent = this.parentEl;
+            self    = this,
+            parent  = self.parentEl;
 
         for (i = 0, len = rs.length; i < len; i++) {
             r = rs[i];
