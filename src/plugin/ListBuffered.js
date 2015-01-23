@@ -19,7 +19,7 @@ module.exports = defineClass({
     list: null,
 
     itemSize: null,
-    itemsOffsite: 1,
+    itemsOffsite: 5,
     bufferState: null,
     scrollOffset: 0,
     horizontal: false,
@@ -40,10 +40,10 @@ module.exports = defineClass({
     afterInit: function() {
 
         var self = this,
-            cfg     = getNodeConfig(self.list.node);
+            cfg     = getNodeConfig(self.list.tpl);
 
         self.itemSize       = cfg.itemSize;
-        self.itemsOffsite   = cfg.itemsOffsite || 5;
+        self.itemsOffsite   = parseInt(cfg.itemsOffsite || 5, 10);
         self.horizontal     = cfg.horizontal || false;
 
         self.initScrollParent(cfg);
@@ -101,6 +101,14 @@ module.exports = defineClass({
         list.nextEl     = ofsBot;
     },
 
+    getItemsPerRow: function() {
+        return 1;
+    },
+
+    getRowHeight: function() {
+        return this.itemSize;
+    },
+
     getScrollOffset: function() {
 
         var self        = this,
@@ -121,10 +129,11 @@ module.exports = defineClass({
                            html[hor ? "clientWidth" : "clientHeight"]):
                           scrollEl[hor ? "offsetWidth" : "offsetHeight"],
             scroll      = hor ? getScrollLeft(scrollEl) : getScrollTop(scrollEl),
-            isize       = self.itemSize,
+            perRow      = self.getItemsPerRow(),
+            isize       = self.getRowHeight(),
             off         = self.itemsOffsite,
             offset      = updateScrollOffset ? self.getScrollOffset() : self.scrollOffset,
-            cnt         = self.list.renderers.length,
+            cnt         = Math.ceil(self.list.renderers.length / perRow),
             viewFirst,
             viewLast,
             first,
@@ -153,10 +162,10 @@ module.exports = defineClass({
         }
 
         return self.bufferState = {
-            first: first,
-            last: last,
-            viewFirst: viewFirst,
-            viewLast: viewLast,
+            first: first * perRow,
+            last: last * perRow,
+            viewFirst: viewFirst * perRow,
+            viewLast: viewLast * perRow,
             ot: first * isize,
             ob: (cnt - last - 1) * isize
         };
@@ -186,6 +195,7 @@ module.exports = defineClass({
             bot         = self.botStub,
             bs          = self.getBufferState(false),
             promise     = new Promise,
+            doc         = window.document,
             fragment,
             i, x, r;
 
@@ -213,7 +223,7 @@ module.exports = defineClass({
                         }
                     }
                 }
-                fragment = window.document.createDocumentFragment();
+                fragment = doc.createDocumentFragment();
                 for (i = bs.first, x = bs.last; i <= x; i++) {
                     r = rs[i];
                     if (r) {
@@ -240,7 +250,7 @@ module.exports = defineClass({
                     }
                 }
                 else if (prev.first > bs.first) {
-                    fragment = window.document.createDocumentFragment();
+                    fragment = doc.createDocumentFragment();
                     for (i = bs.first, x = prev.first; i < x; i++) {
                         r = rs[i];
                         if (r) {
@@ -255,7 +265,7 @@ module.exports = defineClass({
                 }
 
                 if (prev.last < bs.last) {
-                    fragment = window.document.createDocumentFragment();
+                    fragment = doc.createDocumentFragment();
                     for (i = prev.last + 1, x = bs.last; i <= x; i++) {
                         r = rs[i];
                         if (r) {

@@ -4360,10 +4360,10 @@ var ListRenderer = defineClass({
         removeAttr(node, "mjs-animate");
 
         if (self.animate && self.animateMove) {
-            self.$plugins.push("plugin.ListAnimatedMove");
+            self.$plugins.push(typeof cfg.animateMove == "string" ? cfg.animateMove : "plugin.ListAnimatedMove");
         }
         if (cfg.observable) {
-            self.$plugins.push("plugin.Observable");
+            self.$plugins.push(typeof cfg.observable == "string" ? cfg.observable : "plugin.Observable");
         }
 
         if (self.tagMode) {
@@ -4372,7 +4372,7 @@ var ListRenderer = defineClass({
 
         if (cfg.buffered) {
             self.buffered = true;
-            self.$plugins.push("plugin.ListBuffered");
+            self.$plugins.push(typeof cfg.buffered == "string" ? cfg.buffered : "plugin.ListBuffered");
         }
     },
 
@@ -8694,7 +8694,6 @@ var StoreRenderer = ListRenderer.$extend({
 
         $constructor: function(scope, node, expr) {
 
-
             var cfg = getNodeConfig(node, scope);
 
             if (cfg.pullNext) {
@@ -8702,7 +8701,7 @@ var StoreRenderer = ListRenderer.$extend({
                     cfg.bufferedPullNext = true;
                     cfg.buffered = false;
                 }
-                this.$plugins.push("plugin.ListPullNext");
+                this.$plugins.push(typeof cfg.pullNext == "string" ? cfg.pullNext : "plugin.ListPullNext");
             }
 
             this.$super(scope, node, expr);

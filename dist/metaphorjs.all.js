@@ -10287,10 +10287,10 @@ var ListRenderer = defineClass({
         removeAttr(node, "mjs-animate");
 
         if (self.animate && self.animateMove) {
-            self.$plugins.push("plugin.ListAnimatedMove");
+            self.$plugins.push(typeof cfg.animateMove == "string" ? cfg.animateMove : "plugin.ListAnimatedMove");
         }
         if (cfg.observable) {
-            self.$plugins.push("plugin.Observable");
+            self.$plugins.push(typeof cfg.observable == "string" ? cfg.observable : "plugin.Observable");
         }
 
         if (self.tagMode) {
@@ -10299,7 +10299,7 @@ var ListRenderer = defineClass({
 
         if (cfg.buffered) {
             self.buffered = true;
-            self.$plugins.push("plugin.ListBuffered");
+            self.$plugins.push(typeof cfg.buffered == "string" ? cfg.buffered : "plugin.ListBuffered");
         }
     },
 
@@ -18194,7 +18194,6 @@ var StoreRenderer = ListRenderer.$extend({
 
         $constructor: function(scope, node, expr) {
 
-
             var cfg = getNodeConfig(node, scope);
 
             if (cfg.pullNext) {
@@ -18202,7 +18201,7 @@ var StoreRenderer = ListRenderer.$extend({
                     cfg.bufferedPullNext = true;
                     cfg.buffered = false;
                 }
-                this.$plugins.push("plugin.ListPullNext");
+                this.$plugins.push(typeof cfg.pullNext == "string" ? cfg.pullNext : "plugin.ListPullNext");
             }
 
             this.$super(scope, node, expr);
@@ -18412,7 +18411,7 @@ defineClass({
     list: null,
 
     itemSize: null,
-    itemsOffsite: 1,
+    itemsOffsite: 5,
     bufferState: null,
     scrollOffset: 0,
     horizontal: false,
@@ -18433,10 +18432,10 @@ defineClass({
     afterInit: function() {
 
         var self = this,
-            cfg     = getNodeConfig(self.list.node);
+            cfg     = getNodeConfig(self.list.tpl);
 
         self.itemSize       = cfg.itemSize;
-        self.itemsOffsite   = cfg.itemsOffsite || 5;
+        self.itemsOffsite   = parseInt(cfg.itemsOffsite || 5, 10);
         self.horizontal     = cfg.horizontal || false;
 
         self.initScrollParent(cfg);
@@ -18494,6 +18493,14 @@ defineClass({
         list.nextEl     = ofsBot;
     },
 
+    getItemsPerRow: function() {
+        return 1;
+    },
+
+    getRowHeight: function() {
+        return this.itemSize;
+    },
+
     getScrollOffset: function() {
 
         var self        = this,
@@ -18514,10 +18521,11 @@ defineClass({
                            html[hor ? "clientWidth" : "clientHeight"]):
                           scrollEl[hor ? "offsetWidth" : "offsetHeight"],
             scroll      = hor ? getScrollLeft(scrollEl) : getScrollTop(scrollEl),
-            isize       = self.itemSize,
+            perRow      = self.getItemsPerRow(),
+            isize       = self.getRowHeight(),
             off         = self.itemsOffsite,
             offset      = updateScrollOffset ? self.getScrollOffset() : self.scrollOffset,
-            cnt         = self.list.renderers.length,
+            cnt         = Math.ceil(self.list.renderers.length / perRow),
             viewFirst,
             viewLast,
             first,
@@ -18546,10 +18554,10 @@ defineClass({
         }
 
         return self.bufferState = {
-            first: first,
-            last: last,
-            viewFirst: viewFirst,
-            viewLast: viewLast,
+            first: first * perRow,
+            last: last * perRow,
+            viewFirst: viewFirst * perRow,
+            viewLast: viewLast * perRow,
             ot: first * isize,
             ob: (cnt - last - 1) * isize
         };
@@ -18579,6 +18587,7 @@ defineClass({
             bot         = self.botStub,
             bs          = self.getBufferState(false),
             promise     = new Promise,
+            doc         = window.document,
             fragment,
             i, x, r;
 
@@ -18606,7 +18615,7 @@ defineClass({
                         }
                     }
                 }
-                fragment = window.document.createDocumentFragment();
+                fragment = doc.createDocumentFragment();
                 for (i = bs.first, x = bs.last; i <= x; i++) {
                     r = rs[i];
                     if (r) {
@@ -18633,7 +18642,7 @@ defineClass({
                     }
                 }
                 else if (prev.first > bs.first) {
-                    fragment = window.document.createDocumentFragment();
+                    fragment = doc.createDocumentFragment();
                     for (i = bs.first, x = prev.first; i < x; i++) {
                         r = rs[i];
                         if (r) {
@@ -18648,7 +18657,7 @@ defineClass({
                 }
 
                 if (prev.last < bs.last) {
-                    fragment = window.document.createDocumentFragment();
+                    fragment = doc.createDocumentFragment();
                     for (i = prev.last + 1, x = bs.last; i <= x; i++) {
                         r = rs[i];
                         if (r) {
@@ -18773,7 +18782,7 @@ defineClass({
                 bs      = self.getBufferState();
 
             if (!prev || bs.first != prev.first || bs.last != prev.last) {
-                self.trigger("buffer-change", self, bs, prev);
+                self.list.trigger("buffer-change", self, bs, prev);
                 self.onBufferStateChange(bs, prev);
             }
         }
