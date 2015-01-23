@@ -15,6 +15,8 @@ var Scope = function(cfg) {
     if (self.$parent) {
         self.$parent.$on("check", self.$$onParentCheck, self);
         self.$parent.$on("destroy", self.$$onParentDestroy, self);
+        self.$parent.$on("freeze", self.$freeze, self);
+        self.$parent.$on("unfreeze", self.$unfreeze, self);
     }
     else {
         self.$root  = self;
@@ -30,6 +32,7 @@ extend(Scope.prototype, {
     $isRoot: false,
     $level: 0,
     $static: false,
+    $$frozen: false,
     $$observable: null,
     $$watchers: null,
     $$historyWatchers: null,
@@ -55,6 +58,22 @@ extend(Scope.prototype, {
             $level: self.$level + 1,
             $static: this.$static
         });
+    },
+
+    $freeze: function() {
+        var self = this;
+        if (!self.$$frozen) {
+            self.$$frozen = true;
+            self.$$observable.trigger("freeze", self);
+        }
+    },
+
+    $unfreeze: function() {
+        var self = this;
+        if (self.$$frozen) {
+            self.$$frozen = false;
+            self.$$observable.trigger("unfreeze", self);
+        }
     },
 
     $on: function(event, fn, fnScope) {
@@ -167,7 +186,7 @@ extend(Scope.prototype, {
         var self = this,
             changes;
 
-        if (self.$$checking || self.$static) {
+        if (self.$$checking || self.$static || self.$$frozen) {
             return;
         }
         self.$$checking = true;
@@ -205,9 +224,17 @@ extend(Scope.prototype, {
         if (self.$$destroyed) {
             return;
         }
+
         self.$$destroyed = true;
         self.$$observable.trigger("destroy");
         self.$$observable.destroy();
+
+        if (self.$parent && self.$parent.$un) {
+            self.$parent.$un("check", self.$$onParentCheck, self);
+            self.$parent.$un("destroy", self.$$onParentDestroy, self);
+            self.$parent.$un("freeze", self.$freeze, self);
+            self.$parent.$un("unfreeze", self.$unfreeze, self);
+        }
 
         if (self.$$watchers) {
             self.$$watchers.$destroyAll();

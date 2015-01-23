@@ -23,6 +23,7 @@ module.exports = defineClass({
     bufferState: null,
     scrollOffset: 0,
     horizontal: false,
+    dynamicOffset: false,
     bufferEventDelegate: null,
     topStub: null,
     botStub: null,
@@ -45,14 +46,29 @@ module.exports = defineClass({
         self.itemSize       = cfg.itemSize;
         self.itemsOffsite   = parseInt(cfg.itemsOffsite || 5, 10);
         self.horizontal     = cfg.horizontal || false;
+        self.dynamicOffset  = cfg.dynamicOffset || false;
 
         self.initScrollParent(cfg);
         self.initScrollStubs(cfg);
 
         self.bufferEventDelegate = bind(self.bufferUpdateEvent, self);
 
+        self.up();
+
+        self.list.scope.$on("freeze", self.down, self);
+        self.list.scope.$on("unfreeze", self.up, self);
+    },
+
+    up: function() {
+        var self = this;
         addListener(self.scrollEl, "scroll", self.bufferEventDelegate);
         addListener(window, "resize", self.bufferEventDelegate);
+    },
+
+    down: function() {
+        var self = this;
+        removeListener(self.scrollEl, "scroll", self.bufferEventDelegate);
+        removeListener(window, "resize", self.bufferEventDelegate);
     },
 
     initScrollParent: function(cfg) {
@@ -140,7 +156,8 @@ module.exports = defineClass({
             last;
 
 
-        scroll  = Math.max(0, scroll + offset);
+
+        scroll  = Math.max(0, scroll - offset);
         first   = Math.ceil(scroll / isize);
 
         if (first < 0) {
@@ -193,7 +210,7 @@ module.exports = defineClass({
             parent      = list.parentEl,
             rs          = list.renderers,
             bot         = self.botStub,
-            bs          = self.getBufferState(false),
+            bs          = self.getBufferState(self.dynamicOffset),
             promise     = new Promise,
             doc         = window.document,
             fragment,
@@ -208,6 +225,10 @@ module.exports = defineClass({
         }
 
         raf(function(){
+
+            if (self.$destroyed || self.$destroying) {
+                return;
+            }
 
             //TODO: account for tag mode
 
@@ -344,7 +365,6 @@ module.exports = defineClass({
 
         parent.removeChild(self.topStub);
         parent.removeChild(self.botStub);
-        removeListener(self.scrollEl, "scroll", self.bufferEventDelegate);
-        removeListener(window, "resize", self.bufferEventDelegate);
+        self.down();
     }
 });

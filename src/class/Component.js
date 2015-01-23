@@ -347,14 +347,20 @@ module.exports = defineClass({
         }
     },
 
-    freezeByView: function() {
+    freezeByView: function(view) {
         var self = this;
         self.releaseNode();
+        self.scope.$freeze();
+        self.trigger("view-freeze", self, view);
+
     },
 
-    unfreezeByView: function() {
+    unfreezeByView: function(view) {
         var self = this;
         self.initNode();
+        self.scope.$unfreeze();
+        self.trigger("view-unfreeze", self, view);
+        self.scope.$check();
     },
 
     /**

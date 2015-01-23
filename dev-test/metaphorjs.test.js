@@ -3549,6 +3549,8 @@ var Scope = function(cfg) {
     if (self.$parent) {
         self.$parent.$on("check", self.$$onParentCheck, self);
         self.$parent.$on("destroy", self.$$onParentDestroy, self);
+        self.$parent.$on("freeze", self.$freeze, self);
+        self.$parent.$on("unfreeze", self.$unfreeze, self);
     }
     else {
         self.$root  = self;
@@ -3564,6 +3566,7 @@ extend(Scope.prototype, {
     $isRoot: false,
     $level: 0,
     $static: false,
+    $$frozen: false,
     $$observable: null,
     $$watchers: null,
     $$historyWatchers: null,
@@ -3589,6 +3592,22 @@ extend(Scope.prototype, {
             $level: self.$level + 1,
             $static: this.$static
         });
+    },
+
+    $freeze: function() {
+        var self = this;
+        if (!self.$$frozen) {
+            self.$$frozen = true;
+            self.$$observable.trigger("freeze", self);
+        }
+    },
+
+    $unfreeze: function() {
+        var self = this;
+        if (self.$$frozen) {
+            self.$$frozen = false;
+            self.$$observable.trigger("unfreeze", self);
+        }
     },
 
     $on: function(event, fn, fnScope) {
@@ -3701,7 +3720,7 @@ extend(Scope.prototype, {
         var self = this,
             changes;
 
-        if (self.$$checking || self.$static) {
+        if (self.$$checking || self.$static || self.$$frozen) {
             return;
         }
         self.$$checking = true;
@@ -3739,9 +3758,17 @@ extend(Scope.prototype, {
         if (self.$$destroyed) {
             return;
         }
+
         self.$$destroyed = true;
         self.$$observable.trigger("destroy");
         self.$$observable.destroy();
+
+        if (self.$parent && self.$parent.$un) {
+            self.$parent.$un("check", self.$$onParentCheck, self);
+            self.$parent.$un("destroy", self.$$onParentDestroy, self);
+            self.$parent.$un("freeze", self.$freeze, self);
+            self.$parent.$un("unfreeze", self.$unfreeze, self);
+        }
 
         if (self.$$watchers) {
             self.$$watchers.$destroyAll();
@@ -9839,14 +9866,20 @@ var Component = defineClass({
         }
     },
 
-    freezeByView: function() {
+    freezeByView: function(view) {
         var self = this;
         self.releaseNode();
+        self.scope.$freeze();
+        self.trigger("view-freeze", self, view);
+
     },
 
-    unfreezeByView: function() {
+    unfreezeByView: function(view) {
         var self = this;
         self.initNode();
+        self.scope.$unfreeze();
+        self.trigger("view-unfreeze", self, view);
+        self.scope.$check();
     },
 
     /**
@@ -10848,7 +10881,9 @@ var ListRenderer = defineClass({
             i, len;
 
         for (i = 0, len = renderers.length; i < len; i++) {
-            renderers[i].renderer.$destroy();
+            if (renderers[i].renderer && !renderers[i].renderer.$destroyed) {
+                renderers[i].renderer.$destroy();
+            }
         }
 
         if (self.trackByWatcher) {
@@ -11758,8 +11793,8 @@ defineClass({
                     }
                 }
                 else {
-                    self.currentComponent.freezeByView();
-                    self.currentComponent.trigger("view-hide", self, self.currentComponent);
+                    self.currentComponent.freezeByView(self);
+                    //self.currentComponent.trigger("view-hide", self, self.currentComponent);
                     var frg = self.domCache[cview.id];
                     while (node.firstChild) {
                         frg.appendChild(node.firstChild);
@@ -11866,8 +11901,8 @@ defineClass({
             if (self.cmpCache[route.id]) {
                 self.currentComponent = self.cmpCache[route.id];
                 node.appendChild(self.domCache[route.id]);
-                self.currentComponent.unfreezeByView();
-                self.currentComponent.trigger("view-show", self, self.currentComponent);
+                self.currentComponent.unfreezeByView(self);
+                //self.currentComponent.trigger("view-show", self, self.currentComponent);
                 self.afterRouteCmpChange();
                 self.afterCmpChange();
             }
@@ -18413,6 +18448,7 @@ defineClass({
     bufferState: null,
     scrollOffset: 0,
     horizontal: false,
+    dynamicOffset: false,
     bufferEventDelegate: null,
     topStub: null,
     botStub: null,
@@ -18435,14 +18471,29 @@ defineClass({
         self.itemSize       = cfg.itemSize;
         self.itemsOffsite   = parseInt(cfg.itemsOffsite || 5, 10);
         self.horizontal     = cfg.horizontal || false;
+        self.dynamicOffset  = cfg.dynamicOffset || false;
 
         self.initScrollParent(cfg);
         self.initScrollStubs(cfg);
 
         self.bufferEventDelegate = bind(self.bufferUpdateEvent, self);
 
+        self.up();
+
+        self.list.scope.$on("freeze", self.down, self);
+        self.list.scope.$on("unfreeze", self.up, self);
+    },
+
+    up: function() {
+        var self = this;
         addListener(self.scrollEl, "scroll", self.bufferEventDelegate);
         addListener(window, "resize", self.bufferEventDelegate);
+    },
+
+    down: function() {
+        var self = this;
+        removeListener(self.scrollEl, "scroll", self.bufferEventDelegate);
+        removeListener(window, "resize", self.bufferEventDelegate);
     },
 
     initScrollParent: function(cfg) {
@@ -18530,7 +18581,8 @@ defineClass({
             last;
 
 
-        scroll  = Math.max(0, scroll + offset);
+
+        scroll  = Math.max(0, scroll - offset);
         first   = Math.ceil(scroll / isize);
 
         if (first < 0) {
@@ -18583,7 +18635,7 @@ defineClass({
             parent      = list.parentEl,
             rs          = list.renderers,
             bot         = self.botStub,
-            bs          = self.getBufferState(false),
+            bs          = self.getBufferState(self.dynamicOffset),
             promise     = new Promise,
             doc         = window.document,
             fragment,
@@ -18598,6 +18650,10 @@ defineClass({
         }
 
         raf(function(){
+
+            if (self.$destroyed || self.$destroying) {
+                return;
+            }
 
             //TODO: account for tag mode
 
@@ -18734,8 +18790,7 @@ defineClass({
 
         parent.removeChild(self.topStub);
         parent.removeChild(self.botStub);
-        removeListener(self.scrollEl, "scroll", self.bufferEventDelegate);
-        removeListener(window, "resize", self.bufferEventDelegate);
+        self.down();
     }
 });
 
@@ -18777,7 +18832,7 @@ defineClass({
         }
         else {
             var prev    = self.bufferState,
-                bs      = self.getBufferState();
+                bs      = self.getBufferState(self.dynamicOffset);
 
             if (!prev || bs.first != prev.first || bs.last != prev.last) {
                 self.list.trigger("buffer-change", self, bs, prev);
@@ -18794,7 +18849,7 @@ defineClass({
 
         self.$super(bs, prev);
 
-        if (cnt - bs.last < (bs.last - bs.first) / 3 && !list.store.loading) {
+        if (cnt - bs.last < (bs.last - bs.first) / 3 && !list.store.loading && !list.store.$destroyed) {
             list.store.addNextPage();
             list.trigger("pull", self);
         }

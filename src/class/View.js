@@ -209,8 +209,8 @@ module.exports = defineClass({
                     }
                 }
                 else {
-                    self.currentComponent.freezeByView();
-                    self.currentComponent.trigger("view-hide", self, self.currentComponent);
+                    self.currentComponent.freezeByView(self);
+                    //self.currentComponent.trigger("view-hide", self, self.currentComponent);
                     var frg = self.domCache[cview.id];
                     while (node.firstChild) {
                         frg.appendChild(node.firstChild);
@@ -317,8 +317,8 @@ module.exports = defineClass({
             if (self.cmpCache[route.id]) {
                 self.currentComponent = self.cmpCache[route.id];
                 node.appendChild(self.domCache[route.id]);
-                self.currentComponent.unfreezeByView();
-                self.currentComponent.trigger("view-show", self, self.currentComponent);
+                self.currentComponent.unfreezeByView(self);
+                //self.currentComponent.trigger("view-show", self, self.currentComponent);
                 self.afterRouteCmpChange();
                 self.afterCmpChange();
             }

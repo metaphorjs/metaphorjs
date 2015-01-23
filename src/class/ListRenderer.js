@@ -629,7 +629,9 @@ module.exports = defineClass({
             i, len;
 
         for (i = 0, len = renderers.length; i < len; i++) {
-            renderers[i].renderer.$destroy();
+            if (renderers[i].renderer && !renderers[i].renderer.$destroyed) {
+                renderers[i].renderer.$destroy();
+            }
         }
 
         if (self.trackByWatcher) {

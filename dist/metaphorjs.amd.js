@@ -208,6 +208,8 @@ var Scope = function(cfg) {
     if (self.$parent) {
         self.$parent.$on("check", self.$$onParentCheck, self);
         self.$parent.$on("destroy", self.$$onParentDestroy, self);
+        self.$parent.$on("freeze", self.$freeze, self);
+        self.$parent.$on("unfreeze", self.$unfreeze, self);
     }
     else {
         self.$root  = self;
@@ -223,6 +225,7 @@ extend(Scope.prototype, {
     $isRoot: false,
     $level: 0,
     $static: false,
+    $$frozen: false,
     $$observable: null,
     $$watchers: null,
     $$historyWatchers: null,
@@ -248,6 +251,22 @@ extend(Scope.prototype, {
             $level: self.$level + 1,
             $static: this.$static
         });
+    },
+
+    $freeze: function() {
+        var self = this;
+        if (!self.$$frozen) {
+            self.$$frozen = true;
+            self.$$observable.trigger("freeze", self);
+        }
+    },
+
+    $unfreeze: function() {
+        var self = this;
+        if (self.$$frozen) {
+            self.$$frozen = false;
+            self.$$observable.trigger("unfreeze", self);
+        }
     },
 
     $on: function(event, fn, fnScope) {
@@ -360,7 +379,7 @@ extend(Scope.prototype, {
         var self = this,
             changes;
 
-        if (self.$$checking || self.$static) {
+        if (self.$$checking || self.$static || self.$$frozen) {
             return;
         }
         self.$$checking = true;
@@ -398,9 +417,17 @@ extend(Scope.prototype, {
         if (self.$$destroyed) {
             return;
         }
+
         self.$$destroyed = true;
         self.$$observable.trigger("destroy");
         self.$$observable.destroy();
+
+        if (self.$parent && self.$parent.$un) {
+            self.$parent.$un("check", self.$$onParentCheck, self);
+            self.$parent.$un("destroy", self.$$onParentDestroy, self);
+            self.$parent.$un("freeze", self.$freeze, self);
+            self.$parent.$un("unfreeze", self.$unfreeze, self);
+        }
 
         if (self.$$watchers) {
             self.$$watchers.$destroyAll();
@@ -3518,14 +3545,20 @@ var Component = defineClass({
         }
     },
 
-    freezeByView: function() {
+    freezeByView: function(view) {
         var self = this;
         self.releaseNode();
+        self.scope.$freeze();
+        self.trigger("view-freeze", self, view);
+
     },
 
-    unfreezeByView: function() {
+    unfreezeByView: function(view) {
         var self = this;
         self.initNode();
+        self.scope.$unfreeze();
+        self.trigger("view-unfreeze", self, view);
+        self.scope.$check();
     },
 
     /**
@@ -4914,7 +4947,9 @@ var ListRenderer = defineClass({
             i, len;
 
         for (i = 0, len = renderers.length; i < len; i++) {
-            renderers[i].renderer.$destroy();
+            if (renderers[i].renderer && !renderers[i].renderer.$destroyed) {
+                renderers[i].renderer.$destroy();
+            }
         }
 
         if (self.trackByWatcher) {
@@ -5382,8 +5417,8 @@ defineClass({
                     }
                 }
                 else {
-                    self.currentComponent.freezeByView();
-                    self.currentComponent.trigger("view-hide", self, self.currentComponent);
+                    self.currentComponent.freezeByView(self);
+                    //self.currentComponent.trigger("view-hide", self, self.currentComponent);
                     var frg = self.domCache[cview.id];
                     while (node.firstChild) {
                         frg.appendChild(node.firstChild);
@@ -5490,8 +5525,8 @@ defineClass({
             if (self.cmpCache[route.id]) {
                 self.currentComponent = self.cmpCache[route.id];
                 node.appendChild(self.domCache[route.id]);
-                self.currentComponent.unfreezeByView();
-                self.currentComponent.trigger("view-show", self, self.currentComponent);
+                self.currentComponent.unfreezeByView(self);
+                //self.currentComponent.trigger("view-show", self, self.currentComponent);
                 self.afterRouteCmpChange();
                 self.afterCmpChange();
             }
