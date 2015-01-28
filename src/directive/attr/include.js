@@ -3,7 +3,7 @@
 var Directive = require("../../class/Directive.js"),
     Template = require("../../class/Template.js");
 
-Directive.registerAttribute("mjs-include", 900, function(scope, node, tplExpr, parentRenderer){
+Directive.registerAttribute("mjs-include", 1100, function(scope, node, tplExpr, parentRenderer){
 
     var tpl = new Template({
         scope: scope,

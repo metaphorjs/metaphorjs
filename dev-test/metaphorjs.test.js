@@ -6274,6 +6274,7 @@ defineClass({
         self.value('$lang', self.lang);
 
         self.renderer       = new Renderer(node, scope);
+        self.renderer.on("rendered", self.afterRender, self);
 
         args = slice.call(arguments);
         args[1] = scope;
@@ -6281,6 +6282,10 @@ defineClass({
     },
 
     initApp: emptyFn,
+
+    afterRender: function() {
+
+    },
 
     run: function() {
         this.renderer.process();
@@ -9129,14 +9134,39 @@ var ajax = function(){
 var Template = function(){
 
     var observable      = new Observable,
-
         cache           = new Cache,
+        options         = {},
+
+        getFragmentContent  = function(frg) {
+            var div = window.document.createElement("div");
+            div.appendChild(clone(frg));
+            return div.innerHTML;
+        },
+
+        resolveInclude  = function(cmt, tplId) {
+            var frg = getTemplate(trim(tplId));
+            if (!frg) {
+                return "";
+            }
+            if (typeof frg == "string") {
+                return frg;
+            }
+            return getFragmentContent(frg);
+        },
+
+        resolveIncludes = function(tpl) {
+            return tpl.replace(/<!--\s*include (.+)-->/ig, resolveInclude);
+        },
 
         getTemplate     = function(tplId) {
 
-            var tpl = cache.get(tplId);
+            var tpl = cache.get(tplId),
+                opt = options[tplId];
 
-            if (typeof tpl == "string") {
+            if (typeof tpl == "function") {
+                tpl = tpl(tplId);
+            }
+            if (typeof tpl == "string" && (!opt || !opt.text)) {
                 tpl = toFragment(tpl);
                 cache.add(tplId, tpl);
             }
@@ -9154,10 +9184,28 @@ var Template = function(){
                 tag         = tplNode.tagName.toLowerCase();
 
                 if (tag == "script") {
-                    var div = window.document.createElement("div");
-                    div.innerHTML = tplNode.innerHTML;
+                    var tpl = tplNode.innerHTML;
+
                     tplNode.parentNode.removeChild(tplNode);
-                    return toFragment(div.childNodes);
+
+                    if (tpl.substr(0,5) == "<!--{") {
+                        var inx = tpl.indexOf("-->"),
+                            opt = createGetter(tpl.substr(4, inx-4))({});
+
+                        options[tplId] = opt;
+
+                        tpl = tpl.substr(inx + 3);
+
+                        if (opt.includes) {
+                            tpl = resolveIncludes(tpl);
+                        }
+
+                        if (opt.text) {
+                            return tpl;
+                        }
+                    }
+
+                    return toFragment(tpl);
                 }
                 else {
                     if ("content" in tplNode) {
@@ -9187,7 +9235,7 @@ var Template = function(){
                 var second = str.substr(1,1);
                 return !(second == '.' || second == '/');
             }
-            return false;
+            return str.substr(0,1) == '{';
         };
 
     cache.addFinder(findTemplate);
@@ -9260,6 +9308,10 @@ var Template = function(){
 
                 if (isExpression(tpl)) {
                     self._watcher = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
+                    var val = self._watcher.getLastResult();
+                    if (typeof val != "string") {
+                        extend(self, val, true, false);
+                    }
                }
 
                 if (self._watcher && !self.replace) {
@@ -9352,6 +9404,10 @@ var Template = function(){
                 url     = null;
             }
 
+            if (tpl && typeof tpl != "string") {
+                tpl     = tpl.tpl || tpl.url;
+            }
+
             self.initPromise    = new Promise;
             self.tplPromise     = new Promise;
 
@@ -9384,15 +9440,25 @@ var Template = function(){
 
         onChange: function() {
 
-            var self    = this;
+            var self    = this,
+                el      = self.node;
 
             if (self._renderer) {
                 self._renderer.$destroy();
                 self._renderer = null;
             }
 
-            self.resolveTemplate()
-                .done(self.applyTemplate, self);
+            var tplVal = self._watcher.getLastResult();
+
+            if (tplVal) {
+                self.resolveTemplate()
+                    .done(self.applyTemplate, self);
+            }
+            else if (el) {
+                while (el.firstChild) {
+                    el.removeChild(el.firstChild);
+                }
+            }
         },
 
         doApplyTemplate: function() {
@@ -14011,7 +14077,7 @@ Directive.registerAttribute("mjs-include-file", 900, function(scope, node, fileP
 
 
 
-Directive.registerAttribute("mjs-include", 900, function(scope, node, tplExpr, parentRenderer){
+Directive.registerAttribute("mjs-include", 1100, function(scope, node, tplExpr, parentRenderer){
 
     var tpl = new Template({
         scope: scope,
@@ -15678,6 +15744,13 @@ var Model = function(){
             return ajax(cfg);
         },
 
+        extendPlainRecord: function(rec) {
+            var self    = this,
+                ext     = self.getRecordProp(null, "extend");
+
+            return ext ? extend(rec, ext, false, false) : rec;
+        },
+
         _processRecordResponse: function(type, response, df) {
             var self        = this,
                 idProp      = self.getRecordProp(type, "id"),
@@ -15690,7 +15763,7 @@ var Model = function(){
             }
             else {
                 //df.resolve(id, data);
-                df.resolve({id: id, data: data});
+                df.resolve({id: id, data: self.extendPlainRecord(data)});
             }
         },
 
@@ -17334,7 +17407,7 @@ var Store = function(){
                 }
 
                 if (self.model.isPlain()) {
-                    return item;
+                    return self.model.extendPlainRecord(item);
                 }
                 else {
 

@@ -2348,6 +2348,7 @@ defineClass({
         self.value('$lang', self.lang);
 
         self.renderer       = new Renderer(node, scope);
+        self.renderer.on("rendered", self.afterRender, self);
 
         args = slice.call(arguments);
         args[1] = scope;
@@ -2355,6 +2356,10 @@ defineClass({
     },
 
     initApp: emptyFn,
+
+    afterRender: function() {
+
+    },
 
     run: function() {
         this.renderer.process();
@@ -2587,6 +2592,228 @@ var strUndef = "undefined";
 
 
 
+var error = (function(){
+
+    var listeners = [];
+
+    var error = function error(e) {
+
+        var i, l;
+
+        for (i = 0, l = listeners.length; i < l; i++) {
+            listeners[i][0].call(listeners[i][1], e);
+        }
+
+        var stack = e.stack || (new Error).stack;
+
+        if (typeof console != strUndef && console.log) {
+            async(function(){
+                console.log(e);
+                if (stack) {
+                    console.log(stack);
+                }
+            });
+        }
+        else {
+            throw e;
+        }
+    };
+
+    error.on = function(fn, context) {
+        error.un(fn, context);
+        listeners.push([fn, context]);
+    };
+
+    error.un = function(fn, context) {
+        var i, l;
+        for (i = 0, l = listeners.length; i < l; i++) {
+            if (listeners[i][0] === fn && listeners[i][1] === context) {
+                listeners.splice(i, 1);
+                break;
+            }
+        }
+    };
+
+    return error;
+}());
+
+
+
+
+
+var functionFactory = function() {
+
+    var REG_REPLACE_EXPR    = /(^|[^a-z0-9_$\]\)'"])(\.)([^0-9])/ig,
+
+        f               = Function,
+        fnBodyStart     = 'try {',
+        //getterBodyEnd   = ';} catch (thrownError) { return $$interceptor(thrownError, $$itself, ____); }',
+        //setterBodyEnd   = ';} catch (thrownError) { return $$interceptor(thrownError, $$itself, ____, $$$$); }',
+        getterBodyEnd   = ';} catch (thrownError) { return undefined; }',
+        setterBodyEnd   = ';} catch (thrownError) { return undefined; }',
+
+
+        /*interceptor     = function(thrownError, func, scope, value) {
+
+            while (scope && !scope.$isRoot) {
+
+                scope = scope.$parent;
+
+                if (scope) {
+
+                    try {
+                        if (arguments.length == 4) {
+                            return func.call(null, scope, value, emptyFn, func);
+                        }
+                        else {
+                            return func.call(null, scope, emptyFn, func);
+                        }
+                    }
+                    catch (newError) {}
+                }
+            }
+
+            if (thrownError !== null) {
+                error(thrownError);
+            }
+
+            return undf;
+        },*/
+
+        isFailed        = function(val) {
+            return val === undf || (typeof val == "number" && isNaN(val));
+        },
+
+        wrapFunc        = function(func, returnsValue) {
+            return function(scope) {
+                var args = slice.call(arguments),
+                    val;
+
+                //args.push(interceptor);
+                args.push(null);
+                args.push(func);
+
+                val = func.apply(null, args);
+                return isFailed(val) ? undf : val;
+
+                /*if (returnsValue) {
+                    val = func.apply(null, args);
+                    while (isFailed(val) && !scope.$isRoot) {
+                        scope = scope.$parent;
+                        args[0] = scope;
+                        val = func.apply(null, args);
+                    }
+                    return val;
+                }
+                else {
+                    return func.apply(null, args);
+                }*/
+
+                /*if (returnsValue && isFailed(val)) {//) {
+                    args = slice.call(arguments);
+                    args.unshift(func);
+                    args.unshift(null);
+                    return interceptor.apply(null, args);
+                }
+                else {
+                    return val;
+                }*/
+            };
+        },
+
+        getterCache     = {},
+        getterCacheCnt  = 0,
+
+        createGetter    = function createGetter(expr) {
+
+            try {
+                if (!getterCache[expr]) {
+                    getterCacheCnt++;
+                    return getterCache[expr] = wrapFunc(new f(
+                        '____',
+                        '$$interceptor',
+                        '$$itself',
+                        "".concat(fnBodyStart, 'return ', expr.replace(REG_REPLACE_EXPR, '$1____.$3'), getterBodyEnd)
+                    ), true);
+                }
+                return getterCache[expr];
+            }
+            catch (thrownError){
+                error(thrownError);
+                return emptyFn;
+            }
+        },
+
+        setterCache     = {},
+        setterCacheCnt  = 0,
+
+        createSetter    = function createSetter(expr) {
+            try {
+                if (!setterCache[expr]) {
+                    setterCacheCnt++;
+                    var code = expr.replace(REG_REPLACE_EXPR, '$1____.$3');
+                    return setterCache[expr] = wrapFunc(new f(
+                        '____',
+                        '$$$$',
+                        '$$interceptor',
+                        '$$itself',
+                        "".concat(fnBodyStart, code, ' = $$$$', setterBodyEnd)
+                    ));
+                }
+                return setterCache[expr];
+            }
+            catch (thrownError) {
+                error(thrownError);
+                return emptyFn;
+            }
+        },
+
+        funcCache       = {},
+        funcCacheCnt    = 0,
+
+        createFunc      = function createFunc(expr) {
+            try {
+                if (!funcCache[expr]) {
+                    funcCacheCnt++;
+                    return funcCache[expr] = wrapFunc(new f(
+                        '____',
+                        '$$interceptor',
+                        '$$itself',
+                        "".concat(fnBodyStart, expr.replace(REG_REPLACE_EXPR, '$1____.$3'), getterBodyEnd)
+                    ));
+                }
+                return funcCache[expr];
+            }
+            catch (thrownError) {
+                error(thrownError);
+                return emptyFn;
+            }
+        },
+
+        resetCache = function() {
+            getterCacheCnt >= 1000 && (getterCache = {});
+            setterCacheCnt >= 1000 && (setterCache = {});
+            funcCacheCnt >= 1000 && (funcCache = {});
+        };
+
+    return {
+        createGetter: createGetter,
+        createSetter: createSetter,
+        createFunc: createFunc,
+        resetCache: resetCache,
+        enableResetCacheInterval: function() {
+            setTimeout(resetCache, 10000);
+        }
+    };
+}();
+var createGetter, createFunc;
+
+
+
+createGetter = createFunc = functionFactory.createGetter;
+
+
+
 var Cache = function(){
 
     var globalCache;
@@ -2750,14 +2977,39 @@ var Cache = function(){
 var Template = function(){
 
     var observable      = new Observable,
-
         cache           = new Cache,
+        options         = {},
+
+        getFragmentContent  = function(frg) {
+            var div = window.document.createElement("div");
+            div.appendChild(clone(frg));
+            return div.innerHTML;
+        },
+
+        resolveInclude  = function(cmt, tplId) {
+            var frg = getTemplate(trim(tplId));
+            if (!frg) {
+                return "";
+            }
+            if (typeof frg == "string") {
+                return frg;
+            }
+            return getFragmentContent(frg);
+        },
+
+        resolveIncludes = function(tpl) {
+            return tpl.replace(/<!--\s*include (.+)-->/ig, resolveInclude);
+        },
 
         getTemplate     = function(tplId) {
 
-            var tpl = cache.get(tplId);
+            var tpl = cache.get(tplId),
+                opt = options[tplId];
 
-            if (typeof tpl == "string") {
+            if (typeof tpl == "function") {
+                tpl = tpl(tplId);
+            }
+            if (typeof tpl == "string" && (!opt || !opt.text)) {
                 tpl = toFragment(tpl);
                 cache.add(tplId, tpl);
             }
@@ -2775,10 +3027,28 @@ var Template = function(){
                 tag         = tplNode.tagName.toLowerCase();
 
                 if (tag == "script") {
-                    var div = window.document.createElement("div");
-                    div.innerHTML = tplNode.innerHTML;
+                    var tpl = tplNode.innerHTML;
+
                     tplNode.parentNode.removeChild(tplNode);
-                    return toFragment(div.childNodes);
+
+                    if (tpl.substr(0,5) == "<!--{") {
+                        var inx = tpl.indexOf("-->"),
+                            opt = createGetter(tpl.substr(4, inx-4))({});
+
+                        options[tplId] = opt;
+
+                        tpl = tpl.substr(inx + 3);
+
+                        if (opt.includes) {
+                            tpl = resolveIncludes(tpl);
+                        }
+
+                        if (opt.text) {
+                            return tpl;
+                        }
+                    }
+
+                    return toFragment(tpl);
                 }
                 else {
                     if ("content" in tplNode) {
@@ -2808,7 +3078,7 @@ var Template = function(){
                 var second = str.substr(1,1);
                 return !(second == '.' || second == '/');
             }
-            return false;
+            return str.substr(0,1) == '{';
         };
 
     cache.addFinder(findTemplate);
@@ -2881,6 +3151,10 @@ var Template = function(){
 
                 if (isExpression(tpl)) {
                     self._watcher = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
+                    var val = self._watcher.getLastResult();
+                    if (typeof val != "string") {
+                        extend(self, val, true, false);
+                    }
                }
 
                 if (self._watcher && !self.replace) {
@@ -2973,6 +3247,10 @@ var Template = function(){
                 url     = null;
             }
 
+            if (tpl && typeof tpl != "string") {
+                tpl     = tpl.tpl || tpl.url;
+            }
+
             self.initPromise    = new Promise;
             self.tplPromise     = new Promise;
 
@@ -3005,15 +3283,25 @@ var Template = function(){
 
         onChange: function() {
 
-            var self    = this;
+            var self    = this,
+                el      = self.node;
 
             if (self._renderer) {
                 self._renderer.$destroy();
                 self._renderer = null;
             }
 
-            self.resolveTemplate()
-                .done(self.applyTemplate, self);
+            var tplVal = self._watcher.getLastResult();
+
+            if (tplVal) {
+                self.resolveTemplate()
+                    .done(self.applyTemplate, self);
+            }
+            else if (el) {
+                while (el.firstChild) {
+                    el.removeChild(el.firstChild);
+                }
+            }
         },
 
         doApplyTemplate: function() {
@@ -3824,55 +4112,6 @@ function isNumber(value) {
 
 
 
-var error = (function(){
-
-    var listeners = [];
-
-    var error = function error(e) {
-
-        var i, l;
-
-        for (i = 0, l = listeners.length; i < l; i++) {
-            listeners[i][0].call(listeners[i][1], e);
-        }
-
-        var stack = e.stack || (new Error).stack;
-
-        if (typeof console != strUndef && console.log) {
-            async(function(){
-                console.log(e);
-                if (stack) {
-                    console.log(stack);
-                }
-            });
-        }
-        else {
-            throw e;
-        }
-    };
-
-    error.on = function(fn, context) {
-        error.un(fn, context);
-        listeners.push([fn, context]);
-    };
-
-    error.un = function(fn, context) {
-        var i, l;
-        for (i = 0, l = listeners.length; i < l; i++) {
-            if (listeners[i][0] === fn && listeners[i][1] === context) {
-                listeners.splice(i, 1);
-                break;
-            }
-        }
-    };
-
-    return error;
-}());
-
-
-
-
-
 
 
 var Queue = function(cfg) {
@@ -4085,179 +4324,6 @@ function isPrimitive(value) {
     var vt = varType(value);
     return vt < 3 && vt > -1;
 };
-
-
-
-var functionFactory = function() {
-
-    var REG_REPLACE_EXPR    = /(^|[^a-z0-9_$\]\)'"])(\.)([^0-9])/ig,
-
-        f               = Function,
-        fnBodyStart     = 'try {',
-        //getterBodyEnd   = ';} catch (thrownError) { return $$interceptor(thrownError, $$itself, ____); }',
-        //setterBodyEnd   = ';} catch (thrownError) { return $$interceptor(thrownError, $$itself, ____, $$$$); }',
-        getterBodyEnd   = ';} catch (thrownError) { return undefined; }',
-        setterBodyEnd   = ';} catch (thrownError) { return undefined; }',
-
-
-        /*interceptor     = function(thrownError, func, scope, value) {
-
-            while (scope && !scope.$isRoot) {
-
-                scope = scope.$parent;
-
-                if (scope) {
-
-                    try {
-                        if (arguments.length == 4) {
-                            return func.call(null, scope, value, emptyFn, func);
-                        }
-                        else {
-                            return func.call(null, scope, emptyFn, func);
-                        }
-                    }
-                    catch (newError) {}
-                }
-            }
-
-            if (thrownError !== null) {
-                error(thrownError);
-            }
-
-            return undf;
-        },*/
-
-        isFailed        = function(val) {
-            return val === undf || (typeof val == "number" && isNaN(val));
-        },
-
-        wrapFunc        = function(func, returnsValue) {
-            return function(scope) {
-                var args = slice.call(arguments),
-                    val;
-
-                //args.push(interceptor);
-                args.push(null);
-                args.push(func);
-
-                val = func.apply(null, args);
-                return isFailed(val) ? undf : val;
-
-                /*if (returnsValue) {
-                    val = func.apply(null, args);
-                    while (isFailed(val) && !scope.$isRoot) {
-                        scope = scope.$parent;
-                        args[0] = scope;
-                        val = func.apply(null, args);
-                    }
-                    return val;
-                }
-                else {
-                    return func.apply(null, args);
-                }*/
-
-                /*if (returnsValue && isFailed(val)) {//) {
-                    args = slice.call(arguments);
-                    args.unshift(func);
-                    args.unshift(null);
-                    return interceptor.apply(null, args);
-                }
-                else {
-                    return val;
-                }*/
-            };
-        },
-
-        getterCache     = {},
-        getterCacheCnt  = 0,
-
-        createGetter    = function createGetter(expr) {
-
-            try {
-                if (!getterCache[expr]) {
-                    getterCacheCnt++;
-                    return getterCache[expr] = wrapFunc(new f(
-                        '____',
-                        '$$interceptor',
-                        '$$itself',
-                        "".concat(fnBodyStart, 'return ', expr.replace(REG_REPLACE_EXPR, '$1____.$3'), getterBodyEnd)
-                    ), true);
-                }
-                return getterCache[expr];
-            }
-            catch (thrownError){
-                error(thrownError);
-                return emptyFn;
-            }
-        },
-
-        setterCache     = {},
-        setterCacheCnt  = 0,
-
-        createSetter    = function createSetter(expr) {
-            try {
-                if (!setterCache[expr]) {
-                    setterCacheCnt++;
-                    var code = expr.replace(REG_REPLACE_EXPR, '$1____.$3');
-                    return setterCache[expr] = wrapFunc(new f(
-                        '____',
-                        '$$$$',
-                        '$$interceptor',
-                        '$$itself',
-                        "".concat(fnBodyStart, code, ' = $$$$', setterBodyEnd)
-                    ));
-                }
-                return setterCache[expr];
-            }
-            catch (thrownError) {
-                error(thrownError);
-                return emptyFn;
-            }
-        },
-
-        funcCache       = {},
-        funcCacheCnt    = 0,
-
-        createFunc      = function createFunc(expr) {
-            try {
-                if (!funcCache[expr]) {
-                    funcCacheCnt++;
-                    return funcCache[expr] = wrapFunc(new f(
-                        '____',
-                        '$$interceptor',
-                        '$$itself',
-                        "".concat(fnBodyStart, expr.replace(REG_REPLACE_EXPR, '$1____.$3'), getterBodyEnd)
-                    ));
-                }
-                return funcCache[expr];
-            }
-            catch (thrownError) {
-                error(thrownError);
-                return emptyFn;
-            }
-        },
-
-        resetCache = function() {
-            getterCacheCnt >= 1000 && (getterCache = {});
-            setterCacheCnt >= 1000 && (setterCache = {});
-            funcCacheCnt >= 1000 && (funcCache = {});
-        };
-
-    return {
-        createGetter: createGetter,
-        createSetter: createSetter,
-        createFunc: createFunc,
-        resetCache: resetCache,
-        enableResetCacheInterval: function() {
-            setTimeout(resetCache, 10000);
-        }
-    };
-}();
-var createGetter, createFunc;
-
-
-
-createGetter = createFunc = functionFactory.createGetter;
 
 var rToCamelCase = /-./g;
 
@@ -7302,7 +7368,7 @@ Directive.registerAttribute("mjs-include-file", 900, function(scope, node, fileP
 
 
 
-Directive.registerAttribute("mjs-include", 900, function(scope, node, tplExpr, parentRenderer){
+Directive.registerAttribute("mjs-include", 1100, function(scope, node, tplExpr, parentRenderer){
 
     var tpl = new Template({
         scope: scope,
@@ -9515,6 +9581,10 @@ MetaphorJsExports['data'] = data;
 MetaphorJsExports['toFragment'] = toFragment;
 MetaphorJsExports['clone'] = clone;
 MetaphorJsExports['strUndef'] = strUndef;
+MetaphorJsExports['error'] = error;
+MetaphorJsExports['functionFactory'] = functionFactory;
+MetaphorJsExports['createGetter'] = createGetter;
+MetaphorJsExports['createFunc'] = createFunc;
 MetaphorJsExports['Cache'] = Cache;
 MetaphorJsExports['Template'] = Template;
 MetaphorJsExports['getRegExp'] = getRegExp;
@@ -9527,12 +9597,8 @@ MetaphorJsExports['stopAnimation'] = stopAnimation;
 MetaphorJsExports['raf'] = raf;
 MetaphorJsExports['getAnimationPrefixes'] = getAnimationPrefixes;
 MetaphorJsExports['isNumber'] = isNumber;
-MetaphorJsExports['error'] = error;
 MetaphorJsExports['Queue'] = Queue;
 MetaphorJsExports['isPrimitive'] = isPrimitive;
-MetaphorJsExports['functionFactory'] = functionFactory;
-MetaphorJsExports['createGetter'] = createGetter;
-MetaphorJsExports['createFunc'] = createFunc;
 MetaphorJsExports['toCamelCase'] = toCamelCase;
 MetaphorJsExports['getNodeData'] = getNodeData;
 MetaphorJsExports['getNodeConfig'] = getNodeConfig;

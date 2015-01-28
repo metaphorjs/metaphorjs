@@ -3,12 +3,12 @@
 var data = require("../func/dom/data.js"),
     toFragment = require("../func/dom/toFragment.js"),
     clone = require("../func/dom/clone.js"),
-    slice = require("../func/array/slice.js"),
     toArray = require("../func/array/toArray.js"),
     animate = require("metaphorjs-animate/src/func/animate.js"),
     extend = require("../func/extend.js"),
     nextUid = require("../func/nextUid.js"),
     trim = require("../func/trim.js"),
+    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     Renderer = require("./Renderer.js"),
     Cache = require("../lib/Cache.js"),
@@ -28,14 +28,39 @@ var data = require("../func/dom/data.js"),
 module.exports = function(){
 
     var observable      = new Observable,
-
         cache           = new Cache,
+        options         = {},
+
+        getFragmentContent  = function(frg) {
+            var div = window.document.createElement("div");
+            div.appendChild(clone(frg));
+            return div.innerHTML;
+        },
+
+        resolveInclude  = function(cmt, tplId) {
+            var frg = getTemplate(trim(tplId));
+            if (!frg) {
+                return "";
+            }
+            if (typeof frg == "string") {
+                return frg;
+            }
+            return getFragmentContent(frg);
+        },
+
+        resolveIncludes = function(tpl) {
+            return tpl.replace(/<!--\s*include (.+)-->/ig, resolveInclude);
+        },
 
         getTemplate     = function(tplId) {
 
-            var tpl = cache.get(tplId);
+            var tpl = cache.get(tplId),
+                opt = options[tplId];
 
-            if (typeof tpl == "string") {
+            if (typeof tpl == "function") {
+                tpl = tpl(tplId);
+            }
+            if (typeof tpl == "string" && (!opt || !opt.text)) {
                 tpl = toFragment(tpl);
                 cache.add(tplId, tpl);
             }
@@ -53,10 +78,28 @@ module.exports = function(){
                 tag         = tplNode.tagName.toLowerCase();
 
                 if (tag == "script") {
-                    var div = window.document.createElement("div");
-                    div.innerHTML = tplNode.innerHTML;
+                    var tpl = tplNode.innerHTML;
+
                     tplNode.parentNode.removeChild(tplNode);
-                    return toFragment(div.childNodes);
+
+                    if (tpl.substr(0,5) == "<!--{") {
+                        var inx = tpl.indexOf("-->"),
+                            opt = createGetter(tpl.substr(4, inx-4))({});
+
+                        options[tplId] = opt;
+
+                        tpl = tpl.substr(inx + 3);
+
+                        if (opt.includes) {
+                            tpl = resolveIncludes(tpl);
+                        }
+
+                        if (opt.text) {
+                            return tpl;
+                        }
+                    }
+
+                    return toFragment(tpl);
                 }
                 else {
                     if ("content" in tplNode) {
@@ -86,7 +129,7 @@ module.exports = function(){
                 var second = str.substr(1,1);
                 return !(second == '.' || second == '/');
             }
-            return false;
+            return str.substr(0,1) == '{';
         };
 
     cache.addFinder(findTemplate);
@@ -159,6 +202,10 @@ module.exports = function(){
 
                 if (isExpression(tpl)) {
                     self._watcher = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
+                    var val = self._watcher.getLastResult();
+                    if (typeof val != "string") {
+                        extend(self, val, true, false);
+                    }
                }
 
                 if (self._watcher && !self.replace) {
@@ -251,6 +298,10 @@ module.exports = function(){
                 url     = null;
             }
 
+            if (tpl && typeof tpl != "string") {
+                tpl     = tpl.tpl || tpl.url;
+            }
+
             self.initPromise    = new Promise;
             self.tplPromise     = new Promise;
 
@@ -283,15 +334,25 @@ module.exports = function(){
 
         onChange: function() {
 
-            var self    = this;
+            var self    = this,
+                el      = self.node;
 
             if (self._renderer) {
                 self._renderer.$destroy();
                 self._renderer = null;
             }
 
-            self.resolveTemplate()
-                .done(self.applyTemplate, self);
+            var tplVal = self._watcher.getLastResult();
+
+            if (tplVal) {
+                self.resolveTemplate()
+                    .done(self.applyTemplate, self);
+            }
+            else if (el) {
+                while (el.firstChild) {
+                    el.removeChild(el.firstChild);
+                }
+            }
         },
 
         doApplyTemplate: function() {

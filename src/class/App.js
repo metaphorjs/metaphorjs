@@ -51,6 +51,7 @@ module.exports = defineClass({
         self.value('$lang', self.lang);
 
         self.renderer       = new Renderer(node, scope);
+        self.renderer.on("rendered", self.afterRender, self);
 
         args = slice.call(arguments);
         args[1] = scope;
@@ -58,6 +59,10 @@ module.exports = defineClass({
     },
 
     initApp: emptyFn,
+
+    afterRender: function() {
+
+    },
 
     run: function() {
         this.renderer.process();
