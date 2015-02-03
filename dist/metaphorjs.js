@@ -9408,6 +9408,7 @@ var Template = function(){
 
             if (tpl && typeof tpl != "string") {
                 tpl     = tpl.tpl || tpl.url;
+                url     = null;
             }
 
             self.initPromise    = new Promise;

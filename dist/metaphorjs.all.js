@@ -9408,6 +9408,7 @@ var Template = function(){
 
             if (tpl && typeof tpl != "string") {
                 tpl     = tpl.tpl || tpl.url;
+                url     = null;
             }
 
             self.initPromise    = new Promise;
@@ -16829,6 +16830,13 @@ var Store = function(){
              */
             getTotalLength: function() {
                 return this.totalLength || this.currentLength;
+            },
+
+            /**
+             * @returns {boolean}
+             */
+            isEmpty: function() {
+                return this.length == 0;
             },
 
             /**
