@@ -89,6 +89,10 @@ module.exports = defineClass({
             cfg = tmp;
         }
 
+        if (cfg.handler && typeof cfg.handler == "string") {
+            cfg.handler = createFunc(cfg.handler);
+        }
+
         this.cfg = cfg;
     },
 

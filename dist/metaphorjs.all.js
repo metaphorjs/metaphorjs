@@ -12725,7 +12725,7 @@ extend(Input.prototype, {
     },
 
 
-    onKey: function(key, fn, context) {
+    onKey: function(key, fn, context, args) {
 
         var self = this;
 
@@ -12737,7 +12737,8 @@ extend(Input.prototype, {
         }
 
         self.observable.on("key", fn, context, {
-            key: key
+            key: key,
+            prepend: args
         });
     },
 
@@ -13676,6 +13677,10 @@ var EventHandler = defineClass({
             cfg = tmp;
         }
 
+        if (cfg.handler && typeof cfg.handler == "string") {
+            cfg.handler = createFunc(cfg.handler);
+        }
+
         this.cfg = cfg;
     },
 
@@ -14115,6 +14120,18 @@ Directive.registerAttribute("mjs-key", 1000, function(scope, node, expr){
 
     delete cfg.handler;
     delete cfg.context;
+
+    if (typeof handler == "string") {
+        var h = createFunc(handler);
+        handler = function(){
+            return function(e) {
+                scope.$event = e;
+                h(scope);
+                scope.$event = null;
+                scope.$check();
+            };
+        }(scope);
+    }
 
     Input.get(node).onKey(cfg, handler, context);
 
@@ -23207,12 +23224,21 @@ Component.$extend({
         self.trigger('after-render', self);
     },
 
-    show: function() {
-        this.dialog.show();
+    show: function(e) {
+        if (e && !(e instanceof DomEvent)) {
+            e = null;
+        }
+
+        this.dialog.show(e);
     },
 
-    hide: function() {
-        this.dialog.hide();
+    hide: function(e) {
+
+        if (e && !(e instanceof DomEvent)) {
+            e = null;
+        }
+
+        this.dialog.hide(e);
     },
 
     onBeforeDialogShow: function() {
