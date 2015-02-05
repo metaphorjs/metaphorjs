@@ -10730,7 +10730,7 @@ var ListRenderer = defineClass({
             return donePromise;
         }
         else {
-            if (!self.buffered) {
+            if (!self.buffered || !self.bufferPlugin.enabled) {
                 self.applyDomPositions();
                 self.doUpdate(updateStart || 0);
                 self.removeOldElements(renderers);

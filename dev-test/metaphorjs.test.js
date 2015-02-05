@@ -10728,7 +10728,7 @@ var ListRenderer = defineClass({
             return donePromise;
         }
         else {
-            if (!self.buffered) {
+            if (!self.buffered || !self.bufferPlugin.enabled) {
                 self.applyDomPositions();
                 self.doUpdate(updateStart || 0);
                 self.removeOldElements(renderers);
@@ -18540,6 +18540,7 @@ defineClass({
     $class: "plugin.ListBuffered",
 
     list: null,
+    enabled: true,
 
     itemSize: null,
     itemsOffsite: 5,
@@ -18668,6 +18669,7 @@ defineClass({
                            html[hor ? "clientWidth" : "clientHeight"]):
                           scrollEl[hor ? "offsetWidth" : "offsetHeight"],
             scroll      = hor ? getScrollLeft(scrollEl) : getScrollTop(scrollEl),
+            sh          = scrollEl.scrollHeight,
             perRow      = self.getItemsPerRow(),
             isize       = self.getRowHeight(),
             off         = self.itemsOffsite,
@@ -18678,10 +18680,8 @@ defineClass({
             first,
             last;
 
-
-
-        scroll  = Math.max(0, scroll - offset);
-        first   = Math.ceil(scroll / isize);
+        //scroll  = Math.max(0, scroll - offset);
+        first   = Math.ceil((scroll - offset) / isize);
 
         if (first < 0) {
             first = 0;
@@ -18697,14 +18697,20 @@ defineClass({
             last = cnt - 1;
         }
 
+        if (sh && scroll + size >= sh && self.bufferState) {
+            if (self.bufferState.last == last * perRow) {
+                last += off;
+            }
+        }
+
         if (first > last) {
             return self.bufferState;
         }
 
         return self.bufferState = {
             first: first * perRow,
-            last: last * perRow,
             viewFirst: viewFirst * perRow,
+            last: last * perRow,
             viewLast: viewLast * perRow,
             ot: first * isize,
             ob: (cnt - last - 1) * isize
