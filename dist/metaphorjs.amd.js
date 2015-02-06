@@ -1268,7 +1268,8 @@ var Renderer = function(){
             "script": true,
             "template": true,
             "mjs-template": true,
-            "style": true
+            "style": true,
+            "link": true
         },
 
         eachNode = function(el, fn, fnScope, finish, cnt) {
