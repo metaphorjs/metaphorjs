@@ -7816,7 +7816,7 @@ var preloadImage = function() {
     var preloadImage = function preloadImage(src) {
 
         if (cache[src]) {
-            return Promise.resolve(src);
+            return Promise.resolve(cache[src]);
         }
 
         if (loading[src]) {
@@ -7840,13 +7840,19 @@ var preloadImage = function() {
         });
 
         addListener(img, "load", function() {
-            cache[src] = true;
-            cacheCnt++;
-            if (img && img.parentNode) {
-                img.parentNode.removeChild(img);
+            if (!cache[src]) {
+                cache[src] = {
+                    src:    src,
+                    width:  img ? img.width : null,
+                    height: img ? img.height : null
+                };
+                cacheCnt++;
             }
             if (deferred) {
-                deferred.resolve(src);
+                deferred.resolve(cache[src]);
+            }
+            if (img && img.parentNode) {
+                img.parentNode.removeChild(img);
             }
             img = null;
             style = null;
