@@ -2605,11 +2605,13 @@ var error = (function(){
             listeners[i][0].call(listeners[i][1], e);
         }
 
-        var stack = e.stack || (new Error).stack;
+        var stack = (e ? e.stack : null) || (new Error).stack;
 
         if (typeof console != strUndef && console.log) {
             async(function(){
-                console.log(e);
+                if (e) {
+                    console.log(e);
+                }
                 if (stack) {
                     console.log(stack);
                 }
@@ -5231,7 +5233,11 @@ function resolveComponent(cmp, cfg, scope, node, args) {
                     );
                 }
 
-                d.fail(error);
+                d.fail(function(reason){
+                    if (reason instanceof Error) {
+                        error(reason);
+                    }
+                });
 
             }(i));
         }
@@ -5263,13 +5269,15 @@ function resolveComponent(cmp, cfg, scope, node, args) {
     if (defers.length) {
         p = new Promise;
 
-        Promise.all(defers).done(function(){
-            p.resolve(
-                injectFn.call(
-                    injectCt, constr, null, extend({}, inject, cfg, false, false), args
-                )
-            );
-        });
+        Promise.all(defers)
+            .done(function(){
+                p.resolve(
+                    injectFn.call(
+                        injectCt, constr, null, extend({}, inject, cfg, false, false), args
+                    )
+                );
+            })
+            .fail(p.reject, p)
     }
     else {
         p = Promise.resolve(
@@ -5540,6 +5548,10 @@ defineClass({
         }
     },
 
+    onRouteFail: function(route) {
+
+    },
+
     setRouteComponent: function(route, matches) {
 
         var self    = this,
@@ -5587,14 +5599,12 @@ defineClass({
 
             if (params) {
                 extend(cfg, params, false, false);
-                //for (i = -1, l = params.length; ++i < l; cfg[params[i]] = args[i]){}
             }
 
             if (self.cmpCache[route.id]) {
                 self.currentComponent = self.cmpCache[route.id];
                 node.appendChild(self.domCache[route.id]);
                 self.currentComponent.unfreezeByView(self);
-                //self.currentComponent.trigger("view-show", self, self.currentComponent);
                 self.afterRouteCmpChange();
                 self.afterCmpChange();
             }
@@ -5620,6 +5630,15 @@ defineClass({
 
                         self.afterRouteCmpChange();
                         self.afterCmpChange();
+                    })
+                    .fail(function(){
+
+                        if (route.onFail) {
+                            route.onFail.call(self);
+                        }
+                        else {
+                            self.onRouteFail(route);
+                        }
                     });
             }
 

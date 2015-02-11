@@ -14,11 +14,13 @@ module.exports = (function(){
             listeners[i][0].call(listeners[i][1], e);
         }
 
-        var stack = e.stack || (new Error).stack;
+        var stack = (e ? e.stack : null) || (new Error).stack;
 
         if (typeof console != strUndef && console.log) {
             async(function(){
-                console.log(e);
+                if (e) {
+                    console.log(e);
+                }
                 if (stack) {
                     console.log(stack);
                 }

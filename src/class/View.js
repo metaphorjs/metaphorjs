@@ -264,6 +264,10 @@ module.exports = defineClass({
         }
     },
 
+    onRouteFail: function(route) {
+
+    },
+
     setRouteComponent: function(route, matches) {
 
         var self    = this,
@@ -311,14 +315,12 @@ module.exports = defineClass({
 
             if (params) {
                 extend(cfg, params, false, false);
-                //for (i = -1, l = params.length; ++i < l; cfg[params[i]] = args[i]){}
             }
 
             if (self.cmpCache[route.id]) {
                 self.currentComponent = self.cmpCache[route.id];
                 node.appendChild(self.domCache[route.id]);
                 self.currentComponent.unfreezeByView(self);
-                //self.currentComponent.trigger("view-show", self, self.currentComponent);
                 self.afterRouteCmpChange();
                 self.afterCmpChange();
             }
@@ -344,6 +346,15 @@ module.exports = defineClass({
 
                         self.afterRouteCmpChange();
                         self.afterCmpChange();
+                    })
+                    .fail(function(){
+
+                        if (route.onFail) {
+                            route.onFail.call(self);
+                        }
+                        else {
+                            self.onRouteFail(route);
+                        }
                     });
             }
 

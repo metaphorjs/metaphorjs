@@ -83,7 +83,11 @@ module.exports = function resolveComponent(cmp, cfg, scope, node, args) {
                     );
                 }
 
-                d.fail(error);
+                d.fail(function(reason){
+                    if (reason instanceof Error) {
+                        error(reason);
+                    }
+                });
 
             }(i));
         }
@@ -115,13 +119,15 @@ module.exports = function resolveComponent(cmp, cfg, scope, node, args) {
     if (defers.length) {
         p = new Promise;
 
-        Promise.all(defers).done(function(){
-            p.resolve(
-                injectFn.call(
-                    injectCt, constr, null, extend({}, inject, cfg, false, false), args
-                )
-            );
-        });
+        Promise.all(defers)
+            .done(function(){
+                p.resolve(
+                    injectFn.call(
+                        injectCt, constr, null, extend({}, inject, cfg, false, false), args
+                    )
+                );
+            })
+            .fail(p.reject, p)
     }
     else {
         p = Promise.resolve(
