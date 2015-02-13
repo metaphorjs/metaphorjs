@@ -8024,11 +8024,13 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
 
         if (self && self.node) {
             raf(function(){
-                self.node.src = src;
-                setAttr(self.node, "src", src);
-                self.onSrcChanged();
-                self.node.style.visibility = "";
-                self.scope.$scheduleCheck(50);
+                if (self.node) {
+                    self.node.src = src;
+                    setAttr(self.node, "src", src);
+                    self.onSrcChanged();
+                    self.node.style.visibility = "";
+                    self.scope.$scheduleCheck(50);
+                }
             });
         }
         self.lastPromise = null;
