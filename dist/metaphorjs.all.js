@@ -14340,6 +14340,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
     $extends: Directive,
 
     model: null,
+    store: null,
     getterFn: null,
     defOption: null,
     prevGroup: null,
@@ -14363,17 +14364,44 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
         self.defOption && setAttr(self.defOption, "mjs-default-option", "");
 
         try {
-            self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
+            var value = createGetter(self.model)(scope);
+            if (cs.isInstanceOf(value, "Store")) {
+                self.bindStore(value, "on");
+            }
+            else {
+                self.watcher = createWatchable(scope, self.model, self.onChange, self, null, ns);
+            }
         }
         catch (thrownError) {
             error(thrownError);
         }
 
-        self.render(toArray(self.watcher.getValue()));
+        if (self.watcher) {
+            self.renderAll();
+        }
+        else if (self.store) {
+            self.renderStore();
+        }
+    },
+
+    bindStore: function(store, mode) {
+        var self = this;
+        console.log("bind store")
+        store[mode]("update", self.renderStore, self);
+        self.store = store;
+    },
+
+    renderStore: function() {
+        console.log("render store", this.store.current)
+        this.render(this.store.current);
+    },
+
+    renderAll: function() {
+        this.render(toArray(this.watcher.getValue()));
     },
 
     onChange: function() {
-        this.render(toArray(this.watcher.getValue()));
+        this.renderAll();
     },
 
     renderOption: function(item, index, scope) {
@@ -14487,6 +14515,18 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
 
         this.model = model;
         this.getterFn = createGetter(item);
+    },
+
+    destroy: function() {
+
+        var self = this;
+
+        if (self.store){
+            self.bindStore(self.store, "un");
+        }
+
+        self.$super();
+
     }
 
 }));
@@ -15735,6 +15775,29 @@ var Model = function(){
             return this[prop] = value;
         },
 
+        _prepareRequestUrl: function(url, data) {
+
+            url = url.replace(/:([a-z0-9_\-]+)/gi, function(match, name){
+
+                var value = data[name];
+
+                if (value != undefined) {
+                    delete data[name];
+                    return value;
+                }
+                else {
+                    return match;
+                }
+
+            });
+
+            if (/:([a-z0-9_\-]+)/.test(url)) {
+                return null;
+            }
+
+            return url;
+        },
+
         _makeRequest: function(what, type, id, data, extra) {
 
             var self        = this,
@@ -15745,7 +15808,7 @@ var Model = function(){
                                         profile[type]
                                     ),
                 idProp      = self.getProp(what, type, "id"),
-                dataProp    = self.getProp(what, type, "data"),
+                dataProp    = self.getProp(what, type, "root"),
                 url         = self.getProp(what, type, "url"),
                 isJson      = self.getProp(what, type, "json");
 
@@ -15793,6 +15856,12 @@ var Model = function(){
                 });
 
                 return promise;
+            }
+
+            cfg.url = self._prepareRequestUrl(cfg.url, cfg.data);
+
+            if (!cfg.url) {
+                return Promise.reject();
             }
 
             if (!cfg.method) {
@@ -15845,7 +15914,7 @@ var Model = function(){
         _processRecordResponse: function(type, response, df) {
             var self        = this,
                 idProp      = self.getRecordProp(type, "id"),
-                dataProp    = self.getRecordProp(type, "data"),
+                dataProp    = self.getRecordProp(type, "root"),
                 data        = dataProp ? response[dataProp] : response,
                 id          = (data && data[idProp]) || response[idProp];
 
@@ -15860,7 +15929,7 @@ var Model = function(){
 
         _processStoreResponse: function(type, response, df) {
             var self        = this,
-                dataProp    = self.getStoreProp(type, "data"),
+                dataProp    = self.getStoreProp(type, "root"),
                 totalProp   = self.getStoreProp(type, "total"),
                 data        = dataProp ? response[dataProp] : response,
                 total       = totalProp ? response[totalProp] : null;
@@ -17060,7 +17129,12 @@ var Store = function(){
             },
 
 
-
+            /**
+             * @returns []
+             */
+            toArray: function() {
+                return this.current;
+            },
 
 
 
@@ -17163,7 +17237,7 @@ var Store = function(){
                     lp      = ms.limit,
                     ps      = self.pageSize;
 
-                if (self.loadingPromise) {
+                if (self.loadingPromise && self.loadingPromise.abort) {
                     self.loadingPromise.abort();
                 }
 

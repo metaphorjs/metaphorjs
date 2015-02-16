@@ -1,17 +1,19 @@
 
 
 
-var defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
-    createWatchable = require("../../../../metaphorjs-watchable/src/func/createWatchable.js"),
+var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
+    cs = require("metaphorjs-class/src/var/cs.js"),
+    createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     toArray = require("../../func/array/toArray.js"),
-    getValue = require("../../../../metaphorjs-input/src/func/getValue.js"),
-    setValue = require("../../../../metaphorjs-input/src/func/setValue.js"),
+    getValue = require("metaphorjs-input/src/func/getValue.js"),
+    setValue = require("metaphorjs-input/src/func/setValue.js"),
     error = require("../../func/error.js"),
     setAttr = require("../../func/dom/setAttr.js"),
     undf = require("../../var/undf.js"),
     isIE = require("../../func/browser/isIE.js"),
-    createGetter = require("../../../../metaphorjs-watchable/src/func/createGetter.js"),
-    ns = require("../../../../metaphorjs-namespace/src/var/ns.js"),
+    isArray = require("../../func/isArray.js"),
+    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
+    ns = require("metaphorjs-namespace/src/var/ns.js"),
     Directive = require("../../class/Directive.js");
 
 
@@ -20,6 +22,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
     $extends: Directive,
 
     model: null,
+    store: null,
     getterFn: null,
     defOption: null,
     prevGroup: null,
@@ -43,17 +46,44 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
         self.defOption && setAttr(self.defOption, "mjs-default-option", "");
 
         try {
-            self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
+            var value = createGetter(self.model)(scope);
+            if (cs.isInstanceOf(value, "Store")) {
+                self.bindStore(value, "on");
+            }
+            else {
+                self.watcher = createWatchable(scope, self.model, self.onChange, self, null, ns);
+            }
         }
         catch (thrownError) {
             error(thrownError);
         }
 
-        self.render(toArray(self.watcher.getValue()));
+        if (self.watcher) {
+            self.renderAll();
+        }
+        else if (self.store) {
+            self.renderStore();
+        }
+    },
+
+    bindStore: function(store, mode) {
+        var self = this;
+        console.log("bind store")
+        store[mode]("update", self.renderStore, self);
+        self.store = store;
+    },
+
+    renderStore: function() {
+        console.log("render store", this.store.current)
+        this.render(this.store.current);
+    },
+
+    renderAll: function() {
+        this.render(toArray(this.watcher.getValue()));
     },
 
     onChange: function() {
-        this.render(toArray(this.watcher.getValue()));
+        this.renderAll();
     },
 
     renderOption: function(item, index, scope) {
@@ -167,6 +197,18 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
 
         this.model = model;
         this.getterFn = createGetter(item);
+    },
+
+    destroy: function() {
+
+        var self = this;
+
+        if (self.store){
+            self.bindStore(self.store, "un");
+        }
+
+        self.$super();
+
     }
 
 }));

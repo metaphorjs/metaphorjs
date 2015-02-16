@@ -14340,6 +14340,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
     $extends: Directive,
 
     model: null,
+    store: null,
     getterFn: null,
     defOption: null,
     prevGroup: null,
@@ -14363,17 +14364,44 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
         self.defOption && setAttr(self.defOption, "mjs-default-option", "");
 
         try {
-            self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
+            var value = createGetter(self.model)(scope);
+            if (cs.isInstanceOf(value, "Store")) {
+                self.bindStore(value, "on");
+            }
+            else {
+                self.watcher = createWatchable(scope, self.model, self.onChange, self, null, ns);
+            }
         }
         catch (thrownError) {
             error(thrownError);
         }
 
-        self.render(toArray(self.watcher.getValue()));
+        if (self.watcher) {
+            self.renderAll();
+        }
+        else if (self.store) {
+            self.renderStore();
+        }
+    },
+
+    bindStore: function(store, mode) {
+        var self = this;
+        console.log("bind store")
+        store[mode]("update", self.renderStore, self);
+        self.store = store;
+    },
+
+    renderStore: function() {
+        console.log("render store", this.store.current)
+        this.render(this.store.current);
+    },
+
+    renderAll: function() {
+        this.render(toArray(this.watcher.getValue()));
     },
 
     onChange: function() {
-        this.render(toArray(this.watcher.getValue()));
+        this.renderAll();
     },
 
     renderOption: function(item, index, scope) {
@@ -14487,6 +14515,18 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
 
         this.model = model;
         this.getterFn = createGetter(item);
+    },
+
+    destroy: function() {
+
+        var self = this;
+
+        if (self.store){
+            self.bindStore(self.store, "un");
+        }
+
+        self.$super();
+
     }
 
 }));
