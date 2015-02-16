@@ -243,15 +243,15 @@ extend(Scope.prototype, {
 
     $$tmt: null,
 
-    $new: function() {
+    $new: function(data) {
         var self = this;
-        return new Scope({
+        return new Scope(extend({}, data, {
             $parent: self,
             $root: self.$root,
             $app: self.$app,
             $level: self.$level + 1,
             $static: self.$static
-        });
+        }, true, false));
     },
 
     $newIsolated: function() {
@@ -7661,13 +7661,11 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
 
     bindStore: function(store, mode) {
         var self = this;
-        console.log("bind store")
         store[mode]("update", self.renderStore, self);
         self.store = store;
     },
 
     renderStore: function() {
-        console.log("render store", this.store.current)
         this.render(this.store.current);
     },
 

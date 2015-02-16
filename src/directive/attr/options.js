@@ -68,13 +68,11 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
 
     bindStore: function(store, mode) {
         var self = this;
-        console.log("bind store")
         store[mode]("update", self.renderStore, self);
         self.store = store;
     },
 
     renderStore: function() {
-        console.log("render store", this.store.current)
         this.render(this.store.current);
     },
 
