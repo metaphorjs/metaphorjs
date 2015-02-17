@@ -2388,6 +2388,10 @@ defineClass({
         this.on("source-" + name, fn, context);
     },
 
+    unregisterSource: function(name, fn, context) {
+        this.un("source-" + name, fn, context);
+    },
+
     collect: function(name) {
         arguments[0] = "source-" + arguments[0];
         return this.trigger.apply(this, arguments);
@@ -7666,7 +7670,8 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
     },
 
     renderStore: function() {
-        this.render(this.store.current);
+        var self = this;
+        self.render(self.store.current);
     },
 
     renderAll: function() {

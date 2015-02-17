@@ -81,6 +81,10 @@ module.exports = defineClass({
         this.on("source-" + name, fn, context);
     },
 
+    unregisterSource: function(name, fn, context) {
+        this.un("source-" + name, fn, context);
+    },
+
     collect: function(name) {
         arguments[0] = "source-" + arguments[0];
         return this.trigger.apply(this, arguments);

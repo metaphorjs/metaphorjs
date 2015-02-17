@@ -10,6 +10,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     error = require("../../func/error.js"),
     setAttr = require("../../func/dom/setAttr.js"),
     undf = require("../../var/undf.js"),
+    async = require("../../func/async.js"),
     isIE = require("../../func/browser/isIE.js"),
     isArray = require("../../func/isArray.js"),
     createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
@@ -73,7 +74,8 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
     },
 
     renderStore: function() {
-        this.render(this.store.current);
+        var self = this;
+        self.render(self.store.current);
     },
 
     renderAll: function() {
