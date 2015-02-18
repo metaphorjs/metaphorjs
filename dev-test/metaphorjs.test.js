@@ -11906,7 +11906,10 @@ defineClass({
             animate(node, "leave", null, true).done(function(){
 
                 if (!cview.keepAlive) {
-                    if (self.currentComponent) {
+                    if (self.currentComponent &&
+                        !self.currentComponent.$destroyed &&
+                        !self.currentComponent.$destroying) {
+
                         self.currentComponent.$destroy();
                     }
                     while (node.firstChild) {
@@ -16030,6 +16033,15 @@ var Model = function(){
         },
 
         /**
+         * @param {object} rec
+         * @returns {*|null}
+         */
+        getRecordId: function(rec) {
+            var idProp = this.getRecordProp("load", "id");
+            return rec[idProp] || null;
+        },
+
+        /**
          * Convert field's value from database state to app state
          * @param {MetaphorJs.Record} rec
          * @param {string} name
@@ -16945,6 +16957,11 @@ var Store = function(){
                 }
             },
 
+            setModel: function(model) {
+                this.model = model;
+                this.initModel({});
+            },
+
             initModel: function(options) {
 
                 var self = this;
@@ -17594,6 +17611,9 @@ var Store = function(){
                 if (rec instanceof Record) {
                     return rec.getId();
                 }
+                else if (this.model) {
+                    return this.model.getRecordId(rec) || rec[this.idProp] || null;
+                }
                 else {
                     return rec[this.idProp] || null;
                 }
@@ -17833,9 +17853,9 @@ var Store = function(){
                 id      = self.getRecordId(rec);
 
                 if(self.map[id]){
-                    self.suspendAllEvents();
+                    self.$$observable.suspendAllEvents();
                     self.removeId(id);
-                    self.resumeAllEvents();
+                    self.$$observable.resumeAllEvents();
                 }
 
                 if(index >= self.length){

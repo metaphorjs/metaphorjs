@@ -5489,7 +5489,10 @@ defineClass({
             animate(node, "leave", null, true).done(function(){
 
                 if (!cview.keepAlive) {
-                    if (self.currentComponent) {
+                    if (self.currentComponent &&
+                        !self.currentComponent.$destroyed &&
+                        !self.currentComponent.$destroying) {
+
                         self.currentComponent.$destroy();
                     }
                     while (node.firstChild) {
