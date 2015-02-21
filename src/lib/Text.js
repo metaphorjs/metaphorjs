@@ -215,7 +215,7 @@ module.exports = function(){
 
         plural: function(key, number) {
             var self    = this,
-                strings = self.get(key),
+                strings = typeof key == "string" ? self.get(key): key,
                 def     = pluralDef(number, self.locale);
 
             if (!isArray(strings)) {

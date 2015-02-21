@@ -5780,7 +5780,7 @@ var Text = function(){
 
         plural: function(key, number) {
             var self    = this,
-                strings = self.get(key),
+                strings = typeof key == "string" ? self.get(key): key,
                 def     = pluralDef(number, self.locale);
 
             if (!isArray(strings)) {
@@ -14750,8 +14750,13 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
 
     doChange: function() {
 
-        var self = this,
-            src = self.watcher.getLastResult();
+        var self = this;
+
+        if (self.$destroyed || self.$destroying) {
+            return;
+        }
+
+        var src = self.watcher.getLastResult();
 
         if (!src) {
             return;
