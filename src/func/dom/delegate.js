@@ -1,6 +1,6 @@
 
 var normalizeEvent = require("../event/normalizeEvent.js"),
-    is = require("../../../../metaphorjs-select/src/func/is.js"),
+    is = require("metaphorjs-select/src/func/is.js"),
     delegates = require("../../var/delegates.js"),
     addListener = require("../event/addListener.js");
 

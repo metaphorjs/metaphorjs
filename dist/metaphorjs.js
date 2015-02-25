@@ -4516,6 +4516,10 @@ var Promise = function(){
             return this._state == FULFILLED;
         },
 
+        isResolved: function() {
+            return this._state == FULFILLED;
+        },
+
         isRejected: function() {
             return this._state == REJECTED;
         },
