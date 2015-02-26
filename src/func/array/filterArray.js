@@ -40,6 +40,10 @@ module.exports = function(){
 
         compare = function(value, by, opt) {
 
+            if (isFunction(by)) {
+                return by(value, opt);
+            }
+
             if (isPrimitive(value)) {
                 if (by.$ === undf) {
                     return true;
@@ -70,7 +74,7 @@ module.exports = function(){
 
     var filterArray = function filterArray(a, by, opt) {
 
-        if (!isPlainObject(by)) {
+        if (!isPlainObject(by) && !isFunction(by)) {
             by = {$: by};
         }
 

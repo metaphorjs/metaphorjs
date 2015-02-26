@@ -5065,6 +5065,7 @@ var UrlParam = (function(){
 
         $mixins: ["mixin.Observable"],
 
+        id: null,
         extractor: null,
         context: null,
         regexp: null,
@@ -8398,6 +8399,10 @@ var filterArray = function(){
 
         compare = function(value, by, opt) {
 
+            if (isFunction(by)) {
+                return by(value, opt);
+            }
+
             if (isPrimitive(value)) {
                 if (by.$ === undf) {
                     return true;
@@ -8428,7 +8433,7 @@ var filterArray = function(){
 
     var filterArray = function filterArray(a, by, opt) {
 
-        if (!isPlainObject(by)) {
+        if (!isPlainObject(by) && !isFunction(by)) {
             by = {$: by};
         }
 
