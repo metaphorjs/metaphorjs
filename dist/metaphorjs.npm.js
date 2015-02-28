@@ -1412,11 +1412,12 @@ var Renderer = function(){
                 }
             }
 
-            if (typeof inst == "function") {
-                self.on("destroy", inst);
-            }
-            else if (inst && inst.$destroy) {
+
+            if (inst && inst.$destroy) {
                 self.on("destroy", inst.$destroy, inst);
+            }
+            else if (typeof inst == "function") {
+                self.on("destroy", inst);
             }
 
             return f.$stopRenderer ? false : inst;
@@ -4481,6 +4482,10 @@ var ListRenderer = defineClass({
             self.buffered = true;
             self.$plugins.push(typeof cfg.buffered == "string" ? cfg.buffered : "plugin.ListBuffered");
         }
+
+        if (cfg.plugin) {
+            self.$plugins.push(cfg.plugin);
+        }
     },
 
     $init: function(scope, node, expr) {
@@ -5040,7 +5045,10 @@ var ListRenderer = defineClass({
         }
 
         self.queue.destroy();
-        self.watcher.unsubscribeAndDestroy(self.onChange, self);
+
+        if (self.watcher) {
+            self.watcher.unsubscribeAndDestroy(self.onChange, self);
+        }
     }
 
 }, {
@@ -5600,6 +5608,7 @@ defineClass({
                 cfg     = {
                     destroyEl: false,
                     node: node,
+                    destroyScope: true,
                     scope: route.$isolateScope ?
                            self.scope.$newIsolated() :
                            self.scope.$new()
@@ -8948,7 +8957,9 @@ var StoreRenderer = ListRenderer.$extend({
 
         destroy: function() {
             var self = this;
-            self.bindStore(self.store, "un");
+            if (!self.store.$destroyed) {
+                self.bindStore(self.store, "un");
+            }
             self.$super();
         }
 

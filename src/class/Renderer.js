@@ -209,11 +209,12 @@ module.exports = function(){
                 }
             }
 
-            if (typeof inst == "function") {
-                self.on("destroy", inst);
-            }
-            else if (inst && inst.$destroy) {
+
+            if (inst && inst.$destroy) {
                 self.on("destroy", inst.$destroy, inst);
+            }
+            else if (typeof inst == "function") {
+                self.on("destroy", inst);
             }
 
             return f.$stopRenderer ? false : inst;

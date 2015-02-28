@@ -80,6 +80,10 @@ module.exports = defineClass({
             self.buffered = true;
             self.$plugins.push(typeof cfg.buffered == "string" ? cfg.buffered : "plugin.ListBuffered");
         }
+
+        if (cfg.plugin) {
+            self.$plugins.push(cfg.plugin);
+        }
     },
 
     $init: function(scope, node, expr) {
@@ -639,7 +643,10 @@ module.exports = defineClass({
         }
 
         self.queue.destroy();
-        self.watcher.unsubscribeAndDestroy(self.onChange, self);
+
+        if (self.watcher) {
+            self.watcher.unsubscribeAndDestroy(self.onChange, self);
+        }
     }
 
 }, {

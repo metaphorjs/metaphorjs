@@ -302,6 +302,7 @@ module.exports = defineClass({
                 cfg     = {
                     destroyEl: false,
                     node: node,
+                    destroyScope: true,
                     scope: route.$isolateScope ?
                            self.scope.$newIsolated() :
                            self.scope.$new()

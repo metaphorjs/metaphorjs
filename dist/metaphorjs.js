@@ -5365,11 +5365,12 @@ var Renderer = function(){
                 }
             }
 
-            if (typeof inst == "function") {
-                self.on("destroy", inst);
-            }
-            else if (inst && inst.$destroy) {
+
+            if (inst && inst.$destroy) {
                 self.on("destroy", inst.$destroy, inst);
+            }
+            else if (typeof inst == "function") {
+                self.on("destroy", inst);
             }
 
             return f.$stopRenderer ? false : inst;
@@ -10453,6 +10454,10 @@ var ListRenderer = defineClass({
             self.buffered = true;
             self.$plugins.push(typeof cfg.buffered == "string" ? cfg.buffered : "plugin.ListBuffered");
         }
+
+        if (cfg.plugin) {
+            self.$plugins.push(cfg.plugin);
+        }
     },
 
     $init: function(scope, node, expr) {
@@ -11012,7 +11017,10 @@ var ListRenderer = defineClass({
         }
 
         self.queue.destroy();
-        self.watcher.unsubscribeAndDestroy(self.onChange, self);
+
+        if (self.watcher) {
+            self.watcher.unsubscribeAndDestroy(self.onChange, self);
+        }
     }
 
 }, {
@@ -11237,9 +11245,9 @@ var mhistory = function(){
         }
     };
 
-    var triggerEvent = function triggerEvent(event, data) {
+    var triggerEvent = function triggerEvent(event, data, anchor) {
         var url = data || getCurrentUrl();
-        return observable.trigger(event, url);
+        return observable.trigger(event, url, anchor);
     };
 
     var init = function() {
@@ -11254,8 +11262,8 @@ var mhistory = function(){
 
             addListener(win, "popstate", onLocationPop);
 
-            pushState = function(url) {
-                if (triggerEvent("before-location-change", url) === false) {
+            pushState = function(url, anchor) {
+                if (triggerEvent("before-location-change", url, anchor) === false) {
                     return false;
                 }
                 history.pushState(null, null, preparePath(url));
@@ -11263,8 +11271,8 @@ var mhistory = function(){
             };
 
 
-            replaceState = function(url) {
-                if (triggerEvent("before-location-change", url) === false) {
+            replaceState = function(url, anchor) {
+                if (triggerEvent("before-location-change", url, anchor) === false) {
                     return false;
                 }
                 history.replaceState(null, null, preparePath(url));
@@ -11276,8 +11284,8 @@ var mhistory = function(){
             // onhashchange
             if (hashChangeSupported) {
 
-                replaceState = pushState = function(url) {
-                    if (triggerEvent("before-location-change", url) === false) {
+                replaceState = pushState = function(url, anchor) {
+                    if (triggerEvent("before-location-change", url, anchor) === false) {
                         return false;
                     }
                     async(setHash, null, [preparePath(url)]);
@@ -11332,15 +11340,15 @@ var mhistory = function(){
                 };
 
 
-                pushState = function(url) {
-                    if (triggerEvent("before-location-change", url) === false) {
+                pushState = function(url, anchor) {
+                    if (triggerEvent("before-location-change", url, anchor) === false) {
                         return false;
                     }
                     pushFrame(preparePath(url));
                 };
 
-                replaceState = function(url) {
-                    if (triggerEvent("before-location-change", url) === false) {
+                replaceState = function(url, anchor) {
+                    if (triggerEvent("before-location-change", url, anchor) === false) {
                         return false;
                     }
                     replaceFrame(preparePath(url));
@@ -11393,7 +11401,7 @@ var mhistory = function(){
                     }
 
                     if (pathsDiffer(prev, next)) {
-                        pushState(href);
+                        pushState(href, a);
                     }
 
                     e.preventDefault();
@@ -12014,6 +12022,7 @@ defineClass({
                 cfg     = {
                     destroyEl: false,
                     node: node,
+                    destroyScope: true,
                     scope: route.$isolateScope ?
                            self.scope.$newIsolated() :
                            self.scope.$new()
