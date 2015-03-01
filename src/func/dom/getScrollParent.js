@@ -8,7 +8,7 @@ module.exports = function() {
 
         overflow    = function (node) {
             var style = getStyle(node);
-            return style["overflow"] + style["overflowY"] + style["overflowY"];
+            return style ? style["overflow"] + style["overflowY"] + style["overflowY"] : "";
         },
 
         scroll      = function (node) {

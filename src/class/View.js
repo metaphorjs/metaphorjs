@@ -204,7 +204,6 @@ module.exports = defineClass({
                     if (self.currentComponent &&
                         !self.currentComponent.$destroyed &&
                         !self.currentComponent.$destroying) {
-
                         self.currentComponent.$destroy();
                     }
                     while (node.firstChild) {

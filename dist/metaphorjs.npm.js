@@ -5510,7 +5510,6 @@ defineClass({
                     if (self.currentComponent &&
                         !self.currentComponent.$destroyed &&
                         !self.currentComponent.$destroying) {
-
                         self.currentComponent.$destroy();
                     }
                     while (node.firstChild) {
@@ -6838,8 +6837,8 @@ var EventBuffer = function(){
             if (self.breaks[name]) {
                 self.breaks[name].un(fn, context);
                 if (!self.breaks[name].hasListener()) {
-                    self.breaks[name].destroy();
-                    delete self.breaks[name];
+                    self.observable.destroyEvent(name);
+                    self.breaks[name] = null;
                 }
             }
             if (destroy) {

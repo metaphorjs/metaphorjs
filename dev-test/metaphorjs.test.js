@@ -11922,7 +11922,6 @@ defineClass({
                     if (self.currentComponent &&
                         !self.currentComponent.$destroyed &&
                         !self.currentComponent.$destroying) {
-
                         self.currentComponent.$destroy();
                     }
                     while (node.firstChild) {
@@ -13584,8 +13583,8 @@ var EventBuffer = function(){
             if (self.breaks[name]) {
                 self.breaks[name].un(fn, context);
                 if (!self.breaks[name].hasListener()) {
-                    self.breaks[name].destroy();
-                    delete self.breaks[name];
+                    self.observable.destroyEvent(name);
+                    self.breaks[name] = null;
                 }
             }
             if (destroy) {
@@ -15636,6 +15635,7 @@ var factory = cs.factory;
 
 
 
+
 var Model = function(){
 
     
@@ -15649,6 +15649,7 @@ var Model = function(){
     return defineClass({
 
         $class:         "Model",
+        $mixins:        ["mixin.Observable"],
 
         type:           null,
         fields:         null,
@@ -15832,13 +15833,14 @@ var Model = function(){
                 cfg         = extend({},
                                     isString(profile[type]) || isFunction(profile[type]) ?
                                         {url: profile[type]} :
-                                        (profile[type].ajax || profile[type])
+                                        profile[type]
                                     ),
                 idProp      = self.getProp(what, type, "id"),
                 dataProp    = self.getProp(what, type, "root"),
                 url         = self.getProp(what, type, "url"),
                 isJson      = self.getProp(what, type, "json"),
-                res;
+                res,
+                ajaxCfg     = {};
 
             if (!cfg) {
                 if (url) {
@@ -15859,15 +15861,21 @@ var Model = function(){
                 cfg.url     = url;
             }
 
-            if (profile.validate) {
-                res = profile.validate.call(self, id, data);
-                if (res !== true) {
+            ajaxCfg.url = cfg.url;
+
+            if (cfg.ajax) {
+                extend(ajaxCfg, cfg.ajax, true, false);
+            }
+
+            if (cfg.validate) {
+                res = cfg.validate.call(self, id, data);
+                if (res === false) {
                     return Promise.reject(res);
                 }
             }
 
-            if (profile.resolve) {
-                res = profile.resolve.call(self, id, data);
+            if (cfg.resolve) {
+                res = cfg.resolve.call(self, id, data);
                 if (res && isThenable(res)){
                     return res;
                 }
@@ -15876,19 +15884,20 @@ var Model = function(){
                 }
             }
 
-            cfg.data        = extend(
+            ajaxCfg.data        = extend(
                 {},
                 cfg.data,
                 self.extra,
                 profile.extra,
-                profile[type] ? profile[type].extra : {},
+                profile[type] ? profile[type].extra : null,
+                ajaxCfg.data,
                 data,
                 true,
                 true
             );
 
             if (isFunction(cfg.url)) {
-                var df = cfg.url(cfg.data),
+                var df = cfg.url(ajaxCfg.data),
                     promise = new Promise;
 
                 df.then(function(response){
@@ -15904,56 +15913,64 @@ var Model = function(){
             }
 
             if (id && idProp) {
-                cfg.data[idProp] = id;
+                ajaxCfg.data[idProp] = id;
             }
 
             if (data && dataProp && type != "load") {
-                cfg.data[dataProp] = data;
+                ajaxCfg.data[dataProp] = data;
             }
 
-            cfg.url = self._prepareRequestUrl(cfg.url, cfg.data);
+            ajaxCfg.url = self._prepareRequestUrl(ajaxCfg.url, ajaxCfg.data);
 
-            if (!cfg.url) {
+            if (!ajaxCfg.url) {
                 return Promise.reject();
             }
 
-            if (!cfg.method) {
+            if (!ajaxCfg.method) {
                 if (what != "controller") {
-                    cfg.method = type == "load" ? "GET" : "POST";
+                    ajaxCfg.method = type == "load" ? "GET" : "POST";
                 }
                 else {
-                    cfg.method = "GET";
+                    ajaxCfg.method = "GET";
                 }
             }
 
-            if (isJson && cfg.data && cfg.method != 'GET') { // && cfg.type != 'GET') {
-                cfg.contentType = "text/plain";
-                cfg.data        = JSON.stringify(cfg.data);
+            if (isJson && ajaxCfg.data && ajaxCfg.method != 'GET') { // && cfg.type != 'GET') {
+                ajaxCfg.contentType = "text/plain";
+                ajaxCfg.data        = JSON.stringify(ajaxCfg.data);
             }
 
-            cfg.callbackScope = self;
+            ajaxCfg.context = self;
+
+            var returnPromise;
 
             if (what == "record") {
-                cfg.processResponse = function(response, deferred) {
+                ajaxCfg.processResponse = function(response, deferred) {
                     self.lastAjaxResponse = response;
                     self._processRecordResponse(type, response, deferred);
                 };
-                return self._processRecordRequest(ajax(cfg), type, id, data);
+                returnPromise = self._processRecordRequest(ajax(ajaxCfg), type, id, data);
             }
             else if (what == "store") {
-                cfg.processResponse = function(response, deferred) {
+                ajaxCfg.processResponse = function(response, deferred) {
                     self.lastAjaxResponse = response;
                     self._processStoreResponse(type, response, deferred);
                 };
-                return self._processStoreRequest(ajax(cfg), type, id, data);
+                returnPromise = self._processStoreRequest(ajax(ajaxCfg), type, id, data);
             }
             else if (what == "controller") {
-                cfg.processResponse = function(response, deferred) {
+                ajaxCfg.processResponse = function(response, deferred) {
                     self.lastAjaxResponse = response;
                     self._processControllerResponse(type, response, deferred);
                 };
-                return self._processControllerRequest(ajax(cfg), type, id, data);
+                returnPromise = self._processControllerRequest(ajax(ajaxCfg), type, id, data);
             }
+
+            if (cfg.processRequest) {
+                cfg.processRequest.call(self, returnPromise, id, data);
+            }
+
+            return returnPromise;
         },
 
         _processRecordRequest: function(promise, type, id, data) {
@@ -18741,7 +18758,7 @@ var getScrollParent = function() {
 
         overflow    = function (node) {
             var style = getStyle(node);
-            return style["overflow"] + style["overflowY"] + style["overflowY"];
+            return style ? style["overflow"] + style["overflowY"] + style["overflowY"] : "";
         },
 
         scroll      = function (node) {
