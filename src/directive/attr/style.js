@@ -15,17 +15,19 @@ Directive.registerAttribute("mjs-style", 1000, Directive.$extend({
             k;
 
         for (k in prev) {
-            if (props[k] === undf) {
+            if (!props || props[k] === undf) {
                 removeStyle(node, k);
             }
         }
 
-        for (k in props) {
-            if (props[k]) {
-                style[k] = props[k];
-            }
-            else {
-                removeStyle(node, k);
+        if (props) {
+            for (k in props) {
+                if (props[k]) {
+                    style[k] = props[k];
+                }
+                else {
+                    removeStyle(node, k);
+                }
             }
         }
     }
