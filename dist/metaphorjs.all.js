@@ -9623,8 +9623,12 @@ var Template = function(){
         },
 
         onParentRendererDestroy: function() {
-            this._renderer.$destroy();
-            this.$destroy();
+            var self = this;
+
+            if (!self.$destroyed && self._renderer && !self._renderer.$destroyed) {
+                self._renderer.$destroy();
+            }
+            self.$destroy();
         },
 
         onScopeDestroy: function() {
@@ -14335,8 +14339,11 @@ Directive.registerAttribute("mjs-on", 1000, function(scope, node, expr){
             event = cfg[0];
             obj = cfg[1];
 
-            if (obj && event && (obj[mode] || obj['$' + mode])) {
-                fn = obj[mode] || obj['$' + mode];
+            if (obj.$destroyed || obj.$destroying) {
+                continue;
+            }
+
+            if (obj && event && (fn = (obj[mode] || obj['$' + mode]))) {
                 fn.call(obj, event, scope.$check, scope);
             }
         }
@@ -14345,8 +14352,11 @@ Directive.registerAttribute("mjs-on", 1000, function(scope, node, expr){
     toggle("on");
 
     return function() {
-        toggle("un");
-        cfgs = null;
+        if (toggle) {
+            toggle("un");
+            cfgs = null;
+            toggle = null;
+        }
     };
 });
 

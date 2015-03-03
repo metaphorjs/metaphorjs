@@ -462,8 +462,12 @@ module.exports = function(){
         },
 
         onParentRendererDestroy: function() {
-            this._renderer.$destroy();
-            this.$destroy();
+            var self = this;
+
+            if (!self.$destroyed && self._renderer && !self._renderer.$destroyed) {
+                self._renderer.$destroy();
+            }
+            self.$destroy();
         },
 
         onScopeDestroy: function() {
