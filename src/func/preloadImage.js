@@ -56,6 +56,12 @@ module.exports = function() {
             deferred = null;
         });
 
+        addListener(img, "error", function() {
+            if (deferred) {
+                deferred.reject();
+            }
+        });
+
         deferred.abort = function() {
             if (img && img.parentNode) {
                 img.parentNode.removeChild(img);

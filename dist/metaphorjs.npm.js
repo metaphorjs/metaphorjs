@@ -7943,6 +7943,12 @@ var preloadImage = function() {
             deferred = null;
         });
 
+        addListener(img, "error", function() {
+            if (deferred) {
+                deferred.reject();
+            }
+        });
+
         deferred.abort = function() {
             if (img && img.parentNode) {
                 img.parentNode.removeChild(img);
@@ -9108,7 +9114,7 @@ Component.$extend({
     onDialogDestroy: function() {
         var self    = this;
 
-        if (!self.destroying) {
+        if (!self.$destroying) {
             self.dialog = null;
             self.$destroy();
         }
@@ -9117,8 +9123,6 @@ Component.$extend({
     destroy: function() {
 
         var self    = this;
-
-        self.destroying = true;
 
         if (self.dialog) {
             self.dialog.destroy();
