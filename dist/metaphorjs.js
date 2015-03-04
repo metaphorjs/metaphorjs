@@ -13591,6 +13591,7 @@ var EventBuffer = function(){
                 if (!self.breaks[name].hasListener()) {
                     self.observable.destroyEvent(name);
                     self.breaks[name] = null;
+                    delete self.breaks[name];
                 }
             }
             if (destroy) {
