@@ -12,8 +12,13 @@ module.exports = function() {
 
     var preloadImage = function preloadImage(src) {
 
-        if (cache[src]) {
-            return Promise.resolve(cache[src]);
+        if (cache[src] !== undefined) {
+            if (cache[src] === false) {
+                return Promise.reject(src);
+            }
+            else {
+                return Promise.resolve(cache[src]);
+            }
         }
 
         if (loading[src]) {
@@ -57,8 +62,9 @@ module.exports = function() {
         });
 
         addListener(img, "error", function() {
+            cache[src] = false;
             if (deferred) {
-                deferred.reject();
+                deferred.reject(src);
             }
         });
 
@@ -67,7 +73,7 @@ module.exports = function() {
                 img.parentNode.removeChild(img);
             }
             if (deferred) {
-                deferred.reject();
+                deferred.reject(src);
             }
             img = null;
             style = null;
@@ -85,10 +91,10 @@ module.exports = function() {
     };
 
     preloadImage.check = function(src) {
-        if (cache[src]) {
-            return true;
+        if (cache[src] !== undefined) {
+            return cache[src];
         }
-        return loading[src] || false;
+        return loading[src] || null;
     };
 
     return preloadImage;

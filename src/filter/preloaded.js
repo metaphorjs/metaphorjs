@@ -1,6 +1,7 @@
 
 var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
-    preloadImage = require("../func/preloadImage.js");
+    preloadImage = require("../func/preloadImage.js"),
+    isThenable = require("../func/isThenable.js");
 
 module.exports = nsAdd("filter.preloaded", function(val, scope) {
 
@@ -10,18 +11,18 @@ module.exports = nsAdd("filter.preloaded", function(val, scope) {
 
     var promise = preloadImage.check(val);
 
-    if (promise === true || promise === false) {
-        return promise;
+    if (promise === true || !promise) {
+        return !!promise;
     }
 
-    if (promise.isFulfilled()) {
-        return true;
-    }
-    else {
+    if (isThenable(promise)) {
         promise.always(function(){
             scope.$check();
         });
         return false;
+    }
+    else {
+        return true;
     }
 
 });

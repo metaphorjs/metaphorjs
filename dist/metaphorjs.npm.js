@@ -7900,8 +7900,13 @@ var preloadImage = function() {
 
     var preloadImage = function preloadImage(src) {
 
-        if (cache[src]) {
-            return Promise.resolve(cache[src]);
+        if (cache[src] !== undefined) {
+            if (cache[src] === false) {
+                return Promise.reject(src);
+            }
+            else {
+                return Promise.resolve(cache[src]);
+            }
         }
 
         if (loading[src]) {
@@ -7945,8 +7950,9 @@ var preloadImage = function() {
         });
 
         addListener(img, "error", function() {
+            cache[src] = false;
             if (deferred) {
-                deferred.reject();
+                deferred.reject(src);
             }
         });
 
@@ -7955,7 +7961,7 @@ var preloadImage = function() {
                 img.parentNode.removeChild(img);
             }
             if (deferred) {
-                deferred.reject();
+                deferred.reject(src);
             }
             img = null;
             style = null;
@@ -7973,10 +7979,10 @@ var preloadImage = function() {
     };
 
     preloadImage.check = function(src) {
-        if (cache[src]) {
-            return true;
+        if (cache[src] !== undefined) {
+            return cache[src];
         }
-        return loading[src] || false;
+        return loading[src] || null;
     };
 
     return preloadImage;
@@ -8684,18 +8690,18 @@ nsAdd("filter.preloaded", function(val, scope) {
 
     var promise = preloadImage.check(val);
 
-    if (promise === true || promise === false) {
-        return promise;
+    if (promise === true || !promise) {
+        return !!promise;
     }
 
-    if (promise.isFulfilled()) {
-        return true;
-    }
-    else {
+    if (isThenable(promise)) {
         promise.always(function(){
             scope.$check();
         });
         return false;
+    }
+    else {
+        return true;
     }
 
 });
