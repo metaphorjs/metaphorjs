@@ -2743,11 +2743,10 @@ var functionFactory = function() {
         }
     };
 }();
-var createGetter, createFunc;
 
 
 
-createGetter = createFunc = functionFactory.createGetter;
+var createGetter = functionFactory.createGetter;
 
 
 
@@ -13720,7 +13719,7 @@ var EventHandler = defineClass({
                 cfg = extend({}, self.watcher.getLastResult(), true, true);
             }
             else {
-                var handler = createFunc(cfg);
+                var handler = createGetter(cfg);
                 cfg = {
                     handler: handler
                 };
@@ -13762,7 +13761,7 @@ var EventHandler = defineClass({
         }
 
         if (cfg.handler && typeof cfg.handler == "string") {
-            cfg.handler = createFunc(cfg.handler);
+            cfg.handler = createGetter(cfg.handler);
         }
 
         this.cfg = cfg;
@@ -13790,7 +13789,8 @@ var EventHandler = defineClass({
             var keyCode,
                 preventDefault = false,
                 returnValue = undf,
-                stopPropagation = false;
+                stopPropagation = false,
+                res;
 
             cfg.preventDefault !== undf && (preventDefault = cfg.preventDefault);
             cfg.stopPropagation !== undf && (stopPropagation = cfg.stopPropagation);
@@ -13813,7 +13813,13 @@ var EventHandler = defineClass({
             scope.$prevEvent = self.prevEvent[e.type];
 
             if (cfg.handler) {
-                cfg.handler.call(cfg.context || null, scope);
+                res = cfg.handler.call(cfg.context || null, scope);
+
+                if (res && isPlainObject(res)) {
+                    res.preventDefault !== undf && (preventDefault = res.preventDefault);
+                    res.stopPropagation !== undf && (stopPropagation = res.stopPropagation);
+                    res.returnValue !== undf && (returnValue = res.returnValue);
+                }
             }
 
             stopPropagation && e.stopPropagation();
@@ -26909,7 +26915,6 @@ MetaphorJsExports['async'] = async;
 MetaphorJsExports['error'] = error;
 MetaphorJsExports['functionFactory'] = functionFactory;
 MetaphorJsExports['createGetter'] = createGetter;
-MetaphorJsExports['createFunc'] = createFunc;
 MetaphorJsExports['createSetter'] = createSetter;
 MetaphorJsExports['Watchable'] = Watchable;
 MetaphorJsExports['Scope'] = Scope;
@@ -26988,6 +26993,7 @@ MetaphorJsExports['getScrollTop'] = getScrollTop;
 MetaphorJsExports['getScrollLeft'] = getScrollLeft;
 MetaphorJsExports['EventBuffer'] = EventBuffer;
 MetaphorJsExports['EventHandler'] = EventHandler;
+MetaphorJsExports['createFunc'] = createFunc;
 MetaphorJsExports['preloadImage'] = preloadImage;
 MetaphorJsExports['removeStyle'] = removeStyle;
 MetaphorJsExports['parentData'] = parentData;

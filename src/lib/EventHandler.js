@@ -5,9 +5,10 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     trim = require("../func/trim.js"),
     undf = require("../var/undf.js"),
     extend = require("../func/extend.js"),
+    isPlainObject = require("../func/isPlainObject.js"),
     normalizeEvent = require("../func/event/normalizeEvent.js"),
     EventBuffer = require("./EventBuffer.js"),
-    createFunc = require("metaphorjs-watchable/src/func/createGetter.js"),
+    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js");
 
 module.exports = defineClass({
@@ -48,7 +49,7 @@ module.exports = defineClass({
                 cfg = extend({}, self.watcher.getLastResult(), true, true);
             }
             else {
-                var handler = createFunc(cfg);
+                var handler = createGetter(cfg);
                 cfg = {
                     handler: handler
                 };
@@ -90,7 +91,7 @@ module.exports = defineClass({
         }
 
         if (cfg.handler && typeof cfg.handler == "string") {
-            cfg.handler = createFunc(cfg.handler);
+            cfg.handler = createGetter(cfg.handler);
         }
 
         this.cfg = cfg;
@@ -118,7 +119,8 @@ module.exports = defineClass({
             var keyCode,
                 preventDefault = false,
                 returnValue = undf,
-                stopPropagation = false;
+                stopPropagation = false,
+                res;
 
             cfg.preventDefault !== undf && (preventDefault = cfg.preventDefault);
             cfg.stopPropagation !== undf && (stopPropagation = cfg.stopPropagation);
@@ -141,7 +143,13 @@ module.exports = defineClass({
             scope.$prevEvent = self.prevEvent[e.type];
 
             if (cfg.handler) {
-                cfg.handler.call(cfg.context || null, scope);
+                res = cfg.handler.call(cfg.context || null, scope);
+
+                if (res && isPlainObject(res)) {
+                    res.preventDefault !== undf && (preventDefault = res.preventDefault);
+                    res.stopPropagation !== undf && (stopPropagation = res.stopPropagation);
+                    res.returnValue !== undf && (returnValue = res.returnValue);
+                }
             }
 
             stopPropagation && e.stopPropagation();
