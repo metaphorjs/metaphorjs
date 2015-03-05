@@ -7957,6 +7957,9 @@ var preloadImage = function() {
 
         addListener(img, "error", function() {
             cache[src] = false;
+            if (img && img.parentNode) {
+                img.parentNode.removeChild(img);
+            }
             if (deferred) {
                 deferred.reject(src);
             }
