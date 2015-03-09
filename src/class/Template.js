@@ -49,7 +49,7 @@ module.exports = function(){
         },
 
         resolveIncludes = function(tpl) {
-            return tpl.replace(/<!--\s*include (.+)-->/ig, resolveInclude);
+            return tpl.replace(/<!--\s*include (.+?)-->/ig, resolveInclude);
         },
 
         getTemplate     = function(tplId) {
