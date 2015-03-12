@@ -5061,6 +5061,31 @@ var ListRenderer = defineClass({
 
 var currentUrl = mhistory.current;
 
+var rParseLocation = /^(((([^:\/#\?]+:)?(?:(\/\/)((?:(([^:@\/#\?]+)(?:\:([^:@\/#\?]+))?)@)?(([^:\/#\?\]\[]+|\[[^\/\]@#?]+\])(?:\:([0-9]+))?))?)?)?((\/?(?:[^\/\?#]+\/+)*)([^\?#]*)))?(\?[^#]+)?)(#.*)?/;
+
+
+
+
+var parseLocation = function(url) {
+
+    var matches = url.match(rParseLocation) || [],
+        wl = (typeof window != "undefined" ? window.location : null) || {};
+
+    return {
+        protocol: matches[4] || wl.protocol || "http:",
+        hostname: matches[11] || wl.hostname || "",
+        host: ((matches[11] || "") + (matches[12] ? ":" + matches[12] : "")) || wl.host || "",
+        username: matches[8] || wl.username || "",
+        password: matches[9] || wl.password || "",
+        port: parseInt(matches[12], 10) || wl.port || "",
+        href: url,
+        path: (matches[13] || "/") + (matches[16] || ""),
+        pathname: matches[13] || "/",
+        search: matches[16] || "",
+        hash: matches[17] && matches[17] != "#" ? matches[17] : ""
+    };
+};
+
 
 
 
@@ -5111,7 +5136,9 @@ var UrlParam = (function(){
             if (!self.enabled) {
                 self.enabled = true;
                 mhistory.on("location-change", self.onLocationChange, self);
-                self.onLocationChange(currentUrl());
+                var url = currentUrl(),
+                    loc = parseLocation(url);
+                self.onLocationChange(loc.pathname + loc.search + loc.hash);
             }
         },
 
@@ -5456,6 +5483,8 @@ defineClass({
 
         var self    = this,
             url     = currentUrl(),
+            loc     = parseLocation(url),
+            path    = loc.pathname + loc.search + loc.hash,
             routes  = self.route,
             def,
             i, len,
@@ -5464,7 +5493,7 @@ defineClass({
         for (i = 0, len = routes.length; i < len; i++) {
             r = routes[i];
 
-            if (r.reg && (matches = url.match(r.reg))) {
+            if (r.reg && (matches = path.match(r.reg))) {
                 self.setRouteComponent(r, matches);
                 return;
             }
@@ -9761,6 +9790,8 @@ MetaphorJsExports['getNodeData'] = getNodeData;
 MetaphorJsExports['getNodeConfig'] = getNodeConfig;
 MetaphorJsExports['ListRenderer'] = ListRenderer;
 MetaphorJsExports['currentUrl'] = currentUrl;
+MetaphorJsExports['rParseLocation'] = rParseLocation;
+MetaphorJsExports['parseLocation'] = parseLocation;
 MetaphorJsExports['UrlParam'] = UrlParam;
 MetaphorJsExports['resolveComponent'] = resolveComponent;
 MetaphorJsExports['returnFalse'] = returnFalse;

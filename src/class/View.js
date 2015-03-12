@@ -6,6 +6,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     mhistory = require("metaphorjs-history/src/lib/History.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     currentUrl = require("metaphorjs-history/src/func/currentUrl.js"),
+    parseLocation = require("metaphorjs-history/src/func/parseLocation.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js"),
     UrlParam = require("metaphorjs-history/src/lib/UrlParam.js"),
     raf = require("metaphorjs-animate/src/func/raf.js"),
@@ -150,6 +151,8 @@ module.exports = defineClass({
 
         var self    = this,
             url     = currentUrl(),
+            loc     = parseLocation(url),
+            path    = loc.pathname + loc.search + loc.hash,
             routes  = self.route,
             def,
             i, len,
@@ -158,7 +161,7 @@ module.exports = defineClass({
         for (i = 0, len = routes.length; i < len; i++) {
             r = routes[i];
 
-            if (r.reg && (matches = url.match(r.reg))) {
+            if (r.reg && (matches = path.match(r.reg))) {
                 self.setRouteComponent(r, matches);
                 return;
             }

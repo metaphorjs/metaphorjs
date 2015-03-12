@@ -11255,8 +11255,10 @@ var mhistory = function(){
     };
 
     var triggerEvent = function triggerEvent(event, data, anchor) {
-        var url = data || getCurrentUrl();
-        return observable.trigger(event, url, anchor);
+        var url     = data || getCurrentUrl(),
+            loc     = parseLocation(url),
+            path    = loc.pathname + loc.search + loc.hash;
+        return observable.trigger(event, path, anchor, url);
     };
 
     var init = function() {
@@ -11534,7 +11536,9 @@ var UrlParam = (function(){
             if (!self.enabled) {
                 self.enabled = true;
                 mhistory.on("location-change", self.onLocationChange, self);
-                self.onLocationChange(currentUrl());
+                var url = currentUrl(),
+                    loc = parseLocation(url);
+                self.onLocationChange(loc.pathname + loc.search + loc.hash);
             }
         },
 
@@ -11879,6 +11883,8 @@ defineClass({
 
         var self    = this,
             url     = currentUrl(),
+            loc     = parseLocation(url),
+            path    = loc.pathname + loc.search + loc.hash,
             routes  = self.route,
             def,
             i, len,
@@ -11887,7 +11893,7 @@ defineClass({
         for (i = 0, len = routes.length; i < len; i++) {
             r = routes[i];
 
-            if (r.reg && (matches = url.match(r.reg))) {
+            if (r.reg && (matches = path.match(r.reg))) {
                 self.setRouteComponent(r, matches);
                 return;
             }
