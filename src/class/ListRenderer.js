@@ -294,7 +294,6 @@ module.exports = defineClass({
             translates,
             prs         = self.watcher.getMovePrescription(prevList, self.getTrackByFunction(), list);
 
-
         // redefine renderers
         for (i = 0, len = prs.length; i < len; i++) {
 
@@ -328,7 +327,6 @@ module.exports = defineClass({
         }
 
         self.renderers  = newrs;
-
 
         if (animateAll) {
 
@@ -414,7 +412,7 @@ module.exports = defineClass({
         }
         else {
             if (!self.buffered || !self.bufferPlugin.enabled) {
-                self.applyDomPositions();
+                self.applyDomPositions(renderers);
                 self.doUpdate(updateStart || 0);
                 self.removeOldElements(renderers);
             }
@@ -462,6 +460,7 @@ module.exports = defineClass({
             prevEl      = self.prevEl,
             tm          = self.tagMode,
             fc          = prevEl ? prevEl.nextSibling : parent.firstChild,
+            nc          = self.nextEl,
             next,
             i, l, el, r;
 
@@ -473,7 +472,9 @@ module.exports = defineClass({
                 next = oldrs[i].lastEl.nextSibling;
             }
             else {
-                next = i > 0 ? (rs[i-1].lastEl.nextSibling || fc) : fc;
+                //TODO: could be a bug here
+                //next = i > 0 ? (rs[i-1].lastEl.nextSibling || fc) : fc;
+                next = i > 0 ? (rs[i-1].lastEl.nextSibling || nc) : nc;
             }
 
             if (r.firstEl !== next) {

@@ -4696,7 +4696,6 @@ var ListRenderer = defineClass({
             translates,
             prs         = self.watcher.getMovePrescription(prevList, self.getTrackByFunction(), list);
 
-
         // redefine renderers
         for (i = 0, len = prs.length; i < len; i++) {
 
@@ -4730,7 +4729,6 @@ var ListRenderer = defineClass({
         }
 
         self.renderers  = newrs;
-
 
         if (animateAll) {
 
@@ -4816,7 +4814,7 @@ var ListRenderer = defineClass({
         }
         else {
             if (!self.buffered || !self.bufferPlugin.enabled) {
-                self.applyDomPositions();
+                self.applyDomPositions(renderers);
                 self.doUpdate(updateStart || 0);
                 self.removeOldElements(renderers);
             }
@@ -4864,6 +4862,7 @@ var ListRenderer = defineClass({
             prevEl      = self.prevEl,
             tm          = self.tagMode,
             fc          = prevEl ? prevEl.nextSibling : parent.firstChild,
+            nc          = self.nextEl,
             next,
             i, l, el, r;
 
@@ -4875,7 +4874,9 @@ var ListRenderer = defineClass({
                 next = oldrs[i].lastEl.nextSibling;
             }
             else {
-                next = i > 0 ? (rs[i-1].lastEl.nextSibling || fc) : fc;
+                //TODO: could be a bug here
+                //next = i > 0 ? (rs[i-1].lastEl.nextSibling || fc) : fc;
+                next = i > 0 ? (rs[i-1].lastEl.nextSibling || nc) : nc;
             }
 
             if (r.firstEl !== next) {
