@@ -464,6 +464,13 @@ module.exports = defineClass({
             next,
             i, l, el, r;
 
+        if (nc && nc.parentNode !== parent) {
+            nc = null;
+        }
+        if (!nc && self.prevEl && self.prevEl.parentNode === parent) {
+            nc = self.prevEl.nextSibling;
+        }
+
         for (i = 0, l = rs.length; i < l; i++) {
             r = rs[i];
             el = r.el;

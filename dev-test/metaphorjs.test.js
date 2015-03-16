@@ -10845,6 +10845,13 @@ var ListRenderer = defineClass({
             next,
             i, l, el, r;
 
+        if (nc && nc.parentNode !== parent) {
+            nc = null;
+        }
+        if (!nc && self.prevEl && self.prevEl.parentNode === parent) {
+            nc = self.prevEl.nextSibling;
+        }
+
         for (i = 0, l = rs.length; i < l; i++) {
             r = rs[i];
             el = r.el;
@@ -14092,6 +14099,8 @@ Directive.registerAttribute("mjs-if", 500, Directive.$extend({
         self.prevEl     = node.previousSibling;
         self.nextEl     = node.nextSibling;
 
+        self.cfg = getNodeConfig(node, self.scope);
+
         self.$super(scope, node, expr);
 
     },
@@ -14102,6 +14111,8 @@ Directive.registerAttribute("mjs-if", 500, Directive.$extend({
 
         self.prevEl = null;
         self.parentEl = null;
+        self.nextEl = null;
+
 
         self.$super();
     },
@@ -14115,18 +14126,34 @@ Directive.registerAttribute("mjs-if", 500, Directive.$extend({
 
         if (self.prevEl && self.prevEl.parentNode === parent) {
             next = self.prevEl.nextSibling;
+            if (!next) {
+                next = false;
+            }
         }
         else if (self.nextEl && self.nextEl.parentNode === parent) {
             next = self.nextEl;
         }
 
+        //console.log(node, self.prevEl, self.nextEl, next)
+
         var show    = function(){
-            if (next) {
+
+            var np = self.cfg.nodePosition;
+
+            if (np == "append") {
+                parent.appendChild(node);
+            }
+            else if (np == "prepend") {
+                parent.insertBefore(node, parent.firstChild);
+            }
+            else if (next) {
                 parent.insertBefore(node, next);
+            }
+            else if (next === false) {
+                parent.appendChild(node);
             }
             else {
                 parent.insertBefore(node, parent.firstChild);
-                //parent.appendChild(node);
             }
         };
 
@@ -14148,9 +14175,6 @@ Directive.registerAttribute("mjs-if", 500, Directive.$extend({
             self.initial = false;
         }
         else {
-            if (!self.cfg) {
-                self.cfg = getNodeConfig(node, self.scope);
-            }
             if (self.cfg.ifOnce) {
                 self.$destroy();
             }
