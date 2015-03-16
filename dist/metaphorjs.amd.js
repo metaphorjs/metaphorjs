@@ -7378,14 +7378,19 @@ Directive.registerAttribute("mjs-if", 500, Directive.$extend({
         var self    = this,
             val     = self.watcher.getLastResult(),
             parent  = self.parentEl,
-            node    = self.node;
+            node    = self.node,
+            next;
+
+        if (self.prevEl && self.prevEl.parentNode === parent) {
+            next = self.prevEl.nextSibling;
+        }
+        else if (self.nextEl && self.nextEl.parentNode === parent) {
+            next = self.nextEl;
+        }
 
         var show    = function(){
-            if (self.prevEl) {
-                parent.insertBefore(node, self.prevEl ? self.prevEl.nextSibling : null);
-            }
-            else if (self.nextEl) {
-                parent.insertBefore(node, self.nextEl);
+            if (next) {
+                parent.insertBefore(node, next);
             }
             else {
                 parent.insertBefore(node, parent.firstChild);
