@@ -14081,6 +14081,7 @@ Directive.registerAttribute("mjs-if", 500, Directive.$extend({
 
     parentEl: null,
     prevEl: null,
+    nextEl: null,
     el: null,
     initial: true,
     cfg: null,
@@ -14091,6 +14092,7 @@ Directive.registerAttribute("mjs-if", 500, Directive.$extend({
 
         self.parentEl   = node.parentNode;
         self.prevEl     = node.previousSibling;
+        self.nextEl     = node.nextSibling;
 
         self.$super(scope, node, expr);
 
@@ -14116,8 +14118,12 @@ Directive.registerAttribute("mjs-if", 500, Directive.$extend({
             if (self.prevEl) {
                 parent.insertBefore(node, self.prevEl ? self.prevEl.nextSibling : null);
             }
+            else if (self.nextEl) {
+                parent.insertBefore(node, self.nextEl);
+            }
             else {
-                parent.appendChild(node);
+                parent.insertBefore(node, parent.firstChild);
+                //parent.appendChild(node);
             }
         };
 
@@ -14126,9 +14132,7 @@ Directive.registerAttribute("mjs-if", 500, Directive.$extend({
         };
 
         if (val) {
-            //if (!isAttached(node)) {
-                self.initial ? show() : animate(node, "enter", show, true);
-            //}
+            self.initial ? show() : animate(node, "enter", show, true);
         }
         else {
             if (node.parentNode) {
