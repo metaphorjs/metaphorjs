@@ -8594,7 +8594,7 @@ defineClass({
 
             url.replace(rhash, "");
 
-            if (opt.cache === false) {
+            if (!opt.allowCache) {
 
                 var stamp   = (new Date).getTime();
 
@@ -12025,6 +12025,9 @@ defineClass({
             cview   = self.currentView || {};
 
         if (route.id == cview.id) {
+            if (self.currentComponent && self.currentComponent.onViewRepeat) {
+                self.currentComponent.onViewRepeat();
+            }
             return;
         }
 

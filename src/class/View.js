@@ -281,6 +281,9 @@ module.exports = defineClass({
             cview   = self.currentView || {};
 
         if (route.id == cview.id) {
+            if (self.currentComponent && self.currentComponent.onViewRepeat) {
+                self.currentComponent.onViewRepeat();
+            }
             return;
         }
 

@@ -8592,7 +8592,7 @@ defineClass({
 
             url.replace(rhash, "");
 
-            if (opt.cache === false) {
+            if (!opt.allowCache) {
 
                 var stamp   = (new Date).getTime();
 
@@ -12023,6 +12023,9 @@ defineClass({
             cview   = self.currentView || {};
 
         if (route.id == cview.id) {
+            if (self.currentComponent && self.currentComponent.onViewRepeat) {
+                self.currentComponent.onViewRepeat();
+            }
             return;
         }
 
@@ -18835,9 +18838,11 @@ var StoreRenderer = ListRenderer.$extend({
 
         onStoreDestroy: function() {
             var self = this;
-            self.onStoreUpdate();
-            self.watcher.unsubscribeAndDestroy(self.onChange, self);
-            self.watcher = null;
+            if (self.watcher) {
+                self.onStoreUpdate();
+                self.watcher.unsubscribeAndDestroy(self.onChange, self);
+                self.watcher = null;
+            }
         },
 
         destroy: function() {
