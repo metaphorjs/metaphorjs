@@ -478,6 +478,10 @@ module.exports = defineClass({
             if (oldrs && oldrs[i]) {
                 next = oldrs[i].lastEl.nextSibling;
             }
+            else if (oldrs && oldrs.length <= i) {
+                next = self.nextEl && self.nextEl.parentNode === parent ?
+                       self.nextEl : null;
+            }
             else {
                 //TODO: could be a bug here
                 //next = i > 0 ? (rs[i-1].lastEl.nextSibling || fc) : fc;

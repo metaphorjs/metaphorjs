@@ -8881,7 +8881,7 @@ defineClass({
                 }
                 else {
                     if (window.File && item instanceof File) {
-                        name = "upload" + (l > 1 ? "[]" : "");
+                        name = item.uploadName || ("upload" + (l > 1 ? "[]" : ""));
                     }
                     else {
                         name = item.name || "upload" + (l > 1 ? "[]" : "");
@@ -10860,6 +10860,10 @@ var ListRenderer = defineClass({
 
             if (oldrs && oldrs[i]) {
                 next = oldrs[i].lastEl.nextSibling;
+            }
+            else if (oldrs && oldrs.length <= i) {
+                next = self.nextEl && self.nextEl.parentNode === parent ?
+                       self.nextEl : null;
             }
             else {
                 //TODO: could be a bug here
@@ -17291,7 +17295,12 @@ var Store = function(){
              * @param {string|int|null} v
              */
             setParam: function(k, v) {
-                this.extraParams[k] = v;
+                if (v === null) {
+                    delete this.extraParams[k];
+                }
+                else {
+                    this.extraParams[k] = v;
+                }
             },
 
             /**
@@ -18640,6 +18649,9 @@ var Store = function(){
                 }
 
                 self.clear();
+
+                self.trigger("destroy", self);
+
                 self.$super();
             }
 
