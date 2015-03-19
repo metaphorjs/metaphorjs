@@ -11424,6 +11424,9 @@ var mhistory = function(){
                     if (pathsDiffer(prev, next)) {
                         pushState(href, a);
                     }
+                    else {
+                        triggerEvent("same-location", null, a);
+                    }
 
                     e.preventDefault();
                     e.stopPropagation();
@@ -11903,8 +11906,8 @@ defineClass({
         for (i = 0, len = routes.length; i < len; i++) {
             r = routes[i];
 
-            if (r.reg && (matches = path.match(r.reg))) {
-                self.setRouteComponent(r, matches);
+            if (r.regexp && (matches = path.match(r.regexp))) {
+                self.resolveRoute(r, matches);
                 return;
             }
             if (r['default'] && !def) {
@@ -11913,14 +11916,33 @@ defineClass({
         }
 
         if (def) {
-            self.setRouteComponent(def, []);
+            self.resolveRoute(def, []);
         }
         else if (self.defaultCmp) {
             self.setComponent(self.defaultCmp);
         }
     },
 
+    resolveRoute: function(route, matches) {
 
+        var self = this;
+
+        if (route.resolve) {
+            var promise = route.resolve.call(self, route, matches);
+            if (isThenable(promise)) {
+                promise.done(function(){
+                    self.setRouteComponent(route, matches);
+                });
+            }
+            else if (promise) {
+                self.setRouteComponent(route, matches);
+            }
+        }
+        else {
+            self.setRouteComponent(route, matches);
+        }
+
+    },
 
 
 
@@ -23754,10 +23776,12 @@ Component.$extend({
 
     onDialogHide: function() {
         var self = this;
-        self.template.setAnimation(false);
-        self.hidden = true;
-        self.onHide();
-        self.trigger("hide", self);
+        if (!self.$destroyed) {
+            self.template.setAnimation(false);
+            self.hidden = true;
+            self.onHide();
+            self.trigger("hide", self);
+        }
     },
 
     onDialogDestroy: function() {
