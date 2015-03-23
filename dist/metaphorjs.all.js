@@ -21092,6 +21092,28 @@ var Dialog = (function(){
         }
     };
 
+    var getEventConfig = function(e, action, dlgEl) {
+
+        var type    = e.type,
+            trg     = e.target,
+            cfg     = null,
+            data;
+
+        while (trg && trg !== dlgEl) {
+
+            data    = getAttr(trg, "data-" + action + "-" + type);
+
+            if (data) {
+                cfg = createGetter(data)({});
+                break;
+            }
+
+            trg     = trg.parentNode;
+        }
+
+        return cfg;
+    };
+
     /*
      * Shorthands
      */
@@ -22466,6 +22488,19 @@ var Dialog = (function(){
             }
         },
 
+        getEventConfig: function(e, action) {
+
+            var self    = this,
+                ecfg    = getEventConfig(e, action, self.node),
+                cfg     = self.cfg;
+
+            if (!ecfg && cfg.events[action]) {
+                ecfg   = cfg.events[action][e.type] || cfg.events[action]['*'];
+            }
+
+            return ecfg;
+        },
+
 
         /* **** Show **** */
 
@@ -22566,16 +22601,17 @@ var Dialog = (function(){
                 returnMode = "beforeshow";
             }
 
-            if (e && cfg.events.show && (cfg.events.show[e.type] || cfg.events.show['*'])) {
-                var et = cfg.events.show[e.type] || cfg.events.show["*"];
+            var ecfg;
 
-                if (et.process) {
-                    returnValue	= et.process(self, e, "show", returnMode);
+            if (e && (ecfg = self.getEventConfig(e, "show"))) {
+
+                if (ecfg.process) {
+                    returnValue	= ecfg.process(self, e, "show", returnMode);
                 }
                 else {
-                    et.stopPropagation && e.stopPropagation();
-                    et.preventDefault && e.preventDefault();
-                    returnValue = et.returnValue;
+                    ecfg.stopPropagation && e.stopPropagation();
+                    ecfg.preventDefault && e.preventDefault();
+                    returnValue = ecfg.returnValue;
                 }
             }
 
@@ -22753,17 +22789,16 @@ var Dialog = (function(){
                 returnMode = "beforehide";
             }
 
+            var ecfg;
+            if (e && e.stopPropagation && (ecfg = self.getEventConfig(e, "hide"))) {
 
-            if (e && e.stopPropagation && cfg.events.hide && (cfg.events.hide[e.type] || cfg.events.hide["*"])) {
-                var et = cfg.events.hide[e.type] || cfg.events.hide["*"];
-
-                if (et.process) {
-                    returnValue = et.process(self, e, "hide", returnMode);
+                if (ecfg.process) {
+                    returnValue = ecfg.process(self, e, "hide", returnMode);
                 }
                 else {
-                    if (et.stopPropagation) e.stopPropagation();
-                    if (et.preventDefault) e.preventDefault();
-                    returnValue = et.returnValue;
+                    if (ecfg.stopPropagation) e.stopPropagation();
+                    if (ecfg.preventDefault) e.preventDefault();
+                    returnValue = ecfg.returnValue;
                 }
             }
 
