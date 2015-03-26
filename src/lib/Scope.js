@@ -1,6 +1,9 @@
 
 var Observable = require("metaphorjs-observable/src/lib/Observable.js"),
     Watchable = require("metaphorjs-watchable/src/lib/Watchable.js"),
+    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
+    createSetter = require("metaphorjs-watchable/src/func/createSetter.js"),
+    createFunc = require("metaphorjs-watchable/src/func/createFunc.js"),
     extend = require("../func/extend.js"),
     undf = require("../var/undf.js"),
     async = require("../func/async.js");
@@ -90,6 +93,30 @@ extend(Scope.prototype, {
 
     $unwatch: function(expr, fn, fnScope) {
         return Watchable.unsubscribeAndDestroy(this, expr, fn, fnScope);
+    },
+
+    $createGetter: function(expr) {
+        var self    = this,
+            getter  = createGetter(expr);
+        return function() {
+            return getter(self);
+        };
+    },
+
+    $createSetter: function(expr) {
+        var self    = this,
+            setter  = createSetter(expr);
+        return function(value) {
+            return setter(value, self);
+        };
+    },
+
+    $createFunc: function(expr) {
+        var self    = this,
+            fn      = createFunc(expr);
+        return function() {
+            return fn(self);
+        };
     },
 
     $watchHistory: function(prop, param) {

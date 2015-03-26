@@ -3542,6 +3542,10 @@ var Watchable = function(){
 
 
 
+var createFunc = functionFactory.createFunc;
+
+
+
 var Scope = function(cfg) {
     var self    = this;
 
@@ -3627,6 +3631,30 @@ extend(Scope.prototype, {
 
     $unwatch: function(expr, fn, fnScope) {
         return Watchable.unsubscribeAndDestroy(this, expr, fn, fnScope);
+    },
+
+    $createGetter: function(expr) {
+        var self    = this,
+            getter  = createGetter(expr);
+        return function() {
+            return getter(self);
+        };
+    },
+
+    $createSetter: function(expr) {
+        var self    = this,
+            setter  = createSetter(expr);
+        return function(value) {
+            return setter(value, self);
+        };
+    },
+
+    $createFunc: function(expr) {
+        var self    = this,
+            fn      = createFunc(expr);
+        return function() {
+            return fn(self);
+        };
     },
 
     $watchHistory: function(prop, param) {
@@ -5941,22 +5969,22 @@ ns.register("mixin.Observable", {
 
     on: function() {
         var o = this.$$observable;
-        return o.on.apply(o, arguments);
+        return o ? o.on.apply(o, arguments) : null;
     },
 
     un: function() {
         var o = this.$$observable;
-        return o.un.apply(o, arguments);
+        return o ? o.un.apply(o, arguments) : null;
     },
 
     once: function() {
         var o = this.$$observable;
-        return o.once.apply(o, arguments);
+        return o ? o.once.apply(o, arguments) : null;
     },
 
     trigger: function() {
         var o = this.$$observable;
-        return o.trigger.apply(o, arguments);
+        return o ? o.trigger.apply(o, arguments) : null;
     },
 
     $beforeDestroy: function() {
@@ -13976,10 +14004,6 @@ var EventHandler = defineClass({
         };
     });
 }());
-
-
-
-var createFunc = functionFactory.createFunc;
 
 
 
