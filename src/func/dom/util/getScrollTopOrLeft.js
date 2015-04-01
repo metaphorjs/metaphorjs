@@ -10,6 +10,13 @@ module.exports = function(vertical) {
         body = doc.body,
         html = doc.documentElement;
 
+    var ret = function(scroll, allowNegative) {
+        if (scroll < 0 && allowNegative === false) {
+            return 0;
+        }
+        return scroll;
+    };
+
     if(window[wProp] !== undf) {
         //most browsers except IE before #9
         defaultST = function(){
@@ -29,16 +36,16 @@ module.exports = function(vertical) {
         }
     }
 
-    return function(node) {
+    return function(node, allowNegative) {
         if (!node || node === window) {
-            return defaultST();
+            return ret(defaultST(), allowNegative);
         }
         else if (node && node.nodeType == 1 &&
             node !== body && node !== html) {
-            return node[sProp];
+            return ret(node[sProp], allowNegative);
         }
         else {
-            return defaultST();
+            return ret(defaultST(), allowNegative);
         }
     }
 

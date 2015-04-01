@@ -4063,8 +4063,10 @@ var raf = function() {
                     w.webkitCancelRequestAnimationFrame;
 
         if (raf) {
-            return function(fn) {
-                var id = raf(fn);
+            return function(fn, context, args) {
+                var id = raf(context || args ? function(){
+                    fn.apply(context, args || []);
+                } : fn);
                 return function() {
                     cancel(id);
                 };
@@ -4072,12 +4074,13 @@ var raf = function() {
         }
     }
 
-    return function(fn) {
-        var id = setTimeout(fn, 0);
-        return function() {
+    return function(fn, context, args){
+        var id = async(fn, context, args, 0);
+        return function(){
             clearTimeout(id);
-        }
+        };
     };
+
 }();
 
 
@@ -4475,6 +4478,7 @@ var ListRenderer = defineClass({
 
     id: null,
 
+    cfg: null,
     model: null,
     itemName: null,
     tpl: null,
@@ -4500,6 +4504,9 @@ var ListRenderer = defineClass({
         var self    = this,
             cfg     = getNodeConfig(node, scope);
 
+        self.cfg            = cfg;
+        self.scope          = scope;
+
         self.tagMode        = node.nodeName.toLowerCase() == "mjs-each";
         self.animateMove    = !self.tagMode && !cfg.buffered &&
                                 cfg.animateMove && animate.cssAnimationSupported();
@@ -4509,9 +4516,10 @@ var ListRenderer = defineClass({
 
         removeAttr(node, "mjs-animate");
 
-        if (self.animate && self.animateMove) {
-            self.$plugins.push(typeof cfg.animateMove == "string" ? cfg.animateMove : "plugin.ListAnimatedMove");
+        if (self.animate) {
+            self.$plugins.push(typeof cfg.animatePlugin == "string" ? cfg.animatePlugin : "plugin.ListAnimated");
         }
+
         if (cfg.observable) {
             self.$plugins.push(typeof cfg.observable == "string" ? cfg.observable : "plugin.Observable");
         }
@@ -4526,6 +4534,7 @@ var ListRenderer = defineClass({
         }
 
         if (cfg.plugin) {
+            removeAttr(node, "data-plugin");
             self.$plugins.push(cfg.plugin);
         }
     },
@@ -4548,7 +4557,6 @@ var ListRenderer = defineClass({
         self.nextEl     = node.nextSibling;
         self.parentEl   = node.parentNode;
         self.node       = null; //node;
-        self.scope      = scope;
 
         self.queue      = new Queue({
             async: false, auto: true, thenable: true,
@@ -4565,7 +4573,7 @@ var ListRenderer = defineClass({
     afterInit: function(scope, node) {
 
         var self        = this,
-            cfg         = getNodeConfig(node, scope);
+            cfg         = self.cfg;
 
         self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
         self.trackBy    = cfg.trackBy;
@@ -4590,32 +4598,32 @@ var ListRenderer = defineClass({
         var self        = this,
             renderers   = self.renderers,
             tpl         = self.tpl,
-            parent      = self.parentEl,
-            next        = self.nextEl,
-            buffered    = self.buffered,
-            fragment    = window.document.createDocumentFragment(),
-            el,
             i, len;
 
-
         for (i = 0, len = list.length; i < len; i++) {
-            el = tpl.cloneNode(true);
-            renderers.push(self.createItem(el, list, i));
-            if (!buffered) {
-                fragment.appendChild(el);
+            renderers.push(self.createItem(tpl.cloneNode(true), list, i));
+        }
+
+        self.doRender();
+    },
+
+    doRender: function() {
+
+        var self        = this,
+            fragment    = window.document.createDocumentFragment(),
+            renderers   = self.renderers,
+            i, len;
+
+        for (i = 0, len = renderers.length; i < len; i++) {
+
+            if (!renderers[i].hidden) {
+                fragment.appendChild(renderers[i].el);
                 renderers[i].attached = true;
             }
         }
 
-        if (!buffered) {
-            parent.insertBefore(fragment, next);
-            self.doUpdate();
-
-        }
-        else {
-            self.bufferPlugin.getScrollOffset();
-            self.bufferPlugin.updateScrollBuffer();
-        }
+        self.parentEl.insertBefore(fragment, self.nextEl);
+        self.doUpdate();
 
         self.trigger("render", self);
     },
@@ -4699,7 +4707,8 @@ var ListRenderer = defineClass({
             lastEl: tm ? el[el.length - 1] : el,
             scope: itemScope,
             attached: false,
-            rendered: false
+            rendered: false,
+            hidden: false
         };
     },
 
@@ -4735,7 +4744,6 @@ var ListRenderer = defineClass({
             i, len,
             r,
             action,
-            translates,
             prs         = self.watcher.getMovePrescription(prevList, self.getTrackByFunction(), list);
 
         // redefine renderers
@@ -4772,102 +4780,24 @@ var ListRenderer = defineClass({
 
         self.renderers  = newrs;
 
-        if (animateAll) {
-
-            self.doUpdate(updateStart, null, "enter");
-
-            if (doesMove) {
-                translates = self.calculateTranslates(newrs, origrs, renderers);
-            }
-
-            var animPromises    = [],
-                startAnimation  = new Promise,
-                applyFrom       = new Promise,
-                donePromise     = new Promise,
-                animReady       = Promise.counter(newrs.length),
-                startCallback   = function(){
-                    animReady.countdown();
-                    return startAnimation;
-                };
-
-            // destroy old renderers and remove old elements
-            for (i = 0, len = renderers.length; i < len; i++) {
-                r = renderers[i];
-                if (r) {
-                    r.scope.$destroy();
-
-                    stopAnimation(r.el);
-                    animPromises.push(animate(r.el, "leave", null, false, ns)
-                        .done(function(el){
-                            el.style.visibility = "hidden";
-                        }));
-                }
-            }
-
-            for (i = 0, len = newrs.length; i < len; i++) {
-                r = newrs[i];
-                stopAnimation(r.el);
-
-                r.action == "enter" ?
-                animPromises.push(animate(r.el, "enter", startCallback, false, ns)) :
-                animPromises.push(
-                    self.moveAnimation(
-                        r.el,
-                        doesMove ? translates[i][0] : null,
-                        doesMove ? translates[i][1] : null,
-                        startCallback,
-                        applyFrom
-                    )
-                );
-            }
-
-            animReady.done(function(){
-                raf(function(){
-                    applyFrom.resolve();
-                    self.applyDomPositions(renderers);
-                    if (!doesMove) {
-                        self.doUpdate(updateStart, null, "move");
-                    }
-                    raf(function(){
-                        startAnimation.resolve();
-                    });
-                    self.trigger("change", self);
-                });
-            });
-
-            Promise.all(animPromises).always(function(){
-                raf(function(){
-                    var prefixes = getAnimationPrefixes();
-                    self.doUpdate(updateStart || 0);
-                    self.removeOldElements(renderers);
-                    if (doesMove) {
-                        self.doUpdate(updateStart, null, "move");
-                        for (i = 0, len = newrs.length; i < len; i++) {
-                            r = newrs[i];
-                            r.el.style[prefixes.transform] = null;
-                            r.el.style[prefixes.transform] = "";
-                        }
-                    }
-                    donePromise.resolve();
-                });
-            });
-
-            return donePromise;
-        }
-        else {
-            if (!self.buffered || !self.bufferPlugin.enabled) {
-                self.applyDomPositions(renderers);
-                self.doUpdate(updateStart || 0);
-                self.removeOldElements(renderers);
-            }
-            else {
-                self.bufferPlugin.getScrollOffset();
-                self.removeOldElements(renderers);
-                self.queue.append(self.bufferPlugin.updateScrollBuffer, self.bufferPlugin, [true]);
-            }
-            self.trigger("change", self);
-        }
+        self.reflectChanges({
+            oldRenderers:   renderers,
+            updateStart:    updateStart,
+            newRenderers:   newrs,
+            origRenderers:  origrs,
+            doesMove:       doesMove
+        });
     },
+
+
+    reflectChanges: function(vars) {
+        var self = this;
+        self.applyDomPositions(vars.oldRenderers);
+        self.doUpdate(vars.updateStart || 0);
+        self.removeOldElements(vars.oldRenderers);
+        self.trigger("change", self);
+    },
+
 
 
     removeOldElements: function(rs) {
@@ -4918,6 +4848,14 @@ var ListRenderer = defineClass({
         for (i = 0, l = rs.length; i < l; i++) {
             r = rs[i];
             el = r.el;
+
+            if (r.hidden) {
+                if (el.parentNode) {
+                    el.parentNode.removeChild(el);
+                    r.attached = false;
+                }
+                continue;
+            }
 
             if (oldrs && oldrs[i]) {
                 next = oldrs[i].lastEl.nextSibling;
@@ -5016,41 +4954,6 @@ var ListRenderer = defineClass({
      * configurable item functions -->
      */
 
-
-    /*
-     * <!-- move animation - plugin.ListAnimatedMove
-     */
-
-    getNodePositions: function(tmp, rs, oldrs) {
-        return {};
-    },
-
-    calculateTranslates: function(newRenderers, origRenderers, withDeletes) {
-        return [];
-    },
-
-    moveAnimation: function(el, to, from, startCallback, applyFrom) {
-        return animate(el, "move", startCallback, false, ns);
-    },
-
-    /*
-     * move animation -->
-     */
-
-
-    /*
-     * <!-- buffered list
-     */
-
-
-    scrollTo: function() {
-        // not implemented
-    },
-
-
-    /*
-     * buffered list -->
-     */
 
 
     parseExpr: function(expr) {
@@ -6750,6 +6653,13 @@ var getScrollTopOrLeft = function(vertical) {
         body = doc.body,
         html = doc.documentElement;
 
+    var ret = function(scroll, allowNegative) {
+        if (scroll < 0 && allowNegative === false) {
+            return 0;
+        }
+        return scroll;
+    };
+
     if(window[wProp] !== undf) {
         //most browsers except IE before #9
         defaultST = function(){
@@ -6769,16 +6679,16 @@ var getScrollTopOrLeft = function(vertical) {
         }
     }
 
-    return function(node) {
+    return function(node, allowNegative) {
         if (!node || node === window) {
-            return defaultST();
+            return ret(defaultST(), allowNegative);
         }
         else if (node && node.nodeType == 1 &&
             node !== body && node !== html) {
-            return node[sProp];
+            return ret(node[sProp], allowNegative);
         }
         else {
-            return defaultST();
+            return ret(defaultST(), allowNegative);
         }
     }
 
@@ -6907,15 +6817,21 @@ var EventBuffer = function(){
         breakFilter: function(l, args, event) {
             var self        = this,
                 breakValue  = l.breakValue,
+                luft        = l.breakLuft || 0,
+                lowLuft     = l.breakLowLuft || luft,
+                highLuft    = l.breakHighLuft || luft,
+                lowBreak    = breakValue - lowLuft,
+                highBreak   = breakValue + highLuft,
                 w           = self.watchers[event.watcher],
                 current     = w.current,
                 prev        = w.prev,
                 min         = Math.min(prev, current),
                 max         = Math.max(prev, current);
 
-            args[0].breakPosition = current < breakValue ? -1 : 1;
+            args[0].breakPosition = current < lowBreak ? -1 :  (current >= highBreak ? 1 : 0);
 
-            return min <= breakValue && breakValue <= max;
+            return (min <= lowBreak && lowBreak <= max) ||
+                    (min <= highBreak && highBreak <= max);
         },
 
         onBreak: function(watcher, breakValue, fn, context, options) {

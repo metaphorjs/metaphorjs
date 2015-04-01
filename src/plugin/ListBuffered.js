@@ -31,12 +31,30 @@ module.exports = defineClass({
 
     $init: function(list) {
 
-        this.list = list;
+        var self    = this;
 
-        list.$intercept("scrollTo", this.scrollTo, this, "instead");
+        self.list = list;
+
         list.$intercept("afterInit", this.afterInit, this, "before");
+        list.$intercept("doRender", this.doRender, this, "instead");
 
-        list.bufferPlugin = this;
+        list.$implement({
+
+            scrollTo: self.$bind(self.scrollTo),
+
+            reflectChanges: function(vars) {
+
+                if (!self.enabled) {
+                    self.$super(vars);
+                }
+                else {
+                    self.getScrollOffset();
+                    list.removeOldElements(vars.oldRenderers);
+                    list.queue.append(self.updateScrollBuffer, self, [true]);
+                    list.trigger("change", list);
+                }
+            }
+        });
     },
 
     afterInit: function() {
@@ -58,6 +76,11 @@ module.exports = defineClass({
 
         self.list.scope.$on("freeze", self.down, self);
         self.list.scope.$on("unfreeze", self.up, self);
+    },
+
+    doRender: function() {
+        this.getScrollOffset();
+        this.updateScrollBuffer();
     },
 
     up: function() {
@@ -232,7 +255,7 @@ module.exports = defineClass({
 
         raf(function(){
 
-            if (self.$destroyed || self.$destroying) {
+            if (self.$isDestroyed()) {
                 return;
             }
 

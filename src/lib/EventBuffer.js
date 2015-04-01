@@ -123,15 +123,21 @@ module.exports = function(){
         breakFilter: function(l, args, event) {
             var self        = this,
                 breakValue  = l.breakValue,
+                luft        = l.breakLuft || 0,
+                lowLuft     = l.breakLowLuft || luft,
+                highLuft    = l.breakHighLuft || luft,
+                lowBreak    = breakValue - lowLuft,
+                highBreak   = breakValue + highLuft,
                 w           = self.watchers[event.watcher],
                 current     = w.current,
                 prev        = w.prev,
                 min         = Math.min(prev, current),
                 max         = Math.max(prev, current);
 
-            args[0].breakPosition = current < breakValue ? -1 : 1;
+            args[0].breakPosition = current < lowBreak ? -1 :  (current >= highBreak ? 1 : 0);
 
-            return min <= breakValue && breakValue <= max;
+            return (min <= lowBreak && lowBreak <= max) ||
+                    (min <= highBreak && highBreak <= max);
         },
 
         onBreak: function(watcher, breakValue, fn, context, options) {

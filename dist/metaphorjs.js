@@ -693,13 +693,14 @@ var Class = function(){
                     self    = this,
                     prev    = self.$super;
 
+                if (self.$destroyed) {
+                    self.$super = null;
+                    return null;
+                }
+
                 self.$super     = $super;
                 ret             = fn.apply(self, arguments);
                 self.$super     = prev;
-
-                if (self.$destroyed) {
-                    self.$super = null;
-                }
 
                 return ret;
             };
@@ -910,8 +911,8 @@ var Class = function(){
             $intercept: function(method, fn, newContext, when, replaceValue) {
                 var self = this,
                     orig = self[method];
-                self[method] = intercept(orig, fn, newContext || self, self, when, replaceValue);
-                return orig;
+                self[method] = intercept(orig || emptyFn, fn, newContext || self, self, when, replaceValue);
+                return orig || emptyFn;
             },
 
             /**
@@ -921,7 +922,7 @@ var Class = function(){
             $implement: function(methods) {
                 var $self = this.constructor;
                 if ($self && $self.$parent) {
-                    preparePrototype(this, methods, $self.$parent);
+                    preparePrototype(this, methods, $self.$parent, true);
                 }
             },
 
@@ -940,6 +941,27 @@ var Class = function(){
              */
             $getPlugin: function(cls) {
                 return this.$pluginMap[ns.normalize(cls)] || null;
+            },
+
+            /**
+             * @param {function} fn
+             * @returns {Function}
+             */
+            $bind: function(fn) {
+                var self = this;
+                return function() {
+                    if (self.$isDestroyed()) {
+                        return;
+                    }
+                    return fn.apply(self, arguments);
+                };
+            },
+
+            /**
+             * @return bool
+             */
+            $isDestroyed: function() {
+                return self.$destroying || self.$destroyed;
             },
 
             /**
@@ -6830,8 +6852,10 @@ var raf = function() {
                     w.webkitCancelRequestAnimationFrame;
 
         if (raf) {
-            return function(fn) {
-                var id = raf(fn);
+            return function(fn, context, args) {
+                var id = raf(context || args ? function(){
+                    fn.apply(context, args || []);
+                } : fn);
                 return function() {
                     cancel(id);
                 };
@@ -6839,12 +6863,13 @@ var raf = function() {
         }
     }
 
-    return function(fn) {
-        var id = setTimeout(fn, 0);
-        return function() {
+    return function(fn, context, args){
+        var id = async(fn, context, args, 0);
+        return function(){
             clearTimeout(id);
-        }
+        };
     };
+
 }();
 
 
@@ -10442,6 +10467,7 @@ var ListRenderer = defineClass({
 
     id: null,
 
+    cfg: null,
     model: null,
     itemName: null,
     tpl: null,
@@ -10467,6 +10493,9 @@ var ListRenderer = defineClass({
         var self    = this,
             cfg     = getNodeConfig(node, scope);
 
+        self.cfg            = cfg;
+        self.scope          = scope;
+
         self.tagMode        = node.nodeName.toLowerCase() == "mjs-each";
         self.animateMove    = !self.tagMode && !cfg.buffered &&
                                 cfg.animateMove && animate.cssAnimationSupported();
@@ -10476,9 +10505,10 @@ var ListRenderer = defineClass({
 
         removeAttr(node, "mjs-animate");
 
-        if (self.animate && self.animateMove) {
-            self.$plugins.push(typeof cfg.animateMove == "string" ? cfg.animateMove : "plugin.ListAnimatedMove");
+        if (self.animate) {
+            self.$plugins.push(typeof cfg.animatePlugin == "string" ? cfg.animatePlugin : "plugin.ListAnimated");
         }
+
         if (cfg.observable) {
             self.$plugins.push(typeof cfg.observable == "string" ? cfg.observable : "plugin.Observable");
         }
@@ -10493,6 +10523,7 @@ var ListRenderer = defineClass({
         }
 
         if (cfg.plugin) {
+            removeAttr(node, "data-plugin");
             self.$plugins.push(cfg.plugin);
         }
     },
@@ -10515,7 +10546,6 @@ var ListRenderer = defineClass({
         self.nextEl     = node.nextSibling;
         self.parentEl   = node.parentNode;
         self.node       = null; //node;
-        self.scope      = scope;
 
         self.queue      = new Queue({
             async: false, auto: true, thenable: true,
@@ -10532,7 +10562,7 @@ var ListRenderer = defineClass({
     afterInit: function(scope, node) {
 
         var self        = this,
-            cfg         = getNodeConfig(node, scope);
+            cfg         = self.cfg;
 
         self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
         self.trackBy    = cfg.trackBy;
@@ -10557,32 +10587,32 @@ var ListRenderer = defineClass({
         var self        = this,
             renderers   = self.renderers,
             tpl         = self.tpl,
-            parent      = self.parentEl,
-            next        = self.nextEl,
-            buffered    = self.buffered,
-            fragment    = window.document.createDocumentFragment(),
-            el,
             i, len;
 
-
         for (i = 0, len = list.length; i < len; i++) {
-            el = tpl.cloneNode(true);
-            renderers.push(self.createItem(el, list, i));
-            if (!buffered) {
-                fragment.appendChild(el);
+            renderers.push(self.createItem(tpl.cloneNode(true), list, i));
+        }
+
+        self.doRender();
+    },
+
+    doRender: function() {
+
+        var self        = this,
+            fragment    = window.document.createDocumentFragment(),
+            renderers   = self.renderers,
+            i, len;
+
+        for (i = 0, len = renderers.length; i < len; i++) {
+
+            if (!renderers[i].hidden) {
+                fragment.appendChild(renderers[i].el);
                 renderers[i].attached = true;
             }
         }
 
-        if (!buffered) {
-            parent.insertBefore(fragment, next);
-            self.doUpdate();
-
-        }
-        else {
-            self.bufferPlugin.getScrollOffset();
-            self.bufferPlugin.updateScrollBuffer();
-        }
+        self.parentEl.insertBefore(fragment, self.nextEl);
+        self.doUpdate();
 
         self.trigger("render", self);
     },
@@ -10666,7 +10696,8 @@ var ListRenderer = defineClass({
             lastEl: tm ? el[el.length - 1] : el,
             scope: itemScope,
             attached: false,
-            rendered: false
+            rendered: false,
+            hidden: false
         };
     },
 
@@ -10702,7 +10733,6 @@ var ListRenderer = defineClass({
             i, len,
             r,
             action,
-            translates,
             prs         = self.watcher.getMovePrescription(prevList, self.getTrackByFunction(), list);
 
         // redefine renderers
@@ -10739,102 +10769,24 @@ var ListRenderer = defineClass({
 
         self.renderers  = newrs;
 
-        if (animateAll) {
-
-            self.doUpdate(updateStart, null, "enter");
-
-            if (doesMove) {
-                translates = self.calculateTranslates(newrs, origrs, renderers);
-            }
-
-            var animPromises    = [],
-                startAnimation  = new Promise,
-                applyFrom       = new Promise,
-                donePromise     = new Promise,
-                animReady       = Promise.counter(newrs.length),
-                startCallback   = function(){
-                    animReady.countdown();
-                    return startAnimation;
-                };
-
-            // destroy old renderers and remove old elements
-            for (i = 0, len = renderers.length; i < len; i++) {
-                r = renderers[i];
-                if (r) {
-                    r.scope.$destroy();
-
-                    stopAnimation(r.el);
-                    animPromises.push(animate(r.el, "leave", null, false, ns)
-                        .done(function(el){
-                            el.style.visibility = "hidden";
-                        }));
-                }
-            }
-
-            for (i = 0, len = newrs.length; i < len; i++) {
-                r = newrs[i];
-                stopAnimation(r.el);
-
-                r.action == "enter" ?
-                animPromises.push(animate(r.el, "enter", startCallback, false, ns)) :
-                animPromises.push(
-                    self.moveAnimation(
-                        r.el,
-                        doesMove ? translates[i][0] : null,
-                        doesMove ? translates[i][1] : null,
-                        startCallback,
-                        applyFrom
-                    )
-                );
-            }
-
-            animReady.done(function(){
-                raf(function(){
-                    applyFrom.resolve();
-                    self.applyDomPositions(renderers);
-                    if (!doesMove) {
-                        self.doUpdate(updateStart, null, "move");
-                    }
-                    raf(function(){
-                        startAnimation.resolve();
-                    });
-                    self.trigger("change", self);
-                });
-            });
-
-            Promise.all(animPromises).always(function(){
-                raf(function(){
-                    var prefixes = getAnimationPrefixes();
-                    self.doUpdate(updateStart || 0);
-                    self.removeOldElements(renderers);
-                    if (doesMove) {
-                        self.doUpdate(updateStart, null, "move");
-                        for (i = 0, len = newrs.length; i < len; i++) {
-                            r = newrs[i];
-                            r.el.style[prefixes.transform] = null;
-                            r.el.style[prefixes.transform] = "";
-                        }
-                    }
-                    donePromise.resolve();
-                });
-            });
-
-            return donePromise;
-        }
-        else {
-            if (!self.buffered || !self.bufferPlugin.enabled) {
-                self.applyDomPositions(renderers);
-                self.doUpdate(updateStart || 0);
-                self.removeOldElements(renderers);
-            }
-            else {
-                self.bufferPlugin.getScrollOffset();
-                self.removeOldElements(renderers);
-                self.queue.append(self.bufferPlugin.updateScrollBuffer, self.bufferPlugin, [true]);
-            }
-            self.trigger("change", self);
-        }
+        self.reflectChanges({
+            oldRenderers:   renderers,
+            updateStart:    updateStart,
+            newRenderers:   newrs,
+            origRenderers:  origrs,
+            doesMove:       doesMove
+        });
     },
+
+
+    reflectChanges: function(vars) {
+        var self = this;
+        self.applyDomPositions(vars.oldRenderers);
+        self.doUpdate(vars.updateStart || 0);
+        self.removeOldElements(vars.oldRenderers);
+        self.trigger("change", self);
+    },
+
 
 
     removeOldElements: function(rs) {
@@ -10885,6 +10837,14 @@ var ListRenderer = defineClass({
         for (i = 0, l = rs.length; i < l; i++) {
             r = rs[i];
             el = r.el;
+
+            if (r.hidden) {
+                if (el.parentNode) {
+                    el.parentNode.removeChild(el);
+                    r.attached = false;
+                }
+                continue;
+            }
 
             if (oldrs && oldrs[i]) {
                 next = oldrs[i].lastEl.nextSibling;
@@ -10983,41 +10943,6 @@ var ListRenderer = defineClass({
      * configurable item functions -->
      */
 
-
-    /*
-     * <!-- move animation - plugin.ListAnimatedMove
-     */
-
-    getNodePositions: function(tmp, rs, oldrs) {
-        return {};
-    },
-
-    calculateTranslates: function(newRenderers, origRenderers, withDeletes) {
-        return [];
-    },
-
-    moveAnimation: function(el, to, from, startCallback, applyFrom) {
-        return animate(el, "move", startCallback, false, ns);
-    },
-
-    /*
-     * move animation -->
-     */
-
-
-    /*
-     * <!-- buffered list
-     */
-
-
-    scrollTo: function() {
-        // not implemented
-    },
-
-
-    /*
-     * buffered list -->
-     */
 
 
     parseExpr: function(expr) {
@@ -11147,6 +11072,11 @@ var mhistory = function(){
         location,
         observable      = new Observable,
         api             = {},
+        programId       = nextUid(),
+        stateKeyId      = "$$" + programId,
+        currentId       = nextUid(),
+
+        hashIdReg       = new RegExp("#" + programId + "=([A-Z0-9]+)"),
 
         pushState,
         replaceState,
@@ -11159,6 +11089,7 @@ var mhistory = function(){
         hashChangeSupported,
         useHash;
 
+
     observable.createEvent("before-location-change", false);
 
     var initWindow = function() {
@@ -11169,6 +11100,25 @@ var mhistory = function(){
         hashChangeSupported = "onhashchange" in win;
         useHash             = false; //pushStateSupported && (navigator.vendor || "").match(/Opera/);
         prevLocation        = extend({}, location, true, false);
+
+    };
+
+    var preparePushState = function(state) {
+        state = state || {};
+        if (!state[stateKeyId]) {
+            state[stateKeyId] = nextUid();
+        }
+        currentId = state[stateKeyId];
+
+        return state;
+    };
+
+    var prepareReplaceState = function(state) {
+        state = state || {};
+        if (!state[stateKeyId]) {
+            state[stateKeyId] = currentId;
+        }
+        return state;
     };
 
 
@@ -11222,9 +11172,6 @@ var mhistory = function(){
 
         if (!pushStateSupported || useHash) {
             return loc.path;
-            //loc.hash = "#!" + encodeURIComponent(loc.path);
-            //loc.pathname = "/";
-            //loc.search = "";
         }
 
         return joinLocation(loc, {onlyPath: true});
@@ -11235,15 +11182,39 @@ var mhistory = function(){
 
 
 
+    var getCurrentStateId = function() {
 
 
+        if (pushStateSupported) {
+            return history.state[stateKeyId];
+        }
+        else {
+            return parseOutHashStateId(location.hash).id;
+        }
 
+    };
 
-    var setHash = function(hash) {
+    var parseOutHashStateId = function(hash) {
+
+        var id = null;
+
+        hash = hash.replace(hashIdReg, function(match, idMatch){
+            id = idMatch;
+            return "";
+        });
+
+        return {
+            hash: hash,
+            id: id
+        };
+    };
+
+    var setHash = function(hash, state) {
 
         if (hash) {
             if (hash.substr(0,1) != '#') {
-                hash = "!" + hash;
+                hash = parseOutHashStateId(hash).hash;
+                hash = "!" + hash + "#" + programId + "=" + currentId;
             }
             location.hash = hash;
         }
@@ -11265,6 +11236,9 @@ var mhistory = function(){
             tmp = extend({}, location, true, false);
 
             if (loc) {
+
+                loc = parseOutHashStateId(loc).hash;
+
                 if (loc.substr(0, 1) == "!") {
                     loc = loc.substr(1);
                 }
@@ -11280,7 +11254,6 @@ var mhistory = function(){
     };
 
 
-
     var onLocationPush = function(url) {
         prevLocation = extend({}, location, true, false);
         triggerEvent("location-change", url);
@@ -11288,8 +11261,15 @@ var mhistory = function(){
 
     var onLocationPop = function() {
         if (pathsDiffer(prevLocation, location)) {
-            var url = getCurrentUrl();
-            prevLocation = extend({}, location, true, false);
+
+            var url     = getCurrentUrl(),
+                state   = history.state || {};
+
+            triggerEvent("before-location-pop", url);
+
+            currentId       = getCurrentStateId();
+            prevLocation    = extend({}, location, true, false);
+
             triggerEvent("location-change", url);
         }
     };
@@ -11313,33 +11293,36 @@ var mhistory = function(){
 
             addListener(win, "popstate", onLocationPop);
 
-            pushState = function(url, anchor) {
+            pushState = function(url, anchor, state) {
                 if (triggerEvent("before-location-change", url, anchor) === false) {
                     return false;
                 }
-                history.pushState(null, null, preparePath(url));
+                history.pushState(preparePushState(state), null, preparePath(url));
                 onLocationPush(url);
             };
 
 
-            replaceState = function(url, anchor) {
-                if (triggerEvent("before-location-change", url, anchor) === false) {
-                    return false;
-                }
-                history.replaceState(null, null, preparePath(url));
+            replaceState = function(url, anchor, state) {
+                history.replaceState(prepareReplaceState(state), null, preparePath(url));
                 onLocationPush(url);
             };
+
+            replaceState(getCurrentUrl());
         }
         else {
 
             // onhashchange
             if (hashChangeSupported) {
 
-                replaceState = pushState = function(url, anchor) {
+                pushState = function(url, anchor, state) {
                     if (triggerEvent("before-location-change", url, anchor) === false) {
                         return false;
                     }
-                    async(setHash, null, [preparePath(url)]);
+                    async(setHash, null, [preparePath(url), preparePushState(state)]);
+                };
+
+                replaceState = function(url, anchor, state) {
+                    async(setHash, null, [preparePath(url), prepareReplaceState(state)]);
                 };
 
                 addListener(win, "hashchange", onLocationPop);
@@ -11391,14 +11374,14 @@ var mhistory = function(){
                 };
 
 
-                pushState = function(url, anchor) {
+                pushState = function(url, anchor, state) {
                     if (triggerEvent("before-location-change", url, anchor) === false) {
                         return false;
                     }
                     pushFrame(preparePath(url));
                 };
 
-                replaceState = function(url, anchor) {
+                replaceState = function(url, anchor, state) {
                     if (triggerEvent("before-location-change", url, anchor) === false) {
                         return false;
                     }
@@ -11478,7 +11461,7 @@ var mhistory = function(){
 
     return extend(api, observable.getApi(), {
 
-        push: function(url) {
+        push: function(url, state) {
             init();
 
             var prev = extend({}, location, true, false),
@@ -11489,17 +11472,30 @@ var mhistory = function(){
             }
 
             if (pathsDiffer(prev, next)) {
-                pushState(url);
+                pushState(url, null, state);
             }
-
-            //history.pushState(null, null, url);
         },
 
-        replace: function(url) {
+        replace: function(url, state) {
             init();
+            replaceState(url, null, state);
+        },
 
-            replaceState(url);
-            //history.replaceState(null, null, url);
+        saveState: function(state) {
+            init();
+            replaceState(getCurrentUrl(), null, state);
+        },
+
+        mergeState: function(state) {
+            this.saveState(extend({}, history.state, state, true, false));
+        },
+
+        getState: function() {
+            return history.state;
+        },
+
+        getCurrentStateId: function() {
+            return currentId;
         },
 
         current: function() {
@@ -11514,10 +11510,10 @@ var mhistory = function(){
         polyfill: function() {
             init();
             window.history.pushState = function(state, title, url) {
-                pushState(url);
+                pushState(url, null, state);
             };
             window.history.replaceState = function(state, title, url) {
-                replaceState(url);
+                replaceState(url, null, state);
             };
         }
     });
@@ -13473,6 +13469,13 @@ var getScrollTopOrLeft = function(vertical) {
         body = doc.body,
         html = doc.documentElement;
 
+    var ret = function(scroll, allowNegative) {
+        if (scroll < 0 && allowNegative === false) {
+            return 0;
+        }
+        return scroll;
+    };
+
     if(window[wProp] !== undf) {
         //most browsers except IE before #9
         defaultST = function(){
@@ -13492,16 +13495,16 @@ var getScrollTopOrLeft = function(vertical) {
         }
     }
 
-    return function(node) {
+    return function(node, allowNegative) {
         if (!node || node === window) {
-            return defaultST();
+            return ret(defaultST(), allowNegative);
         }
         else if (node && node.nodeType == 1 &&
             node !== body && node !== html) {
-            return node[sProp];
+            return ret(node[sProp], allowNegative);
         }
         else {
-            return defaultST();
+            return ret(defaultST(), allowNegative);
         }
     }
 
@@ -13630,15 +13633,21 @@ var EventBuffer = function(){
         breakFilter: function(l, args, event) {
             var self        = this,
                 breakValue  = l.breakValue,
+                luft        = l.breakLuft || 0,
+                lowLuft     = l.breakLowLuft || luft,
+                highLuft    = l.breakHighLuft || luft,
+                lowBreak    = breakValue - lowLuft,
+                highBreak   = breakValue + highLuft,
                 w           = self.watchers[event.watcher],
                 current     = w.current,
                 prev        = w.prev,
                 min         = Math.min(prev, current),
                 max         = Math.max(prev, current);
 
-            args[0].breakPosition = current < breakValue ? -1 : 1;
+            args[0].breakPosition = current < lowBreak ? -1 :  (current >= highBreak ? 1 : 0);
 
-            return min <= breakValue && breakValue <= max;
+            return (min <= lowBreak && lowBreak <= max) ||
+                    (min <= highBreak && highBreak <= max);
         },
 
         onBreak: function(watcher, breakValue, fn, context, options) {

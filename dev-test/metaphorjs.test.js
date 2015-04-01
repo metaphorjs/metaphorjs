@@ -691,13 +691,14 @@ var Class = function(){
                     self    = this,
                     prev    = self.$super;
 
+                if (self.$destroyed) {
+                    self.$super = null;
+                    return null;
+                }
+
                 self.$super     = $super;
                 ret             = fn.apply(self, arguments);
                 self.$super     = prev;
-
-                if (self.$destroyed) {
-                    self.$super = null;
-                }
 
                 return ret;
             };
@@ -908,8 +909,8 @@ var Class = function(){
             $intercept: function(method, fn, newContext, when, replaceValue) {
                 var self = this,
                     orig = self[method];
-                self[method] = intercept(orig, fn, newContext || self, self, when, replaceValue);
-                return orig;
+                self[method] = intercept(orig || emptyFn, fn, newContext || self, self, when, replaceValue);
+                return orig || emptyFn;
             },
 
             /**
@@ -919,7 +920,7 @@ var Class = function(){
             $implement: function(methods) {
                 var $self = this.constructor;
                 if ($self && $self.$parent) {
-                    preparePrototype(this, methods, $self.$parent);
+                    preparePrototype(this, methods, $self.$parent, true);
                 }
             },
 
@@ -938,6 +939,27 @@ var Class = function(){
              */
             $getPlugin: function(cls) {
                 return this.$pluginMap[ns.normalize(cls)] || null;
+            },
+
+            /**
+             * @param {function} fn
+             * @returns {Function}
+             */
+            $bind: function(fn) {
+                var self = this;
+                return function() {
+                    if (self.$isDestroyed()) {
+                        return;
+                    }
+                    return fn.apply(self, arguments);
+                };
+            },
+
+            /**
+             * @return bool
+             */
+            $isDestroyed: function() {
+                return self.$destroying || self.$destroyed;
             },
 
             /**
@@ -6828,8 +6850,10 @@ var raf = function() {
                     w.webkitCancelRequestAnimationFrame;
 
         if (raf) {
-            return function(fn) {
-                var id = raf(fn);
+            return function(fn, context, args) {
+                var id = raf(context || args ? function(){
+                    fn.apply(context, args || []);
+                } : fn);
                 return function() {
                     cancel(id);
                 };
@@ -6837,12 +6861,13 @@ var raf = function() {
         }
     }
 
-    return function(fn) {
-        var id = setTimeout(fn, 0);
-        return function() {
+    return function(fn, context, args){
+        var id = async(fn, context, args, 0);
+        return function(){
             clearTimeout(id);
-        }
+        };
     };
+
 }();
 
 
@@ -10440,6 +10465,7 @@ var ListRenderer = defineClass({
 
     id: null,
 
+    cfg: null,
     model: null,
     itemName: null,
     tpl: null,
@@ -10465,6 +10491,9 @@ var ListRenderer = defineClass({
         var self    = this,
             cfg     = getNodeConfig(node, scope);
 
+        self.cfg            = cfg;
+        self.scope          = scope;
+
         self.tagMode        = node.nodeName.toLowerCase() == "mjs-each";
         self.animateMove    = !self.tagMode && !cfg.buffered &&
                                 cfg.animateMove && animate.cssAnimationSupported();
@@ -10474,9 +10503,10 @@ var ListRenderer = defineClass({
 
         removeAttr(node, "mjs-animate");
 
-        if (self.animate && self.animateMove) {
-            self.$plugins.push(typeof cfg.animateMove == "string" ? cfg.animateMove : "plugin.ListAnimatedMove");
+        if (self.animate) {
+            self.$plugins.push(typeof cfg.animatePlugin == "string" ? cfg.animatePlugin : "plugin.ListAnimated");
         }
+
         if (cfg.observable) {
             self.$plugins.push(typeof cfg.observable == "string" ? cfg.observable : "plugin.Observable");
         }
@@ -10491,6 +10521,7 @@ var ListRenderer = defineClass({
         }
 
         if (cfg.plugin) {
+            removeAttr(node, "data-plugin");
             self.$plugins.push(cfg.plugin);
         }
     },
@@ -10513,7 +10544,6 @@ var ListRenderer = defineClass({
         self.nextEl     = node.nextSibling;
         self.parentEl   = node.parentNode;
         self.node       = null; //node;
-        self.scope      = scope;
 
         self.queue      = new Queue({
             async: false, auto: true, thenable: true,
@@ -10530,7 +10560,7 @@ var ListRenderer = defineClass({
     afterInit: function(scope, node) {
 
         var self        = this,
-            cfg         = getNodeConfig(node, scope);
+            cfg         = self.cfg;
 
         self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
         self.trackBy    = cfg.trackBy;
@@ -10555,32 +10585,32 @@ var ListRenderer = defineClass({
         var self        = this,
             renderers   = self.renderers,
             tpl         = self.tpl,
-            parent      = self.parentEl,
-            next        = self.nextEl,
-            buffered    = self.buffered,
-            fragment    = window.document.createDocumentFragment(),
-            el,
             i, len;
 
-
         for (i = 0, len = list.length; i < len; i++) {
-            el = tpl.cloneNode(true);
-            renderers.push(self.createItem(el, list, i));
-            if (!buffered) {
-                fragment.appendChild(el);
+            renderers.push(self.createItem(tpl.cloneNode(true), list, i));
+        }
+
+        self.doRender();
+    },
+
+    doRender: function() {
+
+        var self        = this,
+            fragment    = window.document.createDocumentFragment(),
+            renderers   = self.renderers,
+            i, len;
+
+        for (i = 0, len = renderers.length; i < len; i++) {
+
+            if (!renderers[i].hidden) {
+                fragment.appendChild(renderers[i].el);
                 renderers[i].attached = true;
             }
         }
 
-        if (!buffered) {
-            parent.insertBefore(fragment, next);
-            self.doUpdate();
-
-        }
-        else {
-            self.bufferPlugin.getScrollOffset();
-            self.bufferPlugin.updateScrollBuffer();
-        }
+        self.parentEl.insertBefore(fragment, self.nextEl);
+        self.doUpdate();
 
         self.trigger("render", self);
     },
@@ -10664,7 +10694,8 @@ var ListRenderer = defineClass({
             lastEl: tm ? el[el.length - 1] : el,
             scope: itemScope,
             attached: false,
-            rendered: false
+            rendered: false,
+            hidden: false
         };
     },
 
@@ -10700,7 +10731,6 @@ var ListRenderer = defineClass({
             i, len,
             r,
             action,
-            translates,
             prs         = self.watcher.getMovePrescription(prevList, self.getTrackByFunction(), list);
 
         // redefine renderers
@@ -10737,102 +10767,24 @@ var ListRenderer = defineClass({
 
         self.renderers  = newrs;
 
-        if (animateAll) {
-
-            self.doUpdate(updateStart, null, "enter");
-
-            if (doesMove) {
-                translates = self.calculateTranslates(newrs, origrs, renderers);
-            }
-
-            var animPromises    = [],
-                startAnimation  = new Promise,
-                applyFrom       = new Promise,
-                donePromise     = new Promise,
-                animReady       = Promise.counter(newrs.length),
-                startCallback   = function(){
-                    animReady.countdown();
-                    return startAnimation;
-                };
-
-            // destroy old renderers and remove old elements
-            for (i = 0, len = renderers.length; i < len; i++) {
-                r = renderers[i];
-                if (r) {
-                    r.scope.$destroy();
-
-                    stopAnimation(r.el);
-                    animPromises.push(animate(r.el, "leave", null, false, ns)
-                        .done(function(el){
-                            el.style.visibility = "hidden";
-                        }));
-                }
-            }
-
-            for (i = 0, len = newrs.length; i < len; i++) {
-                r = newrs[i];
-                stopAnimation(r.el);
-
-                r.action == "enter" ?
-                animPromises.push(animate(r.el, "enter", startCallback, false, ns)) :
-                animPromises.push(
-                    self.moveAnimation(
-                        r.el,
-                        doesMove ? translates[i][0] : null,
-                        doesMove ? translates[i][1] : null,
-                        startCallback,
-                        applyFrom
-                    )
-                );
-            }
-
-            animReady.done(function(){
-                raf(function(){
-                    applyFrom.resolve();
-                    self.applyDomPositions(renderers);
-                    if (!doesMove) {
-                        self.doUpdate(updateStart, null, "move");
-                    }
-                    raf(function(){
-                        startAnimation.resolve();
-                    });
-                    self.trigger("change", self);
-                });
-            });
-
-            Promise.all(animPromises).always(function(){
-                raf(function(){
-                    var prefixes = getAnimationPrefixes();
-                    self.doUpdate(updateStart || 0);
-                    self.removeOldElements(renderers);
-                    if (doesMove) {
-                        self.doUpdate(updateStart, null, "move");
-                        for (i = 0, len = newrs.length; i < len; i++) {
-                            r = newrs[i];
-                            r.el.style[prefixes.transform] = null;
-                            r.el.style[prefixes.transform] = "";
-                        }
-                    }
-                    donePromise.resolve();
-                });
-            });
-
-            return donePromise;
-        }
-        else {
-            if (!self.buffered || !self.bufferPlugin.enabled) {
-                self.applyDomPositions(renderers);
-                self.doUpdate(updateStart || 0);
-                self.removeOldElements(renderers);
-            }
-            else {
-                self.bufferPlugin.getScrollOffset();
-                self.removeOldElements(renderers);
-                self.queue.append(self.bufferPlugin.updateScrollBuffer, self.bufferPlugin, [true]);
-            }
-            self.trigger("change", self);
-        }
+        self.reflectChanges({
+            oldRenderers:   renderers,
+            updateStart:    updateStart,
+            newRenderers:   newrs,
+            origRenderers:  origrs,
+            doesMove:       doesMove
+        });
     },
+
+
+    reflectChanges: function(vars) {
+        var self = this;
+        self.applyDomPositions(vars.oldRenderers);
+        self.doUpdate(vars.updateStart || 0);
+        self.removeOldElements(vars.oldRenderers);
+        self.trigger("change", self);
+    },
+
 
 
     removeOldElements: function(rs) {
@@ -10883,6 +10835,14 @@ var ListRenderer = defineClass({
         for (i = 0, l = rs.length; i < l; i++) {
             r = rs[i];
             el = r.el;
+
+            if (r.hidden) {
+                if (el.parentNode) {
+                    el.parentNode.removeChild(el);
+                    r.attached = false;
+                }
+                continue;
+            }
 
             if (oldrs && oldrs[i]) {
                 next = oldrs[i].lastEl.nextSibling;
@@ -10981,41 +10941,6 @@ var ListRenderer = defineClass({
      * configurable item functions -->
      */
 
-
-    /*
-     * <!-- move animation - plugin.ListAnimatedMove
-     */
-
-    getNodePositions: function(tmp, rs, oldrs) {
-        return {};
-    },
-
-    calculateTranslates: function(newRenderers, origRenderers, withDeletes) {
-        return [];
-    },
-
-    moveAnimation: function(el, to, from, startCallback, applyFrom) {
-        return animate(el, "move", startCallback, false, ns);
-    },
-
-    /*
-     * move animation -->
-     */
-
-
-    /*
-     * <!-- buffered list
-     */
-
-
-    scrollTo: function() {
-        // not implemented
-    },
-
-
-    /*
-     * buffered list -->
-     */
 
 
     parseExpr: function(expr) {
@@ -11145,6 +11070,11 @@ var mhistory = function(){
         location,
         observable      = new Observable,
         api             = {},
+        programId       = nextUid(),
+        stateKeyId      = "$$" + programId,
+        currentId       = nextUid(),
+
+        hashIdReg       = new RegExp("#" + programId + "=([A-Z0-9]+)"),
 
         pushState,
         replaceState,
@@ -11157,6 +11087,7 @@ var mhistory = function(){
         hashChangeSupported,
         useHash;
 
+
     observable.createEvent("before-location-change", false);
 
     var initWindow = function() {
@@ -11167,6 +11098,25 @@ var mhistory = function(){
         hashChangeSupported = "onhashchange" in win;
         useHash             = false; //pushStateSupported && (navigator.vendor || "").match(/Opera/);
         prevLocation        = extend({}, location, true, false);
+
+    };
+
+    var preparePushState = function(state) {
+        state = state || {};
+        if (!state[stateKeyId]) {
+            state[stateKeyId] = nextUid();
+        }
+        currentId = state[stateKeyId];
+
+        return state;
+    };
+
+    var prepareReplaceState = function(state) {
+        state = state || {};
+        if (!state[stateKeyId]) {
+            state[stateKeyId] = currentId;
+        }
+        return state;
     };
 
 
@@ -11220,9 +11170,6 @@ var mhistory = function(){
 
         if (!pushStateSupported || useHash) {
             return loc.path;
-            //loc.hash = "#!" + encodeURIComponent(loc.path);
-            //loc.pathname = "/";
-            //loc.search = "";
         }
 
         return joinLocation(loc, {onlyPath: true});
@@ -11233,15 +11180,39 @@ var mhistory = function(){
 
 
 
+    var getCurrentStateId = function() {
 
 
+        if (pushStateSupported) {
+            return history.state[stateKeyId];
+        }
+        else {
+            return parseOutHashStateId(location.hash).id;
+        }
 
+    };
 
-    var setHash = function(hash) {
+    var parseOutHashStateId = function(hash) {
+
+        var id = null;
+
+        hash = hash.replace(hashIdReg, function(match, idMatch){
+            id = idMatch;
+            return "";
+        });
+
+        return {
+            hash: hash,
+            id: id
+        };
+    };
+
+    var setHash = function(hash, state) {
 
         if (hash) {
             if (hash.substr(0,1) != '#') {
-                hash = "!" + hash;
+                hash = parseOutHashStateId(hash).hash;
+                hash = "!" + hash + "#" + programId + "=" + currentId;
             }
             location.hash = hash;
         }
@@ -11263,6 +11234,9 @@ var mhistory = function(){
             tmp = extend({}, location, true, false);
 
             if (loc) {
+
+                loc = parseOutHashStateId(loc).hash;
+
                 if (loc.substr(0, 1) == "!") {
                     loc = loc.substr(1);
                 }
@@ -11278,7 +11252,6 @@ var mhistory = function(){
     };
 
 
-
     var onLocationPush = function(url) {
         prevLocation = extend({}, location, true, false);
         triggerEvent("location-change", url);
@@ -11286,8 +11259,15 @@ var mhistory = function(){
 
     var onLocationPop = function() {
         if (pathsDiffer(prevLocation, location)) {
-            var url = getCurrentUrl();
-            prevLocation = extend({}, location, true, false);
+
+            var url     = getCurrentUrl(),
+                state   = history.state || {};
+
+            triggerEvent("before-location-pop", url);
+
+            currentId       = getCurrentStateId();
+            prevLocation    = extend({}, location, true, false);
+
             triggerEvent("location-change", url);
         }
     };
@@ -11311,33 +11291,36 @@ var mhistory = function(){
 
             addListener(win, "popstate", onLocationPop);
 
-            pushState = function(url, anchor) {
+            pushState = function(url, anchor, state) {
                 if (triggerEvent("before-location-change", url, anchor) === false) {
                     return false;
                 }
-                history.pushState(null, null, preparePath(url));
+                history.pushState(preparePushState(state), null, preparePath(url));
                 onLocationPush(url);
             };
 
 
-            replaceState = function(url, anchor) {
-                if (triggerEvent("before-location-change", url, anchor) === false) {
-                    return false;
-                }
-                history.replaceState(null, null, preparePath(url));
+            replaceState = function(url, anchor, state) {
+                history.replaceState(prepareReplaceState(state), null, preparePath(url));
                 onLocationPush(url);
             };
+
+            replaceState(getCurrentUrl());
         }
         else {
 
             // onhashchange
             if (hashChangeSupported) {
 
-                replaceState = pushState = function(url, anchor) {
+                pushState = function(url, anchor, state) {
                     if (triggerEvent("before-location-change", url, anchor) === false) {
                         return false;
                     }
-                    async(setHash, null, [preparePath(url)]);
+                    async(setHash, null, [preparePath(url), preparePushState(state)]);
+                };
+
+                replaceState = function(url, anchor, state) {
+                    async(setHash, null, [preparePath(url), prepareReplaceState(state)]);
                 };
 
                 addListener(win, "hashchange", onLocationPop);
@@ -11389,14 +11372,14 @@ var mhistory = function(){
                 };
 
 
-                pushState = function(url, anchor) {
+                pushState = function(url, anchor, state) {
                     if (triggerEvent("before-location-change", url, anchor) === false) {
                         return false;
                     }
                     pushFrame(preparePath(url));
                 };
 
-                replaceState = function(url, anchor) {
+                replaceState = function(url, anchor, state) {
                     if (triggerEvent("before-location-change", url, anchor) === false) {
                         return false;
                     }
@@ -11476,7 +11459,7 @@ var mhistory = function(){
 
     return extend(api, observable.getApi(), {
 
-        push: function(url) {
+        push: function(url, state) {
             init();
 
             var prev = extend({}, location, true, false),
@@ -11487,17 +11470,30 @@ var mhistory = function(){
             }
 
             if (pathsDiffer(prev, next)) {
-                pushState(url);
+                pushState(url, null, state);
             }
-
-            //history.pushState(null, null, url);
         },
 
-        replace: function(url) {
+        replace: function(url, state) {
             init();
+            replaceState(url, null, state);
+        },
 
-            replaceState(url);
-            //history.replaceState(null, null, url);
+        saveState: function(state) {
+            init();
+            replaceState(getCurrentUrl(), null, state);
+        },
+
+        mergeState: function(state) {
+            this.saveState(extend({}, history.state, state, true, false));
+        },
+
+        getState: function() {
+            return history.state;
+        },
+
+        getCurrentStateId: function() {
+            return currentId;
         },
 
         current: function() {
@@ -11512,10 +11508,10 @@ var mhistory = function(){
         polyfill: function() {
             init();
             window.history.pushState = function(state, title, url) {
-                pushState(url);
+                pushState(url, null, state);
             };
             window.history.replaceState = function(state, title, url) {
-                replaceState(url);
+                replaceState(url, null, state);
             };
         }
     });
@@ -13471,6 +13467,13 @@ var getScrollTopOrLeft = function(vertical) {
         body = doc.body,
         html = doc.documentElement;
 
+    var ret = function(scroll, allowNegative) {
+        if (scroll < 0 && allowNegative === false) {
+            return 0;
+        }
+        return scroll;
+    };
+
     if(window[wProp] !== undf) {
         //most browsers except IE before #9
         defaultST = function(){
@@ -13490,16 +13493,16 @@ var getScrollTopOrLeft = function(vertical) {
         }
     }
 
-    return function(node) {
+    return function(node, allowNegative) {
         if (!node || node === window) {
-            return defaultST();
+            return ret(defaultST(), allowNegative);
         }
         else if (node && node.nodeType == 1 &&
             node !== body && node !== html) {
-            return node[sProp];
+            return ret(node[sProp], allowNegative);
         }
         else {
-            return defaultST();
+            return ret(defaultST(), allowNegative);
         }
     }
 
@@ -13628,15 +13631,21 @@ var EventBuffer = function(){
         breakFilter: function(l, args, event) {
             var self        = this,
                 breakValue  = l.breakValue,
+                luft        = l.breakLuft || 0,
+                lowLuft     = l.breakLowLuft || luft,
+                highLuft    = l.breakHighLuft || luft,
+                lowBreak    = breakValue - lowLuft,
+                highBreak   = breakValue + highLuft,
                 w           = self.watchers[event.watcher],
                 current     = w.current,
                 prev        = w.prev,
                 min         = Math.min(prev, current),
                 max         = Math.max(prev, current);
 
-            args[0].breakPosition = current < breakValue ? -1 : 1;
+            args[0].breakPosition = current < lowBreak ? -1 :  (current >= highBreak ? 1 : 0);
 
-            return min <= breakValue && breakValue <= max;
+            return (min <= lowBreak && lowBreak <= max) ||
+                    (min <= highBreak && highBreak <= max);
         },
 
         onBreak: function(watcher, breakValue, fn, context, options) {
@@ -17995,7 +18004,7 @@ var Store = function(){
              * @returns {MetaphorJs.Record|Object|null}
              */
             shift: function(silent, skipUpdate, unfiltered) {
-                return this.removeAt(0, silent, skipUpdate, unfiltered);
+                return this.removeAt(0, 1, silent, skipUpdate, unfiltered);
             },
 
             /**
@@ -18016,7 +18025,7 @@ var Store = function(){
              * @returns {MetaphorJs.Record|Object|null}
              */
             pop: function(silent, skipUpdate, unfiltered) {
-                return this.removeAt(this.length - 1, silent, skipUpdate, unfiltered);
+                return this.removeAt(this.length - 1, 1, silent, skipUpdate, unfiltered);
             },
 
             /**
@@ -18056,29 +18065,50 @@ var Store = function(){
             /**
              * Works with both filtered and unfiltered
              * @param {number} index
+             * @param {number} length = 1
              * @param {boolean} silent
              * @param {boolean} skipUpdate
              * @param {boolean} unfiltered -- index from unfiltered item list
              * @returns MetaphorJs.Record|Object|null
              */
-            removeAt: function(index, silent, skipUpdate, unfiltered) {
+            removeAt: function(index, length, silent, skipUpdate, unfiltered) {
 
-                var self    = this;
+                var self    = this,
+                    i       = 0,
+                    l       = self.length;
+
+                if (l == 0) {
+                    return;
+                }
+
+                if (index == null) {
+                    index   = 0;
+                }
+                while (index < 0) {
+                    index   = l + index;
+                }
+
+                if (length == null) {
+                    length = 1;
+                }
 
                 if (!unfiltered) {
                     index   = self.items.indexOf(self.current[index]);
                 }
 
-                if(index < self.length && index >= 0) {
+                while (index < self.length && index >= 0 && i < length) {
 
                     self.length--;
-                    var rec = self.items[index];
+                    var rec     = self.items[index];
                     self.items.splice(index, 1);
-                    var id = self.getRecordId(rec);
-                    if(id != undf){
+
+                    var id      = self.getRecordId(rec);
+
+                    if (id != undf){
                         delete self.map[id];
                         delete self.currentMap[id];
                     }
+
                     self.onRemove(rec, id);
 
                     if (!skipUpdate) {
@@ -18092,14 +18122,55 @@ var Store = function(){
                     if (rec instanceof Record) {
                         self.bindRecord("un", rec);
                         rec.detachStore(self);
-                        return rec.$destroyed ? undf : rec;
+
+                        if (length == 1) {
+                            return rec.$destroyed ? undf : rec;
+                        }
                     }
                     else {
-                        return rec;
+                        if (length == 1) {
+                            return rec;
+                        }
                     }
+
+                    i++;
                 }
 
                 return undf;
+            },
+
+            /**
+             * @param {int} start
+             * @param {int} end
+             * @param {boolean} silent
+             * @param {boolean} skipUpdate
+             * @param {boolean} unfiltered
+             */
+            removeRange: function(start, end, silent, skipUpdate, unfiltered) {
+                var l       = this.length;
+
+                if (l === 0) {
+                    return;
+                }
+
+                if (start == null && end == null) {
+                    return this.clear(silent);
+                }
+
+                if (start == null) {
+                    start   = 0;
+                }
+                while (start < 0) {
+                    start   = l + start;
+                }
+                if (end == null) {
+                    end     = l - 1;
+                }
+                while (end < 0) {
+                    end     = l + start;
+                }
+
+                return this.removeAt(start, (end - start) + 1, silent, skipUpdate, unfiltered);
             },
 
             onRemove: emptyFn,
@@ -18201,7 +18272,7 @@ var Store = function(){
 
                 index   = self.items.indexOf(old);
 
-                self.removeAt(index, true, true, true);
+                self.removeAt(index, 1, true, true, true);
                 self.insert(index, rec, true, true);
 
                 if (!skipUpdate) {
@@ -18234,7 +18305,7 @@ var Store = function(){
              * @returns MetaphorJs.Record|Object|null
              */
             remove: function(rec, silent, skipUpdate) {
-                return this.removeAt(this.indexOf(rec, true), silent, skipUpdate, true);
+                return this.removeAt(this.indexOf(rec, true), 1, silent, skipUpdate, true);
             },
 
             /**
@@ -18244,8 +18315,10 @@ var Store = function(){
              * @returns MetaphorJs.Record|Object|null
              */
             removeId: function(id, silent, skipUpdate) {
-                return this.removeAt(this.indexOfId(id, true), silent, skipUpdate, true);
+                return this.removeAt(this.indexOfId(id, true), 1, silent, skipUpdate, true);
             },
+
+
 
             /**
              * @param {MetaphorJs.Record|Object} rec
@@ -19072,12 +19145,30 @@ defineClass({
 
     $init: function(list) {
 
-        this.list = list;
+        var self    = this;
 
-        list.$intercept("scrollTo", this.scrollTo, this, "instead");
+        self.list = list;
+
         list.$intercept("afterInit", this.afterInit, this, "before");
+        list.$intercept("doRender", this.doRender, this, "instead");
 
-        list.bufferPlugin = this;
+        list.$implement({
+
+            scrollTo: self.$bind(self.scrollTo),
+
+            reflectChanges: function(vars) {
+
+                if (!self.enabled) {
+                    self.$super(vars);
+                }
+                else {
+                    self.getScrollOffset();
+                    list.removeOldElements(vars.oldRenderers);
+                    list.queue.append(self.updateScrollBuffer, self, [true]);
+                    list.trigger("change", list);
+                }
+            }
+        });
     },
 
     afterInit: function() {
@@ -19099,6 +19190,11 @@ defineClass({
 
         self.list.scope.$on("freeze", self.down, self);
         self.list.scope.$on("unfreeze", self.up, self);
+    },
+
+    doRender: function() {
+        this.getScrollOffset();
+        this.updateScrollBuffer();
     },
 
     up: function() {
@@ -19273,7 +19369,7 @@ defineClass({
 
         raf(function(){
 
-            if (self.$destroyed || self.$destroying) {
+            if (self.$isDestroyed()) {
                 return;
             }
 
@@ -19838,10 +19934,15 @@ defineClass({
             return;
         }
 
-        setStyle(this.dialog.getElem(), {
-            left: coords.x + "px",
-            top: coords.y + "px"
-        });
+        var self    = this,
+            dlg     = self.dialog,
+            axis    = dlg.getCfg().position.axis,
+            pos     = {};
+
+        axis != "y" && (pos.left = coords.x + "px");
+        axis != "x" && (pos.top = coords.y + "px");
+
+        setStyle(dlg.getElem(), pos);
     },
 
     onWindowResize: function(e) {
@@ -26732,138 +26833,237 @@ Directive.registerAttribute("mjs-validate", 250, function(scope, node, expr, ren
 
 
 
-defineClass({
+(function(){
 
-    $class: "plugin.ListAnimatedMove",
 
-    $init: function(list) {
+    var methods = {
+        getNodePositions: function(tmp, rs, oldrs) {
 
-        list.$implement({
-            getNodePositions: function(tmp, rs, oldrs) {
+            var nodes = [],
+                i, l, el, r,
+                tmpNode,
+                positions = {};
 
-                var nodes = [],
-                    i, l, el, r,
-                    tmpNode,
-                    positions = {};
-
-                while(tmp.firstChild) {
-                    tmp.removeChild(tmp.firstChild);
-                }
-                for (i = 0, l = rs.length; i < l; i++) {
-                    if (oldrs && oldrs[i]) {
-                        tmpNode = oldrs[i].el.cloneNode(true);
-                        tmp.appendChild(tmpNode);
-                    }
-                    tmpNode = rs[i].el.cloneNode(true);
+            while(tmp.firstChild) {
+                tmp.removeChild(tmp.firstChild);
+            }
+            for (i = 0, l = rs.length; i < l; i++) {
+                if (oldrs && oldrs[i]) {
+                    tmpNode = oldrs[i].el.cloneNode(true);
                     tmp.appendChild(tmpNode);
-                    nodes.push(tmpNode);
                 }
-                for (i = 0, l = nodes.length; i < l; i++) {
-                    el = nodes[i];
-                    r = rs[i].renderer;
-                    if (r) {
-                        positions[r.id] = {left: el.offsetLeft, top: el.offsetTop};
-                    }
+                tmpNode = rs[i].el.cloneNode(true);
+                tmp.appendChild(tmpNode);
+                nodes.push(tmpNode);
+            }
+            for (i = 0, l = nodes.length; i < l; i++) {
+                el = nodes[i];
+                r = rs[i].renderer;
+                if (r) {
+                    positions[r.id] = {left: el.offsetLeft, top: el.offsetTop};
                 }
+            }
 
 
-                return positions;
-            },
+            return positions;
+        },
 
-            calculateTranslates: function(newRenderers, origRenderers, withDeletes) {
+        calculateTranslates: function(newRenderers, origRenderers, withDeletes) {
 
-                var self        = this,
-                    parent      = self.parentEl,
-                    pp          = parent.parentNode,
-                    tmp         = parent.cloneNode(true),
-                    ofsW        = parent.offsetWidth,
-                    translates  = [],
-                    fl          = 0,
-                    ft          = 0,
-                    oldPositions,
-                    insertPositions,
-                    newPositions,
-                    r, i, len, id,
-                    style,
-                    el;
+            var self        = this,
+                parent      = self.parentEl,
+                pp          = parent.parentNode,
+                tmp         = parent.cloneNode(true),
+                ofsW        = parent.offsetWidth,
+                translates  = [],
+                fl          = 0,
+                ft          = 0,
+                oldPositions,
+                insertPositions,
+                newPositions,
+                r, i, len, id,
+                style,
+                el;
 
-                style = tmp.style;
-                style.position = "absolute";
-                style.left = "-10000px";
-                style.visibility = "hidden";
-                style.width = ofsW + 'px';
+            style = tmp.style;
+            style.position = "absolute";
+            style.left = "-10000px";
+            style.visibility = "hidden";
+            style.width = ofsW + 'px';
 
-                pp.insertBefore(tmp, parent);
-                // correct width to compensate for padding and stuff
-                style.width = ofsW - (tmp.offsetWidth - ofsW) + "px";
+            pp.insertBefore(tmp, parent);
+            // correct width to compensate for padding and stuff
+            style.width = ofsW - (tmp.offsetWidth - ofsW) + "px";
 
-                // positions before change
-                oldPositions = self.getNodePositions(tmp, origRenderers);
-                // positions when items reordered but deleted items are still in place
-                insertPositions = self.getNodePositions(tmp, newRenderers, withDeletes);
-                // positions after old items removed from dom
-                newPositions = self.getNodePositions(tmp, newRenderers);
+            // positions before change
+            oldPositions = self.getNodePositions(tmp, origRenderers);
+            // positions when items reordered but deleted items are still in place
+            insertPositions = self.getNodePositions(tmp, newRenderers, withDeletes);
+            // positions after old items removed from dom
+            newPositions = self.getNodePositions(tmp, newRenderers);
 
-                pp.removeChild(tmp);
-                tmp = null;
+            pp.removeChild(tmp);
+            tmp = null;
 
-                for (i = 0, len = newRenderers.length; i < len; i++) {
-                    el = newRenderers[i].el;
-                    r = newRenderers[i].renderer;
-                    id = r.id;
+            for (i = 0, len = newRenderers.length; i < len; i++) {
+                el = newRenderers[i].el;
+                r = newRenderers[i].renderer;
+                id = r.id;
 
-                    if (i == 0) {
-                        fl = el.offsetLeft;
-                        ft = el.offsetTop;
-                    }
-
-                    translates.push([
-                        // to
-                        {
-                            left: (newPositions[id].left - fl) - (insertPositions[id].left - fl),
-                            top: (newPositions[id].top - ft) - (insertPositions[id].top - ft)
-                        },
-                        // from
-                        oldPositions[id] ? //insertPositions[id] &&
-                        {
-                            left: (oldPositions[id].left - fl) - (insertPositions[id].left - fl),
-                            top: (oldPositions[id].top - ft) - (insertPositions[id].top - ft)
-                        } : null
-                    ]);
+                if (i == 0) {
+                    fl = el.offsetLeft;
+                    ft = el.offsetTop;
                 }
 
-                return translates;
-            },
+                translates.push([
+                    // to
+                    {
+                        left: (newPositions[id].left - fl) - (insertPositions[id].left - fl),
+                        top: (newPositions[id].top - ft) - (insertPositions[id].top - ft)
+                    },
+                    // from
+                    oldPositions[id] ? //insertPositions[id] &&
+                    {
+                        left: (oldPositions[id].left - fl) - (insertPositions[id].left - fl),
+                        top: (oldPositions[id].top - ft) - (insertPositions[id].top - ft)
+                    } : null
+                ]);
+            }
 
-            moveAnimation: function(el, to, from, startCallback, applyFrom) {
+            return translates;
+        },
 
-                var style = el.style;
+        moveAnimation: function(el, to, from, startCallback, applyFrom) {
 
-                applyFrom.done(function(){
-                    if (from) {
+            var style = el.style;
+
+            applyFrom.done(function(){
+                if (from) {
+                    var prefixes = getAnimationPrefixes();
+                    style[prefixes.transform] = "translateX("+from.left+"px) translateY("+from.top+"px)";
+                }
+            });
+
+            return animate(
+                el,
+                "move",
+                startCallback,
+                false,
+                ns,
+                function(el, position, stage){
+                    if (position == 0 && stage != "start" && to) {
                         var prefixes = getAnimationPrefixes();
-                        style[prefixes.transform] = "translateX("+from.left+"px) translateY("+from.top+"px)";
+                        style[prefixes.transform] = "translateX("+to.left+"px) translateY("+to.top+"px)";
                     }
                 });
+        },
 
-                return animate(
-                    el,
-                    "move",
-                    startCallback,
-                    false,
-                    ns,
-                    function(el, position, stage){
-                        if (position == 0 && stage != "start" && to) {
-                            var prefixes = getAnimationPrefixes();
-                            style[prefixes.transform] = "translateX("+to.left+"px) translateY("+to.top+"px)";
-                        }
-                    });
+        reflectChanges: function(vars) {
+
+            var self            = this,
+                oldRenderers    = vars.oldRenderers,
+                newRenderers    = vars.newRenderers,
+                translates,
+                i, len, r;
+
+            self.doUpdate(vars.updateStart, null, "enter");
+
+            if (vars.doesMove) {
+                translates = self.calculateTranslates(vars.newRenderers, vars.origRenderers, vars.oldRenderers);
             }
-        });
 
-    }
+            var animPromises    = [],
+                startAnimation  = new Promise,
+                applyFrom       = new Promise,
+                donePromise     = new Promise,
+                animReady       = Promise.counter(newrs.length),
+                startCallback   = function(){
+                    animReady.countdown();
+                    return startAnimation;
+                };
 
-});
+            // destroy old renderers and remove old elements
+            for (i = 0, len = oldRenderers.length; i < len; i++) {
+                r = oldRenderers[i];
+                if (r) {
+                    r.scope.$destroy();
+
+                    stopAnimation(r.el);
+                    animPromises.push(animate(r.el, "leave", null, false, ns)
+                        .done(function(el){
+                            el.style.visibility = "hidden";
+                        }));
+                }
+            }
+
+            for (i = 0, len = newRenderers.length; i < len; i++) {
+                r = newRenderers[i];
+                stopAnimation(r.el);
+
+                r.action == "enter" ?
+                animPromises.push(animate(r.el, "enter", startCallback, false, ns)) :
+                animPromises.push(
+                    self.moveAnimation(
+                        r.el,
+                        vars.doesMove ? translates[i][0] : null,
+                        vars.doesMove ? translates[i][1] : null,
+                        startCallback,
+                        applyFrom
+                    )
+                );
+            }
+
+            animReady.done(function(){
+                raf(function(){
+                    applyFrom.resolve();
+                    self.applyDomPositions(oldRenderers);
+                    if (!vars.doesMove) {
+                        self.doUpdate(vars.updateStart, null, "move");
+                    }
+                    raf(function(){
+                        startAnimation.resolve();
+                    });
+                    self.trigger("change", self);
+                });
+            });
+
+            Promise.all(animPromises).always(function(){
+                raf(function(){
+                    var prefixes = getAnimationPrefixes();
+                    self.doUpdate(vars.updateStart || 0);
+                    self.removeOldElements(oldRenderers);
+                    if (vars.doesMove) {
+                        self.doUpdate(vars.updateStart, null, "move");
+                        for (i = 0, len = newRenderers.length; i < len; i++) {
+                            r = newRenderers[i];
+                            r.el.style[prefixes.transform] = null;
+                            r.el.style[prefixes.transform] = "";
+                        }
+                    }
+                    donePromise.resolve();
+                });
+            });
+
+            return donePromise;
+
+        }
+    };
+
+
+
+    return defineClass({
+
+        $class: "plugin.ListAnimated",
+
+        $init: function(list) {
+
+            list.$implement(methods);
+        }
+
+    });
+
+
+}());
 
 
 
