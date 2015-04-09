@@ -287,7 +287,6 @@ module.exports = defineClass({
             list        = toArray(self.watcher.getLastResult()),
             updateStart = null,
             animateMove = self.animateMove,
-            animateAll  = self.animate,
             newrs       = [],
             iname       = self.itemName,
             origrs      = renderers.slice(),

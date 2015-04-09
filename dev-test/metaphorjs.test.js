@@ -1753,6 +1753,10 @@ var ObservableEvent = (function(){
                     continue;
                 }
 
+                if (l.filter && l.filter.apply(l.filterContext || l.context, args) === false) {
+                    continue;
+                }
+
                 l.count++;
 
                 if (l.count < l.start) {
@@ -10721,7 +10725,6 @@ var ListRenderer = defineClass({
             list        = toArray(self.watcher.getLastResult()),
             updateStart = null,
             animateMove = self.animateMove,
-            animateAll  = self.animate,
             newrs       = [],
             iname       = self.itemName,
             origrs      = renderers.slice(),
