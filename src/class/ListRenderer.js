@@ -1,11 +1,8 @@
 var createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     animate = require("metaphorjs-animate/src/func/animate.js"),
-    stopAnimation = require("metaphorjs-animate/src/func/stopAnimation.js"),
+
     ns = require("metaphorjs-namespace/src/var/ns.js"),
-    Promise = require("metaphorjs-promise/src/lib/Promise.js"),
-    raf = require("metaphorjs-animate/src/func/raf.js"),
     defineClass = require("metaphorjs-class/src/func/defineClass.js"),
-    getAnimationPrefixes = require("metaphorjs-animate/src/func/getAnimationPrefixes.js"),
 
     toArray = require("../func/array/toArray.js"),
     nextUid = require("../func/nextUid.js"),

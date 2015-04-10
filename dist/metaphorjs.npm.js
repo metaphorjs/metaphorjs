@@ -4008,42 +4008,9 @@ var Component = defineClass({
 
 
 
-/**
- * @function animate.stop
- * @param {Element} el
- */
-var stopAnimation = function(el) {
-
-    var queue = data(el, "mjsAnimationQueue"),
-        current,
-        position,
-        stages;
-
-    if (isArray(queue) && queue.length) {
-        current = queue[0];
-
-        if (current) {
-            if (current.stages) {
-                position = current.position;
-                stages = current.stages;
-                removeClass(el, stages[position]);
-                removeClass(el, stages[position] + "-active");
-            }
-            if (current.deferred) {
-                current.deferred.reject(current.el);
-            }
-        }
-    }
-    else if (isFunction(queue)) {
-        queue(el);
-    }
-    else if (queue == "stop") {
-        $(el).stop(true, true);
-    }
-
-    data(el, "mjsAnimationQueue", null);
+function isNumber(value) {
+    return varType(value) === 1;
 };
-
 
 
 
@@ -4082,96 +4049,6 @@ var raf = function() {
     };
 
 }();
-
-
-
-var getAnimationPrefixes = function(){
-
-    var domPrefixes         = ['Moz', 'Webkit', 'ms', 'O', 'Khtml'],
-        animationDelay      = "animationDelay",
-        animationDuration   = "animationDuration",
-        transitionDelay     = "transitionDelay",
-        transitionDuration  = "transitionDuration",
-        transform           = "transform",
-        transitionend       = null,
-        prefixes            = null,
-
-        probed              = false,
-
-        detectCssPrefixes   = function() {
-
-            var el = window.document.createElement("div"),
-                animation = false,
-                pfx,
-                i, len;
-
-            if (el.style['animationName'] !== undf) {
-                animation = true;
-            }
-            else {
-                for(i = 0, len = domPrefixes.length; i < len; i++) {
-                    pfx = domPrefixes[i];
-                    if (el.style[ pfx + 'AnimationName' ] !== undf) {
-                        animation           = true;
-                        animationDelay      = pfx + "AnimationDelay";
-                        animationDuration   = pfx + "AnimationDuration";
-                        transitionDelay     = pfx + "TransitionDelay";
-                        transitionDuration  = pfx + "TransitionDuration";
-                        transform           = pfx + "Transform";
-                        break;
-                    }
-                }
-            }
-
-            if (animation) {
-                if('ontransitionend' in window) {
-                    // Chrome/Saf (+ Mobile Saf)/Android
-                    transitionend = 'transitionend';
-                }
-                else if('onwebkittransitionend' in window) {
-                    // Chrome/Saf (+ Mobile Saf)/Android
-                    transitionend = 'webkitTransitionEnd';
-                }
-            }
-
-            return animation;
-        };
-
-
-    /**
-     * @function animate.getPrefixes
-     * @returns {object}
-     */
-    return function() {
-
-        if (!probed) {
-            if (detectCssPrefixes()) {
-                prefixes = {
-                    animationDelay: animationDelay,
-                    animationDuration: animationDuration,
-                    transitionDelay: transitionDelay,
-                    transitionDuration: transitionDuration,
-                    transform: transform,
-                    transitionend: transitionend
-                };
-            }
-            else {
-                prefixes = {};
-            }
-
-            probed = true;
-        }
-
-
-        return prefixes;
-    };
-}();
-
-
-
-function isNumber(value) {
-    return varType(value) === 1;
-};
 
 
 
@@ -5011,6 +4888,45 @@ var ListRenderer = defineClass({
     $stopRenderer: true,
     $registerBy: "id"
 });
+
+
+
+
+/**
+ * @function animate.stop
+ * @param {Element} el
+ */
+var stopAnimation = function(el) {
+
+    var queue = data(el, "mjsAnimationQueue"),
+        current,
+        position,
+        stages;
+
+    if (isArray(queue) && queue.length) {
+        current = queue[0];
+
+        if (current) {
+            if (current.stages) {
+                position = current.position;
+                stages = current.stages;
+                removeClass(el, stages[position]);
+                removeClass(el, stages[position] + "-active");
+            }
+            if (current.deferred) {
+                current.deferred.reject(current.el);
+            }
+        }
+    }
+    else if (isFunction(queue)) {
+        queue(el);
+    }
+    else if (queue == "stop") {
+        $(el).stop(true, true);
+    }
+
+    data(el, "mjsAnimationQueue", null);
+};
 
 
 
@@ -9513,16 +9429,15 @@ MetaphorJsExport['hasClass'] = hasClass;
 MetaphorJsExport['addClass'] = addClass;
 MetaphorJsExport['removeClass'] = removeClass;
 MetaphorJsExport['Component'] = Component;
-MetaphorJsExport['stopAnimation'] = stopAnimation;
-MetaphorJsExport['raf'] = raf;
-MetaphorJsExport['getAnimationPrefixes'] = getAnimationPrefixes;
 MetaphorJsExport['isNumber'] = isNumber;
+MetaphorJsExport['raf'] = raf;
 MetaphorJsExport['Queue'] = Queue;
 MetaphorJsExport['isPrimitive'] = isPrimitive;
 MetaphorJsExport['toCamelCase'] = toCamelCase;
 MetaphorJsExport['getNodeData'] = getNodeData;
 MetaphorJsExport['getNodeConfig'] = getNodeConfig;
 MetaphorJsExport['ListRenderer'] = ListRenderer;
+MetaphorJsExport['stopAnimation'] = stopAnimation;
 MetaphorJsExport['currentUrl'] = currentUrl;
 MetaphorJsExport['rParseLocation'] = rParseLocation;
 MetaphorJsExport['parseLocation'] = parseLocation;
