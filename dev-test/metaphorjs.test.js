@@ -10832,16 +10832,16 @@ var ListRenderer = defineClass({
             parent      = self.parentEl,
             prevEl      = self.prevEl,
             tm          = self.tagMode,
-            fc          = prevEl ? prevEl.nextSibling : parent.firstChild,
             nc          = self.nextEl,
             next,
-            i, l, el, r;
+            i, l, el, r,
+            j;
 
         if (nc && nc.parentNode !== parent) {
             nc = null;
         }
-        if (!nc && self.prevEl && self.prevEl.parentNode === parent) {
-            nc = self.prevEl.nextSibling;
+        if (!nc && prevEl && prevEl.parentNode === parent) {
+            nc = prevEl.nextSibling;
         }
 
         for (i = 0, l = rs.length; i < l; i++) {
@@ -10856,17 +10856,41 @@ var ListRenderer = defineClass({
                 continue;
             }
 
-            if (oldrs && oldrs[i]) {
-                next = oldrs[i].lastEl.nextSibling;
+            // positions of some elements have changed
+            if (oldrs) {
+                // oldrs looks like [obj, obj, null, obj] where nulls are instead
+                // of items that were moved somewhere else
+                if (oldrs && oldrs[i]) {
+                    // so if item is found in oldrs[i] it means it hasn't moved
+                    next = oldrs[i].lastEl.nextSibling;
+                }
+                // if oldrs is shorter than rs, then we put all following items
+                // at the end
+                else if (oldrs && oldrs.length && oldrs.length <= i) {
+                    next = self.nextEl && self.nextEl.parentNode === parent ?
+                           self.nextEl : null;
+                }
+                // if oldrs[i] === null or it is empty
+                // we put the first item before nextEl and all all following
+                // items after first one
+                else {
+                    next = i > 0 ? (rs[i - 1].lastEl.nextSibling || nc) : nc;
+                }
             }
-            else if (oldrs && oldrs.length <= i) {
-                next = self.nextEl && self.nextEl.parentNode === parent ?
-                       self.nextEl : null;
-            }
+            // items were hidden/shown but positions haven't changed
             else {
-                //TODO: could be a bug here
-                //next = i > 0 ? (rs[i-1].lastEl.nextSibling || fc) : fc;
-                next = i > 0 ? (rs[i-1].lastEl.nextSibling || nc) : nc;
+                for (j = Math.max(i - 1, 0); j < l; j++) {
+                    if (j == i) {
+                        continue;
+                    }
+                    if (rs[j].attached && rs[j].lastEl.parentNode === parent) {
+                        next = j < i ? rs[j].lastEl.nextSibling : rs[j].firstEl;
+                        break;
+                    }
+                }
+                if (!next) {
+                    next = nc;
+                }
             }
 
             if (r.firstEl !== next) {
@@ -25176,8 +25200,19 @@ ns.register("validator.format", function(str, params) {
 
         onAjaxError: function(xhr, status) {
 
-            var self    = this,
-                cfg     = self.cfg;
+            var self        = this,
+                cfg         = self.cfg,
+                response    = xhr.responseData,
+                rules       = self.rules;
+
+            if (response && rules['remote'].handler) {
+
+                var res = rules['remote'].handler.call(self.$$callbackContext, self, response);
+
+                if (res !== true) {
+                    self.setError(format(res || cfg.messages['remote'] || "", rules['remote']), 'remote');
+                }
+            }
 
             if (cfg.cls.ajax) {
                 removeClass(self.elem, cfg.cls.ajax);
