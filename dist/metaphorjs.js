@@ -10887,12 +10887,18 @@ var ListRenderer = defineClass({
                     }
                     if (rs[j].attached && rs[j].lastEl.parentNode === parent) {
                         next = j < i ? rs[j].lastEl.nextSibling : rs[j].firstEl;
-                        break;
+                        if (next.parentNode === parent) {
+                            break;
+                        }
                     }
                 }
                 if (!next) {
                     next = nc;
                 }
+            }
+
+            if (next && next.parentNode !== parent) {
+                next = null;
             }
 
             if (r.firstEl !== next) {

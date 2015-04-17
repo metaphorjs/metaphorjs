@@ -10885,12 +10885,18 @@ var ListRenderer = defineClass({
                     }
                     if (rs[j].attached && rs[j].lastEl.parentNode === parent) {
                         next = j < i ? rs[j].lastEl.nextSibling : rs[j].firstEl;
-                        break;
+                        if (next.parentNode === parent) {
+                            break;
+                        }
                     }
                 }
                 if (!next) {
                     next = nc;
                 }
+            }
+
+            if (next && next.parentNode !== parent) {
+                next = null;
             }
 
             if (r.firstEl !== next) {
@@ -26752,6 +26758,7 @@ defineClass({
         state.$$validator = self.validator;
         state.$invalid = false;
         state.$pristine = true;
+        state.$isDestroyed = bind(self.$isDestroyed, self);
         state.$submit = bind(self.validator.onSubmit, self.validator);
         state.$reset = bind(self.validator.reset, self.validator);
     },
@@ -26846,9 +26853,7 @@ defineClass({
     destroy: function() {
         var self = this;
 
-        if (!self.destroyed) {
-            self.validator.destroy();
-        }
+        self.validator.$destroy();
 
         if (self.scope) {
             delete self.scope[self.formName];
@@ -26872,7 +26877,7 @@ Directive.registerAttribute("mjs-validate", 250, function(scope, node, expr, ren
         error(new Error("Class '"+cls+"' not found"));
     }
     else {
-        new constr(node, scope, renderer);
+        return new constr(node, scope, renderer);
     }
 });
 
