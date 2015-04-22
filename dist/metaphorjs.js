@@ -2564,18 +2564,20 @@ var error = (function(){
         var i, l;
 
         for (i = 0, l = listeners.length; i < l; i++) {
-            listeners[i][0].call(listeners[i][1], e);
+            if (listeners[i][0].call(listeners[i][1], e) === false) {
+                return;
+            }
         }
 
         var stack = (e ? e.stack : null) || (new Error).stack;
 
-        if (typeof console != strUndef && console.log) {
+        if (typeof console != strUndef && console.error) {
             async(function(){
                 if (e) {
-                    console.log(e);
+                    console.error(e);
                 }
                 if (stack) {
-                    console.log(stack);
+                    console.error(stack);
                 }
             });
         }
@@ -4730,13 +4732,23 @@ var Promise = function(){
         /**
          * @param {Function} resolve -- called when this promise is resolved; returns new resolve value
          * @param {Function} reject -- called when this promise is rejects; returns new reject reason
+         * @param {object} context -- resolve's and reject's functions "this" object
          * @returns {Promise} new promise
          */
-        then: function(resolve, reject) {
+        then: function(resolve, reject, context) {
 
             var self            = this,
                 promise         = new Promise,
                 state           = self._state;
+
+            if (context) {
+                if (resolve) {
+                    resolve = bind(resolve, context);
+                }
+                if (reject) {
+                    reject = bind(reject, context);
+                }
+            }
 
             if (state == PENDING || self._wait != 0) {
 
@@ -5944,7 +5956,7 @@ var destroy = function() {
 /**
  * @mixin Observable
  */
-ns.register("mixin.Observable", {
+var Observable = ns.register("mixin.Observable", {
 
     /**
      * @type {Observable}
@@ -6243,7 +6255,7 @@ var Provider = function(){
 
 
 
-ns.register("mixin.Provider", {
+var Provider = ns.register("mixin.Provider", {
 
     /**
      * @type {Provider}
@@ -6306,7 +6318,7 @@ ns.register("mixin.Provider", {
 
 
 
-defineClass({
+var App = defineClass({
 
     $class: "App",
     $mixins: ["mixin.Observable", "mixin.Provider"],
@@ -7891,7 +7903,7 @@ var serializeParam = function(){
 /**
  * @mixin Promise
  */
-ns.register("mixin.Promise", {
+var Promise = ns.register("mixin.Promise", {
 
     $$promise: null,
 
@@ -7923,7 +7935,7 @@ ns.register("mixin.Promise", {
 
 
 
-(function(){
+var XHR = (function(){
 
 
 
@@ -8393,7 +8405,7 @@ var addListener = function(){
 
 
 
-defineClass({
+var Script = defineClass({
     $class: "ajax.transport.Script",
 
     type: "script",
@@ -8459,7 +8471,7 @@ defineClass({
 
 
 
-defineClass({
+var IFrame = defineClass({
 
     $class: "ajax.transport.IFrame",
 
@@ -8580,7 +8592,7 @@ defineClass({
 
 
 
-(function(){
+var Ajax = (function(){
 
     var rquery          = /\?/,
         rurl            = /^([\w.+-]+:)(?:\/\/(?:[^\/?#]*@|)([^\/?#:]*)(?::(\d+)|)|)/,
@@ -9735,7 +9747,7 @@ var Template = function(){
  * @namespace MetaphorJs
  * @class Component
  */
-defineClass({
+var Component = defineClass({
 
     $class: "Component",
     $mixins: ["mixin.Observable"],
@@ -11839,7 +11851,7 @@ function resolveComponent(cmp, cfg, scope, node, args) {
 
 
 
-defineClass({
+var View = defineClass({
 
     $class: "View",
 
@@ -15570,7 +15582,7 @@ nsAdd("filter.p", function(key, scope, number) {
 
 
 
-nsAdd("filter.preloaded", function(val, scope) {
+var preloaded = nsAdd("filter.preloaded", function(val, scope) {
 
     if (!val) {
         return false;

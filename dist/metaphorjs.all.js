@@ -2564,18 +2564,20 @@ var error = (function(){
         var i, l;
 
         for (i = 0, l = listeners.length; i < l; i++) {
-            listeners[i][0].call(listeners[i][1], e);
+            if (listeners[i][0].call(listeners[i][1], e) === false) {
+                return;
+            }
         }
 
         var stack = (e ? e.stack : null) || (new Error).stack;
 
-        if (typeof console != strUndef && console.log) {
+        if (typeof console != strUndef && console.error) {
             async(function(){
                 if (e) {
-                    console.log(e);
+                    console.error(e);
                 }
                 if (stack) {
-                    console.log(stack);
+                    console.error(stack);
                 }
             });
         }
@@ -4730,13 +4732,23 @@ var Promise = function(){
         /**
          * @param {Function} resolve -- called when this promise is resolved; returns new resolve value
          * @param {Function} reject -- called when this promise is rejects; returns new reject reason
+         * @param {object} context -- resolve's and reject's functions "this" object
          * @returns {Promise} new promise
          */
-        then: function(resolve, reject) {
+        then: function(resolve, reject, context) {
 
             var self            = this,
                 promise         = new Promise,
                 state           = self._state;
+
+            if (context) {
+                if (resolve) {
+                    resolve = bind(resolve, context);
+                }
+                if (reject) {
+                    reject = bind(reject, context);
+                }
+            }
 
             if (state == PENDING || self._wait != 0) {
 
@@ -5944,7 +5956,7 @@ var destroy = function() {
 /**
  * @mixin Observable
  */
-ns.register("mixin.Observable", {
+var Observable = ns.register("mixin.Observable", {
 
     /**
      * @type {Observable}
@@ -6243,7 +6255,7 @@ var Provider = function(){
 
 
 
-ns.register("mixin.Provider", {
+var Provider = ns.register("mixin.Provider", {
 
     /**
      * @type {Provider}
@@ -6306,7 +6318,7 @@ ns.register("mixin.Provider", {
 
 
 
-defineClass({
+var App = defineClass({
 
     $class: "App",
     $mixins: ["mixin.Observable", "mixin.Provider"],
@@ -7891,7 +7903,7 @@ var serializeParam = function(){
 /**
  * @mixin Promise
  */
-ns.register("mixin.Promise", {
+var Promise = ns.register("mixin.Promise", {
 
     $$promise: null,
 
@@ -7923,7 +7935,7 @@ ns.register("mixin.Promise", {
 
 
 
-(function(){
+var XHR = (function(){
 
 
 
@@ -8393,7 +8405,7 @@ var addListener = function(){
 
 
 
-defineClass({
+var Script = defineClass({
     $class: "ajax.transport.Script",
 
     type: "script",
@@ -8459,7 +8471,7 @@ defineClass({
 
 
 
-defineClass({
+var IFrame = defineClass({
 
     $class: "ajax.transport.IFrame",
 
@@ -8580,7 +8592,7 @@ defineClass({
 
 
 
-(function(){
+var Ajax = (function(){
 
     var rquery          = /\?/,
         rurl            = /^([\w.+-]+:)(?:\/\/(?:[^\/?#]*@|)([^\/?#:]*)(?::(\d+)|)|)/,
@@ -11839,7 +11851,7 @@ function resolveComponent(cmp, cfg, scope, node, args) {
 
 
 
-defineClass({
+var View = defineClass({
 
     $class: "View",
 
@@ -15570,7 +15582,7 @@ nsAdd("filter.p", function(key, scope, number) {
 
 
 
-nsAdd("filter.preloaded", function(val, scope) {
+var preloaded = nsAdd("filter.preloaded", function(val, scope) {
 
     if (!val) {
         return false;
@@ -19170,7 +19182,7 @@ function getPosition(node, to) {
 
 
 
-defineClass({
+var ListBuffered = defineClass({
 
     $class: "plugin.ListBuffered",
 
@@ -19560,7 +19572,7 @@ defineClass({
 
 
 
-defineClass({
+var ListPullNext = defineClass({
 
     $class: "plugin.ListPullNext",
     $extends: "plugin.ListBuffered",
@@ -19720,7 +19732,7 @@ function undelegate(el, selector, event, fn) {
 
 
 
-defineClass({
+var Abstract = defineClass({
 
     $class: "dialog.position.Abstract",
     dialog: null,
@@ -20049,7 +20061,7 @@ defineClass({
 
 
 
-defineClass({
+var Target = defineClass({
 
     $class: "dialog.position.Target",
     $extends: "dialog.position.Abstract",
@@ -20170,7 +20182,7 @@ defineClass({
 
 
 
-defineClass({
+var Mouse = defineClass({
 
     $class: "dialog.position.Mouse",
     $extends: "dialog.position.Target",
@@ -20317,7 +20329,7 @@ defineClass({
 
 
 
-defineClass({
+var Window = defineClass({
 
     $class: "dialog.position.Window",
     $extends: "dialog.position.Abstract",
@@ -20414,7 +20426,7 @@ defineClass({
 
 
 
-defineClass({
+var Custom = defineClass({
 
     $class: "dialog.position.Custom",
     $extends: "dialog.position.Abstract",
@@ -20430,7 +20442,7 @@ defineClass({
 
 
 
-defineClass({
+var Abstract = defineClass({
 
     $class: "dialog.pointer.Abstract",
     enabled: null,
@@ -20675,7 +20687,7 @@ defineClass({
 
 
 
-(function(){
+var Html = (function(){
 
     var ie6             = null,
         defaultProps    = {
@@ -20972,7 +20984,7 @@ defineClass({
 
 
 
-defineClass({
+var Overlay = defineClass({
 
     $class:         "dialog.Overlay",
     dialog:         null,
@@ -21165,7 +21177,7 @@ defineClass({
 
 
 
-defineClass({
+var Manager = defineClass({
     $class: "dialog.Manager",
     all: null,
     groups: null,
@@ -23873,7 +23885,7 @@ var Dialog = (function(){
 
 
 
-Component.$extend({
+var Component = Component.$extend({
 
     $class: "dialog.Component",
 
@@ -24015,7 +24027,7 @@ Component.$extend({
 
 
 
-ns.register("validator.messages", {
+var messages = ns.register("validator.messages", {
     required: 		"This field is required.",
     remote:	 		"Please fix this field.",
     email: 			"Please enter a valid email address.",
@@ -24076,7 +24088,7 @@ var rUrl = new RegExp(
 
 
 
-ns.register("validator.checkable", function(elem) {
+var checkable = ns.register("validator.checkable", function(elem) {
     return /radio|checkbox/i.test(elem.type);
 });
 
@@ -24097,7 +24109,7 @@ function eachNode(el, fn, context) {
 
 
 
-(function(){
+var getLength = (function(){
 
     var checkable = ns.get("validator.checkable");
 
@@ -24156,7 +24168,7 @@ function eachNode(el, fn, context) {
 
 
 
-(function(){
+var empty = (function(){
 
     var checkable   = ns.get("validator.checkable"),
         getLength   = ns.get("validator.getLength");
@@ -24192,7 +24204,7 @@ function eachNode(el, fn, context) {
 
 
 
-(function(){
+var methods = (function(){
 
     var empty = ns.get("validator.empty"),
         getLength = ns.get("validator.getLength");
@@ -24372,7 +24384,7 @@ function eachNode(el, fn, context) {
 
 
 
-ns.register("validator.format", function(str, params) {
+var format = ns.register("validator.format", function(str, params) {
 
     if (isFunction(params)) return str;
 
@@ -24397,7 +24409,7 @@ ns.register("validator.format", function(str, params) {
 
 
 
-(function(){
+var Field = (function(){
 
     /* ***************************** FIELD ****************************************** */
 
@@ -25290,7 +25302,7 @@ ns.register("validator.format", function(str, params) {
 
 
 
-(function(){
+var Group = (function(){
 
 
 /* ***************************** GROUP ****************************************** */
@@ -26677,7 +26689,7 @@ var Validator = (function(){
 
 
 
-defineClass({
+var Component = defineClass({
 
     $class: "validator.Component",
 
@@ -26923,7 +26935,7 @@ Directive.registerAttribute("mjs-validate", 250, function(scope, node, expr, ren
 
 
 
-(function(){
+var ListAnimated = (function(){
 
 
     var methods = {
@@ -27157,7 +27169,7 @@ Directive.registerAttribute("mjs-validate", 250, function(scope, node, expr, ren
 
 
 
-defineClass({
+var SrcDeferred = defineClass({
 
     $class: "plugin.SrcDeferred",
 
@@ -27264,7 +27276,7 @@ defineClass({
 
 
 
-defineClass({
+var SrcSize = defineClass({
 
     $class: "plugin.SrcSize",
     directive: null,

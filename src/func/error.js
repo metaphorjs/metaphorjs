@@ -11,18 +11,20 @@ module.exports = (function(){
         var i, l;
 
         for (i = 0, l = listeners.length; i < l; i++) {
-            listeners[i][0].call(listeners[i][1], e);
+            if (listeners[i][0].call(listeners[i][1], e) === false) {
+                return;
+            }
         }
 
         var stack = (e ? e.stack : null) || (new Error).stack;
 
-        if (typeof console != strUndef && console.log) {
+        if (typeof console != strUndef && console.error) {
             async(function(){
                 if (e) {
-                    console.log(e);
+                    console.error(e);
                 }
                 if (stack) {
-                    console.log(stack);
+                    console.error(stack);
                 }
             });
         }

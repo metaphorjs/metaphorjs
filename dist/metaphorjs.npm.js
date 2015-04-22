@@ -69,18 +69,20 @@ var error = (function(){
         var i, l;
 
         for (i = 0, l = listeners.length; i < l; i++) {
-            listeners[i][0].call(listeners[i][1], e);
+            if (listeners[i][0].call(listeners[i][1], e) === false) {
+                return;
+            }
         }
 
         var stack = (e ? e.stack : null) || (new Error).stack;
 
-        if (typeof console != strUndef && console.log) {
+        if (typeof console != strUndef && console.error) {
             async(function(){
                 if (e) {
-                    console.log(e);
+                    console.error(e);
                 }
                 if (stack) {
-                    console.log(stack);
+                    console.error(stack);
                 }
             });
         }
@@ -2196,7 +2198,7 @@ var destroy = function() {
 /**
  * @mixin Observable
  */
-ns.register("mixin.Observable", {
+var Observable = ns.register("mixin.Observable", {
 
     /**
      * @type {Observable}
@@ -2523,7 +2525,7 @@ var Provider = function(){
 
 
 
-ns.register("mixin.Provider", {
+var Provider = ns.register("mixin.Provider", {
 
     /**
      * @type {Provider}
@@ -2586,7 +2588,7 @@ ns.register("mixin.Provider", {
 
 
 
-defineClass({
+var App = defineClass({
 
     $class: "App",
     $mixins: ["mixin.Observable", "mixin.Provider"],
@@ -5260,7 +5262,7 @@ function resolveComponent(cmp, cfg, scope, node, args) {
 
 
 
-defineClass({
+var View = defineClass({
 
     $class: "View",
 
@@ -8676,7 +8678,7 @@ nsAdd("filter.p", function(key, scope, number) {
 
 
 
-nsAdd("filter.preloaded", function(val, scope) {
+var preloaded = nsAdd("filter.preloaded", function(val, scope) {
 
     if (!val) {
         return false;
@@ -9001,7 +9003,7 @@ Directive.registerAttribute("mjs-each-in-store", 100, StoreRenderer);
 
 
 
-Component.$extend({
+var Component = Component.$extend({
 
     $class: "dialog.Component",
 
@@ -9157,7 +9159,7 @@ function eachNode(el, fn, context) {
 
 
 
-defineClass({
+var Component = defineClass({
 
     $class: "validator.Component",
 
@@ -9443,9 +9445,11 @@ MetaphorJsExport['aIndexOf'] = aIndexOf;
 MetaphorJsExport['Renderer'] = Renderer;
 MetaphorJsExport['Text'] = Text;
 MetaphorJsExport['destroy'] = destroy;
+MetaphorJsExport['Observable'] = Observable;
 MetaphorJsExport['isObject'] = isObject;
 MetaphorJsExport['instantiate'] = instantiate;
 MetaphorJsExport['Provider'] = Provider;
+MetaphorJsExport['App'] = App;
 MetaphorJsExport['isAttached'] = isAttached;
 MetaphorJsExport['data'] = data;
 MetaphorJsExport['toFragment'] = toFragment;
@@ -9472,8 +9476,17 @@ MetaphorJsExport['rParseLocation'] = rParseLocation;
 MetaphorJsExport['parseLocation'] = parseLocation;
 MetaphorJsExport['UrlParam'] = UrlParam;
 MetaphorJsExport['resolveComponent'] = resolveComponent;
+MetaphorJsExport['View'] = View;
 MetaphorJsExport['returnFalse'] = returnFalse;
+MetaphorJsExport['app'] = app;
 MetaphorJsExport['isField'] = isField;
+MetaphorJsExport['bind-html'] = bind-html;
+MetaphorJsExport['break-if'] = break-if;
+MetaphorJsExport['class'] = class;
+MetaphorJsExport['cmp-prop'] = cmp-prop;
+MetaphorJsExport['cmp'] = cmp;
+MetaphorJsExport['config'] = config;
+MetaphorJsExport['each'] = each;
 MetaphorJsExport['returnTrue'] = returnTrue;
 MetaphorJsExport['DomEvent'] = DomEvent;
 MetaphorJsExport['normalizeEvent'] = normalizeEvent;
@@ -9490,20 +9503,59 @@ MetaphorJsExport['getScrollTop'] = getScrollTop;
 MetaphorJsExport['getScrollLeft'] = getScrollLeft;
 MetaphorJsExport['EventBuffer'] = EventBuffer;
 MetaphorJsExport['EventHandler'] = EventHandler;
+MetaphorJsExport['event'] = event;
+MetaphorJsExport['events'] = events;
+MetaphorJsExport['show'] = show;
+MetaphorJsExport['hide'] = hide;
+MetaphorJsExport['if'] = if;
+MetaphorJsExport['ignore'] = ignore;
+MetaphorJsExport['in-focus'] = in-focus;
+MetaphorJsExport['include-file'] = include-file;
+MetaphorJsExport['include'] = include;
+MetaphorJsExport['init'] = init;
+MetaphorJsExport['key'] = key;
 MetaphorJsExport['isIE'] = isIE;
+MetaphorJsExport['model'] = model;
+MetaphorJsExport['on'] = on;
+MetaphorJsExport['options'] = options;
+MetaphorJsExport['properties'] = properties;
+MetaphorJsExport['scope-prop'] = scope-prop;
 MetaphorJsExport['preloadImage'] = preloadImage;
+MetaphorJsExport['src'] = src;
 MetaphorJsExport['removeStyle'] = removeStyle;
+MetaphorJsExport['style'] = style;
 MetaphorJsExport['parentData'] = parentData;
 MetaphorJsExport['transclude'] = transclude;
+MetaphorJsExport['view'] = view;
+MetaphorJsExport['tag'] = tag;
+MetaphorJsExport['collect'] = collect;
 MetaphorJsExport['filterArray'] = filterArray;
+MetaphorJsExport['filter'] = filter;
+MetaphorJsExport['get'] = get;
+MetaphorJsExport['join'] = join;
+MetaphorJsExport['l'] = l;
+MetaphorJsExport['limitTo'] = limitTo;
+MetaphorJsExport['linkify'] = linkify;
+MetaphorJsExport['lowercase'] = lowercase;
+MetaphorJsExport['map'] = map;
 MetaphorJsExport['dateFormats'] = dateFormats;
+MetaphorJsExport['moment'] = moment;
 MetaphorJsExport['numberFormats'] = numberFormats;
+MetaphorJsExport['numeral'] = numeral;
+MetaphorJsExport['offset'] = offset;
+MetaphorJsExport['p'] = p;
+MetaphorJsExport['preloaded'] = preloaded;
 MetaphorJsExport['sortArray'] = sortArray;
+MetaphorJsExport['sortBy'] = sortBy;
+MetaphorJsExport['ucfirst'] = ucfirst;
+MetaphorJsExport['uppercase'] = uppercase;
 MetaphorJsExport['onReady'] = onReady;
 MetaphorJsExport['initApp'] = initApp;
 MetaphorJsExport['run'] = run;
 MetaphorJsExport['StoreRenderer'] = StoreRenderer;
+MetaphorJsExport['each-in-store'] = each-in-store;
 MetaphorJsExport['eachNode'] = eachNode;
+MetaphorJsExport['validate'] = validate;
 return MetaphorJsExport;
 
 };
