@@ -4577,6 +4577,20 @@ var Promise = function(){
             return this._state == REJECTED;
         },
 
+        hasListeners: function() {
+            var self = this,
+                ls  = [self._fulfills, self._rejects, self._dones, self._fails],
+                i, l;
+
+            for (i = 0, l = ls.length; i < l; i++) {
+                if (ls[i] && ls[i].length) {
+                    return true;
+                }
+            }
+
+            return false;
+        },
+
         _cleanup: function() {
             var self    = this;
 
@@ -8869,31 +8883,52 @@ defineClass({
             }
 
             if (globalEvents.trigger("before-send", opt, transport) === false) {
-                self._promise = Promise.reject();
+                //self._promise = Promise.reject();
+                self.$$promise.reject();
             }
             if (opt.beforeSend && opt.beforeSend.call(opt.context, opt, transport) === false) {
-                self._promise = Promise.reject();
+                //self._promise = Promise.reject();
+                self.$$promise.reject();
             }
 
-            if (!self._promise) {
+            if (self.$$promise.isPending()) {
                 async(transport.send, transport);
 
                 //deferred.abort = bind(self.abort, self);
-                self.$$promise.always(self.$destroy, self);
+                self.$$promise.always(self.asyncDestroy, self);
 
                 //self._promise = deferred;
             }
+            else {
+                async(self.asyncDestroy, self, [], 1000);
+            }
         },
 
+        asyncDestroy: function() {
+
+            var self = this;
+
+            if (self.$isDestroyed()) {
+                return;
+            }
+
+            if (self.$$promise.hasListeners()) {
+                async(self.asyncDestroy, self, [], 1000);
+                return;
+            }
+
+            self.$destroy();
+        },
 
         /*promise: function() {
             return this._promise;
         },*/
 
         abort: function(reason) {
-            this._transport.abort();
             this.$$promise.reject(reason || "abort");
+            this._transport.abort();
             //this._deferred.reject(reason || "abort");
+            return this;
         },
 
         onTimeout: function() {

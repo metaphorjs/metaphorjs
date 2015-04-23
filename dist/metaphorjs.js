@@ -4579,6 +4579,20 @@ var Promise = function(){
             return this._state == REJECTED;
         },
 
+        hasListeners: function() {
+            var self = this,
+                ls  = [self._fulfills, self._rejects, self._dones, self._fails],
+                i, l;
+
+            for (i = 0, l = ls.length; i < l; i++) {
+                if (ls[i] && ls[i].length) {
+                    return true;
+                }
+            }
+
+            return false;
+        },
+
         _cleanup: function() {
             var self    = this;
 
@@ -5956,7 +5970,7 @@ var destroy = function() {
 /**
  * @mixin Observable
  */
-var Observable = ns.register("mixin.Observable", {
+ns.register("mixin.Observable", {
 
     /**
      * @type {Observable}
@@ -6255,7 +6269,7 @@ var Provider = function(){
 
 
 
-var Provider = ns.register("mixin.Provider", {
+ns.register("mixin.Provider", {
 
     /**
      * @type {Provider}
@@ -6318,7 +6332,7 @@ var Provider = ns.register("mixin.Provider", {
 
 
 
-var App = defineClass({
+defineClass({
 
     $class: "App",
     $mixins: ["mixin.Observable", "mixin.Provider"],
@@ -7903,7 +7917,7 @@ var serializeParam = function(){
 /**
  * @mixin Promise
  */
-var Promise = ns.register("mixin.Promise", {
+ns.register("mixin.Promise", {
 
     $$promise: null,
 
@@ -7935,7 +7949,7 @@ var Promise = ns.register("mixin.Promise", {
 
 
 
-var XHR = (function(){
+(function(){
 
 
 
@@ -8405,7 +8419,7 @@ var addListener = function(){
 
 
 
-var Script = defineClass({
+defineClass({
     $class: "ajax.transport.Script",
 
     type: "script",
@@ -8471,7 +8485,7 @@ var Script = defineClass({
 
 
 
-var IFrame = defineClass({
+defineClass({
 
     $class: "ajax.transport.IFrame",
 
@@ -8592,7 +8606,7 @@ var IFrame = defineClass({
 
 
 
-var Ajax = (function(){
+(function(){
 
     var rquery          = /\?/,
         rurl            = /^([\w.+-]+:)(?:\/\/(?:[^\/?#]*@|)([^\/?#:]*)(?::(\d+)|)|)/,
@@ -8871,31 +8885,52 @@ var Ajax = (function(){
             }
 
             if (globalEvents.trigger("before-send", opt, transport) === false) {
-                self._promise = Promise.reject();
+                //self._promise = Promise.reject();
+                self.$$promise.reject();
             }
             if (opt.beforeSend && opt.beforeSend.call(opt.context, opt, transport) === false) {
-                self._promise = Promise.reject();
+                //self._promise = Promise.reject();
+                self.$$promise.reject();
             }
 
-            if (!self._promise) {
+            if (self.$$promise.isPending()) {
                 async(transport.send, transport);
 
                 //deferred.abort = bind(self.abort, self);
-                self.$$promise.always(self.$destroy, self);
+                self.$$promise.always(self.asyncDestroy, self);
 
                 //self._promise = deferred;
             }
+            else {
+                async(self.asyncDestroy, self, [], 1000);
+            }
         },
 
+        asyncDestroy: function() {
+
+            var self = this;
+
+            if (self.$isDestroyed()) {
+                return;
+            }
+
+            if (self.$$promise.hasListeners()) {
+                async(self.asyncDestroy, self, [], 1000);
+                return;
+            }
+
+            self.$destroy();
+        },
 
         /*promise: function() {
             return this._promise;
         },*/
 
         abort: function(reason) {
-            this._transport.abort();
             this.$$promise.reject(reason || "abort");
+            this._transport.abort();
             //this._deferred.reject(reason || "abort");
+            return this;
         },
 
         onTimeout: function() {
@@ -9747,7 +9782,7 @@ var Template = function(){
  * @namespace MetaphorJs
  * @class Component
  */
-var Component = defineClass({
+defineClass({
 
     $class: "Component",
     $mixins: ["mixin.Observable"],
@@ -11851,7 +11886,7 @@ function resolveComponent(cmp, cfg, scope, node, args) {
 
 
 
-var View = defineClass({
+defineClass({
 
     $class: "View",
 
@@ -15582,7 +15617,7 @@ nsAdd("filter.p", function(key, scope, number) {
 
 
 
-var preloaded = nsAdd("filter.preloaded", function(val, scope) {
+nsAdd("filter.preloaded", function(val, scope) {
 
     if (!val) {
         return false;
