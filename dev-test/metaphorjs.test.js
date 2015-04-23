@@ -5954,7 +5954,7 @@ var destroy = function() {
 /**
  * @mixin Observable
  */
-var Observable = ns.register("mixin.Observable", {
+ns.register("mixin.Observable", {
 
     /**
      * @type {Observable}
@@ -6253,7 +6253,7 @@ var Provider = function(){
 
 
 
-var Provider = ns.register("mixin.Provider", {
+ns.register("mixin.Provider", {
 
     /**
      * @type {Provider}
@@ -6316,7 +6316,7 @@ var Provider = ns.register("mixin.Provider", {
 
 
 
-var App = defineClass({
+defineClass({
 
     $class: "App",
     $mixins: ["mixin.Observable", "mixin.Provider"],
@@ -7901,7 +7901,7 @@ var serializeParam = function(){
 /**
  * @mixin Promise
  */
-var Promise = ns.register("mixin.Promise", {
+ns.register("mixin.Promise", {
 
     $$promise: null,
 
@@ -7933,7 +7933,7 @@ var Promise = ns.register("mixin.Promise", {
 
 
 
-var XHR = (function(){
+(function(){
 
 
 
@@ -8403,7 +8403,7 @@ var addListener = function(){
 
 
 
-var Script = defineClass({
+defineClass({
     $class: "ajax.transport.Script",
 
     type: "script",
@@ -8469,7 +8469,7 @@ var Script = defineClass({
 
 
 
-var IFrame = defineClass({
+defineClass({
 
     $class: "ajax.transport.IFrame",
 
@@ -8590,7 +8590,7 @@ var IFrame = defineClass({
 
 
 
-var Ajax = (function(){
+(function(){
 
     var rquery          = /\?/,
         rurl            = /^([\w.+-]+:)(?:\/\/(?:[^\/?#]*@|)([^\/?#:]*)(?::(\d+)|)|)/,
@@ -11849,7 +11849,7 @@ function resolveComponent(cmp, cfg, scope, node, args) {
 
 
 
-var View = defineClass({
+defineClass({
 
     $class: "View",
 
@@ -15580,7 +15580,7 @@ nsAdd("filter.p", function(key, scope, number) {
 
 
 
-var preloaded = nsAdd("filter.preloaded", function(val, scope) {
+nsAdd("filter.preloaded", function(val, scope) {
 
     if (!val) {
         return false;
@@ -19180,7 +19180,7 @@ function getPosition(node, to) {
 
 
 
-var ListBuffered = defineClass({
+defineClass({
 
     $class: "plugin.ListBuffered",
 
@@ -19570,7 +19570,7 @@ var ListBuffered = defineClass({
 
 
 
-var ListPullNext = defineClass({
+defineClass({
 
     $class: "plugin.ListPullNext",
     $extends: "plugin.ListBuffered",
@@ -19730,7 +19730,7 @@ function undelegate(el, selector, event, fn) {
 
 
 
-var Abstract = defineClass({
+defineClass({
 
     $class: "dialog.position.Abstract",
     dialog: null,
@@ -20059,7 +20059,7 @@ var Abstract = defineClass({
 
 
 
-var Target = defineClass({
+defineClass({
 
     $class: "dialog.position.Target",
     $extends: "dialog.position.Abstract",
@@ -20180,7 +20180,7 @@ var Target = defineClass({
 
 
 
-var Mouse = defineClass({
+defineClass({
 
     $class: "dialog.position.Mouse",
     $extends: "dialog.position.Target",
@@ -20327,7 +20327,7 @@ var Mouse = defineClass({
 
 
 
-var Window = defineClass({
+defineClass({
 
     $class: "dialog.position.Window",
     $extends: "dialog.position.Abstract",
@@ -20424,7 +20424,7 @@ var Window = defineClass({
 
 
 
-var Custom = defineClass({
+defineClass({
 
     $class: "dialog.position.Custom",
     $extends: "dialog.position.Abstract",
@@ -20440,7 +20440,7 @@ var Custom = defineClass({
 
 
 
-var Abstract = defineClass({
+defineClass({
 
     $class: "dialog.pointer.Abstract",
     enabled: null,
@@ -20685,7 +20685,7 @@ var Abstract = defineClass({
 
 
 
-var Html = (function(){
+(function(){
 
     var ie6             = null,
         defaultProps    = {
@@ -20982,7 +20982,7 @@ var Html = (function(){
 
 
 
-var Overlay = defineClass({
+defineClass({
 
     $class:         "dialog.Overlay",
     dialog:         null,
@@ -21175,7 +21175,7 @@ var Overlay = defineClass({
 
 
 
-var Manager = defineClass({
+defineClass({
     $class: "dialog.Manager",
     all: null,
     groups: null,
@@ -23883,7 +23883,7 @@ var Dialog = (function(){
 
 
 
-var Component = Component.$extend({
+Component.$extend({
 
     $class: "dialog.Component",
 
@@ -24025,7 +24025,7 @@ var Component = Component.$extend({
 
 
 
-var messages = ns.register("validator.messages", {
+ns.register("validator.messages", {
     required: 		"This field is required.",
     remote:	 		"Please fix this field.",
     email: 			"Please enter a valid email address.",
@@ -24086,7 +24086,7 @@ var rUrl = new RegExp(
 
 
 
-var checkable = ns.register("validator.checkable", function(elem) {
+ns.register("validator.checkable", function(elem) {
     return /radio|checkbox/i.test(elem.type);
 });
 
@@ -24107,7 +24107,7 @@ function eachNode(el, fn, context) {
 
 
 
-var getLength = (function(){
+(function(){
 
     var checkable = ns.get("validator.checkable");
 
@@ -24166,7 +24166,7 @@ var getLength = (function(){
 
 
 
-var empty = (function(){
+(function(){
 
     var checkable   = ns.get("validator.checkable"),
         getLength   = ns.get("validator.getLength");
@@ -24202,7 +24202,7 @@ var empty = (function(){
 
 
 
-var methods = (function(){
+(function(){
 
     var empty = ns.get("validator.empty"),
         getLength = ns.get("validator.getLength");
@@ -24382,7 +24382,7 @@ var methods = (function(){
 
 
 
-var format = ns.register("validator.format", function(str, params) {
+ns.register("validator.format", function(str, params) {
 
     if (isFunction(params)) return str;
 
@@ -24407,7 +24407,7 @@ var format = ns.register("validator.format", function(str, params) {
 
 
 
-var Field = (function(){
+(function(){
 
     /* ***************************** FIELD ****************************************** */
 
@@ -25300,7 +25300,7 @@ var Field = (function(){
 
 
 
-var Group = (function(){
+(function(){
 
 
 /* ***************************** GROUP ****************************************** */
@@ -26687,7 +26687,7 @@ var Validator = (function(){
 
 
 
-var Component = defineClass({
+defineClass({
 
     $class: "validator.Component",
 
@@ -26933,7 +26933,7 @@ Directive.registerAttribute("mjs-validate", 250, function(scope, node, expr, ren
 
 
 
-var ListAnimated = (function(){
+(function(){
 
 
     var methods = {
@@ -27167,7 +27167,7 @@ var ListAnimated = (function(){
 
 
 
-var SrcDeferred = defineClass({
+defineClass({
 
     $class: "plugin.SrcDeferred",
 
@@ -27274,7 +27274,7 @@ var SrcDeferred = defineClass({
 
 
 
-var SrcSize = defineClass({
+defineClass({
 
     $class: "plugin.SrcSize",
     directive: null,
@@ -27412,7 +27412,6 @@ MetaphorJsExports['Renderer'] = Renderer;
 MetaphorJsExports['Text'] = Text;
 MetaphorJsExports['destroy'] = destroy;
 MetaphorJsExports['Provider'] = Provider;
-MetaphorJsExports['App'] = App;
 MetaphorJsExports['isAttached'] = isAttached;
 MetaphorJsExports['data'] = data;
 MetaphorJsExports['toFragment'] = toFragment;
@@ -27431,15 +27430,11 @@ MetaphorJsExports['parseJSON'] = parseJSON;
 MetaphorJsExports['parseXML'] = parseXML;
 MetaphorJsExports['select'] = select;
 MetaphorJsExports['serializeParam'] = serializeParam;
-MetaphorJsExports['XHR'] = XHR;
 MetaphorJsExports['returnTrue'] = returnTrue;
 MetaphorJsExports['DomEvent'] = DomEvent;
 MetaphorJsExports['normalizeEvent'] = normalizeEvent;
 MetaphorJsExports['mousewheelHandler'] = mousewheelHandler;
 MetaphorJsExports['addListener'] = addListener;
-MetaphorJsExports['Script'] = Script;
-MetaphorJsExports['IFrame'] = IFrame;
-MetaphorJsExports['Ajax'] = Ajax;
 MetaphorJsExports['ajax'] = ajax;
 MetaphorJsExports['Template'] = Template;
 MetaphorJsExports['Component'] = Component;
@@ -27456,8 +27451,6 @@ MetaphorJsExports['mhistory'] = mhistory;
 MetaphorJsExports['currentUrl'] = currentUrl;
 MetaphorJsExports['UrlParam'] = UrlParam;
 MetaphorJsExports['resolveComponent'] = resolveComponent;
-MetaphorJsExports['View'] = View;
-MetaphorJsExports['app'] = app;
 MetaphorJsExports['isField'] = isField;
 MetaphorJsExports['getValue'] = getValue;
 MetaphorJsExports['inArray'] = inArray;
@@ -27467,13 +27460,6 @@ MetaphorJsExports['isAndroid'] = isAndroid;
 MetaphorJsExports['isIE'] = isIE;
 MetaphorJsExports['browserHasEvent'] = browserHasEvent;
 MetaphorJsExports['Input'] = Input;
-MetaphorJsExports['bind-html'] = bind-html;
-MetaphorJsExports['break-if'] = break-if;
-MetaphorJsExports['class'] = class;
-MetaphorJsExports['cmp-prop'] = cmp-prop;
-MetaphorJsExports['cmp'] = cmp;
-MetaphorJsExports['config'] = config;
-MetaphorJsExports['each'] = each;
 MetaphorJsExports['getStyle'] = getStyle;
 MetaphorJsExports['boxSizingReliable'] = boxSizingReliable;
 MetaphorJsExports['getDimensions'] = getDimensions;
@@ -27484,99 +27470,38 @@ MetaphorJsExports['getScrollTop'] = getScrollTop;
 MetaphorJsExports['getScrollLeft'] = getScrollLeft;
 MetaphorJsExports['EventBuffer'] = EventBuffer;
 MetaphorJsExports['EventHandler'] = EventHandler;
-MetaphorJsExports['event'] = event;
-MetaphorJsExports['events'] = events;
-MetaphorJsExports['show'] = show;
-MetaphorJsExports['hide'] = hide;
-MetaphorJsExports['if'] = if;
-MetaphorJsExports['ignore'] = ignore;
-MetaphorJsExports['in-focus'] = in-focus;
-MetaphorJsExports['include-file'] = include-file;
-MetaphorJsExports['include'] = include;
-MetaphorJsExports['init'] = init;
-MetaphorJsExports['key'] = key;
-MetaphorJsExports['model'] = model;
-MetaphorJsExports['on'] = on;
-MetaphorJsExports['options'] = options;
-MetaphorJsExports['properties'] = properties;
-MetaphorJsExports['scope-prop'] = scope-prop;
 MetaphorJsExports['preloadImage'] = preloadImage;
-MetaphorJsExports['src'] = src;
 MetaphorJsExports['removeStyle'] = removeStyle;
-MetaphorJsExports['style'] = style;
 MetaphorJsExports['parentData'] = parentData;
 MetaphorJsExports['transclude'] = transclude;
-MetaphorJsExports['view'] = view;
-MetaphorJsExports['tag'] = tag;
-MetaphorJsExports['collect'] = collect;
 MetaphorJsExports['filterArray'] = filterArray;
-MetaphorJsExports['filter'] = filter;
-MetaphorJsExports['get'] = get;
-MetaphorJsExports['join'] = join;
-MetaphorJsExports['l'] = l;
-MetaphorJsExports['limitTo'] = limitTo;
-MetaphorJsExports['linkify'] = linkify;
-MetaphorJsExports['lowercase'] = lowercase;
-MetaphorJsExports['map'] = map;
 MetaphorJsExports['dateFormats'] = dateFormats;
-MetaphorJsExports['moment'] = moment;
 MetaphorJsExports['numberFormats'] = numberFormats;
-MetaphorJsExports['numeral'] = numeral;
-MetaphorJsExports['offset'] = offset;
-MetaphorJsExports['p'] = p;
-MetaphorJsExports['preloaded'] = preloaded;
 MetaphorJsExports['sortArray'] = sortArray;
-MetaphorJsExports['sortBy'] = sortBy;
-MetaphorJsExports['ucfirst'] = ucfirst;
-MetaphorJsExports['uppercase'] = uppercase;
 MetaphorJsExports['onReady'] = onReady;
 MetaphorJsExports['initApp'] = initApp;
 MetaphorJsExports['run'] = run;
-MetaphorJsExports['apps'] = apps;
 MetaphorJsExports['factory'] = factory;
 MetaphorJsExports['Model'] = Model;
 MetaphorJsExports['Record'] = Record;
 MetaphorJsExports['Store'] = Store;
-MetaphorJsExports['FirebaseStore'] = FirebaseStore;
 MetaphorJsExports['StoreRenderer'] = StoreRenderer;
-MetaphorJsExports['each-in-store'] = each-in-store;
 MetaphorJsExports['getScrollParent'] = getScrollParent;
 MetaphorJsExports['getOffsetParent'] = getOffsetParent;
 MetaphorJsExports['getOffset'] = getOffset;
 MetaphorJsExports['getPosition'] = getPosition;
-MetaphorJsExports['ListBuffered'] = ListBuffered;
-MetaphorJsExports['ListPullNext'] = ListPullNext;
 MetaphorJsExports['setStyle'] = setStyle;
 MetaphorJsExports['isVisible'] = isVisible;
 MetaphorJsExports['is'] = is;
+MetaphorJsExports['ucfirst'] = ucfirst;
 MetaphorJsExports['getOuterWidth'] = getOuterWidth;
 MetaphorJsExports['getOuterHeight'] = getOuterHeight;
 MetaphorJsExports['delegates'] = delegates;
 MetaphorJsExports['delegate'] = delegate;
 MetaphorJsExports['undelegate'] = undelegate;
-MetaphorJsExports['Abstract'] = Abstract;
-MetaphorJsExports['Target'] = Target;
-MetaphorJsExports['Mouse'] = Mouse;
-MetaphorJsExports['Window'] = Window;
-MetaphorJsExports['Custom'] = Custom;
-MetaphorJsExports['Html'] = Html;
-MetaphorJsExports['Overlay'] = Overlay;
-MetaphorJsExports['Manager'] = Manager;
 MetaphorJsExports['Dialog'] = Dialog;
-MetaphorJsExports['messages'] = messages;
 MetaphorJsExports['rUrl'] = rUrl;
-MetaphorJsExports['checkable'] = checkable;
 MetaphorJsExports['eachNode'] = eachNode;
-MetaphorJsExports['getLength'] = getLength;
-MetaphorJsExports['empty'] = empty;
-MetaphorJsExports['methods'] = methods;
-MetaphorJsExports['format'] = format;
-MetaphorJsExports['Field'] = Field;
-MetaphorJsExports['Group'] = Group;
 MetaphorJsExports['Validator'] = Validator;
-MetaphorJsExports['validate'] = validate;
-MetaphorJsExports['ListAnimated'] = ListAnimated;
-MetaphorJsExports['SrcDeferred'] = SrcDeferred;
-MetaphorJsExports['SrcSize'] = SrcSize;
 MetaphorJsExports['compile'] = compile;
 typeof global != "undefined" ? (global['MetaphorJs'] = MetaphorJsExports) : (window['MetaphorJs'] = MetaphorJsExports);
