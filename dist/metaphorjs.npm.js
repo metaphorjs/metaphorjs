@@ -5289,6 +5289,8 @@ defineClass({
     domCache: null,
     currentView: null,
 
+    routeMap: null,
+
     watchable: null,
     defaultCmp: null,
 
@@ -5302,6 +5304,8 @@ defineClass({
         var self    = this;
 
         extend(self, cfg, true, false);
+
+        self.routeMap = {};
 
         var node = self.node,
             viewCfg = getNodeConfig(node, self.scope);
@@ -5363,6 +5367,8 @@ defineClass({
                 }
                 route.params = params;
             }
+
+            self.routeMap[route.id] = route;
         }
     },
 
@@ -5406,8 +5412,28 @@ defineClass({
             }
         }
 
+        var tmp = self.onNoMatchFound(loc);
+
+        if (tmp) {
+            if (isThenable(tmp)) {
+                tmp.done(self.resolveRoute, self);
+                tmp.fail(function(){
+                    self.finishOnLocationChange(def);
+                });
+            }
+            else {
+                self.resolveRoute(tmp);
+            }
+        }
+        else {
+            self.finishOnLocationChange(def);
+        }
+    },
+
+    finishOnLocationChange: function(def) {
+        var self = this;
         if (def) {
-            self.resolveRoute(def, []);
+            self.resolveRoute(def);
         }
         else if (self.defaultCmp) {
             self.setComponent(self.defaultCmp);
@@ -5417,6 +5443,8 @@ defineClass({
     resolveRoute: function(route, matches) {
 
         var self = this;
+
+        matches = matches || [];
 
         if (route.resolve) {
             var promise = route.resolve.call(self, route, matches);
@@ -5436,6 +5464,11 @@ defineClass({
     },
 
 
+    onNoMatchFound: function() {
+
+
+
+    },
 
 
 

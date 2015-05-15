@@ -888,6 +888,14 @@ var Class = function(){
             },
 
             /**
+             * @param {string} cls
+             * @returns {boolean}
+             */
+            $is: function(cls) {
+                return isInstanceOf(this, cls);
+            },
+
+            /**
              * Get parent class name
              * @method
              * @returns {string | null}
@@ -5155,6 +5163,46 @@ var Promise = function(){
         }
 
         return promise;
+    };
+
+    Promise.forEach = function(items, fn, context, allResolved) {
+
+        var left = items.slice(),
+            p = new Promise,
+            values = [],
+            i = 0;
+
+        var next = function() {
+
+            if (!left.length) {
+                p.resolve(values);
+                return;
+            }
+
+            var item = left.shift(),
+                index = i;
+
+            i++;
+
+            Promise.fcall(fn, context, [item, index])
+                .done(function(result){
+                    values.push(result);
+                    next();
+                })
+                .fail(function(reason){
+                    if (allResolved) {
+                        p.reject(reason);
+                    }
+                    else {
+                        values.push(null);
+                        next();
+                    }
+                });
+        };
+
+        next();
+
+        return p;
     };
 
     Promise.counter = function(cnt) {
@@ -11911,6 +11959,8 @@ defineClass({
     domCache: null,
     currentView: null,
 
+    routeMap: null,
+
     watchable: null,
     defaultCmp: null,
 
@@ -11924,6 +11974,8 @@ defineClass({
         var self    = this;
 
         extend(self, cfg, true, false);
+
+        self.routeMap = {};
 
         var node = self.node,
             viewCfg = getNodeConfig(node, self.scope);
@@ -11985,6 +12037,8 @@ defineClass({
                 }
                 route.params = params;
             }
+
+            self.routeMap[route.id] = route;
         }
     },
 
@@ -12028,8 +12082,28 @@ defineClass({
             }
         }
 
+        var tmp = self.onNoMatchFound(loc);
+
+        if (tmp) {
+            if (isThenable(tmp)) {
+                tmp.done(self.resolveRoute, self);
+                tmp.fail(function(){
+                    self.finishOnLocationChange(def);
+                });
+            }
+            else {
+                self.resolveRoute(tmp);
+            }
+        }
+        else {
+            self.finishOnLocationChange(def);
+        }
+    },
+
+    finishOnLocationChange: function(def) {
+        var self = this;
         if (def) {
-            self.resolveRoute(def, []);
+            self.resolveRoute(def);
         }
         else if (self.defaultCmp) {
             self.setComponent(self.defaultCmp);
@@ -12039,6 +12113,8 @@ defineClass({
     resolveRoute: function(route, matches) {
 
         var self = this;
+
+        matches = matches || [];
 
         if (route.resolve) {
             var promise = route.resolve.call(self, route, matches);
@@ -12058,6 +12134,11 @@ defineClass({
     },
 
 
+    onNoMatchFound: function() {
+
+
+
+    },
 
 
 
