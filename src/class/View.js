@@ -156,11 +156,11 @@ module.exports = defineClass({
 
     onLocationChange: function() {
 
-        var self    = this,
-            url     = currentUrl(),
-            loc     = parseLocation(url),
-            path    = loc.pathname + loc.search + loc.hash,
-            routes  = self.route,
+        var self        = this,
+            url         = currentUrl(),
+            loc         = parseLocation(url),
+            path        = loc.pathname + loc.search + loc.hash,
+            routes      = self.route,
             def,
             i, len,
             r, matches;
@@ -168,7 +168,11 @@ module.exports = defineClass({
         for (i = 0, len = routes.length; i < len; i++) {
             r = routes[i];
 
-            if (r.regexp && (matches = path.match(r.regexp))) {
+            if (r.regexp && (matches = loc.pathname.match(r.regexp))) {
+                self.resolveRoute(r, matches);
+                return;
+            }
+            else if (r.regexpFull && (matches = path.match(r.regexp))) {
                 self.resolveRoute(r, matches);
                 return;
             }
