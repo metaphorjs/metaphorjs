@@ -13818,6 +13818,10 @@ var EventBuffer = function(){
                 min         = Math.min(prev, current),
                 max         = Math.max(prev, current);
 
+            if (breakValue == "!=") {
+                return prev != current;
+            }
+
             args[0].breakPosition = current < lowBreak ? -1 :  (current >= highBreak ? 1 : 0);
 
             return (min <= lowBreak && lowBreak <= max) ||
