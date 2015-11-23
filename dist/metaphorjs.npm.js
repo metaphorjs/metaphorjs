@@ -6075,7 +6075,7 @@ Directive.registerAttribute("mjs-cmp-prop", 200,
             node: node,
             as: as,
             parentRenderer: parentRenderer,
-            destroyScope: true
+            destroyScope: !sameScope
         }, nodeCfg, false, false);
 
         resolveComponent(cmpName, cfg, scope, node);

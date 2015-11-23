@@ -49,7 +49,7 @@ var Directive = require("../../class/Directive.js"),
             node: node,
             as: as,
             parentRenderer: parentRenderer,
-            destroyScope: true
+            destroyScope: !sameScope
         }, nodeCfg, false, false);
 
         resolveComponent(cmpName, cfg, scope, node);

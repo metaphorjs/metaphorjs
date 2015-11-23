@@ -8877,7 +8877,7 @@ defineClass({
                 }
             }
             else if (opt.contentType == "json") {
-                opt.contentType = "text/plain";
+                opt.contentType = opt.contentTypeHeader || "text/plain";
                 opt.data = isString(opt.data) ? opt.data : JSON.stringify(opt.data);
             }
             else if (isPlainObject(opt.data) && opt.method == "POST" && formDataSupport) {
@@ -11228,6 +11228,7 @@ var mhistory = function(){
 
 
     observable.createEvent("before-location-change", false);
+    observable.createEvent("void-click", false);
 
     var initWindow = function() {
         win                 = window;
@@ -11557,9 +11558,14 @@ var mhistory = function(){
                 href = getAttr(a, "href");
 
                 if (href == "#") {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
+
+                    var res = observable.trigger("void-click", a);
+
+                    if (!res) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
                 }
 
                 if (href && href.substr(0,1) != "#" && !getAttr(a, "target")) {
@@ -13412,7 +13418,7 @@ Directive.registerAttribute("mjs-cmp-prop", 200,
             node: node,
             as: as,
             parentRenderer: parentRenderer,
-            destroyScope: true
+            destroyScope: !sameScope
         }, nodeCfg, false, false);
 
         resolveComponent(cmpName, cfg, scope, node);
@@ -21108,6 +21114,8 @@ defineClass({
 
 
 
+
+
 defineClass({
 
     $class:         "dialog.Overlay",
@@ -21119,13 +21127,17 @@ defineClass({
     animateShow:	false,
     animateHide:	false,
 
-    $init: function(dialog){
+    $mixins:        ["mixin.Observable"],
+
+    $init: function(dialog) {
 
         var self = this;
 
         self.dialog = dialog;
         self.onClickDelegate = bind(self.onClick, self);
         extend(self, dialog.getCfg().overlay, true, false);
+
+        self.$$observable.createEvent("click", false);
 
         if (self.enabled) {
             self.enabled = false;
@@ -21282,7 +21294,16 @@ defineClass({
     },
 
     onClick: function(e) {
-        if (this.modal) {
+
+        var self = this;
+
+        var res = self.trigger("click", self.dialog, self, e);
+
+        if (res === false) {
+            return null;
+        }
+
+        if (self.modal) {
             e = normalizeEvent(e);
             e.preventDefault();
             e.stopPropagation();
@@ -26595,6 +26616,8 @@ var Validator = (function(){
                 self.onFieldStateChange();
 
                 if (self.pending) {
+                    // TODO: find out why this flag is not being set in all onSubmit handlers
+                    self.submitted = true;
                     e && e.preventDefault();
                     return false;
                 }

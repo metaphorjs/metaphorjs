@@ -8877,7 +8877,7 @@ defineClass({
                 }
             }
             else if (opt.contentType == "json") {
-                opt.contentType = "text/plain";
+                opt.contentType = opt.contentTypeHeader || "text/plain";
                 opt.data = isString(opt.data) ? opt.data : JSON.stringify(opt.data);
             }
             else if (isPlainObject(opt.data) && opt.method == "POST" && formDataSupport) {
@@ -11228,6 +11228,7 @@ var mhistory = function(){
 
 
     observable.createEvent("before-location-change", false);
+    observable.createEvent("void-click", false);
 
     var initWindow = function() {
         win                 = window;
@@ -11557,9 +11558,14 @@ var mhistory = function(){
                 href = getAttr(a, "href");
 
                 if (href == "#") {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
+
+                    var res = observable.trigger("void-click", a);
+
+                    if (!res) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
                 }
 
                 if (href && href.substr(0,1) != "#" && !getAttr(a, "target")) {
@@ -13412,7 +13418,7 @@ Directive.registerAttribute("mjs-cmp-prop", 200,
             node: node,
             as: as,
             parentRenderer: parentRenderer,
-            destroyScope: true
+            destroyScope: !sameScope
         }, nodeCfg, false, false);
 
         resolveComponent(cmpName, cfg, scope, node);
