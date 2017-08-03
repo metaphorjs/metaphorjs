@@ -34,7 +34,9 @@ Directive.registerAttribute("mjs-bind", 1000, defineClass({
         removeAttr(node, "mjs-recursive");
 
         if (self.isInput) {
-            self.input  = new Input(node, self.onInputChange, self);
+            //self.input  = new Input(node, self.onInputChange, self);
+            self.input = Input.get(node);
+            self.input.onChange(self.onInputChange, self);
         }
 
         if (self.recursive) {
