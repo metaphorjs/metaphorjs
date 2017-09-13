@@ -22,7 +22,7 @@ Directive.registerAttribute("mjs-style", 1000, Directive.$extend({
 
         if (props) {
             for (k in props) {
-                if (props[k]) {
+                if (props[k] !== undf && props[k] !== null) {
                     style[k] = props[k];
                 }
                 else {
