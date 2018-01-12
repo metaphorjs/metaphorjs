@@ -10,7 +10,7 @@ var Directive = require("../../class/Directive.js"),
 Directive.registerTag("mjs-bind-html", function(scope, node) {
 
     var expr    = getAttr(node, "value"),
-        w       = createWatchable(scope, expr, null, null, null, ns),
+        w       = createWatchable(scope, expr, null, null, {namespace: ns}),
         text    = w.getLastResult(),
         //text    = createGetter(expr)(scope),
         frg     = toFragment(text),

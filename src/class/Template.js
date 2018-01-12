@@ -13,6 +13,7 @@ var data = require("../func/dom/data.js"),
     Renderer = require("./Renderer.js"),
     Cache = require("../lib/Cache.js"),
     Promise = require("metaphorjs-promise/src/lib/Promise.js"),
+    Scope = require("metaphorjs/src/lib/Scope.js"),
     Observable = require("metaphorjs-observable/src/lib/Observable.js"),
     ajax = require("metaphorjs-ajax/src/func/ajax.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js"),
@@ -69,6 +70,14 @@ module.exports = function(){
         },
 
         findTemplate = function(tplId) {
+
+            if (typeof __MetaphorJsPrebuilt !== "undefined" &&
+                __MetaphorJsPrebuilt['__tpls'] &&
+                __MetaphorJsPrebuilt['__tpls'][tplId]) {
+                var tpl = __MetaphorJsPrebuilt['__tpls'][tplId];
+                delete __MetaphorJsPrebuilt['__tpls'][tplId];
+                return toFragment(tpl);
+            }
 
             var tplNode     = window.document.getElementById(tplId),
                 tag;
@@ -175,6 +184,10 @@ module.exports = function(){
 
             self.id     = nextUid();
 
+            if (!self.scope) {
+                self.scope = new Scope;
+            }
+
             observable.createEvent("rendered-" + self.id, false, true);
 
             self.tpl && (self.tpl = trim(self.tpl));
@@ -201,7 +214,7 @@ module.exports = function(){
                 }
 
                 if (isExpression(tpl)) {
-                    self._watcher = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
+                    self._watcher = createWatchable(self.scope, tpl, self.onChange, self, {namespace: ns});
                     var val = self._watcher.getLastResult();
                     if (typeof val != "string") {
                         extend(self, val, true, false);

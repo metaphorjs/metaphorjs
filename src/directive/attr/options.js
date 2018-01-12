@@ -50,7 +50,8 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
                 self.bindStore(value, "on");
             }
             else {
-                self.watcher = createWatchable(scope, self.model, self.onChange, self, null, ns);
+                self.watcher = createWatchable(scope, self.model, self.onChange, self,
+                    {namespace: ns});
             }
         }
         catch (thrownError) {

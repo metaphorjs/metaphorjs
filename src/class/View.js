@@ -99,7 +99,7 @@ module.exports = defineClass({
             self.onLocationChange();
         }
         else if (self.cmp) {
-            self.watchable = createWatchable(self.scope, self.cmp, self.onCmpChange, self, null, ns);
+            self.watchable = createWatchable(self.scope, self.cmp, self.onCmpChange, self, {namespace: ns});
             self.onCmpChange();
         }
     },

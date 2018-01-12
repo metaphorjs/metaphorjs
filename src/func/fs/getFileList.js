@@ -52,7 +52,6 @@ module.exports = function(directory, ext) {
         });
     };
 
-
     if (levels > 0 || isDir(directory)) {
         readDir(directory);
     }

@@ -19,6 +19,8 @@ module.exports = function(){
         startSymbolLength       = 2,
         endSymbolLength         = 2,
 
+        savedBoundary           = '--##--',
+
         langStartSymbol         = '{[',
         langEndSymbol           = ']}',
         langStartLength         = 2,
@@ -32,7 +34,8 @@ module.exports = function(){
 
             if (!origin || !origin.indexOf ||
                 (origin.indexOf(startSymbol) == -1 &&
-                 origin.indexOf(langStartSymbol) == -1)) {
+                 origin.indexOf(langStartSymbol) == -1 &&
+                 origin.indexOf(savedBoundary) == -1)) {
                 return null;
             }
 
@@ -57,8 +60,10 @@ module.exports = function(){
         dataChangeDelegate: null,
         changeTmt: null,
         lang: null,
+        boundary: null,
+        mock: null,
 
-        $init: function(scope, origin, parent, userData, recursive) {
+        $init: function(scope, origin, parent, userData, recursive, boundary, mock) {
 
             var self        = this;
 
@@ -69,6 +74,8 @@ module.exports = function(){
             self.isRoot     = !parent;
             self.data       = userData;
             self.lang       = scope.$app ? scope.$app.lang : null;
+            self.boundary   = boundary || "---";
+            self.mock       = mock;
 
             if (recursive === true || recursive === false) {
                 self.recursive = recursive;
@@ -78,7 +85,7 @@ module.exports = function(){
             self.children   = [];
 
             self.dataChangeDelegate = bind(self.doDataChange, self);
-            self.processed  = self.processText(origin);
+            self.processed  = self.processText(origin, self.mock);
             self.render();
         },
 
@@ -111,6 +118,7 @@ module.exports = function(){
 
             var self    = this,
                 text    = self.processed,
+                b       = self.boundary,
                 i, l,
                 ch;
 
@@ -122,7 +130,7 @@ module.exports = function(){
 
             for (i = -1, l = ch.length; ++i < l;
                  text = text.replace(
-                     '---' + i + '---',
+                     b + i + b,
                      ch[i] instanceof TextRenderer ? ch[i].getString() : ch[i]
                  )) {}
 
@@ -133,7 +141,7 @@ module.exports = function(){
 
 
 
-        processText: function(text) {
+        processText: function(text, mock) {
 
             /*
              arguably, str += "" is faster than separators.push() + separators.join()
@@ -158,7 +166,9 @@ module.exports = function(){
 
                     if (endIndex != startIndex + startSymbolLength) {
                         result += self.watcherMatch(
-                            text.substring(startIndex + startSymbolLength, endIndex)
+                            text.substring(startIndex + startSymbolLength, endIndex),
+                            false,
+                            mock
                         );
                     }
 
@@ -191,7 +201,8 @@ module.exports = function(){
                     if (endIndex != startIndex + langStartLength) {
                         result += self.watcherMatch(
                             text.substring(startIndex + langStartLength, endIndex),
-                            true
+                            true,
+                            mock
                         );
                     }
 
@@ -206,13 +217,60 @@ module.exports = function(){
                 }
             }
 
+            //saved keys
+            index       = 0;
+            text        = result;
+            textLength  = text.length;
+            result      = "";
+            var bndLen      = savedBoundary.length,
+                getterid;
+
+            while(index < textLength) {
+                if (((startIndex = text.indexOf(savedBoundary, index)) != -1) &&
+                    (endIndex = text.indexOf(savedBoundary, startIndex + bndLen)) != -1) {
+
+                    result += text.substring(index, startIndex);
+
+                    getterid    = text.substring(startIndex, endIndex + bndLen);
+                    getterid    = getterid.replace(savedBoundary, "");
+                    getterid    = parseInt(getterid);
+
+                    result += self.watcherMatch(
+                        getterid,
+                        false,
+                        mock
+                    );
+
+                    index = endIndex + bndLen;
+                } else {
+                    // we did not find an interpolation
+                    if (index !== textLength) {
+                        result += text.substring(index);
+                    }
+                    break;
+                }
+            }
+
             return result;
         },
 
-        watcherMatch: function(expr, isLang) {
+        watcherMatch: function(expr, isLang, mock) {
 
             var self    = this,
-                ws      = self.watchers;
+                ws      = self.watchers,
+                b       = self.boundary,
+                getter  = null;
+
+            if (typeof expr == "number") {
+                var getterId = expr;
+                if (typeof __MetaphorJsPrebuilt != "undefined") {
+                    expr = __MetaphorJsPrebuilt['__tpl_getter_codes'][getterId];
+                    getter = __MetaphorJsPrebuilt['__tpl_getters'][getterId];
+                }
+                else {
+                    return "";
+                }
+            }
 
             if (isLang) {
                 expr        = trim(expr);
@@ -232,11 +290,10 @@ module.exports = function(){
                 expr,
                 self.onDataChange,
                 self,
-                null,
-                ns
+                {namespace: ns, mock: mock, getterFn: getter}
             ));
 
-            return '---'+ (ws.length-1) +'---';
+            return b + (ws.length-1) + b;
         },
 
         onDataChange: function() {

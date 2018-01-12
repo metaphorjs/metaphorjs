@@ -125,10 +125,10 @@ module.exports = defineClass({
         var self        = this,
             cfg         = self.cfg;
 
-        self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
+        self.watcher    = createWatchable(scope, self.model, self.onChange, self, {namespace: ns});
         self.trackBy    = cfg.trackBy;
         if (self.trackBy && self.trackBy != '$') {
-            self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, null, ns);
+            self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, {namespace: ns});
         }
         else if (self.trackBy != '$' && !self.watcher.hasInputPipes()) {
             self.trackBy    = '$$'+self.watcher.id;

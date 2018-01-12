@@ -88,7 +88,7 @@ extend(Scope.prototype, {
     },
 
     $watch: function(expr, fn, fnScope) {
-        return Watchable.create(this, expr, fn, fnScope, null);
+        return Watchable.create(this, expr, fn, fnScope);
     },
 
     $unwatch: function(expr, fn, fnScope) {
