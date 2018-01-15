@@ -4,7 +4,7 @@ var Directive = require("../../class/Directive.js"),
     getAttr = require("../../func/dom/getAttr.js");
 
 
-Directive.registerTag("mjs-bind", function(scope, node) {
+Directive.registerTag("bind", function(scope, node) {
 
     var expr    = getAttr(node, "value"),
         text    = createGetter(expr)(scope),

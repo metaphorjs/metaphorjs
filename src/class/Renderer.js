@@ -92,7 +92,7 @@ module.exports = function(){
             }
 
             if (tag && skipMap[tag.toLowerCase()]) { //tag.match(rSkipTag)) {
-                --cnt.countdown == 0 && finish && finish.call(fnScope);
+                --cnt.countdown === 0 && finish && finish.call(fnScope);
                 return;
             }
 
@@ -108,7 +108,7 @@ module.exports = function(){
                             nodeChildren(response, el, fn, fnScope, finish, cnt);
                         }
 
-                        --cnt.countdown == 0 && finish && finish.call(fnScope);
+                        --cnt.countdown === 0 && finish && finish.call(fnScope);
                     });
                     return; // prevent countdown
                 }
@@ -117,7 +117,7 @@ module.exports = function(){
                 }
             }
 
-            --cnt.countdown == 0 && finish && finish.call(fnScope);
+            --cnt.countdown === 0 && finish && finish.call(fnScope);
         },
 
         observer = new Observable;
@@ -170,7 +170,7 @@ module.exports = function(){
             return this.el;
         },
 
-        runHandler: function(f, parentScope, node, value) {
+        runHandler: function(f, parentScope, node, attrProps, cmpConfig, attrMap) {
 
             var self    = this,
                 scope   = f.$isolateScope ?
@@ -179,14 +179,25 @@ module.exports = function(){
                            parentScope.$new() :
                            parentScope),
                 app     = parentScope.$app,
+                value   = attrProps ? attrProps.value : null,
+                // attribute directives receive mods,
+                // tag directives receive cmpConfig
+                mods    = attrProps ? attrProps.mods : cmpConfig,
                 inject  = {
                     $scope: scope,
                     $node: node,
                     $attrValue: value,
                     $renderer: self
                 },
-                args    = [scope, node, value, self],
+                args    = [scope, node, value, self, mods],
+                i,
                 inst;
+
+            for (i in attrMap) {
+                if (attrMap[i].type === "node-reference") {
+                    scope[i] = node;
+                }
+            }
 
             if (app) {
                 inst = app.inject(f, null, inject, args);
@@ -213,7 +224,7 @@ module.exports = function(){
             if (inst && inst.$destroy) {
                 self.on("destroy", inst.$destroy, inst);
             }
-            else if (typeof inst == "function") {
+            else if (typeof inst === "function") {
                 self.on("destroy", inst);
             }
 
@@ -233,7 +244,7 @@ module.exports = function(){
             // text node
             if (nodeType == 3) {
 
-                recursive       = getAttr(node.parentNode, "mjs-recursive") !== null;
+                recursive       = getAttr(node.parentNode, "*recursive") !== null;
                 textRenderer    = createText(scope, node.textContent || node.nodeValue, null, texts.length, recursive);
 
                 if (textRenderer) {
@@ -260,14 +271,17 @@ module.exports = function(){
                     i, f, len,
                     map,
                     attrValue,
+                    attrProps,
                     name,
                     res,
                     handler;
 
+                map = getAttrMap(node, true);
+
                 n = "tag." + tag;
                 if (f = nsGet(n, true)) {
 
-                    res = self.runHandler(f, scope, node);
+                    res = self.runHandler(f, scope, node, null, null, map);
 
                     if (res === false) {
                         return false;
@@ -280,20 +294,21 @@ module.exports = function(){
                     }
                 }
 
-                map = getAttrMap(node);
+
 
                 for (i = 0, len = handlers.length; i < len; i++) {
                     name    = handlers[i].name;
 
-                    if ((attrValue = map[name]) !== undf) {
+                    if ((attrProps = map[name]) !== undf) {
 
+                        attrValue = attrProps.value;
                         handler = handlers[i].handler;
 
                         if (!handler.$keepAttribute) {
-                            removeAttr(node, name);
+                            removeAttr(node, attrProps.original);
                         }
 
-                        res     = self.runHandler(handler, scope, node, attrValue);
+                        res     = self.runHandler(handler, scope, node, attrValue, attrProps, map);
 
                         map[name] = null;
 
@@ -318,27 +333,30 @@ module.exports = function(){
                     return deferred;
                 }
 
-                recursive = map["mjs-recursive"] !== undf;
-                delete map["mjs-recursive"];
+                recursive = map["*recursive"] !== undf;
+                delete map["*recursive"];
 
                 //var attrs   = toArray(node.attributes);
 
                 for (i in map) {
 
-                    if (map[i] !== null) {
+                    // now we only care about untyped attributes
+                    if (map[i] !== null && map[i].type === null) {
 
                         textRenderer = createText(scope, map[i], null, texts.length, recursive);
 
                         if (textRenderer) {
-                            removeAttr(node, i);
+                            removeAttr(node, map[i].original);
                             textRenderer.subscribe(self.onTextChange, self);
                             texts.push({
                                 node: node,
                                 attr: i,
-                                tr:   textRenderer
+                                attrProp: map[i],
+                                tr: textRenderer
                             });
                             self.renderText(texts.length - 1);
                         }
+
                     }
                 }
 

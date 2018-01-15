@@ -6,7 +6,7 @@ var Directive = require("../../class/Directive.js"),
     toArray = require("../../func/array/toArray.js");
 
 
-Directive.registerTag("mjs-if", function(scope, node) {
+Directive.registerTag("if", function(scope, node) {
 
     var expr = getAttr(node, "value"),
         res = !!createGetter(expr)(scope);

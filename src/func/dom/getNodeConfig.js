@@ -16,13 +16,13 @@ module.exports = function getNodeConfig(node, scope, expr) {
 
     cfg = {};
 
-    if (expr || (expr = getAttr(node, "mjs-config")) !== null) {
-        removeAttr(node, "mjs-config");
+    /*if (expr || (expr = getAttr(node, "config")) !== null) {
+        removeAttr(node, "config");
         config = expr ? createGetter(expr)(scope || {}) : {};
         for (i in config){
             cfg[i] = config[i];
         }
-    }
+    }*/
 
     dataset = getNodeData(node);
 

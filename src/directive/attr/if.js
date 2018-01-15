@@ -6,7 +6,7 @@ var animate = require("metaphorjs-animate/src/func/animate.js"),
     getNodeConfig = require("../../func/dom/getNodeConfig.js");
 
 
-Directive.registerAttribute("mjs-if", 500, Directive.$extend({
+Directive.registerAttribute("if", 500, Directive.$extend({
 
     parentEl: null,
     prevEl: null,

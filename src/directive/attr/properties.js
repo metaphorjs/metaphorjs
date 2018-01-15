@@ -40,7 +40,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     for (i = 0, l = booleanAttrs.length; i < l; i++) {
         (function(name){
 
-            Directive.registerAttribute("mjs-" + name, 1000, function(scope, node, expr){
+            Directive.registerAttribute("" + name, 1000, function(scope, node, expr){
                 return new PropertyDirective(scope, node, expr, name);
             });
 

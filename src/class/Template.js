@@ -196,7 +196,7 @@ module.exports = function(){
             var node    = self.node,
                 tpl     = self.tpl || self.url;
 
-            node && removeAttr(node, "mjs-include");
+            node && removeAttr(node, "include");
 
             if (self.shadow) {
                 self._originalNode = node;
@@ -210,7 +210,7 @@ module.exports = function(){
             if (tpl) {
 
                 if (node && node.firstChild && !self.shadow) {
-                    data(node, "mjs-transclude", toFragment(node.childNodes));
+                    data(node, "transclude", toFragment(node.childNodes));
                 }
 
                 if (isExpression(tpl)) {
@@ -388,16 +388,16 @@ module.exports = function(){
 
             if (self.replace) {
 
-                var transclude = el ? data(el, "mjs-transclude") : null;
+                var transclude = el ? data(el, "transclude") : null;
 
                 frg = clone(self._fragment);
 
                 children = toArray(frg.childNodes);
 
                 if (transclude) {
-                    var tr = select("[mjs-transclude], mjs-transclude", frg);
+                    var tr = select("[transclude], transclude", frg);
                     if (tr.length) {
-                        data(tr[0], "mjs-transclude", transclude);
+                        data(tr[0], "transclude", transclude);
                     }
                 }
 
@@ -462,7 +462,7 @@ module.exports = function(){
 
             for (i = 0, l = cnts.length; i < l;  i++) {
 
-                tr      = window.document.createElement("mjs-transclude");
+                tr      = window.document.createElement("transclude");
                 el      = cnts[i];
                 next    = el.nextSibling;
                 sel     = getAttr(el, "select");

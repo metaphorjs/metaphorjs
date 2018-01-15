@@ -108,7 +108,7 @@ module.exports = function resolveComponent(cmp, cfg, scope, node, args) {
         defers.push(cfg.template.initPromise);
 
         if (node && node.firstChild) {
-            data(node, "mjs-transclude", toFragment(node.childNodes));
+            data(node, "transclude", toFragment(node.childNodes));
         }
     }
 

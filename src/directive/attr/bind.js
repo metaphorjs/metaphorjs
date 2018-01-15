@@ -12,7 +12,7 @@ var Directive = require("../../class/Directive.js"),
     getNodeConfig = require("../../func/dom/getNodeConfig.js");
 
 
-Directive.registerAttribute("mjs-bind", 1000, defineClass({
+Directive.registerAttribute("bind", 1000, defineClass({
 
     $extends: Directive,
 
@@ -28,10 +28,10 @@ Directive.registerAttribute("mjs-bind", 1000, defineClass({
             cfg     = getNodeConfig(node, scope);
 
         self.isInput    = isField(node);
-        self.recursive  = cfg.recursive || getAttr(node, "mjs-recursive") !== null;
+        self.recursive  = cfg.recursive || getAttr(node, "recursive") !== null;
         self.lockInput  = cfg.lockInput;
 
-        removeAttr(node, "mjs-recursive");
+        removeAttr(node, "recursive");
 
         if (self.isInput) {
             //self.input  = new Input(node, self.onInputChange, self);

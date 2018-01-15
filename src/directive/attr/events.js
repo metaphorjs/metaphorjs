@@ -16,7 +16,7 @@ var Directive = require("../../class/Directive.js"),
 
         (function(name){
 
-            Directive.registerAttribute("mjs-" + name, 1000, function(scope, node, expr){
+            Directive.registerAttribute(name, 1000, function(scope, node, expr){
 
                 var eh = new EventHandler(scope, node, expr, name, {
                     preventDefault: true
@@ -31,7 +31,7 @@ var Directive = require("../../class/Directive.js"),
         }(events[i]));
     }
 
-    Directive.registerAttribute("mjs-submit", 1000, function(scope, node, expr){
+    Directive.registerAttribute("submit", 1000, function(scope, node, expr){
 
         var fn = createFunc(expr),
             updateRoot = expr.indexOf('$root') + expr.indexOf('$parent') != -2,

@@ -16,7 +16,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     Directive = require("../../class/Directive.js");
 
 
-Directive.registerAttribute("mjs-options", 100, defineClass({
+Directive.registerAttribute("options", 100, defineClass({
 
     $extends: Directive,
 
@@ -42,7 +42,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
             node.removeChild(node.firstChild);
         }
 
-        self.defOption && setAttr(self.defOption, "mjs-default-option", "");
+        self.defOption && setAttr(self.defOption, "default-option", "");
 
         try {
             var value = createGetter(self.model)(scope);

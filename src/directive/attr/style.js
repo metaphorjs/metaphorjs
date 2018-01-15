@@ -3,7 +3,7 @@ var Directive = require("../../class/Directive.js"),
     undf = require("../../var/undf.js"),
     removeStyle = require("../../func/dom/removeStyle.js");
 
-Directive.registerAttribute("mjs-style", 1000, Directive.$extend({
+Directive.registerAttribute("style", 1000, Directive.$extend({
 
     onChange: function() {
 

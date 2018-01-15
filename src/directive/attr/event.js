@@ -4,7 +4,7 @@ var Directive = require("../../class/Directive.js"),
 
 (function() {
 
-    Directive.registerAttribute("mjs-event", 1000, function(scope, node, expr){
+    Directive.registerAttribute("event", 1000, function(scope, node, expr){
 
         var eh = new EventHandler(scope, node, expr);
 

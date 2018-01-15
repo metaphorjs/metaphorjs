@@ -25,7 +25,7 @@ var Directive = require("../../class/Directive.js"),
 
             part = tmp[i];
 
-            if (part == '' || part == 'as') {
+            if (part === '' || part === 'as') {
                 continue;
             }
 
@@ -59,6 +59,6 @@ var Directive = require("../../class/Directive.js"),
 
     cmpAttr.$breakScope = false;
 
-    Directive.registerAttribute("mjs-cmp", 200, cmpAttr);
+    Directive.registerAttribute("cmp", 200, cmpAttr);
 
 }());

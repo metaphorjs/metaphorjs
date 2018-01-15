@@ -7,7 +7,7 @@ var Directive = require("../../class/Directive.js"),
     ns = require("../../../../metaphorjs-namespace/src/var/ns.js");
 
 
-Directive.registerTag("mjs-bind-html", function(scope, node) {
+Directive.registerTag("bind-html", function(scope, node) {
 
     var expr    = getAttr(node, "value"),
         w       = createWatchable(scope, expr, null, null, {namespace: ns}),

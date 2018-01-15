@@ -38,16 +38,22 @@ module.exports = function(){
         scope: null,
         node: null,
         expr: null,
+        mods: null,
 
         autoOnChange: true,
 
-        $init: function(scope, node, expr) {
+        $init: function(scope, node, expr, mods) {
 
             var self        = this,
                 val;
 
             expr            = trim(expr);
 
+            if (mods) {
+                expr        = self.adjustExpression(expr, mods);
+            }
+
+            self.mods       = mods;
             self.node       = node;
             self.expr       = expr;
             self.scope      = scope;
@@ -59,6 +65,10 @@ module.exports = function(){
 
             scope.$on("destroy", self.onScopeDestroy, self);
             scope.$on("reset", self.onScopeReset, self);
+        },
+
+        adjustExpression: function(expr, mods) {
+            return expr;
         },
 
         onScopeDestroy: function() {

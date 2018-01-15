@@ -5,7 +5,7 @@ var Directive = require("../../class/Directive.js"),
 
 require("./bind.js");
 
-Directive.registerAttribute("mjs-bind-html", 1000, defineClass({
+Directive.registerAttribute("bind-html", 1000, defineClass({
 
     $extends: "attr.mjs-bind",
 

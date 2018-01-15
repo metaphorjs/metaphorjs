@@ -6,7 +6,7 @@ var Directive = require("../../class/Directive.js"),
     setAttr = require("../../func/dom/setAttr.js");
 
 
-Directive.registerTag("mjs-tag", function(scope, node) {
+Directive.registerTag("tag", function(scope, node) {
 
     var expr = getAttr(node, "value"),
         tag = createGetter(expr)(scope);

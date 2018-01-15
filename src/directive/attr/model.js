@@ -13,7 +13,7 @@ var async = require("../../func/async.js"),
 
 
 
-Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
+Directive.registerAttribute("model", 1000, Directive.$extend({
 
     inProg: false,
     input: null,

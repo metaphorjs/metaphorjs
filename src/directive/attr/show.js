@@ -6,7 +6,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     Directive = require("../../class/Directive.js");
 
 
-Directive.registerAttribute("mjs-show", 500, defineClass({
+Directive.registerAttribute("show", 500, defineClass({
 
     $extends: Directive,
 

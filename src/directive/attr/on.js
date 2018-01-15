@@ -2,7 +2,7 @@
 var Directive = require("../../class/Directive.js"),
     createGetter = require("metaphorjs-watchable/src/func/createGetter.js");
 
-Directive.registerAttribute("mjs-on", 1000, function(scope, node, expr){
+Directive.registerAttribute("on", 1000, function(scope, node, expr){
 
     var cfgs = createGetter(expr)(scope);
 

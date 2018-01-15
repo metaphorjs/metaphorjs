@@ -61,10 +61,10 @@ module.exports = defineClass({
         self.animateMove    = !self.tagMode && !cfg.buffered &&
                                 cfg.animateMove && animate.cssAnimationSupported();
         self.animate        = !self.tagMode && !cfg.buffered &&
-                                (getAttr(node, "mjs-animate") !== null || cfg.animate);
+                                (getAttr(node, "animate") !== null || cfg.animate);
         self.id             = cfg.id || nextUid();
 
-        removeAttr(node, "mjs-animate");
+        removeAttr(node, "animate");
 
         if (self.animate) {
             self.$plugins.push(typeof cfg.animatePlugin == "string" ? cfg.animatePlugin : "plugin.ListAnimated");
@@ -93,7 +93,7 @@ module.exports = defineClass({
 
         var self = this;
 
-        //removeAttr(node, "mjs-include");
+        //removeAttr(node, "include");
 
         if (self.tagMode) {
             expr = getAttr(node, "value");

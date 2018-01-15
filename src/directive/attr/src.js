@@ -9,7 +9,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     getNodeConfig = require("../../func/dom/getNodeConfig.js"),
     trim = require("../../func/trim.js");
 
-Directive.registerAttribute("mjs-src", 1000, defineClass({
+Directive.registerAttribute("src", 1000, defineClass({
 
     $extends: Directive,
 

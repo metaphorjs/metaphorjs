@@ -80,7 +80,7 @@ var Directive = require("../../class/Directive.js"),
         return list;
     };
 
-    Directive.registerAttribute("mjs-class", 1000, defineClass({
+    Directive.registerAttribute("class", 1000, defineClass({
 
         $extends: Directive,
 

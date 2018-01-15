@@ -4,7 +4,7 @@ var Directive = require("../../class/Directive.js"),
     createFunc = require("metaphorjs-watchable/src/func/createFunc.js"),
     Input = require("metaphorjs-input/src/lib/Input.js");
 
-Directive.registerAttribute("mjs-key", 1000, function(scope, node, expr){
+Directive.registerAttribute("key", 1000, function(scope, node, expr){
 
     var cfg = createGetter(expr)(scope),
         handler = cfg.handler,
