@@ -3,6 +3,7 @@
 var nextUid = require("../func/nextUid.js"),
     isArray = require("../func/isArray.js"),
     toArray = require("../func/array/toArray.js"),
+    inArray = require("../func/array/inArray.js"),
     isThenable = require("../func/isThenable.js"),
     Scope = require("../lib/Scope.js"),
     Directive = require("./Directive.js"),
@@ -13,6 +14,8 @@ var nextUid = require("../func/nextUid.js"),
     removeAttr = require("../func/dom/removeAttr.js"),
     getAttrMap = require("../func/dom/getAttrMap.js"),
     undf = require("../var/undf.js"),
+
+    htmlTags = require("../var/htmlTags.js"),
 
     Observable = require("metaphorjs-observable/src/lib/Observable.js"),
     nsGet = require("metaphorjs-namespace/src/func/nsGet.js"),
@@ -170,19 +173,19 @@ module.exports = function(){
             return this.el;
         },
 
-        runHandler: function(f, parentScope, node, attrProps, cmpConfig, attrMap) {
+        runHandler: function(f, parentScope, node, attr, attrMap) {
 
             var self    = this,
                 scope   = f.$isolateScope ?
-                          parentScope.$newIsolated() :
+                            parentScope.$newIsolated() :
                           (f.$breakScope  ?
                            parentScope.$new() :
                            parentScope),
                 app     = parentScope.$app,
-                value   = attrProps ? attrProps.value : null,
+                value   = attr ? attr.value : null,
                 // attribute directives receive mods,
                 // tag directives receive cmpConfig
-                mods    = attrProps ? attrProps.mods : cmpConfig,
+                mods    = attr ? attr.mods : null,
                 inject  = {
                     $scope: scope,
                     $node: node,
@@ -193,10 +196,8 @@ module.exports = function(){
                 i,
                 inst;
 
-            for (i in attrMap) {
-                if (attrMap[i].type === "node-reference") {
-                    scope[i] = node;
-                }
+            for (i in attrMap['reference']) {
+                scope[i] = node;
             }
 
             if (app) {
@@ -242,10 +243,13 @@ module.exports = function(){
                 n;
 
             // text node
-            if (nodeType == 3) {
+            if (nodeType === 3) {
 
                 recursive       = getAttr(node.parentNode, "*recursive") !== null;
-                textRenderer    = createText(scope, node.textContent || node.nodeValue, null, texts.length, recursive);
+                textRenderer    = createText(
+                    scope,
+                    node.textContent || node.nodeValue,
+                    null, texts.length, recursive);
 
                 if (textRenderer) {
                     textRenderer.subscribe(self.onTextChange, self);
@@ -259,7 +263,7 @@ module.exports = function(){
             }
 
             // element node
-            else if (nodeType == 1) {
+            else if (nodeType === 1) {
 
                 if (!handlers) {
                     handlers = Directive.getAttributes();
@@ -269,19 +273,30 @@ module.exports = function(){
                     defers  = [],
                     nodes   = [],
                     i, f, len,
-                    map,
+                    map, as,
                     attrValue,
                     attrProps,
                     name,
                     res,
                     handler;
 
-                map = getAttrMap(node, true);
+                map = getAttrMap(node, true, true);
 
                 n = "tag." + tag;
                 if (f = nsGet(n, true)) {
 
-                    res = self.runHandler(f, scope, node, null, null, map);
+                    as = map['modifier']['as'];
+                    if (!as && !inArray(tag, htmlTags)) {
+                        as = "div";
+                    }
+
+                    if (as) {
+                        as = document.createElement(as);
+                        node.parentNode.replaceChild(as, node);
+                        node = as;
+                    }
+
+                    res = self.runHandler(f, scope, node, null, map);
 
                     if (res === false) {
                         return false;
@@ -299,16 +314,16 @@ module.exports = function(){
                 for (i = 0, len = handlers.length; i < len; i++) {
                     name    = handlers[i].name;
 
-                    if ((attrProps = map[name]) !== undf) {
+                    if ((attrProps = map['directive'][name]) !== undf) {
 
-                        attrValue = attrProps.value;
+                        //attrValue = attrProps.value;
                         handler = handlers[i].handler;
 
                         if (!handler.$keepAttribute) {
                             removeAttr(node, attrProps.original);
                         }
 
-                        res     = self.runHandler(handler, scope, node, attrValue, attrProps, map);
+                        res     = self.runHandler(handler, scope, node, attrProps, map);
 
                         map[name] = null;
 
@@ -333,8 +348,7 @@ module.exports = function(){
                     return deferred;
                 }
 
-                recursive = map["*recursive"] !== undf;
-                delete map["*recursive"];
+                recursive = map['modifier']["recursive"] !== undf;
 
                 //var attrs   = toArray(node.attributes);
 
@@ -343,7 +357,8 @@ module.exports = function(){
                     // now we only care about untyped attributes
                     if (map[i] !== null && map[i].type === null) {
 
-                        textRenderer = createText(scope, map[i], null, texts.length, recursive);
+                        textRenderer = createText(
+                            scope, map[i], null, texts.length, recursive);
 
                         if (textRenderer) {
                             removeAttr(node, map[i].original);
@@ -369,10 +384,13 @@ module.exports = function(){
         process: function() {
             var self    = this;
             if (self.el.nodeType) {
-                eachNode(self.el, self.processNode, self, self.onProcessingFinished, {countdown: 1});
+                eachNode(self.el, self.processNode, self,
+                    self.onProcessingFinished, {countdown: 1});
             }
             else {
-                nodeChildren(null, self.el, self.processNode, self, self.onProcessingFinished, {countdown: 0});
+                nodeChildren(
+                    null, self.el, self.processNode,
+                    self, self.onProcessingFinished, {countdown: 0});
             }
         },
 

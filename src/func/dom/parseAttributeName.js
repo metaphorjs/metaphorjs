@@ -3,17 +3,23 @@ module.exports = (function(){
 
 var reg = /^([\[({@#$*])([^)\]}"']+)[\])}]?$/,
     types = {
-        "*": "node-property",
-        "$": "scope-property",
-        "@": "cmp-property",
+        "*": "modifier",
+        "$": "scope",
+        "@": "component",
+        "#": "reference",
+
         "[": "directive",
-        "(": "event",
-        "#": "node-reference"
+        "(": "directive",
+        "{": "directive"
+    },
+    subtypes = {
+        "[": "property",
+        "(": "event"
     };
 
 return function parseAttributeName(name) {
 
-    var mods, props = {
+    var mods, type, props = {
         type: null,
         mods: null,
         name: name,
@@ -31,12 +37,14 @@ return function parseAttributeName(name) {
         var match = name.match(reg);
 
         if (match) {
-            props.type = types[match[1]];
+            props.type = type = types[match[1]];
+            props.subtype = subtypes[match[1]];
             name = match[2];
             mods = name.split(".");
             name = name.unshift();
             props.mods = mods.length ? mods : null;
-            props.name = name;
+            props.directive = type === 'directive' ? name : null;
+            props.name = type === 'directive' ? props.original : name;
         }
     }
 

@@ -45,7 +45,7 @@ module.exports = function resolveComponent(cmp, cfg, scope, node, args) {
         gProvider   = Provider.global(),
         injectFn    = app ? app.inject : gProvider.inject,
         injectCt    = app ? app : gProvider,
-        cloak       = node ? getAttr(node, "mjs-cloak") : null,
+        cloak       = node ? getAttr(node, "*cloak") : null,
         inject      = {
             $node: node || null,
             $scope: scope || null,
