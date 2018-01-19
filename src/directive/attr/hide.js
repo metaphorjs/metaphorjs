@@ -7,7 +7,7 @@ require("./show.js");
 
 Directive.registerAttribute("hide", 500, defineClass({
 
-    $extends: "attr.mjs-show",
+    $extends: "attr.show",
 
     onChange: function() {
         var self    = this,

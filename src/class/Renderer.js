@@ -73,29 +73,6 @@ module.exports = function(){
             }
         },
 
-        extendWithAttributes = function(target, attrMap, type) {
-
-            var name, names = {
-                "scope": "{$}",
-                "component": "{@}"
-            };
-
-            if (attrMap[type+"-extend"]) {
-                extend(
-                    target,
-                    createGetter(attrMap[type+"-extend"][names[type]].value)(target),
-                    true,
-                    false
-                );
-            }
-
-            for (name in attrMap[type]) {
-                target[name] = attrMap[type][name].value;
-            }
-
-            return target;
-        },
-
         //rSkipTag = /^(script|template|mjs-template|style)$/i,
 
         skipMap = {
@@ -216,8 +193,7 @@ module.exports = function(){
                     $attrValue: value,
                     $renderer: self
                 },
-                cmpCfg  = extendWithAttributes({}, attrMap, "component"),
-                args    = [scope, node, value, self, cmpCfg],
+                args    = [scope, node, value, self, attrMap],
                 i,
                 inst;
 
@@ -225,7 +201,7 @@ module.exports = function(){
                 scope[i] = node;
             }
 
-            extendWithAttributes(scope, attrMap, "scope");
+            attrMap.extendTarget("scope", scope);
 
             if (app) {
                 inst = app.inject(f, null, inject, args);
@@ -301,7 +277,6 @@ module.exports = function(){
                     nodes   = [],
                     i, f, len,
                     map, as,
-                    attrValue,
                     attrProps,
                     name,
                     res,
@@ -345,9 +320,9 @@ module.exports = function(){
 
                         handler = handlers[i].handler;
 
-                        //if (!handler.$keepAttribute) {
-                        //    removeAttr(node, attrProps.original);
-                        //}
+                        if (!handler.$keepAttribute) {
+                            removeAttr(node, attrProps.original);
+                        }
 
                         res     = self.runHandler(handler, scope, node, attrProps, map);
 

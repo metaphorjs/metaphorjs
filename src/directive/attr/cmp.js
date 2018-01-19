@@ -7,7 +7,7 @@ var Directive = require("../../class/Directive.js"),
 
 (function(){
 
-    var cmpAttr = function(scope, node, expr, parentRenderer, cmpCfg){
+    var cmpAttr = function(scope, node, expr, parentRenderer, attrMap){
 
 
         var cmpName,
@@ -44,13 +44,15 @@ var Directive = require("../../class/Directive.js"),
 
         scope       = isolateScope ? scope.$newIsolated() : (sameScope ? scope : scope.$new());
 
+        attrMap.extendTarget("scope", scope);
+
         var cfg     = extend({
             scope: scope,
             node: node,
             as: as,
             parentRenderer: parentRenderer,
             destroyScope: !sameScope
-        }, nodeCfg, cmpCfg, false, false);
+        }, nodeCfg, attrMap.extendTarget("component"), false, false);
 
         resolveComponent(cmpName, cfg, scope, node);
 

@@ -19,7 +19,12 @@ module.exports = function run(w, appData) {
 
         for (i = -1, l = appNodes.length; ++i < l;){
             el      = appNodes[i];
-            initApp(el, getAttr(el, "mjs-app"), appData, true);
+            initApp(
+                el,
+                getAttr(el, "mjs-app"),
+                appData,
+                true
+            );
         }
     }, win);
 

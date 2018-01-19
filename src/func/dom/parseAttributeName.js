@@ -19,6 +19,10 @@ var reg = /^([\[({@#$*])([^)\]}"']+)[\])}]?$/,
 
 return function parseAttributeName(name) {
 
+    if (name.indexOf("mjs-") === 0) {
+        name = name.substr(4);
+    }
+
     var mods, props = {
         type: null,
         mods: null,
@@ -41,7 +45,7 @@ return function parseAttributeName(name) {
             props.subtype = subtypes[match[1]];
             name = match[2];
             mods = name.split(".");
-            name = name.unshift();
+            name = mods.shift();
             props.mods = mods.length ? mods : null;
             props.mod_part = mods.join(".");
             //props.directive = type === 'directive' ? name : null;
