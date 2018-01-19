@@ -121,6 +121,13 @@ module.exports = function(){
             if (!nsGet("tag." + name, true)) {
                 nsAdd("tag." + name, handler)
             }
+        },
+
+        // components are case sensitive
+        registerComponent: function(name, cmp) {
+            if (!nsGet("component." + name, true)) {
+                nsAdd("component." + name.toLowerCase(), cmp)
+            }
         }
 
     });

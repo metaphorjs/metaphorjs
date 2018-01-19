@@ -38,8 +38,13 @@ var Directive = require("../../class/Directive.js"),
         }
 
 
-        var constr          = nsGet(cmpName, true),
-            sameScope       = nodeCfg.sameScope || constr.$sameScope,
+        var constr          = nsGet(cmpName, true);
+
+        if (!constr) {
+            throw "Component " + cmpName + " not found";
+        }
+
+        var sameScope       = nodeCfg.sameScope || constr.$sameScope,
             isolateScope    = nodeCfg.isolateScope || constr.$isolateScope;
 
         scope       = isolateScope ? scope.$newIsolated() : (sameScope ? scope : scope.$new());

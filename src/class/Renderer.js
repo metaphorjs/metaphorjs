@@ -275,7 +275,7 @@ module.exports = function(){
                 var tag     = node.tagName.toLowerCase(),
                     defers  = [],
                     nodes   = [],
-                    i, f, len,
+                    i, f, len, c,
                     map, as,
                     attrProps,
                     name,
@@ -284,10 +284,22 @@ module.exports = function(){
 
                 map = getAttrMap(node, true, true);
 
-                n = "tag." + tag;
-                if (f = nsGet(n, true)) {
+                // this tag represents component
+                // we just pass it to attr.cmp directive
+                // by adding it to the attr map
+                if (c = nsGet("component." + tag, true)) {
+                    map["directive"]['cmp'] = {
+                        value: c.prototype.$class,
+                        name: "cmp",
+                        original: "cmp",
+                        type: "directive",
+                        mods: null
+                    };
 
                     as = map['modifier']['as'];
+                    if (as) {
+                        as = as.value;
+                    }
                     if (!as && !inArray(tag, htmlTags)) {
                         as = "div";
                     }
@@ -295,8 +307,15 @@ module.exports = function(){
                     if (as) {
                         as = document.createElement(as);
                         node.parentNode.replaceChild(as, node);
+                        while (node.firstChild) {
+                            as.appendChild(node.firstChild);
+                        }
                         node = as;
                     }
+                }
+
+                // this is a tag directive
+                if (f = nsGet("tag." + tag, true)) {
 
                     res = self.runHandler(f, scope, node, null, map);
 
@@ -312,7 +331,7 @@ module.exports = function(){
                 }
 
 
-
+                // this is an attribute directive
                 for (i = 0, len = handlers.length; i < len; i++) {
                     name    = handlers[i].name;
 
@@ -326,7 +345,7 @@ module.exports = function(){
 
                         res     = self.runHandler(handler, scope, node, attrProps, map);
 
-                        //map[name] = null;
+                        delete map['directive'][name];
 
                         if (res === false) {
                             return false;
@@ -353,6 +372,7 @@ module.exports = function(){
 
                 //var attrs   = toArray(node.attributes);
 
+                // this is a plain attribute
                 for (i in map['attribute']) {
 
                     // now we only care about untyped attributes

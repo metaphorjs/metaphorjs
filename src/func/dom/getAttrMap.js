@@ -106,8 +106,6 @@ return function getAttrMap(node, expand, group) {
         }
     }
 
-    console.log(node, map);
-
     return map;
 };
 
