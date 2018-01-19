@@ -7,7 +7,7 @@ var Directive = require("../../class/Directive.js"),
 
 (function(){
 
-    var cmpAttr = function(scope, node, expr, parentRenderer){
+    var cmpAttr = function(scope, node, expr, parentRenderer, cmpCfg){
 
 
         var cmpName,
@@ -50,7 +50,7 @@ var Directive = require("../../class/Directive.js"),
             as: as,
             parentRenderer: parentRenderer,
             destroyScope: !sameScope
-        }, nodeCfg, false, false);
+        }, nodeCfg, cmpCfg, false, false);
 
         resolveComponent(cmpName, cfg, scope, node);
 

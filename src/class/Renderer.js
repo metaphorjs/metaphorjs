@@ -14,6 +14,8 @@ var nextUid = require("../func/nextUid.js"),
     removeAttr = require("../func/dom/removeAttr.js"),
     getAttrMap = require("../func/dom/getAttrMap.js"),
     undf = require("../var/undf.js"),
+    extend = require("../func/extend.js"),
+    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
 
     htmlTags = require("../var/htmlTags.js"),
 
@@ -69,6 +71,29 @@ module.exports = function(){
                     for (var i = -1, l = add.length; ++i < l; collectNodes(coll, add[i])){}
                 }
             }
+        },
+
+        extendWithAttributes = function(target, attrMap, type) {
+
+            var name, names = {
+                "scope": "{$}",
+                "component": "{@}"
+            };
+
+            if (attrMap[type+"-extend"]) {
+                extend(
+                    target,
+                    createGetter(attrMap[type+"-extend"][names[type]].value)(target),
+                    true,
+                    false
+                );
+            }
+
+            for (name in attrMap[type]) {
+                target[name] = attrMap[type][name].value;
+            }
+
+            return target;
         },
 
         //rSkipTag = /^(script|template|mjs-template|style)$/i,
@@ -185,20 +210,22 @@ module.exports = function(){
                 value   = attr ? attr.value : null,
                 // attribute directives receive mods,
                 // tag directives receive cmpConfig
-                mods    = attr ? attr.mods : null,
                 inject  = {
                     $scope: scope,
                     $node: node,
                     $attrValue: value,
                     $renderer: self
                 },
-                args    = [scope, node, value, self, mods],
+                cmpCfg  = extendWithAttributes({}, attrMap, "component"),
+                args    = [scope, node, value, self, cmpCfg],
                 i,
                 inst;
 
             for (i in attrMap['reference']) {
                 scope[i] = node;
             }
+
+            extendWithAttributes(scope, attrMap, "scope");
 
             if (app) {
                 inst = app.inject(f, null, inject, args);
@@ -316,16 +343,15 @@ module.exports = function(){
 
                     if ((attrProps = map['directive'][name]) !== undf) {
 
-                        //attrValue = attrProps.value;
                         handler = handlers[i].handler;
 
-                        if (!handler.$keepAttribute) {
-                            removeAttr(node, attrProps.original);
-                        }
+                        //if (!handler.$keepAttribute) {
+                        //    removeAttr(node, attrProps.original);
+                        //}
 
                         res     = self.runHandler(handler, scope, node, attrProps, map);
 
-                        map[name] = null;
+                        //map[name] = null;
 
                         if (res === false) {
                             return false;
@@ -352,27 +378,29 @@ module.exports = function(){
 
                 //var attrs   = toArray(node.attributes);
 
-                for (i in map) {
+                for (i in map['attribute']) {
 
                     // now we only care about untyped attributes
-                    if (map[i] !== null && map[i].type === null) {
+                    //if (map[i] !== null && map[i].type === null) {
 
                         textRenderer = createText(
-                            scope, map[i], null, texts.length, recursive);
+                            scope,
+                            map['attribute'][i].defaultValue,
+                            null, texts.length, recursive);
 
                         if (textRenderer) {
-                            removeAttr(node, map[i].original);
+                            removeAttr(node, map['attribute'][i].original);
                             textRenderer.subscribe(self.onTextChange, self);
                             texts.push({
                                 node: node,
                                 attr: i,
-                                attrProp: map[i],
+                                attrProp: map['attribute'][i],
                                 tr: textRenderer
                             });
                             self.renderText(texts.length - 1);
                         }
 
-                    }
+                    //}
                 }
 
                 return nodes.length ? nodes : true;
@@ -412,13 +440,13 @@ module.exports = function(){
 
             if (attrName) {
 
-                if (attrName == "value") {
+                if (attrName === "value") {
                     text.node.value = res;
                 }
-                else if (attrName == "class") {
+                else if (attrName === "class") {
                     text.node.className = res;
                 }
-                else if (attrName == "src") {
+                else if (attrName === "src") {
                     text.node.src = res;
                 }
 

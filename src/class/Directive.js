@@ -42,18 +42,18 @@ module.exports = function(){
 
         autoOnChange: true,
 
-        $init: function(scope, node, expr, mods) {
+        $init: function(scope, node, expr) {
 
             var self        = this,
                 val;
 
             expr            = trim(expr);
 
-            if (mods) {
-                expr        = self.adjustExpression(expr, mods);
-            }
+            //if (mods) {
+            //    expr        = self.adjustExpression(expr, mods);
+            //}
 
-            self.mods       = mods;
+            //self.mods       = mods;
             self.node       = node;
             self.expr       = expr;
             self.scope      = scope;

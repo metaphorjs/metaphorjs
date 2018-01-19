@@ -19,7 +19,7 @@ var reg = /^([\[({@#$*])([^)\]}"']+)[\])}]?$/,
 
 return function parseAttributeName(name) {
 
-    var mods, type, props = {
+    var mods, props = {
         type: null,
         mods: null,
         name: name,
@@ -27,7 +27,7 @@ return function parseAttributeName(name) {
     };
 
     if (name === '{@}') {
-        props.type = "cmp-extend";
+        props.type = "component-extend";
     }
     else if (name === '{$}') {
         props.type = 'scope-extend';
@@ -37,14 +37,19 @@ return function parseAttributeName(name) {
         var match = name.match(reg);
 
         if (match) {
-            props.type = type = types[match[1]];
+            props.type = types[match[1]];
             props.subtype = subtypes[match[1]];
             name = match[2];
             mods = name.split(".");
             name = name.unshift();
             props.mods = mods.length ? mods : null;
-            props.directive = type === 'directive' ? name : null;
-            props.name = type === 'directive' ? props.original : name;
+            props.mod_part = mods.join(".");
+            //props.directive = type === 'directive' ? name : null;
+            //props.name = type === 'directive' ? props.original : name;
+            props.name = name;
+        }
+        else {
+            props.type = "attribute";
         }
     }
 

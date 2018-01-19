@@ -5,7 +5,7 @@ module.exports = (function(){
 
 return function getAttrMap(node, expand, group) {
     var map,
-        i, l, a,
+        i, l, a, m,
         props, type,
         attrs = node.attributes;
 
@@ -15,7 +15,10 @@ return function getAttrMap(node, expand, group) {
             "directive": {},
             "scope": {},
             "component": {},
-            "reference": {}
+            "reference": {},
+            "component-extend": {},
+            "scope-extend": {},
+            "attribute": {}
         };
     }
     else {
@@ -31,13 +34,24 @@ return function getAttrMap(node, expand, group) {
 
             if (group) {
                 type = props.type || "";
-                if (!map[type]) {
-                    map[type] = {};
-                }
-                map[type][props.name] = props;
+                m = map[type];
             }
             else {
-                map[props.name] = props;
+                m = map;
+            }
+
+            if (!m[props.name]) {
+                if (props.mod_part) {
+                    props.value = {};
+                    props.value[props.mod_part] = a.value;
+                }
+                else {
+                    props.value = a.value;
+                }
+                m[props.name] = props;
+            }
+            else {
+                m[props.name].value[props.mod_part] = a.value;
             }
         }
         else {

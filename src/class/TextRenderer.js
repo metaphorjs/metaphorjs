@@ -33,9 +33,9 @@ module.exports = function(){
         factory                 = function(scope, origin, parent, userData, recursive) {
 
             if (!origin || !origin.indexOf ||
-                (origin.indexOf(startSymbol) == -1 &&
-                 origin.indexOf(langStartSymbol) == -1 &&
-                 origin.indexOf(savedBoundary) == -1)) {
+                (origin.indexOf(startSymbol) === -1 &&
+                 origin.indexOf(langStartSymbol) === -1 &&
+                 origin.indexOf(savedBoundary) === -1)) {
                 return null;
             }
 
@@ -106,7 +106,7 @@ module.exports = function(){
 
             var text = self.text;
 
-            if (text.indexOf('\\{') != -1) {
+            if (text.indexOf('\\{') !== -1) {
                 return text.replace(rReplaceEscape, '{');
             }
 

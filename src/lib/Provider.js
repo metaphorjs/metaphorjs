@@ -142,16 +142,16 @@ module.exports = function(){
 
                 type    = item.type;
 
-                if (type == VALUE || type == CONSTANT) {
+                if (type === VALUE || type === CONSTANT) {
                     return item.value;
                 }
-                else if (type == FACTORY) {
+                else if (type === FACTORY) {
                     res = self.inject(item.fn, item.context, currentValues, callArgs);
                 }
-                else if (type == SERVICE) {
+                else if (type === SERVICE) {
                     res = self.inject(item.fn, null, currentValues, callArgs, true);
                 }
-                else if (type == PROVIDER) {
+                else if (type === PROVIDER) {
 
                     if (!item.instance) {
 
@@ -175,7 +175,7 @@ module.exports = function(){
                     item.type = VALUE;
                     item.value = res;
 
-                    if (type == FACTORY && isThenable(res)) {
+                    if (type === FACTORY && isThenable(res)) {
                         res.done(function(value){
                             item.value = value;
                         });
