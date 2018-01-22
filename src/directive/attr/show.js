@@ -2,7 +2,6 @@
 
 var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     animate = require("metaphorjs-animate/src/func/animate.js"),
-    getNodeConfig = require("../../func/dom/getNodeConfig.js"),
     Directive = require("../../class/Directive.js");
 
 
@@ -13,10 +12,11 @@ Directive.registerAttribute("show", 500, defineClass({
     initial: true,
     display: "",
 
-    $init: function(scope, node, expr) {
+    $init: function(scope, node, expr, renderer, attrMap) {
 
         var self    = this,
-            cfg = getNodeConfig(node, scope);
+            cfg     = attrMap['modifier']['show'] ?
+                        attrMap['modifier']['show'].value : {};
 
         self.display = cfg.display || "";
 

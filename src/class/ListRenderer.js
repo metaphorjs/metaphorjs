@@ -15,8 +15,7 @@ var createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"
     bind = require("../func/bind.js"),
     undf = require("../var/undf.js"),
     isFunction = require("../func/isFunction.js"),
-    getAttr = require("../func/dom/getAttr.js"),
-    removeAttr = require("../func/dom/removeAttr.js");
+    getAttr = require("../func/dom/getAttr.js");
 
 
 
@@ -50,18 +49,17 @@ module.exports = defineClass({
     $constructor: function(scope, node, expr, parentRenderer, attrMap) {
 
         var self    = this,
-            cfg     = attrMap['modifier'];
+            cfg     = attrMap['modifier']['each'] ?
+                        attrMap['modifier']['each'].value : {};
 
-        self.cfg            = attrMap['modifier'];
+        self.cfg            = cfg;
         self.scope          = scope;
 
         self.tagMode        = node.nodeName.toLowerCase() === "mjs-each";
         self.animateMove    = !self.tagMode && !cfg['buffered'] &&
                                 cfg["animateMove"] && animate.cssAnimationSupported();
-        self.animate        = !self.tagMode && !cfg.buffered && cfg["animate"];
+        self.animate        = !self.tagMode && !cfg['buffered'] && cfg["animate"];
         self.id             = cfg['id'] || nextUid();
-
-        removeAttr(node, "*animate");
 
         if (self.animate) {
             self.$plugins.push(cfg['animatePlugin'] || "plugin.ListAnimated");
@@ -80,8 +78,8 @@ module.exports = defineClass({
             self.$plugins.push(cfg['buffered'] || "plugin.ListBuffered");
         }
 
-        if (cfg.plugin) {
-            self.$plugins.push(cfg.plugin);
+        if (cfg['plugin']) {
+            self.$plugins.push(cfg['plugin']);
         }
     },
 

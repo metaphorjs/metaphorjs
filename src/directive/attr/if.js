@@ -2,8 +2,7 @@
 
 
 var animate = require("metaphorjs-animate/src/func/animate.js"),
-    Directive = require("../../class/Directive.js"),
-    getNodeConfig = require("../../func/dom/getNodeConfig.js");
+    Directive = require("../../class/Directive.js");
 
 
 Directive.registerAttribute("if", 500, Directive.$extend({
@@ -15,7 +14,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
     initial: true,
     cfg: null,
 
-    $init: function(scope, node, expr) {
+    $init: function(scope, node, expr, parentRenderer, attrMap) {
 
         var self    = this;
 
@@ -23,10 +22,10 @@ Directive.registerAttribute("if", 500, Directive.$extend({
         self.prevEl     = node.previousSibling;
         self.nextEl     = node.nextSibling;
 
-        self.cfg = getNodeConfig(node, self.scope);
+        self.cfg        = attrMap['modifier']['if'] ?
+                            attrMap['modifier']['if'].value : {};
 
         self.$super(scope, node, expr);
-
     },
 
     onScopeDestroy: function() {
@@ -36,7 +35,6 @@ Directive.registerAttribute("if", 500, Directive.$extend({
         self.prevEl = null;
         self.parentEl = null;
         self.nextEl = null;
-
 
         self.$super();
     },
@@ -58,16 +56,14 @@ Directive.registerAttribute("if", 500, Directive.$extend({
             next = self.nextEl;
         }
 
-        //console.log(node, self.prevEl, self.nextEl, next)
-
         var show    = function(){
 
             var np = self.cfg.nodePosition;
 
-            if (np == "append") {
+            if (np === "append") {
                 parent.appendChild(node);
             }
-            else if (np == "prepend") {
+            else if (np === "prepend") {
                 parent.insertBefore(node, parent.firstChild);
             }
             else if (next) {
@@ -99,7 +95,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
             self.initial = false;
         }
         else {
-            if (self.cfg.ifOnce) {
+            if (self.cfg.once) {
                 self.$destroy();
             }
         }

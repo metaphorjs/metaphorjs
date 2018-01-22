@@ -15,15 +15,15 @@ Directive.registerAttribute("bind", 1000, Directive.$extend({
     recursive: false,
     textRenderer: null,
 
-    $init: function(scope, node, expr) {
+    $init: function(scope, node, expr, renderer, attrMap) {
 
         var self    = this,
-            value   = Directive.getExprAndMods(expr)[0];
+            cfg     = attrMap['modifier']['bind'] ?
+                        attrMap['modifier']['bind'].value : {};
 
-        expr            = value.expr;
         self.isInput    = isField(node);
-        self.recursive  = !!value.mods.recursive;
-        self.lockInput  = !!value.mods.lockInput;
+        self.recursive  = !!cfg.recursive;
+        self.lockInput  = !!cfg.lockInput;
 
         if (self.isInput) {
             //self.input  = new Input(node, self.onInputChange, self);

@@ -13,7 +13,7 @@ Directive.registerAttribute("key", 1000, function(scope, node, expr){
     delete cfg.handler;
     delete cfg.context;
 
-    if (typeof handler == "string") {
+    if (typeof handler === "string") {
         var h = createFunc(handler);
         handler = function(){
             return function(e) {

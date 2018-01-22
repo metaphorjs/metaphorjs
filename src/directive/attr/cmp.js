@@ -9,14 +9,16 @@ var Directive = require("../../class/Directive.js"),
     var cmpAttr = function(scope, node, cmpName, parentRenderer, attrMap){
 
 
-        var constr          = nsGet(cmpName, true);
+        var constr  = nsGet(cmpName, true),
+            nodecfg = attrMap['modifier']['cmp'] ?
+                        attrMap['modifier']['cmp'].value : {};
 
         if (!constr) {
             throw "Component " + cmpName + " not found";
         }
 
-        var sameScope       = attrMap['modifier']['same-scope']|| constr.$sameScope,
-            isolateScope    = attrMap['modifier']['isolate-scope'] || constr.$isolateScope;
+        var sameScope       = nodecfg.sameScope || constr.$sameScope,
+            isolateScope    = nodecfg.isolateScope || constr.$isolateScope;
 
         scope       = isolateScope ? scope.$newIsolated() : (sameScope ? scope : scope.$new());
 

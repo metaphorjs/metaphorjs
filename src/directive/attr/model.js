@@ -21,23 +21,16 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
     autoOnChange: false,
 
-    $init: function(scope, node, expr) {
+    $init: function(scope, node, expr, renderer, attrMap) {
 
         var self    = this,
-            value   = Directive.getExprAndMods(expr);
+            cfg     = attrMap['modifier']['model'] ?
+                        attrMap['modifier']['model'].value : {};
 
-        expr                = value.expr;
         self.node           = node;
         self.input          = Input.get(node);
         self.updateRoot     = expr.indexOf('$root') + expr.indexOf('$parent') !== -2;
-        self.binding        = "both";
-
-        if (value.mods.input) {
-            self.binding    = "input";
-        }
-        else if (value.mods.scope) {
-            self.binding    = "scope";
-        }
+        self.binding        = cfg.binding || "both";
 
         self.input.onChange(self.onInputChange, self);
 

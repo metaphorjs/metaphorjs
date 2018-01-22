@@ -34,7 +34,7 @@ var Directive = require("../../class/Directive.js"),
     Directive.registerAttribute("submit", 1000, function(scope, node, expr){
 
         var fn = createFunc(expr),
-            updateRoot = expr.indexOf('$root') + expr.indexOf('$parent') != -2,
+            updateRoot = expr.indexOf('$root') + expr.indexOf('$parent') !== -2,
             handler = function(){
                 fn(scope);
                 updateRoot ? scope.$root.$check() : scope.$check();

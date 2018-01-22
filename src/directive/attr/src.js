@@ -6,7 +6,6 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     setAttr = require("../../func/dom/setAttr.js"),
     Directive = require("../../class/Directive.js"),
     Queue = require("../../lib/Queue.js"),
-    getNodeConfig = require("../../func/dom/getNodeConfig.js"),
     trim = require("../../func/trim.js");
 
 Directive.registerAttribute("src", 1000, defineClass({
@@ -20,10 +19,10 @@ Directive.registerAttribute("src", 1000, defineClass({
     lastPromise: null,
     src: null,
 
-    $constructor: function(scope, node, expr) {
+    $constructor: function(scope, node, expr, renderer, attrMap) {
 
         var self = this,
-            cfg = getNodeConfig(node, scope);
+            cfg = attrMap['modifier']['src'] ? attrMap['modifier']['src'].value : {};
 
         if (cfg.deferred) {
             self.$plugins.push("plugin.SrcDeferred");
@@ -31,8 +30,8 @@ Directive.registerAttribute("src", 1000, defineClass({
         if (cfg.preloadSize) {
             self.$plugins.push("plugin.SrcSize");
         }
-        if (cfg.srcPlugin) {
-            var tmp = cfg.srcPlugin.split(","),
+        if (cfg.plugin) {
+            var tmp = cfg.plugin.split(","),
                 i, l;
             for (i = 0, l = tmp.length; i < l; i++) {
                 self.$plugins.push(trim(tmp[i]));
@@ -42,10 +41,10 @@ Directive.registerAttribute("src", 1000, defineClass({
         self.$super(scope, node, expr);
     },
 
-    $init: function(scope, node, expr) {
+    $init: function(scope, node, expr, renderer, attrMap) {
 
         var self = this,
-            cfg = getNodeConfig(node, scope);
+            cfg = attrMap['modifier']['src'] ? attrMap['modifier']['src'].value : {};
 
         if (cfg.noCache) {
             self.noCache = true;
@@ -89,7 +88,7 @@ Directive.registerAttribute("src", 1000, defineClass({
         self.src = src;
 
         if (self.noCache) {
-            src += (src.indexOf("?") != -1 ? "&amp;" : "?") + "_" + (new Date).getTime();
+            src += (src.indexOf("?") !== -1 ? "&amp;" : "?") + "_" + (new Date).getTime();
         }
 
         if (self.usePreload) {

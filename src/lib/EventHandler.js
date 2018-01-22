@@ -33,17 +33,17 @@ module.exports = defineClass({
 
         cfg = cfg || {};
 
-        if (typeof cfg == "string") {
+        if (typeof cfg === "string") {
 
-            self.updateRoot = cfg.indexOf('$root') + cfg.indexOf('$parent') != -2;
+            self.updateRoot = cfg.indexOf('$root') + cfg.indexOf('$parent') !== -2;
 
             var fc = cfg.substr(0,1);
 
-            if (fc == '{') {
+            if (fc === '{') {
                 self.watcher = createWatchable(scope, cfg, self.onConfigChange, self);
                 cfg = extend({}, self.watcher.getLastResult(), true, true);
             }
-            else if (fc == '=') {
+            else if (fc === '=') {
                 cfg = cfg.substr(1);
                 self.watcher = createWatchable(scope, cfg, self.onConfigChange, self);
                 cfg = extend({}, self.watcher.getLastResult(), true, true);
@@ -90,7 +90,7 @@ module.exports = defineClass({
             cfg = tmp;
         }
 
-        if (cfg.handler && typeof cfg.handler == "string") {
+        if (cfg.handler && typeof cfg.handler === "string") {
             cfg.handler = createGetter(cfg.handler);
         }
 
@@ -130,10 +130,10 @@ module.exports = defineClass({
             e = normalizeEvent(e || window.event);
 
             if (keyCode) {
-                if (typeof keyCode == "number" && keyCode != e.keyCode) {
+                if (typeof keyCode === "number" && keyCode !== e.keyCode) {
                     return null;
                 }
-                else if (keyCode.indexOf(e.keyCode) == -1) {
+                else if (keyCode.indexOf(e.keyCode) === -1) {
                     return null;
                 }
             }
@@ -156,7 +156,7 @@ module.exports = defineClass({
             preventDefault && e.preventDefault();
 
             if (self.$destroyed || self.$destroying) {
-                return returnValue != undf ? returnValue : undf;
+                return returnValue !== undf ? returnValue : undf;
             }
 
             scope.$event = null;

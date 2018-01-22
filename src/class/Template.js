@@ -43,7 +43,7 @@ module.exports = function(){
             if (!frg) {
                 return "";
             }
-            if (typeof frg == "string") {
+            if (typeof frg === "string") {
                 return frg;
             }
             return getFragmentContent(frg);
@@ -58,10 +58,10 @@ module.exports = function(){
             var tpl = cache.get(tplId),
                 opt = options[tplId];
 
-            if (typeof tpl == "function") {
+            if (typeof tpl === "function") {
                 tpl = tpl(tplId);
             }
-            if (typeof tpl == "string" && (!opt || !opt.text)) {
+            if (typeof tpl === "string" && (!opt || !opt.text)) {
                 tpl = toFragment(tpl);
                 cache.add(tplId, tpl);
             }
@@ -86,12 +86,12 @@ module.exports = function(){
 
                 tag         = tplNode.tagName.toLowerCase();
 
-                if (tag == "script") {
+                if (tag === "script") {
                     var tpl = tplNode.innerHTML;
 
                     tplNode.parentNode.removeChild(tplNode);
 
-                    if (tpl.substr(0,5) == "<!--{") {
+                    if (tpl.substr(0,5) === "<!--{") {
                         var inx = tpl.indexOf("-->"),
                             opt = createGetter(tpl.substr(4, inx-4))({});
 
@@ -134,11 +134,11 @@ module.exports = function(){
         },
 
         isExpression = function(str) {
-            if (str.substr(0,1) == '.') {
+            if (str.substr(0,1) === '.') {
                 var second = str.substr(1,1);
-                return !(second == '.' || second == '/');
+                return !(second === '.' || second === '/');
             }
-            return str.substr(0,1) == '{';
+            return str.substr(0,1) === '{';
         };
 
     cache.addFinder(findTemplate);
@@ -216,7 +216,7 @@ module.exports = function(){
                 if (isExpression(tpl)) {
                     self._watcher = createWatchable(self.scope, tpl, self.onChange, self, {namespace: ns});
                     var val = self._watcher.getLastResult();
-                    if (typeof val != "string") {
+                    if (typeof val !== "string") {
                         extend(self, val, true, false);
                     }
                }
@@ -311,7 +311,7 @@ module.exports = function(){
                 url     = null;
             }
 
-            if (tpl && typeof tpl != "string") {
+            if (tpl && typeof tpl !== "string") {
                 tpl     = tpl.tpl || tpl.url;
                 url     = null;
             }
