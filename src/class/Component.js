@@ -10,6 +10,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     extend = require("../func/extend.js"),
     Template = require("./Template.js"),
     Scope = require("../lib/Scope.js"),
+    Directive = require("./Directive.js"),
     addClass = require("../func/dom/addClass.js"),
     removeClass = require("../func/dom/removeClass.js");
 
@@ -452,6 +453,15 @@ module.exports = defineClass({
         self.$super();
     }
 
+}, {
+    registerDirective: function(cmp) {
+        if (typeof(cmp) === "string") {
+            Directive.registerComponent(cmp);
+        }
+        else {
+            Directive.registerComponent(cmp.prototype.$class, cmp);
+        }
+    }
 });
 
 /**

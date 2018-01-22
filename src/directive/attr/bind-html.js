@@ -7,7 +7,7 @@ require("./bind.js");
 
 Directive.registerAttribute("bind-html", 1000, defineClass({
 
-    $extends: "attr.bind",
+    $extends: "directive.attr.bind",
 
     updateElement: function(val) {
         this.node.innerHTML = val;

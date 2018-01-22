@@ -3,6 +3,7 @@
 var trim = require("../func/trim.js"),
     createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
     undf = require("../var/undf.js"),
+    isString = require("../func/isString.js"),
     ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
     defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
@@ -99,11 +100,11 @@ module.exports = function(){
 
 
         registerAttribute: function registerAttribute(name, priority, handler) {
-            if (!nsGet("attr." + name, true)) {
+            if (!nsGet("directive.attr." + name, true)) {
                 attributes.push({
                     priority: priority,
                     name: name,
-                    handler: nsAdd("attr." + name, handler)
+                    handler: nsAdd("directive.attr." + name, handler)
                 });
                 attributesSorted = false;
             }
@@ -118,18 +119,58 @@ module.exports = function(){
         },
 
         registerTag: function registerTag(name, handler) {
-            if (!nsGet("tag." + name, true)) {
-                nsAdd("tag." + name, handler)
+            if (!nsGet("directive.tag." + name, true)) {
+                nsAdd("directive.tag." + name, handler)
             }
         },
 
         // components are case sensitive
         registerComponent: function(name, cmp) {
-            if (!nsGet("component." + name, true)) {
-                nsAdd("component." + name.toLowerCase(), cmp)
+            if (!cmp) {
+                cmp = name;
+            }
+            if (isString(cmp)) {
+                cmp = nsGet(cmp, true);
+            }
+            if (!nsGet("directive.component." + name, true)) {
+                nsAdd("directive.component." + name.toLowerCase(), cmp)
+            }
+        },
+
+        getExprAndMods: function(value) {
+
+            if (typeof value === "string" || !value) {
+                return [
+                    {expr: value, mods: null}
+                ]
+            }
+            else {
+                var list = [],
+                    mods, i, l, ml;
+                for (var key in value) {
+
+                    if (key) {
+                        ml = key.split(".");
+                        mods = ml.length ? {} : null;
+
+                        for (i = 0, l = ml.length; i < l; i++) {
+                            mods[ml[i]] = true;
+                        }
+                    }
+                    else {
+                        ml = [];
+                        mods = null;
+                    }
+
+                    list.push({
+                        expr: value[key],
+                        mods: mods,
+                        mlist: ml
+                    });
+                }
+                return list;
             }
         }
-
     });
 
 }();

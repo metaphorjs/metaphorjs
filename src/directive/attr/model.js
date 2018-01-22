@@ -8,8 +8,7 @@ var async = require("../../func/async.js"),
     Input = require("metaphorjs-input/src/lib/Input.js"),
     Scope = require("../../lib/Scope.js"),
     isString = require("../../func/isString.js"),
-    Directive = require("../../class/Directive.js"),
-    getNodeConfig = require("../../func/dom/getNodeConfig.js");
+    Directive = require("../../class/Directive.js");
 
 
 
@@ -25,12 +24,20 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     $init: function(scope, node, expr) {
 
         var self    = this,
-            cfg     = getNodeConfig(node, scope);
+            value   = Directive.getExprAndMods(expr);
 
+        expr                = value.expr;
         self.node           = node;
         self.input          = Input.get(node);
-        self.binding        = cfg.binding || "both";
-        self.updateRoot     = expr.indexOf('$root') + expr.indexOf('$parent') != -2;
+        self.updateRoot     = expr.indexOf('$root') + expr.indexOf('$parent') !== -2;
+        self.binding        = "both";
+
+        if (value.mods.input) {
+            self.binding    = "input";
+        }
+        else if (value.mods.scope) {
+            self.binding    = "scope";
+        }
 
         self.input.onChange(self.onInputChange, self);
 
@@ -41,10 +48,10 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
         if (scopeValue !== inputValue) {
             // scope value takes priority
-            if (self.binding != "input" && scopeValue != undf) {
+            if (self.binding !== "input" && scopeValue !== undf) {
                 self.onChange(scopeValue);
             }
-            else if (self.binding != "scope" && inputValue != undf) {
+            else if (self.binding !== "scope" && inputValue !== undf) {
                 self.onInputChange(inputValue);
             }
         }
@@ -55,9 +62,9 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         var self    = this,
             scope   = self.scope;
 
-        if (self.binding != "scope") {
+        if (self.binding !== "scope") {
 
-            if (val && isString(val) && val.indexOf('\\{') != -1) {
+            if (val && isString(val) && val.indexOf('\\{') !== -1) {
                 val = val.replace(/\\{/g, '{');
             }
 
@@ -92,7 +99,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             val     = self.watcher.getLastResult(),
             ie;
 
-        if (self.binding != "input" && !self.inProg) {
+        if (self.binding !== "input" && !self.inProg) {
             if ((ie = isIE()) && ie < 8) {
                 async(self.input.setValue, self.input, [val]);
             }

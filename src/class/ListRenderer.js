@@ -15,10 +15,8 @@ var createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"
     bind = require("../func/bind.js"),
     undf = require("../var/undf.js"),
     isFunction = require("../func/isFunction.js"),
-    async = require("../func/async.js"),
     getAttr = require("../func/dom/getAttr.js"),
-    removeAttr = require("../func/dom/removeAttr.js"),
-    getNodeConfig = require("../func/dom/getNodeConfig.js");
+    removeAttr = require("../func/dom/removeAttr.js");
 
 
 
@@ -49,42 +47,40 @@ module.exports = defineClass({
     buffered: false,
     bufferPlugin: null,
 
-    $constructor: function(scope, node, expr) {
+    $constructor: function(scope, node, expr, parentRenderer, attrMap) {
 
         var self    = this,
-            cfg     = getNodeConfig(node, scope);
+            cfg     = attrMap['modifier'];
 
-        self.cfg            = cfg;
+        self.cfg            = attrMap['modifier'];
         self.scope          = scope;
 
-        self.tagMode        = node.nodeName.toLowerCase() == "mjs-each";
-        self.animateMove    = !self.tagMode && !cfg.buffered &&
-                                cfg.animateMove && animate.cssAnimationSupported();
-        self.animate        = !self.tagMode && !cfg.buffered &&
-                                (getAttr(node, "animate") !== null || cfg.animate);
-        self.id             = cfg.id || nextUid();
+        self.tagMode        = node.nodeName.toLowerCase() === "mjs-each";
+        self.animateMove    = !self.tagMode && !cfg['buffered'] &&
+                                cfg["animateMove"] && animate.cssAnimationSupported();
+        self.animate        = !self.tagMode && !cfg.buffered && cfg["animate"];
+        self.id             = cfg['id'] || nextUid();
 
-        removeAttr(node, "animate");
+        removeAttr(node, "*animate");
 
         if (self.animate) {
-            self.$plugins.push(typeof cfg.animatePlugin == "string" ? cfg.animatePlugin : "plugin.ListAnimated");
+            self.$plugins.push(cfg['animatePlugin'] || "plugin.ListAnimated");
         }
 
-        if (cfg.observable) {
-            self.$plugins.push(typeof cfg.observable == "string" ? cfg.observable : "plugin.Observable");
+        if (cfg['observable']) {
+            self.$plugins.push(cfg['observable'] || "plugin.Observable");
         }
 
         if (self.tagMode) {
-            cfg.buffered = false;
+            cfg['buffered'] = false;
         }
 
-        if (cfg.buffered) {
+        if (cfg['buffered']) {
             self.buffered = true;
-            self.$plugins.push(typeof cfg.buffered == "string" ? cfg.buffered : "plugin.ListBuffered");
+            self.$plugins.push(cfg['buffered'] || "plugin.ListBuffered");
         }
 
         if (cfg.plugin) {
-            removeAttr(node, "data-plugin");
             self.$plugins.push(cfg.plugin);
         }
     },
@@ -127,10 +123,10 @@ module.exports = defineClass({
 
         self.watcher    = createWatchable(scope, self.model, self.onChange, self, {namespace: ns});
         self.trackBy    = cfg.trackBy;
-        if (self.trackBy && self.trackBy != '$') {
+        if (self.trackBy && self.trackBy !== '$') {
             self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, {namespace: ns});
         }
-        else if (self.trackBy != '$' && !self.watcher.hasInputPipes()) {
+        else if (self.trackBy !== '$' && !self.watcher.hasInputPipes()) {
             self.trackBy    = '$$'+self.watcher.id;
         }
 
@@ -194,7 +190,7 @@ module.exports = defineClass({
 
         for (; index <= x; index++) {
 
-            if (action && renderers[index].action != action) {
+            if (action && renderers[index].action !== action) {
                 continue;
             }
 
@@ -304,7 +300,7 @@ module.exports = defineClass({
                 prevrInx    = action;
                 prevr       = renderers[prevrInx];
 
-                if (prevrInx != index && isNull(updateStart)) {
+                if (prevrInx !== index && isNull(updateStart)) {
                     updateStart = i;
                 }
 
@@ -430,7 +426,7 @@ module.exports = defineClass({
             // items were hidden/shown but positions haven't changed
             else {
                 for (j = Math.max(i - 1, 0); j < l; j++) {
-                    if (j == i) {
+                    if (j === i) {
                         continue;
                     }
                     if (rs[j].attached && rs[j].lastEl.parentNode === parent) {
@@ -490,7 +486,7 @@ module.exports = defineClass({
 
             trackBy = self.trackBy;
 
-            if (!trackBy || trackBy == '$') {
+            if (!trackBy || trackBy === '$') {
                 self.trackByFn = function(item) {
                     return isPrimitive(item) ? item : undf;
                 };
@@ -546,7 +542,7 @@ module.exports = defineClass({
 
             row = tmp[i];
 
-            if (row == "" || row == "in") {
+            if (row === "" || row === "in") {
                 continue;
             }
 

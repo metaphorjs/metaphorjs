@@ -19,7 +19,7 @@ var Directive = require("../../class/Directive.js"),
         var has;
 
         if (toggle !== null) {
-            if (toggle == hasClass(node, cls)) {
+            if (toggle === hasClass(node, cls)) {
                 return;
             }
             has = !toggle;
@@ -67,7 +67,7 @@ var Directive = require("../../class/Directive.js"),
         }
         else {
             for (i in obj) {
-                if (i == '_') {
+                if (i === '_') {
                     for (j = -1, l = obj._.length; ++j < l;
                          list[obj._[j]] = true){}
                 }
@@ -83,8 +83,40 @@ var Directive = require("../../class/Directive.js"),
     Directive.registerAttribute("class", 1000, defineClass({
 
         $extends: Directive,
-
         initial: true,
+
+        $init: function(scope, node, expr) {
+
+            var value = Directive.getExprAndMods(expr),
+                parts = [],
+                all   = '',
+                item,
+                i, l;
+
+            for (i = 0, l = value.length; i < l; i++) {
+                item = value[i];
+                if (!item.mods) {
+                    all = item.expr;
+                }
+                else {
+                    parts.push(item.mlist[0] + ': ' + item.expr);
+                }
+            }
+            parts = parts.join(', ');
+
+            if (!all) {
+                all = '{' + parts + '}';
+            }
+            else {
+                if (parts) {
+                    all = all.substring(0, all.length - 1) + ', ' + parts + '}';
+                }
+            }
+
+            expr = all;
+
+            this.$super(scope, node, expr);
+        },
 
         onChange: function() {
 
@@ -106,7 +138,7 @@ var Directive = require("../../class/Directive.js"),
 
             for (i in clss) {
                 if (clss.hasOwnProperty(i)) {
-                    toggleClass(node, i, clss[i] ? true : false, !self.initial);
+                    toggleClass(node, i, !!clss[i], !self.initial);
                 }
             }
 

@@ -1,20 +1,13 @@
 
 
 var Directive = require("../../class/Directive.js"),
-    defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js"),
     isField = require("../../func/dom/isField.js"),
-    getAttr = require("../../func/dom/getAttr.js"),
-    removeAttr = require("../../func/dom/removeAttr.js"),
-    setValue = require("../../../../metaphorjs-input/src/func/setValue.js"),
     TextRenderer = require("../../class/TextRenderer.js"),
     Scope = require("../../lib/Scope.js"),
-    Input = require("../../../../metaphorjs-input/src/lib/Input.js"),
-    getNodeConfig = require("../../func/dom/getNodeConfig.js");
+    Input = require("../../../../metaphorjs-input/src/lib/Input.js");
 
 
-Directive.registerAttribute("bind", 1000, defineClass({
-
-    $extends: Directive,
+Directive.registerAttribute("bind", 1000, Directive.$extend({
 
     isInput: false,
     input: null,
@@ -25,13 +18,12 @@ Directive.registerAttribute("bind", 1000, defineClass({
     $init: function(scope, node, expr) {
 
         var self    = this,
-            cfg     = getNodeConfig(node, scope);
+            value   = Directive.getExprAndMods(expr)[0];
 
+        expr            = value.expr;
         self.isInput    = isField(node);
-        self.recursive  = cfg.recursive || getAttr(node, "recursive") !== null;
-        self.lockInput  = cfg.lockInput;
-
-        removeAttr(node, "recursive");
+        self.recursive  = !!value.mods.recursive;
+        self.lockInput  = !!value.mods.lockInput;
 
         if (self.isInput) {
             //self.input  = new Input(node, self.onInputChange, self);
@@ -84,7 +76,7 @@ Directive.registerAttribute("bind", 1000, defineClass({
             self.input.setValue(val);
         }
         else {
-            self.node[typeof self.node.textContent == "string" ? "textContent" : "innerText"] = val;
+            self.node[typeof self.node.textContent === "string" ? "textContent" : "innerText"] = val;
         }
     },
 

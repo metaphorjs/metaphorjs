@@ -14,8 +14,6 @@ var nextUid = require("../func/nextUid.js"),
     removeAttr = require("../func/dom/removeAttr.js"),
     getAttrMap = require("../func/dom/getAttrMap.js"),
     undf = require("../var/undf.js"),
-    extend = require("../func/extend.js"),
-    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
 
     htmlTags = require("../var/htmlTags.js"),
 
@@ -191,6 +189,7 @@ module.exports = function(){
                     $scope: scope,
                     $node: node,
                     $attrValue: value,
+                    $attrMap: attrMap,
                     $renderer: self
                 },
                 args    = [scope, node, value, self, attrMap],
@@ -242,8 +241,7 @@ module.exports = function(){
                 texts       = self.texts,
                 scope       = self.scope,
                 textRenderer,
-                recursive,
-                n;
+                recursive;
 
             // text node
             if (nodeType === 3) {
@@ -287,11 +285,11 @@ module.exports = function(){
                 // this tag represents component
                 // we just pass it to attr.cmp directive
                 // by adding it to the attr map
-                if (c = nsGet("component." + tag, true)) {
+                if (c = nsGet("directive.component." + tag, true)) {
                     map["directive"]['cmp'] = {
                         value: c.prototype.$class,
                         name: "cmp",
-                        original: "cmp",
+                        original: "{cmp}",
                         type: "directive",
                         mods: null
                     };
@@ -315,7 +313,7 @@ module.exports = function(){
                 }
 
                 // this is a tag directive
-                if (f = nsGet("tag." + tag, true)) {
+                if (f = nsGet("directive.tag." + tag, true)) {
 
                     res = self.runHandler(f, scope, node, null, map);
 

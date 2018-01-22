@@ -1,9 +1,10 @@
 
-var parseAttributeName = require("metaphorjs/src/func/dom/parseAttributeName.js");
+var parseAttributeName = require("./parseAttributeName.js"),
+    extend = require("../extend.js");
 
 module.exports = (function(){
 
-var extendWithAttributes = function(target, attrMap, type) {
+var extendWithAttributes = function(type, target, attrMap) {
 
     var name,
         prev,
@@ -32,6 +33,7 @@ var extendWithAttributes = function(target, attrMap, type) {
     return target;
 };
 
+
 return function getAttrMap(node, expand, group) {
     var map,
         i, l, a, m,
@@ -57,7 +59,7 @@ return function getAttrMap(node, expand, group) {
             "_attribute": 0,
 
             "extendTarget": function(type, target) {
-                return extendWithAttributes(target || {}, this, type);
+                return extendWithAttributes(type, target || {}, this);
             }
         };
     }
@@ -97,6 +99,9 @@ return function getAttrMap(node, expand, group) {
                     m[props.name] = props;
                 }
                 else {
+                    if (typeof m[props.name].value === "string") {
+                        m[props.name].value = {"": m[props.name].value};
+                    }
                     m[props.name].value[props.mod_part] = a.value;
                 }
             }

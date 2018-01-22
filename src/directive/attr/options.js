@@ -97,7 +97,7 @@ Directive.registerAttribute("options", 100, defineClass({
         scope.$index    = index;
         config          = self.getterFn(scope);
 
-        config.group    != undf && (config.group = ""+config.group);
+        config.group    !== undf && (config.group = ""+config.group);
 
         if (config.group !== self.prevGroup) {
 
@@ -185,7 +185,7 @@ Directive.registerAttribute("options", 100, defineClass({
         var splitIndex  = expr.indexOf(" in "),
             model, item;
 
-        if (splitIndex == -1) {
+        if (splitIndex === -1) {
             model   = expr;
             item    = '{name: .item, value: .$index}';
         }
