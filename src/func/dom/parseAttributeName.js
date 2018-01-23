@@ -19,8 +19,11 @@ var reg = /^([\[({@#$*])([^)\]}"']+)[\])}]?$/,
 
 return function parseAttributeName(name) {
 
+    var prefixed = false;
+
     if (name.indexOf("mjs-") === 0) {
         name = name.substr(4);
+        prefixed = true;
     }
 
     var mods, props = {
@@ -44,16 +47,17 @@ return function parseAttributeName(name) {
             props.type = types[match[1]];
             props.subtype = subtypes[match[1]];
             name = match[2];
+        }
+        else {
+            props.type = prefixed ? "directive" : "attribute";
+        }
+
+        if (props.type !== "attribute") {
             mods = name.split(".");
             name = mods.shift();
             props.mods = mods.length ? mods : null;
             props.mod_part = mods.join(".");
-            //props.directive = type === 'directive' ? name : null;
-            //props.name = type === 'directive' ? props.original : name;
             props.name = name;
-        }
-        else {
-            props.type = "attribute";
         }
     }
 

@@ -333,7 +333,8 @@ module.exports = function(){
                 for (i = 0, len = handlers.length; i < len; i++) {
                     name    = handlers[i].name;
 
-                    if ((attrProps = map['directive'][name]) !== undf) {
+                    if ((attrProps = map['directive'][name]) !== undf &&
+                        !attrProps.handled) {
 
                         handler = handlers[i].handler;
 
@@ -343,7 +344,7 @@ module.exports = function(){
 
                         res     = self.runHandler(handler, scope, node, attrProps, map);
 
-                        delete map['directive'][name];
+                        attrProps.handled = true;
 
                         if (res === false) {
                             return false;
@@ -378,7 +379,7 @@ module.exports = function(){
 
                         textRenderer = createText(
                             scope,
-                            map['attribute'][i].defaultValue,
+                            map['attribute'][i].value,
                             null, texts.length, recursive);
 
                         if (textRenderer) {

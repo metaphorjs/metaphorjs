@@ -104,6 +104,8 @@ return function getAttrMap(node, expand, group) {
                     }
                     m[props.name].value[props.mod_part] = a.value;
                 }
+
+                m[props.name].handled = false;
             }
         }
         else {
