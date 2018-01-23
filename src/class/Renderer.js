@@ -369,32 +369,24 @@ module.exports = function(){
 
                 recursive = map['modifier']["recursive"] !== undf;
 
-                //var attrs   = toArray(node.attributes);
-
                 // this is a plain attribute
                 for (i in map['attribute']) {
+                    textRenderer = createText(
+                        scope,
+                        map['attribute'][i].value,
+                        null, texts.length, recursive);
 
-                    // now we only care about untyped attributes
-                    //if (map[i] !== null && map[i].type === null) {
-
-                        textRenderer = createText(
-                            scope,
-                            map['attribute'][i].value,
-                            null, texts.length, recursive);
-
-                        if (textRenderer) {
-                            removeAttr(node, map['attribute'][i].original);
-                            textRenderer.subscribe(self.onTextChange, self);
-                            texts.push({
-                                node: node,
-                                attr: i,
-                                attrProp: map['attribute'][i],
-                                tr: textRenderer
-                            });
-                            self.renderText(texts.length - 1);
-                        }
-
-                    //}
+                    if (textRenderer) {
+                        removeAttr(node, map['attribute'][i].original);
+                        textRenderer.subscribe(self.onTextChange, self);
+                        texts.push({
+                            node: node,
+                            attr: i,
+                            attrProp: map['attribute'][i],
+                            tr: textRenderer
+                        });
+                        self.renderText(texts.length - 1);
+                    }
                 }
 
                 return nodes.length ? nodes : true;
@@ -431,6 +423,8 @@ module.exports = function(){
                 text        = self.texts[inx],
                 res         = text.tr.getString(),
                 attrName    = text.attr;
+
+            //console.log(res, text.tr)
 
             if (attrName) {
 

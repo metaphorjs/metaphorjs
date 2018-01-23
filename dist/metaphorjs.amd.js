@@ -890,7 +890,7 @@ var Directive = function(){
             self.node       = node;
             self.expr       = expr;
             self.scope      = scope;
-            self.watcher    = createWatchable(scope, expr, self.onChange, self, null, ns);
+            self.watcher    = createWatchable(scope, expr, self.onChange, self, {namespace: ns});
 
             if (self.autoOnChange && (val = self.watcher.getLastResult()) !== undf) {
                 self.onChange(val, undf);
@@ -1271,8 +1271,7 @@ var TextRenderer = function(){
                 expr,
                 self.onDataChange,
                 self,
-                null,
-                ns
+                {namespace: ns}
             ));
 
             return '---'+ (ws.length-1) +'---';
@@ -3201,7 +3200,7 @@ var Template = function(){
                 }
 
                 if (isExpression(tpl)) {
-                    self._watcher = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
+                    self._watcher = createWatchable(self.scope, tpl, self.onChange, self, {namespace: ns});
                     var val = self._watcher.getLastResult();
                     if (typeof val != "string") {
                         extend(self, val, true, false);

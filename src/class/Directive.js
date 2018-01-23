@@ -58,7 +58,7 @@ module.exports = function(){
             self.node       = node;
             self.expr       = expr;
             self.scope      = scope;
-            self.watcher    = createWatchable(scope, expr, self.onChange, self, null, ns);
+            self.watcher    = createWatchable(scope, expr, self.onChange, self, {namespace: ns});
 
             if (self.autoOnChange && (val = self.watcher.getLastResult()) !== undf) {
                 self.onChange(val, undf);

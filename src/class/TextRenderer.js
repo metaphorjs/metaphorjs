@@ -158,13 +158,13 @@ module.exports = function(){
 
             // regular keys
             while(index < textLength) {
-                if (((startIndex = text.indexOf(startSymbol, index)) != -1) &&
-                    ((endIndex = text.indexOf(endSymbol, startIndex + startSymbolLength)) != -1) &&
-                    text.substr(startIndex - 1, 1) != '\\') {
+                if (((startIndex = text.indexOf(startSymbol, index)) !== -1) &&
+                    ((endIndex = text.indexOf(endSymbol, startIndex + startSymbolLength)) !== -1) &&
+                    text.substr(startIndex - 1, 1) !== '\\') {
 
                     result += text.substring(index, startIndex);
 
-                    if (endIndex != startIndex + startSymbolLength) {
+                    if (endIndex !== startIndex + startSymbolLength) {
                         result += self.watcherMatch(
                             text.substring(startIndex + startSymbolLength, endIndex),
                             false,
@@ -192,13 +192,13 @@ module.exports = function(){
             // lang keys
             while(index < textLength) {
 
-                if (((startIndex = text.indexOf(langStartSymbol, index)) != -1) &&
-                    ((endIndex = text.indexOf(langEndSymbol, startIndex + langStartLength)) != -1) &&
-                    text.substr(startIndex - 1, 1) != '\\') {
+                if (((startIndex = text.indexOf(langStartSymbol, index)) !== -1) &&
+                    ((endIndex = text.indexOf(langEndSymbol, startIndex + langStartLength)) !== -1) &&
+                    text.substr(startIndex - 1, 1) !== '\\') {
 
                     result += text.substring(index, startIndex);
 
-                    if (endIndex != startIndex + langStartLength) {
+                    if (endIndex !== startIndex + langStartLength) {
                         result += self.watcherMatch(
                             text.substring(startIndex + langStartLength, endIndex),
                             true,
@@ -226,8 +226,8 @@ module.exports = function(){
                 getterid;
 
             while(index < textLength) {
-                if (((startIndex = text.indexOf(savedBoundary, index)) != -1) &&
-                    (endIndex = text.indexOf(savedBoundary, startIndex + bndLen)) != -1) {
+                if (((startIndex = text.indexOf(savedBoundary, index)) !== -1) &&
+                    (endIndex = text.indexOf(savedBoundary, startIndex + bndLen)) !== -1) {
 
                     result += text.substring(index, startIndex);
 
@@ -261,9 +261,9 @@ module.exports = function(){
                 b       = self.boundary,
                 getter  = null;
 
-            if (typeof expr == "number") {
+            if (typeof expr === "number") {
                 var getterId = expr;
-                if (typeof __MetaphorJsPrebuilt != "undefined") {
+                if (typeof __MetaphorJsPrebuilt !== "undefined") {
                     expr = __MetaphorJsPrebuilt['__tpl_getter_codes'][getterId];
                     getter = __MetaphorJsPrebuilt['__tpl_getters'][getterId];
                 }
@@ -276,15 +276,15 @@ module.exports = function(){
                 expr        = trim(expr);
                 var tmp     = split(expr, "|"),
                     key     = trim(tmp[0]);
-                if (key.substr(0, 1) != ".") {
+                if (key.substr(0, 1) !== ".") {
                     tmp[0]  = "'" + key + "'";
                 }
-                if (tmp.length == 1) {
+                if (tmp.length === 1) {
                     tmp.push("l");
                 }
                 expr        = tmp.join(" | ");
             }
-
+            
             ws.push(createWatchable(
                 self.scope,
                 expr,

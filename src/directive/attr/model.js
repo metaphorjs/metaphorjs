@@ -90,15 +90,30 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
         var self    = this,
             val     = self.watcher.getLastResult(),
+            binding = self.binding,
             ie;
 
         if (self.binding !== "input" && !self.inProg) {
+
+            // when scope value changed but this field
+            // is not in focus, it should try to
+            // change input's value, but not react
+            // to input's 'change' and 'input' events --
+            // fields like select or radio may not have
+            // this value in its options. that will change
+            // value to undefined and bubble back to scope
+            if (document.activeElement !== self.node) {
+                self.binding = "scope";
+            }
+
             if ((ie = isIE()) && ie < 8) {
                 async(self.input.setValue, self.input, [val]);
             }
             else {
                 self.input.setValue(val);
             }
+
+            self.binding = binding;
         }
     }
 
