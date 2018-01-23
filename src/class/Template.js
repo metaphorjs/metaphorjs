@@ -71,10 +71,12 @@ module.exports = function(){
 
         findTemplate = function(tplId) {
 
+            var tpl;
+
             if (typeof __MetaphorJsPrebuilt !== "undefined" &&
                 __MetaphorJsPrebuilt['__tpls'] &&
                 __MetaphorJsPrebuilt['__tpls'][tplId]) {
-                var tpl = __MetaphorJsPrebuilt['__tpls'][tplId];
+                tpl = __MetaphorJsPrebuilt['__tpls'][tplId];
                 delete __MetaphorJsPrebuilt['__tpls'][tplId];
                 return toFragment(tpl);
             }
@@ -87,7 +89,7 @@ module.exports = function(){
                 tag         = tplNode.tagName.toLowerCase();
 
                 if (tag === "script") {
-                    var tpl = tplNode.innerHTML;
+                    tpl = tplNode.innerHTML;
 
                     tplNode.parentNode.removeChild(tplNode);
 
@@ -210,7 +212,7 @@ module.exports = function(){
             if (tpl) {
 
                 if (node && node.firstChild && !self.shadow) {
-                    data(node, "transclude", toFragment(node.childNodes));
+                    data(node, "mjs-transclude", toFragment(node.childNodes));
                 }
 
                 if (isExpression(tpl)) {
@@ -388,7 +390,7 @@ module.exports = function(){
 
             if (self.replace) {
 
-                var transclude = el ? data(el, "transclude") : null;
+                var transclude = el ? data(el, "mjs-transclude") : null;
 
                 frg = clone(self._fragment);
 
@@ -397,7 +399,7 @@ module.exports = function(){
                 if (transclude) {
                     var tr = select("[transclude], transclude", frg);
                     if (tr.length) {
-                        data(tr[0], "transclude", transclude);
+                        data(tr[0], "mjs-transclude", transclude);
                     }
                 }
 

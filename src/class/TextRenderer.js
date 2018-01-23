@@ -284,7 +284,7 @@ module.exports = function(){
                 }
                 expr        = tmp.join(" | ");
             }
-            
+
             ws.push(createWatchable(
                 self.scope,
                 expr,
