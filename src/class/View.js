@@ -396,7 +396,6 @@ module.exports = defineClass({
                     cfg,
                     cfg.scope,
                     node,
-                    null,
                     args
                 )
                     .done(function (newCmp) {
