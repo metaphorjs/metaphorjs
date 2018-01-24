@@ -49,7 +49,7 @@ module.exports = defineClass({
     $constructor: function(scope, node, expr, parentRenderer, attrMap) {
 
         var self    = this,
-            cfg     = attrMap['modifier']['each'] ?
+            cfg     = attrMap && attrMap['modifier']['each'] ?
                         attrMap['modifier']['each'].value : {};
 
         self.cfg            = cfg;
