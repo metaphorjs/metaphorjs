@@ -49,7 +49,7 @@ module.exports = defineClass({
     $constructor: function(scope, node, expr, parentRenderer, attrMap) {
 
         var self    = this,
-            cfg     = attrMap && attrMap['modifier']['each'] ?
+            cfg     = attrMap['modifier']['each'] ?
                         attrMap['modifier']['each'].value : {};
 
         self.cfg            = cfg;
@@ -83,7 +83,7 @@ module.exports = defineClass({
         }
     },
 
-    $init: function(scope, node, expr) {
+    $init: function(scope, node, expr, parentRenderer, attrMap) {
 
         var self = this;
 
@@ -109,7 +109,7 @@ module.exports = defineClass({
 
         self.parentEl.removeChild(node);
 
-        self.afterInit(scope, node);
+        self.afterInit(scope, node, expr, parentRenderer, attrMap);
 
         self.queue.add(self.render, self, [toArray(self.watcher.getLastResult())]);
     },
@@ -244,6 +244,8 @@ module.exports = defineClass({
             iname       = self.itemName,
             itemScope   = self.scope.$new(),
             tm          = self.tagMode;
+
+        itemScope.$on("changed", self.scope.$check, self.scope);
 
         itemScope[iname]    = self.getListItem(list, index);
         el = tm ? toArray(el.childNodes) : el;

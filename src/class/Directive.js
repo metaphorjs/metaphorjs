@@ -98,6 +98,9 @@ module.exports = function(){
         }
     }, {
 
+        getDirective: function(type, name) {
+            return nsGet("directive." + type +"."+ name, true);
+        },
 
         registerAttribute: function registerAttribute(name, priority, handler) {
             if (!nsGet("directive.attr." + name, true)) {

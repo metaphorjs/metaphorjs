@@ -22,7 +22,6 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
 
     nextUid = require("../func/nextUid.js"),
 
-    getNodeConfig = require("../func/dom/getNodeConfig.js"),
     addClass = require("../func/dom/addClass.js"),
     removeClass = require("../func/dom/removeClass.js");
 
@@ -64,18 +63,19 @@ module.exports = defineClass({
 
     scrollOnChange: true,
 
-    $init: function(cfg)  {
+    $init: function(cfg, attrMap)  {
 
         var self    = this;
 
         extend(self, cfg, true, false);
 
+        if (attrMap && attrMap['modifier']['view']) {
+            extend(self, attrMap['modifier']['view'].value, true, false);
+        }
+
         self.routeMap = {};
 
-        var node = self.node,
-            viewCfg = getNodeConfig(node, self.scope);
-
-        extend(self, viewCfg, true, false);
+        var node = self.node;
 
         if (node && node.firstChild) {
             data(node, "mjs-transclude", toFragment(node.childNodes));

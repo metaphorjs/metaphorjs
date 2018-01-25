@@ -41,6 +41,7 @@ extend(Scope.prototype, {
     $$historyWatchers: null,
     $$checking: false,
     $$destroyed: false,
+    $$changing: false,
 
     $$tmt: null,
 
@@ -139,7 +140,7 @@ extend(Scope.prototype, {
         var self = this,
             name;
 
-        if (typeof fn == "string") {
+        if (typeof fn === "string") {
             name = fn;
             fn = context[name];
         }
@@ -173,7 +174,7 @@ extend(Scope.prototype, {
 
     $set: function(key, value) {
         var self = this;
-        if (typeof key == "string") {
+        if (typeof key === "string") {
             this[key] = value;
         }
         else {
@@ -234,7 +235,15 @@ extend(Scope.prototype, {
         }
 
         if (changes > 0) {
+            self.$$changing = true;
             self.$check();
+        }
+        else {
+            // finished changing after all iterations
+            if (self.$$changing) {
+                self.$$changing = false;
+                self.$$observable.trigger("changed");
+            }
         }
     },
 

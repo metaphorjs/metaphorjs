@@ -15,6 +15,7 @@ Directive.registerAttribute("src", 1000, defineClass({
     queue: null,
     usePreload: true,
     noCache: false,
+    attrMap: null,
 
     lastPromise: null,
     src: null,
@@ -23,6 +24,8 @@ Directive.registerAttribute("src", 1000, defineClass({
 
         var self = this,
             cfg = attrMap['modifier']['src'] ? attrMap['modifier']['src'].value : {};
+
+        self.attrMap = attrMap;
 
         if (cfg.deferred) {
             self.$plugins.push("plugin.SrcDeferred");

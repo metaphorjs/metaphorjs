@@ -1,4 +1,6 @@
 
+var toCamelCase = require("metaphorjs/src/func/toCamelCase.js");
+
 module.exports = (function(){
 
 var reg = /^([\[({@#$*])([^)\]}"']+)[\])}]?$/,
@@ -24,6 +26,10 @@ return function parseAttributeName(name) {
     if (name.indexOf("mjs-") === 0) {
         name = name.substr(4);
         prefixed = true;
+    }
+
+    if (name.indexOf(".") !== -1) {
+        name = toCamelCase(name);
     }
 
     var mods, props = {

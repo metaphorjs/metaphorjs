@@ -2,7 +2,6 @@
 var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     addListener = require("../func/event/addListener.js"),
     removeListener = require("../func/event/removeListener.js"),
-    getNodeConfig = require("../func/dom/getNodeConfig.js"),
     bind = require("../func/bind.js"),
     getScrollParent = require("../func/dom/getScrollParent.js"),
     addClass = require("../func/dom/addClass.js"),
@@ -59,8 +58,9 @@ module.exports = defineClass({
 
     afterInit: function() {
 
-        var self = this,
-            cfg     = getNodeConfig(self.list.tpl);
+        var self    = this,
+            attrMap = self.list.attrMap,
+            cfg     = attrMap['modifier']['each'];
 
         self.itemSize       = cfg.itemSize;
         self.itemsOffsite   = parseInt(cfg.itemsOffsite || 5, 10);

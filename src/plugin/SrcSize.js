@@ -1,7 +1,6 @@
 
 var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
-    getNodeConfig = require("../func/dom/getNodeConfig.js"),
     getAttr = require("../func/dom/getAttr.js"),
     removeStyle = require("../func/dom/removeStyle.js");
 
@@ -25,16 +24,17 @@ module.exports = defineClass({
 
     $afterHostInit: function(scope, node) {
 
-        var cfg     = getNodeConfig(node, scope),
+        var attrMap = self.directive.attrMap,
+            cfg     = attrMap['modifier']['src'] ? attrMap['modifier']['src'] : {},
             size    = cfg.preloadSize,
             style   = node.style;
 
-        if (size != "attr") {
+        if (size !== "attr") {
             size    = createGetter(size)(scope);
         }
 
-        var width   = size == "attr" ? parseInt(getAttr(node, "width"), 10) : size.width,
-            height  = size == "attr" ? parseInt(getAttr(node, "height"), 10) : size.height;
+        var width   = size === "attr" ? parseInt(getAttr(node, "width"), 10) : size.width,
+            height  = size === "attr" ? parseInt(getAttr(node, "height"), 10) : size.height;
 
         if (width || height) {
             style.display = "block";
