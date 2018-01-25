@@ -280,6 +280,10 @@ module.exports = function(){
                     res,
                     handler;
 
+                if (tag.substr(0, 4) === "mjs-") {
+                    tag = tag.substr(4);
+                }
+
                 map = getAttrMap(node, true, true);
 
                 // this tag represents component
@@ -397,6 +401,7 @@ module.exports = function(){
 
         process: function() {
             var self    = this;
+
             if (self.el.nodeType) {
                 eachNode(self.el, self.processNode, self,
                     self.onProcessingFinished, {countdown: 1});

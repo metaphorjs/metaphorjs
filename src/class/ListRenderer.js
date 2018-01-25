@@ -156,12 +156,18 @@ module.exports = defineClass({
         var self        = this,
             fragment    = window.document.createDocumentFragment(),
             renderers   = self.renderers,
+            tm          = self.tagMode,
             i, len;
 
         for (i = 0, len = renderers.length; i < len; i++) {
 
             if (!renderers[i].hidden) {
-                fragment.appendChild(renderers[i].el);
+                if (tm) {
+                    fragment.appendChild(toFragment(renderers[i].el));
+                }
+                else {
+                    fragment.appendChild(renderers[i].el);
+                }
                 renderers[i].attached = true;
             }
         }
@@ -222,7 +228,6 @@ module.exports = defineClass({
         scope.$getRawIndex = self.griDelegate;
 
         if (!item.renderer) {
-
             item.renderer  = new Renderer(item.el, scope);
             item.renderer.process();
             item.rendered = true;
@@ -394,7 +399,12 @@ module.exports = defineClass({
 
             if (r.hidden) {
                 if (el.parentNode) {
-                    el.parentNode.removeChild(el);
+                    if (tm) {
+                        el.parentNode.removeChild(toFragment(el));
+                    }
+                    else {
+                        el.parentNode.removeChild(el);
+                    }
                     r.attached = false;
                 }
                 continue;
