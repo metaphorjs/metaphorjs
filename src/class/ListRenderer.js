@@ -1,9 +1,9 @@
 var createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     animate = require("metaphorjs-animate/src/func/animate.js"),
 
-    ns = require("metaphorjs-namespace/src/var/ns.js"),
     defineClass = require("metaphorjs-class/src/func/defineClass.js"),
 
+    filterLookup = require("../func/filterLookup.js"),
     toArray = require("../func/array/toArray.js"),
     nextUid = require("../func/nextUid.js"),
     emptyFn = require("../func/emptyFn.js"),
@@ -119,10 +119,10 @@ module.exports = defineClass({
         var self        = this,
             cfg         = self.cfg;
 
-        self.watcher    = createWatchable(scope, self.model, self.onChange, self, {namespace: ns});
+        self.watcher    = createWatchable(scope, self.model, self.onChange, self, {filterLookup: filterLookup});
         self.trackBy    = cfg.trackBy;
         if (self.trackBy && self.trackBy !== '$') {
-            self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, {namespace: ns});
+            self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, {filterLookup: filterLookup});
         }
         else if (self.trackBy !== '$' && !self.watcher.hasInputPipes()) {
             self.trackBy    = '$$'+self.watcher.id;

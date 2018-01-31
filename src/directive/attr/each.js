@@ -3,8 +3,8 @@
 
 var Directive = require("../../class/Directive.js"),
     evaluate = require("metaphorjs-watchable/src/func/evaluate.js"),
-    ns = require("metaphorjs-namespace/src/var/ns.js"),
     getAttr = require("../../func/dom/getAttr.js"),
+    filterLookup = require("../../func/filterLookup.js"),
     ListRenderer = require("../../class/ListRenderer.js");
 
 
@@ -15,7 +15,7 @@ var Directive = require("../../class/Directive.js"),
     function detectModelType(expr, scope) {
         var tmp = expr.split(" in "),
             model = tmp.length === 1 ? expr : tmp[1],
-            obj = evaluate(model, scope, {namespace: ns}),
+            obj = evaluate(model, scope, {filterLookup: filterLookup}),
             i = 0,
             l = types.length;
 

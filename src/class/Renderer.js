@@ -278,7 +278,8 @@ module.exports = function(){
                     attrProps,
                     name,
                     res,
-                    handler;
+                    handler,
+                    someHandler = false;
 
                 if (tag.substr(0, 4) === "mjs-") {
                     tag = tag.substr(4);
@@ -320,6 +321,7 @@ module.exports = function(){
                 if (f = nsGet("directive.tag." + tag, true)) {
 
                     res = self.runHandler(f, scope, node, null, map);
+                    someHandler = true;
 
                     if (res === false) {
                         return false;
@@ -348,6 +350,7 @@ module.exports = function(){
 
                         res     = self.runHandler(handler, scope, node, attrProps, map);
 
+                        someHandler = true;
                         attrProps.handled = true;
 
                         if (res === false) {
@@ -372,6 +375,12 @@ module.exports = function(){
                 }
 
                 recursive = map['modifier']["recursive"] !== undf;
+
+                if (!someHandler) {
+                    for (i in map['reference']) {
+                        scope[i] = node;
+                    }
+                }
 
                 // this is a plain attribute
                 for (i in map['attribute']) {

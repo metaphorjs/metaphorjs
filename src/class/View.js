@@ -7,10 +7,10 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     currentUrl = require("metaphorjs-history/src/func/currentUrl.js"),
     parseLocation = require("metaphorjs-history/src/func/parseLocation.js"),
-    ns = require("metaphorjs-namespace/src/var/ns.js"),
     UrlParam = require("metaphorjs-history/src/lib/UrlParam.js"),
     raf = require("metaphorjs-animate/src/func/raf.js"),
 
+    filterLookup = require("../func/filterLookup.js"),
     extend = require("../func/extend.js"),
     data = require("../func/dom/data.js"),
     async = require("../func/async.js"),
@@ -99,7 +99,7 @@ module.exports = defineClass({
             self.onLocationChange();
         }
         else if (self.cmp) {
-            self.watchable = createWatchable(self.scope, self.cmp, self.onCmpChange, self, {namespace: ns});
+            self.watchable = createWatchable(self.scope, self.cmp, self.onCmpChange, self, {filterLookup: filterLookup});
             self.onCmpChange();
         }
     },

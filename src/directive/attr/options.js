@@ -8,11 +8,11 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     getValue = require("metaphorjs-input/src/func/getValue.js"),
     setValue = require("metaphorjs-input/src/func/setValue.js"),
     error = require("../../func/error.js"),
+    filterLookup = require("../../func/filterLookup.js"),
     setAttr = require("../../func/dom/setAttr.js"),
     undf = require("../../var/undf.js"),
     isIE = require("../../func/browser/isIE.js"),
     createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
-    ns = require("metaphorjs-namespace/src/var/ns.js"),
     Directive = require("../../class/Directive.js");
 
 
@@ -51,7 +51,7 @@ Directive.registerAttribute("options", 100, defineClass({
             }
             else {
                 self.watcher = createWatchable(scope, self.model, self.onChange, self,
-                    {namespace: ns});
+                    {filterLookup: filterLookup});
             }
         }
         catch (thrownError) {

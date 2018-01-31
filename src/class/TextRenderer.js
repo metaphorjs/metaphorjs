@@ -4,11 +4,11 @@ var nextUid = require("../func/nextUid.js"),
     bind = require("../func/bind.js"),
     trim = require("../func/trim.js"),
     undf = require("../var/undf.js"),
+    filterLookup = require("../func/filterLookup.js"),
     split = require("../func/split.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     Observable = require("metaphorjs-observable/src/lib/Observable.js"),
     isNull = require("../func/isNull.js"),
-    ns = require("metaphorjs-namespace/src/var/ns.js"),
     defineClass = require("metaphorjs-class/src/func/defineClass.js");
 
 
@@ -104,7 +104,7 @@ module.exports = function(){
                 self.render();
             }
 
-            var text = self.text;
+            var text = self.text || "";
 
             if (text.indexOf('\\{') !== -1) {
                 return text.replace(rReplaceEscape, '{');
@@ -120,6 +120,7 @@ module.exports = function(){
                 text    = self.processed,
                 b       = self.boundary,
                 i, l,
+                str,
                 ch;
 
             if (!self.children.length) {
@@ -128,11 +129,13 @@ module.exports = function(){
 
             ch = self.children;
 
-            for (i = -1, l = ch.length; ++i < l;
-                 text = text.replace(
-                     b + i + b,
-                     ch[i] instanceof TextRenderer ? ch[i].getString() : ch[i]
-                 )) {}
+            for (i = -1, l = ch.length; ++i < l;) {
+                str = ch[i] instanceof TextRenderer ? ch[i].getString() : ch[i];
+                text = text.replace(
+                    b + i + b,
+                    str === null ? "" : str
+                );
+            }
 
             self.text = text;
 
@@ -290,7 +293,7 @@ module.exports = function(){
                 expr,
                 self.onDataChange,
                 self,
-                {namespace: ns, mock: mock, getterFn: getter}
+                {filterLookup: filterLookup, mock: mock, getterFn: getter}
             ));
 
             return b + (ws.length-1) + b;

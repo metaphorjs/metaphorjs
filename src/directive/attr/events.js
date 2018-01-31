@@ -8,6 +8,7 @@ var Directive = require("../../class/Directive.js"),
 
     var events = ['click', 'dblclick', 'mousedown', 'mouseup', 'mouseover',
                   'mouseout', 'mousemove', 'keydown', 'keyup', 'keypress',
+                  'change',
                   'focus', 'blur', 'copy', 'cut', 'paste', 'load', 'mousewheel',
                   'touchstart', 'touchend', 'touchcancel', 'touchleave', 'touchmove'],
         i, len;

@@ -4,7 +4,7 @@ var trim = require("../func/trim.js"),
     createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
     undf = require("../var/undf.js"),
     isString = require("../func/isString.js"),
-    ns = require("../../../metaphorjs-namespace/src/var/ns.js"),
+    filterLookup = require("../func/filterLookup.js"),
     defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
     nsGet = require("../../../metaphorjs-namespace/src/func/nsGet.js");
@@ -58,7 +58,7 @@ module.exports = function(){
             self.node       = node;
             self.expr       = expr;
             self.scope      = scope;
-            self.watcher    = createWatchable(scope, expr, self.onChange, self, {namespace: ns});
+            self.watcher    = createWatchable(scope, expr, self.onChange, self, {filterLookup: filterLookup});
 
             if (self.autoOnChange && (val = self.watcher.getLastResult()) !== undf) {
                 self.onChange(val, undf);

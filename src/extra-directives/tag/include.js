@@ -5,7 +5,6 @@ var Directive = require("../../class/Directive.js"),
 
 Directive.registerTag("include", function(scope, node, value, parentRenderer) {
 
-
     var tpl = new Template({
         scope: scope,
         node: node,

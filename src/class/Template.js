@@ -8,6 +8,7 @@ var data = require("../func/dom/data.js"),
     extend = require("../func/extend.js"),
     nextUid = require("../func/nextUid.js"),
     trim = require("../func/trim.js"),
+    filterLookup = require("../func/filterLookup.js"),
     createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     Renderer = require("./Renderer.js"),
@@ -16,7 +17,6 @@ var data = require("../func/dom/data.js"),
     Scope = require("metaphorjs/src/lib/Scope.js"),
     Observable = require("metaphorjs-observable/src/lib/Observable.js"),
     ajax = require("metaphorjs-ajax/src/func/ajax.js"),
-    ns = require("metaphorjs-namespace/src/var/ns.js"),
     removeAttr = require("../func/dom/removeAttr.js"),
     defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     select = require("metaphorjs-select/src/func/select.js"),
@@ -69,6 +69,29 @@ module.exports = function(){
             return tpl;
         },
 
+        processTextTemplate = function(tplId, tpl) {
+
+            if (tpl.substr(0,5) === "<!--{") {
+
+                var inx = tpl.indexOf("-->"),
+                    opt = createGetter(tpl.substr(4, inx-4))({});
+
+                options[tplId] = opt;
+
+                tpl = tpl.substr(inx + 3);
+
+                if (opt.includes) {
+                    tpl = resolveIncludes(tpl);
+                }
+
+                if (opt.text) {
+                    return tpl;
+                }
+            }
+
+            return toFragment(tpl);
+        },
+
         findTemplate = function(tplId) {
 
             var tpl;
@@ -78,39 +101,20 @@ module.exports = function(){
                 __MetaphorJsPrebuilt['__tpls'][tplId]) {
                 tpl = __MetaphorJsPrebuilt['__tpls'][tplId];
                 delete __MetaphorJsPrebuilt['__tpls'][tplId];
-                return toFragment(tpl);
+                return processTextTemplate(tplId, tpl);
             }
 
-            var tplNode     = window.document.getElementById(tplId),
+            var tplNode = window.document.getElementById(tplId),
                 tag;
 
             if (tplNode) {
 
-                tag         = tplNode.tagName.toLowerCase();
+                tag = tplNode.tagName.toLowerCase();
 
                 if (tag === "script") {
                     tpl = tplNode.innerHTML;
-
                     tplNode.parentNode.removeChild(tplNode);
-
-                    if (tpl.substr(0,5) === "<!--{") {
-                        var inx = tpl.indexOf("-->"),
-                            opt = createGetter(tpl.substr(4, inx-4))({});
-
-                        options[tplId] = opt;
-
-                        tpl = tpl.substr(inx + 3);
-
-                        if (opt.includes) {
-                            tpl = resolveIncludes(tpl);
-                        }
-
-                        if (opt.text) {
-                            return tpl;
-                        }
-                    }
-
-                    return toFragment(tpl);
+                    return processTextTemplate(tplId, tpl);
                 }
                 else {
                     if ("content" in tplNode) {
@@ -140,7 +144,7 @@ module.exports = function(){
                 var second = str.substr(1,1);
                 return !(second === '.' || second === '/');
             }
-            return str.substr(0,1) === '{';
+            return str.substr(0,1) === '{' || str.substr(0,5) === 'this.';
         };
 
     cache.addFinder(findTemplate);
@@ -216,7 +220,7 @@ module.exports = function(){
                 }
 
                 if (isExpression(tpl)) {
-                    self._watcher = createWatchable(self.scope, tpl, self.onChange, self, {namespace: ns});
+                    self._watcher = createWatchable(self.scope, tpl, self.onChange, self, {filterLookup: filterLookup});
                     var val = self._watcher.getLastResult();
                     if (typeof val !== "string") {
                         extend(self, val, true, false);

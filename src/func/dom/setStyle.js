@@ -10,7 +10,7 @@ module.exports = function setStyle(el, name, value) {
         style = el.style,
         k;
 
-    if (typeof name == "string") {
+    if (typeof name === "string") {
         props = {};
         props[name] = value;
     }

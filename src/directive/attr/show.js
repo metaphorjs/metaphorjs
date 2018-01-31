@@ -18,7 +18,7 @@ Directive.registerAttribute("show", 500, defineClass({
             cfg     = attrMap['modifier']['show'] ?
                         attrMap['modifier']['show'].value : {};
 
-        self.display = cfg.display || "";
+        self.display = cfg.display || "block";
 
         self.$super(scope, node, expr);
     },
