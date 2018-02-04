@@ -9,10 +9,10 @@ var nextUid = require("../func/nextUid.js"),
     Directive = require("./Directive.js"),
     TextRenderer = require("./TextRenderer.js"),
     slice = require("../func/array/slice.js"),
-    getAttr = require("../func/dom/getAttr.js"),
     setAttr = require("../func/dom/setAttr.js"),
     removeAttr = require("../func/dom/removeAttr.js"),
-    getAttrMap = require("../func/dom/getAttrMap.js"),
+    getAttrSet = require("../func/dom/getAttrSet.js"),
+    extend = require("../func/extend.js"),
     undf = require("../var/undf.js"),
 
     htmlTags = require("../var/htmlTags.js"),
@@ -28,6 +28,10 @@ module.exports = function(){
 
     var handlers                = null,
         createText              = TextRenderer.create,
+
+        lookupDirective = function(name) {
+            return !!nsGet("directive.attr." + name, true);
+        },
 
         nodeChildren = function(res, el, fn, fnScope, finish, cnt) {
 
@@ -173,7 +177,7 @@ module.exports = function(){
             return this.el;
         },
 
-        runHandler: function(f, parentScope, node, attr, attrMap) {
+        runHandler: function(f, parentScope, node, attr, attrs) {
 
             var self    = this,
                 scope   = f.$isolateScope ?
@@ -189,18 +193,16 @@ module.exports = function(){
                     $scope: scope,
                     $node: node,
                     $attrValue: value,
-                    $attrMap: attrMap,
+                    $attrMap: attrs,
                     $renderer: self
                 },
-                args    = [scope, node, value, self, attrMap],
+                args    = [scope, node, value, self, attr],
                 i,
                 inst;
 
-            for (i in attrMap['reference']) {
-                scope[i] = node;
+            if (attrs.reference) {
+                scope[attrs.reference] = node;
             }
-
-            attrMap.extendTarget("scope", scope);
 
             if (app) {
                 inst = app.inject(f, null, inject, args);
@@ -234,23 +236,21 @@ module.exports = function(){
             return f.$stopRenderer ? false : inst;
         },
 
+
         processNode: function(node) {
 
             var self        = this,
                 nodeType    = node.nodeType,
                 texts       = self.texts,
                 scope       = self.scope,
-                textRenderer,
-                recursive;
+                textRenderer;
 
             // text node
             if (nodeType === 3) {
-
-                recursive       = getAttr(node.parentNode, "*recursive") !== null;
                 textRenderer    = createText(
                     scope,
                     node.textContent || node.nodeValue,
-                    null, texts.length, recursive);
+                    {userData: texts.length});
 
                 if (textRenderer) {
                     textRenderer.subscribe(self.onTextChange, self);
@@ -260,7 +260,6 @@ module.exports = function(){
                     });
                     self.renderText(texts.length - 1);
                 }
-
             }
 
             // element node
@@ -273,8 +272,8 @@ module.exports = function(){
                 var tag     = node.tagName.toLowerCase(),
                     defers  = [],
                     nodes   = [],
-                    i, f, len, c,
-                    map, as,
+                    i, l, f, len, c,
+                    attrs, as,
                     attrProps,
                     name,
                     res,
@@ -285,24 +284,25 @@ module.exports = function(){
                     tag = tag.substr(4);
                 }
 
-                map = getAttrMap(node, true, true);
+                attrs = getAttrSet(node, lookupDirective);
+
+                for (i = 0, l = attrs.subnames.length; i < l; i++) {
+                    removeAttr(node, attrs.subnames[i]);
+                }
 
                 // this tag represents component
                 // we just pass it to attr.cmp directive
                 // by adding it to the attr map
                 if (c = nsGet("directive.component." + tag, true)) {
-                    map["directive"]['cmp'] = {
+                    attrs["directive"]['cmp'] = {
                         value: c.prototype.$class,
                         name: "cmp",
                         original: "{cmp}",
-                        type: "directive",
-                        mods: null
+                        config: extend({}, attrs.config),
+                        values: null
                     };
 
-                    as = map['modifier']['as'];
-                    if (as) {
-                        as = as.value;
-                    }
+                    as = attrs.config.as;
                     if (!as && !inArray(tag, htmlTags)) {
                         as = "div";
                     }
@@ -314,13 +314,16 @@ module.exports = function(){
                             as.appendChild(node.firstChild);
                         }
                         node = as;
+                        for (name in attrs.rest) {
+                            setAttr(node, name, attrs.rest[name]);
+                        }
                     }
                 }
 
                 // this is a tag directive
                 if (f = nsGet("directive.tag." + tag, true)) {
 
-                    res = self.runHandler(f, scope, node, null, map);
+                    res = self.runHandler(f, scope, node, null, attrs);
                     someHandler = true;
 
                     if (res === false) {
@@ -339,7 +342,7 @@ module.exports = function(){
                 for (i = 0, len = handlers.length; i < len; i++) {
                     name    = handlers[i].name;
 
-                    if ((attrProps = map['directive'][name]) !== undf &&
+                    if ((attrProps = attrs['directive'][name]) !== undf &&
                         !attrProps.handled) {
 
                         handler = handlers[i].handler;
@@ -348,7 +351,7 @@ module.exports = function(){
                             removeAttr(node, attrProps.original);
                         }
 
-                        res     = self.runHandler(handler, scope, node, attrProps, map);
+                        res     = self.runHandler(handler, scope, node, attrProps, attrs);
 
                         someHandler = true;
                         attrProps.handled = true;
@@ -374,32 +377,27 @@ module.exports = function(){
                     return deferred;
                 }
 
-                recursive = map['modifier']["recursive"] !== undf;
-
-                if (!someHandler) {
-                    for (i in map['reference']) {
-                        scope[i] = node;
-                    }
+                if (!someHandler && attrs.reference) {
+                    scope[attrs.reference] = node;
                 }
 
                 // this is a plain attribute
-                for (i in map['attribute']) {
+                for (i in attrs['attribute']) {
+
                     textRenderer = createText(
                         scope,
-                        map['attribute'][i].value,
-                        null, texts.length, recursive);
+                        attrs['attribute'][i].value,
+                        {userData: texts.length, force: true});
 
-                    if (textRenderer) {
-                        removeAttr(node, map['attribute'][i].original);
-                        textRenderer.subscribe(self.onTextChange, self);
-                        texts.push({
-                            node: node,
-                            attr: i,
-                            attrProp: map['attribute'][i],
-                            tr: textRenderer
-                        });
-                        self.renderText(texts.length - 1);
-                    }
+                    removeAttr(node, attrs['attribute'][i].original);
+                    textRenderer.subscribe(self.onTextChange, self);
+                    texts.push({
+                        node: node,
+                        attr: i,
+                        //attrProp: attrs['attribute'][i],
+                        tr: textRenderer
+                    });
+                    self.renderText(texts.length - 1);
                 }
 
                 return nodes.length ? nodes : true;

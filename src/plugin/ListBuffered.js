@@ -59,8 +59,8 @@ module.exports = defineClass({
     afterInit: function() {
 
         var self    = this,
-            attrMap = self.list.attrMap,
-            cfg     = attrMap['modifier']['each'];
+            attr    = self.list.attr,
+            cfg     = attr ? attr.config : {};
 
         self.itemSize       = cfg.itemSize;
         self.itemsOffsite   = parseInt(cfg.itemsOffsite || 5, 10);

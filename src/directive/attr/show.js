@@ -12,11 +12,10 @@ Directive.registerAttribute("show", 500, defineClass({
     initial: true,
     display: "",
 
-    $init: function(scope, node, expr, renderer, attrMap) {
+    $init: function(scope, node, expr, renderer, attr) {
 
         var self    = this,
-            cfg     = attrMap['modifier']['show'] ?
-                        attrMap['modifier']['show'].value : {};
+            cfg     = attr ? attr.config : {};
 
         self.display = cfg.display || "block";
 

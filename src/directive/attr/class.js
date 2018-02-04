@@ -12,6 +12,22 @@ var Directive = require("../../class/Directive.js"),
     undf = require("../../var/undf.js");
 
 
+
+/*
+
+value is always an object in the end
+{class: "condition", class: "condition"}
+
+array turns into _: []
+{_: [class, class]}
+(which is then turned into {class: true, class: true}
+
+
+DO NOT put class="{}" when using class.name="{}"
+
+ */
+
+
 (function(){
 
     var toggleClass = function(node, cls, toggle, doAnim) {
@@ -85,35 +101,22 @@ var Directive = require("../../class/Directive.js"),
         $extends: Directive,
         initial: true,
 
-        $init: function(scope, node, expr) {
+        $init: function(scope, node, expr, renderer, attr) {
 
-            var value = Directive.getExprAndMods(expr),
-                parts = [],
-                all   = '',
-                item,
-                i, l;
+            var values = attr ? attr.values : null,
+                k,
+                parts;
 
-            for (i = 0, l = value.length; i < l; i++) {
-                item = value[i];
-                if (!item.mods) {
-                    all = item.expr;
+            if (values) {
+                parts = [];
+                if (expr) {
+                    parts.push('_: ' + expr);
                 }
-                else {
-                    parts.push(item.mlist[0] + ': ' + item.expr);
+                for (k in values) {
+                    parts.push(k + ': ' + values[k]);
                 }
+                expr = '{' + parts.join(', ') + '}';
             }
-            parts = parts.join(', ');
-
-            if (!all) {
-                all = '{' + parts + '}';
-            }
-            else {
-                if (parts) {
-                    all = all.substring(0, all.length - 1) + ', ' + parts + '}';
-                }
-            }
-
-            expr = all;
 
             this.$super(scope, node, expr);
         },

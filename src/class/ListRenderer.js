@@ -46,11 +46,10 @@ module.exports = defineClass({
     buffered: false,
     bufferPlugin: null,
 
-    $constructor: function(scope, node, expr, parentRenderer, attrMap) {
+    $constructor: function(scope, node, expr, parentRenderer, attr) {
 
         var self    = this,
-            cfg     = attrMap['modifier']['each'] ?
-                        attrMap['modifier']['each'].value : {};
+            cfg     = attr ? attr.config : {};
 
         self.cfg            = cfg;
         self.scope          = scope;
@@ -83,11 +82,9 @@ module.exports = defineClass({
         }
     },
 
-    $init: function(scope, node, expr, parentRenderer, attrMap) {
+    $init: function(scope, node, expr, parentRenderer, attr) {
 
         var self = this;
-
-        //removeAttr(node, "include");
 
         if (self.tagMode) {
             expr = getAttr(node, "value");
@@ -109,7 +106,7 @@ module.exports = defineClass({
 
         self.parentEl.removeChild(node);
 
-        self.afterInit(scope, node, expr, parentRenderer, attrMap);
+        self.afterInit(scope, node, expr, parentRenderer, attr);
 
         self.queue.add(self.render, self, [toArray(self.watcher.getLastResult())]);
     },

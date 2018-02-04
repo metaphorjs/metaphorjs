@@ -28,13 +28,13 @@ var Directive = require("../../class/Directive.js"),
         return null;
     }
 
-    var eachDirective = function eachDirective(scope, node, expr, parentRenderer, attrMap) {
+    var eachDirective = function eachDirective(scope, node, expr, parentRenderer, attr) {
         var tagMode = node.nodeName.toLowerCase() === "mjs-each";
         if (tagMode) {
             expr = getAttr(node, "value");
         }
         var handler = detectModelType(expr, scope) || ListRenderer;
-        return new handler(scope, node, expr, parentRenderer, attrMap);
+        return new handler(scope, node, expr, parentRenderer, attr);
     };
 
 

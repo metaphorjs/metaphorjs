@@ -5,7 +5,6 @@ var nextUid = require("../func/nextUid.js"),
     trim = require("../func/trim.js"),
     undf = require("../var/undf.js"),
     filterLookup = require("../func/filterLookup.js"),
-    split = require("../func/split.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     Observable = require("metaphorjs-observable/src/lib/Observable.js"),
     isNull = require("../func/isNull.js"),
@@ -21,25 +20,29 @@ module.exports = function(){
 
         savedBoundary           = '--##--',
 
-        langStartSymbol         = '{[',
-        langEndSymbol           = ']}',
-        langStartLength         = 2,
-        langEndLength           = 2,
-
         rReplaceEscape          = /\\{/g,
 
         observer                = new Observable,
 
-        factory                 = function(scope, origin, parent, userData, recursive) {
+        //parent, userData, recursive
+        factory                 = function(scope, origin, opt) {
 
             if (!origin || !origin.indexOf ||
                 (origin.indexOf(startSymbol) === -1 &&
-                 origin.indexOf(langStartSymbol) === -1 &&
                  origin.indexOf(savedBoundary) === -1)) {
+
+                if (opt.force) {
+                    return new TextRenderer(
+                        scope,
+                        startSymbol + origin + endSymbol,
+                        opt
+                    );
+                }
+
                 return null;
             }
 
-            return new TextRenderer(scope, origin, parent, userData, recursive);
+            return new TextRenderer(scope, origin, opt);
         };
 
     var TextRenderer = defineClass({
@@ -63,22 +66,25 @@ module.exports = function(){
         boundary: null,
         mock: null,
 
-        $init: function(scope, origin, parent, userData, recursive, boundary, mock) {
+        //parent, userData, recursive, boundary, mock
+        $init: function(scope, origin, opt) {
+
+            opt = opt || {};
 
             var self        = this;
 
             self.id         = nextUid();
             self.origin     = origin;
             self.scope      = scope;
-            self.parent     = parent;
-            self.isRoot     = !parent;
-            self.data       = userData;
+            self.parent     = opt.parent;
+            self.isRoot     = !opt.parent;
+            self.data       = opt.userData;
             self.lang       = scope.$app ? scope.$app.lang : null;
-            self.boundary   = boundary || "---";
-            self.mock       = mock;
+            self.boundary   = opt.boundary || "---";
+            self.mock       = opt.mock;
 
-            if (recursive === true || recursive === false) {
-                self.recursive = recursive;
+            if (opt.recursive === true || opt.recursive === false) {
+                self.recursive = opt.recursive;
             }
 
             self.watchers   = [];
@@ -157,9 +163,7 @@ module.exports = function(){
                 startIndex,
                 endIndex,
                 result      = "";
-            //separators  = [];
 
-            // regular keys
             while(index < textLength) {
                 if (((startIndex = text.indexOf(startSymbol, index)) !== -1) &&
                     ((endIndex = text.indexOf(endSymbol, startIndex + startSymbolLength)) !== -1) &&
@@ -170,7 +174,6 @@ module.exports = function(){
                     if (endIndex !== startIndex + startSymbolLength) {
                         result += self.watcherMatch(
                             text.substring(startIndex + startSymbolLength, endIndex),
-                            false,
                             mock
                         );
                     }
@@ -186,42 +189,9 @@ module.exports = function(){
                 }
             }
 
-            index       = 0;
-            text        = result;
-            textLength  = text.length;
-            result      = "";
-            //separators  = [];
-
-            // lang keys
-            while(index < textLength) {
-
-                if (((startIndex = text.indexOf(langStartSymbol, index)) !== -1) &&
-                    ((endIndex = text.indexOf(langEndSymbol, startIndex + langStartLength)) !== -1) &&
-                    text.substr(startIndex - 1, 1) !== '\\') {
-
-                    result += text.substring(index, startIndex);
-
-                    if (endIndex !== startIndex + langStartLength) {
-                        result += self.watcherMatch(
-                            text.substring(startIndex + langStartLength, endIndex),
-                            true,
-                            mock
-                        );
-                    }
-
-                    index = endIndex + langEndLength;
-
-                } else {
-                    // we did not find an interpolation
-                    if (index !== textLength) {
-                        result += text.substring(index);
-                    }
-                    break;
-                }
-            }
 
             //saved keys
-            index       = 0;
+            /*index       = 0;
             text        = result;
             textLength  = text.length;
             result      = "";
@@ -240,7 +210,6 @@ module.exports = function(){
 
                     result += self.watcherMatch(
                         getterid,
-                        false,
                         mock
                     );
 
@@ -252,19 +221,37 @@ module.exports = function(){
                     }
                     break;
                 }
-            }
+            }*/
 
             return result;
         },
 
-        watcherMatch: function(expr, isLang, mock) {
+        watcherMatch: function(expr, mock) {
 
-            var self    = this,
-                ws      = self.watchers,
-                b       = self.boundary,
-                getter  = null;
+            var self        = this,
+                ws          = self.watchers,
+                b           = self.boundary,
+                w,
+                isLang      = false,
+                recursive   = self.recursive,
+                getter      = null;
 
-            if (typeof expr === "number") {
+            expr        = trim(expr);
+
+            if (expr.substr(0,1) === '-') {
+                var inx = expr.indexOf(" "),
+                    mods = expr.substr(1,inx);
+                expr = expr.substr(inx);
+
+                if (!recursive && mods.indexOf("r") !== -1) {
+                    recursive = true;
+                }
+                if (mods.indexOf("l") !== -1) {
+                    isLang = true;
+                }
+            }
+
+            /*if (typeof expr === "number") {
                 var getterId = expr;
                 if (typeof __MetaphorJsPrebuilt !== "undefined") {
                     expr = __MetaphorJsPrebuilt['__tpl_getter_codes'][getterId];
@@ -273,28 +260,26 @@ module.exports = function(){
                 else {
                     return "";
                 }
-            }
+            }*/
 
-            if (isLang) {
-                expr        = trim(expr);
-                var tmp     = split(expr, "|"),
-                    key     = trim(tmp[0]);
-                if (key.substr(0, 1) !== ".") {
-                    tmp[0]  = "'" + key + "'";
-                }
-                if (tmp.length === 1) {
-                    tmp.push("l");
-                }
-                expr        = tmp.join(" | ");
-            }
-
-            ws.push(createWatchable(
+            w = createWatchable(
                 self.scope,
                 expr,
                 self.onDataChange,
                 self,
-                {filterLookup: filterLookup, mock: mock, getterFn: getter}
-            ));
+                {
+                    filterLookup: filterLookup, mock: mock, getterFn: getter,
+                    userData: {
+                        recursive: recursive
+                    }
+                }
+            );
+
+            if (isLang && !w.hasPipe("l")) {
+                w.addPipe("l");
+            }
+
+            ws.push(w);
 
             return b + (ws.length-1) + b;
         },
@@ -335,16 +320,21 @@ module.exports = function(){
                 ws      = self.watchers,
                 ch      = self.children,
                 scope   = self.scope,
-                rec     = self.recursive,
+                rec     = false,
                 i, l,
                 val;
 
             for (i = -1, l = ws.length; ++i < l; ){
                 val     = ws[i].getLastResult();
+
+                //TODO: watcher must have userData!
+                // if it doesn't, it was taken from cache and it is wrong
+                // because -rl flags may be different
+                rec     = self.recursive || (ws[i].userData && ws[i].userData.recursive);
                 if (val === undf) {
                     val = "";
                 }
-                ch.push((rec && factory(scope, val, self, null, true)) || val);
+                ch.push((rec && factory(scope, val, {parent: self, recursive: true})) || val);
             }
         },
 

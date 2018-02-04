@@ -14,7 +14,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
     initial: true,
     cfg: null,
 
-    $init: function(scope, node, expr, parentRenderer, attrMap) {
+    $init: function(scope, node, expr, parentRenderer, attr) {
 
         var self    = this;
 
@@ -22,8 +22,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
         self.prevEl     = node.previousSibling;
         self.nextEl     = node.nextSibling;
 
-        self.cfg        = attrMap['modifier']['if'] ?
-                            attrMap['modifier']['if'].value : {};
+        self.cfg        = attr ? attr.config : {};
 
         self.$super(scope, node, expr);
     },
@@ -58,7 +57,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
 
         var show    = function(){
 
-            var np = self.cfg.nodePosition;
+            var np = self.cfg.position;
 
             if (np === "append") {
                 parent.appendChild(node);

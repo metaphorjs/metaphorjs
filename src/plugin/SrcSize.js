@@ -24,8 +24,8 @@ module.exports = defineClass({
 
     $afterHostInit: function(scope, node) {
 
-        var attrMap = self.directive.attrMap,
-            cfg     = attrMap['modifier']['src'] ? attrMap['modifier']['src'] : {},
+        var attr    = self.directive.attr,
+            cfg     = attr ? attr.config : {},
             size    = cfg.preloadSize,
             style   = node.style;
 

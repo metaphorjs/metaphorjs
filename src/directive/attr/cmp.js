@@ -6,12 +6,10 @@ var Directive = require("../../class/Directive.js"),
 
 (function(){
 
-    var cmpAttr = function(scope, node, cmpName, parentRenderer, attrMap){
-
+    var cmpAttr = function(scope, node, cmpName, parentRenderer, attr){
 
         var constr  = nsGet(cmpName, true),
-            nodecfg = attrMap['modifier']['cmp'] ?
-                        attrMap['modifier']['cmp'].value : {};
+            nodecfg = attr ? attr.config : {};
 
         if (!constr) {
             throw "Component " + cmpName + " not found";
@@ -22,14 +20,12 @@ var Directive = require("../../class/Directive.js"),
 
         scope       = isolateScope ? scope.$newIsolated() : (sameScope ? scope : scope.$new());
 
-        attrMap.extendTarget("scope", scope);
-
         var cfg     = extend({
             scope: scope,
             node: node,
             parentRenderer: parentRenderer,
             destroyScope: !sameScope
-        }, attrMap.extendTarget("component"), false, false);
+        }, nodecfg, false, false);
 
         resolveComponent(cmpName, cfg, scope, node);
 

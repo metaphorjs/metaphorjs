@@ -63,14 +63,14 @@ module.exports = defineClass({
 
     scrollOnChange: true,
 
-    $init: function(cfg, attrMap)  {
+    $init: function(cfg, attr)  {
 
         var self    = this;
 
         extend(self, cfg, true, false);
 
-        if (attrMap && attrMap['modifier']['view']) {
-            extend(self, attrMap['modifier']['view'].value, true, false);
+        if (attr) {
+            extend(self, attr.config, true, false);
         }
 
         self.routeMap = {};

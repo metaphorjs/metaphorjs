@@ -15,15 +15,14 @@ Directive.registerAttribute("bind", 1000, Directive.$extend({
     recursive: false,
     textRenderer: null,
 
-    $init: function(scope, node, expr, renderer, attrMap) {
+    $init: function(scope, node, expr, renderer, attr) {
 
         var self    = this,
-            cfg     = attrMap['modifier']['bind'] ?
-                        attrMap['modifier']['bind'].value : {};
+            cfg     = attr ? attr.config : {};
 
         self.isInput    = isField(node);
         self.recursive  = !!cfg.recursive;
-        self.lockInput  = !!cfg.lockInput;
+        self.locked     = !!cfg.locked;
 
         if (self.isInput) {
             //self.input  = new Input(node, self.onInputChange, self);
@@ -34,7 +33,7 @@ Directive.registerAttribute("bind", 1000, Directive.$extend({
         if (self.recursive) {
             self.scope  = scope;
             self.node   = node;
-            self.textRenderer = new TextRenderer(scope, '{{' + expr + '}}', null, null, true);
+            self.textRenderer = new TextRenderer(scope, '{{' + expr + '}}', {recursive: true});
             self.textRenderer.subscribe(self.onTextRendererChange, self);
             self.onTextRendererChange();
 
@@ -47,16 +46,15 @@ Directive.registerAttribute("bind", 1000, Directive.$extend({
         }
     },
 
-    onInputChange: function() {
+    onInputChange: function(val) {
 
         var self = this;
-        if (self.lockInput) {
+        if (self.locked && val != self.watcher.getLastResult()) {
             self.onChange();
         }
     },
 
     onTextRendererChange: function() {
-
         var self    = this;
         self.updateElement(self.textRenderer.getString());
     },

@@ -3,7 +3,29 @@ var Directive = require("../../class/Directive.js"),
     undf = require("../../var/undf.js"),
     removeStyle = require("../../func/dom/removeStyle.js");
 
+/*
+value is always an object in the end
+DO NOT MIX style="{}" with style.prop="expression".
+ */
+
+
 Directive.registerAttribute("style", 1000, Directive.$extend({
+
+    $init: function(scope, node, expr, renderer, attr) {
+
+        var values = attr ? attr.values : null,
+            parts, k;
+
+        if (values) {
+            parts = [];
+            for (k in values) {
+                parts.push(k + ': ' + values[k]);
+            }
+            expr = '{' + parts.join(', ') + '}';
+        }
+
+        this.$super(scope, node, expr);
+    },
 
     onChange: function() {
 

@@ -15,17 +15,17 @@ Directive.registerAttribute("src", 1000, defineClass({
     queue: null,
     usePreload: true,
     noCache: false,
-    attrMap: null,
+    attr: null,
 
     lastPromise: null,
     src: null,
 
-    $constructor: function(scope, node, expr, renderer, attrMap) {
+    $constructor: function(scope, node, expr, renderer, attr) {
 
         var self = this,
-            cfg = attrMap['modifier']['src'] ? attrMap['modifier']['src'].value : {};
+            cfg = attr ? attr.config : {};
 
-        self.attrMap = attrMap;
+        self.attr = attr;
 
         if (cfg.deferred) {
             self.$plugins.push("plugin.SrcDeferred");
@@ -44,10 +44,10 @@ Directive.registerAttribute("src", 1000, defineClass({
         self.$super(scope, node, expr);
     },
 
-    $init: function(scope, node, expr, renderer, attrMap) {
+    $init: function(scope, node, expr, renderer, attr) {
 
         var self = this,
-            cfg = attrMap['modifier']['src'] ? attrMap['modifier']['src'].value : {};
+            cfg = attr ? attr.config : {};
 
         if (cfg.noCache) {
             self.noCache = true;

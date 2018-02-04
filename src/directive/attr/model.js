@@ -21,11 +21,10 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
     autoOnChange: false,
 
-    $init: function(scope, node, expr, renderer, attrMap) {
+    $init: function(scope, node, expr, renderer, attr) {
 
         var self    = this,
-            cfg     = attrMap['modifier']['model'] ?
-                        attrMap['modifier']['model'].value : {};
+            cfg     = attr ? attr.config : {};
 
         self.node           = node;
         self.input          = Input.get(node);
