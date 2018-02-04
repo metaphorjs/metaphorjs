@@ -192,12 +192,12 @@ module.exports = function(){
                 inject  = {
                     $scope: scope,
                     $node: node,
+                    $attr: attr,
                     $attrValue: value,
                     $attrMap: attrs,
                     $renderer: self
                 },
                 args    = [scope, node, value, self, attr],
-                i,
                 inst;
 
             if (attrs.reference) {

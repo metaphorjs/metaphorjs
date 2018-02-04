@@ -46,7 +46,7 @@ DO NOT put class="{}" when using class.name="{}"
 
         if (has) {
             if (doAnim) {
-                animate(node, [cls + "-remove"], null, true).done(function(){
+                animate(node, [cls + "-remove"]).done(function(){
                     removeClass(node, cls);
                 });
             }
@@ -56,7 +56,7 @@ DO NOT put class="{}" when using class.name="{}"
         }
         else {
             if (doAnim) {
-                animate(node, [cls + "-add"], null, true).done(function(){
+                animate(node, [cls + "-add"]).done(function(){
                     addClass(node, cls);
                 });
             }
@@ -100,12 +100,16 @@ DO NOT put class="{}" when using class.name="{}"
 
         $extends: Directive,
         initial: true,
+        animate: false,
 
         $init: function(scope, node, expr, renderer, attr) {
 
             var values = attr ? attr.values : null,
+                cfg = attr ? attr.config : {},
                 k,
                 parts;
+
+            self.animate = !!cfg.animate;
 
             if (values) {
                 parts = [];
@@ -141,7 +145,7 @@ DO NOT put class="{}" when using class.name="{}"
 
             for (i in clss) {
                 if (clss.hasOwnProperty(i)) {
-                    toggleClass(node, i, !!clss[i], !self.initial);
+                    toggleClass(node, i, !!clss[i], !self.initial && self.animate);
                 }
             }
 

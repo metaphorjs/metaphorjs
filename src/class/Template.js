@@ -173,7 +173,7 @@ module.exports = function(){
         deferRendering:     false,
         replace:            false,
         shadow:             false,
-        animationEnabled:   true,
+        animate:            true,
 
         $init: function(cfg) {
 
@@ -261,7 +261,7 @@ module.exports = function(){
         },
 
         setAnimation: function(state) {
-            this.animationEnabled = state;
+            this.animate = state;
         },
 
         doRender: function() {
@@ -441,11 +441,11 @@ module.exports = function(){
                 el          = self.node,
                 deferred    = new Promise;
 
-            if (!self._initial && self.animationEnabled) {
-                animate(el, "leave", null, true)
+            if (!self._initial && self.animate) {
+                animate(el, "leave")
                     .done(self.doApplyTemplate, self)
                     .done(deferred.resolve, deferred);
-                animate(el, "enter", null, true);
+                animate(el, "enter");
             }
             else {
                 self.doApplyTemplate();

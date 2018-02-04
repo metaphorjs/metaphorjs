@@ -63,6 +63,8 @@ module.exports = defineClass({
 
     scrollOnChange: true,
 
+    animate: false,
+
     $init: function(cfg, attr)  {
 
         var self    = this;
@@ -258,7 +260,7 @@ module.exports = defineClass({
 
         if (self.currentComponent) {
 
-            animate(node, "leave", null, true).done(function(){
+            animate(node, self.animate ? "leave" : null).done(function(){
 
                 if (!cview.keepAlive) {
                     if (self.currentComponent &&
@@ -358,7 +360,7 @@ module.exports = defineClass({
 
         self.currentView = route;
 
-        animate(node, "enter", function(){
+        animate(node, self.animate ? "enter" : null, function(){
 
             var args    = matches || [],
                 cfg     = {
@@ -423,7 +425,7 @@ module.exports = defineClass({
                     });
             }
 
-        }, true);
+        });
     },
 
 
@@ -451,7 +453,7 @@ module.exports = defineClass({
         self.clearComponent();
         self.currentView = null;
 
-        animate(node, "enter", function(){
+        animate(node, self.animate ? "enter" : null, function(){
 
             var cfg     = isObject(cmp) ? cmp : {},
                 cls     = (isString(cmp) ? cmp : null) || "MetaphorJs.Component",
@@ -464,7 +466,7 @@ module.exports = defineClass({
                 self.afterCmpChange();
             });
 
-        }, true);
+        });
     },
 
 

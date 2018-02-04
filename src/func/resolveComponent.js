@@ -102,7 +102,8 @@ module.exports = function resolveComponent(cmp, cfg, scope, node, args) {
             ownRenderer: true,
             shadow: constr.$shadow,
             tpl: tpl,
-            url: tplUrl
+            url: tplUrl,
+            animate: !!cfg.animate
         });
 
         defers.push(cfg.template.initPromise);

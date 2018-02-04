@@ -168,7 +168,7 @@ module.exports = defineClass({
                 tpl: tpl,
                 url: url,
                 shadow: self.constructor.$shadow,
-                animationEnabled: !self.hidden
+                animate: !self.hidden && !!self.animate
             });
         }
         else if (tpl instanceof Template) {

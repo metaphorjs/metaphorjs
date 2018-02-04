@@ -13,6 +13,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
     el: null,
     initial: true,
     cfg: null,
+    animate: false,
 
     $init: function(scope, node, expr, parentRenderer, attr) {
 
@@ -23,6 +24,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
         self.nextEl     = node.nextSibling;
 
         self.cfg        = attr ? attr.config : {};
+        self.animate    = !!self.cfg.animate;
 
         self.$super(scope, node, expr);
     },
@@ -81,11 +83,13 @@ Directive.registerAttribute("if", 500, Directive.$extend({
         };
 
         if (val) {
-            self.initial ? show() : animate(node, "enter", show, true);
+            self.initial || !self.animate ?
+                show() : animate(node, "enter", show);
         }
         else {
             if (node.parentNode) {
-                self.initial ? hide() : animate(node, "leave", null, true).done(hide);
+                self.initial || !self.animate ?
+                    hide() : animate(node, "leave").done(hide);
             }
         }
 

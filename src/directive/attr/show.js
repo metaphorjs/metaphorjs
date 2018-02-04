@@ -9,6 +9,7 @@ Directive.registerAttribute("show", 500, defineClass({
 
     $extends: Directive,
 
+    animate: false,
     initial: true,
     display: "",
 
@@ -18,6 +19,7 @@ Directive.registerAttribute("show", 500, defineClass({
             cfg     = attr ? attr.config : {};
 
         self.display = cfg.display || "block";
+        self.animate = !!cfg.animate;
 
         self.$super(scope, node, expr);
     },
@@ -35,15 +37,14 @@ Directive.registerAttribute("show", 500, defineClass({
                 }
             };
 
-        self.initial ? done() : animate(
+        self.initial || !self.animate ? done() : animate(
             self.node,
             show ? "show" : "hide",
             function() {
                 if (show) {
                     style.display = self.display;
                 }
-            },
-            true)
+            })
             .done(done);
     },
 

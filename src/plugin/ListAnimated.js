@@ -1,6 +1,5 @@
 
 var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
-    ns = require("metaphorjs-namespace/src/var/ns.js"),
     animate = require("metaphorjs-animate/src/func/animate.js"),
     stopAnimation = require("metaphorjs-animate/src/func/stopAnimation.js"),
     raf = require("metaphorjs-animate/src/func/raf.js"),
@@ -84,7 +83,7 @@ module.exports = (function(){
                 r = newRenderers[i].renderer;
                 id = r.id;
 
-                if (i == 0) {
+                if (i === 0) {
                     fl = el.offsetLeft;
                     ft = el.offsetTop;
                 }
@@ -122,10 +121,8 @@ module.exports = (function(){
                 el,
                 "move",
                 startCallback,
-                false,
-                ns,
                 function(el, position, stage){
-                    if (position == 0 && stage != "start" && to) {
+                    if (position === 0 && stage !== "start" && to) {
                         var prefixes = getAnimationPrefixes();
                         style[prefixes.transform] = "translateX("+to.left+"px) translateY("+to.top+"px)";
                     }
@@ -163,7 +160,7 @@ module.exports = (function(){
                     r.scope.$destroy();
 
                     stopAnimation(r.el);
-                    animPromises.push(animate(r.el, "leave", null, false, ns)
+                    animPromises.push(animate(r.el, "leave")
                         .done(function(el){
                             el.style.visibility = "hidden";
                         }));
@@ -174,8 +171,8 @@ module.exports = (function(){
                 r = newRenderers[i];
                 stopAnimation(r.el);
 
-                r.action == "enter" ?
-                animPromises.push(animate(r.el, "enter", startCallback, false, ns)) :
+                r.action === "enter" ?
+                animPromises.push(animate(r.el, "enter", startCallback)) :
                 animPromises.push(
                     self.moveAnimation(
                         r.el,
