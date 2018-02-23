@@ -11,12 +11,9 @@ var toFragment = require("./dom/toFragment.js"),
     Promise = require("metaphorjs-promise/src/lib/Promise.js"),
     Provider = require("../lib/Provider.js"),
     isString = require("./isString.js"),
-    isFunction = require("./isFunction.js"),
-    getAttr = require("./dom/getAttr.js");
+    isFunction = require("./isFunction.js");
 
 module.exports = function resolveComponent(cmp, cfg, scope, node, args) {
-
-    var hasCfg  = cfg !== false;
 
     cfg         = cfg || {};
     args        = args || [];
@@ -45,7 +42,7 @@ module.exports = function resolveComponent(cmp, cfg, scope, node, args) {
         gProvider   = Provider.global(),
         injectFn    = app ? app.inject : gProvider.inject,
         injectCt    = app ? app : gProvider,
-        cloak       = node ? getAttr(node, "*cloak") : null,
+        cloak       = cfg.cloak || null,
         inject      = {
             $node: node || null,
             $scope: scope || null,
@@ -72,9 +69,9 @@ module.exports = function resolveComponent(cmp, cfg, scope, node, args) {
                 if (isFunction(fn)) {
                     d.resolve(fn(scope, node));
                 }
-                else if (isString(fn)) {
-                    d.resolve(injectFn.resolve(fn));
-                }
+                /*else if (isString(fn)) {
+                    d.resolve(injectFn(fn));
+                }*/
                 else {
                     d.resolve(
                         injectFn.call(
@@ -93,7 +90,7 @@ module.exports = function resolveComponent(cmp, cfg, scope, node, args) {
         }
     }
 
-    if (hasCfg && (tpl || tplUrl)) {
+    if (tpl || tplUrl) {
 
         cfg.template = new Template({
             scope: scope,
@@ -112,8 +109,6 @@ module.exports = function resolveComponent(cmp, cfg, scope, node, args) {
             data(node, "mjs-transclude", toFragment(node.childNodes));
         }
     }
-
-    hasCfg && args.unshift(cfg);
 
     var p;
 
@@ -139,9 +134,9 @@ module.exports = function resolveComponent(cmp, cfg, scope, node, args) {
     }
 
     if (node && p.isPending() && cloak !== null) {
-        cloak ? addClass(node, cloak) : node.style.visibility = "hidden";
+        cloak !== true ? addClass(node, cloak) : node.style.visibility = "hidden";
         p.then(function() {
-            cloak ? removeClass(node, cloak) : node.style.visibility = "";
+            cloak !== true ? removeClass(node, cloak) : node.style.visibility = "";
         });
     }
 

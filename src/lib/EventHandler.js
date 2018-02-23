@@ -5,6 +5,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     trim = require("../func/trim.js"),
     undf = require("../var/undf.js"),
     extend = require("../func/extend.js"),
+    async = require("../func/async.js"),
     isPlainObject = require("../func/isPlainObject.js"),
     normalizeEvent = require("../func/event/normalizeEvent.js"),
     EventBuffer = require("./EventBuffer.js"),
@@ -73,6 +74,10 @@ module.exports = defineClass({
 
         extend(cfg, defaults, false, false);
 
+        if (cfg.handler && typeof cfg.handler === "string") {
+            cfg.handler = createGetter(cfg.handler);
+        }
+
         if (cfg.event) {
             tmp = {};
             var events = cfg.event.split(","),
@@ -88,10 +93,6 @@ module.exports = defineClass({
             tmp = {};
             tmp[event] = cfg;
             cfg = tmp;
-        }
-
-        if (cfg.handler && typeof cfg.handler === "string") {
-            cfg.handler = createGetter(cfg.handler);
         }
 
         this.cfg = cfg;
@@ -110,7 +111,7 @@ module.exports = defineClass({
         var self        = this,
             updateRoot  = self.updateRoot;
 
-        return function(e){
+        var handler = function(e){
 
             if (self.$destroyed || self.$destroying) {
                 return;
@@ -170,23 +171,36 @@ module.exports = defineClass({
                 return returnValue;
             }
         };
+
+        if (cfg.async) {
+            return function(e) {
+                async(handler, null, [e], null);
+            };
+        }
+        else {
+            return handler;
+        }
     },
 
     up: function() {
 
         var self    = this,
-            cfg     = self.cfg,
+            allCfg  = self.cfg,
             ls      = self.listeners,
             bs      = self.buffers,
             node    = self.node,
             scope   = self.scope,
-            buffer  = cfg.buffer,
+            cfg,
+            buffer,
             handler,
             event;
 
-        for (event in cfg) {
+        for (event in allCfg) {
+            cfg = allCfg[event];
+            buffer = cfg.buffer;
+
             if (cfg['if'] === undf || cfg['if']) {
-                handler = self.createHandler(cfg[event], scope);
+                handler = self.createHandler(cfg, scope);
                 ls.push([event, handler]);
 
                 if (buffer) {

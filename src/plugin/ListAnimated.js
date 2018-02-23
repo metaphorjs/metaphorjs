@@ -147,7 +147,7 @@ module.exports = (function(){
                 startAnimation  = new Promise,
                 applyFrom       = new Promise,
                 donePromise     = new Promise,
-                animReady       = Promise.counter(newrs.length),
+                animReady       = Promise.counter(newRenderers.length),
                 startCallback   = function(){
                     animReady.countdown();
                     return startAnimation;

@@ -4,6 +4,7 @@ var extend = require("../func/extend.js"),
     isThenable = require("../func/isThenable.js"),
     slice = require("../func/array/slice.js"),
     isFunction = require("../func/isFunction.js"),
+    isString = require("../func/isString.js"),
     undf = require("../var/undf.js"),
     isBool = require("../func/isBool.js"),
     instantiate = require("../func/instantiate.js"),
@@ -58,8 +59,12 @@ module.exports = function(){
                     return self.instantiate(injectable, context, callArgs, isClass);
                 }
             }
-
-            injectable  = slice.call(injectable);
+            else if (isString(injectable)) {
+                return self.resolve(injectable, currentValues);
+            }
+            else {
+                injectable = slice.call(injectable);
+            }
 
             var values  = [],
                 fn      = injectable.pop(),

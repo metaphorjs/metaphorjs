@@ -9,7 +9,7 @@ module.exports = function(){
 
     var pluralDef       = function($number, $locale) {
 
-            if ($locale == "pt_BR") {
+            if ($locale === "pt_BR") {
                 // temporary set a locale for brasilian
                 $locale = "xbr";
             }
@@ -34,7 +34,6 @@ module.exports = function(){
                 case 'vi':
                 case 'zh':
                     return 0;
-                    break;
 
                 case 'af':
                 case 'az':
@@ -87,7 +86,7 @@ module.exports = function(){
                 case 'tk':
                 case 'ur':
                 case 'zu':
-                    return ($number == 1) ? 0 : 1;
+                    return ($number === 1) ? 0 : 1;
 
                 case 'am':
                 case 'bh':
@@ -101,7 +100,7 @@ module.exports = function(){
                 case 'xbr':
                 case 'ti':
                 case 'wa':
-                    return (($number == 0) || ($number == 1)) ? 0 : 1;
+                    return (($number === 0) || ($number === 1)) ? 0 : 1;
 
                 case 'be':
                 case 'bs':
@@ -109,64 +108,64 @@ module.exports = function(){
                 case 'ru':
                 case 'sr':
                 case 'uk':
-                    return (($number % 10 == 1) && ($number % 100 != 11)) ?
+                    return (($number % 10 === 1) && ($number % 100 !== 11)) ?
                            0 :
                            ((($number % 10 >= 2) && ($number % 10 <= 4) &&
                              (($number % 100 < 10) || ($number % 100 >= 20))) ? 1 : 2);
 
                 case 'cs':
                 case 'sk':
-                    return ($number == 1) ? 0 : ((($number >= 2) && ($number <= 4)) ? 1 : 2);
+                    return ($number === 1) ? 0 : ((($number >= 2) && ($number <= 4)) ? 1 : 2);
 
                 case 'ga':
-                    return ($number == 1) ? 0 : (($number == 2) ? 1 : 2);
+                    return ($number === 1) ? 0 : (($number === 2) ? 1 : 2);
 
                 case 'lt':
-                    return (($number % 10 == 1) && ($number % 100 != 11)) ?
+                    return (($number % 10 === 1) && ($number % 100 !== 11)) ?
                            0 :
                            ((($number % 10 >= 2) &&
                              (($number % 100 < 10) || ($number % 100 >= 20))) ? 1 : 2);
 
                 case 'sl':
-                    return ($number % 100 == 1) ?
+                    return ($number % 100 === 1) ?
                            0 :
-                           (($number % 100 == 2) ?
+                           (($number % 100 === 2) ?
                                 1 :
-                                ((($number % 100 == 3) || ($number % 100 == 4)) ? 2 : 3));
+                                ((($number % 100 === 3) || ($number % 100 === 4)) ? 2 : 3));
 
                 case 'mk':
-                    return ($number % 10 == 1) ? 0 : 1;
+                    return ($number % 10 === 1) ? 0 : 1;
 
                 case 'mt':
-                    return ($number == 1) ?
+                    return ($number === 1) ?
                            0 :
-                           ((($number == 0) || (($number % 100 > 1) && ($number % 100 < 11))) ?
+                           ((($number === 0) || (($number % 100 > 1) && ($number % 100 < 11))) ?
                                 1 :
                                 ((($number % 100 > 10) && ($number % 100 < 20)) ? 2 : 3));
 
                 case 'lv':
-                    return ($number == 0) ? 0 : ((($number % 10 == 1) && ($number % 100 != 11)) ? 1 : 2);
+                    return ($number === 0) ? 0 : ((($number % 10 === 1) && ($number % 100 !== 11)) ? 1 : 2);
 
                 case 'pl':
-                    return ($number == 1) ?
+                    return ($number === 1) ?
                            0 :
                            ((($number % 10 >= 2) && ($number % 10 <= 4) &&
                              (($number % 100 < 12) || ($number % 100 > 14))) ? 1 : 2);
 
                 case 'cy':
-                    return ($number == 1) ? 0 : (($number == 2) ? 1 : ((($number == 8) || ($number == 11)) ? 2 : 3));
+                    return ($number === 1) ? 0 : (($number === 2) ? 1 : ((($number === 8) || ($number === 11)) ? 2 : 3));
 
                 case 'ro':
-                    return ($number == 1) ?
+                    return ($number === 1) ?
                            0 :
-                           ((($number == 0) || (($number % 100 > 0) && ($number % 100 < 20))) ? 1 : 2);
+                           ((($number === 0) || (($number % 100 > 0) && ($number % 100 < 20))) ? 1 : 2);
 
                 case 'ar':
-                    return ($number == 0) ?
+                    return ($number === 0) ?
                            0 :
-                           (($number == 1) ?
+                           (($number === 1) ?
                                 1 :
-                                (($number == 2) ?
+                                (($number === 2) ?
                                     2 :
                                     ((($number >= 3) && ($number <= 10)) ?
                                         3 :
@@ -215,7 +214,7 @@ module.exports = function(){
 
         plural: function(key, number) {
             var self    = this,
-                strings = typeof key == "string" ? self.get(key): key,
+                strings = typeof key === "string" ? self.get(key): key,
                 def     = pluralDef(number, self.locale);
 
             if (!isArray(strings)) {
@@ -223,10 +222,10 @@ module.exports = function(){
                     if (strings[number]) {
                         return strings[number];
                     }
-                    if (number == 1 && strings.one != undf) {
+                    if (number === 1 && strings.one !== undf) {
                         return strings.one;
                     }
-                    else if (number < 0 && strings.negative != undf) {
+                    else if (number < 0 && strings.negative !== undf) {
                         return strings.negative;
                     }
                     else {

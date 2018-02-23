@@ -385,6 +385,8 @@ module.exports = defineClass({
                 extend(cfg, params, false, false);
             }
 
+            args.unshift(cfg);
+
             if (self.cmpCache[route.id]) {
                 self.currentComponent = self.cmpCache[route.id];
                 node.appendChild(self.domCache[route.id]);
@@ -461,7 +463,7 @@ module.exports = defineClass({
 
             cfg.destroyEl = false;
 
-            return resolveComponent(cls, cfg, scope, node).done(function(newCmp){
+            return resolveComponent(cls, cfg, scope, node, [cfg]).done(function(newCmp){
                 self.currentComponent = newCmp;
                 self.afterCmpChange();
             });

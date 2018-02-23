@@ -12,6 +12,8 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     Scope = require("../lib/Scope.js"),
     Directive = require("./Directive.js"),
     addClass = require("../func/dom/addClass.js"),
+    inArray = require("../func/array/inArray.js"),
+    htmlTags = require("../var/htmlTags.js"),
     removeClass = require("../func/dom/removeClass.js");
 
 require("metaphorjs-observable/src/mixin/Observable.js");
@@ -165,6 +167,7 @@ module.exports = defineClass({
                 node: self.node,
                 deferRendering: !tpl,
                 ownRenderer: true,
+                replace: !inArray(self.node.tagName.toLowerCase(), htmlTags),
                 tpl: tpl,
                 url: url,
                 shadow: self.constructor.$shadow,

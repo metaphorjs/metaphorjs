@@ -4,5 +4,5 @@ var nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
 
 nsAdd("filter.moment",  function(val, scope, format) {
     format  = dateFormats[format] || format;
-    return moment(val).format(format);
+    return val ? moment(val).format(format) : "";
 });

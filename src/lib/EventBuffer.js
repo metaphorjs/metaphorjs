@@ -81,7 +81,7 @@ module.exports = function(){
             self.running = true;
             self.currentEvent = e;
 
-            if (itv == "raf") {
+            if (itv === "raf") {
                 raf(self.triggerDelegate);
             }
             else {
@@ -134,7 +134,7 @@ module.exports = function(){
                 min         = Math.min(prev, current),
                 max         = Math.max(prev, current);
 
-            if (breakValue == "!=") {
+            if (breakValue === "!=") {
                 return prev != current;
             }
 

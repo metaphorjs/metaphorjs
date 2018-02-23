@@ -8,7 +8,8 @@ var Directive = require("../../class/Directive.js"),
 
     var cmpAttr = function(scope, node, cmpName, parentRenderer, attr){
 
-        var constr  = nsGet(cmpName, true),
+        var constr  = typeof cmpName === "string" ?
+                        nsGet(cmpName, true) : cmpName,
             nodecfg = attr ? attr.config : {};
 
         if (!constr) {
@@ -27,7 +28,7 @@ var Directive = require("../../class/Directive.js"),
             destroyScope: !sameScope
         }, nodecfg, false, false);
 
-        resolveComponent(cmpName, cfg, scope, node);
+        resolveComponent(cmpName, cfg, scope, node, [cfg]);
 
         return constr.$resumeRenderer || !!constr.$shadow;
     };

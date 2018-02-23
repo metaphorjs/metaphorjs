@@ -2,6 +2,7 @@
 var Directive = require("../../class/Directive.js"),
     EventHandler = require("../../lib/EventHandler.js"),
     createFunc = require("metaphorjs-watchable/src/func/createFunc.js"),
+    extend = require("../../func/extend.js"),
     Input = require("metaphorjs-input/src/lib/Input.js");
 
 (function(){
@@ -17,7 +18,30 @@ var Directive = require("../../class/Directive.js"),
 
         (function(name){
 
-            Directive.registerAttribute(name, 1000, function(scope, node, expr){
+            Directive.registerAttribute(name, 1000,
+                function(scope, node, expr, renderer, attr){
+
+                var cfg = attr && attr.config ? extend({}, attr.config) : null,
+                    keep = false,
+                    k;
+
+                if (cfg) {
+                    for (k in cfg) {
+                        if (cfg.hasOwnProperty(k)) {
+                            keep = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!keep) {
+                    cfg = null;
+                }
+
+                if (cfg) {
+                    cfg.handler = expr;
+                    expr = cfg;
+                }
 
                 var eh = new EventHandler(scope, node, expr, name, {
                     preventDefault: true

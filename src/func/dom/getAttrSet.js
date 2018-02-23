@@ -20,7 +20,6 @@ module.exports = (function() {
             i, l,
             name, value,
             match, parts,
-            isDirective,
             coll, mode,
             subname,
             attrs = node.attributes;
@@ -54,9 +53,14 @@ module.exports = (function() {
             parts = name.split(".");
             name = parts.shift();
 
-            isDirective = lookupDirective(name);
-
-            if (isDirective) {
+            if (mode === '$') {
+                if (value === "") {
+                    value = true;
+                }
+                set['config'][toCamelCase(name)] = value;
+                set['subnames'].push(attrs[i].name);
+            }
+            else if (lookupDirective(name)) {
                 coll = set['directive'];
                 subname = parts.length ? parts[0] : null;
 
@@ -95,13 +99,6 @@ module.exports = (function() {
                     value: value,
                     original: attrs[i].name
                 };
-            }
-            else if (mode === '$') {
-                if (value === "") {
-                    value = true;
-                }
-                set['config'][name] = value;
-                set['subnames'].push(attrs[i].name);
             }
         }
 

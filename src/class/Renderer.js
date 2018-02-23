@@ -3,7 +3,6 @@
 var nextUid = require("../func/nextUid.js"),
     isArray = require("../func/isArray.js"),
     toArray = require("../func/array/toArray.js"),
-    inArray = require("../func/array/inArray.js"),
     isThenable = require("../func/isThenable.js"),
     Scope = require("../lib/Scope.js"),
     Directive = require("./Directive.js"),
@@ -14,8 +13,6 @@ var nextUid = require("../func/nextUid.js"),
     getAttrSet = require("../func/dom/getAttrSet.js"),
     extend = require("../func/extend.js"),
     undf = require("../var/undf.js"),
-
-    htmlTags = require("../var/htmlTags.js"),
 
     Observable = require("metaphorjs-observable/src/lib/Observable.js"),
     nsGet = require("metaphorjs-namespace/src/func/nsGet.js"),
@@ -294,20 +291,19 @@ module.exports = function(){
                 // we just pass it to attr.cmp directive
                 // by adding it to the attr map
                 if (c = nsGet("directive.component." + tag, true)) {
-                    attrs["directive"]['cmp'] = {
-                        value: c.prototype.$class,
-                        name: "cmp",
-                        original: "{cmp}",
-                        config: extend({}, attrs.config),
-                        values: null
-                    };
 
-                    as = attrs.config.as;
-                    if (!as && !inArray(tag, htmlTags)) {
-                        as = "div";
-                    }
+                    as = attrs.config.as || c.tag;
 
                     if (as) {
+
+                        attrs["directive"]['cmp'] = {
+                            value: c.prototype.$class,
+                            name: "cmp",
+                            original: "{cmp}",
+                            config: extend({}, attrs.config),
+                            values: null
+                        };
+
                         as = document.createElement(as);
                         node.parentNode.replaceChild(as, node);
                         while (node.firstChild) {
@@ -316,6 +312,25 @@ module.exports = function(){
                         node = as;
                         for (name in attrs.rest) {
                             setAttr(node, name, attrs.rest[name]);
+                        }
+                    }
+                    else {
+
+                        f = nsGet("directive.attr.cmp", true);
+                        res = self.runHandler(f, scope, node, {
+                            value: c,
+                            config: attrs.config
+                        }, attrs);
+                        someHandler = true;
+
+                        if (res === false) {
+                            return false;
+                        }
+                        if (isThenable(res)) {
+                            defers.push(res);
+                        }
+                        else {
+                            collectNodes(nodes, res);
                         }
                     }
                 }

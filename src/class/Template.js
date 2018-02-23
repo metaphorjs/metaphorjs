@@ -166,7 +166,7 @@ module.exports = function(){
         node:               null,
         tpl:                null,
         url:                null,
-        ownRenderer:        false,
+        ownRenderer:        null,
         initPromise:        null,
         tplPromise:         null,
         parentRenderer:     null,
@@ -181,7 +181,8 @@ module.exports = function(){
 
             extend(self, cfg, true, false);
 
-            var shadowRootSupported = !!window.document.documentElement.createShadowRoot;
+            var shadowRootSupported =
+                !!window.document.documentElement.createShadowRoot;
 
             if (!shadowRootSupported) {
                 self._intendedShadow = self.shadow;
@@ -220,21 +221,28 @@ module.exports = function(){
                 }
 
                 if (isExpression(tpl)) {
-                    self._watcher = createWatchable(self.scope, tpl, self.onChange, self, {filterLookup: filterLookup});
+                    self._watcher = createWatchable(
+                        self.scope,
+                        tpl,
+                        self.onChange,
+                        self,
+                        {filterLookup: filterLookup});
                     var val = self._watcher.getLastResult();
                     if (typeof val !== "string") {
                         extend(self, val, true, false);
                     }
-               }
+                }
 
-                if (self._watcher && !self.replace) {
-                    self.ownRenderer        = true;
-                }
-                else if (self.shadow) {
-                    self.ownRenderer        = true;
-                }
-                else if (self.replace) {
-                    self.ownRenderer        = false;
+                if (self.ownRenderer === null) {
+                    if (self._watcher && !self.replace) {
+                        self.ownRenderer = true;
+                    }
+                    else if (self.shadow) {
+                        self.ownRenderer = true;
+                    }
+                    else if (self.replace) {
+                        self.ownRenderer = false;
+                    }
                 }
 
                  self.resolveTemplate();
@@ -248,7 +256,9 @@ module.exports = function(){
                     self.tplPromise.done(self.applyTemplate, self);
                 }
                 if (self.ownRenderer && self.parentRenderer) {
-                    self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
+                    self.parentRenderer.on("destroy",
+                        self.onParentRendererDestroy,
+                        self);
                 }
             }
             else {
@@ -294,7 +304,10 @@ module.exports = function(){
 
                 self.deferRendering = false;
                 if (self.tplPromise) {
-                    self.tplPromise.done(tpl ? self.applyTemplate : self.doRender, self);
+                    self.tplPromise.done(
+                        tpl ? self.applyTemplate : self.doRender,
+                        self
+                    );
                     return self.initPromise;
                 }
                 else {
@@ -401,7 +414,7 @@ module.exports = function(){
                 children = toArray(frg.childNodes);
 
                 if (transclude) {
-                    var tr = select("[transclude], transclude", frg);
+                    var tr = select("[{transclude}], [mjs-transclude], mjs-transclude", frg);
                     if (tr.length) {
                         data(tr[0], "mjs-transclude", transclude);
                     }
@@ -483,7 +496,8 @@ module.exports = function(){
         onParentRendererDestroy: function() {
             var self = this;
 
-            if (!self.$destroyed && self._renderer && !self._renderer.$destroyed) {
+            if (!self.$destroyed && self._renderer &&
+                !self._renderer.$destroyed) {
                 self._renderer.$destroy();
             }
             self.$destroy();

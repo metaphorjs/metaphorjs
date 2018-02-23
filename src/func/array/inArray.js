@@ -7,5 +7,5 @@ var aIndexOf = require("./aIndexOf.js");
  * @returns {boolean}
  */
 module.exports = function inArray(val, arr) {
-    return arr ? (aIndexOf.call(arr, val) != -1) : false;
+    return arr ? (aIndexOf.call(arr, val) !== -1) : false;
 };
