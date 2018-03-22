@@ -8,7 +8,7 @@ module.exports = function(type, name) {
 
     var rnumnonpx = new RegExp( "^([+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|))(?!px)[a-z%]+$", "i"),
         cssExpand = [ "Top", "Right", "Bottom", "Left" ],
-        defaultExtra = !type ? "content" : (type == "inner" ? "padding" : "");
+        defaultExtra = !type ? "content" : (type === "inner" ? "padding" : "");
 
     var augmentWidthOrHeight = function(elem, name, extra, isBorderBox, styles) {
         var i = extra === (isBorderBox ? "border" : "content") ?

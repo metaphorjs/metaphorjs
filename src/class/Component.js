@@ -13,6 +13,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     Directive = require("./Directive.js"),
     addClass = require("../func/dom/addClass.js"),
     inArray = require("../func/array/inArray.js"),
+    isArray = require("../func/isArray.js"),
     htmlTags = require("../var/htmlTags.js"),
     removeClass = require("../func/dom/removeClass.js");
 
@@ -40,6 +41,12 @@ module.exports = defineClass({
      * @access protected
      */
     node:           null,
+
+    /**
+     * @var boolean
+     * @access private
+     */
+    _nodeReplaced:  false,
 
     /**
      * @var string
@@ -151,7 +158,7 @@ module.exports = defineClass({
             self._createNode();
         }
 
-
+        self.beforeInitComponent.apply(self, arguments);
         self.initComponent.apply(self, arguments);
 
         if (self.scope.$app){
@@ -161,13 +168,16 @@ module.exports = defineClass({
         var tpl = self.template,
             url = self.templateUrl;
 
+        self._nodeReplaced = !inArray(self.node.tagName.toLowerCase(), htmlTags);
+
         if (!tpl || !(tpl instanceof Template)) {
+
             self.template = tpl = new Template({
                 scope: self.scope,
                 node: self.node,
-                deferRendering: !tpl,
+                deferRendering: !tpl || self._nodeReplaced,
                 ownRenderer: true,
-                replace: !inArray(self.node.tagName.toLowerCase(), htmlTags),
+                replace: self._nodeReplaced,
                 tpl: tpl,
                 url: url,
                 shadow: self.constructor.$shadow,
@@ -178,6 +188,8 @@ module.exports = defineClass({
             // it may have just been created
             self.template.node = self.node;
         }
+
+        self.afterInitComponent.apply(self, arguments);
 
         self.template.on("rendered", self.onRenderingFinished, self);
 
@@ -246,12 +258,44 @@ module.exports = defineClass({
         }
     },
 
+    replaceNodeWithTemplate: function() {
+        var self = this;
+
+        if (self._nodeReplaced && self.node.parentNode) {
+            removeAttr(self.node, "id");
+            //self.node.parentNode.removeChild(self.node);
+        }
+
+        self.node = self.template.node;
+
+        // document fragment
+        if (self.node.nodeType === 11 || isArray(self.node)) {
+            var ch = self.node.nodeType === 11 ?
+                self.node.childNodes :
+                self.node,
+                i, l;
+            for (i = 0, l = ch.length; i < l; i++) {
+                if (ch[i].nodeType === 1) {
+                    self.node = ch[i];
+                    break;
+                }
+            }
+        }
+
+        self._initElement();
+    },
+
     render: function() {
 
         var self        = this;
 
         if (self.rendered) {
             return;
+        }
+
+        if ((self._nodeReplaced && self.node !== self.template.node) ||
+            !self.node) {
+            self.replaceNodeWithTemplate();
         }
 
         self.trigger('render', self);
@@ -261,20 +305,9 @@ module.exports = defineClass({
     onRenderingFinished: function() {
         var self = this;
 
-        if (!self.node) {
-            self.node = self.template.node;
-            if (self.node.nodeType == 11) { // document fragment
-                var ch = self.node.childNodes,
-                    i, l;
-                for (i = 0, l = ch.length; i < l; i++) {
-                    if (ch[i].nodeType == 1) {
-                        self.node = ch[i];
-                        break;
-                    }
-                }
-            }
-
-            self._initElement();
+        if ((self._nodeReplaced && self.node !== self.template.node) ||
+            !self.node) {
+            self.replaceNodeWithTemplate();
         }
 
         if (self.renderTo) {
@@ -403,7 +436,19 @@ module.exports = defineClass({
      * @method
      * @access protected
      */
+    beforeInitComponent:  emptyFn,
+
+    /**
+     * @method
+     * @access protected
+     */
     initComponent:  emptyFn,
+
+    /**
+     * @method
+     * @access protected
+     */
+    afterInitComponent:  emptyFn,
 
     /**
      * @method

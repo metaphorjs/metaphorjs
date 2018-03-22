@@ -1,11 +1,24 @@
 
-var toCamelCase = require("../toCamelCase.js");
+var toCamelCase = require("../toCamelCase.js"),
+    removeAttr = require("./removeAttr.js");
 
 module.exports = (function() {
 
 
     var reg = /^([\[({#$])([^)\]}"']+)[\])}]?$/;
 
+    var removeDirective = function removeDirective(node, directive) {
+        if (this.directive[directive]) {
+            removeAttr(node, this.directive[directive].original);
+        }
+        var i, l, sn = this.subnames[directive];
+        if (sn) {
+            for (i = 0, l = sn.length; i < l; i++) {
+                removeAttr(node, sn[i]);
+            }
+            delete this.subnames[directive];
+        }
+    };
 
     return function getAttrSet(node, lookupDirective) {
 
@@ -15,9 +28,10 @@ module.exports = (function() {
                 config: {},
                 rest: {},
                 reference: null,
-                "subnames": []
+                subnames: {},
+                removeDirective: removeDirective
             },
-            i, l,
+            i, l, tagName,
             name, value,
             match, parts,
             coll, mode,
@@ -57,8 +71,16 @@ module.exports = (function() {
                 if (value === "") {
                     value = true;
                 }
+
+                tagName = node.tagName.toLowerCase();
+
                 set['config'][toCamelCase(name)] = value;
-                set['subnames'].push(attrs[i].name);
+
+                if (!set['subnames'][tagName]) {
+                    set['subnames'][tagName] = [];
+                }
+
+                set['subnames'][tagName].push(attrs[i].name);
             }
             else if (lookupDirective(name)) {
                 coll = set['directive'];
@@ -74,12 +96,16 @@ module.exports = (function() {
                     };
                 }
 
+                if (subname && !set['subnames'][name]) {
+                    set['subnames'][name] = [];
+                }
+
                 if (subname && subname.substr(0,1) === '$') {
                     if (value === "") {
                         value = true;
                     }
                     coll[name].config[toCamelCase(subname.substr(1))] = value;
-                    set['subnames'].push(attrs[i].name);
+                    set['subnames'][name].push(attrs[i].name);
                 }
                 else {
                     if (subname) {
@@ -87,7 +113,7 @@ module.exports = (function() {
                             coll[name].values = {};
                         }
                         coll[name].values[toCamelCase(parts.join("."))] = value;
-                        set['subnames'].push(attrs[i].name);
+                        set['subnames'][name].push(attrs[i].name);
                     }
                     else {
                         coll[name].value = value;

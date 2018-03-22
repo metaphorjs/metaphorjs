@@ -21,7 +21,7 @@ Directive.registerAttribute("show", 500, defineClass({
         self.display = cfg.display || "block";
         self.animate = !!cfg.animate;
 
-        self.$super(scope, node, expr);
+        self.$super(scope, node, expr, renderer, attr);
     },
 
     runAnimation: function(show) {
@@ -48,12 +48,10 @@ Directive.registerAttribute("show", 500, defineClass({
             .done(done);
     },
 
-    onChange: function() {
-        var self    = this,
-            val     = self.watcher.getLastResult();
-
+    onChange: function(val) {
+        var self    = this;
         self.runAnimation(val);
-
         self.initial = false;
+        self.$super(val);
     }
 }));

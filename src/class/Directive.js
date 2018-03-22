@@ -1,19 +1,19 @@
 
 
 var trim = require("../func/trim.js"),
-    createWatchable = require("../../../metaphorjs-watchable/src/func/createWatchable.js"),
+    createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
+    createSetter = require("metaphorjs-watchable/src/func/createSetter.js"),
     undf = require("../var/undf.js"),
     isString = require("../func/isString.js"),
     filterLookup = require("../func/filterLookup.js"),
-    defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
-    nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
-    nsGet = require("../../../metaphorjs-namespace/src/func/nsGet.js");
+    defineClass = require("metaphorjs-class/src/func/defineClass.js"),
+    nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
+    nsGet = require("metaphorjs-namespace/src/func/nsGet.js");
 
 
 module.exports = function(){
 
     var attributes          = [],
-        tags                = [],
         attributesSorted    = false,
 
         compare             = function(a, b) {
@@ -36,6 +36,7 @@ module.exports = function(){
         $class: "Directive",
 
         watcher: null,
+        stateFn: null,
         scope: null,
         node: null,
         expr: null,
@@ -43,22 +44,23 @@ module.exports = function(){
 
         autoOnChange: true,
 
-        $init: function(scope, node, expr) {
+        $init: function(scope, node, expr, renderer, attr) {
 
             var self        = this,
+                config      = attr ? attr.config : {},
                 val;
 
             expr            = trim(expr);
 
-            //if (mods) {
-            //    expr        = self.adjustExpression(expr, mods);
-            //}
-
-            //self.mods       = mods;
             self.node       = node;
             self.expr       = expr;
             self.scope      = scope;
+            self.saveState  = config.saveState;
             self.watcher    = createWatchable(scope, expr, self.onChange, self, {filterLookup: filterLookup});
+
+            if (self.saveState) {
+                self.stateFn = createSetter(self.saveState);
+            }
 
             if (self.autoOnChange && (val = self.watcher.getLastResult()) !== undf) {
                 self.onChange(val, undf);
@@ -80,7 +82,15 @@ module.exports = function(){
 
         },
 
-        onChange: function() {},
+        onChange: function(val) {
+            this.saveStateOnChange(val);
+        },
+
+        saveStateOnChange: function(val) {
+            if (this.stateFn) {
+                this.stateFn(this.scope, val);
+            }
+        },
 
         destroy: function() {
             var self    = this;

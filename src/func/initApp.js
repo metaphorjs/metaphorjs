@@ -17,8 +17,10 @@ module.exports = function initApp(node, cls, data, autorun) {
     var cfg = attrs.directive.app ? attrs.directive.app.config : {},
         i, l;
 
-    for (i = 0, l = attrs.subnames.length; i < l; i++) {
-        removeAttr(node, attrs.subnames[i]);
+    if (attrs.subnames['app']) {
+        for (i = 0, l = attrs.subnames['app'].length; i < l; i++) {
+            removeAttr(node, attrs.subnames[i]);
+        }
     }
 
     try {

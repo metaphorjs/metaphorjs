@@ -261,13 +261,15 @@ module.exports = defineClass({
         if (self.currentComponent) {
 
             animate(node, self.animate ? "leave" : null).done(function(){
-
+                
                 if (!cview.keepAlive) {
+                    
                     if (self.currentComponent &&
                         !self.currentComponent.$destroyed &&
                         !self.currentComponent.$destroying) {
                         self.currentComponent.$destroy();
                     }
+                    
                     while (node.firstChild) {
                         node.removeChild(node.firstChild);
                     }

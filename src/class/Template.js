@@ -255,6 +255,7 @@ module.exports = function(){
                 if (!self.deferRendering || !self.ownRenderer) {
                     self.tplPromise.done(self.applyTemplate, self);
                 }
+
                 if (self.ownRenderer && self.parentRenderer) {
                     self.parentRenderer.on("destroy",
                         self.onParentRendererDestroy,
@@ -355,7 +356,6 @@ module.exports = function(){
                 else {
                     reject();
                 }
-
             })
                 .done(function(fragment){
                     self._fragment = fragment;
@@ -421,9 +421,14 @@ module.exports = function(){
                 }
 
                 if (el) {
-                    //el.parentNode.insertBefore(frg, el);
-                    //el.parentNode.removeChild(el);
-                    el.parentNode.replaceChild(frg, el);
+
+                    if (el.parentNode) {
+                        el.parentNode.replaceChild(frg, el);
+                    }
+
+                    if (el.parentNode) {
+                        el.parentNode.removeChild(el);
+                    }
                 }
 
                 self.node = children;

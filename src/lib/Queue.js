@@ -10,6 +10,9 @@ var async = require("../func/async.js"),
 
 
 
+module.exports = (function(){
+
+
 var Queue = function(cfg) {
 
     var self = this;
@@ -63,17 +66,17 @@ extend(Queue.prototype, {
 
         mode = mode || self.mode;
 
-        if (mode == Queue.ONCE_EVER && fn[qid]) {
+        if (mode === Queue.ONCE_EVER && fn[qid]) {
             return fn[qid];
         }
 
         fn[qid] = id;
 
         if (self._map[id]) {
-            if (mode == Queue.REPLACE) {
+            if (mode === Queue.REPLACE) {
                 self.remove(id);
             }
-            else if (mode == Queue.ONCE) {
+            else if (mode === Queue.ONCE) {
                 return id;
             }
         }
@@ -104,7 +107,7 @@ extend(Queue.prototype, {
             i, l;
 
         for (i = 0, l = queue.length; i < l; i++) {
-            if (queue[i].id == id) {
+            if (queue[i].id === id) {
                 queue.splice(i, 1);
                 break;
             }
@@ -113,7 +116,7 @@ extend(Queue.prototype, {
     },
 
     isEmpty: function() {
-        return this.length == 0;
+        return this.length === 0;
     },
 
     next: function() {
@@ -169,7 +172,7 @@ extend(Queue.prototype, {
                 }
             };
 
-            if (item.async == "raf" || (!item.async && self.async == "raf")) {
+            if (item.async === "raf" || (!item.async && self.async === "raf")) {
                 raf(fn);
             }
             else {
@@ -211,4 +214,7 @@ extend(Queue.prototype, {
     }
 }, true, false);
 
-module.exports = Queue;
+return Queue;
+}());
+
+

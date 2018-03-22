@@ -15,7 +15,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
     cfg: null,
     animate: false,
 
-    $init: function(scope, node, expr, parentRenderer, attr) {
+    $init: function(scope, node, expr, renderer, attr) {
 
         var self    = this;
 
@@ -26,7 +26,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
         self.cfg        = attr ? attr.config : {};
         self.animate    = !!self.cfg.animate;
 
-        self.$super(scope, node, expr);
+        self.$super(scope, node, expr, renderer, attr);
     },
 
     onScopeDestroy: function() {
@@ -93,6 +93,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
             }
         }
 
+        self.$super(val);
 
         if (self.initial) {
             self.initial = false;

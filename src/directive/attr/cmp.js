@@ -19,16 +19,21 @@ var Directive = require("../../class/Directive.js"),
         var sameScope       = nodecfg.sameScope || constr.$sameScope,
             isolateScope    = nodecfg.isolateScope || constr.$isolateScope;
 
-        scope       = isolateScope ? scope.$newIsolated() : (sameScope ? scope : scope.$new());
+        var newScope = isolateScope ? scope.$newIsolated() : (sameScope ? scope : scope.$new());
 
         var cfg     = extend({
-            scope: scope,
+            scope: newScope,
             node: node,
             parentRenderer: parentRenderer,
             destroyScope: !sameScope
         }, nodecfg, false, false);
 
-        resolveComponent(cmpName, cfg, scope, node, [cfg]);
+        resolveComponent(cmpName, cfg, newScope, node, [cfg])
+            .done(function(cmp){
+                if (nodecfg.ref) {
+                    scope[nodecfg.ref] = cmp;
+                }
+            });
 
         return constr.$resumeRenderer || !!constr.$shadow;
     };

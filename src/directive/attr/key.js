@@ -9,7 +9,8 @@ var Directive = require("../../class/Directive.js"),
 
 var keys = {
     "enter": 13,
-    "esc": 27
+    "esc": 27,
+    "backspace": 8
 };
 
 /*

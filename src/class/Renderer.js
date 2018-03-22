@@ -283,10 +283,6 @@ module.exports = function(){
 
                 attrs = getAttrSet(node, lookupDirective);
 
-                for (i = 0, l = attrs.subnames.length; i < l; i++) {
-                    removeAttr(node, attrs.subnames[i]);
-                }
-
                 // this tag represents component
                 // we just pass it to attr.cmp directive
                 // by adding it to the attr map
@@ -341,6 +337,8 @@ module.exports = function(){
                     res = self.runHandler(f, scope, node, null, attrs);
                     someHandler = true;
 
+                    attrs.removeDirective(node, tag);
+
                     if (res === false) {
                         return false;
                     }
@@ -365,6 +363,7 @@ module.exports = function(){
                         if (!handler.$keepAttribute) {
                             removeAttr(node, attrProps.original);
                         }
+                        attrs.removeDirective(node, name);
 
                         res     = self.runHandler(handler, scope, node, attrProps, attrs);
 
@@ -450,8 +449,6 @@ module.exports = function(){
                 text        = self.texts[inx],
                 res         = text.tr.getString(),
                 attrName    = text.attr;
-
-            //console.log(res, text.tr)
 
             if (attrName) {
 

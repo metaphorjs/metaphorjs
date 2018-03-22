@@ -57,7 +57,6 @@ module.exports = function resolveComponent(cmp, cfg, scope, node, args) {
                 var d = new Promise,
                     fn;
 
-
                 defers.push(d.done(function(value){
                     inject[name] = value;
                     cfg[name] = value;
