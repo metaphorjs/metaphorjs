@@ -121,6 +121,11 @@ module.exports = function(){
         },
 
         breakFilter: function(l, args, event) {
+
+            if (!this.watchers[event.watcher]) {
+                return false;
+            }
+
             var self        = this,
                 breakValue  = l.breakValue,
                 luft        = l.breakLuft || 0,

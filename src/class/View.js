@@ -358,6 +358,11 @@ module.exports = defineClass({
         self.toggleRouteParams(route, "enable");
         stopAnimation(self.node);
         self.clearComponent();
+
+        if (cview.teardown) {
+            cview.teardown(cview, route, matches);
+        }
+
         self.setRouteClasses(route);
 
         self.currentView = route;
@@ -397,13 +402,16 @@ module.exports = defineClass({
                 self.afterCmpChange();
             }
             else {
-                return resolveComponent(
-                    route.cmp || "MetaphorJs.Component",
-                    cfg,
-                    cfg.scope,
-                    node,
-                    args
-                )
+
+                if (route.cmp) {
+
+                    return resolveComponent(
+                        route.cmp || "MetaphorJs.Component",
+                        cfg,
+                        cfg.scope,
+                        node,
+                        args
+                    )
                     .done(function (newCmp) {
 
                         self.currentComponent = newCmp;
@@ -427,8 +435,11 @@ module.exports = defineClass({
                             self.onRouteFail(route);
                         }
                     });
+                }
+                else if (route.setup) {
+                    route.setup(route, matches);
+                }
             }
-
         });
     },
 

@@ -1,6 +1,7 @@
 
 var Directive = require("../../class/Directive.js"),
     undf = require("../../var/undf.js"),
+    toCamelCase = require("../../func/toCamelCase.js"),
     removeStyle = require("../../func/dom/removeStyle.js");
 
 /*
@@ -34,7 +35,7 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
             style   = node.style,
             props   = self.watcher.getLastResult(),
             prev    = self.watcher.getPrevValue(),
-            k;
+            k, trg;
 
         for (k in prev) {
             if (!props || props[k] === undf) {
@@ -44,11 +45,14 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
 
         if (props) {
             for (k in props) {
+
+                trg = toCamelCase(k);
+
                 if (props[k] !== undf && props[k] !== null) {
-                    style[k] = props[k];
+                    style[trg] = props[k];
                 }
                 else {
-                    removeStyle(node, k);
+                    removeStyle(node, trg);
                 }
             }
         }

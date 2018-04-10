@@ -2,6 +2,8 @@
 
 var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     animate = require("metaphorjs-animate/src/func/animate.js"),
+    Promise = require("metaphorjs-promise/src/lib/Promise.js"),
+    raf = require("metaphorjs-animate/src/func/raf.js"),
     Directive = require("../../class/Directive.js");
 
 
@@ -42,7 +44,12 @@ Directive.registerAttribute("show", 500, defineClass({
             show ? "show" : "hide",
             function() {
                 if (show) {
-                    style.display = self.display;
+                    var p = new Promise;
+                    raf(function(){
+                        style.display = self.display;
+                        p.resolve();
+                    });
+                    return p;
                 }
             })
             .done(done);
