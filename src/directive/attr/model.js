@@ -8,6 +8,7 @@ var async = require("../../func/async.js"),
     Input = require("metaphorjs-input/src/lib/Input.js"),
     Scope = require("../../lib/Scope.js"),
     isString = require("../../func/isString.js"),
+    createFunc = require("metaphorjs-watchable/src/func/createFunc.js"),
     Directive = require("../../class/Directive.js");
 
 
@@ -18,6 +19,8 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     input: null,
     binding: null,
     updateRoot: false,
+    changeCb: null,
+    initial: false,
 
     autoOnChange: false,
 
@@ -27,9 +30,13 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             cfg     = attr ? attr.config : {};
 
         self.node           = node;
-        self.input          = Input.get(node);
+        self.input          = Input.get(node, scope);
         self.updateRoot     = expr.indexOf('$root') + expr.indexOf('$parent') !== -2;
         self.binding        = cfg.binding || "both";
+
+        if (cfg.change) {
+            self.changeCb   = createFunc(cfg.change);
+        }
 
         self.input.onChange(self.onInputChange, self);
 
@@ -37,6 +44,8 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
         var inputValue      = self.input.getValue(),
             scopeValue      = self.watcher.getLastResult();
+
+        self.initial = true;
 
         if (scopeValue !== inputValue) {
             // scope value takes priority
@@ -47,6 +56,8 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
                 self.onInputChange(inputValue);
             }
         }
+
+        self.initial = false;
     },
 
     onInputChange: function(val) {
@@ -113,6 +124,10 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             }
 
             self.binding = binding;
+        }
+
+        if (self.changeCb && !self.initial && val != self.watcher.getPrevValue()) {
+            self.changeCb(self.scope);
         }
     }
 

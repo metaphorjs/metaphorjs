@@ -181,8 +181,11 @@ module.exports = defineClass({
                 tpl: tpl,
                 url: url,
                 shadow: self.constructor.$shadow,
-                animate: !self.hidden && !!self.animate
+                animate: !self.hidden && !!self.animate,
+                passAttrs: self.passAttrs
             });
+
+            self.template.on("first-node", self.onFirstNodeReported, self);
         }
         else if (tpl instanceof Template) {
             // it may have just been created
@@ -242,12 +245,21 @@ module.exports = defineClass({
         }
     },
 
+    onFirstNodeReported: function(node) {
+        var self = this;
+        if (self._nodeReplaced) {
+            setAttr(node, "cmp-id", self.id);
+            node.$$cmpId = self.id;
+        }
+    },
+
     initNode: function() {
 
         var self = this,
             node = self.node;
 
         setAttr(node, "cmp-id", self.id);
+        node.$$cmpId = self.id;
 
         if (self.cls) {
             addClass(node, self.cls);

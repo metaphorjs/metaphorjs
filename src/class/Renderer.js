@@ -135,8 +135,10 @@ module.exports = function(){
         scope: null,
         texts: null,
         parent: null,
+        passedAttrs: null,
+        reportFirstNode: true,
 
-        $init: function(el, scope, parent) {
+        $init: function(el, scope, parent, passedAttrs) {
             var self            = this;
 
             self.id             = nextUid();
@@ -144,6 +146,7 @@ module.exports = function(){
             self.scope          = scope;
             self.texts          = [];
             self.parent         = parent;
+            self.passedAttrs    = passedAttrs;
 
             if (scope instanceof Scope) {
                 scope.$on("destroy", self.$destroy, self);
@@ -262,6 +265,11 @@ module.exports = function(){
             // element node
             else if (nodeType === 1) {
 
+                if (self.reportFirstNode) {
+                    observer.trigger("first-node-" + self.id, node);
+                    self.reportFirstNode = false;
+                }
+
                 if (!handlers) {
                     handlers = Directive.getAttributes();
                 }
@@ -282,6 +290,16 @@ module.exports = function(){
                 }
 
                 attrs = getAttrSet(node, lookupDirective);
+
+                if (self.passedAttrs) {
+                    attrs['directive'] = extend(
+                        {}, 
+                        attrs['directive'], 
+                        self.passedAttrs['directive'], 
+                        true, true
+                    );
+                    self.passedAttrs = null;
+                }
 
                 // this tag represents component
                 // we just pass it to attr.cmp directive
@@ -313,6 +331,11 @@ module.exports = function(){
                     else {
 
                         f = nsGet("directive.attr.cmp", true);
+                        var passAttrs = extend({}, attrs);
+                        delete passAttrs['directive']['cmp'];
+
+                        attrs.config.passAttrs = passAttrs;
+
                         res = self.runHandler(f, scope, node, {
                             value: c,
                             config: attrs.config

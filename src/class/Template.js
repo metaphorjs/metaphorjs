@@ -175,6 +175,8 @@ module.exports = function(){
         shadow:             false,
         animate:            true,
 
+        passAttrs:          null,
+
         $init: function(cfg) {
 
             var self    = this;
@@ -278,10 +280,15 @@ module.exports = function(){
         doRender: function() {
             var self = this;
             if (!self._renderer) {
-                self._renderer   = new Renderer(self.node, self.scope);
+                self._renderer   = new Renderer(self.node, self.scope, null, self.passAttrs);
                 self._renderer.on("rendered", self.onRendered, self);
+                self._renderer.on("first-node", self.onFirstNodeReported, self);
                 self._renderer.process();
             }
+        },
+
+        onFirstNodeReported: function(node) {
+            observable.trigger("first-node-" + this.id, node);
         },
 
         onRendered: function() {

@@ -90,14 +90,15 @@ module.exports = defineClass({
         return this.trigger.apply(this, arguments);
     },
 
-    getParentCmp: function(node) {
+
+    getParentCmp: function(node, includeSelf) {
 
         var self    = this,
-            parent  = node.parentNode,
+            parent  = includeSelf ? node : node.parentNode,
             id;
 
         while (parent) {
-            if (id = getAttr(parent, "cmp-id")) {
+            if (id = (getAttr(parent, "cmp-id") || parent.$$cmpId)) {
                 return self.getCmp(id);
             }
             parent = parent.parentNode;
