@@ -9,6 +9,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     setValue = require("metaphorjs-input/src/func/setValue.js"),
     error = require("../../func/error.js"),
     filterLookup = require("../../func/filterLookup.js"),
+    isPlainObject = require("../../func/isPlainObject.js"),
     setAttr = require("../../func/dom/setAttr.js"),
     undf = require("../../var/undf.js"),
     isIE = require("../../func/browser/isIE.js"),
@@ -95,7 +96,13 @@ Directive.registerAttribute("options", 100, defineClass({
 
         scope.item      = item;
         scope.$index    = index;
-        config          = self.getterFn(scope);
+
+        if (self.defaultOptionTpl && isPlainObject(item)) {
+            config      = item;
+        }
+        else {
+            config      = self.getterFn(scope);
+        }
 
         config.group    !== undf && (config.group = ""+config.group);
 
@@ -117,7 +124,7 @@ Directive.registerAttribute("options", 100, defineClass({
         self.prevGroup  = config.group;
 
         option  = window.document.createElement("option");
-        setAttr(option, "value", config.value);
+        setAttr(option, "value", config.value || "");
         option.text = config.name;
 
         if (msie && msie < 9) {
@@ -188,10 +195,12 @@ Directive.registerAttribute("options", 100, defineClass({
         if (splitIndex === -1) {
             model   = expr;
             item    = '{name: .item, value: .$index}';
+            this.defaultOptionTpl = true;
         }
         else {
             model   = expr.substr(splitIndex + 4);
             item    = expr.substr(0, splitIndex);
+            this.defaultOptionTpl = false;
         }
 
         this.model = model;
