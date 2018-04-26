@@ -1,6 +1,7 @@
 
 var toCamelCase = require("../toCamelCase.js"),
-    removeAttr = require("./removeAttr.js");
+    removeAttr = require("./removeAttr.js"),
+    isArray = require("../isArray.js");
 
 module.exports = (function() {
 
@@ -36,7 +37,7 @@ module.exports = (function() {
             match, parts,
             coll, mode,
             subname,
-            attrs = node.attributes;
+            attrs = isArray(node) ? node : node.attributes;
 
         for (i = 0, l = attrs.length; i < l; i++) {
 

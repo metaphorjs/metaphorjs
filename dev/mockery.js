@@ -30,6 +30,14 @@ mockery.enable({
 
 //bin = dir + "/dist/" + name.replace('-', '.') + ".npm.js";
 var parent = path.normalize(__dirname + "/../../");
+var mjsRoot = parent.substring(0,parent.length-1);
+
+if (module.paths.indexOf(mjsRoot) == -1) {
+    module.paths.push(mjsRoot);
+}
+
+process.env.NODE_PATH = mjsRoot;
+require("module").Module._initPaths();
 
 var modules = [];
 var mocked = {};
