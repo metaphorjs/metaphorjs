@@ -70,10 +70,6 @@ module.exports = function(){
             scope.$on("reset", self.onScopeReset, self);
         },
 
-        adjustExpression: function(expr, mods) {
-            return expr;
-        },
-
         onScopeDestroy: function() {
             this.$destroy();
         },
@@ -147,41 +143,6 @@ module.exports = function(){
             }
             if (!nsGet("directive.component." + name, true)) {
                 nsAdd("directive.component." + name.toLowerCase(), cmp)
-            }
-        },
-
-        getExprAndMods: function(value) {
-
-            if (typeof value === "string" || !value) {
-                return [
-                    {expr: value, mods: null}
-                ]
-            }
-            else {
-                var list = [],
-                    mods, i, l, ml;
-                for (var key in value) {
-
-                    if (key) {
-                        ml = key.split(".");
-                        mods = ml.length ? {} : null;
-
-                        for (i = 0, l = ml.length; i < l; i++) {
-                            mods[ml[i]] = true;
-                        }
-                    }
-                    else {
-                        ml = [];
-                        mods = null;
-                    }
-
-                    list.push({
-                        expr: value[key],
-                        mods: mods,
-                        mlist: ml
-                    });
-                }
-                return list;
             }
         }
     });
