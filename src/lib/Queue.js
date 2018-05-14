@@ -119,6 +119,10 @@ extend(Queue.prototype, {
         return this.length === 0;
     },
 
+    isRunning: function() {
+        return this._running;
+    },
+
     next: function() {
 
         var self    = this,
