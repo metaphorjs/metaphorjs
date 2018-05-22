@@ -80,6 +80,10 @@ module.exports = defineClass({
         if (cfg['plugin']) {
             self.$plugins.push(cfg['plugin']);
         }
+
+        if (cfg['trackby'] && cfg['trackby'] === 'false') {
+            self.trackBy = false;
+        }
     },
 
     $init: function(scope, node, expr, parentRenderer, attr) {
@@ -117,12 +121,15 @@ module.exports = defineClass({
             cfg         = self.cfg;
 
         self.watcher    = createWatchable(scope, self.model, self.onChange, self, {filterLookup: filterLookup});
-        self.trackBy    = cfg.trackBy;
-        if (self.trackBy && self.trackBy !== '$') {
-            self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, {filterLookup: filterLookup});
-        }
-        else if (self.trackBy !== '$' && !self.watcher.hasInputPipes()) {
-            self.trackBy    = '$$'+self.watcher.id;
+        self.trackBy    = cfg.trackby; // lowercase from attributes
+        
+        if (self.trackBy !== false) {
+            if (self.trackBy && self.trackBy !== '$') {
+                self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, {filterLookup: filterLookup});
+            }
+            else if (self.trackBy !== '$' && !self.watcher.hasInputPipes()) {
+                self.trackBy    = '$$'+self.watcher.id;
+            }
         }
 
         self.griDelegate = bind(self.scopeGetRawIndex, self);
@@ -290,38 +297,51 @@ module.exports = defineClass({
             prevrInx,
             i, len,
             r,
-            action,
-            prs         = self.watcher.getMovePrescription(prevList, self.getTrackByFunction(), list);
+            action;
 
-        // redefine renderers
-        for (i = 0, len = prs.length; i < len; i++) {
-
-            action = prs[i];
-
-            if (isNumber(action)) {
-                prevrInx    = action;
-                prevr       = renderers[prevrInx];
-
-                if (prevrInx !== index && isNull(updateStart)) {
-                    updateStart = i;
-                }
-
-                prevr.action = "move";
-                prevr.scope[iname] = self.getListItem(list, i);
-                doesMove = animateMove;
-
-                newrs.push(prevr);
-                renderers[prevrInx] = null;
-                index++;
-            }
-            else {
-                if (isNull(updateStart)) {
-                    updateStart = i;
-                }
+        if (self.trackBy === false) {
+            renderers = self.renderers.slice();
+            updateStart = 0;
+            doesMove = false;
+            for (i = 0, len = list.length; i < len; i++) {
                 r = self.createItem(tpl.cloneNode(true), list, i);
                 newrs.push(r);
-                // add new elements to old renderers
-                // so that we could correctly determine positions
+            }
+        }
+        else {
+
+            var prs  = self.watcher.getMovePrescription(prevList, self.getTrackByFunction(), list);
+
+            // redefine renderers
+            for (i = 0, len = prs.length; i < len; i++) {
+
+                action = prs[i];
+
+                if (isNumber(action)) {
+                    prevrInx    = action;
+                    prevr       = renderers[prevrInx];
+
+                    if (prevrInx !== index && isNull(updateStart)) {
+                        updateStart = i;
+                    }
+
+                    prevr.action = "move";
+                    prevr.scope[iname] = self.getListItem(list, i);
+                    doesMove = animateMove;
+
+                    newrs.push(prevr);
+                    renderers[prevrInx] = null;
+                    index++;
+                }
+                else {
+                    if (isNull(updateStart)) {
+                        updateStart = i;
+                    }
+                    r = self.createItem(tpl.cloneNode(true), list, i);
+                    newrs.push(r);
+                    // add new elements to old renderers
+                    // so that we could correctly determine positions
+                }
             }
         }
 
@@ -409,8 +429,21 @@ module.exports = defineClass({
                 continue;
             }
 
+            for (j = Math.max(i - 1, 0); j >= 0; j--) {
+                if (rs[j].attached) {
+                    next = rs[j].lastEl.nextSibling;
+                    break;
+                    //if (next && next.parentNode === parent) {
+                    //    break;
+                    //}
+                }
+            }
+            if (!next) {
+                next = nc;
+            }
+
             // positions of some elements have changed
-            if (oldrs) {
+            /*if (oldrs) {
                 // oldrs looks like [obj, obj, null, obj] where nulls are instead
                 // of items that were moved somewhere else
                 if (oldrs && oldrs[i]) {
@@ -450,7 +483,7 @@ module.exports = defineClass({
 
             if (next && next.parentNode !== parent) {
                 next = null;
-            }
+            }*/
 
             if (r.firstEl !== next) {
                 if (next && r.lastEl.nextSibling !== next) {
