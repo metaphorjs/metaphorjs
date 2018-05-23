@@ -408,13 +408,14 @@ module.exports = defineClass({
         if (nc && nc.parentNode !== parent) {
             nc = null;
         }
-        if (!nc && prevEl && prevEl.parentNode === parent) {
-            nc = prevEl.nextSibling;
-        }
+        //if (!nc && prevEl && prevEl.parentNode === parent) {
+        //    nc = prevEl.nextSibling;
+        //}
 
         for (i = 0, l = rs.length; i < l; i++) {
             r = rs[i];
             el = r.el;
+            next = null;
 
             if (r.hidden) {
                 if (el.parentNode) {
@@ -438,6 +439,7 @@ module.exports = defineClass({
                     //}
                 }
             }
+
             if (!next) {
                 next = nc;
             }
