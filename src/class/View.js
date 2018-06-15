@@ -119,23 +119,25 @@ module.exports = defineClass({
             route,
             i, l,
             j, z;
+        
+        if (routes) {
+            for (i = 0, l = routes.length; i < l; i++) {
+                route = routes[i];
+                route.id = route.id || nextUid();
 
-        for (i = 0, l = routes.length; i < l; i++) {
-            route = routes[i];
-            route.id = route.id || nextUid();
-
-            if (route.params) {
-                params = {};
-                for (j = 0, z = route.params.length; j < z; j++) {
-                    param = route.params[j];
-                    if (param.name) {
-                        params[param.name] = new UrlParam(extend({}, param, {enabled: false}, true, false));
+                if (route.params) {
+                    params = {};
+                    for (j = 0, z = route.params.length; j < z; j++) {
+                        param = route.params[j];
+                        if (param.name) {
+                            params[param.name] = new UrlParam(extend({}, param, {enabled: false}, true, false));
+                        }
                     }
+                    route.params = params;
                 }
-                route.params = params;
-            }
 
-            self.routeMap[route.id] = route;
+                self.routeMap[route.id] = route;
+            }
         }
     },
 
@@ -167,19 +169,21 @@ module.exports = defineClass({
             i, len,
             r, matches;
 
-        for (i = 0, len = routes.length; i < len; i++) {
-            r = routes[i];
+        if (routes) {
+            for (i = 0, len = routes.length; i < len; i++) {
+                r = routes[i];
 
-            if (r.regexp && (matches = loc.pathname.match(r.regexp))) {
-                self.resolveRoute(r, matches);
-                return;
-            }
-            else if (r.regexpFull && (matches = path.match(r.regexp))) {
-                self.resolveRoute(r, matches);
-                return;
-            }
-            if (r['default'] && !def) {
-                def = r;
+                if (r.regexp && (matches = loc.pathname.match(r.regexp))) {
+                    self.resolveRoute(r, matches);
+                    return;
+                }
+                else if (r.regexpFull && (matches = path.match(r.regexp))) {
+                    self.resolveRoute(r, matches);
+                    return;
+                }
+                if (r['default'] && !def) {
+                    def = r;
+                }
             }
         }
 
