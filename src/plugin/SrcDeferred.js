@@ -8,6 +8,7 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     getHeight = require("../func/dom/getHeight.js"),
     addListener = require("../func/event/addListener.js"),
     removeListener = require("../func/event/removeListener.js"),
+    Queue = require("../lib/Queue.js"),
     bind = require("../func/bind.js");
 
 module.exports = defineClass({
@@ -16,6 +17,7 @@ module.exports = defineClass({
 
     directive: null,
 
+    queue: null,
     scrollEl: null,
     scrollDelegate: null,
     resizeDelegate: null,
@@ -29,7 +31,9 @@ module.exports = defineClass({
         var self = this;
         self.directive = directive;
         directive.$intercept("onChange", self.onChange, self, "instead");
-
+        self.queue = 
+            directive.queue || 
+            new Queue({auto: true, async: true, mode: Queue.REPLACE, thenable: true});
     },
 
     $beforeHostInit: function(scope, node) {
@@ -111,6 +115,7 @@ module.exports = defineClass({
 
     $beforeHostDestroy: function(){
         this.stopWatching();
+        this.queue.destroy();
     }
 
 });
