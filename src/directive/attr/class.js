@@ -117,7 +117,7 @@ DO NOT put class="{}" when using class.name="{}"
                     parts.push('_: ' + expr);
                 }
                 for (k in values) {
-                    parts.push(k + ': ' + values[k]);
+                    parts.push("'" + k + "'" + ': ' + values[k]);
                 }
                 expr = '{' + parts.join(', ') + '}';
             }

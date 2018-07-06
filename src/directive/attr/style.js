@@ -20,7 +20,7 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
         if (values) {
             parts = [];
             for (k in values) {
-                parts.push(k + ': ' + values[k]);
+                parts.push("'" + k + "'" + ': ' + values[k]);
             }
             expr = '{' + parts.join(', ') + '}';
         }
