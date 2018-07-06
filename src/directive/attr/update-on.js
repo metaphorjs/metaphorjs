@@ -2,6 +2,10 @@
 var Directive = require("../../class/Directive.js"),
     createGetter = require("metaphorjs-watchable/src/func/createGetter.js");
 
+    /*
+        Update scope on given event.
+        Not exactly template's business, but still
+    */
 Directive.registerAttribute("update-on", 1000,
     function(scope, node, expr, renderer, attr){
 
@@ -14,11 +18,6 @@ Directive.registerAttribute("update-on", 1000,
 
         for (k in values) {
             part = values[k];
-
-            if (keys[k]) {
-                k = keys[k];
-            }
-
             parts.push("['" + k + "', " + part + ']');
         }
         expr = '[' + parts.join(',') + ']';
