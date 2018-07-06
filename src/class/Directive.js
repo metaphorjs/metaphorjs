@@ -29,6 +29,26 @@ module.exports = function(){
 
             // a must be equal to b
             return 0;
+        },
+
+        commentHolders      = function(node, name) {
+
+            name = name || "";
+
+            var before = document.createComment(name + " - start"),
+                after = document.createComment(name + " - end"),
+                parent = node.parentNode;
+
+            parent.insertBefore(before, node);
+
+            if (node.nextSibling) {
+                parent.insertBefore(after, node.nextSibling);
+            }
+            else {
+                parent.appendChild(after);
+            }
+
+            return [before, after];
         };
 
     return defineClass({
@@ -68,6 +88,12 @@ module.exports = function(){
 
             scope.$on("destroy", self.onScopeDestroy, self);
             scope.$on("reset", self.onScopeReset, self);
+        },
+
+        createCommentHolders: function(node, name) {
+            var cmts = commentHolders(node, name || this.$class);
+            this.prevEl = cmts[0];
+            this.nextEl = cmts[1];
         },
 
         onScopeDestroy: function() {
@@ -144,7 +170,9 @@ module.exports = function(){
             if (!nsGet("directive.component." + name, true)) {
                 nsAdd("directive.component." + name.toLowerCase(), cmp)
             }
-        }
+        },
+
+        commentHolders: commentHolders
     });
 
 }();

@@ -7,6 +7,7 @@ var animate = require("metaphorjs-animate/src/func/animate.js"),
 
 Directive.registerAttribute("if", 500, Directive.$extend({
 
+    $class: "Directive.If",
     parentEl: null,
     prevEl: null,
     nextEl: null,
@@ -19,10 +20,9 @@ Directive.registerAttribute("if", 500, Directive.$extend({
 
         var self    = this;
 
-        self.parentEl   = node.parentNode;
-        self.prevEl     = node.previousSibling;
-        self.nextEl     = node.nextSibling;
+        self.createCommentHolders(node, this.$class);
 
+        self.parentEl   = node.parentNode;
         self.cfg        = attr ? attr.config : {};
         self.animate    = !!self.cfg.animate;
 
@@ -47,7 +47,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
             node    = self.node,
             next;
 
-        if (self.prevEl && self.prevEl.parentNode === parent) {
+        /*if (self.prevEl && self.prevEl.parentNode === parent) {
             next = self.prevEl.nextSibling;
             if (!next) {
                 next = false;
@@ -55,11 +55,11 @@ Directive.registerAttribute("if", 500, Directive.$extend({
         }
         else if (self.nextEl && self.nextEl.parentNode === parent) {
             next = self.nextEl;
-        }
+        }*/
 
         var show    = function(){
 
-            var np = self.cfg.position;
+            /*var np = self.cfg.position;
 
             if (np === "append") {
                 parent.appendChild(node);
@@ -75,7 +75,8 @@ Directive.registerAttribute("if", 500, Directive.$extend({
             }
             else {
                 parent.insertBefore(node, parent.firstChild);
-            }
+            }*/
+            parent.insertBefore(node, self.nextEl);
         };
 
         var hide    = function() {

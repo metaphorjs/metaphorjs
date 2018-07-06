@@ -2,6 +2,7 @@ var createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"
     animate = require("metaphorjs-animate/src/func/animate.js"),
 
     defineClass = require("metaphorjs-class/src/func/defineClass.js"),
+    Directive = require("metaphorjs/src/class/Directive.js"),
 
     filterLookup = require("../func/filterLookup.js"),
     toArray = require("../func/array/toArray.js"),
@@ -98,8 +99,11 @@ module.exports = defineClass({
 
         self.tpl        = self.tagMode ? toFragment(node.childNodes) : node;
         self.renderers  = [];
-        self.prevEl     = node.previousSibling;
-        self.nextEl     = node.nextSibling;
+
+        var cmts = Directive.commentHolders(node, self.$class + "-" + self.id);
+
+        self.prevEl     = cmts[0];
+        self.nextEl     = cmts[1];
         self.parentEl   = node.parentNode;
         self.node       = null; //node;
 
@@ -405,12 +409,12 @@ module.exports = defineClass({
             i, l, el, r,
             j;
 
-        if (nc && nc.parentNode !== parent) {
+        /*if (nc && nc.parentNode !== parent) {
             nc = null;
         }
         //if (!nc && prevEl && prevEl.parentNode === parent) {
         //    nc = prevEl.nextSibling;
-        //}
+        //}*/
 
         for (i = 0, l = rs.length; i < l; i++) {
             r = rs[i];
