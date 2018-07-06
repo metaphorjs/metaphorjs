@@ -113,7 +113,10 @@ module.exports = (function() {
                         if (!coll[name].values) {
                             coll[name].values = {};
                         }
-                        coll[name].values[toCamelCase(parts.join("."))] = value;
+                        // directive value keys are not camelcased
+                        // do this inside directive if needed
+                        // ('class' directive needs originals)
+                        coll[name].values[parts.join(".")] = value;
                         set['subnames'][name].push(attrs[i].name);
                     }
                     else {

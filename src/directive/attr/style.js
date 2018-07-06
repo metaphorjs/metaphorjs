@@ -52,7 +52,7 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
                     style[trg] = props[k];
                 }
                 else {
-                    removeStyle(node, trg);
+                    removeStyle(node, k);
                 }
             }
         }
