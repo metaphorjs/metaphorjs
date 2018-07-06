@@ -58,6 +58,7 @@ module.exports = (function() {
             else {
                 if (name.substr(0, 4) === "mjs-") {
                     name = name.substr(4);
+                    mode = '{';
                 }
                 else {
                     set['rest'][name] = value;
@@ -83,7 +84,8 @@ module.exports = (function() {
 
                 set['subnames'][tagName].push(attrs[i].name);
             }
-            else if (lookupDirective(name)) {
+            else if (mode === '(' || mode === '{') { // lookupDirective(name)
+
                 coll = set['directive'];
                 subname = parts.length ? parts[0] : null;
 
