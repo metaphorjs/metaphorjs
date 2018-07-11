@@ -6,10 +6,13 @@ var toCamelCase = require("../toCamelCase.js"),
 module.exports = (function() {
 
 
+    // regular expression seems to be a few milliseconds faster
+    // than plain parsing
     var reg = /^([\[({#$])([^)\]}"']+)[\])}]?$/;
 
     var removeDirective = function removeDirective(node, directive) {
-        if (this.directive[directive]) {
+        if (this.directive[directive] && 
+            this.directive[directive].original) {
             removeAttr(node, this.directive[directive].original);
         }
         var i, l, sn = this.subnames[directive];
@@ -20,6 +23,21 @@ module.exports = (function() {
             delete this.subnames[directive];
         }
     };
+
+    /*var parseAttrName = function(name) {
+        if (name.substr(0,4) === 'mjs-') {
+            return [name.substr(4), '{'];
+        }
+        var first = name.substr(0, 1);
+        if (first === '{' || first === '(' || 
+            first === '[') {
+                return [name.substring(1,name.length-1), first];
+        }
+        else if (first === '#') {
+            return [name.substr(1), first];
+        }
+        return [null, null];
+    };*/
 
     return function getAttrSet(node, lookupDirective) {
 
@@ -44,6 +62,23 @@ module.exports = (function() {
             name = attrs[i].name;
             value = attrs[i].value;
             mode = null;
+            
+            /*match = parseAttrName(name);
+
+            if (match[0]) {
+                name = match[0];
+                mode = match[1];
+
+                if (mode === '#') {
+                    set.reference = name;
+                    continue;
+                }
+            }
+            else {
+                set['rest'][name] = value;
+                continue;
+            }*/
+            
             match = name.match(reg);
 
             if (match) {
@@ -92,11 +127,15 @@ module.exports = (function() {
                 if (!coll[name]) {
                     coll[name] = {
                         name: name,
-                        original: attrs[i].name,
+                        original: null,
                         config: {},
                         value: null,
                         values: null
                     };
+                }
+
+                if (!subname) {
+                    coll[name].original = attrs[i].name;
                 }
 
                 if (subname && !set['subnames'][name]) {
