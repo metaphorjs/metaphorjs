@@ -114,6 +114,9 @@ DO NOT put class="{}" when using class.name="{}"
             if (values) {
                 parts = [];
                 if (expr) {
+                    if (expr.substr(0,1) != '[') {
+                        expr = '[' + expr + ']';
+                    }
                     parts.push('_: ' + expr);
                 }
                 for (k in values) {
