@@ -20,7 +20,7 @@ Directive.registerAttribute("show", 500, defineClass({
         var self    = this,
             cfg     = attr ? attr.config : {};
 
-        self.display = cfg.display || "block";
+        self.display = cfg.display || "";
         self.animate = !!cfg.animate;
 
         self.$super(scope, node, expr, renderer, attr);
