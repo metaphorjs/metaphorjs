@@ -19,6 +19,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
 
 Directive.registerAttribute("options", 100, defineClass({
 
+    $class: "Directive.attr.Options",
     $extends: Directive,
 
     model: null,

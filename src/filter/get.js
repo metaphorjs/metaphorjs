@@ -1,5 +1,5 @@
 
-var nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
+var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
     undf = require("../var/undf.js");
 
 nsAdd("filter.get", function(val, scope, prop) {

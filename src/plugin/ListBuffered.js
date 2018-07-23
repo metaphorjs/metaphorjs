@@ -1,5 +1,5 @@
 
-var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
+var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     addListener = require("../func/event/addListener.js"),
     removeListener = require("../func/event/removeListener.js"),
     bind = require("../func/bind.js"),
@@ -8,8 +8,8 @@ var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
     getPosition = require("../func/dom/getPosition.js"),
     getScrollLeft = require("../func/dom/getScrollLeft.js"),
     getScrollTop = require("../func/dom/getScrollTop.js"),
-    Promise = require("../../../metaphorjs-promise/src/lib/Promise.js"),
-    raf = require('../../../metaphorjs-animate/src/func/raf.js');
+    Promise = require("metaphorjs-promise/src/lib/Promise.js"),
+    raf = require('metaphorjs-animate/src/func/raf.js');
 
 module.exports = defineClass({
 

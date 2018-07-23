@@ -1,6 +1,6 @@
 
 var addListener = require("./event/addListener.js"),
-    Promise = require("../../../metaphorjs-promise/src/lib/Promise.js");
+    Promise = require("metaphorjs-promise/src/lib/Promise.js");
 
 
 module.exports = function() {

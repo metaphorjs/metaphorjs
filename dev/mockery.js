@@ -18,14 +18,14 @@ order of dependencies.
 
  */
 
-var mockery = require("mockery"),
-    fs = require("fs"),
+var fs = require("fs"),
     path = require("path");
 
+/*mockery = require("mockery"),
 mockery.enable({
     warnOnReplace: false,
     warnOnUnregistered: false
-});
+});*/
 
 
 //bin = dir + "/dist/" + name.replace('-', '.') + ".npm.js";
@@ -36,9 +36,15 @@ if (module.paths.indexOf(mjsRoot) == -1) {
     module.paths.push(mjsRoot);
 }
 
-process.env.NODE_PATH = mjsRoot;
+var prevPath = "" + (process.env.NODE_PATH||"");
+if (prevPath) {
+    prevPath += path.delimiter;
+}
+process.env.NODE_PATH = prevPath + mjsRoot;
 require("module").Module._initPaths();
 
+
+/*
 var modules = [];
 var mocked = {};
 
@@ -80,19 +86,20 @@ var mockModule = function(name) {
 
     pkg = require(pkg);
 
-    if (!pkg.main) {
-        return;
-    }
+    //if (!pkg.main) {
+     //   return;
+    //}
 
     resolveDeps(pkg);
 
     main    = dir +'/' + pkg.main;
 
-    if (fs.existsSync(main)) {
-        mockery.registerMock(name, require(main));
-    }
+    //if (fs.existsSync(main)) {
+    //    mockery.registerMock(name, require(main));
+    //}
 
     mocked[name] = true;
 };
 
 modules.forEach(mockModule);
+*/

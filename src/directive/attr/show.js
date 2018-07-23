@@ -9,6 +9,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
 
 Directive.registerAttribute("show", 500, defineClass({
 
+    $class: "Directive.attr.Show",
     $extends: Directive,
 
     animate: false,

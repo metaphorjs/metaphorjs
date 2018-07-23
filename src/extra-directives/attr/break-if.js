@@ -1,7 +1,7 @@
 
 
 var Directive = require("../../class/Directive.js"),
-    createGetter = require("../../../../metaphorjs-watchable/src/func/createGetter.js");
+    createGetter = require("metaphorjs-watchable/src/func/createGetter.js");
 
 Directive.registerAttribute("break-if", 500, function(scope, node, expr){
 

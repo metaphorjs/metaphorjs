@@ -1,13 +1,14 @@
 
 
 var Directive = require("../../class/Directive.js"),
-    defineClass = require("../../../../metaphorjs-class/src/func/defineClass.js");
+    defineClass = require("metaphorjs-class/src/func/defineClass.js");
 
 require("./show.js");
 
 Directive.registerAttribute("hide", 500, defineClass({
 
-    $extends: "directive.attr.show",
+    $class: "Directive.attr.Hide",
+    $extends: "Directive.attr.Show",
 
     $init: function(scope, node, expr, renderer, attr) {
 

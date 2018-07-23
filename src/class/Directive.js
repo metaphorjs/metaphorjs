@@ -35,8 +35,8 @@ module.exports = function(){
 
             name = name || "";
 
-            var before = document.createComment(name + " - start"),
-                after = document.createComment(name + " - end"),
+            var before = window.document.createComment(name + " - start"),
+                after = window.document.createComment(name + " - end"),
                 parent = node.parentNode;
 
             parent.insertBefore(before, node);
@@ -90,6 +90,10 @@ module.exports = function(){
             scope.$on("reset", self.onScopeReset, self);
         },
 
+        getChildren: function() {
+            return null;
+        },
+
         createCommentHolders: function(node, name) {
             var cmts = commentHolders(node, name || this.$class);
             this.prevEl = cmts[0];
@@ -124,6 +128,13 @@ module.exports = function(){
 
             if (self.watcher) {
                 self.watcher.unsubscribeAndDestroy(self.onChange, self);
+            }
+
+            if (self.prevEl) {
+                self.prevEl.parentNode.removeChild(self.prevEl);
+            }
+            if (self.nextEl) {
+                self.nextEl.parentNode.removeChild(self.nextEl);
             }
 
             self.$super();

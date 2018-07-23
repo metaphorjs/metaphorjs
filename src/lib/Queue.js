@@ -6,7 +6,7 @@ var async = require("../func/async.js"),
     emptyFn = require("../func/emptyFn.js"),
     isNumber = require("../func/isNumber.js"),
     error = require("../func/error.js"),
-    raf = require("../../../metaphorjs-animate/src/func/raf.js");
+    raf = require("metaphorjs-animate/src/func/raf.js");
 
 
 

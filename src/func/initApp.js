@@ -5,7 +5,7 @@ var error = require("./error.js"),
     removeAttr = require("./dom/removeAttr.js"),
     extend = require("./extend.js"),
     nsGet = require("metaphorjs-namespace/src/func/nsGet.js"),
-    Promise = require("../../../metaphorjs-promise/src/lib/Promise.js");
+    Promise = require("metaphorjs-promise/src/lib/Promise.js");
 
 module.exports = function initApp(node, cls, data, autorun) {
 

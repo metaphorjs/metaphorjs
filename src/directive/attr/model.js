@@ -15,6 +15,7 @@ var async = require("../../func/async.js"),
 
 Directive.registerAttribute("model", 1000, Directive.$extend({
 
+    $class: "Directive.attr.Model",
     inProg: false,
     input: null,
     binding: null,
@@ -112,7 +113,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             // fields like select or radio may not have
             // this value in its options. that will change
             // value to undefined and bubble back to scope
-            if (document.activeElement !== self.node) {
+            if (window.document.activeElement !== self.node) {
                 self.binding = "scope";
             }
 

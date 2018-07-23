@@ -1,6 +1,6 @@
 
 
-var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
+var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     emptyFn = require("../func/emptyFn.js"),
     slice = require("../func/array/slice.js"),
     getAttr = require("../func/dom/getAttr.js"),

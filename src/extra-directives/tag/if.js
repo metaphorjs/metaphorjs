@@ -1,29 +1,71 @@
 
 var Directive = require("../../class/Directive.js"),
-    createGetter = require("../../../../metaphorjs-watchable/src/func/createGetter.js"),
+    defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     toFragment = require("../../func/dom/toFragment.js"),
     getAttr = require("../../func/dom/getAttr.js"),
+    undf = require("../../var/undf.js"),
     toArray = require("../../func/array/toArray.js");
 
+Directive.registerTag("if", defineClass({
+    $class: "Directive.tag.If",
+    $extends: "Directive.attr.If",
+    autoOnChange: false,
 
-Directive.registerTag("if", function(scope, node) {
+    $init: function(scope, node, expr, renderer, attr) {
 
-    var expr = getAttr(node, "value"),
-        res = !!createGetter(expr)(scope);
+        var self    = this;
+        
+        self.children = toArray(node.childNodes);
+        expr = getAttr(node, "value");
 
-    if (!res) {
-        node.parentNode.removeChild(node);
-        return false;
+        self.$super(scope, node, expr, renderer, attr);   
+        
+        if (node.parentNode) {
+            node.parentNode.removeChild(node);
+        }
+        
+        var val = self.watcher.getLastResult();
+        self.onChange(val || false, undf);
+    },
+
+    getChildren: function() {
+        return this.children;
+    },
+
+    onChange: function() {
+        var self    = this,
+            val     = self.watcher.getLastResult(),
+            parent  = self.prevEl.parentNode,
+            node    = self.node;
+
+        //if (self.initial) {
+            //parent.removeChild(node);
+        //}
+
+        if (val) {
+            parent.insertBefore(toFragment(self.children), self.nextEl);
+        }
+        else if (!self.initial) {
+            var i, l;
+            for (i = 0, l = self.children.length; i < l; i++) {
+                parent.removeChild(self.children[i]);
+            }
+        }
+
+        //self.$super(val);
+
+        if (self.initial) {
+            self.initial = false;
+        }
+        else {
+            if (self.cfg.once) {
+                self.$destroy();
+            }
+        }
+    },
+
+    destroy: function() {
+        this.children = null;
+        this.$super();
     }
-    else {
-        var nodes = toArray(node.childNodes),
-            frg = toFragment(node.childNodes),
-            next = node.nextSibling;
-
-        node.parentNode.insertBefore(frg, next);
-        node.parentNode.removeChild(node);
-
-        return nodes;
-    }
-
-});
+}));

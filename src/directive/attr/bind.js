@@ -4,11 +4,12 @@ var Directive = require("../../class/Directive.js"),
     isField = require("../../func/dom/isField.js"),
     TextRenderer = require("../../class/TextRenderer.js"),
     Scope = require("../../lib/Scope.js"),
-    Input = require("../../../../metaphorjs-input/src/lib/Input.js");
+    Input = require("metaphorjs-input/src/lib/Input.js");
 
 
 Directive.registerAttribute("bind", 1000, Directive.$extend({
 
+    $class: "Directive.attr.Bind",
     isInput: false,
     input: null,
     lockInput: null,

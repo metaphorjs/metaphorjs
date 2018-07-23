@@ -78,8 +78,8 @@ module.exports = function(){
             "script": true,
             "template": true,
             "mjs-template": true,
-            "style": true,
-            "link": true
+            //"style": true,
+            //"link": true
         },
 
         eachNode = function(el, fn, fnScope, finish, cnt) {
@@ -233,7 +233,15 @@ module.exports = function(){
                 self.on("destroy", inst);
             }
 
-            return f.$stopRenderer ? false : inst;
+            if (f.$stopRenderer) {
+                return false;
+            }
+
+            if (inst && inst.getChildren) {
+                return inst.getChildren();
+            }
+
+            return inst;
         },
 
 
@@ -318,7 +326,7 @@ module.exports = function(){
                             values: null
                         };
 
-                        as = document.createElement(as);
+                        as = window.document.createElement(as);
                         node.parentNode.replaceChild(as, node);
                         while (node.firstChild) {
                             as.appendChild(node.firstChild);
@@ -355,9 +363,13 @@ module.exports = function(){
                 }
 
                 // this is a tag directive
-                if (f = nsGet("directive.tag." + tag, true)) {
+                else if (f = nsGet("directive.tag." + tag, true)) {
 
-                    res = self.runHandler(f, scope, node, null, attrs);
+                    res = self.runHandler(
+                        f, scope, node, 
+                        {value: null, config: attrs.config}, 
+                        attrs
+                    );
                     someHandler = true;
 
                     attrs.removeDirective(node, tag);

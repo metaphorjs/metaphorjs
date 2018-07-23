@@ -98,13 +98,15 @@ DO NOT put class="{}" when using class.name="{}"
 
     Directive.registerAttribute("class", 1000, defineClass({
 
+        $class: "Directive.attr.Class",
         $extends: Directive,
         initial: true,
         animate: false,
 
         $init: function(scope, node, expr, renderer, attr) {
 
-            var values = attr ? attr.values : null,
+            var self = this, 
+                values = attr ? attr.values : null,
                 cfg = attr ? attr.config : {},
                 k,
                 parts;

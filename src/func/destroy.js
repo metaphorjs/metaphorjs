@@ -1,7 +1,7 @@
 
 var MetaphorJs = require("../MetaphorJs.js"),
-    cs = require("../../../metaphorjs-class/src/var/cs.js"),
-    ns = require("../../../metaphorjs-namespace/src/var/ns.js");
+    cs = require("metaphorjs-class/src/var/cs.js"),
+    ns = require("metaphorjs-namespace/src/var/ns.js");
 
 module.exports = function() {
 

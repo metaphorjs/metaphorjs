@@ -8,6 +8,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
 
 Directive.registerAttribute("source-src", 1000, defineClass({
 
+    $class: "Directive.attr.SourceSrc",
     $extends: Directive,
 
     usePreload: true,
@@ -85,7 +86,7 @@ Directive.registerAttribute("source-src", 1000, defineClass({
         var self = this,
             node = self.node,
             srcs = select("source", node),
-            source = document.createElement("source"),
+            source = window.document.createElement("source"),
             i, l;
 
         if (srcs.length) {

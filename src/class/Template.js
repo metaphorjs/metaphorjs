@@ -4,6 +4,7 @@ var data = require("../func/dom/data.js"),
     toFragment = require("../func/dom/toFragment.js"),
     clone = require("../func/dom/clone.js"),
     toArray = require("../func/array/toArray.js"),
+    isArray = require("../func/isArray.js"),
     animate = require("metaphorjs-animate/src/func/animate.js"),
     extend = require("../func/extend.js"),
     nextUid = require("../func/nextUid.js"),
@@ -161,12 +162,14 @@ module.exports = function(){
         _id:                null,
         _originalNode:      null,
         _intendedShadow:    false,
+        _prevEl:            null,
+        _nextEl:            null,
 
         scope:              null,
         node:               null,
         tpl:                null,
         url:                null,
-        ownRenderer:        null,
+        ownRenderer:        true,
         initPromise:        null,
         tplPromise:         null,
         parentRenderer:     null,
@@ -207,6 +210,16 @@ module.exports = function(){
 
             node && removeAttr(node, "include");
 
+            if (self.replace && node) {
+                self._prevEl = window.document.createComment(self.id + " - start");
+                self._nextEl = window.document.createComment(self.id + " - end");
+                var parent = node.parentNode;
+                if (parent) {
+                    parent.insertBefore(self._prevEl, node);
+                    parent.insertBefore(self._nextEl, node.nextSibling);
+                }
+            }
+
             if (self.shadow) {
                 self._originalNode = node;
                 self.node = node = node.createShadowRoot();
@@ -235,24 +248,24 @@ module.exports = function(){
                     }
                 }
 
-                if (self.ownRenderer === null) {
+                /*if (self.ownRenderer === null) {
                     if (self._watcher && !self.replace) {
                         self.ownRenderer = true;
                     }
                     else if (self.shadow) {
                         self.ownRenderer = true;
                     }
-                    else if (self.replace) {
-                        self.ownRenderer = false;
-                    }
-                }
+                    //else if (self.replace) {
+                        //self.ownRenderer = false;
+                    //}
+                }*/
 
                  self.resolveTemplate();
 
-                if (self._watcher && self.replace) {
-                    self._watcher.unsubscribeAndDestroy(self.onChange, self);
-                    self._watcher = null;
-                }
+                //if (self._watcher && self.replace) {
+                //    self._watcher.unsubscribeAndDestroy(self.onChange, self);
+                //    self._watcher = null;
+                //}
 
                 if (!self.deferRendering || !self.ownRenderer) {
                     self.tplPromise.done(self.applyTemplate, self);
@@ -400,11 +413,19 @@ module.exports = function(){
             var self    = this,
                 el      = self.node,
                 frg,
-                children;
+                children,
+                i, l;
 
             if (el) {
-                while (el.firstChild) {
-                    el.removeChild(el.firstChild);
+                if (isArray(el)) {
+                    for (i = 0, l = el.length; i < l; i++) {
+                        el[i].parentNode.removeChild[el[i]];
+                    }
+                }
+                else if (el.firstChild) {
+                    while (el.firstChild) {
+                        el.removeChild(el.firstChild);
+                    }
                 }
             }
 
@@ -414,35 +435,27 @@ module.exports = function(){
 
             if (self.replace) {
 
-                var transclude = el ? data(el, "mjs-transclude") : null;
-
                 frg = clone(self._fragment);
-
                 children = toArray(frg.childNodes);
 
-                if (transclude) {
-                    var tr = select("[{transclude}], [mjs-transclude], mjs-transclude", frg);
-                    if (tr.length) {
-                        data(tr[0], "mjs-transclude", transclude);
+                if (el && el.nodeType) {
+                    var transclude = el ? data(el, "mjs-transclude") : null;
+
+                    if (transclude) {
+                        var tr = select("[{transclude}], [mjs-transclude], mjs-transclude", frg);
+                        if (tr.length) {
+                            data(tr[0], "mjs-transclude", transclude);
+                        }
                     }
+
+                    el.parentNode.removeChild(el);
                 }
 
-                if (el) {
-
-                    if (el.parentNode) {
-                        el.parentNode.replaceChild(frg, el);
-                    }
-
-                    if (el.parentNode) {
-                        el.parentNode.removeChild(el);
-                    }
-                }
-
+                self._nextEl.parentNode.insertBefore(frg, self._nextEl);
                 self.node = children;
                 self.initPromise.resolve(children);
             }
             else {
-
 
                 if (el) {
                     el.appendChild(clone(self._fragment));
@@ -522,6 +535,14 @@ module.exports = function(){
         destroy: function() {
 
             var self = this;
+
+            if (self._nextEl && self._nextEl.parentNode) {
+                self._nextEl.parentNode.removeChild(self._nextEl);
+            }
+            
+            if (self._prevEl && self._prevEl.parentNode) {
+                self._prevEl.parentNode.removeChild(self._prevEl);
+            }
 
             if (self.shadow) {
                 self._originalNode.createShadowRoot();

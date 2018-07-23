@@ -1,7 +1,7 @@
 
-var nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
-    nsGet = require("../../../metaphorjs-namespace/src/func/nsGet.js"),
-    createGetter = require("../../../metaphorjs-watchable/src/func/createGetter.js");
+var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
+    nsGet = require("metaphorjs-namespace/src/func/nsGet.js"),
+    createGetter = require("metaphorjs-watchable/src/func/createGetter.js");
 
 nsAdd("filter.map", function(array, scope, fnName) {
 
@@ -9,6 +9,7 @@ nsAdd("filter.map", function(array, scope, fnName) {
         fn = nsGet(fnName, true) ||
                 window[fnName] ||
                 createGetter(fnName)(scope);
+    array = array || [];
 
     if (fn) {
         for (i = 0, l = array.length; i < l; i++) {

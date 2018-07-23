@@ -1,6 +1,6 @@
 
 
-var nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
+var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
     toArray = require("../func/array/toArray.js"),
     isArray = require("../func/isArray.js");
 

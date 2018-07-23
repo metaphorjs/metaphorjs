@@ -13,6 +13,9 @@ Directive.registerTag("include", function(scope, node, value, parentRenderer) {
         replace: true
     });
 
-    return tpl.initPromise;
+
+    //return tpl.initPromise;
+
+    return false;
 
 });

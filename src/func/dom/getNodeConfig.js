@@ -2,7 +2,7 @@
 var data = require("./data.js"),
     getAttr = require("./getAttr.js"),
     removeAttr = require("./removeAttr.js"),
-    createGetter = require("../../../../metaphorjs-watchable/src/func/createGetter.js"),
+    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     getNodeData = require("./getNodeData.js");
 
 module.exports = function getNodeConfig(node, scope, expr) {

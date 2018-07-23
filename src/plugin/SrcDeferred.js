@@ -1,5 +1,5 @@
 
-var defineClass = require("../../../metaphorjs-class/src/func/defineClass.js"),
+var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     getScrollParent = require("../func/dom/getScrollParent.js"),
     getPosition = require("../func/dom/getPosition.js"),
     getScrollTop = require("../func/dom/getScrollTop.js"),

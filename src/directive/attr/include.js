@@ -16,10 +16,11 @@ Directive.registerAttribute("include", 1100,
         animate: !!cfg.animate
     });
 
-    if (tpl.ownRenderer) {
+    return false; // stop renderer
+    /*if (tpl.ownRenderer) {
         return false;
     }
     else {
         return tpl.initPromise;
-    }
+    }*/
 });

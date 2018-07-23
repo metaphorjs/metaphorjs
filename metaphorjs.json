@@ -77,62 +77,6 @@
                 "metaphorjs-dialog/src/class/dialog/Component.js",
                 "metaphorjs-validator/src/directive/**"
             ],
-            "omit": [
-                "src/bootstrap/apps.js",
-                "metaphorjs-observable/src/lib/Observable.js",
-                "metaphorjs-promise/src/lib/Promise.js",
-                "metaphorjs-ajax/src/func/ajax.js",
-                "metaphorjs-animate/src/func/animate.js",
-                "metaphorjs-input/src/lib/Input.js",
-                "metaphorjs-input/src/func/getValue.js",
-                "metaphorjs-input/src/func/setValue.js",
-                "metaphorjs-class/src/lib/Class.js",
-                "metaphorjs-namespace/src/lib/Namespace.js",
-                "metaphorjs-select/src/func/select.js",
-                "metaphorjs-validator/src/class/Validator.js",
-                "metaphorjs-watchable/src/lib/Watchable.js",
-                "metaphorjs-dialog/src/class/Dialog.js",
-                "metaphorjs-history/src/lib/History.js"
-            ],
-            "require": {
-                "metaphorjs-observable": "Observable",
-                "metaphorjs-promise": "Promise",
-                "metaphorjs-ajax": {
-                    "as": "ajax",
-                    "args": ["window"]
-                },
-                "metaphorjs-animate": {
-                    "as": "animate",
-                    "args": ["window"]
-                },
-                "metaphorjs-input": {
-                    "as": "Input",
-                    "args": ["window"]
-                },
-                "metaphorjs-class": "Class",
-                "metaphorjs-namespace": "Namespace",
-                "metaphorjs-model": {
-                    "as": "model",
-                    "args": ["window"]
-                },
-                "metaphorjs-select": {
-                    "as": "select",
-                    "args": ["window"]
-                },
-                "metaphorjs-validator": {
-                    "as": "Validator",
-                    "args": ["window"]
-                },
-                "metaphorjs-watchable": "Watchable",
-                "metaphorjs-dialog": {
-                    "as": "Dialog",
-                    "args": ["window"]
-                },
-                "metaphorjs-history": {
-                    "as": "mhistory",
-                    "args": ["window"]
-                }
-            },
             "expose": "all",
             "exposeIn": "MetaphorJsExport",
             "returns": "MetaphorJsExport"

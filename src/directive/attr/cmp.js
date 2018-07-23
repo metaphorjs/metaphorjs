@@ -2,7 +2,7 @@
 var Directive = require("../../class/Directive.js"),
     extend = require("../../func/extend.js"),
     resolveComponent = require("../../func/resolveComponent.js"),
-    nsGet = require("../../../../metaphorjs-namespace/src/func/nsGet.js");
+    nsGet = require("metaphorjs-namespace/src/func/nsGet.js");
 
 (function(){
 

@@ -7,7 +7,7 @@ var animate = require("metaphorjs-animate/src/func/animate.js"),
 
 Directive.registerAttribute("if", 500, Directive.$extend({
 
-    $class: "Directive.If",
+    $class: "Directive.attr.If",
     parentEl: null,
     prevEl: null,
     nextEl: null,
@@ -22,7 +22,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
 
         self.createCommentHolders(node, this.$class);
 
-        self.parentEl   = node.parentNode;
+        //self.parentEl   = node.parentNode;
         self.cfg        = attr ? attr.config : {};
         self.animate    = !!self.cfg.animate;
 
@@ -34,7 +34,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
         var self    = this;
 
         self.prevEl = null;
-        self.parentEl = null;
+        //self.parentEl = null;
         self.nextEl = null;
 
         self.$super();
@@ -43,39 +43,10 @@ Directive.registerAttribute("if", 500, Directive.$extend({
     onChange: function() {
         var self    = this,
             val     = self.watcher.getLastResult(),
-            parent  = self.parentEl,
-            node    = self.node,
-            next;
-
-        /*if (self.prevEl && self.prevEl.parentNode === parent) {
-            next = self.prevEl.nextSibling;
-            if (!next) {
-                next = false;
-            }
-        }
-        else if (self.nextEl && self.nextEl.parentNode === parent) {
-            next = self.nextEl;
-        }*/
+            parent  = self.prevEl.parentNode,
+            node    = self.node;
 
         var show    = function(){
-
-            /*var np = self.cfg.position;
-
-            if (np === "append") {
-                parent.appendChild(node);
-            }
-            else if (np === "prepend") {
-                parent.insertBefore(node, parent.firstChild);
-            }
-            else if (next) {
-                parent.insertBefore(node, next);
-            }
-            else if (next === false) {
-                parent.appendChild(node);
-            }
-            else {
-                parent.insertBefore(node, parent.firstChild);
-            }*/
             parent.insertBefore(node, self.nextEl);
         };
 

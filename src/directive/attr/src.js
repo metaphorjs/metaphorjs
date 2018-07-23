@@ -10,6 +10,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
 
 Directive.registerAttribute("src", 1000, defineClass({
 
+    $class: "Directive.attr.Src",
     $extends: Directive,
 
     queue: null,

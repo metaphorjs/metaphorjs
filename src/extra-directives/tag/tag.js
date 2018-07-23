@@ -1,6 +1,6 @@
 
 var Directive = require("../../class/Directive.js"),
-    createGetter = require("../../../../metaphorjs-watchable/src/func/createGetter.js"),
+    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     getAttr = require("../../func/dom/getAttr.js"),
     getAttrMap = require("../../func/dom/getAttrMap.js"),
     setAttr = require("../../func/dom/setAttr.js");

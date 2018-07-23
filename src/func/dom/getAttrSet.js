@@ -24,21 +24,6 @@ module.exports = (function() {
         }
     };
 
-    /*var parseAttrName = function(name) {
-        if (name.substr(0,4) === 'mjs-') {
-            return [name.substr(4), '{'];
-        }
-        var first = name.substr(0, 1);
-        if (first === '{' || first === '(' || 
-            first === '[') {
-                return [name.substring(1,name.length-1), first];
-        }
-        else if (first === '#') {
-            return [name.substr(1), first];
-        }
-        return [null, null];
-    };*/
-
     return function getAttrSet(node, lookupDirective) {
 
         var set = {
@@ -62,23 +47,6 @@ module.exports = (function() {
             name = attrs[i].name;
             value = attrs[i].value;
             mode = null;
-            
-            /*match = parseAttrName(name);
-
-            if (match[0]) {
-                name = match[0];
-                mode = match[1];
-
-                if (mode === '#') {
-                    set.reference = name;
-                    continue;
-                }
-            }
-            else {
-                set['rest'][name] = value;
-                continue;
-            }*/
-            
             match = name.match(reg);
 
             if (match) {
@@ -119,7 +87,7 @@ module.exports = (function() {
 
                 set['subnames'][tagName].push(attrs[i].name);
             }
-            else if (mode === '(' || mode === '{') { // lookupDirective(name)
+            else if (mode === '(' || mode === '{') { 
 
                 coll = set['directive'];
                 subname = parts.length ? parts[0] : null;
@@ -142,7 +110,7 @@ module.exports = (function() {
                     set['subnames'][name] = [];
                 }
 
-                if (subname && subname.substr(0,1) === '$') {
+                if (subname && subname[0] === '$') {
                     if (value === "") {
                         value = true;
                     }

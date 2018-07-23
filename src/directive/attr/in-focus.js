@@ -6,6 +6,8 @@ var Directive = require("../../class/Directive.js"),
 
 Directive.registerAttribute("in-focus", 500, Directive.$extend({
 
+    $class: "Directive.attr.InFocus",
+
     onChange: function() {
 
         var self    = this;

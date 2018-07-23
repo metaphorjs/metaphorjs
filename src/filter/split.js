@@ -1,7 +1,7 @@
 
 
-var nsAdd = require("../../../metaphorjs-namespace/src/func/nsAdd.js"),
-    undf = require("../../../metaphorjs/src/var/undf.js"),
+var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
+    undf = require("metaphorjs/src/var/undf.js"),
     trim = require("../func/trim.js"),
     getRegExp = require("../func/getRegExp.js");
 
