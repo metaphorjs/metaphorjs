@@ -78,8 +78,8 @@ module.exports = function(){
             "script": true,
             "template": true,
             "mjs-template": true,
-            //"style": true,
-            //"link": true
+            "style": true,
+            "link": true
         },
 
         eachNode = function(el, fn, fnScope, finish, cnt) {
@@ -299,6 +299,10 @@ module.exports = function(){
 
                 attrs = getAttrSet(node, lookupDirective);
 
+                if (attrs.config.ignore) {
+                    return false;
+                }
+
                 if (self.passedAttrs) {
                     attrs['directive'] = extend(
                         {}, 
@@ -417,17 +421,17 @@ module.exports = function(){
                     }
                 }
 
-                if (defers.length) {
+                if (!someHandler && attrs.reference) {
+                    scope[attrs.reference] = node;
+                }
+
+                if (defers.length && !attrs.config.ignoreInside) {
                     var deferred = new Promise;
                     Promise.all(defers).done(function(values){
                         collectNodes(nodes, values);
                         deferred.resolve(nodes);
                     });
                     return deferred;
-                }
-
-                if (!someHandler && attrs.reference) {
-                    scope[attrs.reference] = node;
                 }
 
                 // this is a plain attribute
@@ -447,6 +451,19 @@ module.exports = function(){
                         tr: textRenderer
                     });
                     self.renderText(texts.length - 1);
+                }
+
+                if (attrs.config.ignoreInside) {
+                    if (defers.length) {
+                        var deferred = new Promise;
+                        return Promise.all(defers).done(function(){
+                            return deferred.resolve(false);
+                        });
+                        return deferred;
+                    }
+                    else {
+                        return false;
+                    }
                 }
 
                 return nodes.length ? nodes : true;
@@ -521,6 +538,11 @@ module.exports = function(){
             observer.trigger("destroy-" + self.id);
         }
 
+    }, {
+
+        setSkip: function(tag, value) {
+            skipMap[tag] = value;
+        }
     });
 
 }();
