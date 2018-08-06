@@ -57,13 +57,25 @@ module.exports = function(){
         getTemplate     = function(tplId) {
 
             var tpl = cache.get(tplId),
-                opt = options[tplId];
+                opt = options[tplId] || {};
 
             if (typeof tpl === "function") {
                 tpl = tpl(tplId);
             }
-            if (typeof tpl === "string" && (!opt || !opt.text)) {
+            if (typeof tpl === "string" && !opt.text) {
+                if (!opt.processed) {
+                    tpl = processTextTemplate(tplId, tpl);
+                }
                 tpl = toFragment(tpl);
+                cache.add(tplId, tpl);
+            }
+            else if (tpl && tpl.nodeType) {
+                if ("content" in tpl) {
+                    tpl = tpl.content;
+                }
+                else {
+                    tpl = toFragment(tpl.childNodes);
+                }
                 cache.add(tplId, tpl);
             }
 
@@ -71,13 +83,12 @@ module.exports = function(){
         },
 
         processTextTemplate = function(tplId, tpl) {
-
             if (tpl.substr(0,5) === "<!--{") {
-
                 var inx = tpl.indexOf("-->"),
                     opt = createGetter(tpl.substr(4, inx-4))({});
 
                 options[tplId] = opt;
+                options[tplId].processed = true;
 
                 tpl = tpl.substr(inx + 3);
 
@@ -89,11 +100,44 @@ module.exports = function(){
                     return tpl;
                 }
             }
+            
+            if (!options[tplId]) {
+                options[tplId] = {};
+            }
+
+            options[tplId].processed = true;
 
             return toFragment(tpl);
         },
 
-        findTemplate = function(tplId) {
+        findInPrebuilt = function(tplId) {
+            if (__MetaphorJsPrebuilt['__tpls'][tplId]) {
+                tpl = __MetaphorJsPrebuilt['__tpls'][tplId];
+                delete __MetaphorJsPrebuilt['__tpls'][tplId];
+                return tpl;
+                //return processTextTemplate(tplId, tpl);
+            }
+        },
+
+        findInScripts = function(tplId) {
+            var tplNode = window.document.getElementById(tplId),
+                tpl,
+                tag;
+
+            if (tplNode) {
+                tag = tplNode.tagName.toLowerCase();
+                if (tag === "script") {
+                    tpl = tplNode.innerHTML;
+                    tplNode.parentNode.removeChild(tplNode);
+                    return tpl;
+                }
+                else {
+                    return tplNode;
+                }
+            }
+        },
+
+        /*findTemplate = function(tplId) {
 
             var tpl;
 
@@ -126,7 +170,7 @@ module.exports = function(){
                     }
                 }
             }
-        },
+        },*/
 
         loadTemplate = function(tplUrl) {
             if (!cache.exists(tplUrl)) {
@@ -148,7 +192,14 @@ module.exports = function(){
             return str.substr(0,1) === '{' || str.substr(0,5) === 'this.';
         };
 
-    cache.addFinder(findTemplate);
+    //cache.addFinder(findTemplate);
+
+    if (typeof __MetaphorJsPrebuilt !== "undefined" &&
+                __MetaphorJsPrebuilt['__tpls']) {
+        cache.addFinder(findInPrebuilt);
+    }
+
+    cache.addFinder(findInScripts);
 
     return defineClass({
 
