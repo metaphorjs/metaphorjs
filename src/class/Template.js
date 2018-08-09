@@ -137,41 +137,6 @@ module.exports = function(){
             }
         },
 
-        /*findTemplate = function(tplId) {
-
-            var tpl;
-
-            if (typeof __MetaphorJsPrebuilt !== "undefined" &&
-                __MetaphorJsPrebuilt['__tpls'] &&
-                __MetaphorJsPrebuilt['__tpls'][tplId]) {
-                tpl = __MetaphorJsPrebuilt['__tpls'][tplId];
-                delete __MetaphorJsPrebuilt['__tpls'][tplId];
-                return processTextTemplate(tplId, tpl);
-            }
-
-            var tplNode = window.document.getElementById(tplId),
-                tag;
-
-            if (tplNode) {
-
-                tag = tplNode.tagName.toLowerCase();
-
-                if (tag === "script") {
-                    tpl = tplNode.innerHTML;
-                    tplNode.parentNode.removeChild(tplNode);
-                    return processTextTemplate(tplId, tpl);
-                }
-                else {
-                    if ("content" in tplNode) {
-                        return tplNode.content;
-                    }
-                    else {
-                        return toFragment(tplNode.childNodes);
-                    }
-                }
-            }
-        },*/
-
         loadTemplate = function(tplUrl) {
             if (!cache.exists(tplUrl)) {
                 return cache.add(tplUrl,
@@ -191,8 +156,6 @@ module.exports = function(){
             }
             return str.substr(0,1) === '{' || str.substr(0,5) === 'this.';
         };
-
-    //cache.addFinder(findTemplate);
 
     if (typeof __MetaphorJsPrebuilt !== "undefined" &&
                 __MetaphorJsPrebuilt['__tpls']) {
@@ -220,6 +183,7 @@ module.exports = function(){
         node:               null,
         tpl:                null,
         url:                null,
+        html:               null,
         ownRenderer:        true,
         initPromise:        null,
         tplPromise:         null,
@@ -299,39 +263,34 @@ module.exports = function(){
                     }
                 }
 
-                /*if (self.ownRenderer === null) {
-                    if (self._watcher && !self.replace) {
-                        self.ownRenderer = true;
-                    }
-                    else if (self.shadow) {
-                        self.ownRenderer = true;
-                    }
-                    //else if (self.replace) {
-                        //self.ownRenderer = false;
-                    //}
-                }*/
-
-                 self.resolveTemplate();
-
-                //if (self._watcher && self.replace) {
-                //    self._watcher.unsubscribeAndDestroy(self.onChange, self);
-                //    self._watcher = null;
-                //}
+                self.resolveTemplate();
 
                 if (!self.deferRendering || !self.ownRenderer) {
                     self.tplPromise.done(self.applyTemplate, self);
                 }
+            }
+            else if (self.html) {
+                self._watcher = createWatchable(
+                    self.scope,
+                    self.html,
+                    self.onHtmlChange,
+                    self,
+                    {filterLookup: filterLookup});
 
-                if (self.ownRenderer && self.parentRenderer) {
-                    self.parentRenderer.on("destroy",
-                        self.onParentRendererDestroy,
-                        self);
-                }
+                self.initPromise    = new Promise;
+                self.onHtmlChange();
             }
             else {
                 if (!self.deferRendering && self.ownRenderer) {
                     self.doRender();
                 }
+            }
+
+            // moved from if (tpl)
+            if (self.ownRenderer && self.parentRenderer) {
+                self.parentRenderer.on("destroy",
+                    self.onParentRendererDestroy,
+                    self);
             }
 
             self.scope.$on("destroy", self.onScopeDestroy, self);
@@ -434,6 +393,28 @@ module.exports = function(){
                 })
                 .fail(self.initPromise.reject, self.initPromise)
                 .fail(self.tplPromise.reject, self.tplPromise);
+        },
+
+        onHtmlChange: function() {
+            var self    = this,
+                el      = self.node;
+
+            if (self._renderer) {
+                self._renderer.$destroy();
+                self._renderer = null;
+            }
+
+            var htmlVal = self._watcher.getLastResult();
+
+            if (htmlVal) {
+                self._fragment = toFragment(htmlVal);
+                self.applyTemplate();
+            }
+            else if (el) {
+                while (el.firstChild) {
+                    el.removeChild(el.firstChild);
+                }
+            }
         },
 
         onChange: function() {
@@ -600,7 +581,12 @@ module.exports = function(){
             }
 
             if (self._watcher) {
-                self._watcher.unsubscribeAndDestroy(self.onChange, self);
+                if (self.html) {
+                    self._watcher.unsubscribeAndDestroy(self.onHtmlChange, self);
+                }
+                else {
+                    self._watcher.unsubscribeAndDestroy(self.onChange, self);
+                }
             }
         }
 
