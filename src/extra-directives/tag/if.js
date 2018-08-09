@@ -35,12 +35,7 @@ Directive.registerTag("if", defineClass({
     onChange: function() {
         var self    = this,
             val     = self.watcher.getLastResult(),
-            parent  = self.prevEl.parentNode,
-            node    = self.node;
-
-        //if (self.initial) {
-            //parent.removeChild(node);
-        //}
+            parent  = self.prevEl.parentNode;
 
         if (val) {
             parent.insertBefore(toFragment(self.children), self.nextEl);
@@ -48,11 +43,11 @@ Directive.registerTag("if", defineClass({
         else if (!self.initial) {
             var i, l;
             for (i = 0, l = self.children.length; i < l; i++) {
-                parent.removeChild(self.children[i]);
+                if (parent.contains(self.children[i])) {
+                    parent.removeChild(self.children[i]);
+                }
             }
         }
-
-        //self.$super(val);
 
         if (self.initial) {
             self.initial = false;
