@@ -1,6 +1,8 @@
 
 var Directive = require("../../class/Directive.js"),
-    createGetter = require("metaphorjs-watchable/src/func/createGetter.js");
+    toArray = require("metaphorjs/src/func/array/toArray.js"),
+    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
+    createFunc = require("metaphorjs-watchable/src/func/createFunc.js");
 
     /*
         Update scope on given event.
@@ -10,7 +12,9 @@ Directive.registerAttribute("update-on", 1000,
     function(scope, node, expr, renderer, attr){
 
     var values = attr ? attr.values : null,
-        parts, k, part;
+        cfg = attr ? attr.config : {},
+        parts, k, part,
+        execFn;
 
     if (values) {
 
@@ -24,6 +28,19 @@ Directive.registerAttribute("update-on", 1000,
     }
 
     var cfgs = createGetter(expr)(scope);
+
+    if (cfg.code) {
+        var code = createFunc(cfg.code);
+        execFn = function() {
+            scope.$event = toArray(arguments);
+            code(scope);
+            scope.$event = null;
+            scope.$check();
+        };
+    }
+    else {
+        execFn = scope.$check;
+    }
 
     var toggle = function(mode) {
 
@@ -39,7 +56,7 @@ Directive.registerAttribute("update-on", 1000,
             }
 
             if (obj && event && (fn = (obj[mode] || obj['$' + mode]))) {
-                fn.call(obj, event, scope.$check, scope);
+                fn.call(obj, event, execFn, scope);
             }
         }
     };
