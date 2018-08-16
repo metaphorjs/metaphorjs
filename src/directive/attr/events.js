@@ -2,6 +2,7 @@
 var Directive = require("../../class/Directive.js"),
     EventHandler = require("../../lib/EventHandler.js"),
     createFunc = require("metaphorjs-watchable/src/func/createFunc.js"),
+    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     extend = require("../../func/extend.js"),
     Input = require("metaphorjs-input/src/lib/Input.js");
 
@@ -31,6 +32,12 @@ var Directive = require("../../class/Directive.js"),
                             keep = true;
                             break;
                         }
+                    }
+                    if (cfg.preventDefault) {
+                        cfg.preventDefault = createGetter(cfg.preventDefault)(scope);
+                    }
+                    if (cfg.stopPropagation) {
+                        cfg.stopPropagation = createGetter(cfg.stopPropagation)(scope);
                     }
                 }
 
