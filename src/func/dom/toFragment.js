@@ -1,9 +1,9 @@
 
 var isString = require("../isString.js");
 
-module.exports = function toFragment(nodes) {
+module.exports = function toFragment(nodes, doc) {
 
-    var fragment = window.document.createDocumentFragment(),
+    var fragment = (doc || window.document).createDocumentFragment(),
         i, l;
 
     if (isString(nodes)) {
