@@ -174,7 +174,8 @@ module.exports = defineClass({
 
         if (cfg.async) {
             return function(e) {
-                async(handler, null, [e], null);
+                async(handler, null, [e], 
+                        typeof cfg.async == "number" ? cfg.async : null);
             };
         }
         else {

@@ -39,6 +39,9 @@ var Directive = require("../../class/Directive.js"),
                     if (cfg.stopPropagation) {
                         cfg.stopPropagation = createGetter(cfg.stopPropagation)(scope);
                     }
+                    if (cfg.async) {
+                        cfg.async = createGetter(cfg.async)(scope);
+                    }
                 }
 
                 if (!keep) {
