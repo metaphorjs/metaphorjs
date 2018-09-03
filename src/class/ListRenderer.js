@@ -381,12 +381,14 @@ module.exports = defineClass({
             r = rs[i];
             if (r && r.attached) {
                 r.attached = false;
-                if (!self.tagMode) {
-                    parent.removeChild(r.el);
+                if (!self.tagMode && r.el.parentNode) {
+                    r.el.parentNode.removeChild(r.el);
                 }
                 else {
                     for (j = 0, jl = r.el.length; j < jl; j++) {
-                        parent.removeChild(r.el[j]);
+                        if (r.el[j].parentNode) {
+                            r.el[j].parentNode.removeChild(r.el[j]);
+                        }
                     }
                 }
             }

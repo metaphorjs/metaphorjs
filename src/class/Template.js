@@ -191,7 +191,7 @@ module.exports = function(){
         deferRendering:     false,
         replace:            false,
         shadow:             false,
-        animate:            true,
+        animate:            false,
 
         passAttrs:          null,
 
@@ -223,7 +223,7 @@ module.exports = function(){
             var node    = self.node,
                 tpl     = self.tpl || self.url;
 
-            node && removeAttr(node, "include");
+            //node && removeAttr(node, "include");
 
             if (self.replace && node) {
                 self._prevEl = window.document.createComment(self.id + " - start");
@@ -449,10 +449,17 @@ module.exports = function(){
                 i, l;
 
             if (el) {
-                if (isArray(el)) {
-                    for (i = 0, l = el.length; i < l; i++) {
-                        el[i].parentNode.removeChild[el[i]];
+                if (self.replace) {
+                    var next = self._nextEl, prev = self._prevEl;
+                    while (prev.parentNode && prev.nextSibling && 
+                            prev.nextSibling !== next) {
+                        prev.parentNode.removeChild(prev.nextSibling);
                     }
+                    /*for (i = 0, l = el.length; i < l; i++) {
+                        if (el[i].parentNode) {
+                            el[i].parentNode.removeChild(el[i]);
+                        }
+                    }*/
                 }
                 else if (el.firstChild) {
                     while (el.firstChild) {
@@ -480,7 +487,7 @@ module.exports = function(){
                         }
                     }
 
-                    el.parentNode.removeChild(el);
+                    el.parentNode && el.parentNode.removeChild(el);
                 }
 
                 self._nextEl.parentNode.insertBefore(frg, self._nextEl);

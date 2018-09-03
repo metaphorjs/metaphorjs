@@ -10,20 +10,23 @@ Directive.registerTag("if", defineClass({
     $class: "Directive.tag.If",
     $extends: "Directive.attr.If",
     autoOnChange: false,
+    children: null,
+    childrenFrag: null,
 
     $init: function(scope, node, expr, renderer, attr) {
 
         var self    = this;
         
         self.children = toArray(node.childNodes);
+        self.childrenFrag = toFragment(self.children);
         expr = getAttr(node, "value");
 
         self.$super(scope, node, expr, renderer, attr);   
         
         if (node.parentNode) {
-            node.parentNode.removeChild(node);
+            node.parentNode.removeChild(node); 
         }
-        
+
         var val = self.watcher.getLastResult();
         self.onChange(val || false, undf);
     },
@@ -38,15 +41,23 @@ Directive.registerTag("if", defineClass({
             parent  = self.prevEl.parentNode;
 
         if (val) {
-            parent.insertBefore(toFragment(self.children), self.nextEl);
+            parent.insertBefore(self.childrenFrag, self.nextEl);
         }
         else if (!self.initial) {
-            var i, l;
-            for (i = 0, l = self.children.length; i < l; i++) {
-                if (parent.contains(self.children[i])) {
-                    parent.removeChild(self.children[i]);
-                }
+            var prev = self.prevEl, 
+                next = self.nextEl, 
+                children = [],
+                sib;
+
+            self.childrenFrag = window.document.createDocumentFragment();
+            while (prev.parentNode && prev.nextSibling && 
+                    prev.nextSibling !== next) {
+                sib = prev.nextSibling;
+                prev.parentNode.removeChild(sib);
+                children.push(sib);
+                self.childrenFrag.appendChild(sib);
             }
+            self.children = children;
         }
 
         if (self.initial) {

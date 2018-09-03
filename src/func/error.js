@@ -19,14 +19,14 @@ module.exports = (function(){
         var stack = (e ? e.stack : null) || (new Error).stack;
 
         if (typeof console != strUndef && console.error) {
-            async(function(){
+            //async(function(){
                 if (e) {
                     console.error(e);
                 }
                 if (stack) {
                     console.error(stack);
                 }
-            });
+            //});
         }
         else {
             throw e;
