@@ -1,8 +1,7 @@
 
 
 
-var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
-    cs = require("metaphorjs-class/src/var/cs.js"),
+var cls = require("metaphorjs-class/src/cls.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     toArray = require("../../func/array/toArray.js"),
     getValue = require("metaphorjs-input/src/func/getValue.js"),
@@ -17,10 +16,9 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     Directive = require("../../class/Directive.js");
 
 
-Directive.registerAttribute("options", 100, defineClass({
+Directive.registerAttribute("options", 100, Directive.$extend({
 
-    $class: "Directive.attr.Options",
-    $extends: Directive,
+    $class: "MetaphorJs.Directive.attr.Options",
 
     model: null,
     store: null,
@@ -48,7 +46,7 @@ Directive.registerAttribute("options", 100, defineClass({
 
         try {
             var value = createGetter(self.model)(scope);
-            if (cs.isInstanceOf(value, "Store")) {
+            if (cls.isInstanceOf(value, "Store")) {
                 self.bindStore(value, "on");
             }
             else {
@@ -208,7 +206,7 @@ Directive.registerAttribute("options", 100, defineClass({
         this.getterFn = createGetter(item);
     },
 
-    destroy: function() {
+    onDestroy: function() {
 
         var self = this;
 

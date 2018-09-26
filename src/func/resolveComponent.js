@@ -6,7 +6,7 @@ var toFragment = require("./dom/toFragment.js"),
     error = require("./error.js"),
     addClass = require("./dom/addClass.js"),
     removeClass = require("./dom/removeClass.js"),
-    nsGet = require("metaphorjs-namespace/src/func/nsGet.js"),
+    ns = require("metaphorjs-namespace/src/var/ns.js"),
     Template = require("../class/Template.js"),
     Promise = require("metaphorjs-promise/src/lib/Promise.js"),
     Provider = require("../lib/Provider.js"),
@@ -24,7 +24,7 @@ module.exports = function resolveComponent(cmp, cfg, scope, node, args) {
     cfg.scope   = cfg.scope || scope;
     cfg.node    = cfg.node || node;
 
-    var constr      = isString(cmp) ? nsGet(cmp) : cmp;
+    var constr      = isString(cmp) ? ns.get(cmp) : cmp;
 
     if (!constr) {
         throw "Component " + cmp + " not found";

@@ -1,5 +1,5 @@
 
-var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
+var cls = require("metaphorjs-class/src/cls.js"),
     getScrollParent = require("../func/dom/getScrollParent.js"),
     getPosition = require("../func/dom/getPosition.js"),
     getScrollTop = require("../func/dom/getScrollTop.js"),
@@ -11,9 +11,9 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     Queue = require("../lib/Queue.js"),
     bind = require("../func/bind.js");
 
-module.exports = defineClass({
+module.exports = cls({
 
-    $class: "plugin.SrcDeferred",
+    $class: "MetaphorJs.plugin.SrcDeferred",
 
     directive: null,
 
@@ -115,7 +115,7 @@ module.exports = defineClass({
 
     $beforeHostDestroy: function(){
         this.stopWatching();
-        this.queue.destroy();
+        this.queue.$destroy();
     }
 
 });

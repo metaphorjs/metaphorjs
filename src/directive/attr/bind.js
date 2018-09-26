@@ -6,10 +6,9 @@ var Directive = require("../../class/Directive.js"),
     Scope = require("../../lib/Scope.js"),
     Input = require("metaphorjs-input/src/lib/Input.js");
 
-
 Directive.registerAttribute("bind", 1000, Directive.$extend({
 
-    $class: "Directive.attr.Bind",
+    $class: "MetaphorJs.Directive.attr.Bind",
     isInput: false,
     input: null,
     lockInput: null,
@@ -79,7 +78,7 @@ Directive.registerAttribute("bind", 1000, Directive.$extend({
         }
     },
 
-    destroy: function() {
+    onDestroy: function() {
 
         var self    = this;
 
@@ -89,7 +88,7 @@ Directive.registerAttribute("bind", 1000, Directive.$extend({
         }
 
         if (self.input) {
-            self.input.destroy();
+            self.input.$destroy();
             self.input = null;
         }
 

@@ -1,6 +1,6 @@
 
 var MetaphorJs = require("../MetaphorJs.js"),
-    cs = require("metaphorjs-class/src/var/cs.js"),
+    cls = require("metaphorjs-class/src/cls.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js");
 
 module.exports = function() {
@@ -25,13 +25,13 @@ module.exports = function() {
 
         items = null;
 
-        if (cs && cs.destroy) {
-            cs.destroy();
-            cs = null;
+        if (cls && cls.$destroy) {
+            cls.$destroy();
+            cls = null;
         }
 
-        if (ns && ns.destroy) {
-            ns.destroy();
+        if (ns && ns.$destroy) {
+            ns.$destroy();
             ns = null;
         }
 

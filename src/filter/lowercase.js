@@ -1,7 +1,9 @@
 
 
-var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js");
+require("./__init.js");
 
-nsAdd("filter.lowercase", function(val){
+var MetaphorJs = require("../MetaphorJs.js");
+
+MetaphorJs.filter.lowercase = function(val){
     return (""+val).toLowerCase();
-});
+};

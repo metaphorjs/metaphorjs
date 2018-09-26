@@ -1,6 +1,8 @@
 
-var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js");
+require("./__init.js");
 
-nsAdd("filter.ucfirst", function(val){
+var MetaphorJs = require("../MetaphorJs.js");
+
+MetaphorJs.filter.ucfirst = function(val){
     return val.substr(0, 1).toUpperCase() + val.substr(1);
-});
+};

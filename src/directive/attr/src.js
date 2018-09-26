@@ -1,17 +1,15 @@
 
 
-var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
-    raf = require("metaphorjs-animate/src/func/raf.js"),
+var raf = require("metaphorjs-animate/src/func/raf.js"),
     preloadImage = require("../../func/preloadImage.js"),
     setAttr = require("../../func/dom/setAttr.js"),
     Directive = require("../../class/Directive.js"),
     Queue = require("../../lib/Queue.js"),
     trim = require("../../func/trim.js");
 
-Directive.registerAttribute("src", 1000, defineClass({
+Directive.registerAttribute("src", 1000, Directive.$extend({
 
-    $class: "Directive.attr.Src",
-    $extends: Directive,
+    $class: "MetaphorJs.Directive.attr.Src",
 
     queue: null,
     usePreload: true,
@@ -29,10 +27,10 @@ Directive.registerAttribute("src", 1000, defineClass({
         self.attr = attr;
 
         if (cfg.deferred) {
-            self.$plugins.push("plugin.SrcDeferred");
+            self.$plugins.push("MetaphorJs.plugin.SrcDeferred");
         }
         if (cfg.preloadSize) {
-            self.$plugins.push("plugin.SrcSize");
+            self.$plugins.push("MetaphorJs.plugin.SrcSize");
         }
         if (cfg.plugin) {
             var tmp = cfg.plugin.split(","),
@@ -148,13 +146,13 @@ Directive.registerAttribute("src", 1000, defineClass({
         this.$super();
     },
 
-    destroy: function() {
+    onDestroy: function() {
 
         var self = this;
 
         if (!self.$destroyed) {
             self.cancelPrevious();
-            self.queue.destroy();
+            self.queue.$destroy();
             self.$super();
         }
     }

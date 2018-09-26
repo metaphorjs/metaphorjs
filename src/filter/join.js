@@ -1,10 +1,12 @@
 
 
-var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
+require("./__init.js");
+
+var MetaphorJs = require("../MetaphorJs.js"),
     toArray = require("../func/array/toArray.js"),
     isArray = require("../func/isArray.js");
 
-nsAdd("filter.join", function(input, scope, separator) {
+MetaphorJs.filter.join = function(input, scope, separator) {
 
     separator = separator || ", ";
 
@@ -16,4 +18,4 @@ nsAdd("filter.join", function(input, scope, separator) {
     }
 
     return "";
-});
+};

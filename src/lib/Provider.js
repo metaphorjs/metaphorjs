@@ -205,7 +205,7 @@ module.exports = function(){
             }
         },
 
-        destroy: function() {
+        $destroy: function() {
 
             var self = this;
 

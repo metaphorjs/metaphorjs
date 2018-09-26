@@ -1,9 +1,11 @@
 
-var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
+require("./__init.js");
+
+var MetaphorJs = require("../MetaphorJs.js"),
     isArray = require("../func/isArray.js"),
     isString = require("../func/isString.js");
 
-nsAdd("filter.limitTo", function(input, scope, limit){
+MetaphorJs.filter.limitTo = function(input, scope, limit){
 
     var isS = isString(input);
 
@@ -48,4 +50,4 @@ nsAdd("filter.limitTo", function(input, scope, limit){
     }
 
     return out;
-});
+};

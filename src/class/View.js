@@ -1,6 +1,6 @@
 
 
-var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
+var cls = require("metaphorjs-class/src/cls.js"),
     animate = require("metaphorjs-animate/src/func/animate.js"),
     stopAnimation = require("metaphorjs-animate/src/func/stopAnimation.js"),
     mhistory = require("metaphorjs-history/src/lib/History.js"),
@@ -26,9 +26,9 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     removeClass = require("../func/dom/removeClass.js");
 
 
-module.exports = defineClass({
+module.exports = cls({
 
-    $class: "View",
+    $class: "MetaphorJs.View",
 
     /**
      * [
@@ -513,7 +513,7 @@ module.exports = defineClass({
 
 
 
-    destroy: function() {
+    onDestroy: function() {
 
         var self    = this;
 

@@ -1,12 +1,12 @@
 
-var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
+var cls = require("metaphorjs-class/src/cls.js"),
     createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     getAttr = require("../func/dom/getAttr.js"),
     removeStyle = require("../func/dom/removeStyle.js");
 
-module.exports = defineClass({
+module.exports = cls({
 
-    $class: "plugin.SrcSize",
+    $class: "MetaphorJs.plugin.SrcSize",
     directive: null,
 
     width: null,

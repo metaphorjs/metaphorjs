@@ -1,15 +1,13 @@
 
 
-var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
-    setAttr = require("../../func/dom/setAttr.js"),
+var setAttr = require("../../func/dom/setAttr.js"),
     Directive = require("../../class/Directive.js"),
     select = require("metaphorjs-select/src/func/select.js"),
     trim = require("../../func/trim.js");
 
-Directive.registerAttribute("source-src", 1000, defineClass({
+Directive.registerAttribute("source-src", 1000, Directive.$extend({
 
-    $class: "Directive.attr.SourceSrc",
-    $extends: Directive,
+    $class: "MetaphorJs.Directive.attr.SourceSrc",
 
     usePreload: true,
     noCache: false,

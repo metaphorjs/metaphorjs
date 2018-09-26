@@ -7,7 +7,7 @@ var animate = require("metaphorjs-animate/src/func/animate.js"),
 
 Directive.registerAttribute("if", 500, Directive.$extend({
 
-    $class: "Directive.attr.If",
+    $class: "MetaphorJs.Directive.attr.If",
     parentEl: null,
     prevEl: null,
     nextEl: null,

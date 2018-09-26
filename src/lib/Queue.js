@@ -204,7 +204,7 @@ extend(Queue.prototype, {
         }
     },
 
-    destroy: function() {
+    $destroy: function() {
 
         var self = this;
 

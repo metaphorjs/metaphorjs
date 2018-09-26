@@ -12,7 +12,7 @@ DO NOT MIX style="{}" with style.prop="expression".
 
 Directive.registerAttribute("style", 1000, Directive.$extend({
 
-    $class: "Directive.attr.Style",
+    $class: "MetaphorJs.Directive.attr.Style",
     $init: function(scope, node, expr, renderer, attr) {
 
         var values = attr ? attr.values : null,

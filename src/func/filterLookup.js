@@ -1,6 +1,7 @@
 
-var nsGet = require("metaphorjs-namespace/src/func/nsGet.js");
+MetaphorJs = require("../MetaphorJs.js");
 
 module.exports = function(name) {
-    return nsGet("filter." + name, true);
+    return MetaphorJs.filter[name];
 };
+

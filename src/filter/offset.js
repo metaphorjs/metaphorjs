@@ -1,9 +1,11 @@
 
-var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
+require("./__init.js");
+
+var MetaphorJs = require("../MetaphorJs.js"),
     isArray = require("../func/isArray.js"),
     isString = require("../func/isString.js");
 
-nsAdd("filter.offset", function(input, scope, offset){
+MetaphorJs.filter.offset = function(input, scope, offset){
 
     var isS = isString(input);
 
@@ -23,4 +25,4 @@ nsAdd("filter.offset", function(input, scope, offset){
     else {
         return input.slice(offset);
     }
-});
+};

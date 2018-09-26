@@ -1,9 +1,8 @@
 
 var Provider = require("../lib/Provider.js"),
-    ns = require("metaphorjs-namespace/src/var/ns.js");
+    MetaphorJs = require("../MetaphorJs.js");
 
-
-module.exports = ns.register("mixin.Provider", {
+module.exports = MetaphorJs.mixin.Provider = {
 
     /**
      * @type {Provider}
@@ -11,9 +10,7 @@ module.exports = ns.register("mixin.Provider", {
     $$provider: null,
 
     $beforeInit: function() {
-
         this.$$provider = new Provider;
-
     },
 
     value: function() {
@@ -53,9 +50,8 @@ module.exports = ns.register("mixin.Provider", {
 
     $afterDestroy: function() {
 
-        this.$$provider.destroy();
+        this.$$provider.$destroy();
         this.$$provider = null;
 
     }
-
-});
+};

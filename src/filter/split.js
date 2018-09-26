@@ -1,11 +1,13 @@
 
 
-var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
+require("./__init.js");
+
+var MetaphorJs = require("../MetaphorJs.js")
     undf = require("metaphorjs/src/var/undf.js"),
     trim = require("../func/trim.js"),
     getRegExp = require("../func/getRegExp.js");
 
-nsAdd("filter.split", function(input, scope, sep, limit) {
+MetaphorJs.filter.split = function(input, scope, sep, limit) {
 
     limit       = limit || undf;
     sep         = sep || "/\\n|,/";
@@ -26,4 +28,4 @@ nsAdd("filter.split", function(input, scope, sep, limit) {
     for (i = -1, l = list.length; ++i < l; list[i] = trim(list[i])){}
 
     return list;
-});
+};

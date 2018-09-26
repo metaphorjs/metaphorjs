@@ -1,8 +1,10 @@
 
-var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
+require("./__init.js");
+
+var MetaphorJs = require("../MetaphorJs.js"),
     dateFormats = require("../var/dateFormats.js");
 
-nsAdd("filter.moment",  function(val, scope, format) {
+MetaphorJs.filter.moment = function(val, scope, format) {
     format  = dateFormats[format] || format;
     return val ? moment(val).format(format) : "";
-});
+};

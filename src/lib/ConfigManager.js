@@ -163,7 +163,7 @@ module.exports = (function(){
             $$observable.on(this.id +'-'+ name, fn, context);
         },
 
-        destroy: function() {
+        onDestroy: function() {
             var self = this,
                 id = self.id,
                 k, prop;

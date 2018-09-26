@@ -1,4 +1,5 @@
 (function(){
+/* BUNDLE START 003 */
 "use strict";
 
 
@@ -7,10 +8,6 @@ var MetaphorJs = {
 
 };
 
-
-function isFunction(value) {
-    return typeof value == 'function';
-};
 
 var toString = Object.prototype.toString;
 
@@ -69,7 +66,7 @@ var varType = function(){
             return -1;
         }
 
-        if (num == 1 && isNaN(val)) {
+        if (num === 1 && isNaN(val)) {
             return 8;
         }
 
@@ -88,14 +85,2626 @@ function isString(value) {
 
 
 /**
+ * @function trim
+ * @param {String} value
+ * @returns {string}
+ */
+var trim = function() {
+    // native trim is way faster: http://jsperf.com/angular-trim-test
+    // but IE doesn't have it... :-(
+    if (!String.prototype.trim) {
+        return function(value) {
+            return isString(value) ? value.replace(/^\s\s*/, '').replace(/\s\s*$/, '') : value;
+        };
+    }
+    return function(value) {
+        return isString(value) ? value.trim() : value;
+    };
+}();
+
+
+var nextUid = function(){
+    var uid = ['0', '0', '0'];
+
+    // from AngularJs
+    /**
+     * @returns {String}
+     */
+    return function nextUid() {
+        var index = uid.length;
+        var digit;
+
+        while(index) {
+            index--;
+            digit = uid[index].charCodeAt(0);
+            if (digit == 57 /*'9'*/) {
+                uid[index] = 'A';
+                return uid.join('');
+            }
+            if (digit == 90  /*'Z'*/) {
+                uid[index] = '0';
+            } else {
+                uid[index] = String.fromCharCode(digit + 1);
+                return uid.join('');
+            }
+        }
+        uid.unshift('0');
+        return uid.join('');
+    };
+}();
+
+
+
+
+/**
  * @param {*} value
  * @returns {boolean}
  */
 function isArray(value) {
-    return typeof value == "object" && varType(value) === 5;
+    return typeof value === "object" && varType(value) === 5;
+};
+
+
+
+/**
+ * @param {*} list
+ * @returns {[]}
+ */
+function toArray(list) {
+    if (list && !list.length != undf && list !== ""+list) {
+        for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]){}
+        return a;
+    }
+    else if (list) {
+        return [list];
+    }
+    else {
+        return [];
+    }
+};
+
+function isFunction(value) {
+    return typeof value == 'function';
+};
+
+/**
+ * @param {string} str
+ * @param {string} separator
+ * @param {bool} allowEmpty
+ * @returns {[]}
+ */
+var split = function(str, separator, allowEmpty) {
+
+    var l       = str.length,
+        sl      = separator.length,
+        i       = 0,
+        prev    = 0,
+        prevChar= "",
+        inQDbl  = false,
+        inQSng  = false,
+        parts   = [],
+        esc     = "\\",
+        char;
+
+    if (!sl) {
+        return [str];
+    }
+
+    for (; i < l; i++) {
+
+        char = str.charAt(i);
+
+        if (char == esc) {
+            i++;
+            continue;
+        }
+
+        if (char == '"') {
+            inQDbl = !inQDbl;
+            continue;
+        }
+        if (char == "'") {
+            inQSng = !inQSng;
+            continue;
+        }
+
+        if (!inQDbl && !inQSng) {
+            if ((sl == 1 && char == separator) ||
+                (sl > 1 && str.substring(i, i + sl) == separator)) {
+
+                if (str.substr(i - 1, sl) == separator ||
+                    str.substr(i + 1, sl) == separator) {
+
+                    if (!allowEmpty) {
+                        i += (sl - 1);
+                        continue;
+                    }
+                }
+
+                parts.push(str.substring(prev, i).replace(esc + separator, separator));
+                prev = i + sl;
+                i += (sl - 1);
+            }
+        }
+
+        prevChar = char;
+    }
+
+    parts.push(str.substring(prev).replace(esc + separator, separator));
+
+    return parts;
+};
+
+
+
+function isDate(value) {
+    return varType(value) === 10;
+};
+
+
+
+function isRegExp(value) {
+    return varType(value) === 9;
+};
+
+function isWindow(obj) {
+    return obj === window ||
+           (obj && obj.document && obj.location && obj.alert && obj.setInterval);
+};
+
+
+
+// from Angular
+
+var equals = function(){
+
+    var equals = function equals(o1, o2) {
+        if (o1 === o2) return true;
+        if (o1 === null || o2 === null) return false;
+        if (o1 !== o1 && o2 !== o2) return true; // NaN === NaN
+        var t1 = typeof o1, t2 = typeof o2, length, key, keySet;
+        if (t1 == t2) {
+            if (t1 == 'object') {
+                if (isArray(o1)) {
+                    if (!isArray(o2)) return false;
+                    if ((length = o1.length) == o2.length) {
+                        for(key=0; key<length; key++) {
+                            if (!equals(o1[key], o2[key])) return false;
+                        }
+                        return true;
+                    }
+                } else if (isDate(o1)) {
+                    return isDate(o2) && o1.getTime() == o2.getTime();
+                } else if (isRegExp(o1) && isRegExp(o2)) {
+                    return o1.toString() == o2.toString();
+                } else {
+                    if (isWindow(o1) || isWindow(o2) || isArray(o2)) return false;
+                    keySet = {};
+                    for(key in o1) {
+                        if (key.charAt(0) == '$' || isFunction(o1[key])) {//&& typeof o1[key] == "object") {
+                            continue;
+                        }
+                        //if (isFunction(o1[key])) {
+                        //    continue;
+                        //}
+                        if (!equals(o1[key], o2[key])) {
+                            return false;
+                        }
+                        keySet[key] = true;
+                    }
+                    for(key in o2) {
+                        if (!keySet.hasOwnProperty(key) &&
+                            key.charAt(0) != '$' &&
+                            o2[key] !== undf &&
+                            !isFunction(o2[key])) return false;
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    return equals;
+}();
+
+
+
+function isPlainObject(value) {
+    // IE < 9 returns [object Object] from toString(htmlElement)
+    return typeof value == "object" &&
+           varType(value) === 3 &&
+            !value.nodeType &&
+            value.constructor === Object;
+
 };
 
 var strUndef = "undefined";
+
+
+
+var copy = function() {
+
+    var win = typeof window != strUndef ? window : null,
+        glob = typeof global != strUndef ? global : null;
+
+    var copy = function copy(source, dest){
+
+        if (win && source === win) {
+            throw new Error("Cannot copy window object");
+        }
+        if (glob && source === glob) {
+            throw new Error("Cannot copy global object");
+        }
+
+        if (!dest) {
+            dest = source;
+            if (source) {
+                if (isArray(source)) {
+                    dest = copy(source, []);
+                } else if (isDate(source)) {
+                    dest = new Date(source.getTime());
+                } else if (isRegExp(source)) {
+                    dest = new RegExp(source.source);
+                } else if (isPlainObject(source)) {
+                    dest = copy(source, {});
+                }
+            }
+        } else {
+            if (source === dest) {
+                throw new Error("Objects are identical");
+            }
+            if (isArray(source)) {
+                dest.length = 0;
+                for ( var i = 0, l = source.length; i < l; i++) {
+                    dest.push(copy(source[i]));
+                }
+            } else {
+                var key;
+                for (key in dest) {
+                    delete dest[key];
+                }
+                for (key in source) {
+                    if (source.hasOwnProperty(key)) {
+                        if (key.charAt(0) == '$' || isFunction(source[key])) {
+                            dest[key] = source[key];
+                        }
+                        else {
+                            dest[key] = copy(source[key]);
+                        }
+                    }
+                }
+            }
+        }
+        return dest;
+    };
+
+    return copy;
+}();
+
+
+var slice = Array.prototype.slice;
+
+function isBool(value) {
+    return value === true || value === false;
+};
+
+
+
+
+var extend = function(){
+
+    /**
+     * @param {Object} dst
+     * @param {Object} src
+     * @param {Object} src2 ... srcN
+     * @param {boolean} override = false
+     * @param {boolean} deep = false
+     * @returns {object}
+     */
+    var extend = function extend() {
+
+
+        var override    = false,
+            deep        = false,
+            args        = slice.call(arguments),
+            dst         = args.shift(),
+            src,
+            k,
+            value;
+
+        if (isBool(args[args.length - 1])) {
+            override    = args.pop();
+        }
+        if (isBool(args[args.length - 1])) {
+            deep        = override;
+            override    = args.pop();
+        }
+
+        while (args.length) {
+            // IE < 9 fix: check for hasOwnProperty presence
+            if ((src = args.shift()) && src.hasOwnProperty) {
+                for (k in src) {
+
+                    if (src.hasOwnProperty(k) && (value = src[k]) !== undf) {
+
+                        if (deep) {
+                            if (dst[k] && isPlainObject(dst[k]) && isPlainObject(value)) {
+                                extend(dst[k], value, override, deep);
+                            }
+                            else {
+                                if (override === true || dst[k] == undf) { // == checks for null and undefined
+                                    if (isPlainObject(value)) {
+                                        dst[k] = {};
+                                        extend(dst[k], value, override, true);
+                                    }
+                                    else {
+                                        dst[k] = value;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if (override === true || dst[k] == undf) {
+                                dst[k] = value;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return dst;
+    };
+
+    return extend;
+}();
+
+
+
+function isPrimitive(value) {
+    var vt = varType(value);
+    return vt < 3 && vt > -1;
+};
+
+function returnFalse() {
+    return false;
+};
+
+/**
+ * @param {Function} fn
+ * @param {*} context
+ */
+var bind = Function.prototype.bind ?
+              function(fn, context){
+                  return fn.bind(context);
+              } :
+              function(fn, context) {
+                  return function() {
+                      return fn.apply(context, arguments);
+                  };
+              };
+
+
+/**
+ * @param {Function} fn
+ * @param {Object} context
+ * @param {[]} args
+ * @param {number} timeout
+ */
+function async(fn, context, args, timeout) {
+    return setTimeout(function(){
+        fn.apply(context, args || []);
+    }, timeout || 0);
+};
+
+
+
+
+/**
+ * This class is private - you can't create an event other than via Observable.
+ * See {@link class:Observable} reference.
+ * @class ObservableEvent
+ * @private
+ */
+var ObservableEvent = function(name, options) {
+
+    var self    = this;
+
+    self.name           = name;
+    self.listeners      = [];
+    self.map            = {};
+    self.hash           = nextUid();
+    self.uni            = '$$' + name + '_' + self.hash;
+    self.suspended      = false;
+    self.lid            = 0;
+
+    if (typeof options === "object" && options !== null) {
+        extend(self, options, true, false);
+    }
+    else {
+        self.returnResult = options;
+    }
+};
+
+
+extend(ObservableEvent.prototype, {
+
+    name: null,
+    listeners: null,
+    map: null,
+    hash: null,
+    uni: null,
+    suspended: false,
+    lid: null,
+    returnResult: null,
+    autoTrigger: null,
+    lastTrigger: null,
+    triggerFilter: null,
+    filterContext: null,
+    expectPromises: false,
+    resolvePromises: false,
+
+    /**
+     * Get event name
+     * @method
+     * @returns {string}
+     */
+    getName: function() {
+        return this.name;
+    },
+
+    /**
+     * @method
+     */
+    destroy: function() {
+        var self        = this,
+            k;
+
+        for (k in self) {
+            self[k] = null;
+        }
+    },
+
+    /**
+     * @method
+     * @param {function} fn Callback function { @required }
+     * @param {object} context Function's "this" object
+     * @param {object} options See {@link class:Observable.on}
+     */
+    on: function(fn, context, options) {
+
+        if (!fn) {
+            return null;
+        }
+
+        context     = context || null;
+        options     = options || {};
+
+        var self        = this,
+            uni         = self.uni,
+            uniContext  = fn || context;
+
+        if (uniContext[uni] && !options.allowDupes) {
+            return null;
+        }
+
+        var id      = ++self.lid,
+            first   = options.first || false;
+
+        uniContext[uni]  = id;
+
+        var e = {
+            fn:         fn,
+            context:    context,
+            uniContext: uniContext,
+            id:         id,
+            async:      false,
+            called:     0, // how many times the function was triggered
+            limit:      0, // how many times the function is allowed to trigger
+            start:      1, // from which attempt it is allowed to trigger the function
+            count:      0, // how many attempts to trigger the function was made
+            append:     null, // append parameters
+            prepend:    null // prepend parameters
+        };
+
+        extend(e, options, true, false);
+
+        if (e.async === true) {
+            e.async = 1;
+        }
+
+        if (first) {
+            self.listeners.unshift(e);
+        }
+        else {
+            self.listeners.push(e);
+        }
+
+        self.map[id] = e;
+
+        if (self.autoTrigger && self.lastTrigger && !self.suspended) {
+            var prevFilter = self.triggerFilter;
+            self.triggerFilter = function(l){
+                if (l.id === id) {
+                    return prevFilter ? prevFilter(l) !== false : true;
+                }
+                return false;
+            };
+            self.trigger.apply(self, self.lastTrigger);
+            self.triggerFilter = prevFilter;
+        }
+
+        return id;
+    },
+
+    /**
+     * @method
+     * @param {function} fn Callback function { @required }
+     * @param {object} context Function's "this" object
+     * @param {object} options See {@link class:Observable.on}
+     */
+    once: function(fn, context, options) {
+
+        options = options || {};
+        options.limit = 1;
+
+        return this.on(fn, context, options);
+    },
+
+    /**
+     * @method
+     * @param {function} fn Callback function { @required }
+     * @param {object} context Callback context
+     */
+    un: function(fn, context) {
+
+        var self        = this,
+            inx         = -1,
+            uni         = self.uni,
+            listeners   = self.listeners,
+            id;
+
+        if (fn == parseInt(fn)) {
+            id      = parseInt(fn);
+        }
+        else {
+            context = context || fn;
+            id      = context[uni];
+        }
+
+        if (!id) {
+            return false;
+        }
+
+        for (var i = 0, len = listeners.length; i < len; i++) {
+            if (listeners[i].id === id) {
+                inx = i;
+                delete listeners[i].uniContext[uni];
+                break;
+            }
+        }
+
+        if (inx === -1) {
+            return false;
+        }
+
+        listeners.splice(inx, 1);
+        delete self.map[id];
+        return true;
+    },
+
+    /**
+     * @method hasListener
+     * @return bool
+     */
+
+    /**
+     * @method
+     * @param {function} fn Callback function { @required }
+     * @param {object} context Callback context
+     * @return boolean
+     */
+    hasListener: function(fn, context) {
+
+        var self    = this,
+            listeners   = self.listeners,
+            id;
+
+        if (fn) {
+
+            context = context || fn;
+
+            if (!isFunction(fn)) {
+                id  = parseInt(fn);
+            }
+            else {
+                id  = context[self.uni];
+            }
+
+            if (!id) {
+                return false;
+            }
+
+            for (var i = 0, len = listeners.length; i < len; i++) {
+                if (listeners[i].id === id) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        else {
+            return listeners.length > 0;
+        }
+    },
+
+
+    /**
+     * @method
+     */
+    removeAllListeners: function() {
+        var self    = this,
+            listeners = self.listeners,
+            uni     = self.uni,
+            i, len;
+
+        for (i = 0, len = listeners.length; i < len; i++) {
+            delete listeners[i].uniContext[uni];
+        }
+        self.listeners   = [];
+        self.map         = {};
+    },
+
+    /**
+     * @method
+     */
+    suspend: function() {
+        this.suspended = true;
+    },
+
+    /**
+     * @method
+     */
+    resume: function() {
+        this.suspended = false;
+    },
+
+
+    _prepareArgs: function(l, triggerArgs) {
+        var args;
+
+        if (l.append || l.prepend) {
+            args    = slice.call(triggerArgs);
+            if (l.prepend) {
+                args    = l.prepend.concat(args);
+            }
+            if (l.append) {
+                args    = args.concat(l.append);
+            }
+        }
+        else {
+            args = triggerArgs;
+        }
+
+        return args;
+    },
+
+    /**
+     * @method
+     * @return {*}
+     */
+    trigger: function() {
+
+        var self            = this,
+            listeners       = self.listeners,
+            rr              = self.returnResult,
+            filter          = self.triggerFilter,
+            filterContext   = self.filterContext,
+            expectPromises  = self.expectPromises,
+            results         = [],
+            prevPromise,
+            resPromise,
+            args, 
+            resolver;
+
+        if (self.suspended) {
+            return null;
+        }
+
+        if (self.autoTrigger) {
+            self.lastTrigger = slice.call(arguments);
+        }
+
+        if (listeners.length === 0) {
+            return null;
+        }
+
+        var ret     = rr === "all" || rr === "concat" ?
+                        [] : 
+                        (rr === "merge" ? {} : null),
+            q, l,
+            res;
+
+        if (rr === "first") {
+            q = [listeners[0]];
+        }
+        else {
+            // create a snapshot of listeners list
+            q = slice.call(listeners);
+        }
+
+        // now if during triggering someone unsubscribes
+        // we won't skip any listener due to shifted
+        // index
+        while (l = q.shift()) {
+
+            // listener may already have unsubscribed
+            if (!l || !self.map[l.id]) {
+                continue;
+            }
+
+            args = self._prepareArgs(l, arguments);
+
+            if (filter && filter.call(filterContext, l, args, self) === false) {
+                continue;
+            }
+
+            if (l.filter && l.filter.apply(l.filterContext || l.context, args) === false) {
+                continue;
+            }
+
+            l.count++;
+
+            if (l.count < l.start) {
+                continue;
+            }
+
+            if (l.async && !expectPromises) {
+                res = null;
+                async(l.fn, l.context, args, l.async);
+            }
+            else {
+                if (expectPromises) {
+                    resolver = function(l, rr, args){
+                        return function(value) {
+
+                            if (rr === "pipe") {
+                                args[0] = value;
+                                args = self._prepareArgs(l, args);
+                            }
+                            
+                            return l.fn.apply(l.context, args);
+                        }
+                    }(l, rr, slice.call(arguments));
+
+                    if (prevPromise) {
+                        res = prevPromise.then(resolver);
+                    }
+                    else {
+                        res = l.fn.apply(l.context, args);
+                    }
+
+                    res.catch(function(err){
+                        console.log(err);
+                    });
+                }
+                else {
+                    res = l.fn.apply(l.context, args);
+                }
+            }
+
+            l.called++;
+
+            if (l.called === l.limit) {
+                self.un(l.id);
+            }
+
+            // This rule is valid in all cases sync and async.
+            // It either returns first value or first promise.
+            if (rr === "first") {
+                return res;
+            }
+        
+            // Promise branch
+            if (expectPromises) {
+            
+                // we collect all results for further processing/resolving
+                results.push(res);
+
+                if (rr === "pipe" && res) {
+                    prevPromise = res;
+                }
+            }
+            else {
+                if (rr !== null) {
+                    if (rr === "all") {
+                        ret.push(res);
+                    }
+                    else if (rr === "concat" && res) {
+                        ret = ret.concat(res);
+                    }
+                    else if (rr === "merge") {
+                        extend(ret, res, true, false);
+                    }
+                    else if (rr === "nonempty" && res) {
+                        return res;
+                    }
+                    else if (rr === "pipe") {
+                        ret = res;
+                        arguments[0] = res;
+                    }
+                    else if (rr === "last") {
+                        ret = res;
+                    }
+                    else if (rr === false && res === false) {
+                        return false;
+                    }
+                    else if (rr === true && res === true) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        if (expectPromises) {
+            resPromise = Promise.all(results);
+            if (self.resolvePromises && rr !== null && rr !== "all") {
+                resPromise = resPromise.then(function(values){
+                    var i, l = values.length, res;
+                    for(i = 0; i < l; i++) {
+                        res = values[i];
+                        if (rr === "concat" && res) {
+                            ret = ret.concat(res);
+                        }
+                        else if (rr === "merge") {
+                            extend(ret, res, true, false);
+                        }
+                        else if (rr === "nonempty" && res) {
+                            return res;
+                        }
+                        else if (rr === false && res === false) {
+                            return false;
+                        }
+                        else if (rr === true && res === true) {
+                            return true;
+                        }
+                    }
+                    return ret;
+                });
+            }
+            return resPromise;
+        }
+        else return ret;
+    }
+}, true, false);
+
+
+
+
+
+
+
+
+/**
+ * @description A javascript event system implementing two patterns - observable and collector.
+ * @description Observable:
+ * @code examples/observable.js
+ *
+ * @description Collector:
+ * @code examples/collector.js
+ *
+ * @class Observable
+ * @version 1.2
+ * @author Ivan Kuindzhi
+ * @link https://github.com/kuindji/metaphorjs-observable
+ */
+var Observable = function() {
+
+    this.events = {};
+
+};
+
+
+extend(Observable.prototype, {
+
+
+
+    /**
+    * You don't have to call this function unless you want to pass params other than event name.
+    * Normally, events are created automatically.
+    *
+    * @method createEvent
+    * @access public
+    * @param {string} name {
+    *       Event name
+    *       @required
+    * }
+    * @param {bool|string} returnResult {
+    *   false -- return first 'false' result and stop calling listeners after that<br>
+    *   true -- return first 'true' result and stop calling listeners after that<br>
+    *   "all" -- return all results as array<br>
+    *   "concat" -- merge all results into one array (each result must be array)<br>
+    *   "merge" -- merge all results into one object (each result much be object)<br>
+    *   "pipe" -- pass return value of previous listener to the next listener.
+    *             Only first trigger parameter is being replaced with return value,
+    *             others stay as is.<br>
+    *   "first" -- return result of the first handler (next listener will not be called)<br>
+    *   "nonempty" -- return first nonempty result<br>
+    *   "last" -- return result of the last handler (all listeners will be called)<br>
+    * }
+    * @param {bool} autoTrigger {
+    *   once triggered, all future subscribers will be automatically called
+    *   with last trigger params
+    *   @code examples/autoTrigger.js
+    * }
+    * @param {function} triggerFilter {
+    *   This function will be called each time event is triggered. Return false to skip listener.
+    *   @code examples/triggerFilter.js
+    *   @param {object} listener This object contains all information about the listener, including
+    *       all data you provided in options while subscribing to the event.
+    *   @param {[]} arguments
+    *   @return {bool}
+    * }
+    * @param {object} filterContext triggerFilter's context
+    * @return {ObservableEvent}
+    */
+
+    /**
+     * @method createEvent
+     * @param {string} name
+     * @param {object} options {
+     *  Options object or returnResult value. All options are optional.
+     *  @type {string|bool} returnResult
+     *  @type {bool} autoTrigger
+     *  @type {function} triggerFilter
+     *  @type {object} filterContext
+     *  @type {bool} expectPromises
+     *  @type {bool} resolvePromises
+     * }
+     * @returns {ObservableEvent}
+     */
+    createEvent: function(name, options) {
+        name = name.toLowerCase();
+        var events  = this.events;
+        if (!events[name]) {
+            events[name] = new ObservableEvent(name, options);
+        }
+        return events[name];
+    },
+
+    /**
+    * @method
+    * @access public
+    * @param {string} name Event name
+    * @return {ObservableEvent|undefined}
+    */
+    getEvent: function(name) {
+        name = name.toLowerCase();
+        return this.events[name];
+    },
+
+    /**
+    * Subscribe to an event or register collector function.
+    * @method
+    * @access public
+    * @param {string} name {
+    *       Event name. Use '*' to subscribe to all events.
+    *       @required
+    * }
+    * @param {function} fn {
+    *       Callback function
+    *       @required
+    * }
+    * @param {object} context "this" object for the callback function
+    * @param {object} options {
+    *       You can pass any key-value pairs in this object. All of them will be passed 
+    *       to triggerFilter (if you're using one).
+    *       @type {bool} first {
+    *           True to prepend to the list of handlers
+    *           @default false
+    *       }
+    *       @type {number} limit {
+    *           Call handler this number of times; 0 for unlimited
+    *           @default 0
+    *       }
+    *       @type {number} start {
+    *           Start calling handler after this number of calls. Starts from 1
+    *           @default 1
+    *       }
+        *      @type {[]} append Append parameters
+        *      @type {[]} prepend Prepend parameters
+        *      @type {bool} allowDupes allow the same handler twice
+        *      @type {bool|int} async run event asynchronously. If event was
+        *                      created with <code>expectPromises: true</code>, 
+        *                      this option is ignored.
+    * }
+    */
+    on: function(name, fn, context, options) {
+        name = name.toLowerCase();
+        var events  = this.events;
+        if (!events[name]) {
+            events[name] = new ObservableEvent(name);
+        }
+        return events[name].on(fn, context, options);
+    },
+
+    /**
+    * Same as {@link class:Observable.on}, but options.limit is forcefully set to 1.
+    * @method
+    * @access public
+    */
+    once: function(name, fn, context, options) {
+        options     = options || {};
+        options.limit = 1;
+        return this.on(name, fn, context, options);
+    },
+
+    /**
+    * Unsubscribe from an event
+    * @method
+    * @access public
+    * @param {string} name Event name
+    * @param {function} fn Event handler
+    * @param {object} context If you called on() with context you must 
+    *                         call un() with the same context
+    */
+    un: function(name, fn, context) {
+        name = name.toLowerCase();
+        var events  = this.events;
+        if (!events[name]) {
+            return;
+        }
+        events[name].un(fn, context);
+    },
+
+    /**
+     * Relay all events of <code>eventSource</code> through this observable.
+     * @method
+     * @access public
+     * @param {object} eventSource
+     * @param {string} eventName
+     */
+    relayEvent: function(eventSource, eventName) {
+        eventSource.on(eventName, this.trigger, this, {
+            prepend: eventName === "*" ? null : [eventName]
+        });
+    },
+
+    /**
+     * Stop relaying events of <code>eventSource</code>
+     * @method
+     * @access public
+     * @param {object} eventSource
+     * @param {string} eventName
+     */
+    unrelayEvent: function(eventSource, eventName) {
+        eventSource.un(eventName, this.trigger, this);
+    },
+
+    /**
+     * @method hasListener
+     * @access public
+     * @return bool
+     */
+
+    /**
+    * @method hasListener
+    * @access public
+    * @param {string} name Event name { @required }
+    * @return bool
+    */
+
+    /**
+    * @method
+    * @access public
+    * @param {string} name Event name { @required }
+    * @param {function} fn Callback function { @required }
+    * @param {object} context Function's "this" object
+    * @return bool
+    */
+    hasListener: function(name, fn, context) {
+        var events = this.events;
+
+        if (name) {
+            name = name.toLowerCase();
+            if (!events[name]) {
+                return false;
+            }
+            return fn ? events[name].hasListener(fn, context) : true;
+        }
+        else {
+            for (name in events) {
+                if (events[name].hasListener()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    },
+
+    /**
+    * @method
+    * @access public
+    * @param {string} name Event name { @required }
+    * @return bool
+    */
+    hasEvent: function(name) {
+        return !!this.events[name];
+    },
+
+
+    /**
+    * Remove all listeners from all events
+    * @method removeAllListeners
+    * @access public
+    */
+
+    /**
+    * Remove all listeners from specific event
+    * @method
+    * @access public
+    * @param {string} name Event name { @required }
+    */
+    removeAllListeners: function(name) {
+        var events  = this.events;
+        if (name) {
+            if (!events[name]) {
+                return;
+            }
+            events[name].removeAllListeners();
+        }
+        else {
+            for (name in events) {
+                events[name].removeAllListeners();
+            }
+        }
+    },
+
+    /**
+    * Trigger an event -- call all listeners. Also triggers '*' event.
+    * @method
+    * @access public
+    * @param {string} name Event name { @required }
+    * @param {*} ... As many other params as needed
+    * @return mixed
+    */
+    trigger: function() {
+
+        var name = arguments[0],
+            events  = this.events,
+            e,
+            res = null;
+
+        name = name.toLowerCase();
+
+        if (events[name]) {
+            e = events[name];
+            res = e.trigger.apply(e, slice.call(arguments, 1));
+        }
+        
+        // trigger * event with current event name
+        // as first argument
+        if (e = events["*"]) {
+            e.trigger.apply(e, arguments);
+        }
+        
+        return res;
+    },
+
+    /**
+    * Suspend an event. Suspended event will not call any listeners on trigger().
+    * @method
+    * @access public
+    * @param {string} name Event name
+    */
+    suspendEvent: function(name) {
+        name = name.toLowerCase();
+        var events  = this.events;
+        if (!events[name]) {
+            return;
+        }
+        events[name].suspend();
+    },
+
+    /**
+    * @method
+    * @access public
+    */
+    suspendAllEvents: function() {
+        var events  = this.events;
+        for (var name in events) {
+            events[name].suspend();
+        }
+    },
+
+    /**
+    * Resume suspended event.
+    * @method
+    * @access public
+    * @param {string} name Event name
+    */
+    resumeEvent: function(name) {
+        name = name.toLowerCase();
+        var events  = this.events;
+        if (!events[name]) {
+            return;
+        }
+        events[name].resume();
+    },
+
+    /**
+    * @method
+    * @access public
+    */
+    resumeAllEvents: function() {
+        var events  = this.events;
+        for (var name in events) {
+            events[name].resume();
+        }
+    },
+
+    /**
+     * @method
+     * @access public
+     * @param {string} name Event name
+     */
+    destroyEvent: function(name) {
+        var events  = this.events;
+        if (events[name]) {
+            events[name].removeAllListeners();
+            events[name].destroy();
+            delete events[name];
+        }
+    },
+
+
+    /**
+    * Destroy observable
+    * @method
+    * @md-not-inheritable
+    * @access public
+    */
+    destroy: function() {
+        var self    = this,
+            events  = self.events;
+
+        for (var i in events) {
+            self.destroyEvent(i);
+        }
+
+        for (i in self) {
+            self[i] = null;
+        }
+    },
+
+    /**
+    * Although all methods are public there is getApi() method that allows you
+    * extending your own objects without overriding "destroy" (which you probably have)
+    * @code examples/api.js
+    * @method
+    * @md-not-inheritable
+    * @returns object
+    */
+    getApi: function() {
+
+        var self    = this;
+
+        if (!self.api) {
+
+            var methods = [
+                    "createEvent", "getEvent", "on", "un", "once", "hasListener", "removeAllListeners",
+                    "trigger", "suspendEvent", "suspendAllEvents", "resumeEvent",
+                    "resumeAllEvents", "destroyEvent",
+                    "relayEvent", "unrelayEvent"
+                ],
+                api = {},
+                name;
+
+            for(var i =- 1, l = methods.length;
+                    ++i < l;
+                    name = methods[i],
+                    api[name] = bind(self[name], self)){}
+
+            self.api = api;
+        }
+
+        return self.api;
+
+    }
+}, true, false);
+
+
+
+
+
+
+function levenshteinArray(from, to) {
+
+    var m = from.length,
+        n = to.length,
+        D = new Array(m + 1),
+        P = new Array(m + 1),
+        i, j, c,
+        route,
+        cost,
+        dist,
+        ops = 0;
+
+    if (m == n && m == 0) {
+        return {
+            changes: 0,
+            distance: 0,
+            prescription: []
+        };
+    }
+
+    for (i = 0; i <= m; i++) {
+        D[i]    = new Array(n + 1);
+        P[i]    = new Array(n + 1);
+        D[i][0] = i;
+        P[i][0] = 'D';
+    }
+    for (i = 0; i <= n; i++) {
+        D[0][i] = i;
+        P[0][i] = 'I';
+    }
+
+    for (i = 1; i <= m; i++) {
+        for (j = 1; j <= n; j++) {
+            cost = (!equals(from[i - 1], to[j - 1])) ? 1 : 0;
+
+            if(D[i][j - 1] < D[i - 1][j] && D[i][j - 1] < D[i - 1][j - 1] + cost) {
+                //Insert
+                D[i][j] = D[i][j - 1] + 1;
+                P[i][j] = 'I';
+            }
+            else if(D[i - 1][j] < D[i - 1][j - 1] + cost) {
+                //Delete
+                D[i][j] = D[i - 1][j] + 1;
+                P[i][j] = 'D';
+            }
+            else {
+                //Replace or noop
+                D[i][j] = D[i - 1][j - 1] + cost;
+                if (cost == 1) {
+                    P[i][j] = 'R';
+                }
+                else {
+                    P[i][j] = '-';
+                }
+            }
+        }
+    }
+
+    //Prescription
+    route = [];
+    i = m;
+    j = n;
+
+    do {
+        c = P[i][j];
+        route.push(c);
+        if (c != '-') {
+            ops++;
+        }
+        if(c == 'R' || c == '-') {
+            i --;
+            j --;
+        }
+        else if(c == 'D') {
+            i --;
+        }
+        else {
+            j --;
+        }
+    } while((i != 0) || (j != 0));
+
+    dist = D[m][n];
+
+    return {
+        changes: ops / route.length,
+        distance: dist,
+        prescription: route.reverse()
+    };
+};
+
+
+
+var error = (function(){
+
+    var listeners = [];
+
+    var error = function error(e) {
+
+        var i, l;
+
+        for (i = 0, l = listeners.length; i < l; i++) {
+            if (listeners[i][0].call(listeners[i][1], e) === false) {
+                return;
+            }
+        }
+
+        var stack = (e ? e.stack : null) || (new Error).stack;
+
+        if (typeof console != strUndef && console.error) {
+            //async(function(){
+                if (e) {
+                    console.error(e);
+                }
+                if (stack) {
+                    console.error(stack);
+                }
+            //});
+        }
+        else {
+            throw e;
+        }
+    };
+
+    error.on = function(fn, context) {
+        error.un(fn, context);
+        listeners.push([fn, context]);
+    };
+
+    error.un = function(fn, context) {
+        var i, l;
+        for (i = 0, l = listeners.length; i < l; i++) {
+            if (listeners[i][0] === fn && listeners[i][1] === context) {
+                listeners.splice(i, 1);
+                break;
+            }
+        }
+    };
+
+    return error;
+}());
+
+
+
+
+function emptyFn(){};
+
+
+
+var functionFactory = function() {
+
+    var REG_REPLACE_EXPR    = /((^|[^a-z0-9_$\]\)'"])|(this))(\.)([^0-9])/ig,
+        REG_REPLACER        = "$2____.$5",
+
+        f               = Function,
+        fnBodyStart     = 'try {',
+        getterBodyEnd   = ';} catch (thrownError) { return undefined; }',
+        setterBodyEnd   = ';} catch (thrownError) { return undefined; }',
+
+        getterCache     = {},
+        getterCacheCnt  = 0,
+
+        createGetter    = function createGetter(expr, returnAsCode) {
+
+            try {
+                if (!getterCache[expr] || returnAsCode) {
+                    getterCacheCnt++;
+
+                    var body = "".concat(
+                        fnBodyStart,
+                        'return ',
+                        expr.replace(REG_REPLACE_EXPR, REG_REPLACER),
+                        getterBodyEnd
+                    );
+
+                    if (returnAsCode) {
+                        return "function(____) {" + body + "}";
+                    }
+                    else {
+                        return getterCache[expr] = new f(
+                            '____',
+                            body
+                        );
+                    }
+                }
+                return getterCache[expr];
+            }
+            catch (thrownError){
+                error(thrownError);
+                return emptyFn;
+            }
+        },
+
+        setterCache     = {},
+        setterCacheCnt  = 0,
+
+        createSetter    = function createSetter(expr, returnAsCode) {
+            try {
+                if (!setterCache[expr] || returnAsCode) {
+                    setterCacheCnt++;
+                    var code = expr.replace(REG_REPLACE_EXPR, REG_REPLACER),
+                        body = "".concat(fnBodyStart, code, ' = $$$$', setterBodyEnd);
+
+                    if (returnAsCode) {
+                        return "function(____, $$$$) {" + body + "}";
+                    }
+                    else {
+                        return setterCache[expr] = new f(
+                            '____',
+                            '$$$$',
+                            body
+                        );
+                    }
+                }
+                return setterCache[expr];
+            }
+            catch (thrownError) {
+                error(thrownError);
+                return emptyFn;
+            }
+        },
+
+        funcCache       = {},
+        funcCacheCnt    = 0,
+
+        createFunc      = function createFunc(expr, returnAsCode) {
+            try {
+                if (!funcCache[expr] || returnAsCode) {
+                    funcCacheCnt++;
+
+                    var body = "".concat(
+                        fnBodyStart,
+                        expr.replace(REG_REPLACE_EXPR, REG_REPLACER),
+                        getterBodyEnd
+                    );
+
+                    if (returnAsCode) {
+                        return "function(____) {" + body + "}";
+                    }
+                    else {
+                        return funcCache[expr] = new f(
+                            '____',
+                            body
+                        );
+                    }
+                }
+                return funcCache[expr];
+            }
+            catch (thrownError) {
+                error(thrownError);
+                return emptyFn;
+            }
+        },
+
+        resetCache = function() {
+            getterCacheCnt >= 1000 && (getterCache = {});
+            setterCacheCnt >= 1000 && (setterCache = {});
+            funcCacheCnt >= 1000 && (funcCache = {});
+        };
+
+    return {
+        createGetter: createGetter,
+        createSetter: createSetter,
+        createFunc: createFunc,
+        resetCache: resetCache,
+        enableResetCacheInterval: function() {
+            setTimeout(resetCache, 10000);
+        }
+    };
+}();
+
+
+
+var createGetter = functionFactory.createGetter;
+
+
+
+
+var createSetter = functionFactory.createSetter;
+
+
+
+var Watchable = function(){
+
+    var isStatic    = function(val) {
+
+            if (!isString(val)) {
+                return true;
+            }
+
+            var first   = val.substr(0, 1),
+                last    = val.length - 1;
+
+            if (first === '"' || first === "'") {
+                if (val.indexOf(first, 1) === last) {
+                    return val.substring(1, last);
+                }
+            }
+
+            return false;
+        },
+
+        prescription2moves = function(a1, a2, prs, getKey) {
+
+            var newPrs = [],
+                i, l, k, action,
+                map1 = {},
+                prsi,
+                a2i,
+                index;
+
+            for (i = 0, l = a1.length; i < l; i++) {
+                k = getKey(a1[i]);
+                if (k) {
+                    map1[k] = i;
+                }
+            }
+
+            a2i = 0;
+            var used = {};
+
+            for (prsi = 0, l = prs.length; prsi < l; prsi++) {
+
+                action = prs[prsi];
+
+                if (action === 'D') {
+                    continue;
+                }
+
+                k = getKey(a2[a2i]);
+
+                if (k !== undf && used[k] !== true && (index = map1[k]) !== undf) {
+                    newPrs.push(index);
+                    used[k] = true;
+                }
+                else {
+                    newPrs.push(action);
+                }
+                a2i++;
+            }
+
+            return newPrs;
+        },
+
+
+        observable;
+
+    /**
+     * @class Watchable
+     */
+
+    /**
+     * @param {object} dataObj object containing observed property
+     * @param {string} code property name or custom code
+     * @param {function} fn optional listener
+     * @param {object} fnScope optional listener's "this" object
+     *  @subparam {*} userData optional data to pass to the listener
+     *  @subparam {function} filterLookup
+     *  @subparam {*} mock do not calculate real values, use mock instead
+     *  @subparam {function} predefined getter fn
+     * @param {object} opt
+     * @constructor
+     */
+    var Watchable   = function(dataObj, code, fn, fnScope, opt) {
+
+        if (!observable) {
+            observable  = new Observable;
+        }
+
+        opt = opt || {};
+
+        var self    = this,
+            id      = nextUid(),
+            type;
+
+        if (opt.filterLookup) {
+            self.filterLookup = opt.filterLookup;
+        }
+
+        self.mock = opt.mock;
+        self.origCode = code;
+
+        if (opt.mock && code.indexOf(".") === -1) {
+            type = "attr";
+        }
+        else if (code && dataObj) {
+            type    = dataObj.hasOwnProperty(code) ? "attr" : "expr";
+        }
+        else if (code && !dataObj) {
+            type = "expr";
+        }
+
+
+        if (fn) {
+            observable.on(id, fn, fnScope || this, {
+                append: [opt.userData],
+                allowDupes: true
+            });
+        }
+
+        if (type === "expr") {
+            code        = self._parsePipes(code, dataObj, true);
+            code        = self._parsePipes(code, dataObj, false);
+
+            if (self.inputPipes || self.pipes) {
+                code    = normalizeExpr(dataObj, code);
+                type    = dataObj.hasOwnProperty(code) ? "attr" : "expr";
+            }
+
+            if (self.staticValue = isStatic(code)) {
+                type    = "static";
+            }
+        }
+
+        self.userData   = opt.userData;
+        self.code       = code;
+        self.id         = id;
+        self.type       = type;
+        self.obj        = dataObj;
+
+        if (type === "expr") {
+            self.getterFn   = opt.getterFn || createGetter(code);
+        }
+
+        if (type !== "static" || self.pipes) {
+            self.curr = self.curr || self._getValue();
+            self.currCopy = isPrimitive(self.curr) ? self.curr : copy(self.curr);
+        }
+        else {
+            self.check = returnFalse;
+            self.curr = self.prev = self.staticValue;
+        }
+    };
+
+    extend(Watchable.prototype, {
+
+        //namespace: null,
+        //nsGet: null,
+
+        filterLookup: null,
+
+        staticValue: null,
+        origCode: null,
+        code: null,
+        getterFn: null,
+        setterFn: null,
+        id: null,
+        type: null,
+        obj: null,
+        itv: null,
+        curr: null,
+        currCopy: null,
+        prev: null,
+        unfilteredCopy: null,
+        unfiltered: null,
+        pipes: null,
+        inputPipes: null,
+        lastSetValue: null,
+        userData: null,
+        obsrvDelegate: null,
+        obsrvChanged: false,
+        forcePipes: false,
+
+        mock: false,
+
+        // means that pipes always return the same output given the same input.
+        // if you want to mark pipe as undeterministic - put ? before it
+        // {{ .somevalue | ?pipe }}
+        // then value will be passed through all pipes on each check.
+        deterministic: true,
+
+        getConfig: function() {
+            var getterFn = null;
+            if (this.type === "expr") {
+                getterFn   = createGetter(this.code, true);
+            }
+            return {
+                type: this.type,
+                code: this.origCode,
+                withoutPipes: this.code,
+                getter: getterFn,
+                hasPipes: this.pipes !== null,
+                hasInputPipes: this.inputPipes !== null
+            }
+        },
+
+        _indexArrayItems: function(a) {
+
+            var key = '$$' + this.id,
+                i, l, item;
+
+            if (a) {
+                for (i = 0, l = a.length; i < l; i++) {
+                    item = a[i];
+                    if (item && !isPrimitive(item) && !item[key]) {
+                        item[key] = nextUid();
+                    }
+                }
+            }
+        },
+
+
+        _parsePipes: function(text, dataObj, input) {
+
+            var self        = this,
+                separator   = input ? ">>" : "|",
+                propName    = input ? "inputPipes" : "pipes",
+                cb          = input ? self.onInputParamChange : self.onPipeParamChange;
+
+            if (text.indexOf(separator) === -1) {
+                return text;
+            }
+
+            var parts   = split(text, separator),
+                ret     = input ? parts.pop() : parts.shift(),
+                pipes   = [],
+                pipe,
+                i, l;
+
+            for(i = 0, l = parts.length; i < l; i++) {
+                pipe = split(trim(parts[i]), ':');
+                self._addPipe(pipes, pipe, dataObj, cb, false);
+            }
+
+            if (pipes.length) {
+                self[propName] = pipes;
+            }
+
+            return trim(ret);
+        },
+
+        prependInuptPipe: function() {
+            this.inputPipes = this.inputPipes || [];
+            this._addPipe(
+                this.inputPipes,
+                toArray(arguments),
+                this.obj,
+                this.onInputParamChange,
+                true
+            );
+        },
+        addInuptPipe: function() {
+            this.inputPipes = this.inputPipes || [];
+            this._addPipe(
+                this.inputPipes,
+                toArray(arguments),
+                this.obj,
+                this.onInputParamChange,
+                false
+            );
+        },
+
+        addPipe: function() {
+            this.pipes = this.pipes || [];
+            this._addPipe(
+                this.pipes,
+                toArray(arguments),
+                this.obj,
+                this.onPipeParamChange,
+                false
+            );
+        },
+        prependPipe: function() {
+            this.pipes = this.pipes || [];
+            this._addPipe(
+                this.pipes,
+                toArray(arguments),
+                this.obj,
+                this.onPipeParamChange,
+                true
+            );
+        },
+
+        _addPipe: function(pipes, pipe, dataObj, onParamChange, prepend) {
+
+            var self    = this,
+                name    = pipe.shift(),
+                fn      = isFunction(name) ? name : null,
+                ws      = [],
+                fchar   = fn ? null : name.substr(0,1),
+                opt     = {
+                    neg: false,
+                    dblneg: false,
+                    undeterm: false,
+                    name: name
+                },
+                i, l;
+
+            if (!fn) {
+                if (name.substr(0, 2) === "!!") {
+                    name = name.substr(2);
+                    opt.dblneg = true;
+                }
+                else {
+                    if (fchar === "!") {
+                        name = name.substr(1);
+                        opt.neg = true;
+                    }
+                    else if (fchar === "?") {
+                        name = name.substr(1);
+                        opt.undeterm = true;
+                    }
+                }
+            }
+            else {
+                opt.name = fn.name;
+            }
+
+            if (self.mock) {
+                fn      = function(){};
+            }
+            else {
+                if (!fn && self.filterLookup) {
+                    fn = self.filterLookup(name);
+                }
+                if (!fn) {
+                    fn = (typeof window !== "undefined" ? window[name] : null) || dataObj[name];
+                }
+            }
+
+            //console.log(!!self.nsGet, name, fn)
+
+            if (isFunction(fn)) {
+
+                for (i = -1, l = pipe.length; ++i < l;
+                     ws.push(create(
+                         dataObj,
+                         pipe[i],
+                         onParamChange,
+                         self,
+                         {
+                             filterLookup: self.filterLookup,
+                             mock: self.mock
+                         }
+                     ))) {}
+
+                if (fn.$undeterministic) {
+                    opt.undeterm = true;
+                }
+
+                pipes[prepend?"unshift":"push"]([fn, pipe, ws, opt]);
+
+                if (opt.undeterm) {
+                    self.deterministic = false;
+                }
+            }
+        },
+
+        _getRawValue: function() {
+            var self    = this,
+                val;
+
+            if (self.mock) {
+                return self.mock;
+            }
+
+            switch (self.type) {
+                case "static":
+                    val = self.staticValue;
+                    break;
+
+                case "attr":
+                    val = self.obj[self.code];
+                    break;
+                case "expr":
+                    val = self.getterFn(self.obj);
+                    break;
+                case "object":
+                    val = self.obj;
+                    break;
+            }
+
+            if (isArray(val)) {
+                if (!self.inputPipes) {
+                    self._indexArrayItems(val);
+                }
+                val = val.slice();
+            }
+
+            return val;
+        },
+
+        _getValue: function(useUnfiltered) {
+
+            var self    = this,
+                val     = useUnfiltered ? self.unfiltered : self._getRawValue();
+
+            self.unfiltered = val;
+
+            if (self.mock) {
+                val = self.mock;
+            }
+            else {
+                val = self._runThroughPipes(val, self.pipes);
+            }
+
+            return val;
+        },
+
+
+        _runThroughPipes: function(val, pipes) {
+
+            if (pipes) {
+                var j,
+                    args,
+                    exprs,
+                    self    = this,
+                    jlen    = pipes.length,
+                    dataObj = self.obj,
+                    opt,
+                    z, zl;
+
+                for (j = 0; j < jlen; j++) {
+                    exprs   = pipes[j][1];
+                    opt     = pipes[j][3];
+                    args    = [];
+                    for (z = -1, zl = exprs.length; ++z < zl;
+                         args.push(evaluate(exprs[z], dataObj))){}
+
+                    args.unshift(dataObj);
+                    args.unshift(val);
+
+                    val     = pipes[j][0].apply(null, args);
+
+                    if (opt.neg) {
+                        val = !val;
+                    }
+                    else if (opt.dblneg) {
+                        val = !!val;
+                    }
+                }
+            }
+
+            return val;
+        },
+
+        /**
+         * Subscribe to the change event
+         * @method
+         * @param {function} fn listener
+         * @param {object} fnScope listener's "this" object
+         * @param {object} options see Observable's options in on()
+         */
+        subscribe: function(fn, fnScope, options) {
+            observable.on(this.id, fn, fnScope, options);
+        },
+
+        /**
+         * Unsubscribe from change event
+         * @param {function} fn
+         * @param {object} fnScope
+         * @returns {*}
+         */
+        unsubscribe: function(fn, fnScope) {
+            return observable.un(this.id, fn, fnScope);
+        },
+
+        /**
+         * @returns {boolean}
+         */
+        hasPipes: function() {
+            return this.pipes !== null;
+        },
+
+        /**
+         * @returns {boolean}
+         */
+        hasInputPipes: function() {
+            return this.inputPipes != null;
+        },
+
+        /**
+         * @param {function|string} p
+         * @returns {boolean}
+         */
+        hasPipe: function(p) {
+            return this._hasPipe(this.pipes, p);
+        },
+
+        /**
+         * @param {function|string} p
+         * @returns {boolean}
+         */
+        hasInputPipe: function(p) {
+            return this._hasPipe(this.inputPipes, p);
+        },
+
+        /**
+         * @param {array} pipes
+         * @param {function|string} p
+         * @returns {boolean}
+         */
+        _hasPipe: function(pipes, p) {
+            if (!pipes) {
+                return false;
+            }
+            var i, l, name;
+            name = isFunction(p) ? p.name : p;
+            for (i = 0, l = pipes.length; i < l; i++) {
+                if (pipes[i][3].name === name) {
+                    return true;
+                }
+            }
+            return false;
+        },
+
+        /**
+         * Get current value (filtered and via executing the code)
+         * @returns {*}
+         */
+        getValue: function() {
+            return this._getValue();
+        },
+
+        /**
+         * Get last calculated value before filters were applied
+         * @returns {*}
+         */
+        getUnfilteredValue: function() {
+            return this.unfiltered || this.curr;
+        },
+
+        /**
+         * Get previous value
+         * @returns {*}
+         */
+        getPrevValue: function() {
+            return this.prev;
+        },
+
+        /**
+         * Get last calculated value (with filters and pipes)
+         * @returns {*}
+         */
+        getLastValue: function() {
+            return this.curr;
+        },
+
+        /**
+         * Get simple array change prescription
+         * @param {[]} from optional
+         * @param {[]} to optional
+         * @returns {[]}
+         */
+        getPrescription: function(from, to) {
+            to = to || this._getValue();
+            return levenshteinArray(from || [], to || []).prescription;
+        },
+
+        /**
+         * Get array change prescription with moves
+         * @param {[]} from
+         * @param {function} trackByFn
+         * @param {[]} to
+         * @returns {[]}
+         */
+        getMovePrescription: function(from, trackByFn, to) {
+
+            var self    = this;
+                to      = to || self._getValue();
+
+            return prescription2moves(
+                from || [],
+                to || [],
+                self.getPrescription(from || [], to || []),
+                trackByFn
+            );
+        },
+
+        /**
+         * Set value to observed property
+         * @param {*} val
+         */
+        setValue: function(val) {
+
+            var self    = this,
+                type    = self.type;
+
+            self.lastSetValue = val;
+
+            val = self._runThroughPipes(val, self.inputPipes);
+
+            if (type === "attr") {
+                self.obj[self.code] = val;
+            }
+            else if (type === "expr") {
+
+                if (!self.setterFn) {
+                    self.setterFn   = createSetter(self.code);
+                }
+
+                self.setterFn(self.obj, val);
+            }
+            else if (type === "object") {
+                self.obj = val;
+            }
+        },
+
+        onInputParamChange: function(val, prev, async) {
+            this.setValue(this.lastSetValue);
+            if (async) {
+                this.checkAll();
+            }
+        },
+
+        onPipeParamChange: function(val, prev, async) {
+            this.forcePipes = true;
+            this.check();
+            this.forcePipes = false;
+        },
+
+        /*onObserverChange: function(changes) {
+
+            var self = this,
+                code = self.code,
+                i, l,
+                change;
+
+            for (i = 0, l = changes.length; i < l; i++) {
+                change = changes[i];
+                if (change.name == code) {
+                    self.obsrvChanged = true;
+                    break;
+                }
+            }
+        },*/
+
+        _check: function(async) {
+
+            var self    = this,
+                val;
+
+            if (self.deterministic && self.pipes && !self.forcePipes) {
+                if (!self._checkUnfiltered()) {
+                    return false;
+                }
+                else {
+                    // code smell.
+                    // useUnfiltered param implies that
+                    // _checkUnfiltered has been called.
+                    val = self._getValue(true);
+                }
+            }
+            else {
+                val     = self._getValue();
+            }
+
+            var curr    = self.currCopy,
+                eq      = equals(curr, val);
+
+            //if (self.obsrvDelegate) {
+            //    eq      = !self.obsrvChanged;
+            //}
+            //else {
+            //    eq      = equals(curr, val);
+            //}
+
+            if (!eq) {
+                self.curr = val;
+                self.prev = curr;
+                self.currCopy = isPrimitive(val) ? val : copy(val);
+                //self.obsrvChanged = false;
+                observable.trigger(self.id, val, curr, async);
+                return true;
+            }
+
+            return false;
+        },
+
+        _checkUnfiltered: function() {
+
+            var self    = this,
+                val     = self._getRawValue(),
+                curr    = self.unfilteredCopy,
+                eq      = equals(curr, val);
+
+            if (!eq) {
+                self.unfiltered = val;
+                self.unfilteredCopy = isPrimitive(val) ? val : copy(val);
+                return true;
+            }
+
+            return false;
+        },
+
+        /**
+         * Check for changes
+         * @param {bool} async
+         * @returns {bool}
+         */
+        check: function(async) {
+            return this._check(async);
+        },
+
+        /**
+         * Check all observed properties for changes
+         * @returns {bool}
+         */
+        checkAll: function() {
+            return this.obj.$$watchers.$checkAll();
+        },
+
+        /**
+         * Get last calculated value (with filters and pipes)
+         * @returns {*}
+         */
+        getLastResult: function() {
+            return this.curr;
+        },
+
+        /**
+         * Set time interval to check for changes periodically
+         * @param {number} ms
+         */
+        setInterval: function(ms) {
+
+            var self    = this;
+            if (self.itv) {
+                self.clearInterval();
+            }
+            self.itv = setInterval(function(){self.check();}, ms);
+        },
+
+        /**
+         * Clear check interval
+         * @method
+         */
+        clearInterval: function() {
+            var self    = this;
+            if (self.itv) {
+                clearInterval(self.itv);
+                self.itv = null;
+            }
+        },
+
+        /**
+         * Unsubscribe and destroy if there are no other listeners
+         * @param {function} fn
+         * @param {object} fnScope
+         * @returns {boolean} true if destroyed
+         */
+        unsubscribeAndDestroy: function(fn, fnScope) {
+
+            var self    = this,
+                id      = self.id;
+            
+            if (!id) {
+                return false;
+            }
+
+            if (fn) {
+                observable.un(id, fn, fnScope);
+            }
+
+            if (!observable.hasListener(id)) {
+                self.destroy();
+                return true;
+            }
+
+            return false;
+        },
+
+        /**
+         * @method
+         */
+        destroy: function() {
+
+            var self    = this,
+                pipes   = self.pipes,
+                ipipes  = self.inputPipes,
+                i, il,
+                j, jl,
+                ws;
+
+            if (self.itv) {
+                self.clearInterval();
+            }
+
+            if (pipes) {
+                for (i = -1, il = pipes.length; ++i < il;) {
+                    ws = pipes[i][2];
+                    for (j = -1, jl = ws.length; ++j < jl;) {
+                        ws[j].unsubscribeAndDestroy(self.check, self);
+                    }
+                }
+            }
+            if (ipipes) {
+                for (i = -1, il = ipipes.length; ++i < il;) {
+                    ws = ipipes[i][2];
+                    for (j = -1, jl = ws.length; ++j < jl;) {
+                        ws[j].unsubscribeAndDestroy(self.onInputParamChange, self);
+                    }
+                }
+            }
+
+            //if (self.obsrvDelegate) {
+            //    Object.unobserve(self.obj, self.obsrvDelegate);
+            //}
+
+            if (self.obj) {
+                //delete self.obj.$$watchers.$codes[self.origCode];
+                self.obj.$$watchers.$codes[self.origCode] = null;
+            }
+
+            observable.destroyEvent(self.id);
+
+            for (i in self) {
+                if (self.hasOwnProperty(i)){
+                    self[i] = null;
+                }
+            }
+        }
+    }, true, false);
+
+
+    /**
+     * @method
+     * @static
+     * @param {object} obj
+     * @param {string} code
+     * @param {function} fn
+     * @param {object} fnScope
+     * @param {object} opt
+     * @returns {Watchable}
+     */
+    var create = function(obj, code, fn, fnScope, opt) {
+
+            opt = opt || {};
+            code = code || "";
+
+            code = normalizeExpr(obj, trim(code), opt.mock);
+
+            if (obj) {
+                if (!obj.$$watchers) {
+                    obj.$$watchers = {
+                        $codes: {},
+                        $checkAll: function() {
+
+                            var ws      = this.$codes,
+                                i,
+                                changes = 0;
+
+                            for (i in ws) {
+
+                                if (ws[i] && ws[i].check()) {
+                                    changes++;
+                                }
+                            }
+
+                            return changes;
+                        },
+                        $destroyAll: function() {
+
+                            var ws      = this.$codes,
+                                i;
+
+                            for (i in ws) {
+                                if (ws[i]) {
+                                    ws[i].destroy();
+                                    //delete ws[i];
+                                    ws[i] = null;
+                                }
+                            }
+                        }
+                    };
+                }
+
+                if (obj.$$watchers.$codes[code]) {
+                    obj.$$watchers.$codes[code].subscribe(fn, fnScope,
+                        {append: [opt.userData || null], allowDupes: true});
+                }
+                else {
+                    obj.$$watchers.$codes[code] = new Watchable(
+                        obj, code, fn, fnScope, opt);
+                }
+
+                return obj.$$watchers.$codes[code];
+            }
+            else {
+                return new Watchable(obj, code, fn, fnScope, opt);
+            }
+        },
+
+        /**
+         * @method
+         * @static
+         * @param {object} obj
+         * @param {string} code
+         * @param {function} fn
+         * @param {object} fnScope
+         */
+        unsubscribeAndDestroy = function(obj, code, fn, fnScope) {
+            code = trim(code);
+
+            var ws = obj.$$watchers ? obj.$$watchers.$codes : null;
+
+            if (ws && ws[code] && ws[code].unsubscribeAndDestroy(fn, fnScope)) {
+                //delete ws[code];
+                ws[code] = null;
+            }
+        },
+
+        /**
+         * Normalize expression
+         * @param {object} dataObj
+         * @param {string} expr
+         * @param {*} mockMode
+         * @returns {string}
+         */
+        normalizeExpr = function(dataObj, expr, mockMode) {
+
+            if (expr.substr(0, 2) === '{{') {
+                expr = expr.substring(2, expr.length - 2);
+            }
+
+            // in mock mode we can't check dataObj for having
+            // a property. dataObj does not exists in this
+            // context
+            if (mockMode) {
+                var match;
+                if ((match = expr.match(/(^|this)\.([A-Z0-9_$]+)$/i)) !== null) {
+                    return match[2];
+                }
+                else {
+                    return expr;
+                }
+            }
+
+            if (dataObj && expr) {
+                if (dataObj.hasOwnProperty(expr)) {
+                    return expr;
+                }
+                var prop;
+                if (expr.charAt(0) === '.') {
+                    prop = expr.substr(1);
+                    if (dataObj.hasOwnProperty(prop)) {
+                        return prop;
+                    }
+                }
+                else if (expr.substr(0, 5) === "this.") {
+                    prop = expr.substr(5);
+                    if (dataObj.hasOwnProperty(prop)) {
+                        return prop;
+                    }
+                }
+            }
+            return expr;
+        },
+
+        /**
+         * Evaluate code against object
+         * @param {string} expr
+         * @param {object} scope
+         * @param {object} opt
+         * @returns {*}
+         */
+        evaluate    = function(expr, scope, opt) {
+            var val;
+            if (val = isStatic(expr)) {
+                return val;
+            }
+            if (expr.indexOf('|') === -1) {
+                return createGetter(expr)(scope);
+            }
+            var w = create(scope, expr, null, null, opt),
+                v = w.getValue();
+            w.unsubscribeAndDestroy();
+            return v;
+        };
+
+
+
+    Watchable.create = create;
+    Watchable.unsubscribeAndDestroy = unsubscribeAndDestroy;
+    Watchable.normalizeExpr = normalizeExpr;
+    Watchable.eval = evaluate;
+
+    return Watchable;
+}();
+
+
+
+
+
+
+
+var createWatchable = Watchable.create;
 
 
 
@@ -115,8 +2724,11 @@ var Cache = function(){
 
     /**
      * @class Cache
-     * @param {bool} cacheRewritable
+     */
+
+    /**
      * @constructor
+     * @param {bool} cacheRewritable
      */
     var Cache = function(cacheRewritable) {
 
@@ -288,7 +2900,7 @@ var Namespace = function(){
             rootL   = rootName ? rootName.length : null;
 
         if (!root) {
-            if (typeof global != strUndef) {
+            if (typeof global !== strUndef) {
                 root    = global;
             }
             else {
@@ -297,7 +2909,7 @@ var Namespace = function(){
         }
 
         var normalize   = function(ns) {
-            if (ns && rootName && ns.substr(0, rootL) != rootName) {
+            if (ns && rootName && ns.substr(0, rootL) !== rootName) {
                 return rootName + "." + ns;
             }
             return ns;
@@ -325,7 +2937,7 @@ var Namespace = function(){
 
                     name    = tmp[i];
 
-                    if (rootName && i == 0 && name == rootName) {
+                    if (rootName && i === 0 && name === rootName) {
                         current = root;
                         continue;
                     }
@@ -370,7 +2982,7 @@ var Namespace = function(){
 
                 name    = tmp[i];
 
-                if (rootName && i == 0 && name == rootName) {
+                if (rootName && i === 0 && name === rootName) {
                     current = root;
                     continue;
                 }
@@ -498,14 +3110,12 @@ var Namespace = function(){
         self.destroy    = destroy;
     };
 
-    Namespace.prototype.register = null;
-    Namespace.prototype.exists = null;
-    Namespace.prototype.get = null;
-    Namespace.prototype.add = null;
-    Namespace.prototype.remove = null;
-    Namespace.prototype.normalize = null;
-    Namespace.prototype.makeAlias = null;
-    Namespace.prototype.destroy = null;
+    var p = Namespace.prototype;
+
+    p.register = p.exists = p.get = p.add = 
+        p.remove = p.normalize = 
+        p.makeAlias = p.destroy = null;
+    p = null;
 
     var globalNs;
 
@@ -528,96 +3138,18 @@ var Namespace = function(){
 
 
 
-var slice = Array.prototype.slice;
+
+var ns = new Namespace(MetaphorJs, "MetaphorJs");
 
 
 
-function isPlainObject(value) {
-    // IE < 9 returns [object Object] from toString(htmlElement)
-    return typeof value == "object" &&
-           varType(value) === 3 &&
-            !value.nodeType &&
-            value.constructor === Object;
+var nsGet = ns.get;
 
+
+
+var filterLookup = function(name) {
+    return nsGet("filter." + name, true);
 };
-
-function isBool(value) {
-    return value === true || value === false;
-};
-
-
-
-
-var extend = function(){
-
-    /**
-     * @param {Object} dst
-     * @param {Object} src
-     * @param {Object} src2 ... srcN
-     * @param {boolean} override = false
-     * @param {boolean} deep = false
-     * @returns {object}
-     */
-    var extend = function extend() {
-
-
-        var override    = false,
-            deep        = false,
-            args        = slice.call(arguments),
-            dst         = args.shift(),
-            src,
-            k,
-            value;
-
-        if (isBool(args[args.length - 1])) {
-            override    = args.pop();
-        }
-        if (isBool(args[args.length - 1])) {
-            deep        = override;
-            override    = args.pop();
-        }
-
-        while (args.length) {
-            // IE < 9 fix: check for hasOwnProperty presence
-            if ((src = args.shift()) && src.hasOwnProperty) {
-                for (k in src) {
-
-                    if (src.hasOwnProperty(k) && (value = src[k]) !== undf) {
-
-                        if (deep) {
-                            if (dst[k] && isPlainObject(dst[k]) && isPlainObject(value)) {
-                                extend(dst[k], value, override, deep);
-                            }
-                            else {
-                                if (override === true || dst[k] == undf) { // == checks for null and undefined
-                                    if (isPlainObject(value)) {
-                                        dst[k] = {};
-                                        extend(dst[k], value, override, true);
-                                    }
-                                    else {
-                                        dst[k] = value;
-                                    }
-                                }
-                            }
-                        }
-                        else {
-                            if (override === true || dst[k] == undf) {
-                                dst[k] = value;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return dst;
-    };
-
-    return extend;
-}();
-
-
-function emptyFn(){};
 
 
 
@@ -689,7 +3221,9 @@ var Class = function(){
 
         wrapPrototypeMethod = function wrapPrototypeMethod(parent, k, fn) {
 
-            var $super = parent[proto][k] || (k == constr ? parent : emptyFn) || emptyFn;
+            var $super = parent[proto][k] ||
+                        (k === constr ? parent : emptyFn) ||
+                        emptyFn;
 
             return function() {
                 var ret,
@@ -750,16 +3284,16 @@ var Class = function(){
             var k;
             for (k in mixin) {
                 if (mixin.hasOwnProperty(k)) {
-                    if (k == "$beforeInit") {
+                    if (k === "$beforeInit") {
                         prototype.$beforeInit.push(mixin[k]);
                     }
-                    else if (k == "$afterInit") {
+                    else if (k === "$afterInit") {
                         prototype.$afterInit.push(mixin[k]);
                     }
-                    else if (k == "$beforeDestroy") {
+                    else if (k === "$beforeDestroy") {
                         prototype.$beforeDestroy.push(mixin[k]);
                     }
-                    else if (k == "$afterDestroy") {
+                    else if (k === "$afterDestroy") {
                         prototype.$afterDestroy.push(mixin[k]);
                     }
                     else if (!prototype[k]) {
@@ -824,9 +3358,8 @@ var Class = function(){
                                 throw plCls + " not found";
                             }
                         }
-
+ 
                         plugin = new plugin(self, args);
-
                         pmap[plugin.$class] = plugin;
 
                         if (plugin.$beforeHostInit) {
@@ -940,7 +3473,7 @@ var Class = function(){
             /**
              * Does this instance have a plugin
              * @param cls
-             * @returns {bool}
+             * @returns {boolean}
              */
             $hasPlugin: function(cls) {
                 return !!this.$pluginMap[ns.normalize(cls)];
@@ -961,15 +3494,14 @@ var Class = function(){
             $bind: function(fn) {
                 var self = this;
                 return function() {
-                    if (self.$isDestroyed()) {
-                        return;
+                    if (!self.$isDestroyed()) {
+                        return fn.apply(self, arguments);
                     }
-                    return fn.apply(self, arguments);
                 };
             },
 
             /**
-             * @return bool
+             * @return boolean
              */
             $isDestroyed: function() {
                 return self.$destroying || self.$destroyed;
@@ -1004,7 +3536,7 @@ var Class = function(){
 
                 res = self.destroy.apply(self, arguments);
 
-                for (i = -1, l = before.length; ++i < l;
+                for (i = -1, l = after.length; ++i < l;
                      after[i].apply(self, arguments)){}
 
                 for (i = 0, l = plugins.length; i < l; i++) {
@@ -1082,7 +3614,7 @@ var Class = function(){
          * @returns {function}
          */
         BaseClass.$extend = function(definition, statics) {
-            return define(definition, statics, this);
+            return defineClass(definition, statics, this);
         };
 
         /**
@@ -1129,13 +3661,14 @@ var Class = function(){
          * @param {string|function} $extends this is a private parameter; use definition.$extends
          * @code var cls = cs.define({$class: "Name"});
          */
-        var define = function(definition, statics, $extends) {
+        var defineClass = function(definition, statics, $extends) {
 
             definition          = definition || {};
             
             var name            = definition.$class,
                 parentClass     = $extends || definition.$extends,
                 mixins          = definition.$mixins,
+                alias           = definition.$alias,
                 pConstructor,
                 i, l, k, noop, prototype, c, mixin;
 
@@ -1165,11 +3698,11 @@ var Class = function(){
             definition.$extends = parentClass;
             definition.$mixins  = null;
 
-
-            noop                = function(){};
-            noop[proto]         = pConstructor[proto];
-            prototype           = new noop;
-            noop                = null;
+            //noop                = function(){};
+            //noop[proto]         = pConstructor[proto];
+            //prototype           = new noop;
+            //noop                = null;
+            prototype           = Object.create(pConstructor[proto]);
             definition[constr]  = definition[constr] || $constr;
 
             preparePrototype(prototype, definition, pConstructor);
@@ -1186,23 +3719,24 @@ var Class = function(){
 
             c = createConstructor(name);
             prototype.constructor = c;
+            prototype.$self = c;
             c[proto] = prototype;
 
             for (k in BaseClass) {
-                if (k != proto && BaseClass.hasOwnProperty(k)) {
+                if (k !== proto && BaseClass.hasOwnProperty(k)) {
                     c[k] = BaseClass[k];
                 }
             }
 
             for (k in pConstructor) {
-                if (k != proto && pConstructor.hasOwnProperty(k)) {
+                if (k !== proto && pConstructor.hasOwnProperty(k)) {
                     c[k] = pConstructor[k];
                 }
             }
 
             if (statics) {
                 for (k in statics) {
-                    if (k != proto && statics.hasOwnProperty(k)) {
+                    if (k !== proto && statics.hasOwnProperty(k)) {
                         c[k] = statics[k];
                     }
                 }
@@ -1213,6 +3747,9 @@ var Class = function(){
 
             if (name) {
                 ns.register(name, c);
+            }
+            if (alias) {
+                ns.register(alias, c);
             }
 
             return c;
@@ -1267,7 +3804,7 @@ var Class = function(){
          * @code cs.isSubclassOf(myObj, My.Class);
          * @param {string|object} childClass
          * @param {string|object} parentClass
-         * @return {bool}
+         * @return {boolean}
          */
         var isSubclassOf = function(childClass, parentClass) {
 
@@ -1286,7 +3823,7 @@ var Class = function(){
 
             while (p && p.prototype) {
 
-                if (p.prototype.$class == parentClass) {
+                if (p.prototype.$class === parentClass) {
                     return true;
                 }
 
@@ -1301,7 +3838,7 @@ var Class = function(){
         self.factory = factory;
         self.isSubclassOf = isSubclassOf;
         self.isInstanceOf = isInstanceOf;
-        self.define = define;
+        self.define = defineClass;
 
         self.destroy = function(){
 
@@ -1357,10 +3894,6 @@ var Class = function(){
 
 
 
-var ns  = new Namespace(MetaphorJs, "MetaphorJs");
-
-
-
 var cs = new Class(ns);
 
 
@@ -1369,2212 +3902,594 @@ var cs = new Class(ns);
 
 var defineClass = cs.define;
 
-function getAttr(el, name) {
-    return el.getAttribute ? el.getAttribute(name) : null;
-};
 
-/**
- * @param {Function} fn
- * @param {*} context
- */
-var bind = Function.prototype.bind ?
-              function(fn, context){
-                  return fn.bind(context);
-              } :
-              function(fn, context) {
-                  return function() {
-                      return fn.apply(context, arguments);
-                  };
-              };
+
+var nsAdd = ns.add;
 
 
 
 
-var nextUid = function(){
-    var uid = ['0', '0', '0'];
 
-    // from AngularJs
-    /**
-     * @returns {String}
-     */
-    return function nextUid() {
-        var index = uid.length;
-        var digit;
+var Directive = function(){
 
-        while(index) {
-            index--;
-            digit = uid[index].charCodeAt(0);
-            if (digit == 57 /*'9'*/) {
-                uid[index] = 'A';
-                return uid.join('');
+    var attributes          = [],
+        attributesSorted    = false,
+
+        compare             = function(a, b) {
+            //if (a is less than b by some ordering criterion)
+            if (a.priority < b.priority) {
+                return -1;
             }
-            if (digit == 90  /*'Z'*/) {
-                uid[index] = '0';
-            } else {
-                uid[index] = String.fromCharCode(digit + 1);
-                return uid.join('');
+
+            //if (a is greater than b by the ordering criterion)
+            if (a.priority > b.priority) {
+                return 1;
             }
-        }
-        uid.unshift('0');
-        return uid.join('');
-    };
-}();
 
-
-
-
-
-var ObservableEvent = (function(){
-
-    /**
-     * This class is private - you can't create an event other than via Observable.
-     * See Observable reference.
-     * @class ObservableEvent
-     * @private
-     */
-    var ObservableEvent = function(name, returnResult, autoTrigger, triggerFilter, filterContext) {
-
-        var self    = this;
-
-        self.name           = name;
-        self.listeners      = [];
-        self.map            = {};
-        self.hash           = nextUid();
-        self.uni            = '$$' + name + '_' + self.hash;
-        self.suspended      = false;
-        self.lid            = 0;
-
-        if (typeof returnResult == "object" && returnResult !== null) {
-            extend(self, returnResult, true, false);
-        }
-        else {
-            self.returnResult = returnResult === undf ? null : returnResult; // first|last|all
-            self.autoTrigger = autoTrigger;
-            self.triggerFilter = triggerFilter;
-            self.filterContext = filterContext;
-        }
-    };
-
-
-    extend(ObservableEvent.prototype, {
-
-        name: null,
-        listeners: null,
-        map: null,
-        hash: null,
-        uni: null,
-        suspended: false,
-        lid: null,
-        returnResult: null,
-        autoTrigger: null,
-        lastTrigger: null,
-        triggerFilter: null,
-        filterContext: null,
-
-        /**
-         * Get event name
-         * @method
-         * @returns {string}
-         */
-        getName: function() {
-            return this.name;
+            // a must be equal to b
+            return 0;
         },
 
-        /**
-         * @method
-         */
+        commentHolders      = function(node, name) {
+
+            name = name || "";
+
+            var before = window.document.createComment(name + " - start"),
+                after = window.document.createComment(name + " - end"),
+                parent = node.parentNode;
+
+            parent.insertBefore(before, node);
+
+            if (node.nextSibling) {
+                parent.insertBefore(after, node.nextSibling);
+            }
+            else {
+                parent.appendChild(after);
+            }
+
+            return [before, after];
+        };
+
+    return defineClass({
+
+        $class: "Directive",
+
+        watcher: null,
+        stateFn: null,
+        scope: null,
+        node: null,
+        expr: null,
+        mods: null,
+
+        autoOnChange: true,
+
+        $init: function(scope, node, expr, renderer, attr) {
+
+            var self        = this,
+                config      = attr ? attr.config : {},
+                val;
+
+            expr            = trim(expr);
+
+            self.node       = node;
+            self.expr       = expr;
+            self.scope      = scope;
+            self.saveState  = config.saveState;
+            self.watcher    = createWatchable(scope, expr, self.onChange, self, {filterLookup: filterLookup});
+
+            if (self.saveState) {
+                self.stateFn = createSetter(self.saveState);
+            }
+
+            if (self.autoOnChange && (val = self.watcher.getLastResult()) !== undf) {
+                self.onChange(val, undf);
+            }
+
+            scope.$on("destroy", self.onScopeDestroy, self);
+            scope.$on("reset", self.onScopeReset, self);
+        },
+
+        getChildren: function() {
+            return null;
+        },
+
+        createCommentHolders: function(node, name) {
+            var cmts = commentHolders(node, name || this.$class);
+            this.prevEl = cmts[0];
+            this.nextEl = cmts[1];
+        },
+
+        onScopeDestroy: function() {
+            this.$destroy();
+        },
+
+        onScopeReset: function() {
+
+        },
+
+        onChange: function(val) {
+            this.saveStateOnChange(val);
+        },
+
+        saveStateOnChange: function(val) {
+            if (this.stateFn) {
+                this.stateFn(this.scope, val);
+            }
+        },
+
         destroy: function() {
-            var self        = this,
-                k;
-
-            for (k in self) {
-                self[k] = null;
-            }
-        },
-
-        /**
-         * @method
-         * @param {function} fn Callback function { @required }
-         * @param {object} context Function's "this" object
-         * @param {object} options See Observable's on()
-         */
-        on: function(fn, context, options) {
-
-            if (!fn) {
-                return null;
-            }
-
-            context     = context || null;
-            options     = options || {};
-
-            var self        = this,
-                uni         = self.uni,
-                uniContext  = context || fn;
-
-            if (uniContext[uni] && !options.allowDupes) {
-                return null;
-            }
-
-            var id      = ++self.lid,
-                first   = options.first || false;
-
-            uniContext[uni]  = id;
-
-
-            var e = {
-                fn:         fn,
-                context:    context,
-                uniContext: uniContext,
-                id:         id,
-                called:     0, // how many times the function was triggered
-                limit:      0, // how many times the function is allowed to trigger
-                start:      1, // from which attempt it is allowed to trigger the function
-                count:      0, // how many attempts to trigger the function was made
-                append:     null, // append parameters
-                prepend:    null // prepend parameters
-            };
-
-            extend(e, options, true, false);
-
-            if (first) {
-                self.listeners.unshift(e);
-            }
-            else {
-                self.listeners.push(e);
-            }
-
-            self.map[id] = e;
-
-            if (self.autoTrigger && self.lastTrigger && !self.suspended) {
-                var prevFilter = self.triggerFilter;
-                self.triggerFilter = function(l){
-                    if (l.id == id) {
-                        return prevFilter ? prevFilter(l) !== false : true;
-                    }
-                    return false;
-                };
-                self.trigger.apply(self, self.lastTrigger);
-                self.triggerFilter = prevFilter;
-            }
-
-            return id;
-        },
-
-        /**
-         * @method
-         * @param {function} fn Callback function { @required }
-         * @param {object} context Function's "this" object
-         * @param {object} options See Observable's on()
-         */
-        once: function(fn, context, options) {
-
-            options = options || {};
-            options.limit = 1;
-
-            return this.on(fn, context, options);
-        },
-
-        /**
-         * @method
-         * @param {function} fn Callback function { @required }
-         * @param {object} context Function's "this" object
-         */
-        un: function(fn, context) {
-
-            var self        = this,
-                inx         = -1,
-                uni         = self.uni,
-                listeners   = self.listeners,
-                id;
-
-            if (fn == parseInt(fn)) {
-                id      = fn;
-            }
-            else {
-                context = context || fn;
-                id      = context[uni];
-            }
-
-            if (!id) {
-                return false;
-            }
-
-            for (var i = 0, len = listeners.length; i < len; i++) {
-                if (listeners[i].id == id) {
-                    inx = i;
-                    delete listeners[i].uniContext[uni];
-                    break;
-                }
-            }
-
-            if (inx == -1) {
-                return false;
-            }
-
-            listeners.splice(inx, 1);
-            delete self.map[id];
-            return true;
-        },
-
-        /**
-         * @method hasListener
-         * @return bool
-         */
-
-        /**
-         * @method
-         * @param {function} fn Callback function { @required }
-         * @param {object} context Function's "this" object
-         * @return bool
-         */
-        hasListener: function(fn, context) {
-
-            var self    = this,
-                listeners   = self.listeners,
-                id;
-
-            if (fn) {
-
-                context = context || fn;
-
-                if (!isFunction(fn)) {
-                    id  = fn;
-                }
-                else {
-                    id  = context[self.uni];
-                }
-
-                if (!id) {
-                    return false;
-                }
-
-                for (var i = 0, len = listeners.length; i < len; i++) {
-                    if (listeners[i].id == id) {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-            else {
-                return listeners.length > 0;
-            }
-        },
-
-
-        /**
-         * @method
-         */
-        removeAllListeners: function() {
-            var self    = this,
-                listeners = self.listeners,
-                uni     = self.uni,
-                i, len;
-
-            for (i = 0, len = listeners.length; i < len; i++) {
-                delete listeners[i].uniContext[uni];
-            }
-            self.listeners   = [];
-            self.map         = {};
-        },
-
-        /**
-         * @method
-         */
-        suspend: function() {
-            this.suspended = true;
-        },
-
-        /**
-         * @method
-         */
-        resume: function() {
-            this.suspended = false;
-        },
-
-
-        _prepareArgs: function(l, triggerArgs) {
-            var args;
-
-            if (l.append || l.prepend) {
-                args    = slice.call(triggerArgs);
-                if (l.prepend) {
-                    args    = l.prepend.concat(args);
-                }
-                if (l.append) {
-                    args    = args.concat(l.append);
-                }
-            }
-            else {
-                args = triggerArgs;
-            }
-
-            return args;
-        },
-
-        /**
-         * @method
-         * @return {*}
-         */
-        trigger: function() {
-
-            var self            = this,
-                listeners       = self.listeners,
-                returnResult    = self.returnResult,
-                filter          = self.triggerFilter,
-                filterContext   = self.filterContext,
-                args;
-
-            if (self.suspended) {
-                return null;
-            }
-
-            if (self.autoTrigger) {
-                self.lastTrigger = slice.call(arguments);
-            }
-
-            if (listeners.length == 0) {
-                return null;
-            }
-
-            var ret     = returnResult == "all" || returnResult == "merge" ?
-                          [] : null,
-                q, l,
-                res;
-
-            if (returnResult == "first") {
-                q = [listeners[0]];
-            }
-            else {
-                // create a snapshot of listeners list
-                q = slice.call(listeners);
-            }
-
-            // now if during triggering someone unsubscribes
-            // we won't skip any listener due to shifted
-            // index
-            while (l = q.shift()) {
-
-                // listener may already have unsubscribed
-                if (!l || !self.map[l.id]) {
-                    continue;
-                }
-
-                args = self._prepareArgs(l, arguments);
-
-                if (filter && filter.call(filterContext, l, args, self) === false) {
-                    continue;
-                }
-
-                if (l.filter && l.filter.apply(l.filterContext || l.context, args) === false) {
-                    continue;
-                }
-
-                l.count++;
-
-                if (l.count < l.start) {
-                    continue;
-                }
-
-                res = l.fn.apply(l.context, args);
-
-                l.called++;
-
-                if (l.called == l.limit) {
-                    self.un(l.id);
-                }
-
-                if (returnResult == "all") {
-                    ret.push(res);
-                }
-                else if (returnResult == "merge" && res) {
-                    ret = ret.concat(res);
-                }
-                else if (returnResult == "first") {
-                    return res;
-                }
-                else if (returnResult == "nonempty" && res) {
-                    return res;
-                }
-                else if (returnResult == "last") {
-                    ret = res;
-                }
-                else if (returnResult == false && res === false) {
-                    return false;
-                }
-            }
-
-            if (returnResult) {
-                return ret;
-            }
-        }
-    }, true, false);
-
-
-    return ObservableEvent;
-}());
-
-
-
-
-var Observable = (function(){
-
-
-    /**
-     * @description A javascript event system implementing two patterns - observable and collector.
-     * @description Observable:
-     * @code examples/observable.js
-     *
-     * @description Collector:
-     * @code examples/collector.js
-     *
-     * @class Observable
-     * @version 1.1
-     * @author johann kuindji
-     * @link https://github.com/kuindji/metaphorjs-observable
-     */
-    var Observable = function() {
-
-        this.events = {};
-
-    };
-
-
-    extend(Observable.prototype, {
-
-
-
-        /**
-        * You don't have to call this function unless you want to pass params other than event name.
-        * Normally, events are created automatically.
-        *
-        * @method createEvent
-        * @access public
-        * @param {string} name {
-        *       Event name
-        *       @required
-        * }
-        * @param {bool|string} returnResult {
-        *   false -- return first 'false' result and stop calling listeners after that<br>
-        *   "all" -- return all results as array<br>
-        *   "merge" -- merge all results into one array (each result must be array)<br>
-        *   "first" -- return result of the first handler (next listener will not be called)<br>
-        *   "last" -- return result of the last handler (all listeners will be called)<br>
-        * }
-        * @param {bool} autoTrigger {
-        *   once triggered, all future subscribers will be automatically called
-        *   with last trigger params
-        *   @code examples/autoTrigger.js
-        * }
-        * @param {function} triggerFilter {
-        *   This function will be called each time event is triggered. Return false to skip listener.
-        *   @code examples/triggerFilter.js
-        *   @param {object} listener This object contains all information about the listener, including
-        *       all data you provided in options while subscribing to the event.
-        *   @param {[]} arguments
-        *   @return {bool}
-        * }
-        * @return {ObservableEvent}
-        */
-
-        /**
-         * @method createEvent
-         * @param {string} name
-         * @param {object} options {
-         *  @type {string} returnResult
-         *  @param {bool} autoTrigger
-         *  @param {function} triggerFilter
-         * }
-         * @param {object} filterContext
-         * @returns {ObservableEvent}
-         */
-        createEvent: function(name, returnResult, autoTrigger, triggerFilter, filterContext) {
-            name = name.toLowerCase();
-            var events  = this.events;
-            if (!events[name]) {
-                events[name] = new ObservableEvent(name, returnResult, autoTrigger, triggerFilter, filterContext);
-            }
-            return events[name];
-        },
-
-        /**
-        * @method
-        * @access public
-        * @param {string} name Event name
-        * @return {ObservableEvent|undefined}
-        */
-        getEvent: function(name) {
-            name = name.toLowerCase();
-            return this.events[name];
-        },
-
-        /**
-        * Subscribe to an event or register collector function.
-        * @method
-        * @access public
-        * @param {string} name {
-        *       Event name
-        *       @required
-        * }
-        * @param {function} fn {
-        *       Callback function
-        *       @required
-        * }
-        * @param {object} context "this" object for the callback function
-        * @param {object} options {
-        *       You can pass any key-value pairs in this object. All of them will be passed to triggerFilter (if
-        *       you're using one).
-        *       @type {bool} first {
-        *           True to prepend to the list of handlers
-        *           @default false
-        *       }
-        *       @type {number} limit {
-        *           Call handler this number of times; 0 for unlimited
-        *           @default 0
-        *       }
-        *       @type {number} start {
-        *           Start calling handler after this number of calls. Starts from 1
-        *           @default 1
-        *       }
-         *      @type {[]} append Append parameters
-         *      @type {[]} prepend Prepend parameters
-         *      @type {bool} allowDupes allow the same handler twice
-        * }
-        */
-        on: function(name, fn, context, options) {
-            name = name.toLowerCase();
-            var events  = this.events;
-            if (!events[name]) {
-                events[name] = new ObservableEvent(name);
-            }
-            return events[name].on(fn, context, options);
-        },
-
-        /**
-        * Same as {@link Observable.on}, but options.limit is forcefully set to 1.
-        * @method
-        * @access public
-        */
-        once: function(name, fn, context, options) {
-            options     = options || {};
-            options.limit = 1;
-            return this.on(name, fn, context, options);
-        },
-
-
-        /**
-        * Unsubscribe from an event
-        * @method
-        * @access public
-        * @param {string} name Event name
-        * @param {function} fn Event handler
-        * @param {object} context If you called on() with context you must call un() with the same context
-        */
-        un: function(name, fn, context) {
-            name = name.toLowerCase();
-            var events  = this.events;
-            if (!events[name]) {
-                return;
-            }
-            events[name].un(fn, context);
-        },
-
-        /**
-         * @method hasListener
-         * @access public
-         * @return bool
-         */
-
-        /**
-        * @method hasListener
-        * @access public
-        * @param {string} name Event name { @required }
-        * @return bool
-        */
-
-        /**
-        * @method
-        * @access public
-        * @param {string} name Event name { @required }
-        * @param {function} fn Callback function { @required }
-        * @param {object} context Function's "this" object
-        * @return bool
-        */
-        hasListener: function(name, fn, context) {
-            var events = this.events;
-
-            if (name) {
-                name = name.toLowerCase();
-                if (!events[name]) {
-                    return false;
-                }
-                return events[name].hasListener(fn, context);
-            }
-            else {
-                for (name in events) {
-                    if (events[name].hasListener()) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        },
-
-
-        /**
-        * Remove all listeners from all events
-        * @method removeAllListeners
-        * @access public
-        */
-
-        /**
-        * Remove all listeners from specific event
-        * @method
-        * @access public
-        * @param {string} name Event name { @required }
-        */
-        removeAllListeners: function(name) {
-            var events  = this.events;
-            if (!events[name]) {
-                return;
-            }
-            events[name].removeAllListeners();
-        },
-
-        /**
-        * Trigger an event -- call all listeners.
-        * @method
-        * @access public
-        * @param {string} name Event name { @required }
-        * @param {*} ... As many other params as needed
-        * @return mixed
-        */
-        trigger: function() {
-
-            var name = arguments[0],
-                events  = this.events;
-
-            name = name.toLowerCase();
-
-            if (!events[name]) {
-                return null;
-            }
-
-            var e = events[name];
-            return e.trigger.apply(e, slice.call(arguments, 1));
-        },
-
-        /**
-        * Suspend an event. Suspended event will not call any listeners on trigger().
-        * @method
-        * @access public
-        * @param {string} name Event name
-        */
-        suspendEvent: function(name) {
-            name = name.toLowerCase();
-            var events  = this.events;
-            if (!events[name]) {
-                return;
-            }
-            events[name].suspend();
-        },
-
-        /**
-        * @method
-        * @access public
-        */
-        suspendAllEvents: function() {
-            var events  = this.events;
-            for (var name in events) {
-                events[name].suspend();
-            }
-        },
-
-        /**
-        * Resume suspended event.
-        * @method
-        * @access public
-        * @param {string} name Event name
-        */
-        resumeEvent: function(name) {
-            name = name.toLowerCase();
-            var events  = this.events;
-            if (!events[name]) {
-                return;
-            }
-            events[name].resume();
-        },
-
-        /**
-        * @method
-        * @access public
-        */
-        resumeAllEvents: function() {
-            var events  = this.events;
-            for (var name in events) {
-                events[name].resume();
-            }
-        },
-
-        /**
-         * @method
-         * @access public
-         * @param {string} name Event name
-         */
-        destroyEvent: function(name) {
-            var events  = this.events;
-            if (events[name]) {
-                events[name].removeAllListeners();
-                events[name].destroy();
-                delete events[name];
-            }
-        },
-
-
-        /**
-        * Destroy observable
-        * @method
-        * @md-not-inheritable
-        * @access public
-        */
-        destroy: function() {
-            var self    = this,
-                events  = self.events;
-
-            for (var i in events) {
-                self.destroyEvent(i);
-            }
-
-            for (i in self) {
-                self[i] = null;
-            }
-        },
-
-        /**
-        * Although all methods are public there is getApi() method that allows you
-        * extending your own objects without overriding "destroy" (which you probably have)
-        * @code examples/api.js
-        * @method
-        * @md-not-inheritable
-        * @returns object
-        */
-        getApi: function() {
-
             var self    = this;
 
-            if (!self.api) {
-
-                var methods = [
-                        "createEvent", "getEvent", "on", "un", "once", "hasListener", "removeAllListeners",
-                        "trigger", "suspendEvent", "suspendAllEvents", "resumeEvent",
-                        "resumeAllEvents", "destroyEvent"
-                    ],
-                    api = {},
-                    name;
-
-                for(var i =- 1, l = methods.length;
-                        ++i < l;
-                        name = methods[i],
-                        api[name] = bind(self[name], self)){}
-
-                self.api = api;
+            if (self.scope) {
+                self.scope.$un("destroy", self.onScopeDestroy, self);
+                self.scope.$un("reset", self.onScopeReset, self);
             }
 
-            return self.api;
+            if (self.watcher) {
+                self.watcher.unsubscribeAndDestroy(self.onChange, self);
+            }
 
+            if (self.prevEl) {
+                self.prevEl.parentNode.removeChild(self.prevEl);
+            }
+            if (self.nextEl) {
+                self.nextEl.parentNode.removeChild(self.nextEl);
+            }
+
+            self.$super();
         }
-    }, true, false);
+    }, {
+
+        getDirective: function(type, name) {
+            return nsGet("directive." + type +"."+ name, true);
+        },
+
+        registerAttribute: function registerAttribute(name, priority, handler) {
+            if (!nsGet("directive.attr." + name, true)) {
+                attributes.push({
+                    priority: priority,
+                    name: name,
+                    handler: nsAdd("directive.attr." + name, handler)
+                });
+                attributesSorted = false;
+            }
+        },
+
+        getAttributes: function getAttributes() {
+            if (!attributesSorted) {
+                attributes.sort(compare);
+                attributesSorted = true;
+            }
+            return attributes;
+        },
+
+        registerTag: function registerTag(name, handler) {
+            if (!nsGet("directive.tag." + name, true)) {
+                nsAdd("directive.tag." + name, handler)
+            }
+        },
+
+        // components are case sensitive
+        registerComponent: function(name, cmp) {
+            if (!cmp) {
+                cmp = name;
+            }
+            if (isString(cmp)) {
+                cmp = nsGet(cmp, true);
+            }
+            if (!nsGet("directive.component." + name, true)) {
+                nsAdd("directive.component." + name.toLowerCase(), cmp)
+            }
+        },
+
+        commentHolders: commentHolders
+    });
+
+}();
 
 
-    return Observable;
-}());
 
 
 
-/**
- * @function trim
- * @param {String} value
- * @returns {string}
- */
-var trim = function() {
-    // native trim is way faster: http://jsperf.com/angular-trim-test
-    // but IE doesn't have it... :-(
-    if (!String.prototype.trim) {
-        return function(value) {
-            return isString(value) ? value.replace(/^\s\s*/, '').replace(/\s\s*$/, '') : value;
-        };
+
+
+
+Directive.registerAttribute("app", 100, returnFalse);
+
+function isField(el) {
+    var tag	= el.nodeName.toLowerCase(),
+        type = el.type;
+    if (tag == 'input' || tag == 'textarea' || tag == 'select') {
+        if (type != "submit" && type != "reset" && type != "button") {
+            return true;
+        }
     }
-    return function(value) {
-        return isString(value) ? value.trim() : value;
-    };
-}();
-
-/**
- * @param {string} str
- * @param {string} separator
- * @param {bool} allowEmpty
- * @returns {[]}
- */
-var split = function(str, separator, allowEmpty) {
-
-    var l       = str.length,
-        sl      = separator.length,
-        i       = 0,
-        prev    = 0,
-        prevChar= "",
-        inQDbl  = false,
-        inQSng  = false,
-        parts   = [],
-        esc     = "\\",
-        char;
-
-    if (!sl) {
-        return [str];
-    }
-
-    for (; i < l; i++) {
-
-        char = str.charAt(i);
-
-        if (char == esc) {
-            i++;
-            continue;
-        }
-
-        if (char == '"') {
-            inQDbl = !inQDbl;
-            continue;
-        }
-        if (char == "'") {
-            inQSng = !inQSng;
-            continue;
-        }
-
-        if (!inQDbl && !inQSng) {
-            if ((sl == 1 && char == separator) ||
-                (sl > 1 && str.substring(i, i + sl) == separator)) {
-
-                if (str.substr(i - 1, sl) == separator ||
-                    str.substr(i + 1, sl) == separator) {
-
-                    if (!allowEmpty) {
-                        i += (sl - 1);
-                        continue;
-                    }
-                }
-
-                parts.push(str.substring(prev, i).replace(esc + separator, separator));
-                prev = i + sl;
-                i += (sl - 1);
-            }
-        }
-
-        prevChar = char;
-    }
-
-    parts.push(str.substring(prev).replace(esc + separator, separator));
-
-    return parts;
-};
-
-
-
-function isDate(value) {
-    return varType(value) === 10;
-};
-
-
-
-function isRegExp(value) {
-    return varType(value) === 9;
-};
-
-function isWindow(obj) {
-    return obj === window ||
-           (obj && obj.document && obj.location && obj.alert && obj.setInterval);
-};
-
-
-
-// from Angular
-
-var equals = function(){
-
-    var equals = function equals(o1, o2) {
-        if (o1 === o2) return true;
-        if (o1 === null || o2 === null) return false;
-        if (o1 !== o1 && o2 !== o2) return true; // NaN === NaN
-        var t1 = typeof o1, t2 = typeof o2, length, key, keySet;
-        if (t1 == t2) {
-            if (t1 == 'object') {
-                if (isArray(o1)) {
-                    if (!isArray(o2)) return false;
-                    if ((length = o1.length) == o2.length) {
-                        for(key=0; key<length; key++) {
-                            if (!equals(o1[key], o2[key])) return false;
-                        }
-                        return true;
-                    }
-                } else if (isDate(o1)) {
-                    return isDate(o2) && o1.getTime() == o2.getTime();
-                } else if (isRegExp(o1) && isRegExp(o2)) {
-                    return o1.toString() == o2.toString();
-                } else {
-                    if (isWindow(o1) || isWindow(o2) || isArray(o2)) return false;
-                    keySet = {};
-                    for(key in o1) {
-                        if (key.charAt(0) == '$' || isFunction(o1[key])) {//&& typeof o1[key] == "object") {
-                            continue;
-                        }
-                        //if (isFunction(o1[key])) {
-                        //    continue;
-                        //}
-                        if (!equals(o1[key], o2[key])) {
-                            return false;
-                        }
-                        keySet[key] = true;
-                    }
-                    for(key in o2) {
-                        if (!keySet.hasOwnProperty(key) &&
-                            key.charAt(0) != '$' &&
-                            o2[key] !== undf &&
-                            !isFunction(o2[key])) return false;
-                    }
-                    return true;
-                }
-            }
-        }
-        return false;
-    };
-
-    return equals;
-}();
-
-
-
-var copy = function() {
-
-    var win = typeof window != strUndef ? window : null,
-        glob = typeof global != strUndef ? global : null;
-
-    var copy = function copy(source, dest){
-
-        if (win && source === win) {
-            throw new Error("Cannot copy window object");
-        }
-        if (glob && source === glob) {
-            throw new Error("Cannot copy global object");
-        }
-
-        if (!dest) {
-            dest = source;
-            if (source) {
-                if (isArray(source)) {
-                    dest = copy(source, []);
-                } else if (isDate(source)) {
-                    dest = new Date(source.getTime());
-                } else if (isRegExp(source)) {
-                    dest = new RegExp(source.source);
-                } else if (isPlainObject(source)) {
-                    dest = copy(source, {});
-                }
-            }
-        } else {
-            if (source === dest) {
-                throw new Error("Objects are identical");
-            }
-            if (isArray(source)) {
-                dest.length = 0;
-                for ( var i = 0, l = source.length; i < l; i++) {
-                    dest.push(copy(source[i]));
-                }
-            } else {
-                var key;
-                for (key in dest) {
-                    delete dest[key];
-                }
-                for (key in source) {
-                    if (source.hasOwnProperty(key)) {
-                        if (key.charAt(0) == '$' || isFunction(source[key])) {
-                            dest[key] = source[key];
-                        }
-                        else {
-                            dest[key] = copy(source[key]);
-                        }
-                    }
-                }
-            }
-        }
-        return dest;
-    };
-
-    return copy;
-}();
-
-
-
-function isPrimitive(value) {
-    var vt = varType(value);
-    return vt < 3 && vt > -1;
-};
-// https://gist.github.com/jdalton/5e34d890105aca44399f
-
-var isNative = function() {
-
-    // Used to resolve the internal `[[Class]]` of values.
-    var toString = Object.prototype.toString;
-
-    // Used to resolve the decompiled source of functions.
-    var fnToString = Function.prototype.toString;
-
-    // Used to detect host constructors (Safari > 4; really typed array specific).
-    var reHostCtor = /^\[object .+?Constructor\]$/;
-
-    // Compile a regexp using a common native method as a template.
-    // We chose `Object#toString` because there's a good chance it is not being mucked with.
-    var reNative = RegExp('^' +
-                          // Coerce `Object#toString` to a string.
-                          String(toString)
-                              // Escape any special regexp characters.
-                              .replace(/[.*+?^${}()|[\]\/\\]/g, '\\$&')
-                              // Replace mentions of `toString` with `.*?` to keep the template generic.
-                              // Replace thing like `for ...` to support environments, like Rhino, which add extra
-                              // info such as method arity.
-                              .replace(/toString|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$'
-    );
-
-    return function isNative(value) {
-        var type = typeof value;
-        return type == 'function'
-            // Use `Function#toString` to bypass the value's own `toString` method
-            // and avoid being faked out.
-            ? (!('prototype' in value) || reNative.test(fnToString.call(value)))
-            // Fallback to a host object check because some environments will represent
-            // things like typed arrays as DOM methods which may not conform to the
-            // normal native pattern.
-            : (value && type == 'object' && reHostCtor.test(toString.call(value))) || false;
-    };
-
-}();
-
-function returnFalse() {
     return false;
 };
 
-
-
-function levenshteinArray(from, to) {
-
-    var m = from.length,
-        n = to.length,
-        D = new Array(m + 1),
-        P = new Array(m + 1),
-        i, j, c,
-        route,
-        cost,
-        dist,
-        ops = 0;
-
-    if (m == n && m == 0) {
-        return {
-            changes: 0,
-            distance: 0,
-            prescription: []
-        };
-    }
-
-    for (i = 0; i <= m; i++) {
-        D[i]    = new Array(n + 1);
-        P[i]    = new Array(n + 1);
-        D[i][0] = i;
-        P[i][0] = 'D';
-    }
-    for (i = 0; i <= n; i++) {
-        D[0][i] = i;
-        P[0][i] = 'I';
-    }
-
-    for (i = 1; i <= m; i++) {
-        for (j = 1; j <= n; j++) {
-            cost = (!equals(from[i - 1], to[j - 1])) ? 1 : 0;
-
-            if(D[i][j - 1] < D[i - 1][j] && D[i][j - 1] < D[i - 1][j - 1] + cost) {
-                //Insert
-                D[i][j] = D[i][j - 1] + 1;
-                P[i][j] = 'I';
-            }
-            else if(D[i - 1][j] < D[i - 1][j - 1] + cost) {
-                //Delete
-                D[i][j] = D[i - 1][j] + 1;
-                P[i][j] = 'D';
-            }
-            else {
-                //Replace or noop
-                D[i][j] = D[i - 1][j - 1] + cost;
-                if (cost == 1) {
-                    P[i][j] = 'R';
-                }
-                else {
-                    P[i][j] = '-';
-                }
-            }
-        }
-    }
-
-    //Prescription
-    route = [];
-    i = m;
-    j = n;
-
-    do {
-        c = P[i][j];
-        route.push(c);
-        if (c != '-') {
-            ops++;
-        }
-        if(c == 'R' || c == '-') {
-            i --;
-            j --;
-        }
-        else if(c == 'D') {
-            i --;
-        }
-        else {
-            j --;
-        }
-    } while((i != 0) || (j != 0));
-
-    dist = D[m][n];
-
-    return {
-        changes: ops / route.length,
-        distance: dist,
-        prescription: route.reverse()
-    };
-};
-/**
- * @param {Function} fn
- * @param {Object} context
- * @param {[]} args
- * @param {number} timeout
- */
-function async(fn, context, args, timeout) {
-    return setTimeout(function(){
-        fn.apply(context, args || []);
-    }, timeout || 0);
+function isNull(value) {
+    return value === null;
 };
 
 
 
-var error = (function(){
 
-    var listeners = [];
 
-    var error = function error(e) {
+var TextRenderer = function(){
 
-        var i, l;
+    var startSymbol             = '{{',
+        endSymbol               = '}}',
+        startSymbolLength       = 2,
+        endSymbolLength         = 2,
 
-        for (i = 0, l = listeners.length; i < l; i++) {
-            if (listeners[i][0].call(listeners[i][1], e) === false) {
-                return;
-            }
-        }
+        savedBoundary           = '--##--',
 
-        var stack = (e ? e.stack : null) || (new Error).stack;
+        rReplaceEscape          = /\\{/g,
 
-        if (typeof console != strUndef && console.error) {
-            async(function(){
-                if (e) {
-                    console.error(e);
+        observer                = new Observable,
+
+        //parent, userData, recursive
+        factory                 = function(scope, origin, opt) {
+
+            if (!origin || !origin.indexOf ||
+                (origin.indexOf(startSymbol) === -1 &&
+                 origin.indexOf(savedBoundary) === -1)) {
+
+                if (opt.force) {
+                    return new TextRenderer(
+                        scope,
+                        startSymbol + origin + endSymbol,
+                        opt
+                    );
                 }
-                if (stack) {
-                    console.error(stack);
-                }
-            });
-        }
-        else {
-            throw e;
-        }
-    };
 
-    error.on = function(fn, context) {
-        error.un(fn, context);
-        listeners.push([fn, context]);
-    };
-
-    error.un = function(fn, context) {
-        var i, l;
-        for (i = 0, l = listeners.length; i < l; i++) {
-            if (listeners[i][0] === fn && listeners[i][1] === context) {
-                listeners.splice(i, 1);
-                break;
-            }
-        }
-    };
-
-    return error;
-}());
-
-
-
-
-
-var functionFactory = function() {
-
-    var REG_REPLACE_EXPR    = /(^|[^a-z0-9_$\]\)'"])(\.)([^0-9])/ig,
-
-        f               = Function,
-        fnBodyStart     = 'try {',
-        //getterBodyEnd   = ';} catch (thrownError) { return $$interceptor(thrownError, $$itself, ____); }',
-        //setterBodyEnd   = ';} catch (thrownError) { return $$interceptor(thrownError, $$itself, ____, $$$$); }',
-        getterBodyEnd   = ';} catch (thrownError) { return undefined; }',
-        setterBodyEnd   = ';} catch (thrownError) { return undefined; }',
-
-
-        /*interceptor     = function(thrownError, func, scope, value) {
-
-            while (scope && !scope.$isRoot) {
-
-                scope = scope.$parent;
-
-                if (scope) {
-
-                    try {
-                        if (arguments.length == 4) {
-                            return func.call(null, scope, value, emptyFn, func);
-                        }
-                        else {
-                            return func.call(null, scope, emptyFn, func);
-                        }
-                    }
-                    catch (newError) {}
-                }
+                return null;
             }
 
-            if (thrownError !== null) {
-                error(thrownError);
-            }
-
-            return undf;
-        },*/
-
-        isFailed        = function(val) {
-            return val === undf || (typeof val == "number" && isNaN(val));
-        },
-
-        wrapFunc        = function(func, returnsValue) {
-            return function(scope) {
-                var args = slice.call(arguments),
-                    val;
-
-                //args.push(interceptor);
-                args.push(null);
-                args.push(func);
-
-                val = func.apply(null, args);
-                return isFailed(val) ? undf : val;
-
-                /*if (returnsValue) {
-                    val = func.apply(null, args);
-                    while (isFailed(val) && !scope.$isRoot) {
-                        scope = scope.$parent;
-                        args[0] = scope;
-                        val = func.apply(null, args);
-                    }
-                    return val;
-                }
-                else {
-                    return func.apply(null, args);
-                }*/
-
-                /*if (returnsValue && isFailed(val)) {//) {
-                    args = slice.call(arguments);
-                    args.unshift(func);
-                    args.unshift(null);
-                    return interceptor.apply(null, args);
-                }
-                else {
-                    return val;
-                }*/
-            };
-        },
-
-        getterCache     = {},
-        getterCacheCnt  = 0,
-
-        createGetter    = function createGetter(expr) {
-
-            try {
-                if (!getterCache[expr]) {
-                    getterCacheCnt++;
-                    return getterCache[expr] = wrapFunc(new f(
-                        '____',
-                        '$$interceptor',
-                        '$$itself',
-                        "".concat(fnBodyStart, 'return ', expr.replace(REG_REPLACE_EXPR, '$1____.$3'), getterBodyEnd)
-                    ), true);
-                }
-                return getterCache[expr];
-            }
-            catch (thrownError){
-                error(thrownError);
-                return emptyFn;
-            }
-        },
-
-        setterCache     = {},
-        setterCacheCnt  = 0,
-
-        createSetter    = function createSetter(expr) {
-            try {
-                if (!setterCache[expr]) {
-                    setterCacheCnt++;
-                    var code = expr.replace(REG_REPLACE_EXPR, '$1____.$3');
-                    return setterCache[expr] = wrapFunc(new f(
-                        '____',
-                        '$$$$',
-                        '$$interceptor',
-                        '$$itself',
-                        "".concat(fnBodyStart, code, ' = $$$$', setterBodyEnd)
-                    ));
-                }
-                return setterCache[expr];
-            }
-            catch (thrownError) {
-                error(thrownError);
-                return emptyFn;
-            }
-        },
-
-        funcCache       = {},
-        funcCacheCnt    = 0,
-
-        createFunc      = function createFunc(expr) {
-            try {
-                if (!funcCache[expr]) {
-                    funcCacheCnt++;
-                    return funcCache[expr] = wrapFunc(new f(
-                        '____',
-                        '$$interceptor',
-                        '$$itself',
-                        "".concat(fnBodyStart, expr.replace(REG_REPLACE_EXPR, '$1____.$3'), getterBodyEnd)
-                    ));
-                }
-                return funcCache[expr];
-            }
-            catch (thrownError) {
-                error(thrownError);
-                return emptyFn;
-            }
-        },
-
-        resetCache = function() {
-            getterCacheCnt >= 1000 && (getterCache = {});
-            setterCacheCnt >= 1000 && (setterCache = {});
-            funcCacheCnt >= 1000 && (funcCache = {});
+            return new TextRenderer(scope, origin, opt);
         };
 
-    return {
-        createGetter: createGetter,
-        createSetter: createSetter,
-        createFunc: createFunc,
-        resetCache: resetCache,
-        enableResetCacheInterval: function() {
-            setTimeout(resetCache, 10000);
-        }
-    };
-}();
+    var TextRenderer = defineClass({
 
+        $class: "TextRenderer",
 
-
-var createGetter = functionFactory.createGetter;
-
-
-
-
-var createSetter = functionFactory.createSetter;
-
-
-
-var Watchable = function(){
-
-    var nativeObserver  = Object.observe && isNative(Object.observe),
-
-        isStatic    = function(val) {
-
-            if (!isString(val)) {
-                return true;
-            }
-
-            var first   = val.substr(0, 1),
-                last    = val.length - 1;
-
-            if (first == '"' || first == "'") {
-                if (val.indexOf(first, 1) == last) {
-                    return val.substring(1, last);
-                }
-            }
-
-            return false;
-        },
-
-        prescription2moves = function(a1, a2, prs, getKey) {
-
-            var newPrs = [],
-                i, l, k, action,
-                map1 = {},
-                prsi,
-                a2i,
-                index;
-
-            for (i = 0, l = a1.length; i < l; i++) {
-                k = getKey(a1[i]);
-                if (k) {
-                    map1[k] = i;
-                }
-            }
-
-            a2i = 0;
-            var used = {};
-
-            for (prsi = 0, l = prs.length; prsi < l; prsi++) {
-
-                action = prs[prsi];
-
-                if (action == 'D') {
-                    continue;
-                }
-
-                k = getKey(a2[a2i]);
-
-                if (k != undf && used[k] !== true && (index = map1[k]) !== undf) {
-                    newPrs.push(index);
-                    used[k] = true;
-                }
-                else {
-                    newPrs.push(action);
-                }
-                a2i++;
-            }
-
-            return newPrs;
-        },
-
-
-        observable;
-
-    /**
-     * @class Watchable
-     */
-
-    /**
-     * @param {object} dataObj object containing observed property
-     * @param {string} code property name or custom code
-     * @param {function} fn optional listener
-     * @param {object} fnScope optional listener's "this" object
-     * @param {*} userData optional data to pass to the listener
-     * @param {Namespace} namespace optional namespace to get filters and pipes from
-     * @constructor
-     */
-    var Watchable   = function(dataObj, code, fn, fnScope, userData, namespace) {
-
-        if (!observable) {
-            observable  = new Observable;
-        }
-
-        var self    = this,
-            id      = nextUid(),
-            type,
-            useObserver = false;
-
-        if (namespace) {
-            self.namespace = namespace;
-            self.nsGet = namespace.get;
-        }
-
-        self.origCode = code;
-
-        if (!isString(code)) {
-            fnScope = fn;
-            fn      = code;
-            code    = null;
-            type    = "object";
-        }
-        if (isString(dataObj)) {
-            fnScope = fn;
-            fn      = code;
-            code    = dataObj;
-            dataObj = null;
-        }
-
-        if (code && dataObj) {
-            type    = dataObj.hasOwnProperty(code) ? "attr" : "expr";
-        }
-        if (code && !dataObj) {
-            type    = "expr";
-        }
-
-
-        if (fn) {
-            observable.on(id, fn, fnScope || this, {
-                append: [userData],
-                allowDupes: true
-            });
-        }
-
-        if (type == "expr") {
-            code        = self._parsePipes(code, dataObj, true);
-            code        = self._parsePipes(code, dataObj, false);
-
-            if (self.inputPipes || self.pipes) {
-                code    = normalizeExpr(dataObj, code);
-                type    = dataObj.hasOwnProperty(code) ? "attr" : "expr";
-            }
-
-            if (self.staticValue = isStatic(code)) {
-                type    = "static";
-            }
-        }
-
-        self.userData   = userData;
-        self.code       = code;
-        self.id         = id;
-        self.type       = type;
-        self.obj        = dataObj;
-
-        if (type == "expr") {
-            self.getterFn   = createGetter(code);
-        }
-
-        // Object.observe() doesn't work with expressions and may confuse more than help.
-        // so the only thing it does on change, it sets changed flag
-        // so that on the next digest cycle there wouldn't be any need
-        // to compare values.
-
-        // upd: still, the change event happens _after_ digest cycle
-        // so lets think some more. :(
-
-        /*if (type == "attr" && nativeObserver && !self.pipes && !self.inputPipes) {
-            self.curr   = self._getValue();
-            useObserver = isPrimitive(self.curr);
-        }
-        useObserver = false;*/
-
-        if (type != "static" || self.pipes) {
-            self.curr = self.curr || self._getValue();
-            self.currCopy = isPrimitive(self.curr) ? self.curr : copy(self.curr);
-        }
-        else {
-            self.check = returnFalse;
-            self.curr = self.prev = self.staticValue;
-        }
-
-        /*if (useObserver) {
-            self.obsrvDelegate = bind(self.onObserverChange, self);
-            Object.observe(self.obj, self.obsrvDelegate);
-        }*/
-    };
-
-    extend(Watchable.prototype, {
-
-        namespace: null,
-        nsGet: null,
-        staticValue: null,
-        origCode: null,
-        code: null,
-        getterFn: null,
-        setterFn: null,
         id: null,
-        type: null,
-        obj: null,
-        itv: null,
-        curr: null,
-        currCopy: null,
-        prev: null,
-        unfiltered: null,
-        pipes: null,
-        inputPipes: null,
-        lastSetValue: null,
-        userData: null,
-        obsrvDelegate: null,
-        obsrvChanged: false,
+        parent: null,
+        isRoot: null,
+        scope: null,
+        origin: "",
+        processed: null,
+        text: null,
+        watchers: null,
+        children: null,
+        data: null,
+        recursive: false,
+        dataChangeDelegate: null,
+        changeTmt: null,
+        lang: null,
+        boundary: null,
+        mock: null,
 
+        //parent, userData, recursive, boundary, mock
+        $init: function(scope, origin, opt) {
 
-        _indexArrayItems: function(a) {
+            opt = opt || {};
 
-            var key = '$$' + this.id,
-                i, l, item;
+            var self        = this;
 
-            if (a) {
-                for (i = 0, l = a.length; i < l; i++) {
-                    item = a[i];
-                    if (item && !isPrimitive(item) && !item[key]) {
-                        item[key] = nextUid();
-                    }
-                }
+            self.id         = nextUid();
+            self.origin     = origin;
+            self.scope      = scope;
+            self.parent     = opt.parent;
+            self.isRoot     = !opt.parent;
+            self.data       = opt.userData;
+            self.lang       = scope.$app ? scope.$app.lang : null;
+            self.boundary   = opt.boundary || "---";
+            self.mock       = opt.mock;
+
+            if (opt.recursive === true || opt.recursive === false) {
+                self.recursive = opt.recursive;
             }
+
+            self.watchers   = [];
+            self.children   = [];
+
+            self.dataChangeDelegate = bind(self.doDataChange, self);
+            self.processed  = self.processText(origin, self.mock);
+            self.render();
+        },
+
+        subscribe: function(fn, context) {
+            return observer.on(this.id, fn, context);
+        },
+
+        unsubscribe: function(fn, context) {
+            return observer.un(this.id, fn, context);
+        },
+
+        getString: function() {
+            var self = this;
+
+            if (isNull(self.text)) {
+                self.render();
+            }
+
+            var text = self.text || "";
+
+            if (text.indexOf('\\{') !== -1) {
+                return text.replace(rReplaceEscape, '{');
+            }
+
+            return text;
         },
 
 
-        _parsePipes: function(text, dataObj, input) {
+        render: function() {
+
+            var self    = this,
+                text    = self.processed,
+                b       = self.boundary,
+                i, l,
+                str,
+                ch;
+
+            if (!self.children.length) {
+                self.createChildren();
+            }
+
+            ch = self.children;
+
+            for (i = -1, l = ch.length; ++i < l;) {
+                str = ch[i] instanceof TextRenderer ? ch[i].getString() : ch[i];
+                text = text.replace(
+                    b + i + b,
+                    str === null ? "" : str
+                );
+            }
+
+            self.text = text;
+
+            return text;
+        },
+
+
+
+        processText: function(text, mock) {
+
+            /*
+             arguably, str += "" is faster than separators.push() + separators.join()
+             well, at least in my Firefox it is so.
+             */
 
             var self        = this,
-                separator   = input ? ">>" : "|",
-                propName    = input ? "inputPipes" : "pipes",
-                cb          = input ? self.onInputParamChange : self.onPipeParamChange;
+                index       = 0,
+                textLength  = text.length,
+                startIndex,
+                endIndex,
+                result      = "";
 
-            if (text.indexOf(separator) == -1) {
-                return text;
-            }
+            while(index < textLength) {
+                if (((startIndex = text.indexOf(startSymbol, index)) !== -1) &&
+                    ((endIndex = text.indexOf(endSymbol, startIndex + startSymbolLength)) !== -1) &&
+                    text.substr(startIndex - 1, 1) !== '\\') {
 
-            var parts   = split(text, separator),
-                ret     = input ? parts.pop() : parts.shift(),
-                pipes   = [],
-                pipe,
-                i, l;
+                    result += text.substring(index, startIndex);
 
-            for(i = 0, l = parts.length; i < l; i++) {
-                pipe = split(trim(parts[i]), ':');
-                self._addPipe(pipes, pipe, dataObj, cb);
-            }
-
-            if (pipes.length) {
-                self[propName] = pipes;
-            }
-
-            return trim(ret);
-        },
-
-        _addPipe: function(pipes, pipe, dataObj, onParamChange) {
-
-            var self    = this,
-                name    = pipe.shift(),
-                fn      = null,
-                ws      = [],
-                negative= false,
-                i, l;
-
-            if (name.substr(0,1) == "!") {
-                name = name.substr(1);
-                negative = true;
-            }
-
-            if (self.nsGet) {
-                fn      = self.nsGet("filter." + name, true);
-            }
-            if (!fn) {
-                fn      = (typeof window != "undefined" ? window[name] : null) || dataObj[name];
-            }
-
-            if (isFunction(fn)) {
-
-                for (i = -1, l = pipe.length; ++i < l;
-                     ws.push(create(dataObj, pipe[i], onParamChange, self, null, self.namespace))) {}
-
-                pipes.push([fn, pipe, ws, negative]);
-            }
-        },
-
-
-        _getValue: function() {
-
-            var self    = this,
-                val;
-
-            switch (self.type) {
-                case "static":
-                    val = self.staticValue;
-                    break;
-
-                case "attr":
-                    val = self.obj[self.code];
-                    break;
-                case "expr":
-                    val = self.getterFn(self.obj);
-                    break;
-                case "object":
-                    val = self.obj;
-                    break;
-            }
-
-
-            if (isArray(val)) {
-                if (!self.inputPipes) {
-                    self._indexArrayItems(val);
-                }
-                val = val.slice();
-            }
-
-            self.unfiltered = val;
-
-            val = self._runThroughPipes(val, self.pipes);
-
-            return val;
-        },
-
-
-        _runThroughPipes: function(val, pipes) {
-
-            if (pipes) {
-                var j,
-                    args,
-                    exprs,
-                    self    = this,
-                    jlen    = pipes.length,
-                    dataObj = self.obj,
-                    neg,
-                    z, zl;
-
-                for (j = 0; j < jlen; j++) {
-                    exprs   = pipes[j][1];
-                    neg     = pipes[j][3];
-                    args    = [];
-                    for (z = -1, zl = exprs.length; ++z < zl;
-                         args.push(evaluate(exprs[z], dataObj))){}
-
-                    args.unshift(dataObj);
-                    args.unshift(val);
-
-                    val     = pipes[j][0].apply(null, args);
-
-                    if (neg) {
-                        val = !val;
+                    if (endIndex !== startIndex + startSymbolLength) {
+                        result += self.watcherMatch(
+                            text.substring(startIndex + startSymbolLength, endIndex),
+                            mock
+                        );
                     }
-                }
-            }
 
-            return val;
-        },
+                    index = endIndex + endSymbolLength;
 
-        /**
-         * Subscribe to the change event
-         * @method
-         * @param {function} fn listener
-         * @param {object} fnScope listener's "this" object
-         * @param {object} options see Observable's options in on()
-         */
-        subscribe: function(fn, fnScope, options) {
-            observable.on(this.id, fn, fnScope, options);
-        },
-
-        /**
-         * Unsubscribe from change event
-         * @param {function} fn
-         * @param {object} fnScope
-         * @returns {*}
-         */
-        unsubscribe: function(fn, fnScope) {
-            return observable.un(this.id, fn, fnScope);
-        },
-
-        /**
-         * @returns {boolean}
-         */
-        hasPipes: function() {
-            return this.pipes !== null;
-        },
-
-        /**
-         * @returns {boolean}
-         */
-        hasInputPipes: function() {
-            return this.inputPipes != null;
-        },
-
-        /**
-         * Get current value (filtered and via executing the code)
-         * @returns {*}
-         */
-        getValue: function() {
-            return this._getValue();
-        },
-
-        /**
-         * Get last calculated value before filters were applied
-         * @returns {*}
-         */
-        getUnfilteredValue: function() {
-            return this.unfiltered || this.curr;
-        },
-
-        /**
-         * Get previous value
-         * @returns {*}
-         */
-        getPrevValue: function() {
-            return this.prev;
-        },
-
-        /**
-         * Get simple array change prescription
-         * @param {[]} from optional
-         * @param {[]} to optional
-         * @returns {[]}
-         */
-        getPrescription: function(from, to) {
-            to = to || this._getValue();
-            return levenshteinArray(from || [], to || []).prescription;
-        },
-
-        /**
-         * Get array change prescription with moves
-         * @param {[]} from
-         * @param {function} trackByFn
-         * @param {[]} to
-         * @returns {[]}
-         */
-        getMovePrescription: function(from, trackByFn, to) {
-
-            var self    = this;
-                to      = to || self._getValue();
-
-            return prescription2moves(
-                from || [],
-                to || [],
-                self.getPrescription(from || [], to || []),
-                trackByFn
-            );
-        },
-
-        /**
-         * Set value to observed property
-         * @param {*} val
-         */
-        setValue: function(val) {
-
-            var self    = this,
-                type    = self.type;
-
-            self.lastSetValue = val;
-
-            val = self._runThroughPipes(val, self.inputPipes);
-
-            if (type == "attr") {
-                self.obj[self.code] = val;
-            }
-            else if (type == "expr") {
-
-                if (!self.setterFn) {
-                    self.setterFn   = createSetter(self.code);
-                }
-
-                self.setterFn(self.obj, val);
-            }
-            else if (type == "object") {
-                self.obj = val;
-            }
-        },
-
-        onInputParamChange: function(val, prev, async) {
-            this.setValue(this.lastSetValue);
-            if (async) {
-                this.checkAll();
-            }
-        },
-
-        onPipeParamChange: function(val, prev, async) {
-            this.check();
-        },
-
-        onObserverChange: function(changes) {
-
-            var self = this,
-                code = self.code,
-                i, l,
-                change;
-
-            for (i = 0, l = changes.length; i < l; i++) {
-                change = changes[i];
-                if (change.name == code) {
-                    self.obsrvChanged = true;
+                } else {
+                    // we did not find an interpolation
+                    if (index !== textLength) {
+                        result += text.substring(index);
+                    }
                     break;
                 }
             }
-        },
 
-        _check: function(async) {
 
-            var self    = this,
-                val     = self._getValue(),
-                curr    = self.currCopy,
-                eq;
+            //saved keys
+            /*index       = 0;
+            text        = result;
+            textLength  = text.length;
+            result      = "";
+            var bndLen      = savedBoundary.length,
+                getterid;
 
-            if (self.obsrvDelegate) {
-                eq      = !self.obsrvChanged;
-            }
-            else {
-                eq      = equals(curr, val);
-            }
+            while(index < textLength) {
+                if (((startIndex = text.indexOf(savedBoundary, index)) !== -1) &&
+                    (endIndex = text.indexOf(savedBoundary, startIndex + bndLen)) !== -1) {
 
-            if (!eq) {
-                self.curr = val;
-                self.prev = curr;
-                self.currCopy = isPrimitive(val) ? val : copy(val);
-                self.obsrvChanged = false;
-                observable.trigger(self.id, val, curr, async);
-                return true;
-            }
+                    result += text.substring(index, startIndex);
 
-            return false;
-        },
+                    getterid    = text.substring(startIndex, endIndex + bndLen);
+                    getterid    = getterid.replace(savedBoundary, "");
+                    getterid    = parseInt(getterid);
 
-        /**
-         * Check for changes
-         * @param {bool} async
-         * @returns {bool}
-         */
-        check: function(async) {
-            return this._check(async);
-        },
+                    result += self.watcherMatch(
+                        getterid,
+                        mock
+                    );
 
-        /**
-         * Check all observed properties for changes
-         * @returns {bool}
-         */
-        checkAll: function() {
-            return this.obj.$$watchers.$checkAll();
-        },
-
-        /**
-         * Get last calculated value (with filters and pipes)
-         * @returns {*}
-         */
-        getLastResult: function() {
-            return this.curr;
-        },
-
-        /**
-         * Set time interval to check for changes periodically
-         * @param {number} ms
-         */
-        setInterval: function(ms) {
-
-            var self    = this;
-            if (self.itv) {
-                self.clearInterval();
-            }
-            self.itv = setInterval(function(){self.check();}, ms);
-        },
-
-        /**
-         * Clear check interval
-         * @method
-         */
-        clearInterval: function() {
-            var self    = this;
-            if (self.itv) {
-                clearInterval(self.itv);
-                self.itv = null;
-            }
-        },
-
-        /**
-         * Unsubscribe and destroy if there are no other listeners
-         * @param {function} fn
-         * @param {object} fnScope
-         * @returns {boolean} true if destroyed
-         */
-        unsubscribeAndDestroy: function(fn, fnScope) {
-
-            var self    = this,
-                id      = self.id;
-
-            if (fn) {
-                observable.un(id, fn, fnScope);
-            }
-
-            if (!observable.hasListener(id)) {
-                self.destroy();
-                return true;
-            }
-
-            return false;
-        },
-
-        /**
-         * @method
-         */
-        destroy: function() {
-
-            var self    = this,
-                pipes   = self.pipes,
-                ipipes  = self.inputPipes,
-                i, il,
-                j, jl,
-                ws;
-
-            if (self.itv) {
-                self.clearInterval();
-            }
-
-            if (pipes) {
-                for (i = -1, il = pipes.length; ++i < il;) {
-                    ws = pipes[i][2];
-                    for (j = -1, jl = ws.length; ++j < jl;) {
-                        ws[j].unsubscribeAndDestroy(self.check, self);
+                    index = endIndex + bndLen;
+                } else {
+                    // we did not find an interpolation
+                    if (index !== textLength) {
+                        result += text.substring(index);
                     }
+                    break;
+                }
+            }*/
+
+            return result;
+        },
+
+        watcherMatch: function(expr, mock) {
+
+            var self        = this,
+                ws          = self.watchers,
+                b           = self.boundary,
+                w,
+                isLang      = false,
+                recursive   = self.recursive,
+                getter      = null;
+
+            expr        = trim(expr);
+
+            if (expr.substr(0,1) === '-') {
+                var inx = expr.indexOf(" "),
+                    mods = expr.substr(1,inx);
+                expr = expr.substr(inx);
+
+                if (!recursive && mods.indexOf("r") !== -1) {
+                    recursive = true;
+                }
+                if (mods.indexOf("l") !== -1) {
+                    isLang = true;
                 }
             }
-            if (ipipes) {
-                for (i = -1, il = ipipes.length; ++i < il;) {
-                    ws = ipipes[i][2];
-                    for (j = -1, jl = ws.length; ++j < jl;) {
-                        ws[j].unsubscribeAndDestroy(self.onInputParamChange, self);
-                    }
-                }
-            }
 
-            if (self.obsrvDelegate) {
-                Object.unobserve(self.obj, self.obsrvDelegate);
-            }
-
-            if (self.obj) {
-                //delete self.obj.$$watchers.$codes[self.origCode];
-                self.obj.$$watchers.$codes[self.origCode] = null;
-            }
-
-            observable.destroyEvent(self.id);
-
-            for (i in self) {
-                if (self.hasOwnProperty(i)){
-                    self[i] = null;
-                }
-            }
-        }
-    }, true, false);
-
-
-    /**
-     * @method
-     * @static
-     * @param {object} obj
-     * @param {string} code
-     * @param {function} fn
-     * @param {object} fnScope
-     * @param {*} userData
-     * @param {Namespace} namespace
-     * @returns {Watchable}
-     */
-    var create = function(obj, code, fn, fnScope, userData, namespace) {
-
-            code = normalizeExpr(obj, trim(code));
-
-            if (obj) {
-                if (!obj.$$watchers) {
-                    obj.$$watchers = {
-                        $codes: {},
-                        $checkAll: function() {
-
-                            var ws      = this.$codes,
-                                i,
-                                changes = 0;
-
-                            for (i in ws) {
-
-                                if (ws[i] && ws[i].check()) {
-                                    changes++;
-                                }
-                            }
-
-                            return changes;
-                        },
-                        $destroyAll: function() {
-
-                            var ws      = this.$codes,
-                                i;
-
-                            for (i in ws) {
-                                if (ws[i]) {
-                                    ws[i].destroy();
-                                    //delete ws[i];
-                                    ws[i] = null;
-                                }
-                            }
-                        }
-                    };
-                }
-
-                if (obj.$$watchers.$codes[code]) {
-                    obj.$$watchers.$codes[code].subscribe(fn, fnScope, {append: [userData], allowDupes: true});
+            /*if (typeof expr === "number") {
+                var getterId = expr;
+                if (typeof __MetaphorJsPrebuilt !== "undefined") {
+                    expr = __MetaphorJsPrebuilt['__tpl_getter_codes'][getterId];
+                    getter = __MetaphorJsPrebuilt['__tpl_getters'][getterId];
                 }
                 else {
-                    obj.$$watchers.$codes[code] = new Watchable(obj, code, fn, fnScope, userData, namespace);
+                    return "";
                 }
+            }*/
 
-                return obj.$$watchers.$codes[code];
-            }
-            else {
-                return new Watchable(obj, code, fn, fnScope, userData, namespace);
-            }
-        },
-
-        /**
-         * @method
-         * @static
-         * @param {object} obj
-         * @param {string} code
-         * @param {function} fn
-         * @param {object} fnScope
-         */
-        unsubscribeAndDestroy = function(obj, code, fn, fnScope) {
-            code = trim(code);
-
-            var ws = obj.$$watchers ? obj.$$watchers.$codes : null;
-
-            if (ws && ws[code] && ws[code].unsubscribeAndDestroy(fn, fnScope)) {
-                //delete ws[code];
-                ws[code] = null;
-            }
-        },
-
-        /**
-         * Normalize expression
-         * @param {object} dataObj
-         * @param {string} expr
-         * @returns {string}
-         */
-        normalizeExpr = function(dataObj, expr) {
-            if (dataObj && expr) {
-                if (dataObj.hasOwnProperty(expr)) {
-                    return expr;
-                }
-                var prop;
-                if (expr.charAt(0) == '.') {
-                    prop = expr.substr(1);
-                    if (dataObj.hasOwnProperty(prop)) {
-                        return prop;
+            w = createWatchable(
+                self.scope,
+                expr,
+                self.onDataChange,
+                self,
+                {
+                    filterLookup: filterLookup, mock: mock, getterFn: getter,
+                    userData: {
+                        recursive: recursive
                     }
                 }
+            );
+
+            if (isLang && !w.hasPipe("l")) {
+                w.addPipe("l");
             }
-            return expr;
+
+            ws.push(w);
+
+            return b + (ws.length-1) + b;
         },
 
-        /**
-         * Evaluate code against object
-         * @param {string} expr
-         * @param {object} scope
-         * @returns {*}
-         */
-        evaluate    = function(expr, scope) {
-            var val;
-            if (val = isStatic(expr)) {
-                return val;
+        onDataChange: function() {
+
+            var self    = this;
+
+            if (!self.changeTmt) {
+                self.changeTmt = setTimeout(self.dataChangeDelegate, 0);
             }
-            return createGetter(expr)(scope);
-        };
+        },
+
+        doDataChange: function() {
+            var self = this;
+            self.destroyChildren();
+            self.triggerChange();
+            self.changeTmt = null;
+        },
+
+        triggerChange: function() {
+
+            var self    = this;
+            self.text   = null;
+
+            if (self.isRoot) {
+                observer.trigger(self.id, self, self.data);
+            }
+            else {
+                self.parent.triggerChange();
+            }
+        },
 
 
+        createChildren: function() {
 
-    Watchable.create = create;
-    Watchable.unsubscribeAndDestroy = unsubscribeAndDestroy;
-    Watchable.normalizeExpr = normalizeExpr;
-    Watchable.eval = evaluate;
-    Watchable.usesNativeObserver = function() {
-        return nativeObserver;
-    };
+            var self    = this,
+                ws      = self.watchers,
+                ch      = self.children,
+                scope   = self.scope,
+                rec     = false,
+                i, l,
+                val;
 
-    return Watchable;
+            for (i = -1, l = ws.length; ++i < l; ){
+                val     = ws[i].getLastResult();
+
+                //TODO: watcher must have userData!
+                // if it doesn't, it was taken from cache and it is wrong
+                // because -rl flags may be different
+                rec     = self.recursive || (ws[i].userData && ws[i].userData.recursive);
+                if (val === undf) {
+                    val = "";
+                }
+                ch.push((rec && factory(scope, val, {parent: self, recursive: true})) || val);
+            }
+        },
+
+        destroyChildren: function() {
+
+            var self    = this,
+                ch      = self.children,
+                i, l;
+
+            for (i = -1, l = ch.length; ++i < l; ){
+                if (ch[i] instanceof TextRenderer) {
+                    ch[i].$destroy();
+                }
+            }
+
+            self.children = [];
+        },
+
+        destroyWatchers: function() {
+
+            var self    = this,
+                ws      = self.watchers,
+                i, l;
+
+            for (i = -1, l = ws.length; ++i < l;
+                 ws[i].unsubscribeAndDestroy(self.onDataChange, self)){}
+
+            self.watchers = [];
+        },
+
+        destroy: function() {
+
+            var self = this;
+
+            self.destroyChildren();
+            self.destroyWatchers();
+
+            observer.destroyEvent(self.id);
+
+            if (self.changeTmt) {
+                clearTimeout(self.changeTmt);
+            }
+        }
+
+    }, {
+        create: factory
+    });
+
+    return TextRenderer;
 }();
+
 
 
 
@@ -3618,6 +4533,7 @@ extend(Scope.prototype, {
     $$historyWatchers: null,
     $$checking: false,
     $$destroyed: false,
+    $$changing: false,
 
     $$tmt: null,
 
@@ -3665,7 +4581,7 @@ extend(Scope.prototype, {
     },
 
     $watch: function(expr, fn, fnScope) {
-        return Watchable.create(this, expr, fn, fnScope, null);
+        return Watchable.create(this, expr, fn, fnScope);
     },
 
     $unwatch: function(expr, fn, fnScope) {
@@ -3716,7 +4632,7 @@ extend(Scope.prototype, {
         var self = this,
             name;
 
-        if (typeof fn == "string") {
+        if (typeof fn === "string") {
             name = fn;
             fn = context[name];
         }
@@ -3750,7 +4666,7 @@ extend(Scope.prototype, {
 
     $set: function(key, value) {
         var self = this;
-        if (typeof key == "string") {
+        if (typeof key === "string") {
             this[key] = value;
         }
         else {
@@ -3811,7 +4727,15 @@ extend(Scope.prototype, {
         }
 
         if (changes > 0) {
+            self.$$changing = true;
             self.$check();
+        }
+        else {
+            // finished changing after all iterations
+            if (self.$$changing) {
+                self.$$changing = false;
+                self.$$observable.trigger("changed");
+            }
         }
     },
 
@@ -3865,1369 +4789,90 @@ extend(Scope.prototype, {
 
 
 /**
- * @param {*} list
- * @returns {[]}
+ * @param {Element} elem
  */
-function toArray(list) {
-    if (list && !list.length != undf && list !== ""+list) {
-        for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]){}
-        return a;
-    }
-    else if (list) {
-        return [list];
-    }
-    else {
-        return [];
-    }
-};
+var getValue = function(){
 
 
+    var rreturn = /\r/,
 
-/**
- * Returns 'then' function or false
- * @param {*} any
- * @returns {Function|boolean}
- */
-function isThenable(any) {
+        hooks = {
 
-    // any.then must only be accessed once
-    // this is a promise/a+ requirement
+        option: function(elem) {
+            var val = elem.getAttribute("value") || elem.value;
 
-    if (!any) { //  || !any.then
-        return false;
-    }
-    var then, t;
-
-    //if (!any || (!isObject(any) && !isFunction(any))) {
-    if (((t = typeof any) != "object" && t != "function")) {
-        return false;
-    }
-    return isFunction((then = any.then)) ?
-           then : false;
-};
-
-
-
-
-var createWatchable = Watchable.create;
-
-
-
-var nsAdd = ns.add;
-
-
-
-var nsGet = ns.get;
-
-
-
-
-
-var Directive = function(){
-
-    var attributes          = [],
-        tags                = [],
-        attributesSorted    = false,
-
-        compare             = function(a, b) {
-            //if (a is less than b by some ordering criterion)
-            if (a.priority < b.priority) {
-                return -1;
-            }
-
-            //if (a is greater than b by the ordering criterion)
-            if (a.priority > b.priority) {
-                return 1;
-            }
-
-            // a must be equal to b
-            return 0;
-        };
-
-    return defineClass({
-
-        $class: "Directive",
-
-        watcher: null,
-        scope: null,
-        node: null,
-        expr: null,
-
-        autoOnChange: true,
-
-        $init: function(scope, node, expr) {
-
-            var self        = this,
-                val;
-
-            expr            = trim(expr);
-
-            self.node       = node;
-            self.expr       = expr;
-            self.scope      = scope;
-            self.watcher    = createWatchable(scope, expr, self.onChange, self, null, ns);
-
-            if (self.autoOnChange && (val = self.watcher.getLastResult()) !== undf) {
-                self.onChange(val, undf);
-            }
-
-            scope.$on("destroy", self.onScopeDestroy, self);
-            scope.$on("reset", self.onScopeReset, self);
+            return val !== undf ?
+                   val :
+                   trim( elem.innerText || elem.textContent );
         },
 
-        onScopeDestroy: function() {
-            this.$destroy();
-        },
+        select: function(elem) {
 
-        onScopeReset: function() {
+            var value, option,
+                options = elem.options,
+                index = elem.selectedIndex,
+                one = elem.type === "select-one" || index < 0,
+                values = one ? null : [],
+                max = one ? index + 1 : options.length,
+                disabled,
+                i = index < 0 ?
+                    max :
+                    one ? index : 0;
 
-        },
+            // Loop through all the selected options
+            for ( ; i < max; i++ ) {
+                option = options[ i ];
 
-        onChange: function() {},
+                disabled = option.disabled ||
+                           option.parentNode.disabled;
 
-        destroy: function() {
-            var self    = this;
+                // IE6-9 doesn't update selected after form reset (#2551)
+                if ((option.selected || i === index) && !disabled ) {
+                    // Get the specific value for the option
+                    value = getValue(option);
 
-            if (self.scope) {
-                self.scope.$un("destroy", self.onScopeDestroy, self);
-                self.scope.$un("reset", self.onScopeReset, self);
+                    // We don't need an array for one selects
+                    if ( one ) {
+                        return value;
+                    }
+
+                    // Multi-Selects return an array
+                    values.push( value );
+                }
             }
 
-            if (self.watcher) {
-                self.watcher.unsubscribeAndDestroy(self.onChange, self);
-            }
+            return values;
+        },
 
-            self.$super();
+        radio: function( elem ) {
+            return isNull(elem.getAttribute("value")) ? "on" : elem.value;
+        },
+
+        checkbox: function( elem ) {
+            return isNull(elem.getAttribute("value")) ? "on" : elem.value;
         }
-    }, {
+    };
 
+    return function(elem) {
 
-        registerAttribute: function registerAttribute(name, priority, handler) {
-            if (!nsGet("attr." + name, true)) {
-                attributes.push({
-                    priority: priority,
-                    name: name,
-                    handler: nsAdd("attr." + name, handler)
-                });
-                attributesSorted = false;
-            }
-        },
+        var hook, ret;
 
-        getAttributes: function getAttributes() {
-            if (!attributesSorted) {
-                attributes.sort(compare);
-                attributesSorted = true;
-            }
-            return attributes;
-        },
+        hook = hooks[elem.type] || hooks[elem.nodeName.toLowerCase()];
 
-        registerTag: function registerTag(name, handler) {
-            if (!nsGet("tag." + name, true)) {
-                nsAdd("tag." + name, handler)
-            }
+        if (hook && (ret = hook(elem, "value")) !== undf) {
+            return ret;
         }
 
-    });
+        ret = elem.value;
 
+        return isString(ret) ?
+            // Handle most common string cases
+               ret.replace(rreturn, "") :
+            // Handle cases where value is null/undef or number
+               ret == null ? "" : ret;
+
+    };
 }();
-
-
-
-
-function isNull(value) {
-    return value === null;
-};
-
-
-
-
-
-var TextRenderer = function(){
-
-    var startSymbol             = '{{',
-        endSymbol               = '}}',
-        startSymbolLength       = 2,
-        endSymbolLength         = 2,
-
-        langStartSymbol         = '{[',
-        langEndSymbol           = ']}',
-        langStartLength         = 2,
-        langEndLength           = 2,
-
-        rReplaceEscape          = /\\{/g,
-
-        observer                = new Observable,
-
-        factory                 = function(scope, origin, parent, userData, recursive) {
-
-            if (!origin || !origin.indexOf ||
-                (origin.indexOf(startSymbol) == -1 &&
-                 origin.indexOf(langStartSymbol) == -1)) {
-                return null;
-            }
-
-            return new TextRenderer(scope, origin, parent, userData, recursive);
-        };
-
-    var TextRenderer = defineClass({
-
-        $class: "TextRenderer",
-
-        id: null,
-        parent: null,
-        isRoot: null,
-        scope: null,
-        origin: "",
-        processed: null,
-        text: null,
-        watchers: null,
-        children: null,
-        data: null,
-        recursive: false,
-        dataChangeDelegate: null,
-        changeTmt: null,
-        lang: null,
-
-        $init: function(scope, origin, parent, userData, recursive) {
-
-            var self        = this;
-
-            self.id         = nextUid();
-            self.origin     = origin;
-            self.scope      = scope;
-            self.parent     = parent;
-            self.isRoot     = !parent;
-            self.data       = userData;
-            self.lang       = scope.$app ? scope.$app.lang : null;
-
-            if (recursive === true || recursive === false) {
-                self.recursive = recursive;
-            }
-
-            self.watchers   = [];
-            self.children   = [];
-
-            self.dataChangeDelegate = bind(self.doDataChange, self);
-            self.processed  = self.processText(origin);
-            self.render();
-        },
-
-        subscribe: function(fn, context) {
-            return observer.on(this.id, fn, context);
-        },
-
-        unsubscribe: function(fn, context) {
-            return observer.un(this.id, fn, context);
-        },
-
-        getString: function() {
-            var self = this;
-
-            if (isNull(self.text)) {
-                self.render();
-            }
-
-            var text = self.text;
-
-            if (text.indexOf('\\{') != -1) {
-                return text.replace(rReplaceEscape, '{');
-            }
-
-            return text;
-        },
-
-
-        render: function() {
-
-            var self    = this,
-                text    = self.processed,
-                i, l,
-                ch;
-
-            if (!self.children.length) {
-                self.createChildren();
-            }
-
-            ch = self.children;
-
-            for (i = -1, l = ch.length; ++i < l;
-                 text = text.replace(
-                     '---' + i + '---',
-                     ch[i] instanceof TextRenderer ? ch[i].getString() : ch[i]
-                 )) {}
-
-            self.text = text;
-
-            return text;
-        },
-
-
-
-        processText: function(text) {
-
-            /*
-             arguably, str += "" is faster than separators.push() + separators.join()
-             well, at least in my Firefox it is so.
-             */
-
-            var self        = this,
-                index       = 0,
-                textLength  = text.length,
-                startIndex,
-                endIndex,
-                result      = "";
-            //separators  = [];
-
-            // regular keys
-            while(index < textLength) {
-                if (((startIndex = text.indexOf(startSymbol, index)) != -1) &&
-                    ((endIndex = text.indexOf(endSymbol, startIndex + startSymbolLength)) != -1) &&
-                    text.substr(startIndex - 1, 1) != '\\') {
-
-                    result += text.substring(index, startIndex);
-
-                    if (endIndex != startIndex + startSymbolLength) {
-                        result += self.watcherMatch(
-                            text.substring(startIndex + startSymbolLength, endIndex)
-                        );
-                    }
-
-                    index = endIndex + endSymbolLength;
-
-                } else {
-                    // we did not find an interpolation
-                    if (index !== textLength) {
-                        result += text.substring(index);
-                    }
-                    break;
-                }
-            }
-
-            index       = 0;
-            text        = result;
-            textLength  = text.length;
-            result      = "";
-            //separators  = [];
-
-            // lang keys
-            while(index < textLength) {
-
-                if (((startIndex = text.indexOf(langStartSymbol, index)) != -1) &&
-                    ((endIndex = text.indexOf(langEndSymbol, startIndex + langStartLength)) != -1) &&
-                    text.substr(startIndex - 1, 1) != '\\') {
-
-                    result += text.substring(index, startIndex);
-
-                    if (endIndex != startIndex + langStartLength) {
-                        result += self.watcherMatch(
-                            text.substring(startIndex + langStartLength, endIndex),
-                            true
-                        );
-                    }
-
-                    index = endIndex + langEndLength;
-
-                } else {
-                    // we did not find an interpolation
-                    if (index !== textLength) {
-                        result += text.substring(index);
-                    }
-                    break;
-                }
-            }
-
-            return result;
-        },
-
-        watcherMatch: function(expr, isLang) {
-
-            var self    = this,
-                ws      = self.watchers;
-
-            if (isLang) {
-                expr        = trim(expr);
-                var tmp     = split(expr, "|"),
-                    key     = trim(tmp[0]);
-                if (key.substr(0, 1) != ".") {
-                    tmp[0]  = "'" + key + "'";
-                }
-                if (tmp.length == 1) {
-                    tmp.push("l");
-                }
-                expr        = tmp.join(" | ");
-            }
-
-            ws.push(createWatchable(
-                self.scope,
-                expr,
-                self.onDataChange,
-                self,
-                null,
-                ns
-            ));
-
-            return '---'+ (ws.length-1) +'---';
-        },
-
-        onDataChange: function() {
-
-            var self    = this;
-
-            if (!self.changeTmt) {
-                self.changeTmt = setTimeout(self.dataChangeDelegate, 0);
-            }
-        },
-
-        doDataChange: function() {
-            var self = this;
-            self.destroyChildren();
-            self.triggerChange();
-            self.changeTmt = null;
-        },
-
-        triggerChange: function() {
-
-            var self    = this;
-            self.text   = null;
-
-            if (self.isRoot) {
-                observer.trigger(self.id, self, self.data);
-            }
-            else {
-                self.parent.triggerChange();
-            }
-        },
-
-
-        createChildren: function() {
-
-            var self    = this,
-                ws      = self.watchers,
-                ch      = self.children,
-                scope   = self.scope,
-                rec     = self.recursive,
-                i, l,
-                val;
-
-            for (i = -1, l = ws.length; ++i < l; ){
-                val     = ws[i].getLastResult();
-                if (val === undf) {
-                    val = "";
-                }
-                ch.push((rec && factory(scope, val, self, null, true)) || val);
-            }
-        },
-
-        destroyChildren: function() {
-
-            var self    = this,
-                ch      = self.children,
-                i, l;
-
-            for (i = -1, l = ch.length; ++i < l; ){
-                if (ch[i] instanceof TextRenderer) {
-                    ch[i].$destroy();
-                }
-            }
-
-            self.children = [];
-        },
-
-        destroyWatchers: function() {
-
-            var self    = this,
-                ws      = self.watchers,
-                i, l;
-
-            for (i = -1, l = ws.length; ++i < l;
-                 ws[i].unsubscribeAndDestroy(self.onDataChange, self)){}
-
-            self.watchers = [];
-        },
-
-        destroy: function() {
-
-            var self = this;
-
-            self.destroyChildren();
-            self.destroyWatchers();
-
-            observer.destroyEvent(self.id);
-
-            if (self.changeTmt) {
-                clearTimeout(self.changeTmt);
-            }
-        }
-
-    }, {
-        create: factory
-    });
-
-    return TextRenderer;
-}();
-
-
-
-
-
-function setAttr(el, name, value) {
-    return el.setAttribute(name, value);
-};
-
-function removeAttr(el, name) {
-    return el.removeAttribute(name);
-};
-
-function getAttrMap(node) {
-    var map = {},
-        i, l, a,
-        attrs = node.attributes;
-
-    for (i = 0, l = attrs.length; i < l; i++) {
-        a = attrs[i];
-        map[a.name] = a.value;
-    }
-
-    return map;
-};
-
-
-
-
-var Promise = function(){
-
-    var PENDING     = 0,
-        FULFILLED   = 1,
-        REJECTED    = 2,
-
-        queue       = [],
-        qRunning    = false,
-
-
-        nextTick    = typeof process != strUndef ?
-                        process.nextTick :
-                        function(fn) {
-                            setTimeout(fn, 0);
-                        },
-
-        // synchronous queue of asynchronous functions:
-        // callbacks must be called in "platform stack"
-        // which means setTimeout/nextTick;
-        // also, they must be called in a strict order.
-        nextInQueue = function() {
-            qRunning    = true;
-            var next    = queue.shift();
-            nextTick(function(){
-                next[0].apply(next[1], next[2]);
-                if (queue.length) {
-                    nextInQueue();
-                }
-                else {
-                    qRunning = false;
-                }
-            }, 0);
-        },
-
-        /**
-         * add to execution queue
-         * @param {Function} fn
-         * @param {Object} scope
-         * @param {[]} args
-         * @ignore
-         */
-        next        = function(fn, scope, args) {
-            args = args || [];
-            queue.push([fn, scope, args]);
-            if (!qRunning) {
-                nextInQueue();
-            }
-        },
-
-        /**
-         * returns function which receives value from previous promise
-         * and tries to resolve next promise with new value returned from given function(prev value)
-         * or reject on error.
-         * promise1.then(success, failure) -> promise2
-         * wrapper(success, promise2) -> fn
-         * fn(promise1 resolve value) -> new value
-         * promise2.resolve(new value)
-         *
-         * @param {Function} fn
-         * @param {Promise} promise
-         * @returns {Function}
-         * @ignore
-         */
-        wrapper     = function(fn, promise) {
-            return function(value) {
-                try {
-                    promise.resolve(fn(value));
-                }
-                catch (thrownError) {
-                    promise.reject(thrownError);
-                }
-            };
-        };
-
-
-    /**
-     * @class Promise
-     */
-
-
-    /**
-     * @method Promise
-     * @param {Function} fn {
-     *  @description Function that accepts two parameters: resolve and reject functions.
-     *  @param {function} resolve {
-     *      @param {*} value
-     *  }
-     *  @param {function} reject {
-     *      @param {*} reason
-     *  }
-     * }
-     * @param {Object} context
-     * @returns {Promise}
-     * @constructor
-     */
-
-    /**
-     * @method Promise
-     * @param {Thenable} thenable
-     * @returns {Promise}
-     * @constructor
-     */
-
-    /**
-     * @method Promise
-     * @param {*} value Value to resolve promise with
-     * @returns {Promise}
-     * @constructor
-     */
-
-
-    /**
-     * @method Promise
-     * @returns {Promise}
-     * @constructor
-     */
-    var Promise = function(fn, context) {
-
-        if (fn instanceof Promise) {
-            return fn;
-        }
-
-        if (!(this instanceof Promise)) {
-            return new Promise(fn, context);
-        }
-
-        var self = this,
-            then;
-
-        self._fulfills   = [];
-        self._rejects    = [];
-        self._dones      = [];
-        self._fails      = [];
-
-        if (arguments.length > 0) {
-
-            if (then = isThenable(fn)) {
-                if (fn instanceof Promise) {
-                    fn.then(
-                        bind(self.resolve, self),
-                        bind(self.reject, self));
-                }
-                else {
-                    (new Promise(then, fn)).then(
-                        bind(self.resolve, self),
-                        bind(self.reject, self));
-                }
-            }
-            else if (isFunction(fn)) {
-                try {
-                    fn.call(context,
-                            bind(self.resolve, self),
-                            bind(self.reject, self));
-                }
-                catch (thrownError) {
-                    self.reject(thrownError);
-                }
-            }
-            else {
-                self.resolve(fn);
-            }
-        }
-    };
-
-    extend(Promise.prototype, {
-
-        _state: PENDING,
-
-        _fulfills: null,
-        _rejects: null,
-        _dones: null,
-        _fails: null,
-
-        _wait: 0,
-
-        _value: null,
-        _reason: null,
-
-        _triggered: false,
-
-        isPending: function() {
-            return this._state == PENDING;
-        },
-
-        isFulfilled: function() {
-            return this._state == FULFILLED;
-        },
-
-        isResolved: function() {
-            return this._state == FULFILLED;
-        },
-
-        isRejected: function() {
-            return this._state == REJECTED;
-        },
-
-        hasListeners: function() {
-            var self = this,
-                ls  = [self._fulfills, self._rejects, self._dones, self._fails],
-                i, l;
-
-            for (i = 0, l = ls.length; i < l; i++) {
-                if (ls[i] && ls[i].length) {
-                    return true;
-                }
-            }
-
-            return false;
-        },
-
-        _cleanup: function() {
-            var self    = this;
-
-            self._fulfills = null;
-            self._rejects = null;
-            self._dones = null;
-            self._fails = null;
-        },
-
-        _processValue: function(value, cb) {
-
-            var self    = this,
-                then;
-
-            if (self._state != PENDING) {
-                return;
-            }
-
-            if (value === self) {
-                self._doReject(new TypeError("cannot resolve promise with itself"));
-                return;
-            }
-
-            try {
-                if (then = isThenable(value)) {
-                    if (value instanceof Promise) {
-                        value.then(
-                            bind(self._processResolveValue, self),
-                            bind(self._processRejectReason, self));
-                    }
-                    else {
-                        (new Promise(then, value)).then(
-                            bind(self._processResolveValue, self),
-                            bind(self._processRejectReason, self));
-                    }
-                    return;
-                }
-            }
-            catch (thrownError) {
-                if (self._state == PENDING) {
-                    self._doReject(thrownError);
-                }
-                return;
-            }
-
-            cb.call(self, value);
-        },
-
-
-        _callResolveHandlers: function() {
-
-            var self    = this;
-
-            self._done();
-
-            var cbs  = self._fulfills,
-                cb;
-
-            while (cb = cbs.shift()) {
-                next(cb[0], cb[1], [self._value]);
-            }
-
-            self._cleanup();
-        },
-
-
-        _doResolve: function(value) {
-            var self    = this;
-
-            self._value = value;
-            self._state = FULFILLED;
-
-            if (self._wait == 0) {
-                self._callResolveHandlers();
-            }
-        },
-
-        _processResolveValue: function(value) {
-            this._processValue(value, this._doResolve);
-        },
-
-        /**
-         * @param {*} value
-         */
-        resolve: function(value) {
-
-            var self    = this;
-
-            if (self._triggered) {
-                return self;
-            }
-
-            self._triggered = true;
-            self._processResolveValue(value);
-
-            return self;
-        },
-
-
-        _callRejectHandlers: function() {
-
-            var self    = this;
-
-            self._fail();
-
-            var cbs  = self._rejects,
-                cb;
-
-            while (cb = cbs.shift()) {
-                next(cb[0], cb[1], [self._reason]);
-            }
-
-            self._cleanup();
-        },
-
-        _doReject: function(reason) {
-
-            var self        = this;
-
-            self._state     = REJECTED;
-            self._reason    = reason;
-
-            if (self._wait == 0) {
-                self._callRejectHandlers();
-            }
-        },
-
-
-        _processRejectReason: function(reason) {
-            this._processValue(reason, this._doReject);
-        },
-
-        /**
-         * @param {*} reason
-         */
-        reject: function(reason) {
-
-            var self    = this;
-
-            if (self._triggered) {
-                return self;
-            }
-
-            self._triggered = true;
-
-            self._processRejectReason(reason);
-
-            return self;
-        },
-
-        /**
-         * @param {Function} resolve -- called when this promise is resolved; returns new resolve value
-         * @param {Function} reject -- called when this promise is rejects; returns new reject reason
-         * @param {object} context -- resolve's and reject's functions "this" object
-         * @returns {Promise} new promise
-         */
-        then: function(resolve, reject, context) {
-
-            var self            = this,
-                promise         = new Promise,
-                state           = self._state;
-
-            if (context) {
-                if (resolve) {
-                    resolve = bind(resolve, context);
-                }
-                if (reject) {
-                    reject = bind(reject, context);
-                }
-            }
-
-            if (state == PENDING || self._wait != 0) {
-
-                if (resolve && isFunction(resolve)) {
-                    self._fulfills.push([wrapper(resolve, promise), null]);
-                }
-                else {
-                    self._fulfills.push([promise.resolve, promise])
-                }
-
-                if (reject && isFunction(reject)) {
-                    self._rejects.push([wrapper(reject, promise), null]);
-                }
-                else {
-                    self._rejects.push([promise.reject, promise]);
-                }
-            }
-            else if (state == FULFILLED) {
-
-                if (resolve && isFunction(resolve)) {
-                    next(wrapper(resolve, promise), null, [self._value]);
-                }
-                else {
-                    promise.resolve(self._value);
-                }
-            }
-            else if (state == REJECTED) {
-                if (reject && isFunction(reject)) {
-                    next(wrapper(reject, promise), null, [self._reason]);
-                }
-                else {
-                    promise.reject(self._reason);
-                }
-            }
-
-            return promise;
-        },
-
-        /**
-         * @param {Function} reject -- same as then(null, reject)
-         * @returns {Promise} new promise
-         */
-        "catch": function(reject) {
-            return this.then(null, reject);
-        },
-
-        _done: function() {
-
-            var self    = this,
-                cbs     = self._dones,
-                cb;
-
-            while (cb = cbs.shift()) {
-                try {
-                    cb[0].call(cb[1] || null, self._value);
-                }
-                catch (thrown) {
-                    error(thrown);
-                }
-            }
-        },
-
-        /**
-         * @param {Function} fn -- function to call when promise is resolved
-         * @param {Object} context -- function's "this" object
-         * @returns {Promise} same promise
-         */
-        done: function(fn, context) {
-            var self    = this,
-                state   = self._state;
-
-            if (state == FULFILLED && self._wait == 0) {
-                try {
-                    fn.call(context || null, self._value);
-                }
-                catch (thrown) {
-                    error(thrown);
-                }
-            }
-            else if (state == PENDING) {
-                self._dones.push([fn, context]);
-            }
-
-            return self;
-        },
-
-        _fail: function() {
-
-            var self    = this,
-                cbs     = self._fails,
-                cb;
-
-            while (cb = cbs.shift()) {
-                try {
-                    cb[0].call(cb[1] || null, self._reason);
-                }
-                catch (thrown) {
-                    error(thrown);
-                }
-            }
-        },
-
-        /**
-         * @param {Function} fn -- function to call when promise is rejected.
-         * @param {Object} context -- function's "this" object
-         * @returns {Promise} same promise
-         */
-        fail: function(fn, context) {
-
-            var self    = this,
-                state   = self._state;
-
-            if (state == REJECTED && self._wait == 0) {
-                try {
-                    fn.call(context || null, self._reason);
-                }
-                catch (thrown) {
-                    error(thrown);
-                }
-            }
-            else if (state == PENDING) {
-                self._fails.push([fn, context]);
-            }
-
-            return self;
-        },
-
-        /**
-         * @param {Function} fn -- function to call when promise resolved or rejected
-         * @param {Object} context -- function's "this" object
-         * @return {Promise} same promise
-         */
-        always: function(fn, context) {
-            this.done(fn, context);
-            this.fail(fn, context);
-            return this;
-        },
-
-        /**
-         * @returns {object} then: function, done: function, fail: function, always: function
-         */
-        promise: function() {
-            var self = this;
-            return {
-                then: bind(self.then, self),
-                done: bind(self.done, self),
-                fail: bind(self.fail, self),
-                always: bind(self.always, self)
-            };
-        },
-
-        after: function(value) {
-
-            var self = this;
-
-            if (isThenable(value)) {
-
-                self._wait++;
-
-                var done = function() {
-                    self._wait--;
-                    if (self._wait == 0 && self._state != PENDING) {
-                        self._state == FULFILLED ?
-                            self._callResolveHandlers() :
-                            self._callRejectHandlers();
-                    }
-                };
-
-                if (isFunction(value.done)) {
-                    value.done(done);
-                }
-                else {
-                    value.then(done);
-                }
-            }
-
-            return self;
-        }
-    }, true, false);
-
-
-    /**
-     * @param {function} fn
-     * @param {object} context
-     * @param {[]} args
-     * @returns {Promise}
-     * @static
-     */
-    Promise.fcall = function(fn, context, args) {
-        return Promise.resolve(fn.apply(context, args || []));
-    };
-
-    /**
-     * @param {*} value
-     * @returns {Promise}
-     * @static
-     */
-    Promise.resolve = function(value) {
-        var p = new Promise;
-        p.resolve(value);
-        return p;
-    };
-
-
-    /**
-     * @param {*} reason
-     * @returns {Promise}
-     * @static
-     */
-    Promise.reject = function(reason) {
-        var p = new Promise;
-        p.reject(reason);
-        return p;
-    };
-
-
-    /**
-     * @param {[]} promises -- array of promises or resolve values
-     * @returns {Promise}
-     * @static
-     */
-    Promise.all = function(promises) {
-
-        if (!promises.length) {
-            return Promise.resolve(null);
-        }
-
-        var p       = new Promise,
-            len     = promises.length,
-            values  = new Array(len),
-            cnt     = len,
-            i,
-            item,
-            done    = function(value, inx) {
-                values[inx] = value;
-                cnt--;
-
-                if (cnt == 0) {
-                    p.resolve(values);
-                }
-            };
-
-        for (i = 0; i < len; i++) {
-
-            (function(inx){
-                item = promises[i];
-
-                if (item instanceof Promise) {
-                    item.done(function(value){
-                        done(value, inx);
-                    })
-                        .fail(p.reject, p);
-                }
-                else if (isThenable(item) || isFunction(item)) {
-                    (new Promise(item))
-                        .done(function(value){
-                            done(value, inx);
-                        })
-                        .fail(p.reject, p);
-                }
-                else {
-                    done(item, inx);
-                }
-            })(i);
-        }
-
-        return p;
-    };
-
-    /**
-     * @param {Promise|*} promise1
-     * @param {Promise|*} promise2
-     * @param {Promise|*} promiseN
-     * @returns {Promise}
-     * @static
-     */
-    Promise.when = function() {
-        return Promise.all(arguments);
-    };
-
-    /**
-     * @param {[]} promises -- array of promises or resolve values
-     * @returns {Promise}
-     * @static
-     */
-    Promise.allResolved = function(promises) {
-
-        if (!promises.length) {
-            return Promise.resolve(null);
-        }
-
-        var p       = new Promise,
-            len     = promises.length,
-            values  = [],
-            cnt     = len,
-            i,
-            item,
-            settle  = function(value) {
-                values.push(value);
-                proceed();
-            },
-            proceed = function() {
-                cnt--;
-                if (cnt == 0) {
-                    p.resolve(values);
-                }
-            };
-
-        for (i = 0; i < len; i++) {
-            item = promises[i];
-
-            if (item instanceof Promise) {
-                item.done(settle).fail(proceed);
-            }
-            else if (isThenable(item) || isFunction(item)) {
-                (new Promise(item)).done(settle).fail(proceed);
-            }
-            else {
-                settle(item);
-            }
-        }
-
-        return p;
-    };
-
-    /**
-     * @param {[]} promises -- array of promises or resolve values
-     * @returns {Promise}
-     * @static
-     */
-    Promise.race = function(promises) {
-
-        if (!promises.length) {
-            return Promise.resolve(null);
-        }
-
-        var p   = new Promise,
-            len = promises.length,
-            i,
-            item;
-
-        for (i = 0; i < len; i++) {
-            item = promises[i];
-
-            if (item instanceof Promise) {
-                item.done(p.resolve, p).fail(p.reject, p);
-            }
-            else if (isThenable(item) || isFunction(item)) {
-                (new Promise(item)).done(p.resolve, p).fail(p.reject, p);
-            }
-            else {
-                p.resolve(item);
-            }
-
-            if (!p.isPending()) {
-                break;
-            }
-        }
-
-        return p;
-    };
-
-    /**
-     * @param {[]} functions -- array of promises or resolve values or functions
-     * @returns {Promise}
-     * @static
-     */
-    Promise.waterfall = function(functions) {
-
-        if (!functions.length) {
-            return Promise.resolve(null);
-        }
-
-        var first   = functions.shift(),
-            promise = isFunction(first) ? Promise.fcall(first) : Promise.resolve(fn),
-            fn;
-
-        while (fn = functions.shift()) {
-            if (isThenable(fn)) {
-                promise = promise.then(function(fn){
-                    return function(){
-                        return fn;
-                    };
-                }(fn));
-            }
-            else if (isFunction(fn)) {
-                promise = promise.then(fn);
-            }
-            else {
-                promise.resolve(fn);
-            }
-        }
-
-        return promise;
-    };
-
-    Promise.forEach = function(items, fn, context, allResolved) {
-
-        var left = items.slice(),
-            p = new Promise,
-            values = [],
-            i = 0;
-
-        var next = function() {
-
-            if (!left.length) {
-                p.resolve(values);
-                return;
-            }
-
-            var item = left.shift(),
-                index = i;
-
-            i++;
-
-            Promise.fcall(fn, context, [item, index])
-                .done(function(result){
-                    values.push(result);
-                    next();
-                })
-                .fail(function(reason){
-                    if (allResolved) {
-                        p.reject(reason);
-                    }
-                    else {
-                        values.push(null);
-                        next();
-                    }
-                });
-        };
-
-        next();
-
-        return p;
-    };
-
-    Promise.counter = function(cnt) {
-
-        var promise     = new Promise;
-
-        promise.countdown = function() {
-            cnt--;
-            if (cnt == 0) {
-                promise.resolve();
-            }
-        };
-
-        return promise;
-    };
-
-    return Promise;
-}();
-
-
 
 
 var aIndexOf = (function(){
@@ -5304,2862 +4949,107 @@ var aIndexOf = (function(){
 
 
 
-
-
-
-var Renderer = function(){
-
-    var handlers                = null,
-        createText              = TextRenderer.create,
-
-        nodeChildren = function(res, el, fn, fnScope, finish, cnt) {
-
-            var children = [],
-                i, len;
-
-            if (res && res !== true) {
-                if (res.nodeType) {
-                    cnt.countdown += 1;
-                    eachNode(res, fn, fnScope, finish, cnt);
-                    return;
-                }
-                else {
-                    children = slice.call(res);
-                }
-            }
-
-            if (!children.length) {
-                children = toArray(el.childNodes || el);
-            }
-
-            len = children.length;
-
-            cnt.countdown += len;
-
-            for(i = -1;
-                ++i < len;
-                eachNode(children[i], fn, fnScope, finish, cnt)){}
-        },
-
-
-        collectNodes    = function(coll, add) {
-
-            if (add) {
-                if (add.nodeType) {
-                    coll.push(add);
-                }
-                else if (isArray(add)) {
-                    for (var i = -1, l = add.length; ++i < l; collectNodes(coll, add[i])){}
-                }
-            }
-        },
-
-        //rSkipTag = /^(script|template|mjs-template|style)$/i,
-
-        skipMap = {
-            "script": true,
-            "template": true,
-            "mjs-template": true,
-            "style": true,
-            "link": true
-        },
-
-        eachNode = function(el, fn, fnScope, finish, cnt) {
-
-            if (!el) {
-                return;
-            }
-
-            var res,
-                tag = el.nodeName;
-
-            if (!cnt) {
-                cnt = {countdown: 1};
-            }
-
-            if (tag && skipMap[tag.toLowerCase()]) { //tag.match(rSkipTag)) {
-                --cnt.countdown == 0 && finish && finish.call(fnScope);
-                return;
-            }
-
-            res = fn.call(fnScope, el);
-
-            if (res !== false) {
-
-                if (isThenable(res)) {
-
-                    res.done(function(response){
-
-                        if (response !== false) {
-                            nodeChildren(response, el, fn, fnScope, finish, cnt);
-                        }
-
-                        --cnt.countdown == 0 && finish && finish.call(fnScope);
-                    });
-                    return; // prevent countdown
-                }
-                else {
-                    nodeChildren(res, el, fn, fnScope, finish, cnt);
-                }
-            }
-
-            --cnt.countdown == 0 && finish && finish.call(fnScope);
-        },
-
-        observer = new Observable;
-
-    return defineClass({
-
-        $class: "Renderer",
-
-        id: null,
-        el: null,
-        scope: null,
-        texts: null,
-        parent: null,
-
-        $init: function(el, scope, parent) {
-            var self            = this;
-
-            self.id             = nextUid();
-            self.el             = el;
-            self.scope          = scope;
-            self.texts          = [];
-            self.parent         = parent;
-
-            if (scope instanceof Scope) {
-                scope.$on("destroy", self.$destroy, self);
-            }
-
-            if (parent) {
-                parent.on("destroy", self.$destroy, self);
-            }
-        },
-
-        on: function(event, fn, context) {
-            return observer.on(event + '-' + this.id, fn, context);
-        },
-
-        once: function(event, fn, context) {
-            return observer.once(event + '-' + this.id, fn, context);
-        },
-
-        un: function(event, fn, context) {
-            return observer.un(event + '-' + this.id, fn, context);
-        },
-
-        createChild: function(node) {
-            return new Renderer(node, this.scope, this);
-        },
-
-        getEl: function() {
-            return this.el;
-        },
-
-        runHandler: function(f, parentScope, node, value) {
-
-            var self    = this,
-                scope   = f.$isolateScope ?
-                          parentScope.$newIsolated() :
-                          (f.$breakScope  ?
-                           parentScope.$new() :
-                           parentScope),
-                app     = parentScope.$app,
-                inject  = {
-                    $scope: scope,
-                    $node: node,
-                    $attrValue: value,
-                    $renderer: self
-                },
-                args    = [scope, node, value, self],
-                inst;
-
-            if (app) {
-                inst = app.inject(f, null, inject, args);
-            }
-            else if (f.$instantiate) {
-                inst = f.$instantiate.apply(f, args);
-            }
-            else {
-                inst = f.apply(null, args);
-            }
-
-            if (app && f.$registerBy && inst) {
-                if (isThenable(inst)) {
-                    inst.done(function(cmp){
-                        app.registerCmp(cmp, parentScope, f.$registerBy);
-                    });
-                }
-                else {
-                    app.registerCmp(inst, parentScope, f.$registerBy);
-                }
-            }
-
-
-            if (inst && inst.$destroy) {
-                self.on("destroy", inst.$destroy, inst);
-            }
-            else if (typeof inst == "function") {
-                self.on("destroy", inst);
-            }
-
-            return f.$stopRenderer ? false : inst;
-        },
-
-        processNode: function(node) {
-
-            var self        = this,
-                nodeType    = node.nodeType,
-                texts       = self.texts,
-                scope       = self.scope,
-                textRenderer,
-                recursive,
-                n;
-
-            // text node
-            if (nodeType == 3) {
-
-                recursive       = getAttr(node.parentNode, "mjs-recursive") !== null;
-                textRenderer    = createText(scope, node.textContent || node.nodeValue, null, texts.length, recursive);
-
-                if (textRenderer) {
-                    textRenderer.subscribe(self.onTextChange, self);
-                    texts.push({
-                        node: node,
-                        tr: textRenderer
-                    });
-                    self.renderText(texts.length - 1);
-                }
-
-            }
-
-            // element node
-            else if (nodeType == 1) {
-
-                if (!handlers) {
-                    handlers = Directive.getAttributes();
-                }
-
-                var tag     = node.tagName.toLowerCase(),
-                    defers  = [],
-                    nodes   = [],
-                    i, f, len,
-                    map,
-                    attrValue,
-                    name,
-                    res,
-                    handler;
-
-                n = "tag." + tag;
-                if (f = nsGet(n, true)) {
-
-                    res = self.runHandler(f, scope, node);
-
-                    if (res === false) {
-                        return false;
-                    }
-                    if (isThenable(res)) {
-                        defers.push(res);
-                    }
-                    else {
-                        collectNodes(nodes, res);
-                    }
-                }
-
-                map = getAttrMap(node);
-
-                for (i = 0, len = handlers.length; i < len; i++) {
-                    name    = handlers[i].name;
-
-                    if ((attrValue = map[name]) !== undf) {
-
-                        handler = handlers[i].handler;
-
-                        if (!handler.$keepAttribute) {
-                            removeAttr(node, name);
-                        }
-
-                        res     = self.runHandler(handler, scope, node, attrValue);
-
-                        map[name] = null;
-
-                        if (res === false) {
-                            return false;
-                        }
-                        if (isThenable(res)) {
-                            defers.push(res);
-                        }
-                        else {
-                            collectNodes(nodes, res);
-                        }
-                    }
-                }
-
-                if (defers.length) {
-                    var deferred = new Promise;
-                    Promise.all(defers).done(function(values){
-                        collectNodes(nodes, values);
-                        deferred.resolve(nodes);
-                    });
-                    return deferred;
-                }
-
-                recursive = map["mjs-recursive"] !== undf;
-                delete map["mjs-recursive"];
-
-                //var attrs   = toArray(node.attributes);
-
-                for (i in map) {
-
-                    if (map[i] !== null) {
-
-                        textRenderer = createText(scope, map[i], null, texts.length, recursive);
-
-                        if (textRenderer) {
-                            removeAttr(node, i);
-                            textRenderer.subscribe(self.onTextChange, self);
-                            texts.push({
-                                node: node,
-                                attr: i,
-                                tr:   textRenderer
-                            });
-                            self.renderText(texts.length - 1);
-                        }
-                    }
-                }
-
-                return nodes.length ? nodes : true;
-            }
-
-            return true;
-        },
-
-        process: function() {
-            var self    = this;
-            if (self.el.nodeType) {
-                eachNode(self.el, self.processNode, self, self.onProcessingFinished, {countdown: 1});
-            }
-            else {
-                nodeChildren(null, self.el, self.processNode, self, self.onProcessingFinished, {countdown: 0});
-            }
-        },
-
-        onProcessingFinished: function() {
-            observer.trigger("rendered-" + this.id, this);
-        },
-
-
-        onTextChange: function(textRenderer, inx) {
-            this.renderText(inx);
-        },
-
-        renderText: function(inx) {
-
-            var self        = this,
-                text        = self.texts[inx],
-                res         = text.tr.getString(),
-                attrName    = text.attr;
-
-            if (attrName) {
-
-                if (attrName == "value") {
-                    text.node.value = res;
-                }
-                else if (attrName == "class") {
-                    text.node.className = res;
-                }
-                else if (attrName == "src") {
-                    text.node.src = res;
-                }
-
-                setAttr(text.node, attrName, res);
-            }
-            else {
-                //text.node.textContent = res;
-                text.node.nodeValue = res;
-            }
-        },
-
-
-        destroy: function() {
-
-            var self    = this,
-                texts   = self.texts,
-                i, len;
-
-            for (i = -1, len = texts.length; ++i < len; texts[i].tr.$destroy()) {}
-
-            if (self.parent) {
-                self.parent.un("destroy", self.$destroy, self);
-            }
-
-            observer.trigger("destroy-" + self.id);
-        }
-
-    });
-
-}();
-
-
-
-
-
-
-var Text = function(){
-
-    var pluralDef       = function($number, $locale) {
-
-            if ($locale == "pt_BR") {
-                // temporary set a locale for brasilian
-                $locale = "xbr";
-            }
-
-            if ($locale.length > 3) {
-                $locale = $locale.substr(0, -$locale.lastIndexOf('_'));
-            }
-
-            switch($locale) {
-                case 'bo':
-                case 'dz':
-                case 'id':
-                case 'ja':
-                case 'jv':
-                case 'ka':
-                case 'km':
-                case 'kn':
-                case 'ko':
-                case 'ms':
-                case 'th':
-                case 'tr':
-                case 'vi':
-                case 'zh':
-                    return 0;
-                    break;
-
-                case 'af':
-                case 'az':
-                case 'bn':
-                case 'bg':
-                case 'ca':
-                case 'da':
-                case 'de':
-                case 'el':
-                case 'en':
-                case 'eo':
-                case 'es':
-                case 'et':
-                case 'eu':
-                case 'fa':
-                case 'fi':
-                case 'fo':
-                case 'fur':
-                case 'fy':
-                case 'gl':
-                case 'gu':
-                case 'ha':
-                case 'he':
-                case 'hu':
-                case 'is':
-                case 'it':
-                case 'ku':
-                case 'lb':
-                case 'ml':
-                case 'mn':
-                case 'mr':
-                case 'nah':
-                case 'nb':
-                case 'ne':
-                case 'nl':
-                case 'nn':
-                case 'no':
-                case 'om':
-                case 'or':
-                case 'pa':
-                case 'pap':
-                case 'ps':
-                case 'pt':
-                case 'so':
-                case 'sq':
-                case 'sv':
-                case 'sw':
-                case 'ta':
-                case 'te':
-                case 'tk':
-                case 'ur':
-                case 'zu':
-                    return ($number == 1) ? 0 : 1;
-
-                case 'am':
-                case 'bh':
-                case 'fil':
-                case 'fr':
-                case 'gun':
-                case 'hi':
-                case 'ln':
-                case 'mg':
-                case 'nso':
-                case 'xbr':
-                case 'ti':
-                case 'wa':
-                    return (($number == 0) || ($number == 1)) ? 0 : 1;
-
-                case 'be':
-                case 'bs':
-                case 'hr':
-                case 'ru':
-                case 'sr':
-                case 'uk':
-                    return (($number % 10 == 1) && ($number % 100 != 11)) ?
-                           0 :
-                           ((($number % 10 >= 2) && ($number % 10 <= 4) &&
-                             (($number % 100 < 10) || ($number % 100 >= 20))) ? 1 : 2);
-
-                case 'cs':
-                case 'sk':
-                    return ($number == 1) ? 0 : ((($number >= 2) && ($number <= 4)) ? 1 : 2);
-
-                case 'ga':
-                    return ($number == 1) ? 0 : (($number == 2) ? 1 : 2);
-
-                case 'lt':
-                    return (($number % 10 == 1) && ($number % 100 != 11)) ?
-                           0 :
-                           ((($number % 10 >= 2) &&
-                             (($number % 100 < 10) || ($number % 100 >= 20))) ? 1 : 2);
-
-                case 'sl':
-                    return ($number % 100 == 1) ?
-                           0 :
-                           (($number % 100 == 2) ?
-                                1 :
-                                ((($number % 100 == 3) || ($number % 100 == 4)) ? 2 : 3));
-
-                case 'mk':
-                    return ($number % 10 == 1) ? 0 : 1;
-
-                case 'mt':
-                    return ($number == 1) ?
-                           0 :
-                           ((($number == 0) || (($number % 100 > 1) && ($number % 100 < 11))) ?
-                                1 :
-                                ((($number % 100 > 10) && ($number % 100 < 20)) ? 2 : 3));
-
-                case 'lv':
-                    return ($number == 0) ? 0 : ((($number % 10 == 1) && ($number % 100 != 11)) ? 1 : 2);
-
-                case 'pl':
-                    return ($number == 1) ?
-                           0 :
-                           ((($number % 10 >= 2) && ($number % 10 <= 4) &&
-                             (($number % 100 < 12) || ($number % 100 > 14))) ? 1 : 2);
-
-                case 'cy':
-                    return ($number == 1) ? 0 : (($number == 2) ? 1 : ((($number == 8) || ($number == 11)) ? 2 : 3));
-
-                case 'ro':
-                    return ($number == 1) ?
-                           0 :
-                           ((($number == 0) || (($number % 100 > 0) && ($number % 100 < 20))) ? 1 : 2);
-
-                case 'ar':
-                    return ($number == 0) ?
-                           0 :
-                           (($number == 1) ?
-                                1 :
-                                (($number == 2) ?
-                                    2 :
-                                    ((($number >= 3) && ($number <= 10)) ?
-                                        3 :
-                                        ((($number >= 11) && ($number <= 99)) ? 4 : 5))));
-
-                default:
-                    return 0;
-            }
-        };
-
-
-    var Text = function(locale) {
-
-        var self    = this;
-        self.store  = {};
-        if (locale) {
-            self.locale = locale;
-        }
-    };
-
-    extend(Text.prototype, {
-
-        store: null,
-        locale: "en",
-
-        setLocale: function(locale) {
-            this.locale = locale;
-        },
-
-        set: function(key, value) {
-            var store = this.store;
-            if (store[key] === undf) {
-                store[key] = value;
-            }
-        },
-
-        load: function(keys) {
-            extend(this.store, keys, false, false);
-        },
-
-        get: function(key) {
-            var self    = this;
-            return self.store[key] ||
-                   (self === globalText ? '-- ' + key + ' --' : globalText.get(key));
-        },
-
-        plural: function(key, number) {
-            var self    = this,
-                strings = typeof key == "string" ? self.get(key): key,
-                def     = pluralDef(number, self.locale);
-
-            if (!isArray(strings)) {
-                if (isPlainObject(strings)) {
-                    if (strings[number]) {
-                        return strings[number];
-                    }
-                    if (number == 1 && strings.one != undf) {
-                        return strings.one;
-                    }
-                    else if (number < 0 && strings.negative != undf) {
-                        return strings.negative;
-                    }
-                    else {
-                        return strings.other;
-                    }
-                }
-                return strings;
-            }
-            else {
-                return strings[def];
-            }
-        },
-
-        destroy: function() {
-
-            this.store = null;
-
-        }
-
-    }, true, false);
-
-
-    var globalText  = new Text;
-
-    Text.global     = function() {
-        return globalText;
-    };
-
-    return Text;
-}();
-
-
-
-
-var destroy = function() {
-
-    var items = [];
-
-    var destroy = function destroyMetaphor(destroyWindow) {
-
-        var i, l, item,
-            k;
-
-        for (i = 0, l = items.length; i < l; i++) {
-            item = items[i];
-
-            if (item.$destroy) {
-                item.$destroy();
-            }
-            else if (item.destroy) {
-                item.destroy();
-            }
-        }
-
-        items = null;
-
-        if (cs && cs.destroy) {
-            cs.destroy();
-            cs = null;
-        }
-
-        if (ns && ns.destroy) {
-            ns.destroy();
-            ns = null;
-        }
-
-        for (k in MetaphorJs) {
-            MetaphorJs[k] = null;
-        }
-
-        MetaphorJs = null;
-
-        if (destroyWindow) {
-            for (k in window) {
-                if (window.hasOwnProperty(k)) {
-                    window[k] = null;
-                }
-            }
-        }
-    };
-
-    destroy.collect = function(item) {
-        items.push(item);
-    };
-
-    return destroy;
-
-}();
-
-
-
 /**
- * @mixin Observable
- */
-ns.register("mixin.Observable", {
-
-    /**
-     * @type {Observable}
-     */
-    $$observable: null,
-    $$callbackContext: null,
-
-    $beforeInit: function(cfg) {
-
-        var self = this;
-
-        self.$$observable = new Observable;
-
-        self.$initObservable(cfg);
-    },
-
-    $initObservable: function(cfg) {
-
-        var self    = this,
-            obs     = self.$$observable;
-
-        if (cfg && cfg.callback) {
-            var ls = cfg.callback,
-                context = ls.context || ls.scope || ls.$context,
-                events = extend({}, self.$$events, ls.$events, true, false),
-                i;
-
-            for (i in events) {
-                obs.createEvent(i, events[i]);
-            }
-
-            ls.context = null;
-            ls.scope = null;
-
-            for (i in ls) {
-                if (ls[i]) {
-                    obs.on(i, ls[i], context || self);
-                }
-            }
-
-            cfg.callback = null;
-
-            if (context) {
-                self.$$callbackContext = context;
-            }
-        }
-    },
-
-    on: function() {
-        var o = this.$$observable;
-        return o ? o.on.apply(o, arguments) : null;
-    },
-
-    un: function() {
-        var o = this.$$observable;
-        return o ? o.un.apply(o, arguments) : null;
-    },
-
-    once: function() {
-        var o = this.$$observable;
-        return o ? o.once.apply(o, arguments) : null;
-    },
-
-    trigger: function() {
-        var o = this.$$observable;
-        return o ? o.trigger.apply(o, arguments) : null;
-    },
-
-    $beforeDestroy: function() {
-        this.$$observable.trigger("before-destroy", this);
-    },
-
-    $afterDestroy: function() {
-        var self = this;
-        self.$$observable.trigger("destroy", self);
-        self.$$observable.destroy();
-        self.$$observable = null;
-    }
-});
-
-
-
-
-
-
-var Provider = function(){
-
-    var VALUE       = 1,
-        CONSTANT    = 2,
-        FACTORY     = 3,
-        SERVICE     = 4,
-        PROVIDER    = 5,
-        globalProvider;
-
-    var Provider = function() {
-        this.store  = {};
-    };
-
-    extend(Provider.prototype, {
-
-        store: null,
-
-        instantiate: function(fn, context, args, isClass) {
-            if (fn.$instantiate) {
-                return fn.$instantiate.apply(fn, args);
-            }
-            else if (isClass) {
-                return instantiate(fn, args);
-            }
-            else {
-                return fn.apply(context, args);
-            }
-        },
-
-        inject: function(injectable, context, currentValues, callArgs, isClass) {
-
-            currentValues   = currentValues || {};
-            callArgs        = callArgs || [];
-
-            var self = this;
-
-            if (isFunction(injectable)) {
-
-                if (injectable.inject) {
-                    var tmp = slice.call(injectable.inject);
-                    tmp.push(injectable);
-                    injectable = tmp;
-                }
-                else {
-                    return self.instantiate(injectable, context, callArgs, isClass);
-                }
-            }
-
-            injectable  = slice.call(injectable);
-
-            var values  = [],
-                fn      = injectable.pop(),
-                i, l;
-
-            for (i = -1, l = injectable.length; ++i < l;
-                 values.push(self.resolve(injectable[i], currentValues))) {}
-
-            return Promise.all(values).then(function(values){
-                return self.instantiate(fn, context, values, isClass);
-            });
-        },
-
-        value: function(name, value) {
-            this.store[name] = {
-                type: VALUE,
-                value: value
-            };
-        },
-
-        constant: function(name, value) {
-            var store = this.store;
-            if (!store[name]) {
-                store[name] = {
-                    type: CONSTANT,
-                    value: value
-                };
-            }
-        },
-
-        factory: function(name, fn, context, singleton) {
-
-            if (isBool(context)) {
-                singleton = context;
-                context = null;
-            }
-
-            this.store[name] = {
-                type: FACTORY,
-                singleton: singleton,
-                fn: fn,
-                context: context
-            };
-        },
-
-        service: function(name, constr, singleton) {
-            this.store[name] = {
-                type: SERVICE,
-                singleton: singleton,
-                fn: constr
-            };
-        },
-
-        provider: function(name, constr) {
-
-            this.store[name + "Provider"] = {
-                name: name,
-                type: PROVIDER,
-                fn: constr,
-                instance: null
-            };
-        },
-
-        resolve: function(name, currentValues, callArgs) {
-
-            var self    = this,
-                store   = self.store,
-                type,
-                item,
-                res;
-
-            currentValues = currentValues || {};
-            callArgs = callArgs || [];
-
-            if (currentValues[name] !== undf) {
-                return currentValues[name];
-            }
-
-            if (item = store[name]) {
-
-                type    = item.type;
-
-                if (type == VALUE || type == CONSTANT) {
-                    return item.value;
-                }
-                else if (type == FACTORY) {
-                    res = self.inject(item.fn, item.context, currentValues, callArgs);
-                }
-                else if (type == SERVICE) {
-                    res = self.inject(item.fn, null, currentValues, callArgs, true);
-                }
-                else if (type == PROVIDER) {
-
-                    if (!item.instance) {
-
-                        item.instance = Promise.resolve(
-                                self.inject(item.fn, null, currentValues)
-                            )
-                            .done(function(instance){
-                                item.instance = instance;
-                                store[item.name] = {
-                                    type: FACTORY,
-                                    fn: instance.$get,
-                                    context: instance
-                                };
-                            });
-                    }
-
-                    return item.instance;
-                }
-
-                if (item.singleton) {
-                    item.type = VALUE;
-                    item.value = res;
-
-                    if (type == FACTORY && isThenable(res)) {
-                        res.done(function(value){
-                            item.value = value;
-                        });
-                    }
-                }
-
-                return currentValues[name] = res;
-            }
-            else {
-
-                if (store[name + "Provider"]) {
-                    self.resolve(name + "Provider", currentValues);
-                    return self.resolve(name, currentValues);
-                }
-
-                if (self === globalProvider) {
-                    throw "Could not provide value for " + name;
-                }
-                else {
-                    return globalProvider.resolve(name);
-                }
-            }
-        },
-
-        destroy: function() {
-
-            var self = this;
-
-            self.store = null;
-            self.scope = null;
-        }
-
-    }, true, false);
-
-    Provider.global = function() {
-        return globalProvider;
-    };
-
-    globalProvider = new Provider;
-
-    return Provider;
-}();
-
-
-
-
-
-
-ns.register("mixin.Provider", {
-
-    /**
-     * @type {Provider}
-     */
-    $$provider: null,
-
-    $beforeInit: function() {
-
-        this.$$provider = new Provider;
-
-    },
-
-    value: function() {
-        var p = this.$$provider;
-        return p.value.apply(p, arguments);
-    },
-
-    constant: function() {
-        var p = this.$$provider;
-        return p.constant.apply(p, arguments);
-    },
-
-    factory: function() {
-        var p = this.$$provider;
-        return p.factory.apply(p, arguments);
-    },
-
-    service: function() {
-        var p = this.$$provider;
-        return p.service.apply(p, arguments);
-    },
-
-    provider: function() {
-        var p = this.$$provider;
-        return p.provider.apply(p, arguments);
-    },
-
-    resolve: function() {
-        var p = this.$$provider;
-        return p.resolve.apply(p, arguments);
-    },
-
-    inject: function() {
-        var p = this.$$provider;
-        return p.inject.apply(p, arguments);
-    },
-
-    $afterDestroy: function() {
-
-        this.$$provider.destroy();
-        this.$$provider = null;
-
-    }
-
-});
-
-
-
-
-
-
-
-defineClass({
-
-    $class: "App",
-    $mixins: ["mixin.Observable", "mixin.Provider"],
-
-    lang: null,
-    scope: null,
-    renderer: null,
-    cmpListeners: null,
-    components: null,
-    sourceObs: null,
-
-    $init: function(node, data) {
-
-        var self        = this,
-            scope       = data instanceof Scope ? data : new Scope(data),
-            args;
-
-        destroy.collect(self);
-
-        removeAttr(node, "mjs-app");
-
-        scope.$app      = self;
-        self.$super();
-
-        self.lang       = new Text;
-
-        self.scope          = scope;
-        self.cmpListeners   = {};
-        self.components     = {};
-
-        self.factory('$parentCmp', ['$node', self.getParentCmp], self);
-        self.value('$app', self);
-        self.value('$rootScope', scope.$root);
-        self.value('$lang', self.lang);
-
-        self.renderer       = new Renderer(node, scope);
-        self.renderer.on("rendered", self.afterRender, self);
-
-        args = slice.call(arguments);
-        args[1] = scope;
-        self.initApp.apply(self, args);
-    },
-
-    initApp: emptyFn,
-
-    afterRender: function() {
-
-    },
-
-    run: function() {
-        this.renderer.process();
-    },
-
-    createSource: function(name, returnResult) {
-        var key = "source-" + name,
-            self = this;
-
-        if (!self.$$observable.getEvent(key)) {
-            self.$$observable.createEvent(key, returnResult || "nonempty");
-        }
-    },
-
-    registerSource: function(name, fn, context) {
-        this.on("source-" + name, fn, context);
-    },
-
-    unregisterSource: function(name, fn, context) {
-        this.un("source-" + name, fn, context);
-    },
-
-    collect: function(name) {
-        arguments[0] = "source-" + arguments[0];
-        return this.trigger.apply(this, arguments);
-    },
-
-    getParentCmp: function(node) {
-
-        var self    = this,
-            parent  = node.parentNode,
-            id;
-
-        while (parent) {
-            if (id = getAttr(parent, "cmp-id")) {
-                return self.getCmp(id);
-            }
-            parent = parent.parentNode;
-        }
-
-        return null;
-    },
-
-    onAvailable: function(cmpId, fn, context) {
-
-        var self = this,
-            cmpListeners = self.cmpListeners,
-            components = self.components;
-
-        if (!cmpListeners[cmpId]) {
-            cmpListeners[cmpId] = new Promise;
-        }
-
-        if (fn) {
-            cmpListeners[cmpId].done(fn, context);
-        }
-
-        if (components[cmpId]) {
-            cmpListeners[cmpId].resolve(components[cmpId])
-        }
-
-        return cmpListeners[cmpId];
-    },
-
-    getCmp: function(id) {
-        return this.components[id] || null;
-    },
-
-    registerCmp: function(cmp, scope, byKey) {
-        var self = this,
-            id = cmp[byKey],
-            deregister = function() {
-                delete self.cmpListeners[id];
-                delete self.components[id];
-            };
-
-        self.components[id] = cmp;
-
-        if (self.cmpListeners[id]) {
-            self.cmpListeners[id].resolve(cmp);
-        }
-
-        if (cmp.on) {
-            cmp.on("destroy", deregister);
-        }
-        scope.$on("$destroy", deregister);
-    },
-
-    destroy: function() {
-
-        var self    = this;
-
-        self.renderer.$destroy();
-        self.scope.$destroy();
-        self.lang.destroy();
-
-        self.$super();
-    }
-
-});
-
-
-
-var isAttached = function(){
-    var isAttached = function isAttached(node) {
-
-        if (node === window) {
-            return true;
-        }
-        if (node.nodeType == 3) {
-            if (node.parentElement) {
-                return isAttached(node.parentElement);
-            }
-            else {
-                return true;
-            }
-        }
-
-        var html = window.document.documentElement;
-
-        return node === html ? true : html.contains(node);
-    };
-    return isAttached;
-}();
-
-
-
-
-var data = function(){
-
-    var dataCache   = {},
-
-        getNodeId   = function(el) {
-            return el._mjsid || (el._mjsid = nextUid());
-        };
-
-    /**
-     * @param {Element} el
-     * @param {String} key
-     * @param {*} value optional
-     */
-    return function data(el, key, value) {
-        var id  = getNodeId(el),
-            obj = dataCache[id];
-
-        if (value !== undf) {
-            if (!obj) {
-                obj = dataCache[id] = {};
-            }
-            obj[key] = value;
-            return value;
-        }
-        else {
-            return obj ? obj[key] : undf;
-        }
-    };
-
-}();
-
-
-
-function toFragment(nodes) {
-
-    var fragment = window.document.createDocumentFragment(),
-        i, l;
-
-    if (isString(nodes)) {
-        var tmp = window.document.createElement('div');
-        tmp.innerHTML = nodes;
-        nodes = tmp.childNodes;
-    }
-
-    if (!nodes) {
-        return fragment;
-    }
-
-    if (nodes.nodeType) {
-        fragment.appendChild(nodes);
-    }
-    else {
-        // due to a bug in jsdom, we turn NodeList into array first
-        if (nodes.item) {
-            var tmpNodes = nodes;
-            nodes = [];
-            for (i = -1, l = tmpNodes.length >>> 0; ++i !== l; nodes.push(tmpNodes[i])) {}
-        }
-
-        for (i = -1, l = nodes.length; ++i !== l; fragment.appendChild(nodes[i])) {}
-    }
-
-    return fragment;
-};
-
-
-
-/**
- * @param {[]|Element} node
- * @returns {[]|Element}
- */
-var clone = function clone(node) {
-
-    var i, len, cloned;
-
-    if (isArray(node)) {
-        cloned = [];
-        for (i = 0, len = node.length; i < len; i++) {
-            cloned.push(clone(node[i]));
-        }
-        return cloned;
-    }
-    else if (node) {
-        switch (node.nodeType) {
-            // element
-            case 1:
-                return node.cloneNode(true);
-            // text node
-            case 3:
-                return window.document.createTextNode(node.innerText || node.textContent);
-            // document fragment
-            case 11:
-                return node.cloneNode(true);
-
-            default:
-                return null;
-        }
-    }
-
-    return null;
-};
-
-
-
-
-
-var getAnimationPrefixes = function(){
-
-    var domPrefixes         = ['Moz', 'Webkit', 'ms', 'O', 'Khtml'],
-        animationDelay      = "animationDelay",
-        animationDuration   = "animationDuration",
-        transitionDelay     = "transitionDelay",
-        transitionDuration  = "transitionDuration",
-        transform           = "transform",
-        transitionend       = null,
-        prefixes            = null,
-
-        probed              = false,
-
-        detectCssPrefixes   = function() {
-
-            var el = window.document.createElement("div"),
-                animation = false,
-                pfx,
-                i, len;
-
-            if (el.style['animationName'] !== undf) {
-                animation = true;
-            }
-            else {
-                for(i = 0, len = domPrefixes.length; i < len; i++) {
-                    pfx = domPrefixes[i];
-                    if (el.style[ pfx + 'AnimationName' ] !== undf) {
-                        animation           = true;
-                        animationDelay      = pfx + "AnimationDelay";
-                        animationDuration   = pfx + "AnimationDuration";
-                        transitionDelay     = pfx + "TransitionDelay";
-                        transitionDuration  = pfx + "TransitionDuration";
-                        transform           = pfx + "Transform";
-                        break;
-                    }
-                }
-            }
-
-            if (animation) {
-                if('ontransitionend' in window) {
-                    // Chrome/Saf (+ Mobile Saf)/Android
-                    transitionend = 'transitionend';
-                }
-                else if('onwebkittransitionend' in window) {
-                    // Chrome/Saf (+ Mobile Saf)/Android
-                    transitionend = 'webkitTransitionEnd';
-                }
-            }
-
-            return animation;
-        };
-
-
-    /**
-     * @function animate.getPrefixes
-     * @returns {object}
-     */
-    return function() {
-
-        if (!probed) {
-            if (detectCssPrefixes()) {
-                prefixes = {
-                    animationDelay: animationDelay,
-                    animationDuration: animationDuration,
-                    transitionDelay: transitionDelay,
-                    transitionDuration: transitionDuration,
-                    transform: transform,
-                    transitionend: transitionend
-                };
-            }
-            else {
-                prefixes = {};
-            }
-
-            probed = true;
-        }
-
-
-        return prefixes;
-    };
-}();
-
-
-
-var getAnimationDuration = function(){
-
-    var parseTime       = function(str) {
-            if (!str) {
-                return 0;
-            }
-            var time = parseFloat(str);
-            if (str.indexOf("ms") == -1) {
-                time *= 1000;
-            }
-            return time;
-        },
-
-        getMaxTimeFromPair = function(max, dur, delay) {
-
-            var i, sum, len = dur.length;
-
-            for (i = 0; i < len; i++) {
-                sum = parseTime(dur[i]) + parseTime(delay[i]);
-                max = Math.max(sum, max);
-            }
-
-            return max;
-        },
-
-        pfx                 = false,
-        animationDuration   = null,
-        animationDelay      = null,
-        transitionDuration  = null,
-        transitionDelay     = null;
-
-
-    /**
-     * @function animate.getDuration
-     * @param {Element} el
-     * @returns {number}
-     */
-    return function(el) {
-
-        if (pfx === false) {
-            pfx = getAnimationPrefixes();
-            animationDuration = pfx ? pfx.animationDuration : null;
-            animationDelay = pfx ? pfx.animationDelay : null;
-            transitionDuration = pfx ? pfx.transitionDuration : null;
-            transitionDelay = pfx ? pfx.transitionDelay : null;
-        }
-
-        if (!pfx) {
-            return 0;
-        }
-
-        var style       = window.getComputedStyle ? window.getComputedStyle(el, null) : el.style,
-            duration    = 0,
-            animDur     = (style[animationDuration] || '').split(','),
-            animDelay   = (style[animationDelay] || '').split(','),
-            transDur    = (style[transitionDuration] || '').split(','),
-            transDelay  = (style[transitionDelay] || '').split(',');
-
-        duration    = Math.max(duration, getMaxTimeFromPair(duration, animDur, animDelay));
-        duration    = Math.max(duration, getMaxTimeFromPair(duration, transDur, transDelay));
-
-        return duration;
-    };
-
-}();
-
-
-
-var getRegExp = function(){
-
-    var cache = {};
-
-    /**
-     * @param {String} expr
-     * @returns RegExp
-     */
-    return function getRegExp(expr) {
-        return cache[expr] || (cache[expr] = new RegExp(expr));
-    };
-}();
-
-
-
-/**
- * @param {String} cls
- * @returns {RegExp}
- */
-function getClsReg(cls) {
-    return getRegExp('(?:^|\\s)'+cls+'(?!\\S)');
-};
-
-
-
-/**
- * @param {Element} el
- * @param {String} cls
- */
-function removeClass(el, cls) {
-    if (cls) {
-        el.className = el.className.replace(getClsReg(cls), '');
-    }
-};
-
-
-
-/**
- * @function animate.stop
- * @param {Element} el
- */
-var stopAnimation = function(el) {
-
-    var queue = data(el, "mjsAnimationQueue"),
-        current,
-        position,
-        stages;
-
-    if (isArray(queue) && queue.length) {
-        current = queue[0];
-
-        if (current) {
-            if (current.stages) {
-                position = current.position;
-                stages = current.stages;
-                removeClass(el, stages[position]);
-                removeClass(el, stages[position] + "-active");
-            }
-            if (current.deferred) {
-                current.deferred.reject(current.el);
-            }
-        }
-    }
-    else if (isFunction(queue)) {
-        queue(el);
-    }
-    else if (queue == "stop") {
-        $(el).stop(true, true);
-    }
-
-    data(el, "mjsAnimationQueue", null);
-};
-
-
-
-
-/**
- * @param {Element} el
- * @param {String} cls
+ * @param {*} val
+ * @param {[]} arr
  * @returns {boolean}
  */
-function hasClass(el, cls) {
-    return cls ? getClsReg(cls).test(el.className) : false;
+function inArray(val, arr) {
+    return arr ? (aIndexOf.call(arr, val) !== -1) : false;
+};
+
+
+
+function isNumber(value) {
+    return varType(value) === 1;
+};
+
+function getAttr(el, name) {
+    return el.getAttribute ? el.getAttribute(name) : null;
+};
+
+function setAttr(el, name, value) {
+    return el.setAttribute(name, value);
+};
+
+function removeAttr(el, name) {
+    return el.removeAttribute(name);
 };
 
 
 
 /**
  * @param {Element} el
- * @param {String} cls
+ * @param {*} val
  */
-function addClass(el, cls) {
-    if (cls && !hasClass(el, cls)) {
-        el.className += " " + cls;
-    }
-};
+var setValue = function() {
 
+    var hooks = {
+        select:  function(elem, value) {
 
+            var optionSet, option,
+                options     = elem.options,
+                values      = toArray(value),
+                i           = options.length,
+                selected,
+                setIndex    = -1;
 
-var raf = function() {
+            while ( i-- ) {
+                option      = options[i];
+                selected    = inArray(option.value, values);
 
-    var raf,
-        cancel;
-
-    if (typeof window != strUndef) {
-        var w   = window;
-        raf     = w.requestAnimationFrame ||
-                    w.webkitRequestAnimationFrame ||
-                    w.mozRequestAnimationFrame;
-        cancel  = w.cancelAnimationFrame ||
-                    w.webkitCancelAnimationFrame ||
-                    w.mozCancelAnimationFrame ||
-                    w.webkitCancelRequestAnimationFrame;
-
-        if (raf) {
-            return function(fn, context, args) {
-                var id = raf(context || args ? function(){
-                    fn.apply(context, args || []);
-                } : fn);
-                return function() {
-                    cancel(id);
-                };
-            };
-        }
-    }
-
-    return function(fn, context, args){
-        var id = async(fn, context, args, 0);
-        return function(){
-            clearTimeout(id);
-        };
-    };
-
-}();
-
-
-
-
-var animate = function(){
-
-
-    var types           = {
-            "show":     ["mjs-show"],
-            "hide":     ["mjs-hide"],
-            "enter":    ["mjs-enter"],
-            "leave":    ["mjs-leave"],
-            "move":     ["mjs-move"]
-        },
-
-        animId          = 0,
-
-        prefixes        = false,
-        cssAnimations   = false,
-
-        dataParam       = "mjsAnimationQueue",
-
-        callTimeout     = function(fn, startTime, duration) {
-            var tick = function(){
-                var time = (new Date).getTime();
-                if (time - startTime >= duration) {
-                    fn();
+                if (selected) {
+                    setAttr(option, "selected", "selected");
+                    option.selected = true;
+                    optionSet = true;
                 }
                 else {
-                    raf(tick);
+                    removeAttr(option, "selected");
                 }
-            };
-            raf(tick);
-        },
 
-
-        cssAnimSupported= function(){
-            if (prefixes === false) {
-                prefixes        = getAnimationPrefixes();
-                cssAnimations   = !!prefixes;
+                if (!selected && !isNull(getAttr(option, "default-option"))) {
+                    setIndex = i;
+                }
             }
-            return cssAnimations;
-        },
 
-
-
-        nextInQueue     = function(el) {
-            var queue = data(el, dataParam),
-                next;
-            if (queue.length) {
-                next = queue[0];
-                animationStage(next.el, next.stages, 0, next.start, next.deferred, false, next.id, next.step);
+            // Force browsers to behave consistently when non-matching value is set
+            if (!optionSet) {
+                elem.selectedIndex = setIndex;
             }
-            else {
-                data(el, dataParam, null);
-            }
-        },
 
-        animationStage  = function animationStage(el, stages, position, startCallback,
-                                                  deferred, first, id, stepCallback) {
-
-            var stopped   = function() {
-                var q = data(el, dataParam);
-                if (!q || !q.length || q[0].id != id) {
-                    deferred.reject(el);
-                    return true;
-                }
-                return false;
-            };
-
-            var finishStage = function() {
-
-                if (stopped()) {
-                    return;
-                }
-
-                var thisPosition = position;
-
-                position++;
-
-                if (position == stages.length) {
-                    deferred.resolve(el);
-                    data(el, dataParam).shift();
-                    nextInQueue(el);
-                }
-                else {
-                    data(el, dataParam)[0].position = position;
-                    animationStage(el, stages, position, null, deferred, false, id, stepCallback);
-                }
-
-                removeClass(el, stages[thisPosition]);
-                removeClass(el, stages[thisPosition] + "-active");
-            };
-
-            var setStage = function() {
-
-                if (!stopped()) {
-
-                    addClass(el, stages[position] + "-active");
-
-                    Promise.resolve(stepCallback && stepCallback(el, position, "active"))
-                        .done(function(){
-                            if (!stopped()) {
-
-                                var duration = getAnimationDuration(el);
-
-                                if (duration) {
-                                    callTimeout(finishStage, (new Date).getTime(), duration);
-                                }
-                                else {
-                                    raf(finishStage);
-                                }
-                            }
-                        });
-                }
-
-            };
-
-            var start = function(){
-
-                if (!stopped()) {
-                    addClass(el, stages[position]);
-
-                    Promise.waterfall([
-                            stepCallback && stepCallback(el, position, "start"),
-                            function(){
-                                return startCallback ? startCallback(el) : null;
-                            }
-                        ])
-                        .done(function(){
-                            !stopped() && raf(setStage);
-                        });
-                }
-            };
-
-
-
-            first ? raf(start) : start();
-        };
-
-
-    /**
-     * @function animate
-     * @param {Element} el Element being animated
-     * @param {string|function|[]|object} animation {
-     *  'string' - registered animation name,<br>
-     *  'function' - fn(el, callback) - your own animation<br>
-     *  'array' - array or stages (class names)<br>
-     *  'array' - [{before}, {after}] - jquery animation<br>
-     *  'object' - {stages, fn, before, after, options, context, duration, start}
-     * }
-     * @param {function} startCallback call this function before animation begins
-     * @param {bool} checkIfEnabled check if mjs-animate attribute is present
-     * @param {MetaphorJs.Namespace} namespace registered animations storage
-     * @param {function} stepCallback call this function between stages
-     * @returns {MetaphorJs.Promise}
-     */
-    var animate = function animate(el, animation, startCallback, checkIfEnabled, namespace, stepCallback) {
-
-        var deferred    = new Promise,
-            queue       = data(el, dataParam) || [],
-            id          = ++animId,
-            attrValue   = getAttr(el, "mjs-animate"),
-            stages,
-            jsFn,
-            before, after,
-            options, context,
-            duration;
-
-        animation       = animation || attrValue;
-
-        if (checkIfEnabled && isNull(attrValue)) {
-            animation   = null;
+            return values;
         }
-
-        if (animation) {
-
-            if (isString(animation)) {
-                if (animation.substr(0,1) == '[') {
-                    stages  = (new Function('', 'return ' + animation))();
-                }
-                else {
-                    stages      = types[animation];
-                    animation   = namespace && namespace.get("animate." + animation, true);
-                }
-            }
-            else if (isFunction(animation)) {
-                jsFn = animation;
-            }
-            else if (isArray(animation)) {
-                if (isString(animation[0])) {
-                    stages = animation;
-                }
-                else {
-                    before = animation[0];
-                    after = animation[1];
-                }
-            }
-
-            if (isPlainObject(animation)) {
-                stages      = animation.stages;
-                jsFn        = animation.fn;
-                before      = animation.before;
-                after       = animation.after;
-                options     = animation.options ? extend({}, animation.options) : {};
-                context     = animation.context || null;
-                duration    = animation.duration || null;
-                startCallback   = startCallback || options.start;
-            }
-
-
-            if (cssAnimSupported() && stages) {
-
-                queue.push({
-                    el: el,
-                    stages: stages,
-                    start: startCallback,
-                    step: stepCallback,
-                    deferred: deferred,
-                    position: 0,
-                    id: id
-                });
-                data(el, dataParam, queue);
-
-                if (queue.length == 1) {
-                    animationStage(el, stages, 0, startCallback, deferred, true, id, stepCallback);
-                }
-
-                return deferred;
-            }
-            else {
-
-                options = options || {};
-
-                startCallback && (options.start = function(){
-                    startCallback(el);
-                });
-
-                options.complete = function() {
-                    deferred.resolve(el);
-                };
-
-                duration && (options.duration = duration);
-
-                if (jsFn && isFunction(jsFn)) {
-                    if (before) {
-                        extend(el.style, before, true, false);
-                    }
-                    startCallback && startCallback(el);
-                    data(el, dataParam, jsFn.call(context, el, function(){
-                        deferred.resolve(el);
-                    }));
-                    return deferred;
-                }
-                else if (window.jQuery) {
-
-                    var j = $(el);
-                    before && j.css(before);
-                    data(el, dataParam, "stop");
-
-                    if (jsFn && isString(jsFn)) {
-                        j[jsFn](options);
-                        return deferred;
-                    }
-                    else if (after) {
-                        j.animate(after, options);
-                        return deferred;
-                    }
-                }
-            }
-        }
-
-        // no animation happened
-
-
-        if (startCallback) {
-            var promise = startCallback(el);
-            if (isThenable(promise)) {
-                promise.done(function(){
-                    deferred.resolve(el);
-                });
-            }
-            else {
-                //raf(function(){
-                    deferred.resolve(el);
-                //});
-            }
-        }
-        else {
-            //raf(function(){
-                deferred.resolve(el);
-            //});
-        }
-
-
-        return deferred;
     };
 
-    animate.addAnimationType     = function(name, stages) {
-        types[name] = stages;
+    hooks["radio"] = hooks["checkbox"] = function(elem, value) {
+        if (isArray(value) ) {
+            return (elem.checked = inArray(getValue(elem), value));
+        }
     };
 
-    animate.stop = stopAnimation;
-    animate.getPrefixes = getAnimationPrefixes;
-    animate.getDuration = getAnimationDuration;
 
-    /**
-     * @function animate.cssAnimationSupported
-     * @returns {bool}
-     */
-    animate.cssAnimationSupported = cssAnimSupported;
+    return function(el, val) {
 
-    return animate;
+        if (el.nodeType !== 1) {
+            return;
+        }
+
+        // Treat null/undefined as ""; convert numbers to string
+        if (isNull(val)) {
+            val = "";
+        }
+        else if (isNumber(val)) {
+            val += "";
+        }
+
+        var hook = hooks[el.type] || hooks[el.nodeName.toLowerCase()];
+
+        // If set returns undefined, fall back to normal setting
+        if (!hook || hook(el, val, "value") === undf) {
+            el.value = val;
+        }
+    };
 }();
-
-
-
-var parseJSON = function() {
-
-    return typeof JSON != strUndef ?
-           function(data) {
-               return JSON.parse(data);
-           } :
-           function(data) {
-               return (new Function("return " + data))();
-           };
-}();
-
-
-
-
-
-function parseXML(data, type) {
-
-    var xml, tmp;
-
-    if (!data || !isString(data)) {
-        return null;
-    }
-
-    // Support: IE9
-    try {
-        tmp = new DOMParser();
-        xml = tmp.parseFromString(data, type || "text/xml");
-    } catch (thrownError) {
-        xml = undf;
-    }
-
-    if (!xml || xml.getElementsByTagName("parsererror").length) {
-        throw "Invalid XML: " + data;
-    }
-
-    return xml;
-};
-
-
-
-/**
- * Modified version of YASS (http://yass.webo.in)
- */
-
-/**
- * Returns array of nodes or an empty array
- * @function select
- * @param {String} selector
- * @param {Element} root to look into
- */
-var select = function() {
-
-    var rGeneric    = /^[\w[:#.][\w\]*^|=!]*$/,
-        rQuote      = /=([^\]]+)/,
-        rGrpSplit   = / *, */,
-        rRepPlus    = /(\([^)]*)\+/,
-        rRepTild    = /(\[[^\]]+)~/,
-        rRepAll     = /(~|>|\+)/,
-        rSplitPlus  = / +/,
-        rSingleMatch= /([^[:.#]+)?(?:#([^[:.#]+))?(?:\.([^[:.]+))?(?:\[([^!&^*|$[:=]+)([!$^*|&]?=)?([^:\]]+)?\])?(?::([^(]+)(?:\(([^)]+)\))?)?/,
-        rNthNum     = /(?:(-?\d*)n)?(?:(%|-)(\d*))?/,
-        rNonDig     = /\D/,
-        rRepPrnth   = /[^(]*\(([^)]*)\)/,
-        rRepAftPrn  = /\(.*/,
-        rGetSquare  = /\[([^!~^*|$ [:=]+)([$^*|]?=)?([^ :\]]+)?\]/,
-
-        doc         = window.document,
-        bcn         = !!doc.getElementsByClassName,
-        qsa         = !!doc.querySelectorAll,
-
-        /*
-         function calls for CSS2/3 modificatos. Specification taken from
-         http://www.w3.org/TR/2005/WD-css3-selectors-20051215/
-         on success return negative result.
-         */
-        mods        = {
-            /* W3C: "an E element, first child of its parent" */
-            'first-child': function (child) {
-                /* implementation was taken from jQuery.1.2.6, line 1394 */
-                return child.parentNode.getElementsByTagName('*')[0] !== child;
-            },
-            /* W3C: "an E element, last child of its parent" */
-            'last-child': function (child) {
-                var brother = child;
-                /* loop in lastChilds while nodeType isn't element */
-                while ((brother = brother.nextSibling) && brother.nodeType != 1) {}
-                /* Check for node's existence */
-                return !!brother;
-            },
-            /* W3C: "an E element, root of the document" */
-            root: function (child) {
-                return child.nodeName.toLowerCase() !== 'html';
-            },
-            /* W3C: "an E element, the n-th child of its parent" */
-            'nth-child': function (child, ind) {
-                var i = child.nodeIndex || 0,
-                    a = ind[3] = ind[3] ? (ind[2] === '%' ? -1 : 1) * ind[3] : 0,
-                    b = ind[1];
-                /* check if we have already looked into siblings, using exando - very bad */
-                if (i) {
-                    return !( (i + a) % b);
-                } else {
-                    /* in the other case just reverse logic for n and loop siblings */
-                    var brother = child.parentNode.firstChild;
-                    i++;
-                    /* looping in child to find if nth expression is correct */
-                    do {
-                        /* nodeIndex expando used from Peppy / Sizzle/ jQuery */
-                        if (brother.nodeType == 1 && (brother.nodeIndex = ++i) && child === brother && ((i + a) % b)) {
-                            return 0;
-                        }
-                    } while (brother = brother.nextSibling);
-                    return 1;
-                }
-            },
-            /*
-             W3C: "an E element, the n-th child of its parent,
-             counting from the last one"
-             */
-            'nth-last-child': function (child, ind) {
-                /* almost the same as the previous one */
-                var i = child.nodeIndexLast || 0,
-                    a = ind[3] ? (ind[2] === '%' ? -1 : 1) * ind[3] : 0,
-                    b = ind[1];
-                if (i) {
-                    return !( (i + a) % b);
-                } else {
-                    var brother = child.parentNode.lastChild;
-                    i++;
-                    do {
-                        if (brother.nodeType == 1 && (brother.nodeLastIndex = i++) && child === brother && ((i + a) % b)) {
-                            return 0;
-                        }
-                    } while (brother = brother.previousSibling);
-                    return 1;
-                }
-            },
-            /*
-             Rrom w3.org: "an E element that has no children (including text nodes)".
-             Thx to John, from Sizzle, 2008-12-05, line 416
-             */
-            empty: function (child) {
-                return !!child.firstChild;
-            },
-            /* thx to John, stolen from Sizzle, 2008-12-05, line 413 */
-            parent: function (child) {
-                return !child.firstChild;
-            },
-            /* W3C: "an E element, only child of its parent" */
-            'only-child': function (child) {
-                return child.parentNode.getElementsByTagName('*').length != 1;
-            },
-            /*
-             W3C: "a user interface element E which is checked
-             (for instance a radio-button or checkbox)"
-             */
-            checked: function (child) {
-                return !child.checked;
-            },
-            /*
-             W3C: "an element of type E in language "fr"
-             (the document language specifies how language is determined)"
-             */
-            lang: function (child, ind) {
-                return child.lang !== ind && doc.documentElement.lang !== ind;
-            },
-            /* thx to John, from Sizzle, 2008-12-05, line 398 */
-            enabled: function (child) {
-                return child.disabled || child.type === 'hidden';
-            },
-            /* thx to John, from Sizzle, 2008-12-05, line 401 */
-            disabled: function (child) {
-                return !child.disabled;
-            },
-            /* thx to John, from Sizzle, 2008-12-05, line 407 */
-            selected: function(elem){
-                /*
-                 Accessing this property makes selected-by-default
-                 options in Safari work properly.
-                 */
-                var tmp = elem.parentNode.selectedIndex;
-                return !elem.selected;
-            }
-        },
-
-        attrRegCache = {},
-
-        getAttrReg  = function(value) {
-            return attrRegCache[value] || (attrRegCache[value] = new RegExp('(^| +)' + value + '($| +)'));
-        },
-
-        attrMods    = {
-            /* W3C "an E element with a "attr" attribute" */
-            '': function (child, name) {
-                return getAttr(child, name) !== null;
-            },
-            /*
-             W3C "an E element whose "attr" attribute value is
-             exactly equal to "value"
-             */
-            '=': function (child, name, value) {
-                var attrValue;
-                return (attrValue = getAttr(child, name)) && attrValue === value;
-            },
-            /*
-             from w3.prg "an E element whose "attr" attribute value is
-             a list of space-separated values, one of which is exactly
-             equal to "value"
-             */
-            '&=': function (child, name, value) {
-                var attrValue;
-                return (attrValue = getAttr(child, name)) && getAttrReg(value).test(attrValue);
-            },
-            /*
-             from w3.prg "an E element whose "attr" attribute value
-             begins exactly with the string "value"
-             */
-            '^=': function (child, name, value) {
-                var attrValue;
-                return (attrValue = getAttr(child, name) + '') && !attrValue.indexOf(value);
-            },
-            /*
-             W3C "an E element whose "attr" attribute value
-             ends exactly with the string "value"
-             */
-            '$=': function (child, name, value) {
-                var attrValue;
-                return (attrValue = getAttr(child, name) + '') &&
-                       attrValue.indexOf(value) == attrValue.length - value.length;
-            },
-            /*
-             W3C "an E element whose "attr" attribute value
-             contains the substring "value"
-             */
-            '*=': function (child, name, value) {
-                var attrValue;
-                return (attrValue = getAttr(child, name) + '') && attrValue.indexOf(value) != -1;
-            },
-            /*
-             W3C "an E element whose "attr" attribute has
-             a hyphen-separated list of values beginning (from the
-             left) with "value"
-             */
-            '|=': function (child, name, value) {
-                var attrValue;
-                return (attrValue = getAttr(child, name) + '') &&
-                       (attrValue === value || !!attrValue.indexOf(value + '-'));
-            },
-            /* attr doesn't contain given value */
-            '!=': function (child, name, value) {
-                var attrValue;
-                return !(attrValue = getAttr(child, name)) || !getAttrReg(value).test(attrValue);
-            }
-        };
-
-
-    var select = function (selector, root) {
-
-        /* clean root with document */
-        root = root || doc;
-
-        /* sets of nodes, to handle comma-separated selectors */
-        var sets    = [],
-            qsaErr  = null,
-            idx, cls, nodes,
-            i, node, ind, mod,
-            attrs, attrName, eql, value;
-
-        if (qsa) {
-            /* replace not quoted args with quoted one -- Safari doesn't understand either */
-            try {
-                sets = toArray(root.querySelectorAll(selector.replace(rQuote, '="$1"')));
-            }
-            catch (thrownError) {
-                qsaErr = true;
-            }
-        }
-
-        if (!qsa || qsaErr) {
-
-            /* quick return or generic call, missed ~ in attributes selector */
-            if (rGeneric.test(selector)) {
-
-                /*
-                 some simple cases - only ID or only CLASS for the very first occurence
-                 - don't need additional checks. Switch works as a hash.
-                 */
-                idx = 0;
-
-                /* the only call -- no cache, thx to GreLI */
-                switch (selector.charAt(0)) {
-
-                    case '#':
-                        idx = selector.slice(1);
-                        sets = doc.getElementById(idx);
-
-                        /*
-                         workaround with IE bug about returning element by name not by ID.
-                         Solution completely changed, thx to deerua.
-                         Get all matching elements with this id
-                         */
-                        if (sets.id !== idx) {
-                            sets = doc.all[idx];
-                        }
-
-                        sets = sets ? [sets] : [];
-                        break;
-
-                    case '.':
-
-                        cls = selector.slice(1);
-
-                        if (bcn) {
-
-                            sets = toArray((idx = (sets = root.getElementsByClassName(cls)).length) ? sets : []);
-
-                        } else {
-
-                            /* no RegExp, thx to DenVdmj */
-                            cls = ' ' + cls + ' ';
-
-                            nodes = root.getElementsByTagName('*');
-                            i = 0;
-
-                            while (node = nodes[i++]) {
-                                if ((' ' + node.className + ' ').indexOf(cls) != -1) {
-                                    sets[idx++] = node;
-                                }
-
-                            }
-                            sets = idx ? sets : [];
-                        }
-                        break;
-
-                    case ':':
-
-                        nodes   = root.getElementsByTagName('*');
-                        i       = 0;
-                        ind     = selector.replace(rRepPrnth,"$1");
-                        mod     = selector.replace(rRepAftPrn,'');
-
-                        while (node = nodes[i++]) {
-                            if (mods[mod] && !mods[mod](node, ind)) {
-                                sets[idx++] = node;
-                            }
-                        }
-                        sets = idx ? sets : [];
-                        break;
-
-                    case '[':
-
-                        nodes   = root.getElementsByTagName('*');
-                        i       = 0;
-                        attrs   = rGetSquare.exec(selector);
-                        attrName    = attrs[1];
-                        eql     = attrs[2] || '';
-                        value   = attrs[3];
-
-                        while (node = nodes[i++]) {
-                            /* check either attr is defined for given node or it's equal to given value */
-                            if (attrMods[eql] && (attrMods[eql](node, attrName, value) ||
-                                                  (attrName === 'class' && attrMods[eql](node, 'className', value)))) {
-                                sets[idx++] = node;
-                            }
-                        }
-                        sets = idx ? sets : [];
-                        break;
-
-                    default:
-                        sets = toArray((idx = (sets = root.getElementsByTagName(selector)).length) ? sets : []);
-                        break;
-                }
-
-            } else {
-
-                /* number of groups to merge or not result arrays */
-                /*
-                 groups of selectors separated by commas.
-                 Split by RegExp, thx to tenshi.
-                 */
-                var groups  = selector.split(rGrpSplit),
-                    gl      = groups.length - 1, /* group counter */
-                    concat  = !!gl, /* if we need to concat several groups */
-                    group,
-                    singles,
-                    singles_length,
-                    single, /* to handle RegExp for single selector */
-                    ancestor, /* to remember ancestor call for next childs, default is " " */
-                /* for inner looping */
-                    tag, id, klass, newNodes, J, child, last, childs, item, h;
-
-                /* loop in groups, maybe the fastest way */
-                while (group = groups[gl--]) {
-
-                    /*
-                     Split selectors by space - to form single group tag-id-class,
-                     or to get heredity operator. Replace + in child modificators
-                     to % to avoid collisions. Additional replace is required for IE.
-                     Replace ~ in attributes to & to avoid collisions.
-                     */
-                    singles_length = (singles = group
-                        .replace(rRepPlus,"$1%")
-                        .replace(rRepTild,"$1&")
-                        .replace(rRepAll," $1 ").split(rSplitPlus)).length;
-
-                    i = 0;
-                    ancestor = ' ';
-                    /* is cleanded up with DOM root */
-                    nodes = [root];
-
-                    /*
-                     John's Resig fast replace works a bit slower than
-                     simple exec. Thx to GreLI for 'greed' RegExp
-                     */
-                    while (single = singles[i++]) {
-
-                        /* simple comparison is faster than hash */
-                        if (single !== ' ' && single !== '>' && single !== '~' && single !== '+' && nodes) {
-
-                            single = single.match(rSingleMatch);
-
-                            /*
-                             Get all required matches from exec:
-                             tag, id, class, attribute, value, modificator, index.
-                             */
-                            tag     = single[1] || '*';
-                            id      = single[2];
-                            klass   = single[3] ? ' ' + single[3] + ' ' : '';
-                            attrName    = single[4];
-                            eql     = single[5] || '';
-                            mod     = single[7];
-
-                            /*
-                             for nth-childs modificator already transformed into array.
-                             Example used from Sizzle, rev. 2008-12-05, line 362.
-                             */
-                            ind = mod === 'nth-child' || mod === 'nth-last-child' ?
-                                  rNthNum.exec(
-                                      single[8] === 'even' && '2n' ||
-                                      single[8] === 'odd' && '2n%1' ||
-                                      !rNonDig.test(single[8]) && '0n%' + single[8] ||
-                                      single[8]
-                                  ) :
-                                  single[8];
-
-                            /* new nodes array */
-                            newNodes = [];
-
-                            /*
-                             cached length of new nodes array
-                             and length of root nodes
-                             */
-                            idx = J = 0;
-
-                            /* if we need to mark node with expando yeasss */
-                            last = i == singles_length;
-
-                            /* loop in all root nodes */
-                            while (child = nodes[J++]) {
-                                /*
-                                 find all TAGs or just return all possible neibours.
-                                 Find correct 'children' for given node. They can be
-                                 direct childs, neighbours or something else.
-                                 */
-                                switch (ancestor) {
-                                    case ' ':
-                                        childs = child.getElementsByTagName(tag);
-                                        h = 0;
-                                        while (item = childs[h++]) {
-                                            /*
-                                             check them for ID or Class. Also check for expando 'yeasss'
-                                             to filter non-selected elements. Typeof 'string' not added -
-                                             if we get element with name="id" it won't be equal to given ID string.
-                                             Also check for given attributes selector.
-                                             Modificator is either not set in the selector, or just has been nulled
-                                             by modificator functions hash.
-                                             */
-                                            if ((!id || item.id === id) &&
-                                                (!klass || (' ' + item.className + ' ').indexOf(klass) != -1) &&
-                                                (!attrName || (attrMods[eql] &&
-                                                           (attrMods[eql](item, attrName, single[6]) ||
-                                                            (attrName === 'class' &&
-                                                             attrMods[eql](item, 'className', single[6]))))) &&
-                                                !item.yeasss && !(mods[mod] ? mods[mod](item, ind) : mod)) {
-
-                                                /*
-                                                 Need to define expando property to true for the last step.
-                                                 Then mark selected element with expando
-                                                 */
-                                                if (last) {
-                                                    item.yeasss = 1;
-                                                }
-                                                newNodes[idx++] = item;
-                                            }
-                                        }
-                                        break;
-                                    /* W3C: "an F element preceded by an E element" */
-                                    case '~':
-
-                                        tag = tag.toLowerCase();
-
-                                        /* don't touch already selected elements */
-                                        while ((child = child.nextSibling) && !child.yeasss) {
-                                            if (child.nodeType == 1 &&
-                                                (tag === '*' || child.nodeName.toLowerCase() === tag) &&
-                                                (!id || child.id === id) &&
-                                                (!klass || (' ' + child.className + ' ').indexOf(klass) != -1) &&
-                                                (!attrName || (attrMods[eql] &&
-                                                           (attrMods[eql](item, attrName, single[6]) ||
-                                                            (attrName === 'class' &&
-                                                             attrMods[eql](item, 'className', single[6]))))) &&
-                                                !child.yeasss &&
-                                                !(mods[mod] ? mods[mod](child, ind) : mod)) {
-
-                                                if (last) {
-                                                    child.yeasss = 1;
-                                                }
-                                                newNodes[idx++] = child;
-                                            }
-                                        }
-                                        break;
-
-                                    /* W3C: "an F element immediately preceded by an E element" */
-                                    case '+':
-                                        while ((child = child.nextSibling) && child.nodeType != 1) {}
-                                        if (child &&
-                                            (child.nodeName.toLowerCase() === tag.toLowerCase() || tag === '*') &&
-                                            (!id || child.id === id) &&
-                                            (!klass || (' ' + item.className + ' ').indexOf(klass) != -1) &&
-                                            (!attrName ||
-                                             (attrMods[eql] && (attrMods[eql](item, attrName, single[6]) ||
-                                                                (attrName === 'class' &&
-                                                                 attrMods[eql](item, 'className', single[6]))))) &&
-                                            !child.yeasss && !(mods[mod] ? mods[mod](child, ind) : mod)) {
-
-                                            if (last) {
-                                                child.yeasss = 1;
-                                            }
-                                            newNodes[idx++] = child;
-                                        }
-                                        break;
-
-                                    /* W3C: "an F element child of an E element" */
-                                    case '>':
-                                        childs = child.getElementsByTagName(tag);
-                                        i = 0;
-                                        while (item = childs[i++]) {
-                                            if (item.parentNode === child &&
-                                                (!id || item.id === id) &&
-                                                (!klass || (' ' + item.className + ' ').indexOf(klass) != -1) &&
-                                                (!attrName || (attrMods[eql] &&
-                                                           (attrMods[eql](item, attrName, single[6]) ||
-                                                            (attrName === 'class' &&
-                                                             attrMods[eql](item, 'className', single[6]))))) &&
-                                                !item.yeasss &&
-                                                !(mods[mod] ? mods[mod](item, ind) : mod)) {
-
-                                                if (last) {
-                                                    item.yeasss = 1;
-                                                }
-                                                newNodes[idx++] = item;
-                                            }
-                                        }
-                                        break;
-                                }
-                            }
-
-                            /* put selected nodes in local nodes' set */
-                            nodes = newNodes;
-
-                        } else {
-
-                            /* switch ancestor ( , > , ~ , +) */
-                            ancestor = single;
-                        }
-                    }
-
-                    if (concat) {
-                        /* if sets isn't an array - create new one */
-                        if (!nodes.concat) {
-                            newNodes = [];
-                            h = 0;
-                            while (item = nodes[h]) {
-                                newNodes[h++] = item;
-                            }
-                            nodes = newNodes;
-                            /* concat is faster than simple looping */
-                        }
-                        sets = nodes.concat(sets.length == 1 ? sets[0] : sets);
-
-                    } else {
-
-                        /* inialize sets with nodes */
-                        sets = nodes;
-                    }
-                }
-
-                /* define sets length to clean up expando */
-                idx = sets.length;
-
-                /*
-                 Need this looping as far as we also have expando 'yeasss'
-                 that must be nulled. Need this only to generic case
-                 */
-                while (idx--) {
-                    sets[idx].yeasss = sets[idx].nodeIndex = sets[idx].nodeIndexLast = null;
-                }
-            }
-        }
-
-        /* return and cache results */
-        return sets;
-    };
-
-    select.is = function(el, selector) {
-
-        var els = select(selector, el.parentNode),
-            i, l;
-
-        for (i = -1, l = els.length; ++i < l;) {
-            if (els[i] === el) {
-                return true;
-            }
-        }
-        return false;
-    };
-
-    return select;
-}();
-
-
-
-// partly from jQuery serialize.js
-
-var serializeParam = function(){
-
-    var r20 = /%20/g,
-        rbracket = /\[\]$/;
-
-    function buildParams(prefix, obj, add) {
-        var name,
-            i, l, v;
-
-        if (isArray(obj)) {
-            // Serialize array item.
-
-            for (i = 0, l = obj.length; i < l; i++) {
-                v = obj[i];
-
-                if (rbracket.test(prefix)) {
-                    // Treat each array item as a scalar.
-                    add(prefix, v);
-
-                } else {
-                    // Item is non-scalar (array or object), encode its numeric index.
-                    buildParams(
-                        prefix + "[" + ( typeof v === "object" ? i : "" ) + "]",
-                        v,
-                        add
-                    );
-                }
-            }
-        } else if (isPlainObject(obj)) {
-            // Serialize object item.
-            for (name in obj) {
-                buildParams(prefix + "[" + name + "]", obj[ name ], add);
-            }
-
-        } else {
-            // Serialize scalar item.
-            add(prefix, obj);
-        }
-    }
-
-    return function(obj) {
-
-        var prefix,
-            s = [],
-            add = function( key, value ) {
-                // If value is a function, invoke it and return its value
-                value = isFunction(value) ? value() : (value == null ? "" : value);
-                s[s.length] = encodeURIComponent( key ) + "=" + encodeURIComponent( value );
-            };
-
-        for ( prefix in obj ) {
-            buildParams(prefix, obj[prefix], add);
-        }
-
-        // Return the resulting serialization
-        return s.join( "&" ).replace( r20, "+" );
-    };
-
-
-}();
-
-
-/**
- * @mixin Promise
- */
-ns.register("mixin.Promise", {
-
-    $$promise: null,
-
-    $beforeInit: function() {
-        this.$$promise = new Promise;
-    },
-
-    then: function(){
-        return this.$$promise.then.apply(this.$$promise, arguments);
-    },
-
-    done: function() {
-        this.$$promise.done.apply(this.$$promise, arguments);
-        return this;
-    },
-
-    always: function() {
-        this.$$promise.always.apply(this.$$promise, arguments);
-        return this;
-    },
-
-    fail: function() {
-        this.$$promise.fail.apply(this.$$promise, arguments);
-        return this;
-    }
-
-});
-
-
-
-
-(function(){
-
-
-
-    var accepts     = {
-            xml:        "application/xml, text/xml",
-            html:       "text/html",
-            script:     "text/javascript, application/javascript",
-            json:       "application/json, text/javascript",
-            text:       "text/plain",
-            _default:   "*/*"
-        },
-
-        createXHR       = function() {
-
-            var xhr;
-
-            if (!window.XMLHttpRequest || !(xhr = new XMLHttpRequest())) {
-                if (!(xhr = new ActiveXObject("Msxml2.XMLHTTP"))) {
-                    if (!(xhr = new ActiveXObject("Microsoft.XMLHTTP"))) {
-                        throw "Unable to create XHR object";
-                    }
-                }
-            }
-
-            return xhr;
-        },
-
-        httpSuccess     = function(r) {
-            try {
-                return (!r.status && location && location.protocol == "file:")
-                       || (r.status >= 200 && r.status < 300)
-                       || r.status === 304 || r.status === 1223; // || r.status === 0;
-            } catch(thrownError){}
-            return false;
-        };
-
-    return defineClass({
-
-        $class: "ajax.transport.XHR",
-
-        type: "xhr",
-        _xhr: null,
-        _deferred: null,
-        _ajax: null,
-
-        $init: function(opt, deferred, ajax) {
-
-            var self    = this,
-                xhr;
-
-            self._xhr = xhr     = createXHR();
-            self._deferred      = deferred;
-            self._opt           = opt;
-            self._ajax          = ajax;
-
-            if (opt.progress) {
-                xhr.onprogress = bind(opt.progress, opt.context);
-            }
-            if (opt.uploadProgress && xhr.upload) {
-                xhr.upload.onprogress = bind(opt.uploadProgress, opt.context);
-            }
-
-            xhr.onreadystatechange = bind(self.onReadyStateChange, self);
-        },
-
-        setHeaders: function() {
-
-            var self = this,
-                opt = self._opt,
-                xhr = self._xhr,
-                i;
-
-            if (opt.xhrFields) {
-                for (i in opt.xhrFields) {
-                    xhr[i] = opt.xhrFields[i];
-                }
-            }
-            if (opt.data && opt.contentType) {
-                xhr.setRequestHeader("Content-Type", opt.contentType);
-            }
-            xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-            xhr.setRequestHeader("Accept",
-                opt.dataType && accepts[opt.dataType] ?
-                accepts[opt.dataType] + ", */*; q=0.01" :
-                accepts._default
-            );
-            for (i in opt.headers) {
-                xhr.setRequestHeader(i, opt.headers[i]);
-            }
-
-        },
-
-        onReadyStateChange: function() {
-
-            var self        = this,
-                xhr         = self._xhr,
-                deferred    = self._deferred;
-
-            if (xhr.readyState === 0) {
-                xhr.onreadystatechange = emptyFn;
-                deferred.resolve(xhr);
-                return;
-            }
-
-            if (xhr.readyState === 4) {
-                xhr.onreadystatechange = emptyFn;
-
-                if (httpSuccess(xhr)) {
-
-                    self._ajax.processResponse(
-                        isString(xhr.responseText) ? xhr.responseText : undf,
-                        xhr.getResponseHeader("content-type") || ''
-                    );
-                }
-                else {
-
-                    xhr.responseData = null;
-
-                    try {
-                        xhr.responseData = self._ajax.returnResponse(
-                            isString(xhr.responseText) ? xhr.responseText : undf,
-                            xhr.getResponseHeader("content-type") || ''
-                        );
-                    }
-                    catch (thrownErr) {}
-
-                    deferred.reject(xhr);
-                }
-            }
-        },
-
-        abort: function() {
-            var self    = this;
-            self._xhr.onreadystatechange = emptyFn;
-            self._xhr.abort();
-        },
-
-        send: function() {
-
-            var self    = this,
-                opt     = self._opt;
-
-            try {
-                self._xhr.open(opt.method, opt.url, true, opt.username, opt.password);
-                self.setHeaders();
-                self._xhr.send(opt.data);
-            }
-            catch (thrownError) {
-                if (self._deferred) {
-                    self._deferred.reject(thrownError);
-                }
-            }
-        }
-    });
-
-}());
-
-
-
 
 
 function returnTrue() {
@@ -8466,6 +5356,3965 @@ var addListener = function(){
     }
 
 }();
+
+
+var removeListener = function(){
+
+    var fn = null,
+        prefix = null;
+
+    return function removeListener(el, event, func) {
+
+        if (fn === null) {
+            if (el.removeEventListener) {
+                fn = "removeEventListener";
+                prefix = "";
+            }
+            else {
+                fn = "detachEvent";
+                prefix = "on";
+            }
+            //fn = el.detachEvent ? "detachEvent" : "removeEventListener";
+            //prefix = el.detachEvent ? "on" : "";
+        }
+
+        el[fn](prefix + event, func);
+    }
+}();
+
+var isAttached = function(){
+    var isAttached = function isAttached(node) {
+
+        if (node === window) {
+            return true;
+        }
+        if (node.nodeType == 3) {
+            if (node.parentElement) {
+                return isAttached(node.parentElement);
+            }
+            else {
+                return true;
+            }
+        }
+
+        var html = window.document.documentElement;
+
+        return node === html ? true : html.contains(node);
+    };
+    return isAttached;
+}();
+
+var isAndroid = function(){
+
+    var android = null;
+
+    return function isAndroid() {
+
+        if (android === null) {
+            android = parseInt((/android (\d+)/i.exec(navigator.userAgent) || [])[1], 10) || false;
+        }
+
+        return android;
+    };
+
+}();
+
+
+var isIE = function(){
+
+    var msie;
+
+    return function isIE() {
+
+        if (msie === null) {
+            var ua = navigator.userAgent;
+            msie = parseInt((/msie (\d+)/i.exec(ua) || [])[1], 10);
+            if (isNaN(msie)) {
+                msie = parseInt((/trident\/.*; rv:(\d+)/i.exec(ua) || [])[1], 10) || false;
+            }
+        }
+
+        return msie;
+    };
+}();
+
+
+
+/**
+ * @param {String} event
+ * @return {boolean}
+ */
+var browserHasEvent = function(){
+
+    var eventSupport = {},
+        divElm;
+
+    return function browserHasEvent(event) {
+        // IE9 implements 'input' event it's so fubared that we rather pretend that it doesn't have
+        // it. In particular the event is not fired when backspace or delete key are pressed or
+        // when cut operation is performed.
+
+        if (eventSupport[event] === undf) {
+
+            if (event == 'input' && isIE() == 9) {
+                return eventSupport[event] = false;
+            }
+            if (!divElm) {
+                divElm = window.document.createElement('div');
+            }
+
+            eventSupport[event] = !!('on' + event in divElm);
+        }
+
+        return eventSupport[event];
+    };
+}();
+
+
+
+/**
+ * Modified version of YASS (http://yass.webo.in)
+ */
+
+/**
+ * Returns array of nodes or an empty array
+ * @function select
+ * @param {String} selector
+ * @param {Element} root to look into
+ */
+var select = function() {
+
+    var rGeneric    = /^[\w[:#.][\w\]*^|=!]*$/,
+        rQuote      = /=([^\]]+)/,
+        rGrpSplit   = / *, */,
+        rRepPlus    = /(\([^)]*)\+/,
+        rRepTild    = /(\[[^\]]+)~/,
+        rRepAll     = /(~|>|\+)/,
+        rSplitPlus  = / +/,
+        rSingleMatch= /([^[:.#]+)?(?:#([^[:.#]+))?(?:\.([^[:.]+))?(?:\[([^!&^*|$[:=]+)([!$^*|&]?=)?([^:\]]+)?\])?(?::([^(]+)(?:\(([^)]+)\))?)?/,
+        rNthNum     = /(?:(-?\d*)n)?(?:(%|-)(\d*))?/,
+        rNonDig     = /\D/,
+        rRepPrnth   = /[^(]*\(([^)]*)\)/,
+        rRepAftPrn  = /\(.*/,
+        rGetSquare  = /\[([^!~^*|$ [:=]+)([$^*|]?=)?([^ :\]]+)?\]/,
+
+        doc         = window.document,
+        bcn         = !!doc.getElementsByClassName,
+        qsa         = !!doc.querySelectorAll,
+
+        /*
+         function calls for CSS2/3 modificatos. Specification taken from
+         http://www.w3.org/TR/2005/WD-css3-selectors-20051215/
+         on success return negative result.
+         */
+        mods        = {
+            /* W3C: "an E element, first child of its parent" */
+            'first-child': function (child) {
+                /* implementation was taken from jQuery.1.2.6, line 1394 */
+                return child.parentNode.getElementsByTagName('*')[0] !== child;
+            },
+            /* W3C: "an E element, last child of its parent" */
+            'last-child': function (child) {
+                var brother = child;
+                /* loop in lastChilds while nodeType isn't element */
+                while ((brother = brother.nextSibling) && brother.nodeType !== 1) {}
+                /* Check for node's existence */
+                return !!brother;
+            },
+            /* W3C: "an E element, root of the document" */
+            root: function (child) {
+                return child.nodeName.toLowerCase() !== 'html';
+            },
+            /* W3C: "an E element, the n-th child of its parent" */
+            'nth-child': function (child, ind) {
+                var i = child.nodeIndex || 0,
+                    a = ind[3] = ind[3] ? (ind[2] === '%' ? -1 : 1) * ind[3] : 0,
+                    b = ind[1];
+                /* check if we have already looked into siblings, using exando - very bad */
+                if (i) {
+                    return !( (i + a) % b);
+                } else {
+                    /* in the other case just reverse logic for n and loop siblings */
+                    var brother = child.parentNode.firstChild;
+                    i++;
+                    /* looping in child to find if nth expression is correct */
+                    do {
+                        /* nodeIndex expando used from Peppy / Sizzle/ jQuery */
+                        if (brother.nodeType === 1 && (brother.nodeIndex = ++i) && child === brother && ((i + a) % b)) {
+                            return 0;
+                        }
+                    } while (brother = brother.nextSibling);
+                    return 1;
+                }
+            },
+            /*
+             W3C: "an E element, the n-th child of its parent,
+             counting from the last one"
+             */
+            'nth-last-child': function (child, ind) {
+                /* almost the same as the previous one */
+                var i = child.nodeIndexLast || 0,
+                    a = ind[3] ? (ind[2] === '%' ? -1 : 1) * ind[3] : 0,
+                    b = ind[1];
+                if (i) {
+                    return !( (i + a) % b);
+                } else {
+                    var brother = child.parentNode.lastChild;
+                    i++;
+                    do {
+                        if (brother.nodeType === 1 && (brother.nodeLastIndex = i++) && child === brother && ((i + a) % b)) {
+                            return 0;
+                        }
+                    } while (brother = brother.previousSibling);
+                    return 1;
+                }
+            },
+            /*
+             Rrom w3.org: "an E element that has no children (including text nodes)".
+             Thx to John, from Sizzle, 2008-12-05, line 416
+             */
+            empty: function (child) {
+                return !!child.firstChild;
+            },
+            /* thx to John, stolen from Sizzle, 2008-12-05, line 413 */
+            parent: function (child) {
+                return !child.firstChild;
+            },
+            /* W3C: "an E element, only child of its parent" */
+            'only-child': function (child) {
+                return child.parentNode.getElementsByTagName('*').length !== 1;
+            },
+            /*
+             W3C: "a user interface element E which is checked
+             (for instance a radio-button or checkbox)"
+             */
+            checked: function (child) {
+                return !child.checked;
+            },
+            /*
+             W3C: "an element of type E in language "fr"
+             (the document language specifies how language is determined)"
+             */
+            lang: function (child, ind) {
+                return child.lang !== ind && doc.documentElement.lang !== ind;
+            },
+            /* thx to John, from Sizzle, 2008-12-05, line 398 */
+            enabled: function (child) {
+                return child.disabled || child.type === 'hidden';
+            },
+            /* thx to John, from Sizzle, 2008-12-05, line 401 */
+            disabled: function (child) {
+                return !child.disabled;
+            },
+            /* thx to John, from Sizzle, 2008-12-05, line 407 */
+            selected: function(elem){
+                /*
+                 Accessing this property makes selected-by-default
+                 options in Safari work properly.
+                 */
+                var tmp = elem.parentNode.selectedIndex;
+                return !elem.selected;
+            }
+        },
+
+        attrRegCache = {},
+
+        getAttrReg  = function(value) {
+            return attrRegCache[value] || (attrRegCache[value] = new RegExp('(^| +)' + value + '($| +)'));
+        },
+
+        attrMods    = {
+            /* W3C "an E element with a "attr" attribute" */
+            '': function (child, name) {
+                return getAttr(child, name) !== null;
+            },
+            /*
+             W3C "an E element whose "attr" attribute value is
+             exactly equal to "value"
+             */
+            '=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = getAttr(child, name)) && attrValue === value;
+            },
+            /*
+             from w3.prg "an E element whose "attr" attribute value is
+             a list of space-separated values, one of which is exactly
+             equal to "value"
+             */
+            '&=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = getAttr(child, name)) && getAttrReg(value).test(attrValue);
+            },
+            /*
+             from w3.prg "an E element whose "attr" attribute value
+             begins exactly with the string "value"
+             */
+            '^=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = getAttr(child, name) + '') && !attrValue.indexOf(value);
+            },
+            /*
+             W3C "an E element whose "attr" attribute value
+             ends exactly with the string "value"
+             */
+            '$=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = getAttr(child, name) + '') &&
+                       attrValue.indexOf(value) === attrValue.length - value.length;
+            },
+            /*
+             W3C "an E element whose "attr" attribute value
+             contains the substring "value"
+             */
+            '*=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = getAttr(child, name) + '') && attrValue.indexOf(value) !== -1;
+            },
+            /*
+             W3C "an E element whose "attr" attribute has
+             a hyphen-separated list of values beginning (from the
+             left) with "value"
+             */
+            '|=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = getAttr(child, name) + '') &&
+                       (attrValue === value || !!attrValue.indexOf(value + '-'));
+            },
+            /* attr doesn't contain given value */
+            '!=': function (child, name, value) {
+                var attrValue;
+                return !(attrValue = getAttr(child, name)) || !getAttrReg(value).test(attrValue);
+            }
+        };
+
+
+    var select = function (selector, root) {
+
+        /* clean root with document */
+        root = root || doc;
+
+        /* sets of nodes, to handle comma-separated selectors */
+        var sets    = [],
+            qsaErr  = null,
+            idx, cls, nodes,
+            i, node, ind, mod,
+            attrs, attrName, eql, value;
+
+        if (qsa && root.querySelectorAll) {
+            /* replace not quoted args with quoted one -- Safari doesn't understand either */
+            try {
+                sets = toArray(root.querySelectorAll(selector.replace(rQuote, '="$1"')));
+            }
+            catch (thrownError) {
+                //console.log(thrownError);
+                qsaErr = true;
+            }
+        }
+
+        if (!qsa || qsaErr) {
+
+            /* quick return or generic call, missed ~ in attributes selector */
+            if (rGeneric.test(selector)) {
+
+                /*
+                 some simple cases - only ID or only CLASS for the very first occurence
+                 - don't need additional checks. Switch works as a hash.
+                 */
+                idx = 0;
+
+                /* the only call -- no cache, thx to GreLI */
+                switch (selector.charAt(0)) {
+
+                    case '#':
+                        idx = selector.slice(1);
+                        sets = doc.getElementById(idx);
+
+                        /*
+                         workaround with IE bug about returning element by name not by ID.
+                         Solution completely changed, thx to deerua.
+                         Get all matching elements with this id
+                         */
+                        if (sets.id !== idx) {
+                            sets = doc.all[idx];
+                        }
+
+                        sets = sets ? [sets] : [];
+                        break;
+
+                    case '.':
+
+                        cls = selector.slice(1);
+
+                        if (bcn) {
+
+                            sets = toArray((idx = (sets = root.getElementsByClassName(cls)).length) ? sets : []);
+
+                        } else {
+
+                            /* no RegExp, thx to DenVdmj */
+                            cls = ' ' + cls + ' ';
+
+                            nodes = root.getElementsByTagName('*');
+                            i = 0;
+
+                            while (node = nodes[i++]) {
+                                if ((' ' + node.className + ' ').indexOf(cls) !== -1) {
+                                    sets[idx++] = node;
+                                }
+
+                            }
+                            sets = idx ? sets : [];
+                        }
+                        break;
+
+                    case ':':
+
+                        nodes   = root.getElementsByTagName('*');
+                        i       = 0;
+                        ind     = selector.replace(rRepPrnth,"$1");
+                        mod     = selector.replace(rRepAftPrn,'');
+
+                        while (node = nodes[i++]) {
+                            if (mods[mod] && !mods[mod](node, ind)) {
+                                sets[idx++] = node;
+                            }
+                        }
+                        sets = idx ? sets : [];
+                        break;
+
+                    case '[':
+
+                        nodes   = root.getElementsByTagName('*');
+                        i       = 0;
+                        attrs   = rGetSquare.exec(selector);
+                        attrName    = attrs[1];
+                        eql     = attrs[2] || '';
+                        value   = attrs[3];
+
+                        while (node = nodes[i++]) {
+                            /* check either attr is defined for given node or it's equal to given value */
+                            if (attrMods[eql] && (attrMods[eql](node, attrName, value) ||
+                                                  (attrName === 'class' && attrMods[eql](node, 'className', value)))) {
+                                sets[idx++] = node;
+                            }
+                        }
+                        sets = idx ? sets : [];
+                        break;
+
+                    default:
+                        sets = toArray((idx = (sets = root.getElementsByTagName(selector)).length) ? sets : []);
+                        break;
+                }
+
+            } else {
+
+                /* number of groups to merge or not result arrays */
+                /*
+                 groups of selectors separated by commas.
+                 Split by RegExp, thx to tenshi.
+                 */
+                var groups  = selector.split(rGrpSplit),
+                    gl      = groups.length - 1, /* group counter */
+                    concat  = !!gl, /* if we need to concat several groups */
+                    group,
+                    singles,
+                    singles_length,
+                    single, /* to handle RegExp for single selector */
+                    ancestor, /* to remember ancestor call for next childs, default is " " */
+                /* for inner looping */
+                    tag, id, klass, newNodes, J, child, last, childs, item, h;
+
+                /* loop in groups, maybe the fastest way */
+                while (group = groups[gl--]) {
+
+                    /*
+                     Split selectors by space - to form single group tag-id-class,
+                     or to get heredity operator. Replace + in child modificators
+                     to % to avoid collisions. Additional replace is required for IE.
+                     Replace ~ in attributes to & to avoid collisions.
+                     */
+                    singles_length = (singles = group
+                        .replace(rRepPlus,"$1%")
+                        .replace(rRepTild,"$1&")
+                        .replace(rRepAll," $1 ").split(rSplitPlus)).length;
+
+                    i = 0;
+                    ancestor = ' ';
+                    /* is cleanded up with DOM root */
+                    if (root instanceof DocumentFragment) {
+                        nodes = root.children;
+                    }
+                    else {
+                        nodes = [root];
+                    }
+
+                    /*
+                     John's Resig fast replace works a bit slower than
+                     simple exec. Thx to GreLI for 'greed' RegExp
+                     */
+                    while (single = singles[i++]) {
+
+                        /* simple comparison is faster than hash */
+                        if (single !== ' ' && single !== '>' &&
+                            single !== '~' && single !== '+' && nodes) {
+
+                            single = single.match(rSingleMatch);
+
+                            /*
+                             Get all required matches from exec:
+                             tag, id, class, attribute, value, modificator, index.
+                             */
+                            tag     = single[1] || '*';
+                            id      = single[2];
+                            klass   = single[3] ? ' ' + single[3] + ' ' : '';
+                            attrName    = single[4];
+                            eql     = single[5] || '';
+                            mod     = single[7];
+
+                            /*
+                             for nth-childs modificator already transformed into array.
+                             Example used from Sizzle, rev. 2008-12-05, line 362.
+                             */
+                            ind = mod === 'nth-child' ||
+                                    mod === 'nth-last-child' ?
+                                  rNthNum.exec(
+                                      single[8] === 'even' && '2n' ||
+                                      single[8] === 'odd' && '2n%1' ||
+                                      !rNonDig.test(single[8]) && '0n%' + single[8] ||
+                                      single[8]
+                                  ) :
+                                  single[8];
+
+                            /* new nodes array */
+                            newNodes = [];
+
+                            /*
+                             cached length of new nodes array
+                             and length of root nodes
+                             */
+                            idx = J = 0;
+
+                            /* if we need to mark node with expando yeasss */
+                            last = i === singles_length;
+
+                            /* loop in all root nodes */
+                            while (child = nodes[J++]) {
+                                /*
+                                 find all TAGs or just return all possible neibours.
+                                 Find correct 'children' for given node. They can be
+                                 direct childs, neighbours or something else.
+                                 */
+                                switch (ancestor) {
+                                    case ' ':
+                                        if (child.getElementsByTagName) {
+                                            childs = child.getElementsByTagName(tag);
+                                            h = 0;
+                                            while (item = childs[h++]) {
+                                                /*
+                                                check them for ID or Class. Also check for expando 'yeasss'
+                                                to filter non-selected elements. Typeof 'string' not added -
+                                                if we get element with name="id" it won't be equal to given ID string.
+                                                Also check for given attributes selector.
+                                                Modificator is either not set in the selector, or just has been nulled
+                                                by modificator functions hash.
+                                                */
+                                                if ((!id || item.id === id) &&
+                                                    (!klass || (' ' + item.className + ' ').indexOf(klass) != -1) &&
+                                                    (!attrName || (attrMods[eql] &&
+                                                            (attrMods[eql](item, attrName, single[6]) ||
+                                                                (attrName === 'class' &&
+                                                                attrMods[eql](item, 'className', single[6]))))) &&
+                                                    !item.yeasss && !(mods[mod] ? mods[mod](item, ind) : mod)) {
+
+                                                    /*
+                                                    Need to define expando property to true for the last step.
+                                                    Then mark selected element with expando
+                                                    */
+                                                    if (last) {
+                                                        item.yeasss = 1;
+                                                    }
+                                                    newNodes[idx++] = item;
+                                                }
+                                            }
+                                        }
+                                        break;
+                                    /* W3C: "an F element preceded by an E element" */
+                                    case '~':
+
+                                        tag = tag.toLowerCase();
+
+                                        /* don't touch already selected elements */
+                                        while ((child = child.nextSibling) && !child.yeasss) {
+                                            if (child.nodeType === 1 &&
+                                                (tag === '*' || child.nodeName.toLowerCase() === tag) &&
+                                                (!id || child.id === id) &&
+                                                (!klass || (' ' + child.className + ' ').indexOf(klass) !== -1) &&
+                                                (!attrName || (attrMods[eql] &&
+                                                           (attrMods[eql](item, attrName, single[6]) ||
+                                                            (attrName === 'class' &&
+                                                             attrMods[eql](item, 'className', single[6]))))) &&
+                                                !child.yeasss &&
+                                                !(mods[mod] ? mods[mod](child, ind) : mod)) {
+
+                                                if (last) {
+                                                    child.yeasss = 1;
+                                                }
+                                                newNodes[idx++] = child;
+                                            }
+                                        }
+                                        break;
+
+                                    /* W3C: "an F element immediately preceded by an E element" */
+                                    case '+':
+                                        while ((child = child.nextSibling) && child.nodeType !== 1) {}
+                                        if (child &&
+                                            (child.nodeName.toLowerCase() === tag.toLowerCase() || tag === '*') &&
+                                            (!id || child.id === id) &&
+                                            (!klass || (' ' + item.className + ' ').indexOf(klass) !== -1) &&
+                                            (!attrName ||
+                                             (attrMods[eql] && (attrMods[eql](item, attrName, single[6]) ||
+                                                                (attrName === 'class' &&
+                                                                 attrMods[eql](item, 'className', single[6]))))) &&
+                                            !child.yeasss && !(mods[mod] ? mods[mod](child, ind) : mod)) {
+
+                                            if (last) {
+                                                child.yeasss = 1;
+                                            }
+                                            newNodes[idx++] = child;
+                                        }
+                                        break;
+
+                                    /* W3C: "an F element child of an E element" */
+                                    case '>':
+                                        if (child.getElementsByTagName) {
+                                            childs = child.getElementsByTagName(tag);
+                                            i = 0;
+                                            while (item = childs[i++]) {
+                                                if (item.parentNode === child &&
+                                                    (!id || item.id === id) &&
+                                                    (!klass || (' ' + item.className + ' ').indexOf(klass) != -1) &&
+                                                    (!attrName || (attrMods[eql] &&
+                                                            (attrMods[eql](item, attrName, single[6]) ||
+                                                                (attrName === 'class' &&
+                                                                attrMods[eql](item, 'className', single[6]))))) &&
+                                                    !item.yeasss &&
+                                                    !(mods[mod] ? mods[mod](item, ind) : mod)) {
+
+                                                    if (last) {
+                                                        item.yeasss = 1;
+                                                    }
+                                                    newNodes[idx++] = item;
+                                                }
+                                            }
+                                        }
+                                        break;
+                                }
+                            }
+
+                            /* put selected nodes in local nodes' set */
+                            nodes = newNodes;
+
+                        } else {
+
+                            /* switch ancestor ( , > , ~ , +) */
+                            ancestor = single;
+                        }
+                    }
+
+                    if (concat) {
+                        /* if sets isn't an array - create new one */
+                        if (!nodes.concat) {
+                            newNodes = [];
+                            h = 0;
+                            while (item = nodes[h]) {
+                                newNodes[h++] = item;
+                            }
+                            nodes = newNodes;
+                            /* concat is faster than simple looping */
+                        }
+                        sets = nodes.concat(sets.length === 1 ? sets[0] : sets);
+
+                    } else {
+
+                        /* inialize sets with nodes */
+                        sets = nodes;
+                    }
+                }
+
+                /* define sets length to clean up expando */
+                idx = sets.length;
+
+                /*
+                 Need this looping as far as we also have expando 'yeasss'
+                 that must be nulled. Need this only to generic case
+                 */
+                while (idx--) {
+                    sets[idx].yeasss = sets[idx].nodeIndex = sets[idx].nodeIndexLast = null;
+                }
+            }
+        }
+
+        /* return and cache results */
+        return sets;
+    };
+
+    select.is = function(el, selector) {
+
+        var els = select(selector, el.parentNode),
+            i, l;
+
+        for (i = -1, l = els.length; ++i < l;) {
+            if (els[i] === el) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    return select;
+}();
+
+
+
+
+var Input = function(el, changeFn, changeFnContext, cfg) {
+
+    if (el.$$input) {
+        if (changeFn) {
+            el.$$input.on("change", changeFn, changeFnContext);
+        }
+        return el.$$input;
+    }
+
+    var self    = this;
+
+    cfg = cfg || {};
+
+    self.observable     = new Observable;
+    self.el             = el;
+    self.inputType      = el.type.toLowerCase();
+    self.dataType       = cfg.type || getAttr(el, "data-type") || self.inputType;
+    self.listeners      = [];
+
+    if (changeFn) {
+        self.onChange(changeFn, changeFnContext);
+    }
+};
+
+extend(Input.prototype, {
+
+    el: null,
+    inputType: null,
+    dataType: null,
+    listeners: null,
+    radio: null,
+    keydownDelegate: null,
+    changeInitialized: false,
+
+    destroy: function() {
+
+        var self        = this,
+            i;
+
+        self.observable.destroy();
+        self._addOrRemoveListeners(removeListener, true);
+
+        self.el.$$input = null;
+
+        for (i in self) {
+            if (self.hasOwnProperty(i)) {
+                self[i] = null;
+            }
+        }
+    },
+
+    _addOrRemoveListeners: function(fn, onlyUsed) {
+
+        var self        = this,
+            type        = self.inputType,
+            listeners   = self.listeners,
+            radio       = self.radio,
+            el          = self.el,
+            used,
+            i, ilen,
+            j, jlen;
+
+        for (i = 0, ilen = listeners.length; i < ilen; i++) {
+
+            used = !!listeners[i][2];
+
+            if (used === onlyUsed) {
+                if (type === "radio") {
+                    for (j = 0, jlen = radio.length; j < jlen; j++) {
+                        fn(radio[j], listeners[i][0], listeners[i][1]);
+                    }
+                }
+                else {
+                    fn(el, listeners[i][0], listeners[i][1]);
+                }
+                listeners[i][2] = !onlyUsed;
+            }
+        }
+    },
+
+    initInputChange: function() {
+
+        var self = this,
+            type = self.inputType;
+
+        if (type === "radio") {
+            self.initRadioInput();
+        }
+        else if (type === "checkbox") {
+            self.initCheckboxInput();
+        }
+        else {
+            self.initTextInput();
+        }
+
+        self._addOrRemoveListeners(addListener, false);
+
+        self.changeInitialized = true;
+    },
+
+    initRadioInput: function() {
+
+        var self    = this,
+            el      = self.el,
+            name    = el.name,
+            parent;
+
+        if (isAttached(el)) {
+            parent  = el.ownerDocument;
+        }
+        else {
+            parent = el;
+            while (parent.parentNode) {
+                parent = parent.parentNode;
+            }
+        }
+
+        self.radio  = select("input[name="+name+"]", parent);
+
+        self.onRadioInputChangeDelegate = bind(self.onRadioInputChange, self);
+        self.listeners.push(["click", self.onRadioInputChangeDelegate, false]);
+    },
+
+    initCheckboxInput: function() {
+
+        var self    = this;
+
+        self.clicked = false;
+
+        self.onCheckboxInputChangeDelegate = bind(self.onCheckboxInputChange, self);
+        self.onCheckboxInputClickDelegate = bind(self.onCheckboxInputClick, self);
+        self.listeners.push(["click", self.onCheckboxInputClickDelegate, false]);
+        self.listeners.push(["change", self.onCheckboxInputChangeDelegate, false]);
+    },
+
+    initTextInput: function() {
+
+        var composing   = false,
+            self        = this,
+            listeners   = self.listeners,
+            timeout;
+
+        // In composition mode, users are still inputing intermediate text buffer,
+        // hold the listener until composition is done.
+        // More about composition events:
+        // https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent
+        if (!isAndroid()) {
+
+            var compositionStart    = function() {
+                composing = true;
+            };
+
+            var compositionEnd  = function() {
+                composing = false;
+                listener();
+            };
+
+            listeners.push(["compositionstart", compositionStart, false]);
+            listeners.push(["compositionend", compositionEnd, false]);
+        }
+
+        var listener = self.onTextInputChangeDelegate = function(ev) {
+            if (composing) {
+                return;
+            }
+            self.onTextInputChange(ev);
+        };
+
+        var deferListener = function(ev) {
+            if (!timeout) {
+                timeout = setTimeout(function() {
+                    listener(ev);
+                    timeout = null;
+                }, 0);
+            }
+        };
+
+        var keydown = function(event) {
+            event = event || window.event;
+            var key = event.keyCode;
+
+            // ignore
+            //    command            modifiers                   arrows
+            if (key === 91 || (15 < key && key < 19) || (37 <= key && key <= 40)) {
+                return;
+            }
+
+            deferListener(event);
+        };
+
+        // if the browser does support "input" event, we are fine - except on
+        // IE9 which doesn't fire the
+        // input event on backspace, delete or cut
+        if (browserHasEvent('input')) {
+
+            listeners.push(["input", listener, false]);
+
+        } else {
+
+            listeners.push(["keydown", keydown, false]);
+
+            // if user modifies input value using context menu in IE,
+            // we need "paste" and "cut" events to catch it
+            if (browserHasEvent('paste')) {
+                listeners.push(["paste", deferListener, false]);
+                listeners.push(["cut", deferListener, false]);
+            }
+        }
+
+
+        // if user paste into input using mouse on older browser
+        // or form autocomplete on newer browser, we need "change" event to catch it
+
+        listeners.push(["change", listener, false]);
+    },
+
+    processValue: function(val) {
+
+        switch (this.dataType) {
+            case "number":
+            case "float":
+            case "double":
+                if (val === "" || isNaN(val = parseFloat(val))) {
+                    val = undf;
+                }
+                break;
+            case "int":
+            case "integer":
+                if (val === "" || isNaN(val = parseInt(val, 10))) {
+                    val = undf;
+                }
+                break;
+            case "bool":
+            case "boolean":
+                return !(val === "false" || val === "0" || val === 0 ||
+                        val === "off" || val === false || val === "");
+
+        }
+
+        return val;
+    },
+
+    onTextInputChange: function(ev) {
+
+        var self    = this,
+            val     = self.getValue();
+
+        self.observable.trigger("change", self.processValue(val));
+    },
+
+
+    _checkboxChange: function() {
+        var self    = this,
+            node    = self.el;
+
+        self.observable.trigger("change", self.processValue(
+            node.checked ? (getAttr(node, "value") || true) : false)
+        );
+    },
+
+    onCheckboxInputChange: function() {
+        if (!this.clicked) {
+            this._checkboxChange();
+        }
+        this.clicked = false;
+    },
+
+    onCheckboxInputClick: function() {
+        this._checkboxChange();
+        this.clicked = true;
+    },
+
+    onRadioInputChange: function(e) {
+
+        e = e || window.event;
+
+        var self    = this,
+            trg     = e.target || e.srcElement;
+
+        self.observable.trigger("change", self.processValue(trg.value));
+    },
+
+    setValue: function(val) {
+
+        var self    = this,
+            type    = self.inputType,
+            radio,
+            i, len;
+
+        val = self.processValue(val);
+
+        if (type === "radio") {
+
+            radio = self.radio;
+
+            for (i = 0, len = radio.length; i < len; i++) {
+                radio[i].checked = self.processValue(radio[i].value) == val;
+            }
+        }
+        else if (type === "checkbox") {
+            var node        = self.el;
+            node.checked    = val === true || val == self.processValue(node.value);
+        }
+        else {
+
+            if (val === undf) {
+                val = "";
+            }
+
+            setValue(self.el, val);
+        }
+
+        self.triggerChange();
+    },
+
+    getValue: function() {
+
+        var self    = this,
+            type    = self.inputType,
+            radio,
+            i, l;
+
+        if (type === "radio") {
+            radio = self.radio;
+            for (i = 0, l = radio.length; i < l; i++) {
+                if (radio[i].checked) {
+                    return self.processValue(radio[i].value);
+                }
+            }
+            return null;
+        }
+        else if (type === "checkbox") {
+            return self.processValue(self.el.checked ? (getAttr(self.el, "value") || true) : false);
+        }
+        else {
+            return self.processValue(getValue(self.el));
+        }
+    },
+
+
+    onChange: function(fn, context) {
+        var self = this;
+        if (!self.changeInitialized) {
+            self.initInputChange();
+        }
+        this.observable.on("change", fn, context);
+    },
+
+    unChange: function(fn, context) {
+        this.observable.un("change", fn, context);
+    },
+
+
+    onKey: function(key, fn, context, args) {
+
+        var self = this;
+
+        if (!self.keydownDelegate) {
+            self.keydownDelegate = bind(self.keyHandler, self);
+            self.listeners.push(["keydown", self.keydownDelegate, false]);
+            addListener(self.el, "keydown", self.keydownDelegate);
+            self.observable.createEvent("key", {
+                returnResult: false,
+                triggerFilter: self.keyEventFilter
+            });
+        }
+
+        self.observable.on("key", fn, context, {
+            key: key,
+            prepend: args
+        });
+    },
+
+    unKey: function(key, fn, context) {
+
+        var self    = this;
+        self.observable.un("key", fn, context);
+    },
+
+    keyEventFilter: function(l, args) {
+
+        var key = l.key,
+            e = args[0];
+
+        if (typeof key !== "object") {
+            return key === e.keyCode;
+        }
+        else {
+            if (key.ctrlKey !== undf && key.ctrlKey !== e.ctrlKey) {
+                return false;
+            }
+            if (key.shiftKey !== undf && key.shiftKey !== e.shiftKey) {
+                return false;
+            }
+            return !(key.keyCode !== undf && key.keyCode !== e.keyCode);
+        }
+    },
+
+    keyHandler: function(event) {
+
+        var e       = normalizeEvent(event || window.event),
+            self    = this;
+
+        self.observable.trigger("key", e);
+    },
+
+    triggerChange: function() {
+        if ("createEvent" in document) {
+            var evt = document.createEvent("HTMLEvents");
+            evt.initEvent("change", false, true);
+            this.el.dispatchEvent(evt);
+        }
+        else {
+            this.el.fireEvent("onchange");
+        }
+    }
+
+
+}, true, false);
+
+
+Input.get = function(node, scope) {
+    if (node.$$input) {
+        return node.$$input;
+    }
+    if (scope && !node.type) {
+        var cmp = scope.$app.getParentCmp(node, true);
+        if (cmp && cmp.getInputInterface) {
+            return cmp.getInputInterface();
+        }
+    }
+    return new Input(node);
+};
+
+Input.getValue = getValue;
+Input.setValue = setValue;
+
+
+
+
+
+
+
+
+Directive.registerAttribute("bind", 1000, Directive.$extend({
+
+    $class: "Directive.attr.Bind",
+    isInput: false,
+    input: null,
+    lockInput: null,
+    recursive: false,
+    textRenderer: null,
+
+    $init: function(scope, node, expr, renderer, attr) {
+
+        var self    = this,
+            cfg     = attr ? attr.config : {};
+
+        self.isInput    = isField(node);
+        self.recursive  = !!cfg.recursive;
+        self.locked     = !!cfg.locked;
+
+        if (self.isInput) {
+            //self.input  = new Input(node, self.onInputChange, self);
+            self.input = Input.get(node);
+            self.input.onChange(self.onInputChange, self);
+        }
+
+        if (self.recursive) {
+            self.scope  = scope;
+            self.node   = node;
+            self.textRenderer = new TextRenderer(scope, '{{' + expr + '}}', {recursive: true});
+            self.textRenderer.subscribe(self.onTextRendererChange, self);
+            self.onTextRendererChange();
+
+            if (scope instanceof Scope) {
+                scope.$on("destroy", self.onScopeDestroy, self);
+            }
+        }
+        else {
+            self.$super(scope, node, expr);
+        }
+    },
+
+    onInputChange: function(val) {
+
+        var self = this;
+        if (self.locked && val != self.watcher.getLastResult()) {
+            self.onChange();
+        }
+    },
+
+    onTextRendererChange: function() {
+        var self    = this;
+        self.updateElement(self.textRenderer.getString());
+    },
+
+    onChange: function() {
+        var self    = this,
+            val     = self.watcher.getLastResult();
+
+        self.updateElement(val);
+    },
+
+    updateElement: function(val) {
+
+        var self = this;
+
+        if (self.isInput) {
+            self.input.setValue(val);
+        }
+        else {
+            self.node[typeof self.node.textContent === "string" ? "textContent" : "innerText"] = val;
+        }
+    },
+
+    destroy: function() {
+
+        var self    = this;
+
+        if (self.textRenderer) {
+            self.textRenderer.$destroy();
+            self.textRenderer = null;
+        }
+
+        if (self.input) {
+            self.input.destroy();
+            self.input = null;
+        }
+
+        self.$super();
+    }
+}));
+
+
+
+
+
+
+Directive.registerAttribute("bind-html", 1000, defineClass({
+
+    $class: "Directive.attr.BindHtml",
+    $extends: "Directive.attr.Bind",
+
+    updateElement: function(val) {
+        this.node.innerHTML = val;
+    }
+}));
+
+
+
+var getAnimationPrefixes = function(){
+
+    var domPrefixes         = ['Moz', 'Webkit', 'ms', 'O', 'Khtml'],
+        animationDelay      = "animationDelay",
+        animationDuration   = "animationDuration",
+        transitionDelay     = "transitionDelay",
+        transitionDuration  = "transitionDuration",
+        transform           = "transform",
+        transitionend       = null,
+        prefixes            = null,
+
+        probed              = false,
+
+        detectCssPrefixes   = function() {
+
+            var el = window.document.createElement("div"),
+                animation = false,
+                pfx,
+                i, len;
+
+            if (el.style['animationName'] !== undf) {
+                animation = true;
+            }
+            else {
+                for(i = 0, len = domPrefixes.length; i < len; i++) {
+                    pfx = domPrefixes[i];
+                    if (el.style[ pfx + 'AnimationName' ] !== undf) {
+                        animation           = true;
+                        animationDelay      = pfx + "AnimationDelay";
+                        animationDuration   = pfx + "AnimationDuration";
+                        transitionDelay     = pfx + "TransitionDelay";
+                        transitionDuration  = pfx + "TransitionDuration";
+                        transform           = pfx + "Transform";
+                        break;
+                    }
+                }
+            }
+
+            if (animation) {
+                if('ontransitionend' in window) {
+                    // Chrome/Saf (+ Mobile Saf)/Android
+                    transitionend = 'transitionend';
+                }
+                else if('onwebkittransitionend' in window) {
+                    // Chrome/Saf (+ Mobile Saf)/Android
+                    transitionend = 'webkitTransitionEnd';
+                }
+            }
+
+            return animation;
+        };
+
+
+    /**
+     * @function animate.getPrefixes
+     * @returns {object}
+     */
+    return function() {
+
+        if (!probed) {
+            if (detectCssPrefixes()) {
+                prefixes = {
+                    animationDelay: animationDelay,
+                    animationDuration: animationDuration,
+                    transitionDelay: transitionDelay,
+                    transitionDuration: transitionDuration,
+                    transform: transform,
+                    transitionend: transitionend
+                };
+            }
+            else {
+                prefixes = {};
+            }
+
+            probed = true;
+        }
+
+
+        return prefixes;
+    };
+}();
+
+
+
+var getAnimationDuration = function(){
+
+    var parseTime       = function(str) {
+            if (!str) {
+                return 0;
+            }
+            var time = parseFloat(str);
+            if (str.indexOf("ms") === -1) {
+                time *= 1000;
+            }
+            return time;
+        },
+
+        getMaxTimeFromPair = function(max, dur, delay) {
+
+            var i, sum, len = dur.length;
+
+            for (i = 0; i < len; i++) {
+                sum = parseTime(dur[i]) + parseTime(delay[i]);
+                max = Math.max(sum, max);
+            }
+
+            return max;
+        },
+
+        pfx                 = false,
+        animationDuration   = null,
+        animationDelay      = null,
+        transitionDuration  = null,
+        transitionDelay     = null;
+
+
+    /**
+     * @function animate.getDuration
+     * @param {Element} el
+     * @returns {number}
+     */
+    return function(el) {
+
+        if (pfx === false) {
+            pfx = getAnimationPrefixes();
+            animationDuration = pfx ? pfx.animationDuration : null;
+            animationDelay = pfx ? pfx.animationDelay : null;
+            transitionDuration = pfx ? pfx.transitionDuration : null;
+            transitionDelay = pfx ? pfx.transitionDelay : null;
+        }
+
+        if (!pfx) {
+            return 0;
+        }
+
+        var style       = window.getComputedStyle ? window.getComputedStyle(el, null) : el.style,
+            duration    = 0,
+            animDur     = (style[animationDuration] || '').split(','),
+            animDelay   = (style[animationDelay] || '').split(','),
+            transDur    = (style[transitionDuration] || '').split(','),
+            transDelay  = (style[transitionDelay] || '').split(',');
+
+        duration    = Math.max(duration, getMaxTimeFromPair(duration, animDur, animDelay));
+        duration    = Math.max(duration, getMaxTimeFromPair(duration, transDur, transDelay));
+
+        return duration;
+    };
+
+}();
+
+
+
+
+
+
+var data = function(){
+
+    var dataCache   = {},
+
+        getNodeId   = function(el) {
+            return el._mjsid || (el._mjsid = nextUid());
+        };
+
+    /**
+     * @param {Element} el
+     * @param {String} key
+     * @param {*} value optional
+     */
+    return function data(el, key, value) {
+        var id  = getNodeId(el),
+            obj = dataCache[id];
+
+        if (value !== undf) {
+            if (!obj) {
+                obj = dataCache[id] = {};
+            }
+            obj[key] = value;
+            return value;
+        }
+        else {
+            return obj ? obj[key] : undf;
+        }
+    };
+
+}();
+
+var getRegExp = function(){
+
+    var cache = {};
+
+    /**
+     * @param {String} expr
+     * @returns RegExp
+     */
+    return function getRegExp(expr) {
+        return cache[expr] || (cache[expr] = new RegExp(expr));
+    };
+}();
+
+
+
+/**
+ * @param {String} cls
+ * @returns {RegExp}
+ */
+function getClsReg(cls) {
+    return getRegExp('(?:^|\\s)'+cls+'(?!\\S)');
+};
+
+
+
+/**
+ * @param {Element} el
+ * @param {String} cls
+ */
+function removeClass(el, cls) {
+    if (cls) {
+        el.className = el.className.replace(getClsReg(cls), '');
+    }
+};
+
+
+
+/**
+ * @function animate.stop
+ * @param {Element} el
+ */
+var stopAnimation = function(el) {
+
+    var queue = data(el, "mjsAnimationQueue"),
+        current,
+        position,
+        stages;
+
+    if (isArray(queue) && queue.length) {
+        current = queue[0];
+
+        if (current) {
+            if (current.stages) {
+                position = current.position;
+                stages = current.stages;
+                removeClass(el, stages[position]);
+                removeClass(el, stages[position] + "-active");
+            }
+            if (current.deferred) {
+                current.deferred.reject(current.el);
+            }
+        }
+    }
+    else if (isFunction(queue)) {
+        queue(el);
+    }
+    else if (queue === "stop") {
+        $(el).stop(true, true);
+    }
+
+    data(el, "mjsAnimationQueue", null);
+};
+
+
+
+
+/**
+ * Returns 'then' function or false
+ * @param {*} any
+ * @returns {Function|boolean}
+ */
+function isThenable(any) {
+
+    // any.then must only be accessed once
+    // this is a promise/a+ requirement
+
+    if (!any) { //  || !any.then
+        return false;
+    }
+    var then, t;
+
+    //if (!any || (!isObject(any) && !isFunction(any))) {
+    if (((t = typeof any) != "object" && t != "function")) {
+        return false;
+    }
+    return isFunction((then = any.then)) ?
+           then : false;
+};
+
+
+
+
+var Promise = function(){
+
+    var PENDING     = 0,
+        FULFILLED   = 1,
+        REJECTED    = 2,
+
+        queue       = [],
+        qRunning    = false,
+
+
+        nextTick    = typeof process !== strUndef ?
+                        process.nextTick :
+                        function(fn) {
+                            setTimeout(fn, 0);
+                        },
+
+        // synchronous queue of asynchronous functions:
+        // callbacks must be called in "platform stack"
+        // which means setTimeout/nextTick;
+        // also, they must be called in a strict order.
+        nextInQueue = function() {
+            qRunning    = true;
+            var next    = queue.shift();
+            nextTick(function(){
+                next[0].apply(next[1], next[2]);
+                if (queue.length) {
+                    nextInQueue();
+                }
+                else {
+                    qRunning = false;
+                }
+            }, 0);
+        },
+
+        /**
+         * add to execution queue
+         * @param {Function} fn
+         * @param {Object} scope
+         * @param {[]} args
+         * @ignore
+         */
+        next        = function(fn, scope, args) {
+            args = args || [];
+            queue.push([fn, scope, args]);
+            if (!qRunning) {
+                nextInQueue();
+            }
+        },
+
+        /**
+         * returns function which receives value from previous promise
+         * and tries to resolve next promise with new value returned from given function(prev value)
+         * or reject on error.
+         * promise1.then(success, failure) -> promise2
+         * wrapper(success, promise2) -> fn
+         * fn(promise1 resolve value) -> new value
+         * promise2.resolve(new value)
+         *
+         * @param {Function} fn
+         * @param {Promise} promise
+         * @returns {Function}
+         * @ignore
+         */
+        wrapper     = function(fn, promise) {
+            return function(value) {
+                try {
+                    promise.resolve(fn(value));
+                }
+                catch (thrownError) {
+                    promise.reject(thrownError);
+                }
+            };
+        };
+
+
+    /**
+     * @class Promise
+     */
+
+
+    /**
+     * @method Promise
+     * @param {Function} fn {
+     *  @description Function that accepts two parameters: resolve and reject functions.
+     *  @param {function} resolve {
+     *      @param {*} value
+     *  }
+     *  @param {function} reject {
+     *      @param {*} reason
+     *  }
+     * }
+     * @param {Object} context
+     * @returns {Promise}
+     * @constructor
+     */
+
+    /**
+     * @method Promise
+     * @param {Thenable} thenable
+     * @returns {Promise}
+     * @constructor
+     */
+
+    /**
+     * @method Promise
+     * @param {*} value Value to resolve promise with
+     * @returns {Promise}
+     * @constructor
+     */
+
+
+    /**
+     * @method Promise
+     * @returns {Promise}
+     * @constructor
+     */
+    var Promise = function(fn, context) {
+
+        if (fn instanceof Promise) {
+            return fn;
+        }
+
+        if (!(this instanceof Promise)) {
+            return new Promise(fn, context);
+        }
+
+        var self = this,
+            then;
+
+        self._fulfills   = [];
+        self._rejects    = [];
+        self._dones      = [];
+        self._fails      = [];
+
+        if (arguments.length > 0) {
+
+            if (then = isThenable(fn)) {
+                if (fn instanceof Promise) {
+                    fn.then(
+                        bind(self.resolve, self),
+                        bind(self.reject, self));
+                }
+                else {
+                    (new Promise(then, fn)).then(
+                        bind(self.resolve, self),
+                        bind(self.reject, self));
+                }
+            }
+            else if (isFunction(fn)) {
+                try {
+                    fn.call(context,
+                            bind(self.resolve, self),
+                            bind(self.reject, self));
+                }
+                catch (thrownError) {
+                    self.reject(thrownError);
+                }
+            }
+            else {
+                self.resolve(fn);
+            }
+        }
+    };
+
+    extend(Promise.prototype, {
+
+        _state: PENDING,
+
+        _fulfills: null,
+        _rejects: null,
+        _dones: null,
+        _fails: null,
+
+        _wait: 0,
+
+        _value: null,
+        _reason: null,
+
+        _triggered: false,
+
+        isPending: function() {
+            return this._state === PENDING;
+        },
+
+        isFulfilled: function() {
+            return this._state === FULFILLED;
+        },
+
+        isResolved: function() {
+            return this._state === FULFILLED;
+        },
+
+        isRejected: function() {
+            return this._state === REJECTED;
+        },
+
+        hasListeners: function() {
+            var self = this,
+                ls  = [self._fulfills, self._rejects, self._dones, self._fails],
+                i, l;
+
+            for (i = 0, l = ls.length; i < l; i++) {
+                if (ls[i] && ls[i].length) {
+                    return true;
+                }
+            }
+
+            return false;
+        },
+
+        _cleanup: function() {
+            var self    = this;
+
+            self._fulfills = null;
+            self._rejects = null;
+            self._dones = null;
+            self._fails = null;
+        },
+
+        _processValue: function(value, cb) {
+
+            var self    = this,
+                then;
+
+            if (self._state !== PENDING) {
+                return;
+            }
+
+            if (value === self) {
+                self._doReject(new TypeError("cannot resolve promise with itself"));
+                return;
+            }
+
+            try {
+                if (then = isThenable(value)) {
+                    if (value instanceof Promise) {
+                        value.then(
+                            bind(self._processResolveValue, self),
+                            bind(self._processRejectReason, self));
+                    }
+                    else {
+                        (new Promise(then, value)).then(
+                            bind(self._processResolveValue, self),
+                            bind(self._processRejectReason, self));
+                    }
+                    return;
+                }
+            }
+            catch (thrownError) {
+                if (self._state === PENDING) {
+                    self._doReject(thrownError);
+                }
+                return;
+            }
+
+            cb.call(self, value);
+        },
+
+
+        _callResolveHandlers: function() {
+
+            var self    = this;
+
+            self._done();
+
+            var cbs  = self._fulfills,
+                cb;
+
+            while (cb = cbs.shift()) {
+                next(cb[0], cb[1], [self._value]);
+            }
+
+            self._cleanup();
+        },
+
+
+        _doResolve: function(value) {
+            var self    = this;
+
+            self._value = value;
+            self._state = FULFILLED;
+
+            if (self._wait === 0) {
+                self._callResolveHandlers();
+            }
+        },
+
+        _processResolveValue: function(value) {
+            this._processValue(value, this._doResolve);
+        },
+
+        /**
+         * @param {*} value
+         */
+        resolve: function(value) {
+
+            var self    = this;
+
+            if (self._triggered) {
+                return self;
+            }
+
+            self._triggered = true;
+            self._processResolveValue(value);
+
+            return self;
+        },
+
+
+        _callRejectHandlers: function() {
+
+            var self    = this;
+
+            self._fail();
+
+            var cbs  = self._rejects,
+                cb;
+
+            while (cb = cbs.shift()) {
+                next(cb[0], cb[1], [self._reason]);
+            }
+
+            self._cleanup();
+        },
+
+        _doReject: function(reason) {
+
+            var self        = this;
+
+            self._state     = REJECTED;
+            self._reason    = reason;
+
+            if (self._wait === 0) {
+                self._callRejectHandlers();
+            }
+        },
+
+
+        _processRejectReason: function(reason) {
+            this._processValue(reason, this._doReject);
+        },
+
+        /**
+         * @param {*} reason
+         */
+        reject: function(reason) {
+
+            var self    = this;
+
+            if (self._triggered) {
+                return self;
+            }
+
+            self._triggered = true;
+
+            self._processRejectReason(reason);
+
+            return self;
+        },
+
+        /**
+         * @param {Function} resolve -- called when this promise is resolved; returns new resolve value
+         * @param {Function} reject -- called when this promise is rejects; returns new reject reason
+         * @param {object} context -- resolve's and reject's functions "this" object
+         * @returns {Promise} new promise
+         */
+        then: function(resolve, reject, context) {
+
+            var self            = this,
+                promise         = new Promise,
+                state           = self._state;
+
+            if (context) {
+                if (resolve) {
+                    resolve = bind(resolve, context);
+                }
+                if (reject) {
+                    reject = bind(reject, context);
+                }
+            }
+
+            if (state === PENDING || self._wait !== 0) {
+
+                if (resolve && isFunction(resolve)) {
+                    self._fulfills.push([wrapper(resolve, promise), null]);
+                }
+                else {
+                    self._fulfills.push([promise.resolve, promise])
+                }
+
+                if (reject && isFunction(reject)) {
+                    self._rejects.push([wrapper(reject, promise), null]);
+                }
+                else {
+                    self._rejects.push([promise.reject, promise]);
+                }
+            }
+            else if (state === FULFILLED) {
+
+                if (resolve && isFunction(resolve)) {
+                    next(wrapper(resolve, promise), null, [self._value]);
+                }
+                else {
+                    promise.resolve(self._value);
+                }
+            }
+            else if (state === REJECTED) {
+                if (reject && isFunction(reject)) {
+                    next(wrapper(reject, promise), null, [self._reason]);
+                }
+                else {
+                    promise.reject(self._reason);
+                }
+            }
+
+            return promise;
+        },
+
+        /**
+         * @param {Function} reject -- same as then(null, reject)
+         * @returns {Promise} new promise
+         */
+        "catch": function(reject) {
+            return this.then(null, reject);
+        },
+
+        _done: function() {
+
+            var self    = this,
+                cbs     = self._dones,
+                cb;
+
+            while (cb = cbs.shift()) {
+                try {
+                    cb[0].call(cb[1] || null, self._value);
+                }
+                catch (thrown) {
+                    error(thrown);
+                }
+            }
+        },
+
+        /**
+         * @param {Function} fn -- function to call when promise is resolved
+         * @param {Object} context -- function's "this" object
+         * @returns {Promise} same promise
+         */
+        done: function(fn, context) {
+            var self    = this,
+                state   = self._state;
+
+            if (state === FULFILLED && self._wait === 0) {
+                try {
+                    fn.call(context || null, self._value);
+                }
+                catch (thrown) {
+                    error(thrown);
+                }
+            }
+            else if (state === PENDING) {
+                self._dones.push([fn, context]);
+            }
+
+            return self;
+        },
+
+        _fail: function() {
+
+            var self    = this,
+                cbs     = self._fails,
+                cb;
+
+            while (cb = cbs.shift()) {
+                try {
+                    cb[0].call(cb[1] || null, self._reason);
+                }
+                catch (thrown) {
+                    error(thrown);
+                }
+            }
+        },
+
+        /**
+         * @param {Function} fn -- function to call when promise is rejected.
+         * @param {Object} context -- function's "this" object
+         * @returns {Promise} same promise
+         */
+        fail: function(fn, context) {
+
+            var self    = this,
+                state   = self._state;
+
+            if (state === REJECTED && self._wait === 0) {
+                try {
+                    fn.call(context || null, self._reason);
+                }
+                catch (thrown) {
+                    error(thrown);
+                }
+            }
+            else if (state === PENDING) {
+                self._fails.push([fn, context]);
+            }
+
+            return self;
+        },
+
+        /**
+         * @param {Function} fn -- function to call when promise resolved or rejected
+         * @param {Object} context -- function's "this" object
+         * @return {Promise} same promise
+         */
+        always: function(fn, context) {
+            this.done(fn, context);
+            this.fail(fn, context);
+            return this;
+        },
+
+        /**
+         * @returns {object} then: function, done: function, fail: function, always: function
+         */
+        promise: function() {
+            var self = this;
+            return {
+                then: bind(self.then, self),
+                done: bind(self.done, self),
+                fail: bind(self.fail, self),
+                always: bind(self.always, self)
+            };
+        },
+
+        after: function(value) {
+
+            var self = this;
+
+            if (isThenable(value)) {
+
+                self._wait++;
+
+                var done = function() {
+                    self._wait--;
+                    if (self._wait === 0 && self._state !== PENDING) {
+                        self._state === FULFILLED ?
+                            self._callResolveHandlers() :
+                            self._callRejectHandlers();
+                    }
+                };
+
+                if (isFunction(value.done)) {
+                    value.done(done);
+                }
+                else {
+                    value.then(done);
+                }
+            }
+
+            return self;
+        }
+    }, true, false);
+
+
+    /**
+     * @param {function} fn
+     * @param {object} context
+     * @param {[]} args
+     * @returns {Promise}
+     * @static
+     */
+    Promise.fcall = function(fn, context, args) {
+        return Promise.resolve(fn.apply(context, args || []));
+    };
+
+    /**
+     * @param {*} value
+     * @returns {Promise}
+     * @static
+     */
+    Promise.resolve = function(value) {
+        var p = new Promise;
+        p.resolve(value);
+        return p;
+    };
+
+
+    /**
+     * @param {*} reason
+     * @returns {Promise}
+     * @static
+     */
+    Promise.reject = function(reason) {
+        var p = new Promise;
+        p.reject(reason);
+        return p;
+    };
+
+
+    /**
+     * @param {[]} promises -- array of promises or resolve values
+     * @returns {Promise}
+     * @static
+     */
+    Promise.all = function(promises) {
+
+        if (!promises.length) {
+            return Promise.resolve(null);
+        }
+
+        var p       = new Promise,
+            len     = promises.length,
+            values  = new Array(len),
+            cnt     = len,
+            i,
+            item,
+            done    = function(value, inx) {
+                values[inx] = value;
+                cnt--;
+
+                if (cnt === 0) {
+                    p.resolve(values);
+                }
+            };
+
+        for (i = 0; i < len; i++) {
+
+            (function(inx){
+                item = promises[i];
+
+                if (item instanceof Promise) {
+                    item.done(function(value){
+                        done(value, inx);
+                    })
+                        .fail(p.reject, p);
+                }
+                else if (isThenable(item) || isFunction(item)) {
+                    (new Promise(item))
+                        .done(function(value){
+                            done(value, inx);
+                        })
+                        .fail(p.reject, p);
+                }
+                else {
+                    done(item, inx);
+                }
+            })(i);
+        }
+
+        return p;
+    };
+
+    /**
+     * @param {Promise|*} promise1
+     * @param {Promise|*} promise2
+     * @param {Promise|*} promiseN
+     * @returns {Promise}
+     * @static
+     */
+    Promise.when = function() {
+        return Promise.all(arguments);
+    };
+
+    /**
+     * @param {[]} promises -- array of promises or resolve values
+     * @returns {Promise}
+     * @static
+     */
+    Promise.allResolved = function(promises) {
+
+        if (!promises.length) {
+            return Promise.resolve(null);
+        }
+
+        var p       = new Promise,
+            len     = promises.length,
+            values  = [],
+            cnt     = len,
+            i,
+            item,
+            settle  = function(value) {
+                values.push(value);
+                proceed();
+            },
+            proceed = function() {
+                cnt--;
+                if (cnt === 0) {
+                    p.resolve(values);
+                }
+            };
+
+        for (i = 0; i < len; i++) {
+            item = promises[i];
+
+            if (item instanceof Promise) {
+                item.done(settle).fail(proceed);
+            }
+            else if (isThenable(item) || isFunction(item)) {
+                (new Promise(item)).done(settle).fail(proceed);
+            }
+            else {
+                settle(item);
+            }
+        }
+
+        return p;
+    };
+
+    /**
+     * @param {[]} promises -- array of promises or resolve values
+     * @returns {Promise}
+     * @static
+     */
+    Promise.race = function(promises) {
+
+        if (!promises.length) {
+            return Promise.resolve(null);
+        }
+
+        var p   = new Promise,
+            len = promises.length,
+            i,
+            item;
+
+        for (i = 0; i < len; i++) {
+            item = promises[i];
+
+            if (item instanceof Promise) {
+                item.done(p.resolve, p).fail(p.reject, p);
+            }
+            else if (isThenable(item) || isFunction(item)) {
+                (new Promise(item)).done(p.resolve, p).fail(p.reject, p);
+            }
+            else {
+                p.resolve(item);
+            }
+
+            if (!p.isPending()) {
+                break;
+            }
+        }
+
+        return p;
+    };
+
+    /**
+     * @param {[]} functions -- array of promises or resolve values or functions
+     * @returns {Promise}
+     * @static
+     */
+    Promise.waterfall = function(functions) {
+
+        if (!functions.length) {
+            return Promise.resolve(null);
+        }
+
+        var first   = functions.shift(),
+            promise = isFunction(first) ? Promise.fcall(first) : Promise.resolve(fn),
+            fn;
+
+        while (fn = functions.shift()) {
+            if (isThenable(fn)) {
+                promise = promise.then(function(fn){
+                    return function(){
+                        return fn;
+                    };
+                }(fn));
+            }
+            else if (isFunction(fn)) {
+                promise = promise.then(fn);
+            }
+            else {
+                promise.resolve(fn);
+            }
+        }
+
+        return promise;
+    };
+
+    Promise.forEach = function(items, fn, context, allResolved) {
+
+        var left = items.slice(),
+            p = new Promise,
+            values = [],
+            i = 0;
+
+        var next = function() {
+
+            if (!left.length) {
+                p.resolve(values);
+                return;
+            }
+
+            var item = left.shift(),
+                index = i;
+
+            i++;
+
+            Promise.fcall(fn, context, [item, index])
+                .done(function(result){
+                    values.push(result);
+                    next();
+                })
+                .fail(function(reason){
+                    if (allResolved) {
+                        p.reject(reason);
+                    }
+                    else {
+                        values.push(null);
+                        next();
+                    }
+                });
+        };
+
+        next();
+
+        return p;
+    };
+
+    Promise.counter = function(cnt) {
+
+        var promise     = new Promise;
+
+        promise.countdown = function() {
+            cnt--;
+            if (cnt === 0) {
+                promise.resolve();
+            }
+        };
+
+        return promise;
+    };
+
+    return Promise;
+}();
+
+
+
+
+
+/**
+ * @param {Element} el
+ * @param {String} cls
+ * @returns {boolean}
+ */
+function hasClass(el, cls) {
+    return cls ? getClsReg(cls).test(el.className) : false;
+};
+
+
+
+/**
+ * @param {Element} el
+ * @param {String} cls
+ */
+function addClass(el, cls) {
+    if (cls && !hasClass(el, cls)) {
+        el.className += " " + cls;
+    }
+};
+
+
+
+var raf = function() {
+
+    var raf,
+        cancel;
+
+    if (typeof window !== strUndef) {
+        var w   = window;
+        raf     = w.requestAnimationFrame ||
+                    w.webkitRequestAnimationFrame ||
+                    w.mozRequestAnimationFrame;
+        cancel  = w.cancelAnimationFrame ||
+                    w.webkitCancelAnimationFrame ||
+                    w.mozCancelAnimationFrame ||
+                    w.webkitCancelRequestAnimationFrame;
+
+        if (raf) {
+            return function(fn, context, args) {
+                var id = raf(context || args ? function(){
+                    fn.apply(context, args || []);
+                } : fn);
+                return function() {
+                    cancel(id);
+                };
+            };
+        }
+    }
+
+    return function(fn, context, args){
+        var id = async(fn, context, args, 0);
+        return function(){
+            clearTimeout(id);
+        };
+    };
+
+}();
+
+
+
+
+var animate = function(){
+
+
+    var types           = {
+            "show":     ["mjs-show"],
+            "hide":     ["mjs-hide"],
+            "enter":    ["mjs-enter"],
+            "leave":    ["mjs-leave"],
+            "move":     ["mjs-move"]
+        },
+
+        animId          = 0,
+
+        prefixes        = false,
+        cssAnimations   = false,
+
+        dataParam       = "mjsAnimationQueue",
+
+        callTimeout     = function(fn, startTime, duration) {
+            var tick = function(){
+                var time = (new Date).getTime();
+                if (time - startTime >= duration) {
+                    fn();
+                }
+                else {
+                    raf(tick);
+                }
+            };
+            raf(tick);
+        },
+
+
+        cssAnimSupported= function(){
+            if (prefixes === false) {
+                prefixes        = getAnimationPrefixes();
+                cssAnimations   = !!prefixes;
+            }
+            return cssAnimations;
+        },
+
+
+
+        nextInQueue     = function(el) {
+            var queue = data(el, dataParam),
+                next;
+            if (queue.length) {
+                next = queue[0];
+                animationStage(next.el, next.stages, 0, next.start, next.deferred, false, next.id, next.step);
+            }
+            else {
+                data(el, dataParam, null);
+            }
+        },
+
+        animationStage  = function animationStage(el, stages, position, startCallback,
+                                                  deferred, first, id, stepCallback) {
+
+            var stopped   = function() {
+                var q = data(el, dataParam);
+                if (!q || !q.length || q[0].id != id) {
+                    deferred.reject(el);
+                    return true;
+                }
+                return false;
+            };
+
+            var finishStage = function() {
+
+                if (stopped()) {
+                    return;
+                }
+
+                var thisPosition = position;
+
+                position++;
+
+                if (position === stages.length) {
+                    deferred.resolve(el);
+                    data(el, dataParam).shift();
+                    nextInQueue(el);
+                }
+                else {
+                    data(el, dataParam)[0].position = position;
+                    animationStage(el, stages, position, null, deferred, false, id, stepCallback);
+                }
+
+                removeClass(el, stages[thisPosition]);
+                removeClass(el, stages[thisPosition] + "-active");
+            };
+
+            var setStage = function() {
+
+                if (!stopped()) {
+
+                    addClass(el, stages[position] + "-active");
+
+                    Promise.resolve(stepCallback && stepCallback(el, position, "active"))
+                        .done(function(){
+                            if (!stopped()) {
+
+                                var duration = getAnimationDuration(el);
+
+                                if (duration) {
+                                    callTimeout(finishStage, (new Date).getTime(), duration);
+                                }
+                                else {
+                                    raf(finishStage);
+                                }
+                            }
+                        });
+                }
+
+            };
+
+            var start = function(){
+
+                if (!stopped()) {
+                    addClass(el, stages[position]);
+
+                    Promise.waterfall([
+                            stepCallback && stepCallback(el, position, "start"),
+                            function(){
+                                return startCallback ? startCallback(el) : null;
+                            }
+                        ])
+                        .done(function(){
+                            !stopped() && raf(setStage);
+                        });
+                }
+            };
+
+            first ? raf(start) : start();
+        };
+
+
+    /**
+     * @function animate
+     * @param {Element} el Element being animated
+     * @param {string|function|[]|object} animation {
+     *  'string' - registered animation name,<br>
+     *  'function' - fn(el, callback) - your own animation<br>
+     *  'array' - array or stages (class names)<br>
+     *  'array' - [{before}, {after}] - jquery animation<br>
+     *  'object' - {stages, fn, before, after, options, context, duration, start}
+     * }
+     * @param {function} startCallback call this function before animation begins
+     * @param {function} stepCallback call this function between stages
+     * @returns {MetaphorJs.Promise}
+     */
+    var animate = function animate(el, animation, startCallback, stepCallback) {
+
+        var deferred    = new Promise,
+            queue       = data(el, dataParam) || [],
+            id          = ++animId,
+            stages,
+            jsFn,
+            before, after,
+            options, context,
+            duration;
+
+        if (animation) {
+
+            if (isString(animation)) {
+                stages = types[animation];
+            }
+            else if (isFunction(animation)) {
+                jsFn = animation;
+            }
+            else if (isArray(animation)) {
+                if (isString(animation[0])) {
+                    stages = animation;
+                }
+                else {
+                    before = animation[0];
+                    after = animation[1];
+                }
+            }
+
+            if (isPlainObject(animation)) {
+                stages      = animation.stages;
+                jsFn        = animation.fn;
+                before      = animation.before;
+                after       = animation.after;
+                options     = animation.options ? extend({}, animation.options) : {};
+                context     = animation.context || null;
+                duration    = animation.duration || null;
+                startCallback   = startCallback || options.start;
+            }
+
+
+            if (cssAnimSupported() && stages) {
+
+                queue.push({
+                    el: el,
+                    stages: stages,
+                    start: startCallback,
+                    step: stepCallback,
+                    deferred: deferred,
+                    position: 0,
+                    id: id
+                });
+                data(el, dataParam, queue);
+
+                if (queue.length === 1) {
+                    animationStage(el, stages, 0, startCallback, deferred, true, id, stepCallback);
+                }
+
+                return deferred;
+            }
+            else {
+
+                options = options || {};
+
+                startCallback && (options.start = function(){
+                    startCallback(el);
+                });
+
+                options.complete = function() {
+                    deferred.resolve(el);
+                };
+
+                duration && (options.duration = duration);
+
+                if (jsFn && isFunction(jsFn)) {
+                    if (before) {
+                        extend(el.style, before, true, false);
+                    }
+                    startCallback && startCallback(el);
+                    data(el, dataParam, jsFn.call(context, el, function(){
+                        deferred.resolve(el);
+                    }));
+                    return deferred;
+                }
+                else if (window.jQuery) {
+
+                    var j = $(el);
+                    before && j.css(before);
+                    data(el, dataParam, "stop");
+
+                    if (jsFn && isString(jsFn)) {
+                        j[jsFn](options);
+                        return deferred;
+                    }
+                    else if (after) {
+                        j.animate(after, options);
+                        return deferred;
+                    }
+                }
+            }
+        }
+
+        // no animation happened
+
+        if (startCallback) {
+            var promise = startCallback(el);
+            if (isThenable(promise)) {
+                promise.done(function(){
+                    deferred.resolve(el);
+                });
+            }
+            else {
+                deferred.resolve(el);
+            }
+        }
+        else {
+            deferred.resolve(el);
+        }
+
+        return deferred;
+    };
+
+    animate.addAnimationType     = function(name, stages) {
+        types[name] = stages;
+    };
+
+    animate.stop = stopAnimation;
+    animate.getPrefixes = getAnimationPrefixes;
+    animate.getDuration = getAnimationDuration;
+
+    /**
+     * @function animate.cssAnimationSupported
+     * @returns {bool}
+     */
+    animate.cssAnimationSupported = cssAnimSupported;
+
+    return animate;
+}();
+
+
+
+
+
+
+/*
+
+value is always an object in the end
+{class: "condition", class: "condition"}
+
+array turns into _: []
+{_: [class, class]}
+(which is then turned into {class: true, class: true}
+
+
+DO NOT put class="{}" when using class.name="{}"
+
+ */
+
+
+(function(){
+
+    var toggleClass = function(node, cls, toggle, doAnim) {
+
+        var has;
+
+        if (toggle !== null) {
+            if (toggle === hasClass(node, cls)) {
+                return;
+            }
+            has = !toggle;
+        }
+        else {
+            has = hasClass(node, cls);
+        }
+
+        if (has) {
+            if (doAnim) {
+                animate(node, [cls + "-remove"]).done(function(){
+                    removeClass(node, cls);
+                });
+            }
+            else {
+                removeClass(node, cls);
+            }
+        }
+        else {
+            if (doAnim) {
+                animate(node, [cls + "-add"]).done(function(){
+                    addClass(node, cls);
+                });
+            }
+            else {
+                addClass(node, cls);
+            }
+        }
+    };
+
+    var flatten = function(obj) {
+
+        var list = {},
+            i, j, l;
+
+        if (!obj) {
+            return list;
+        }
+
+        if (isString(obj)) {
+            list[obj] = true;
+        }
+        else if (isArray(obj)) {
+            for (i = -1, l = obj.length; ++i < l; list[obj[i]] = true){}
+        }
+        else {
+            for (i in obj) {
+                if (i === '_') {
+                    for (j = -1, l = obj._.length; ++j < l;
+                         list[obj._[j]] = true){}
+                }
+                else {
+                    list[i] = obj[i];
+                }
+            }
+        }
+
+        return list;
+    };
+
+    Directive.registerAttribute("class", 1000, defineClass({
+
+        $class: "Directive.attr.Class",
+        $extends: Directive,
+        initial: true,
+        animate: false,
+
+        $init: function(scope, node, expr, renderer, attr) {
+
+            var self = this, 
+                values = attr ? attr.values : null,
+                cfg = attr ? attr.config : {},
+                k,
+                parts;
+
+            self.animate = !!cfg.animate;
+
+            if (values) {
+                parts = [];
+                if (expr) {
+                    if (expr.substr(0,1) != '[') {
+                        expr = '[' + expr + ']';
+                    }
+                    parts.push('_: ' + expr);
+                }
+                for (k in values) {
+                    parts.push("'" + k + "'" + ': ' + values[k]);
+                }
+                expr = '{' + parts.join(', ') + '}';
+            }
+
+            this.$super(scope, node, expr);
+        },
+
+        onChange: function() {
+
+            var self    = this,
+                node    = self.node,
+                clss    = flatten(self.watcher.getLastResult()),
+                prev    = flatten(self.watcher.getPrevValue()),
+                i;
+
+            stopAnimation(node);
+
+            for (i in prev) {
+                if (prev.hasOwnProperty(i)) {
+                    if (clss[i] === undf) {
+                        toggleClass(node, i, false, false);
+                    }
+                }
+            }
+
+            for (i in clss) {
+                if (clss.hasOwnProperty(i)) {
+                    toggleClass(node, i, !!clss[i], !self.initial && self.animate);
+                }
+            }
+
+            self.initial = false;
+        }
+    }));
+
+}());
+
+
+
+function toFragment(nodes, doc) {
+
+    var fragment = (doc || window.document).createDocumentFragment(),
+        i, l;
+
+    if (isString(nodes)) {
+        var tmp = window.document.createElement('div');
+        tmp.innerHTML = nodes;
+        nodes = tmp.childNodes;
+    }
+
+    if (!nodes) {
+        return fragment;
+    }
+
+    if (nodes.nodeType) {
+        fragment.appendChild(nodes);
+    }
+    else {
+        // due to a bug in jsdom, we turn NodeList into array first
+        if (nodes.item) {
+            var tmpNodes = nodes;
+            nodes = [];
+            for (i = -1, l = tmpNodes.length >>> 0; ++i !== l; nodes.push(tmpNodes[i])) {}
+        }
+
+        for (i = -1, l = nodes.length; ++i !== l; fragment.appendChild(nodes[i])) {}
+    }
+
+    return fragment;
+};
+
+
+
+/**
+ * @param {[]|Element} node
+ * @returns {[]|Element}
+ */
+var clone = function clone(node) {
+
+    var i, len, cloned;
+
+    if (isArray(node)) {
+        cloned = [];
+        for (i = 0, len = node.length; i < len; i++) {
+            cloned.push(clone(node[i]));
+        }
+        return cloned;
+    }
+    else if (node) {
+        switch (node.nodeType) {
+            // element
+            case 1:
+                return node.cloneNode(true);
+            // text node
+            case 3:
+                return window.document.createTextNode(node.innerText || node.textContent);
+            // document fragment
+            case 11:
+                return node.cloneNode(true);
+
+            default:
+                return null;
+        }
+    }
+
+    return null;
+};
+
+
+
+var rToCamelCase = /-./g;
+
+function toCamelCase(str) {
+    return str.replace(rToCamelCase, function(match){
+        return match.charAt(1).toUpperCase();
+    });
+};
+
+
+
+var getAttrSet = (function() {
+
+
+    // regular expression seems to be a few milliseconds faster
+    // than plain parsing
+    var reg = /^([\[({#$])([^)\]}"']+)[\])}]?$/;
+
+    var removeDirective = function removeDirective(node, directive) {
+        if (this.directive[directive] && 
+            this.directive[directive].original) {
+            removeAttr(node, this.directive[directive].original);
+        }
+        var i, l, sn = this.subnames[directive];
+        if (sn) {
+            for (i = 0, l = sn.length; i < l; i++) {
+                removeAttr(node, sn[i]);
+            }
+            delete this.subnames[directive];
+        }
+    };
+
+    return function getAttrSet(node, lookupDirective) {
+
+        var set = {
+                directive: {},
+                attribute: {},
+                config: {},
+                rest: {},
+                reference: null,
+                subnames: {},
+                removeDirective: removeDirective
+            },
+            i, l, tagName,
+            name, value,
+            match, parts,
+            coll, mode,
+            subname,
+            attrs = isArray(node) ? node : node.attributes;
+
+        for (i = 0, l = attrs.length; i < l; i++) {
+
+            name = attrs[i].name;
+            value = attrs[i].value;
+            mode = null;
+            match = name.match(reg);
+
+            if (match) {
+                name = match[2];
+                mode = match[1];
+
+                if (mode === '#') {
+                    set.reference = name;
+                    continue;
+                }
+            }
+            else {
+                if (name.substr(0, 4) === "mjs-") {
+                    name = name.substr(4);
+                    mode = '{';
+                }
+                else {
+                    set['rest'][name] = value;
+                    continue;
+                }
+            }
+
+            parts = name.split(".");
+            name = parts.shift();
+
+            if (mode === '$') {
+                if (value === "") {
+                    value = true;
+                }
+
+                tagName = node.tagName.toLowerCase();
+
+                set['config'][toCamelCase(name)] = value;
+
+                if (!set['subnames'][tagName]) {
+                    set['subnames'][tagName] = [];
+                }
+
+                set['subnames'][tagName].push(attrs[i].name);
+            }
+            else if (mode === '(' || mode === '{') { 
+
+                coll = set['directive'];
+                subname = parts.length ? parts[0] : null;
+
+                if (!coll[name]) {
+                    coll[name] = {
+                        name: name,
+                        original: null,
+                        config: {},
+                        value: null,
+                        values: null
+                    };
+                }
+
+                if (!subname) {
+                    coll[name].original = attrs[i].name;
+                }
+
+                if (subname && !set['subnames'][name]) {
+                    set['subnames'][name] = [];
+                }
+
+                if (subname && subname[0] === '$') {
+                    if (value === "") {
+                        value = true;
+                    }
+                    coll[name].config[toCamelCase(subname.substr(1))] = value;
+                    set['subnames'][name].push(attrs[i].name);
+                }
+                else {
+                    if (subname) {
+                        if (!coll[name].values) {
+                            coll[name].values = {};
+                        }
+                        // directive value keys are not camelcased
+                        // do this inside directive if needed
+                        // ('class' directive needs originals)
+                        coll[name].values[parts.join(".")] = value;
+                        set['subnames'][name].push(attrs[i].name);
+                    }
+                    else {
+                        coll[name].value = value;
+                    }
+                }
+            }
+            else if (mode === '[') {
+                set['attribute'][name] = {
+                    value: value,
+                    original: attrs[i].name
+                };
+            }
+        }
+
+        return set;
+    }
+
+}());
+
+
+
+
+
+
+var Renderer = function(){
+
+    var handlers                = null,
+        createText              = TextRenderer.create,
+
+        lookupDirective = function(name) {
+            return !!nsGet("directive.attr." + name, true);
+        },
+
+        nodeChildren = function(res, el, fn, fnScope, finish, cnt) {
+
+            var children = [],
+                i, len;
+
+            if (res && res !== true) {
+                if (res.nodeType) {
+                    cnt.countdown += 1;
+                    eachNode(res, fn, fnScope, finish, cnt);
+                    return;
+                }
+                else {
+                    children = slice.call(res);
+                }
+            }
+
+            if (!children.length) {
+                children = toArray(el.childNodes || el);
+            }
+
+            len = children.length;
+
+            cnt.countdown += len;
+
+            for(i = -1;
+                ++i < len;
+                eachNode(children[i], fn, fnScope, finish, cnt)){}
+        },
+
+
+        collectNodes    = function(coll, add) {
+
+            if (add) {
+                if (add.nodeType) {
+                    coll.push(add);
+                }
+                else if (isArray(add)) {
+                    for (var i = -1, l = add.length; ++i < l; collectNodes(coll, add[i])){}
+                }
+            }
+        },
+
+        //rSkipTag = /^(script|template|mjs-template|style)$/i,
+
+        skipMap = {
+            "script": true,
+            "template": true,
+            "mjs-template": true,
+            "style": true,
+            "link": true
+        },
+
+        eachNode = function(el, fn, fnScope, finish, cnt) {
+
+            if (!el) {
+                return;
+            }
+
+            var res,
+                tag = el.nodeName;
+
+            if (!cnt) {
+                cnt = {countdown: 1};
+            }
+
+            if (tag && skipMap[tag.toLowerCase()]) { //tag.match(rSkipTag)) {
+                --cnt.countdown === 0 && finish && finish.call(fnScope);
+                return;
+            }
+
+            res = fn.call(fnScope, el);
+
+            if (res !== false) {
+
+                if (isThenable(res)) {
+
+                    res.done(function(response){
+
+                        if (response !== false) {
+                            nodeChildren(response, el, fn, fnScope, finish, cnt);
+                        }
+
+                        --cnt.countdown === 0 && finish && finish.call(fnScope);
+                    });
+                    return; // prevent countdown
+                }
+                else {
+                    nodeChildren(res, el, fn, fnScope, finish, cnt);
+                }
+            }
+
+            --cnt.countdown === 0 && finish && finish.call(fnScope);
+        },
+
+        observer = new Observable;
+
+    return defineClass({
+
+        $class: "Renderer",
+
+        id: null,
+        el: null,
+        scope: null,
+        texts: null,
+        parent: null,
+        passedAttrs: null,
+        reportFirstNode: true,
+
+        $init: function(el, scope, parent, passedAttrs) {
+            var self            = this;
+
+            self.id             = nextUid();
+            self.el             = el;
+            self.scope          = scope;
+            self.texts          = [];
+            self.parent         = parent;
+            self.passedAttrs    = passedAttrs;
+
+            if (scope instanceof Scope) {
+                scope.$on("destroy", self.$destroy, self);
+            }
+
+            if (parent) {
+                parent.on("destroy", self.$destroy, self);
+            }
+        },
+
+        on: function(event, fn, context) {
+            return observer.on(event + '-' + this.id, fn, context);
+        },
+
+        once: function(event, fn, context) {
+            return observer.once(event + '-' + this.id, fn, context);
+        },
+
+        un: function(event, fn, context) {
+            return observer.un(event + '-' + this.id, fn, context);
+        },
+
+        createChild: function(node) {
+            return new Renderer(node, this.scope, this);
+        },
+
+        getEl: function() {
+            return this.el;
+        },
+
+        runHandler: function(f, parentScope, node, attr, attrs) {
+
+            var self    = this,
+                scope   = f.$isolateScope ?
+                            parentScope.$newIsolated() :
+                          (f.$breakScope  ?
+                           parentScope.$new() :
+                           parentScope),
+                app     = parentScope.$app,
+                value   = attr ? attr.value : null,
+                // attribute directives receive mods,
+                // tag directives receive cmpConfig
+                inject  = {
+                    $scope: scope,
+                    $node: node,
+                    $attr: attr,
+                    $attrValue: value,
+                    $attrMap: attrs,
+                    $renderer: self
+                },
+                args    = [scope, node, value, self, attr],
+                inst;
+
+            if (attrs.reference) {
+                scope[attrs.reference] = node;
+            }
+
+            if (app) {
+                inst = app.inject(f, null, inject, args);
+            }
+            else if (f.$instantiate) {
+                inst = f.$instantiate.apply(f, args);
+            }
+            else {
+                inst = f.apply(null, args);
+            }
+
+            if (app && f.$registerBy && inst) {
+                if (isThenable(inst)) {
+                    inst.done(function(cmp){
+                        app.registerCmp(cmp, parentScope, f.$registerBy);
+                    });
+                }
+                else {
+                    app.registerCmp(inst, parentScope, f.$registerBy);
+                }
+            }
+
+
+            if (inst && inst.$destroy) {
+                self.on("destroy", inst.$destroy, inst);
+            }
+            else if (typeof inst === "function") {
+                self.on("destroy", inst);
+            }
+
+            if (f.$stopRenderer) {
+                return false;
+            }
+
+            if (inst && inst.getChildren) {
+                return inst.getChildren();
+            }
+
+            return inst;
+        },
+
+
+        processNode: function(node) {
+
+            var self        = this,
+                nodeType    = node.nodeType,
+                texts       = self.texts,
+                scope       = self.scope,
+                textRenderer;
+
+            // text node
+            if (nodeType === 3) {
+                textRenderer    = createText(
+                    scope,
+                    node.textContent || node.nodeValue,
+                    {userData: texts.length});
+
+                if (textRenderer) {
+                    textRenderer.subscribe(self.onTextChange, self);
+                    texts.push({
+                        node: node,
+                        tr: textRenderer
+                    });
+                    self.renderText(texts.length - 1);
+                }
+            }
+
+            // element node
+            else if (nodeType === 1) {
+
+                if (self.reportFirstNode) {
+                    observer.trigger("first-node-" + self.id, node);
+                    self.reportFirstNode = false;
+                }
+
+                if (!handlers) {
+                    handlers = Directive.getAttributes();
+                }
+
+                var tag     = node.tagName.toLowerCase(),
+                    defers  = [],
+                    nodes   = [],
+                    i, l, f, len, c,
+                    attrs, as,
+                    attrProps,
+                    name,
+                    res,
+                    handler,
+                    someHandler = false;
+
+                if (tag.substr(0, 4) === "mjs-") {
+                    tag = tag.substr(4);
+                }
+
+                attrs = getAttrSet(node, lookupDirective);
+
+                if (attrs.config.ignore) {
+                    return false;
+                }
+
+                if (self.passedAttrs) {
+                    attrs['directive'] = extend(
+                        {}, 
+                        attrs['directive'], 
+                        self.passedAttrs['directive'], 
+                        true, true
+                    );
+                    self.passedAttrs = null;
+                }
+
+                // this tag represents component
+                // we just pass it to attr.cmp directive
+                // by adding it to the attr map
+                if (c = nsGet("directive.component." + tag, true)) {
+
+                    as = attrs.config.as || c.tag;
+
+                    if (as) {
+
+                        attrs["directive"]['cmp'] = {
+                            value: c.prototype.$class,
+                            name: "cmp",
+                            original: "{cmp}",
+                            config: extend({}, attrs.config),
+                            values: null
+                        };
+
+                        as = window.document.createElement(as);
+                        node.parentNode.replaceChild(as, node);
+                        while (node.firstChild) {
+                            as.appendChild(node.firstChild);
+                        }
+                        node = as;
+                        for (name in attrs.rest) {
+                            setAttr(node, name, attrs.rest[name]);
+                        }
+                    }
+                    else {
+
+                        f = nsGet("directive.attr.cmp", true);
+                        var passAttrs = extend({}, attrs);
+                        delete passAttrs['directive']['cmp'];
+
+                        attrs.config.passAttrs = passAttrs;
+
+                        res = self.runHandler(f, scope, node, {
+                            value: c,
+                            config: attrs.config
+                        }, attrs);
+                        someHandler = true;
+
+                        if (res === false) {
+                            return false;
+                        }
+                        if (isThenable(res)) {
+                            defers.push(res);
+                        }
+                        else {
+                            collectNodes(nodes, res);
+                        }
+                    }
+                }
+
+                // this is a tag directive
+                else if (f = nsGet("directive.tag." + tag, true)) {
+
+                    res = self.runHandler(
+                        f, scope, node, 
+                        {value: null, config: attrs.config}, 
+                        attrs
+                    );
+                    someHandler = true;
+
+                    attrs.removeDirective(node, tag);
+
+                    if (res === false) {
+                        return false;
+                    }
+                    if (isThenable(res)) {
+                        defers.push(res);
+                    }
+                    else {
+                        collectNodes(nodes, res);
+                    }
+                }
+
+
+                // this is an attribute directive
+                for (i = 0, len = handlers.length; i < len; i++) {
+                    name    = handlers[i].name;
+
+                    if ((attrProps = attrs['directive'][name]) !== undf &&
+                        !attrProps.handled) {
+
+                        handler = handlers[i].handler;
+
+                        if (!handler.$keepAttribute) {
+                            removeAttr(node, attrProps.original);
+                        }
+                        attrs.removeDirective(node, name);
+
+                        res     = self.runHandler(handler, scope, node, attrProps, attrs);
+
+                        someHandler = true;
+                        attrProps.handled = true;
+
+                        if (res === false) {
+                            return false;
+                        }
+                        if (isThenable(res)) {
+                            defers.push(res);
+                        }
+                        else {
+                            collectNodes(nodes, res);
+                        }
+                    }
+                }
+
+                if (!someHandler && attrs.reference) {
+                    scope[attrs.reference] = node;
+                }
+
+                if (defers.length && !attrs.config.ignoreInside) {
+                    var deferred = new Promise;
+                    Promise.all(defers).done(function(values){
+                        collectNodes(nodes, values);
+                        deferred.resolve(nodes);
+                    });
+                    return deferred;
+                }
+
+                // this is a plain attribute
+                for (i in attrs['attribute']) {
+
+                    textRenderer = createText(
+                        scope,
+                        attrs['attribute'][i].value,
+                        {userData: texts.length, force: true});
+
+                    removeAttr(node, attrs['attribute'][i].original);
+                    textRenderer.subscribe(self.onTextChange, self);
+                    texts.push({
+                        node: node,
+                        attr: i,
+                        //attrProp: attrs['attribute'][i],
+                        tr: textRenderer
+                    });
+                    self.renderText(texts.length - 1);
+                }
+
+                if (attrs.config.ignoreInside) {
+                    if (defers.length) {
+                        var deferred = new Promise;
+                        return Promise.all(defers).done(function(){
+                            return deferred.resolve(false);
+                        });
+                        return deferred;
+                    }
+                    else {
+                        return false;
+                    }
+                }
+
+                return nodes.length ? nodes : true;
+            }
+
+            return true;
+        },
+
+        process: function() {
+            var self    = this;
+
+            if (self.el.nodeType) {
+                eachNode(self.el, self.processNode, self,
+                    self.onProcessingFinished, {countdown: 1});
+            }
+            else {
+                nodeChildren(
+                    null, self.el, self.processNode,
+                    self, self.onProcessingFinished, {countdown: 0});
+            }
+        },
+
+        onProcessingFinished: function() {
+            observer.trigger("rendered-" + this.id, this);
+        },
+
+
+        onTextChange: function(textRenderer, inx) {
+            this.renderText(inx);
+        },
+
+        renderText: function(inx) {
+
+            var self        = this,
+                text        = self.texts[inx],
+                res         = text.tr.getString(),
+                attrName    = text.attr;
+
+            if (attrName) {
+
+                if (attrName === "value") {
+                    text.node.value = res;
+                }
+                else if (attrName === "class") {
+                    text.node.className = res;
+                }
+                else if (attrName === "src") {
+                    text.node.src = res;
+                }
+
+                setAttr(text.node, attrName, res);
+            }
+            else {
+                //text.node.textContent = res;
+                text.node.nodeValue = res;
+            }
+        },
+
+
+        destroy: function() {
+
+            var self    = this,
+                texts   = self.texts,
+                i, len;
+
+            for (i = -1, len = texts.length; ++i < len; texts[i].tr.$destroy()) {}
+
+            if (self.parent) {
+                self.parent.un("destroy", self.$destroy, self);
+            }
+
+            observer.trigger("destroy-" + self.id);
+        }
+
+    }, {
+
+        setSkip: function(tag, value) {
+            skipMap[tag] = value;
+        }
+    });
+
+}();
+
+
+
+
+
+var parseJSON = function() {
+
+    return typeof JSON != strUndef ?
+           function(data) {
+               return JSON.parse(data);
+           } :
+           function(data) {
+               return (new Function("return " + data))();
+           };
+}();
+
+
+
+
+
+function parseXML(data, type) {
+
+    var xml, tmp;
+
+    if (!data || !isString(data)) {
+        return null;
+    }
+
+    // Support: IE9
+    try {
+        tmp = new DOMParser();
+        xml = tmp.parseFromString(data, type || "text/xml");
+    } catch (thrownError) {
+        xml = undf;
+    }
+
+    if (!xml || xml.getElementsByTagName("parsererror").length) {
+        throw "Invalid XML: " + data;
+    }
+
+    return xml;
+};
+
+
+
+// partly from jQuery serialize.js
+
+var serializeParam = function(){
+
+    var r20 = /%20/g,
+        rbracket = /\[\]$/;
+
+    function buildParams(prefix, obj, add) {
+        var name,
+            i, l, v;
+
+        if (isArray(obj)) {
+            // Serialize array item.
+
+            for (i = 0, l = obj.length; i < l; i++) {
+                v = obj[i];
+
+                if (rbracket.test(prefix)) {
+                    // Treat each array item as a scalar.
+                    add(prefix, v);
+
+                } else {
+                    // Item is non-scalar (array or object), encode its numeric index.
+                    buildParams(
+                        prefix + "[" + ( typeof v === "object" ? i : "" ) + "]",
+                        v,
+                        add
+                    );
+                }
+            }
+        } else if (isPlainObject(obj)) {
+            // Serialize object item.
+            for (name in obj) {
+                buildParams(prefix + "[" + name + "]", obj[ name ], add);
+            }
+
+        } else {
+            // Serialize scalar item.
+            add(prefix, obj);
+        }
+    }
+
+    return function(obj) {
+
+        var prefix,
+            s = [],
+            add = function( key, value ) {
+                // If value is a function, invoke it and return its value
+                value = isFunction(value) ? value() : (value == null ? "" : value);
+                s[s.length] = encodeURIComponent( key ) + "=" + encodeURIComponent( value );
+            };
+
+        for ( prefix in obj ) {
+            buildParams(prefix, obj[prefix], add);
+        }
+
+        // Return the resulting serialization
+        return s.join( "&" ).replace( r20, "+" );
+    };
+
+
+}();
+
+
+/**
+ * @mixin Promise
+ */
+ns.register("mixin.Promise", {
+
+    $$promise: null,
+
+    $beforeInit: function() {
+        this.$$promise = new Promise;
+    },
+
+    then: function(){
+        return this.$$promise.then.apply(this.$$promise, arguments);
+    },
+
+    done: function() {
+        this.$$promise.done.apply(this.$$promise, arguments);
+        return this;
+    },
+
+    always: function() {
+        this.$$promise.always.apply(this.$$promise, arguments);
+        return this;
+    },
+
+    fail: function() {
+        this.$$promise.fail.apply(this.$$promise, arguments);
+        return this;
+    }
+
+});
+
+
+
+
+(function(){
+
+
+
+    var accepts     = {
+            xml:        "application/xml, text/xml",
+            html:       "text/html",
+            script:     "text/javascript, application/javascript",
+            json:       "application/json, text/javascript",
+            text:       "text/plain",
+            _default:   "*/*"
+        },
+
+        createXHR       = function() {
+
+            var xhr;
+
+            if (!window.XMLHttpRequest || !(xhr = new XMLHttpRequest())) {
+                if (!(xhr = new ActiveXObject("Msxml2.XMLHTTP"))) {
+                    if (!(xhr = new ActiveXObject("Microsoft.XMLHTTP"))) {
+                        throw "Unable to create XHR object";
+                    }
+                }
+            }
+
+            return xhr;
+        },
+
+        httpSuccess     = function(r) {
+            try {
+                return (!r.status && location && location.protocol == "file:")
+                       || (r.status >= 200 && r.status < 300)
+                       || r.status === 304 || r.status === 1223; // || r.status === 0;
+            } catch(thrownError){}
+            return false;
+        };
+
+    return defineClass({
+
+        $class: "ajax.transport.XHR",
+
+        type: "xhr",
+        _xhr: null,
+        _deferred: null,
+        _ajax: null,
+
+        $init: function(opt, deferred, ajax) {
+
+            var self    = this,
+                xhr;
+
+            self._xhr = xhr     = createXHR();
+            self._deferred      = deferred;
+            self._opt           = opt;
+            self._ajax          = ajax;
+
+            if (opt.progress) {
+                xhr.onprogress = bind(opt.progress, opt.context);
+            }
+            if (opt.uploadProgress && xhr.upload) {
+                xhr.upload.onprogress = bind(opt.uploadProgress, opt.context);
+            }
+
+            xhr.onreadystatechange = bind(self.onReadyStateChange, self);
+        },
+
+        setHeaders: function() {
+
+            var self = this,
+                opt = self._opt,
+                xhr = self._xhr,
+                i;
+
+            if (opt.xhrFields) {
+                for (i in opt.xhrFields) {
+                    xhr[i] = opt.xhrFields[i];
+                }
+            }
+            if (opt.data && opt.contentType) {
+                xhr.setRequestHeader("Content-Type", opt.contentType);
+            }
+            xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+            xhr.setRequestHeader("Accept",
+                opt.dataType && accepts[opt.dataType] ?
+                accepts[opt.dataType] + ", */*; q=0.01" :
+                accepts._default
+            );
+            for (i in opt.headers) {
+                xhr.setRequestHeader(i, opt.headers[i]);
+            }
+
+        },
+
+        onReadyStateChange: function() {
+
+            var self        = this,
+                xhr         = self._xhr,
+                deferred    = self._deferred;
+
+            if (xhr.readyState === 0) {
+                xhr.onreadystatechange = emptyFn;
+                deferred.resolve(xhr);
+                return;
+            }
+
+            if (xhr.readyState === 4) {
+                xhr.onreadystatechange = emptyFn;
+
+                if (httpSuccess(xhr)) {
+
+                    self._ajax.processResponse(
+                        isString(xhr.responseText) ? xhr.responseText : undf,
+                        xhr.getResponseHeader("content-type") || ''
+                    );
+                }
+                else {
+
+                    xhr.responseData = null;
+
+                    try {
+                        xhr.responseData = self._ajax.returnResponse(
+                            isString(xhr.responseText) ? xhr.responseText : undf,
+                            xhr.getResponseHeader("content-type") || ''
+                        );
+                    }
+                    catch (thrownErr) {}
+
+                    deferred.reject(xhr);
+                }
+            }
+        },
+
+        abort: function() {
+            var self    = this;
+            self._xhr.onreadystatechange = emptyFn;
+            self._xhr.abort();
+        },
+
+        send: function() {
+
+            var self    = this,
+                opt     = self._opt;
+
+            try {
+                self._xhr.open(opt.method, opt.url, true, opt.username, opt.password);
+                self.setHeaders();
+                self._xhr.send(opt.data);
+            }
+            catch (thrownError) {
+                if (self._deferred) {
+                    self._deferred.reject(thrownError);
+                }
+            }
+        }
+    });
+
+}());
+
+
+
 
 
 
@@ -8843,7 +9692,7 @@ defineClass({
 
             self._opt       = opt;
 
-            if (opt.crossDomain !== true) {
+            if (opt.crossDomain !== true && opt.ignoreCrossDomain !== true) {
                 opt.crossDomain = !!(parts &&
                                      (parts[1] !== local[1] || parts[2] !== local[2] ||
                                       (parts[3] || (parts[1] === "http:" ? "80" : "443")) !==
@@ -9198,7 +10047,7 @@ defineClass({
 
     }, {
 
-
+        prepareUrl: prepareUrl,
         global: globalEvents
     });
 
@@ -9342,6 +10191,9 @@ var ajax = function(){
         return ajax(null, opt);
     };
 
+    ajax.prepareUrl = function(url, opt) {
+        return MetaphorJs.Ajax.prepareUrl(url, opt || {});
+    };
 
     return ajax;
 }();
@@ -9372,7 +10224,7 @@ var Template = function(){
             if (!frg) {
                 return "";
             }
-            if (typeof frg == "string") {
+            if (typeof frg === "string") {
                 return frg;
             }
             return getFragmentContent(frg);
@@ -9385,59 +10237,82 @@ var Template = function(){
         getTemplate     = function(tplId) {
 
             var tpl = cache.get(tplId),
-                opt = options[tplId];
+                opt = options[tplId] || {};
 
-            if (typeof tpl == "function") {
+            if (typeof tpl === "function") {
                 tpl = tpl(tplId);
             }
-            if (typeof tpl == "string" && (!opt || !opt.text)) {
+            if (typeof tpl === "string" && !opt.text) {
+                if (!opt.processed) {
+                    tpl = processTextTemplate(tplId, tpl);
+                }
                 tpl = toFragment(tpl);
+                cache.add(tplId, tpl);
+            }
+            else if (tpl && tpl.nodeType) {
+                if ("content" in tpl) {
+                    tpl = tpl.content;
+                }
+                else {
+                    tpl = toFragment(tpl.childNodes);
+                }
                 cache.add(tplId, tpl);
             }
 
             return tpl;
         },
 
-        findTemplate = function(tplId) {
+        processTextTemplate = function(tplId, tpl) {
+            if (tpl.substr(0,5) === "<!--{") {
+                var inx = tpl.indexOf("-->"),
+                    opt = createGetter(tpl.substr(4, inx-4))({});
 
-            var tplNode     = window.document.getElementById(tplId),
+                options[tplId] = opt;
+                options[tplId].processed = true;
+
+                tpl = tpl.substr(inx + 3);
+
+                if (opt.includes) {
+                    tpl = resolveIncludes(tpl);
+                }
+
+                if (opt.text) {
+                    return tpl;
+                }
+            }
+            
+            if (!options[tplId]) {
+                options[tplId] = {};
+            }
+
+            options[tplId].processed = true;
+
+            return toFragment(tpl);
+        },
+
+        findInPrebuilt = function(tplId) {
+            if (__MetaphorJsPrebuilt['__tpls'][tplId]) {
+                tpl = __MetaphorJsPrebuilt['__tpls'][tplId];
+                delete __MetaphorJsPrebuilt['__tpls'][tplId];
+                return tpl;
+                //return processTextTemplate(tplId, tpl);
+            }
+        },
+
+        findInScripts = function(tplId) {
+            var tplNode = window.document.getElementById(tplId),
+                tpl,
                 tag;
 
             if (tplNode) {
-
-                tag         = tplNode.tagName.toLowerCase();
-
-                if (tag == "script") {
-                    var tpl = tplNode.innerHTML;
-
+                tag = tplNode.tagName.toLowerCase();
+                if (tag === "script") {
+                    tpl = tplNode.innerHTML;
                     tplNode.parentNode.removeChild(tplNode);
-
-                    if (tpl.substr(0,5) == "<!--{") {
-                        var inx = tpl.indexOf("-->"),
-                            opt = createGetter(tpl.substr(4, inx-4))({});
-
-                        options[tplId] = opt;
-
-                        tpl = tpl.substr(inx + 3);
-
-                        if (opt.includes) {
-                            tpl = resolveIncludes(tpl);
-                        }
-
-                        if (opt.text) {
-                            return tpl;
-                        }
-                    }
-
-                    return toFragment(tpl);
+                    return tpl;
                 }
                 else {
-                    if ("content" in tplNode) {
-                        return tplNode.content;
-                    }
-                    else {
-                        return toFragment(tplNode.childNodes);
-                    }
+                    return tplNode;
                 }
             }
         },
@@ -9455,14 +10330,19 @@ var Template = function(){
         },
 
         isExpression = function(str) {
-            if (str.substr(0,1) == '.') {
+            if (str.substr(0,1) === '.') {
                 var second = str.substr(1,1);
-                return !(second == '.' || second == '/');
+                return !(second === '.' || second === '/');
             }
-            return str.substr(0,1) == '{';
+            return str.substr(0,1) === '{' || str.substr(0,5) === 'this.';
         };
 
-    cache.addFinder(findTemplate);
+    if (typeof __MetaphorJsPrebuilt !== "undefined" &&
+                __MetaphorJsPrebuilt['__tpls']) {
+        cache.addFinder(findInPrebuilt);
+    }
+
+    cache.addFinder(findInScripts);
 
     return defineClass({
 
@@ -9476,19 +10356,24 @@ var Template = function(){
         _id:                null,
         _originalNode:      null,
         _intendedShadow:    false,
+        _prevEl:            null,
+        _nextEl:            null,
 
         scope:              null,
         node:               null,
         tpl:                null,
         url:                null,
-        ownRenderer:        false,
+        html:               null,
+        ownRenderer:        true,
         initPromise:        null,
         tplPromise:         null,
         parentRenderer:     null,
         deferRendering:     false,
         replace:            false,
         shadow:             false,
-        animationEnabled:   true,
+        animate:            false,
+
+        passAttrs:          null,
 
         $init: function(cfg) {
 
@@ -9496,7 +10381,8 @@ var Template = function(){
 
             extend(self, cfg, true, false);
 
-            var shadowRootSupported = !!window.document.documentElement.createShadowRoot;
+            var shadowRootSupported =
+                !!window.document.documentElement.createShadowRoot;
 
             if (!shadowRootSupported) {
                 self._intendedShadow = self.shadow;
@@ -9505,7 +10391,14 @@ var Template = function(){
 
             self.id     = nextUid();
 
-            observable.createEvent("rendered-" + self.id, false, true);
+            if (!self.scope) {
+                self.scope = new Scope;
+            }
+
+            observable.createEvent("rendered-" + self.id, {
+                returnResult: false,
+                autoTrigger: true
+            });
 
             self.tpl && (self.tpl = trim(self.tpl));
             self.url && (self.url = trim(self.url));
@@ -9513,7 +10406,17 @@ var Template = function(){
             var node    = self.node,
                 tpl     = self.tpl || self.url;
 
-            node && removeAttr(node, "mjs-include");
+            //node && removeAttr(node, "include");
+
+            if (self.replace && node) {
+                self._prevEl = window.document.createComment(self.id + " - start");
+                self._nextEl = window.document.createComment(self.id + " - end");
+                var parent = node.parentNode;
+                if (parent) {
+                    parent.insertBefore(self._prevEl, node);
+                    parent.insertBefore(self._nextEl, node.nextSibling);
+                }
+            }
 
             if (self.shadow) {
                 self._originalNode = node;
@@ -9531,36 +10434,34 @@ var Template = function(){
                 }
 
                 if (isExpression(tpl)) {
-                    self._watcher = createWatchable(self.scope, tpl, self.onChange, self, null, ns);
+                    self._watcher = createWatchable(
+                        self.scope,
+                        tpl,
+                        self.onChange,
+                        self,
+                        {filterLookup: filterLookup});
                     var val = self._watcher.getLastResult();
-                    if (typeof val != "string") {
+                    if (typeof val !== "string") {
                         extend(self, val, true, false);
                     }
-               }
-
-                if (self._watcher && !self.replace) {
-                    self.ownRenderer        = true;
-                }
-                else if (self.shadow) {
-                    self.ownRenderer        = true;
-                }
-                else if (self.replace) {
-                    self.ownRenderer        = false;
                 }
 
-                 self.resolveTemplate();
-
-                if (self._watcher && self.replace) {
-                    self._watcher.unsubscribeAndDestroy(self.onChange, self);
-                    self._watcher = null;
-                }
+                self.resolveTemplate();
 
                 if (!self.deferRendering || !self.ownRenderer) {
                     self.tplPromise.done(self.applyTemplate, self);
                 }
-                if (self.ownRenderer && self.parentRenderer) {
-                    self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
-                }
+            }
+            else if (self.html) {
+                self._watcher = createWatchable(
+                    self.scope,
+                    self.html,
+                    self.onHtmlChange,
+                    self,
+                    {filterLookup: filterLookup});
+
+                self.initPromise    = new Promise;
+                self.onHtmlChange();
             }
             else {
                 if (!self.deferRendering && self.ownRenderer) {
@@ -9568,20 +10469,32 @@ var Template = function(){
                 }
             }
 
+            // moved from if (tpl)
+            if (self.ownRenderer && self.parentRenderer) {
+                self.parentRenderer.on("destroy",
+                    self.onParentRendererDestroy,
+                    self);
+            }
+
             self.scope.$on("destroy", self.onScopeDestroy, self);
         },
 
         setAnimation: function(state) {
-            this.animationEnabled = state;
+            this.animate = state;
         },
 
         doRender: function() {
             var self = this;
             if (!self._renderer) {
-                self._renderer   = new Renderer(self.node, self.scope);
+                self._renderer   = new Renderer(self.node, self.scope, null, self.passAttrs);
                 self._renderer.on("rendered", self.onRendered, self);
+                self._renderer.on("first-node", self.onFirstNodeReported, self);
                 self._renderer.process();
             }
+        },
+
+        onFirstNodeReported: function(node) {
+            observable.trigger("first-node-" + this.id, node);
         },
 
         onRendered: function() {
@@ -9605,7 +10518,10 @@ var Template = function(){
 
                 self.deferRendering = false;
                 if (self.tplPromise) {
-                    self.tplPromise.done(tpl ? self.applyTemplate : self.doRender, self);
+                    self.tplPromise.done(
+                        tpl ? self.applyTemplate : self.doRender,
+                        self
+                    );
                     return self.initPromise;
                 }
                 else {
@@ -9628,7 +10544,7 @@ var Template = function(){
                 url     = null;
             }
 
-            if (tpl && typeof tpl != "string") {
+            if (tpl && typeof tpl !== "string") {
                 tpl     = tpl.tpl || tpl.url;
                 url     = null;
             }
@@ -9653,7 +10569,6 @@ var Template = function(){
                 else {
                     reject();
                 }
-
             })
                 .done(function(fragment){
                     self._fragment = fragment;
@@ -9661,6 +10576,28 @@ var Template = function(){
                 })
                 .fail(self.initPromise.reject, self.initPromise)
                 .fail(self.tplPromise.reject, self.tplPromise);
+        },
+
+        onHtmlChange: function() {
+            var self    = this,
+                el      = self.node;
+
+            if (self._renderer) {
+                self._renderer.$destroy();
+                self._renderer = null;
+            }
+
+            var htmlVal = self._watcher.getLastResult();
+
+            if (htmlVal) {
+                self._fragment = toFragment(htmlVal);
+                self.applyTemplate();
+            }
+            else if (el) {
+                while (el.firstChild) {
+                    el.removeChild(el.firstChild);
+                }
+            }
         },
 
         onChange: function() {
@@ -9691,11 +10628,26 @@ var Template = function(){
             var self    = this,
                 el      = self.node,
                 frg,
-                children;
+                children,
+                i, l;
 
             if (el) {
-                while (el.firstChild) {
-                    el.removeChild(el.firstChild);
+                if (self.replace) {
+                    var next = self._nextEl, prev = self._prevEl;
+                    while (prev.parentNode && prev.nextSibling && 
+                            prev.nextSibling !== next) {
+                        prev.parentNode.removeChild(prev.nextSibling);
+                    }
+                    /*for (i = 0, l = el.length; i < l; i++) {
+                        if (el[i].parentNode) {
+                            el[i].parentNode.removeChild(el[i]);
+                        }
+                    }*/
+                }
+                else if (el.firstChild) {
+                    while (el.firstChild) {
+                        el.removeChild(el.firstChild);
+                    }
                 }
             }
 
@@ -9705,30 +10657,27 @@ var Template = function(){
 
             if (self.replace) {
 
-                var transclude = el ? data(el, "mjs-transclude") : null;
-
                 frg = clone(self._fragment);
-
                 children = toArray(frg.childNodes);
 
-                if (transclude) {
-                    var tr = select("[mjs-transclude], mjs-transclude", frg);
-                    if (tr.length) {
-                        data(tr[0], "mjs-transclude", transclude);
+                if (el && el.nodeType) {
+                    var transclude = el ? data(el, "mjs-transclude") : null;
+
+                    if (transclude) {
+                        var tr = select("[{transclude}], [mjs-transclude], mjs-transclude", frg);
+                        if (tr.length) {
+                            data(tr[0], "mjs-transclude", transclude);
+                        }
                     }
+
+                    el.parentNode && el.parentNode.removeChild(el);
                 }
 
-                if (el) {
-                    //el.parentNode.insertBefore(frg, el);
-                    //el.parentNode.removeChild(el);
-                    el.parentNode.replaceChild(frg, el);
-                }
-
+                self._nextEl.parentNode.insertBefore(frg, self._nextEl);
                 self.node = children;
                 self.initPromise.resolve(children);
             }
             else {
-
 
                 if (el) {
                     el.appendChild(clone(self._fragment));
@@ -9752,11 +10701,11 @@ var Template = function(){
                 el          = self.node,
                 deferred    = new Promise;
 
-            if (!self._initial && self.animationEnabled) {
-                animate(el, "leave", null, true)
+            if (!self._initial && self.animate) {
+                animate(el, "leave")
                     .done(self.doApplyTemplate, self)
                     .done(deferred.resolve, deferred);
-                animate(el, "enter", null, true);
+                animate(el, "enter");
             }
             else {
                 self.doApplyTemplate();
@@ -9779,7 +10728,7 @@ var Template = function(){
 
             for (i = 0, l = cnts.length; i < l;  i++) {
 
-                tr      = window.document.createElement("mjs-transclude");
+                tr      = window.document.createElement("transclude");
                 el      = cnts[i];
                 next    = el.nextSibling;
                 sel     = getAttr(el, "select");
@@ -9794,7 +10743,8 @@ var Template = function(){
         onParentRendererDestroy: function() {
             var self = this;
 
-            if (!self.$destroyed && self._renderer && !self._renderer.$destroyed) {
+            if (!self.$destroyed && self._renderer &&
+                !self._renderer.$destroyed) {
                 self._renderer.$destroy();
             }
             self.$destroy();
@@ -9808,12 +10758,25 @@ var Template = function(){
 
             var self = this;
 
+            if (self._nextEl && self._nextEl.parentNode) {
+                self._nextEl.parentNode.removeChild(self._nextEl);
+            }
+            
+            if (self._prevEl && self._prevEl.parentNode) {
+                self._prevEl.parentNode.removeChild(self._prevEl);
+            }
+
             if (self.shadow) {
                 self._originalNode.createShadowRoot();
             }
 
             if (self._watcher) {
-                self._watcher.unsubscribeAndDestroy(self.onChange, self);
+                if (self.html) {
+                    self._watcher.unsubscribeAndDestroy(self.onHtmlChange, self);
+                }
+                else {
+                    self._watcher.unsubscribeAndDestroy(self.onChange, self);
+                }
             }
         }
 
@@ -9828,460 +10791,411 @@ var Template = function(){
 
 
 
+var Provider = function(){
 
-/**
- * @namespace MetaphorJs
- * @class Component
- */
-var Component = defineClass({
+    var VALUE       = 1,
+        CONSTANT    = 2,
+        FACTORY     = 3,
+        SERVICE     = 4,
+        PROVIDER    = 5,
+        globalProvider;
 
-    $class: "Component",
-    $mixins: ["mixin.Observable"],
+    var Provider = function() {
+        this.store  = {};
+    };
 
-    /**
-     * @access protected
-     * @var string
-     */
-    id:             null,
+    extend(Provider.prototype, {
 
-    originalId:     false,
+        store: null,
 
-    /**
-     * @var Element
-     * @access protected
-     */
-    node:           null,
-
-    /**
-     * @var string
-     */
-    cls:            null,
-
-    /**
-     * @var string|Element
-     * @access protected
-     */
-    renderTo:       null,
-
-    /**
-     * @var {boolean}
-     */
-    autoRender:     true,
-
-    /**
-     * @var bool
-     * @access protected
-     */
-    rendered:       false,
-
-    /**
-     * @var bool
-     * @access protected
-     */
-    hidden:         false,
-
-    /**
-     * @var bool
-     * @access protected
-     */
-    destroyEl:      true,
-
-
-    /**
-     * @var {bool}
-     */
-    destroyScope:   false,
-
-    /**
-     * @var {Scope}
-     */
-    scope:          null,
-
-    /**
-     * @var {Template}
-     */
-    template:       null,
-
-    /**
-     * @var string
-     */
-    templateUrl:    null,
-
-    /**
-     * @var string
-     */
-    tag:            null,
-
-    /**
-     * @var string
-     */
-    as:             null,
-
-
-    /**
-     * @constructor
-     * @param {object} cfg {
-     *      @type string id Element id
-     *      @type string|Element el
-     *      @type string|Element renderTo
-     *      @type bool hidden
-     *      @type bool destroyEl
-     * }
-     */
-    $init: function(cfg) {
-
-        var self    = this;
-
-        cfg = cfg || {};
-
-        self.$super(cfg);
-
-        extend(self, cfg, true, false);
-
-        if (!self.scope) {
-            self.scope = new Scope;
-        }
-
-        if (self.as) {
-            self.scope[self.as] = self;
-        }
-
-        if (self.node) {
-            var nodeId = getAttr(self.node, "id");
-            if (nodeId) {
-                self.originalId = true;
-                if (!self.id) {
-                    self.id = nodeId;
-                }
+        instantiate: function(fn, context, args, isClass) {
+            if (fn.$instantiate) {
+                return fn.$instantiate.apply(fn, args);
             }
-        }
-
-        self.id = self.id || "cmp-" + nextUid();
-
-        if (!self.node && self.node !== false) {
-            self._createNode();
-        }
-
-
-        self.initComponent.apply(self, arguments);
-
-        if (self.scope.$app){
-            self.scope.$app.registerCmp(self, self.scope, "id");
-        }
-
-        var tpl = self.template,
-            url = self.templateUrl;
-
-        if (!tpl || !(tpl instanceof Template)) {
-            self.template = tpl = new Template({
-                scope: self.scope,
-                node: self.node,
-                deferRendering: !tpl,
-                ownRenderer: true,
-                tpl: tpl,
-                url: url,
-                shadow: self.constructor.$shadow,
-                animationEnabled: !self.hidden
-            });
-        }
-        else if (tpl instanceof Template) {
-            // it may have just been created
-            self.template.node = self.node;
-        }
-
-        self.template.on("rendered", self.onRenderingFinished, self);
-
-        if (self.parentRenderer) {
-            self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
-        }
-
-        if (self.node) {
-            self._initElement();
-        }
-
-        if (self.autoRender) {
-
-            if (tpl.initPromise) {
-                tpl.initPromise.done(self.render, self);
+            else if (isClass) {
+                return instantiate(fn, args);
             }
             else {
-                self.render();
+                return fn.apply(context, args);
             }
-        }
-    },
+        },
 
-    _createNode: function() {
+        inject: function(injectable, context, currentValues, callArgs, isClass) {
 
-        var self    = this;
-        self.node   = window.document.createElement(self.tag || 'div');
-    },
+            currentValues   = currentValues || {};
+            callArgs        = callArgs || [];
 
-    _initElement: function() {
+            var self = this;
 
-        var self    = this,
-            node    = self.node;
+            if (isFunction(injectable)) {
 
-        if (!self.originalId) {
-            setAttr(node, "id", self.id);
-        }
-
-        self.initNode();
-    },
-
-    releaseNode: function() {
-
-        var self = this,
-            node = self.node;
-
-        removeAttr(node, "cmp-id");
-
-        if (self.cls) {
-            removeClass(node, self.cls);
-        }
-    },
-
-    initNode: function() {
-
-        var self = this,
-            node = self.node;
-
-        setAttr(node, "cmp-id", self.id);
-
-        if (self.cls) {
-            addClass(node, self.cls);
-        }
-
-        if (self.hidden) {
-            node.style.display = "none";
-        }
-    },
-
-    render: function() {
-
-        var self        = this;
-
-        if (self.rendered) {
-            return;
-        }
-
-        self.trigger('render', self);
-        self.template.startRendering();
-    },
-
-    onRenderingFinished: function() {
-        var self = this;
-
-        if (!self.node) {
-            self.node = self.template.node;
-            if (self.node.nodeType == 11) { // document fragment
-                var ch = self.node.childNodes,
-                    i, l;
-                for (i = 0, l = ch.length; i < l; i++) {
-                    if (ch[i].nodeType == 1) {
-                        self.node = ch[i];
-                        break;
-                    }
+                if (injectable.inject) {
+                    var tmp = slice.call(injectable.inject);
+                    tmp.push(injectable);
+                    injectable = tmp;
+                }
+                else {
+                    return self.instantiate(injectable, context, callArgs, isClass);
                 }
             }
-
-            self._initElement();
-        }
-
-        if (self.renderTo) {
-            self.renderTo.appendChild(self.node);
-        }
-        else if (!isAttached(self.node)) {
-            window.document.body.appendChild(self.node);
-        }
-
-        self.rendered   = true;
-        self.afterRender();
-        self.trigger('after-render', self);
-    },
-
-
-    /**
-     * @access public
-     * @method
-     */
-    show: function() {
-        var self    = this;
-        if (!self.hidden) {
-            return;
-        }
-        if (self.trigger('before-show', self) === false) {
-            return false;
-        }
-
-        if (!self.rendered) {
-            self.render();
-        }
-
-        self.template.setAnimation(true);
-        self.showApply();
-
-        self.hidden = false;
-        self.onShow();
-        self.trigger("show", self);
-    },
-
-    showApply: function() {
-        var self = this;
-        if (self.node) {
-            self.node.style.display = "block";
-        }
-
-    },
-
-    /**
-     * @access public
-     * @method
-     */
-    hide: function() {
-        var self    = this;
-        if (self.hidden) {
-            return;
-        }
-        if (self.trigger('before-hide', self) === false) {
-            return false;
-        }
-
-        self.template.setAnimation(false);
-        self.hideApply();
-
-        self.hidden = true;
-        self.onHide();
-        self.trigger("hide", self);
-    },
-
-    hideApply: function() {
-        var self = this;
-        if (self.node) {
-            self.node.style.display = "none";
-        }
-    },
-
-    freezeByView: function(view) {
-        var self = this;
-        self.releaseNode();
-        self.scope.$freeze();
-        self.trigger("view-freeze", self, view);
-
-    },
-
-    unfreezeByView: function(view) {
-        var self = this;
-        self.initNode();
-        self.scope.$unfreeze();
-        self.trigger("view-unfreeze", self, view);
-        self.scope.$check();
-    },
-
-    /**
-     * @access public
-     * @return bool
-     */
-    isHidden: function() {
-        return this.hidden;
-    },
-
-    /**
-     * @access public
-     * @return bool
-     */
-    isRendered: function() {
-        return this.rendered;
-    },
-
-    /**
-     * @access public
-     * @return bool
-     */
-    isDestroyed: function() {
-        return this.destroyed;
-    },
-
-    /**
-     * @access public
-     * @return Element
-     */
-    getEl: function() {
-        return this.node;
-    },
-
-    /**
-     * @method
-     * @access protected
-     */
-    initComponent:  emptyFn,
-
-    /**
-     * @method
-     * @access protected
-     */
-    afterRender:    emptyFn,
-
-    /**
-     * @method
-     * @access protected
-     */
-    onShow:         emptyFn,
-
-    /**
-     * @method
-     * @access protected
-     */
-    onHide:         emptyFn,
-
-    onParentRendererDestroy: function() {
-        this.$destroy();
-    },
-
-    destroy:      function() {
-
-        var self    = this;
-
-        if (self.template) {
-            self.template.$destroy();
-        }
-
-        if (self.destroyEl) {
-            if (self.node && isAttached(self.node)) {
-                self.node.parentNode.removeChild(self.node);
+            else if (isString(injectable)) {
+                return self.resolve(injectable, currentValues);
             }
-        }
-        else if (self.node) {
-
-            if (!self.originalId) {
-                removeAttr(self.node, "id");
+            else {
+                injectable = slice.call(injectable);
             }
 
-            self.releaseNode();
+            var values  = [],
+                fn      = injectable.pop(),
+                i, l;
+
+            for (i = -1, l = injectable.length; ++i < l;
+                 values.push(self.resolve(injectable[i], currentValues))) {}
+
+            return Promise.all(values).then(function(values){
+                return self.instantiate(fn, context, values, isClass);
+            });
+        },
+
+        value: function(name, value) {
+            this.store[name] = {
+                type: VALUE,
+                value: value
+            };
+        },
+
+        constant: function(name, value) {
+            var store = this.store;
+            if (!store[name]) {
+                store[name] = {
+                    type: CONSTANT,
+                    value: value
+                };
+            }
+        },
+
+        factory: function(name, fn, context, singleton) {
+
+            if (isBool(context)) {
+                singleton = context;
+                context = null;
+            }
+
+            this.store[name] = {
+                type: FACTORY,
+                singleton: singleton,
+                fn: fn,
+                context: context
+            };
+        },
+
+        service: function(name, constr, singleton) {
+            this.store[name] = {
+                type: SERVICE,
+                singleton: singleton,
+                fn: constr
+            };
+        },
+
+        provider: function(name, constr) {
+
+            this.store[name + "Provider"] = {
+                name: name,
+                type: PROVIDER,
+                fn: constr,
+                instance: null
+            };
+        },
+
+        resolve: function(name, currentValues, callArgs) {
+
+            var self    = this,
+                store   = self.store,
+                type,
+                item,
+                res;
+
+            currentValues = currentValues || {};
+            callArgs = callArgs || [];
+
+            if (currentValues[name] !== undf) {
+                return currentValues[name];
+            }
+
+            if (item = store[name]) {
+
+                type    = item.type;
+
+                if (type === VALUE || type === CONSTANT) {
+                    return item.value;
+                }
+                else if (type === FACTORY) {
+                    res = self.inject(item.fn, item.context, currentValues, callArgs);
+                }
+                else if (type === SERVICE) {
+                    res = self.inject(item.fn, null, currentValues, callArgs, true);
+                }
+                else if (type === PROVIDER) {
+
+                    if (!item.instance) {
+
+                        item.instance = Promise.resolve(
+                                self.inject(item.fn, null, currentValues)
+                            )
+                            .done(function(instance){
+                                item.instance = instance;
+                                store[item.name] = {
+                                    type: FACTORY,
+                                    fn: instance.$get,
+                                    context: instance
+                                };
+                            });
+                    }
+
+                    return item.instance;
+                }
+
+                if (item.singleton) {
+                    item.type = VALUE;
+                    item.value = res;
+
+                    if (type === FACTORY && isThenable(res)) {
+                        res.done(function(value){
+                            item.value = value;
+                        });
+                    }
+                }
+
+                return currentValues[name] = res;
+            }
+            else {
+
+                if (store[name + "Provider"]) {
+                    self.resolve(name + "Provider", currentValues);
+                    return self.resolve(name, currentValues);
+                }
+
+                if (self === globalProvider) {
+                    throw "Could not provide value for " + name;
+                }
+                else {
+                    return globalProvider.resolve(name);
+                }
+            }
+        },
+
+        destroy: function() {
+
+            var self = this;
+
+            self.store = null;
+            self.scope = null;
         }
 
-        if (self.destroyScope && self.scope) {
-            self.scope.$destroy();
-        }
+    }, true, false);
 
-        self.$super();
+    Provider.global = function() {
+        return globalProvider;
+    };
+
+    globalProvider = new Provider;
+
+    return Provider;
+}();
+
+
+
+
+
+
+function resolveComponent(cmp, cfg, scope, node, args) {
+
+    cfg         = cfg || {};
+    args        = args || [];
+
+    scope       = scope || cfg.scope; // || new Scope;
+    node        = node || cfg.node;
+
+    cfg.scope   = cfg.scope || scope;
+    cfg.node    = cfg.node || node;
+
+    var constr      = isString(cmp) ? nsGet(cmp) : cmp;
+
+    if (!constr) {
+        throw "Component " + cmp + " not found";
     }
 
-});
+    if (scope && constr.$isolateScope) {
+        cfg.scope   = scope = scope.$newIsolated();
+    }
 
-/**
- * @md-end-class
- */
+    var i,
+        defers      = [],
+        tpl         = constr.template || cfg.template || null,
+        tplUrl      = constr.templateUrl || cfg.templateUrl || null,
+        app         = scope ? scope.$app : null,
+        gProvider   = Provider.global(),
+        injectFn    = app ? app.inject : gProvider.inject,
+        injectCt    = app ? app : gProvider,
+        cloak       = cfg.cloak || null,
+        inject      = {
+            $node: node || null,
+            $scope: scope || null,
+            $config: cfg || null,
+            $args: args || null
+        };
 
+    if (constr.resolve) {
 
+        for (i in constr.resolve) {
+            (function(name){
+                var d = new Promise,
+                    fn;
 
+                defers.push(d.done(function(value){
+                    inject[name] = value;
+                    cfg[name] = value;
+                    args.push(value);
+                }));
 
+                fn = constr.resolve[i];
 
-function isNumber(value) {
-    return varType(value) === 1;
+                if (isFunction(fn)) {
+                    d.resolve(fn(scope, node));
+                }
+                /*else if (isString(fn)) {
+                    d.resolve(injectFn(fn));
+                }*/
+                else {
+                    d.resolve(
+                        injectFn.call(
+                            injectCt, fn, null, extend({}, inject, cfg, false, false)
+                        )
+                    );
+                }
+
+                d.fail(function(reason){
+                    if (reason instanceof Error) {
+                        error(reason);
+                    }
+                });
+
+            }(i));
+        }
+    }
+
+    if (tpl || tplUrl) {
+
+        cfg.template = new Template({
+            scope: scope,
+            node: node,
+            deferRendering: true,
+            ownRenderer: true,
+            shadow: constr.$shadow,
+            tpl: tpl,
+            url: tplUrl,
+            animate: !!cfg.animate
+        });
+
+        defers.push(cfg.template.initPromise);
+
+        if (node && node.firstChild) {
+            data(node, "mjs-transclude", toFragment(node.childNodes));
+        }
+    }
+
+    var p;
+
+    if (defers.length) {
+        p = new Promise;
+
+        Promise.all(defers)
+            .done(function(){
+                p.resolve(
+                    injectFn.call(
+                        injectCt, constr, null, extend({}, inject, cfg, false, false), args
+                    )
+                );
+            })
+            .fail(p.reject, p)
+    }
+    else {
+        p = Promise.resolve(
+            injectFn.call(
+                injectCt, constr, null, extend({}, inject, cfg, false, false), args
+            )
+        );
+    }
+
+    if (node && p.isPending() && cloak !== null) {
+        cloak !== true ? addClass(node, cloak) : node.style.visibility = "hidden";
+        p.then(function() {
+            cloak !== true ? removeClass(node, cloak) : node.style.visibility = "";
+        });
+    }
+
+    if (node) {
+        p.then(function(){
+            removeClass(node, "mjs-cloak");
+        });
+    }
+
+    return p;
 };
 
 
 
+
+
+(function(){
+
+    var cmpAttr = function(scope, node, cmpName, parentRenderer, attr){
+
+        var constr  = typeof cmpName === "string" ?
+                        nsGet(cmpName, true) : cmpName,
+            nodecfg = attr ? attr.config : {};
+
+        if (!constr) {
+            throw "Component " + cmpName + " not found";
+        }
+
+        var sameScope       = nodecfg.sameScope || constr.$sameScope,
+            isolateScope    = nodecfg.isolateScope || constr.$isolateScope;
+
+        var newScope = isolateScope ? scope.$newIsolated() : (sameScope ? scope : scope.$new());
+
+        var cfg     = extend({
+            scope: newScope,
+            node: node,
+            parentRenderer: parentRenderer,
+            destroyScope: !sameScope
+        }, nodecfg, false, false);
+
+        resolveComponent(cmpName, cfg, newScope, node, [cfg])
+            .done(function(cmp){
+                if (nodecfg.ref) {
+                    scope[nodecfg.ref] = cmp;
+                }
+            });
+
+        return constr.$resumeRenderer || !!constr.$shadow;
+    };
+
+    cmpAttr.$breakScope = false;
+
+    Directive.registerAttribute("cmp", 200, cmpAttr);
+
+}());
+
+
+
+var evaluate = Watchable.eval;
+
+
+
+
+
+var Queue = (function(){
 
 
 var Queue = function(cfg) {
@@ -10337,17 +11251,17 @@ extend(Queue.prototype, {
 
         mode = mode || self.mode;
 
-        if (mode == Queue.ONCE_EVER && fn[qid]) {
+        if (mode === Queue.ONCE_EVER && fn[qid]) {
             return fn[qid];
         }
 
         fn[qid] = id;
 
         if (self._map[id]) {
-            if (mode == Queue.REPLACE) {
+            if (mode === Queue.REPLACE) {
                 self.remove(id);
             }
-            else if (mode == Queue.ONCE) {
+            else if (mode === Queue.ONCE) {
                 return id;
             }
         }
@@ -10378,7 +11292,7 @@ extend(Queue.prototype, {
             i, l;
 
         for (i = 0, l = queue.length; i < l; i++) {
-            if (queue[i].id == id) {
+            if (queue[i].id === id) {
                 queue.splice(i, 1);
                 break;
             }
@@ -10387,7 +11301,11 @@ extend(Queue.prototype, {
     },
 
     isEmpty: function() {
-        return this.length == 0;
+        return this.length === 0;
+    },
+
+    isRunning: function() {
+        return this._running;
     },
 
     next: function() {
@@ -10443,7 +11361,7 @@ extend(Queue.prototype, {
                 }
             };
 
-            if (item.async == "raf" || (!item.async && self.async == "raf")) {
+            if (item.async === "raf" || (!item.async && self.async === "raf")) {
                 raf(fn);
             }
             else {
@@ -10485,89 +11403,11 @@ extend(Queue.prototype, {
     }
 }, true, false);
 
+return Queue;
+}());
 
 
 
-var rToCamelCase = /-./g;
-
-function toCamelCase(str) {
-    return str.replace(rToCamelCase, function(match){
-        return match.charAt(1).toUpperCase();
-    });
-};
-
-
-
-var getNodeData = function() {
-
-    var readDataSet = function(node) {
-        var attrs = node.attributes,
-            dataset = {},
-            i, l, name;
-
-        for (i = 0, l = attrs.length; i < l; i++) {
-            name = attrs[i].name;
-            if (name.indexOf("data-") === 0) {
-                dataset[toCamelCase(name.substr(5))] = attrs[i].value;
-            }
-        }
-
-        return dataset;
-    };
-
-
-    return function(node) {
-
-        if (node.dataset) {
-            return node.dataset;
-        }
-
-        var dataset;
-
-        if ((dataset = data(node, "data")) !== undf) {
-            return dataset;
-        }
-
-        dataset = readDataSet(node);
-        data(node, "data", dataset);
-        return dataset;
-    };
-
-
-}();
-
-
-
-function getNodeConfig(node, scope, expr) {
-
-    var cfg = data(node, "config"),
-        config, dataset, i, val;
-
-    if (cfg) {
-        return cfg;
-    }
-
-    cfg = {};
-
-    if (expr || (expr = getAttr(node, "mjs-config")) !== null) {
-        removeAttr(node, "mjs-config");
-        config = expr ? createGetter(expr)(scope || {}) : {};
-        for (i in config){
-            cfg[i] = config[i];
-        }
-    }
-
-    dataset = getNodeData(node);
-
-    for (i in dataset){
-        val = dataset[i];
-        cfg[i] = val === "" ? true : val;
-    }
-
-    data(node, "config", cfg);
-
-    return cfg;
-};
 
 
 
@@ -10599,51 +11439,49 @@ var ListRenderer = defineClass({
     buffered: false,
     bufferPlugin: null,
 
-    $constructor: function(scope, node, expr) {
+    $constructor: function(scope, node, expr, parentRenderer, attr) {
 
         var self    = this,
-            cfg     = getNodeConfig(node, scope);
+            cfg     = attr ? attr.config : {};
 
         self.cfg            = cfg;
         self.scope          = scope;
 
-        self.tagMode        = node.nodeName.toLowerCase() == "mjs-each";
-        self.animateMove    = !self.tagMode && !cfg.buffered &&
-                                cfg.animateMove && animate.cssAnimationSupported();
-        self.animate        = !self.tagMode && !cfg.buffered &&
-                                (getAttr(node, "mjs-animate") !== null || cfg.animate);
-        self.id             = cfg.id || nextUid();
-
-        removeAttr(node, "mjs-animate");
+        self.tagMode        = node.nodeName.toLowerCase() === "mjs-each";
+        self.animateMove    = !self.tagMode && !cfg['buffered'] &&
+                                cfg["animateMove"] && animate.cssAnimationSupported();
+        self.animate        = !self.tagMode && !cfg['buffered'] && cfg["animate"];
+        self.id             = cfg['id'] || nextUid();
 
         if (self.animate) {
-            self.$plugins.push(typeof cfg.animatePlugin == "string" ? cfg.animatePlugin : "plugin.ListAnimated");
+            self.$plugins.push(cfg['animatePlugin'] || "plugin.ListAnimated");
         }
 
-        if (cfg.observable) {
-            self.$plugins.push(typeof cfg.observable == "string" ? cfg.observable : "plugin.Observable");
+        if (cfg['observable']) {
+            self.$plugins.push(cfg['observable'] || "plugin.Observable");
         }
 
         if (self.tagMode) {
-            cfg.buffered = false;
+            cfg['buffered'] = false;
         }
 
-        if (cfg.buffered) {
+        if (cfg['buffered']) {
             self.buffered = true;
-            self.$plugins.push(typeof cfg.buffered == "string" ? cfg.buffered : "plugin.ListBuffered");
+            self.$plugins.push(cfg['buffered'] || "plugin.ListBuffered");
         }
 
-        if (cfg.plugin) {
-            removeAttr(node, "data-plugin");
-            self.$plugins.push(cfg.plugin);
+        if (cfg['plugin']) {
+            self.$plugins.push(cfg['plugin']);
+        }
+
+        if (cfg['trackby'] && cfg['trackby'] === 'false') {
+            self.trackBy = false;
         }
     },
 
-    $init: function(scope, node, expr) {
+    $init: function(scope, node, expr, parentRenderer, attr) {
 
         var self = this;
-
-        //removeAttr(node, "mjs-include");
 
         if (self.tagMode) {
             expr = getAttr(node, "value");
@@ -10653,8 +11491,11 @@ var ListRenderer = defineClass({
 
         self.tpl        = self.tagMode ? toFragment(node.childNodes) : node;
         self.renderers  = [];
-        self.prevEl     = node.previousSibling;
-        self.nextEl     = node.nextSibling;
+
+        var cmts = Directive.commentHolders(node, self.$class + "-" + self.id);
+
+        self.prevEl     = cmts[0];
+        self.nextEl     = cmts[1];
         self.parentEl   = node.parentNode;
         self.node       = null; //node;
 
@@ -10665,7 +11506,7 @@ var ListRenderer = defineClass({
 
         self.parentEl.removeChild(node);
 
-        self.afterInit(scope, node);
+        self.afterInit(scope, node, expr, parentRenderer, attr);
 
         self.queue.add(self.render, self, [toArray(self.watcher.getLastResult())]);
     },
@@ -10675,13 +11516,16 @@ var ListRenderer = defineClass({
         var self        = this,
             cfg         = self.cfg;
 
-        self.watcher    = createWatchable(scope, self.model, self.onChange, self, null, ns);
-        self.trackBy    = cfg.trackBy;
-        if (self.trackBy && self.trackBy != '$') {
-            self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, null, ns);
-        }
-        else if (self.trackBy != '$' && !self.watcher.hasInputPipes()) {
-            self.trackBy    = '$$'+self.watcher.id;
+        self.watcher    = createWatchable(scope, self.model, self.onChange, self, {filterLookup: filterLookup});
+        self.trackBy    = cfg.trackby; // lowercase from attributes
+        
+        if (self.trackBy !== false) {
+            if (self.trackBy && self.trackBy !== '$') {
+                self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, {filterLookup: filterLookup});
+            }
+            else if (self.trackBy !== '$' && !self.watcher.hasInputPipes()) {
+                self.trackBy    = '$$'+self.watcher.id;
+            }
         }
 
         self.griDelegate = bind(self.scopeGetRawIndex, self);
@@ -10712,12 +11556,18 @@ var ListRenderer = defineClass({
         var self        = this,
             fragment    = window.document.createDocumentFragment(),
             renderers   = self.renderers,
+            tm          = self.tagMode,
             i, len;
 
         for (i = 0, len = renderers.length; i < len; i++) {
 
             if (!renderers[i].hidden) {
-                fragment.appendChild(renderers[i].el);
+                if (tm) {
+                    fragment.appendChild(toFragment(renderers[i].el));
+                }
+                else {
+                    fragment.appendChild(renderers[i].el);
+                }
                 renderers[i].attached = true;
             }
         }
@@ -10744,7 +11594,7 @@ var ListRenderer = defineClass({
 
         for (; index <= x; index++) {
 
-            if (action && renderers[index].action != action) {
+            if (action && renderers[index].action !== action) {
                 continue;
             }
 
@@ -10778,7 +11628,6 @@ var ListRenderer = defineClass({
         scope.$getRawIndex = self.griDelegate;
 
         if (!item.renderer) {
-
             item.renderer  = new Renderer(item.el, scope);
             item.renderer.process();
             item.rendered = true;
@@ -10795,6 +11644,8 @@ var ListRenderer = defineClass({
             iname       = self.itemName,
             itemScope   = self.scope.$new(),
             tm          = self.tagMode;
+
+        itemScope.$on("changed", self.scope.$check, self.scope);
 
         itemScope[iname]    = self.getListItem(list, index);
         el = tm ? toArray(el.childNodes) : el;
@@ -10842,38 +11693,51 @@ var ListRenderer = defineClass({
             prevrInx,
             i, len,
             r,
-            action,
-            prs         = self.watcher.getMovePrescription(prevList, self.getTrackByFunction(), list);
+            action;
 
-        // redefine renderers
-        for (i = 0, len = prs.length; i < len; i++) {
-
-            action = prs[i];
-
-            if (isNumber(action)) {
-                prevrInx    = action;
-                prevr       = renderers[prevrInx];
-
-                if (prevrInx != index && isNull(updateStart)) {
-                    updateStart = i;
-                }
-
-                prevr.action = "move";
-                prevr.scope[iname] = self.getListItem(list, i);
-                doesMove = animateMove;
-
-                newrs.push(prevr);
-                renderers[prevrInx] = null;
-                index++;
-            }
-            else {
-                if (isNull(updateStart)) {
-                    updateStart = i;
-                }
+        if (self.trackBy === false) {
+            renderers = self.renderers.slice();
+            updateStart = 0;
+            doesMove = false;
+            for (i = 0, len = list.length; i < len; i++) {
                 r = self.createItem(tpl.cloneNode(true), list, i);
                 newrs.push(r);
-                // add new elements to old renderers
-                // so that we could correctly determine positions
+            }
+        }
+        else {
+
+            var prs  = self.watcher.getMovePrescription(prevList, self.getTrackByFunction(), list);
+
+            // redefine renderers
+            for (i = 0, len = prs.length; i < len; i++) {
+
+                action = prs[i];
+
+                if (isNumber(action)) {
+                    prevrInx    = action;
+                    prevr       = renderers[prevrInx];
+
+                    if (prevrInx !== index && isNull(updateStart)) {
+                        updateStart = i;
+                    }
+
+                    prevr.action = "move";
+                    prevr.scope[iname] = self.getListItem(list, i);
+                    doesMove = animateMove;
+
+                    newrs.push(prevr);
+                    renderers[prevrInx] = null;
+                    index++;
+                }
+                else {
+                    if (isNull(updateStart)) {
+                        updateStart = i;
+                    }
+                    r = self.createItem(tpl.cloneNode(true), list, i);
+                    newrs.push(r);
+                    // add new elements to old renderers
+                    // so that we could correctly determine positions
+                }
             }
         }
 
@@ -10909,12 +11773,14 @@ var ListRenderer = defineClass({
             r = rs[i];
             if (r && r.attached) {
                 r.attached = false;
-                if (!self.tagMode) {
-                    parent.removeChild(r.el);
+                if (!self.tagMode && r.el.parentNode) {
+                    r.el.parentNode.removeChild(r.el);
                 }
                 else {
                     for (j = 0, jl = r.el.length; j < jl; j++) {
-                        parent.removeChild(r.el[j]);
+                        if (r.el[j].parentNode) {
+                            r.el[j].parentNode.removeChild(r.el[j]);
+                        }
                     }
                 }
             }
@@ -10937,27 +11803,47 @@ var ListRenderer = defineClass({
             i, l, el, r,
             j;
 
-        if (nc && nc.parentNode !== parent) {
+        /*if (nc && nc.parentNode !== parent) {
             nc = null;
         }
-        if (!nc && prevEl && prevEl.parentNode === parent) {
-            nc = prevEl.nextSibling;
-        }
+        //if (!nc && prevEl && prevEl.parentNode === parent) {
+        //    nc = prevEl.nextSibling;
+        //}*/
 
         for (i = 0, l = rs.length; i < l; i++) {
             r = rs[i];
             el = r.el;
+            next = null;
 
             if (r.hidden) {
                 if (el.parentNode) {
-                    el.parentNode.removeChild(el);
+                    if (tm) {
+                        el.parentNode.removeChild(toFragment(el));
+                    }
+                    else {
+                        el.parentNode.removeChild(el);
+                    }
                     r.attached = false;
                 }
                 continue;
             }
 
+            for (j = Math.max(i - 1, 0); j >= 0; j--) {
+                if (rs[j].attached) {
+                    next = rs[j].lastEl.nextSibling;
+                    break;
+                    //if (next && next.parentNode === parent) {
+                    //    break;
+                    //}
+                }
+            }
+
+            if (!next) {
+                next = nc;
+            }
+
             // positions of some elements have changed
-            if (oldrs) {
+            /*if (oldrs) {
                 // oldrs looks like [obj, obj, null, obj] where nulls are instead
                 // of items that were moved somewhere else
                 if (oldrs && oldrs[i]) {
@@ -10980,7 +11866,7 @@ var ListRenderer = defineClass({
             // items were hidden/shown but positions haven't changed
             else {
                 for (j = Math.max(i - 1, 0); j < l; j++) {
-                    if (j == i) {
+                    if (j === i) {
                         continue;
                     }
                     if (rs[j].attached && rs[j].lastEl.parentNode === parent) {
@@ -10997,7 +11883,7 @@ var ListRenderer = defineClass({
 
             if (next && next.parentNode !== parent) {
                 next = null;
-            }
+            }*/
 
             if (r.firstEl !== next) {
                 if (next && r.lastEl.nextSibling !== next) {
@@ -11040,7 +11926,7 @@ var ListRenderer = defineClass({
 
             trackBy = self.trackBy;
 
-            if (!trackBy || trackBy == '$') {
+            if (!trackBy || trackBy === '$') {
                 self.trackByFn = function(item) {
                     return isPrimitive(item) ? item : undf;
                 };
@@ -11096,7 +11982,7 @@ var ListRenderer = defineClass({
 
             row = tmp[i];
 
-            if (row == "" || row == "in") {
+            if (row === "" || row === "in") {
                 continue;
             }
 
@@ -11143,2118 +12029,6 @@ var ListRenderer = defineClass({
 });
 
 
-var rParseLocation = /^(((([^:\/#\?]+:)?(?:(\/\/)((?:(([^:@\/#\?]+)(?:\:([^:@\/#\?]+))?)@)?(([^:\/#\?\]\[]+|\[[^\/\]@#?]+\])(?:\:([0-9]+))?))?)?)?((\/?(?:[^\/\?#]+\/+)*)([^\?#]*)))?(\?[^#]+)?)(#.*)?/;
-
-
-
-
-var parseLocation = function(url) {
-
-    var matches = url.match(rParseLocation) || [],
-        wl = (typeof window != "undefined" ? window.location : null) || {};
-
-    return {
-        protocol: matches[4] || wl.protocol || "http:",
-        hostname: matches[11] || wl.hostname || "",
-        host: ((matches[11] || "") + (matches[12] ? ":" + matches[12] : "")) || wl.host || "",
-        username: matches[8] || wl.username || "",
-        password: matches[9] || wl.password || "",
-        port: parseInt(matches[12], 10) || wl.port || "",
-        href: url,
-        path: (matches[13] || "/") + (matches[16] || ""),
-        pathname: matches[13] || "/",
-        search: matches[16] || "",
-        hash: matches[17] && matches[17] != "#" ? matches[17] : ""
-    };
-};
-
-var joinLocation = function(location, opt) {
-
-    var url = "";
-    opt = opt || {};
-
-    if (!opt.onlyPath) {
-        url += location.protocol + "//";
-
-        if (location.username && location.password) {
-            url += location.username + ":" + location.password + "@";
-        }
-
-        url += location.hostname;
-
-        if (location.hostname && location.port) {
-            url += ":" + location.port;
-        }
-    }
-
-    if (!opt.onlyHost) {
-        url += (location.pathname || "/");
-
-        if (location.search && location.search != "?") {
-            url += location.search;
-        }
-
-        if (location.hash && location.hash != "#") {
-            url += location.hash;
-        }
-    }
-
-    return url;
-};
-
-
-
-
-var mhistory = function(){
-
-    var win,
-        history,
-        location,
-        observable      = new Observable,
-        api             = {},
-        programId       = nextUid(),
-        stateKeyId      = "$$" + programId,
-        currentId       = nextUid(),
-
-        hashIdReg       = new RegExp("#" + programId + "=([A-Z0-9]+)"),
-
-        pushState,
-        replaceState,
-
-        windowLoaded    = typeof window == "undefined",
-
-        prevLocation    = null,
-
-        pushStateSupported,
-        hashChangeSupported,
-        useHash;
-
-
-    observable.createEvent("before-location-change", false);
-    observable.createEvent("void-click", false);
-
-    var initWindow = function() {
-        win                 = window;
-        history             = win.history;
-        location            = win.location;
-        pushStateSupported  = !!history.pushState;
-        hashChangeSupported = "onhashchange" in win;
-        useHash             = false; //pushStateSupported && (navigator.vendor || "").match(/Opera/);
-        prevLocation        = extend({}, location, true, false);
-
-    };
-
-    var preparePushState = function(state) {
-        state = state || {};
-        if (!state[stateKeyId]) {
-            state[stateKeyId] = nextUid();
-        }
-        currentId = state[stateKeyId];
-
-        return state;
-    };
-
-    var prepareReplaceState = function(state) {
-        state = state || {};
-        if (!state[stateKeyId]) {
-            state[stateKeyId] = currentId;
-        }
-        return state;
-    };
-
-
-    var hostsDiffer = function(prev, next) {
-
-        if (typeof prev == "string") {
-            prev = parseLocation(prev);
-        }
-        if (typeof next == "string") {
-            next = parseLocation(next);
-        }
-
-        var canBeEmpty = ["protocol", "host", "port"],
-            i, l,
-            k;
-
-        for (i = 0, l = canBeEmpty.length; i < l; i++) {
-            k = canBeEmpty[i];
-            if (prev[k] && next[k] && prev[k] != next[k]) {
-                return true;
-            }
-        }
-
-        return false;
-    };
-
-    var pathsDiffer = function(prev, next) {
-
-        if (typeof prev == "string") {
-            prev = parseLocation(prev);
-        }
-        if (typeof next == "string") {
-            next = parseLocation(next);
-        }
-
-        return hostsDiffer(prev, next) || prev.pathname != next.pathname ||
-            prev.search != next.search || prev.hash != next.hash;
-    };
-
-
-
-
-
-
-
-
-
-    var preparePath = function(url) {
-
-        var loc = parseLocation(url);
-
-        if (!pushStateSupported || useHash) {
-            return loc.path;
-        }
-
-        return joinLocation(loc, {onlyPath: true});
-    };
-
-
-
-
-
-
-    var getCurrentStateId = function() {
-
-
-        if (pushStateSupported) {
-            return history.state[stateKeyId];
-        }
-        else {
-            return parseOutHashStateId(location.hash).id;
-        }
-
-    };
-
-    var parseOutHashStateId = function(hash) {
-
-        var id = null;
-
-        hash = hash.replace(hashIdReg, function(match, idMatch){
-            id = idMatch;
-            return "";
-        });
-
-        return {
-            hash: hash,
-            id: id
-        };
-    };
-
-    var setHash = function(hash, state) {
-
-        if (hash) {
-            if (hash.substr(0,1) != '#') {
-                hash = parseOutHashStateId(hash).hash;
-                hash = "!" + hash + "#" + programId + "=" + currentId;
-            }
-            location.hash = hash;
-        }
-        else {
-            location.hash = "";
-        }
-    };
-
-    var getCurrentUrl = function() {
-        var loc,
-            tmp;
-
-        if (pushStateSupported) {
-            //loc = location.pathname + location.search + location.hash;
-            loc = joinLocation(location);
-        }
-        else {
-            loc = location.hash.substr(1);
-            tmp = extend({}, location, true, false);
-
-            if (loc) {
-
-                loc = parseOutHashStateId(loc).hash;
-
-                if (loc.substr(0, 1) == "!") {
-                    loc = loc.substr(1);
-                }
-                var p = decodeURIComponent(loc).split("?");
-                tmp.pathname = p[0];
-                tmp.search = p[1] ? "?" + p[1] : "";
-            }
-
-            loc = joinLocation(tmp);
-        }
-
-        return loc;
-    };
-
-
-    var onLocationPush = function(url) {
-        prevLocation = extend({}, location, true, false);
-        triggerEvent("location-change", url);
-    };
-
-    var onLocationPop = function() {
-        if (pathsDiffer(prevLocation, location)) {
-
-            var url     = getCurrentUrl(),
-                state   = history.state || {};
-
-            triggerEvent("before-location-pop", url);
-
-            currentId       = getCurrentStateId();
-            prevLocation    = extend({}, location, true, false);
-
-            triggerEvent("location-change", url);
-        }
-    };
-
-    var triggerEvent = function triggerEvent(event, data, anchor) {
-        var url     = data || getCurrentUrl(),
-            loc     = parseLocation(url),
-            path    = loc.pathname + loc.search + loc.hash;
-        return observable.trigger(event, path, anchor, url);
-    };
-
-    var init = function() {
-
-        initWindow();
-
-        // normal pushState
-        if (pushStateSupported) {
-
-            //history.origPushState       = history.pushState;
-            //history.origReplaceState    = history.replaceState;
-
-            addListener(win, "popstate", onLocationPop);
-
-            pushState = function(url, anchor, state) {
-                if (triggerEvent("before-location-change", url, anchor) === false) {
-                    return false;
-                }
-                history.pushState(preparePushState(state), null, preparePath(url));
-                onLocationPush(url);
-            };
-
-
-            replaceState = function(url, anchor, state) {
-                history.replaceState(prepareReplaceState(state), null, preparePath(url));
-                onLocationPush(url);
-            };
-
-            replaceState(getCurrentUrl());
-        }
-        else {
-
-            // onhashchange
-            if (hashChangeSupported) {
-
-                pushState = function(url, anchor, state) {
-                    if (triggerEvent("before-location-change", url, anchor) === false) {
-                        return false;
-                    }
-                    async(setHash, null, [preparePath(url), preparePushState(state)]);
-                };
-
-                replaceState = function(url, anchor, state) {
-                    async(setHash, null, [preparePath(url), prepareReplaceState(state)]);
-                };
-
-                addListener(win, "hashchange", onLocationPop);
-            }
-            // iframe
-            else {
-
-                var frame   = null,
-                    initialUpdate = false;
-
-                var createFrame = function() {
-                    frame   = window.document.createElement("iframe");
-                    frame.src = 'about:blank';
-                    frame.style.display = 'none';
-                    window.document.body.appendChild(frame);
-                };
-
-                win.onIframeHistoryChange = function(val) {
-                    if (!initialUpdate) {
-                        async(function(){
-                            setHash(val);
-                            onLocationPop();
-                        });
-                    }
-                };
-
-                var pushFrame = function(value) {
-                    var frameDoc;
-                    if (frame.contentDocument) {
-                        frameDoc = frame.contentDocument;
-                    }
-                    else {
-                        frameDoc = frame.contentWindow.document;
-                    }
-                    frameDoc.open();
-                    //update iframe content to force new history record.
-                    frameDoc.write('<html><head><title>' + document.title +
-                                   '</title><script type="text/javascript">' +
-                                   'var hashValue = "'+value+'";'+
-                                   'window.top.onIframeHistoryChange(hashValue);' +
-                                   '</script>' +
-                                   '</head><body>&nbsp;</body></html>'
-                    );
-                    frameDoc.close();
-                };
-
-                var replaceFrame = function(value) {
-                    frame.contentWindow.hashValue = value;
-                };
-
-
-                pushState = function(url, anchor, state) {
-                    if (triggerEvent("before-location-change", url, anchor) === false) {
-                        return false;
-                    }
-                    pushFrame(preparePath(url));
-                };
-
-                replaceState = function(url, anchor, state) {
-                    if (triggerEvent("before-location-change", url, anchor) === false) {
-                        return false;
-                    }
-                    replaceFrame(preparePath(url));
-                };
-
-                var initFrame = function(){
-                    createFrame();
-                    initialUpdate = true;
-                    pushFrame(preparePath(location.hash.substr(1)));
-                    initialUpdate = false;
-                };
-
-                if (windowLoaded) {
-                    initFrame();
-                }
-                else {
-                    addListener(win, "load", initFrame);
-                }
-            }
-        }
-
-        addListener(window.document.documentElement, "click", function(e) {
-
-            e = normalizeEvent(e || win.event);
-
-            var a = e.target,
-                href;
-
-            while (a && a.nodeName.toLowerCase() != "a") {
-                a = a.parentNode;
-            }
-
-            if (a && !e.isDefaultPrevented()) {
-
-                href = getAttr(a, "href");
-
-                if (href == "#") {
-
-                    var res = observable.trigger("void-click", a);
-
-                    if (!res) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        return false;
-                    }
-                }
-
-                if (href && href.substr(0,1) != "#" && !getAttr(a, "target")) {
-
-                    var prev = extend({}, location, true, false),
-                        next = parseLocation(href);
-
-                    if (hostsDiffer(prev, next)) {
-                        return null;
-                    }
-
-                    if (pathsDiffer(prev, next)) {
-                        pushState(href, a);
-                    }
-                    else {
-                        triggerEvent("same-location", null, a);
-                    }
-
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }
-            }
-
-            return null;
-        });
-
-        init = emptyFn;
-    };
-
-
-    addListener(window, "load", function() {
-        windowLoaded = true;
-    });
-
-
-    return extend(api, observable.getApi(), {
-
-        push: function(url, state) {
-            init();
-
-            var prev = extend({}, location, true, false),
-                next = parseLocation(url);
-
-            if (hostsDiffer(prev, next)) {
-                return null;
-            }
-
-            if (pathsDiffer(prev, next)) {
-                pushState(url, null, state);
-            }
-        },
-
-        replace: function(url, state) {
-            init();
-            replaceState(url, null, state);
-        },
-
-        saveState: function(state) {
-            init();
-            replaceState(getCurrentUrl(), null, state);
-        },
-
-        mergeState: function(state) {
-            this.saveState(extend({}, history.state, state, true, false));
-        },
-
-        getState: function() {
-            return history.state;
-        },
-
-        getCurrentStateId: function() {
-            return currentId;
-        },
-
-        current: function() {
-            init();
-            return getCurrentUrl();
-        },
-
-        init: function() {
-            return init();
-        },
-
-        polyfill: function() {
-            init();
-            window.history.pushState = function(state, title, url) {
-                pushState(url, null, state);
-            };
-            window.history.replaceState = function(state, title, url) {
-                replaceState(url, null, state);
-            };
-        }
-    });
-
-}();
-
-
-
-
-var currentUrl = mhistory.current;
-
-
-
-
-
-var UrlParam = (function(){
-
-    var cache = {};
-
-    var UrlParam = defineClass({
-
-        $mixins: ["mixin.Observable"],
-
-        id: null,
-        extractor: null,
-        context: null,
-        regexp: null,
-        valueIndex: 1,
-        prev: null,
-        value: null,
-        enabled: true,
-
-        $init: function(cfg) {
-
-            var self = this;
-
-            extend(self, cfg, true, false);
-
-            if (self.regexp && isString(self.regexp)) {
-                self.regexp = getRegExp(self.regexp);
-            }
-
-            if (self.name && !self.regexp && !self.extractor) {
-                self.regexp = getRegExp(self.name + "=([^&]+)");
-            }
-
-            if (!self.regexp && !self.extractor) {
-                throw "Invalid UrlParam config, missing regexp or extractor";
-            }
-
-            if (self.enabled) {
-                self.enabled = false;
-                self.enable();
-            }
-        },
-
-        enable: function() {
-            var self = this;
-            if (!self.enabled) {
-                self.enabled = true;
-                mhistory.on("location-change", self.onLocationChange, self);
-                var url = currentUrl(),
-                    loc = parseLocation(url);
-                self.onLocationChange(loc.pathname + loc.search + loc.hash);
-            }
-        },
-
-        disable: function() {
-            var self = this;
-            if (self.enabled) {
-                self.enabled = false;
-                mhistory.un("location-change", self.onLocationChange, self);
-            }
-        },
-
-        onLocationChange: function(url) {
-
-            var self = this,
-                value = self.extractValue(url);
-
-            if (self.value != value) {
-                self.prev = self.value;
-                self.value = value;
-                self.trigger("change", value, self.prev);
-            }
-        },
-
-        extractValue: function(url) {
-            var self = this;
-            if (self.regexp) {
-                var match = url.match(self.regexp);
-                return match ? match[self.valueIndex] : null;
-            }
-            else if (self.extractor) {
-                return self.extractor.call(self.context, url);
-            }
-        },
-
-        getValue: function() {
-            return this.value;
-        },
-
-        getPrev: function() {
-            return this.prev;
-        },
-
-        destroyIfIdle: function() {
-
-            var self = this;
-            if (!self.$$observable.hasListener()) {
-                self.$destroy();
-            }
-        },
-
-        destroy: function() {
-            var self = this;
-            self.disable();
-        }
-
-    }, {
-
-        get: function(cfg) {
-            if (cfg.id && cache[cfg.id]) {
-                return cache[cfg.id];
-            }
-            else {
-                return new UrlParam(cfg);
-            }
-        }
-
-    });
-
-    return UrlParam;
-}());
-
-
-
-
-function resolveComponent(cmp, cfg, scope, node, args) {
-
-    var hasCfg  = cfg !== false;
-
-    cfg         = cfg || {};
-    args        = args || [];
-
-    scope       = scope || cfg.scope; // || new Scope;
-    node        = node || cfg.node;
-
-    cfg.scope   = cfg.scope || scope;
-    cfg.node    = cfg.node || node;
-
-    var constr      = isString(cmp) ? nsGet(cmp) : cmp;
-
-    if (!constr) {
-        throw "Component " + cmp + " not found";
-    }
-
-    if (scope && constr.$isolateScope) {
-        cfg.scope   = scope = scope.$newIsolated();
-    }
-
-    var i,
-        defers      = [],
-        tpl         = constr.template || cfg.template || null,
-        tplUrl      = constr.templateUrl || cfg.templateUrl || null,
-        app         = scope ? scope.$app : null,
-        gProvider   = Provider.global(),
-        injectFn    = app ? app.inject : gProvider.inject,
-        injectCt    = app ? app : gProvider,
-        cloak       = node ? getAttr(node, "mjs-cloak") : null,
-        inject      = {
-            $node: node || null,
-            $scope: scope || null,
-            $config: cfg || null,
-            $args: args || null
-        };
-
-    if (constr.resolve) {
-
-        for (i in constr.resolve) {
-            (function(name){
-                var d = new Promise,
-                    fn;
-
-
-                defers.push(d.done(function(value){
-                    inject[name] = value;
-                    cfg[name] = value;
-                    args.push(value);
-                }));
-
-                fn = constr.resolve[i];
-
-                if (isFunction(fn)) {
-                    d.resolve(fn(scope, node));
-                }
-                else if (isString(fn)) {
-                    d.resolve(injectFn.resolve(fn));
-                }
-                else {
-                    d.resolve(
-                        injectFn.call(
-                            injectCt, fn, null, extend({}, inject, cfg, false, false)
-                        )
-                    );
-                }
-
-                d.fail(function(reason){
-                    if (reason instanceof Error) {
-                        error(reason);
-                    }
-                });
-
-            }(i));
-        }
-    }
-
-    if (hasCfg && (tpl || tplUrl)) {
-
-        cfg.template = new Template({
-            scope: scope,
-            node: node,
-            deferRendering: true,
-            ownRenderer: true,
-            shadow: constr.$shadow,
-            tpl: tpl,
-            url: tplUrl
-        });
-
-        defers.push(cfg.template.initPromise);
-
-        if (node && node.firstChild) {
-            data(node, "mjs-transclude", toFragment(node.childNodes));
-        }
-    }
-
-    hasCfg && args.unshift(cfg);
-
-    var p;
-
-    if (defers.length) {
-        p = new Promise;
-
-        Promise.all(defers)
-            .done(function(){
-                p.resolve(
-                    injectFn.call(
-                        injectCt, constr, null, extend({}, inject, cfg, false, false), args
-                    )
-                );
-            })
-            .fail(p.reject, p)
-    }
-    else {
-        p = Promise.resolve(
-            injectFn.call(
-                injectCt, constr, null, extend({}, inject, cfg, false, false), args
-            )
-        );
-    }
-
-    if (node && p.isPending() && cloak !== null) {
-        cloak ? addClass(node, cloak) : node.style.visibility = "hidden";
-        p.then(function() {
-            cloak ? removeClass(node, cloak) : node.style.visibility = "";
-        });
-    }
-
-    if (node) {
-        p.then(function(){
-            removeClass(node, "mjs-cloak");
-        });
-    }
-
-    return p;
-};
-
-
-
-
-
-
-
-defineClass({
-
-    $class: "View",
-
-    /**
-     * [
-     *  {
-     *      reg: /.../,
-     *      cmp: 'Cmp.Name',
-     *      params: [name, name...], // param index in array is the same as reg match number - 1
-     *      template: '',
-     *      isolateScope: bool
-     *  }
-     * ]
-     */
-    route: null,
-    node: null,
-    scope: null,
-    cmp: null,
-    id: null,
-
-    currentViewId: null,
-    currentComponent: null,
-    cmpCache: null,
-    domCache: null,
-    currentView: null,
-
-    routeMap: null,
-
-    watchable: null,
-    defaultCmp: null,
-
-    currentCls: null,
-    currentHtmlCls: null,
-
-    scrollOnChange: true,
-
-    $init: function(cfg)  {
-
-        var self    = this;
-
-        extend(self, cfg, true, false);
-
-        self.routeMap = {};
-
-        var node = self.node,
-            viewCfg = getNodeConfig(node, self.scope);
-
-        extend(self, viewCfg, true, false);
-
-        if (node && node.firstChild) {
-            data(node, "mjs-transclude", toFragment(node.childNodes));
-        }
-
-        if (!self.id) {
-            self.id = nextUid();
-        }
-
-        self.cmpCache = {};
-        self.domCache = {};
-
-        self.initView();
-
-        self.scope.$app.registerCmp(self, self.scope, "id");
-
-        if (self.route) {
-            mhistory.init();
-            mhistory.on("location-change", self.onLocationChange, self);
-            self.initRoutes();
-            self.onLocationChange();
-        }
-        else if (self.cmp) {
-            self.watchable = createWatchable(self.scope, self.cmp, self.onCmpChange, self, null, ns);
-            self.onCmpChange();
-        }
-    },
-
-    initView: function() {
-
-    },
-
-    initRoutes: function() {
-
-        var self = this,
-            routes = self.route,
-            params,
-            param,
-            route,
-            i, l,
-            j, z;
-
-        for (i = 0, l = routes.length; i < l; i++) {
-            route = routes[i];
-            route.id = route.id || nextUid();
-
-            if (route.params) {
-                params = {};
-                for (j = 0, z = route.params.length; j < z; j++) {
-                    param = route.params[j];
-                    if (param.name) {
-                        params[param.name] = new UrlParam(extend({}, param, {enabled: false}, true, false));
-                    }
-                }
-                route.params = params;
-            }
-
-            self.routeMap[route.id] = route;
-        }
-    },
-
-
-
-
-
-    onCmpChange: function() {
-
-        var self    = this,
-            cmp     = self.watchable.getLastResult() || self.defaultCmp;
-
-        if (cmp) {
-            self.setComponent(cmp);
-        }
-        else if (self.defaultCmp) {
-            self.setComponent(self.defaultCmp);
-        }
-    },
-
-    onLocationChange: function() {
-
-        var self        = this,
-            url         = currentUrl(),
-            loc         = parseLocation(url),
-            path        = loc.pathname + loc.search + loc.hash,
-            routes      = self.route,
-            def,
-            i, len,
-            r, matches;
-
-        for (i = 0, len = routes.length; i < len; i++) {
-            r = routes[i];
-
-            if (r.regexp && (matches = loc.pathname.match(r.regexp))) {
-                self.resolveRoute(r, matches);
-                return;
-            }
-            else if (r.regexpFull && (matches = path.match(r.regexp))) {
-                self.resolveRoute(r, matches);
-                return;
-            }
-            if (r['default'] && !def) {
-                def = r;
-            }
-        }
-
-        var tmp = self.onNoMatchFound(loc);
-
-        if (tmp) {
-            if (isThenable(tmp)) {
-                tmp.done(self.resolveRoute, self);
-                tmp.fail(function(){
-                    self.finishOnLocationChange(def);
-                });
-            }
-            else {
-                self.resolveRoute(tmp);
-            }
-        }
-        else {
-            self.finishOnLocationChange(def);
-        }
-    },
-
-    finishOnLocationChange: function(def) {
-        var self = this;
-        if (def) {
-            self.resolveRoute(def);
-        }
-        else if (self.defaultCmp) {
-            self.setComponent(self.defaultCmp);
-        }
-    },
-
-    resolveRoute: function(route, matches) {
-
-        var self = this;
-
-        matches = matches || [];
-
-        if (route.resolve) {
-            var promise = route.resolve.call(self, route, matches);
-            if (isThenable(promise)) {
-                promise.done(function(){
-                    self.setRouteComponent(route, matches);
-                });
-            }
-            else if (promise) {
-                self.setRouteComponent(route, matches);
-            }
-        }
-        else {
-            self.setRouteComponent(route, matches);
-        }
-
-    },
-
-
-    onNoMatchFound: function() {
-
-
-
-    },
-
-
-
-
-
-    clearComponent: function() {
-        var self    = this,
-            node    = self.node,
-            cview   = self.currentView || {};
-
-        if (self.currentCls) {
-            removeClass(self.node, self.currentCls);
-        }
-
-        if (self.currentHtmlCls) {
-            removeClass(window.document.documentElement, self.currentHtmlCls);
-        }
-
-        if (self.currentComponent) {
-
-            animate(node, "leave", null, true).done(function(){
-
-                if (!cview.keepAlive) {
-                    if (self.currentComponent &&
-                        !self.currentComponent.$destroyed &&
-                        !self.currentComponent.$destroying) {
-                        self.currentComponent.$destroy();
-                    }
-                    while (node.firstChild) {
-                        node.removeChild(node.firstChild);
-                    }
-                }
-                else {
-                    self.currentComponent.freezeByView(self);
-                    //self.currentComponent.trigger("view-hide", self, self.currentComponent);
-                    var frg = self.domCache[cview.id];
-                    while (node.firstChild) {
-                        frg.appendChild(node.firstChild);
-                    }
-                    if (cview.ttl) {
-                        cview.ttlTmt = async(self.onCmpTtl, self, [cview], cview.ttl);
-                    }
-                }
-
-                self.currentComponent = null;
-            });
-        }
-
-    },
-
-    onCmpTtl: function(route) {
-
-        var self = this,
-            id = route.id;
-        route.ttlTmt = null;
-
-        if (self.cmpCache[id]) {
-            self.cmpCache[id].$destroy();
-            delete self.cmpCache[id];
-            delete self.domCache[id];
-        }
-    },
-
-
-
-
-    toggleRouteParams: function(route, fn) {
-
-        if (route.params) {
-            for (var i in route.params) {
-                route.params[i][fn]();
-            }
-        }
-    },
-
-    setRouteClasses: function(route) {
-        var self    = this;
-
-        if (route.cls) {
-            self.currentCls = route.cls;
-            addClass(self.node, route.cls);
-        }
-        if (route.htmlCls) {
-            self.currentHtmlCls = route.htmlCls;
-            addClass(window.document.documentElement, route.htmlCls);
-        }
-    },
-
-    onRouteFail: function(route) {
-
-    },
-
-    setRouteComponent: function(route, matches) {
-
-        var self    = this,
-            node    = self.node,
-            params  = route.params,
-            cview   = self.currentView || {};
-
-        if (route.id == cview.id) {
-            if (self.currentComponent && self.currentComponent.onViewRepeat) {
-                self.currentComponent.onViewRepeat();
-            }
-            return;
-        }
-
-        if (route.ttlTmt) {
-            clearTimeout(route.ttlTmt);
-        }
-
-        self.beforeRouteCmpChange(route);
-
-        self.toggleRouteParams(cview, "disable");
-        self.toggleRouteParams(route, "enable");
-        stopAnimation(self.node);
-        self.clearComponent();
-        self.setRouteClasses(route);
-
-        self.currentView = route;
-
-        animate(node, "enter", function(){
-
-            var args    = matches || [],
-                cfg     = {
-                    destroyEl: false,
-                    node: node,
-                    destroyScope: true,
-                    scope: route.$isolateScope ?
-                           self.scope.$newIsolated() :
-                           self.scope.$new()
-                };
-
-            if (route.as) {
-                cfg.as = route.as;
-            }
-            if (route.template) {
-                cfg.template = route.template;
-            }
-
-            args.shift();
-
-            if (params) {
-                extend(cfg, params, false, false);
-            }
-
-            if (self.cmpCache[route.id]) {
-                self.currentComponent = self.cmpCache[route.id];
-                node.appendChild(self.domCache[route.id]);
-                self.currentComponent.unfreezeByView(self);
-                self.afterRouteCmpChange();
-                self.afterCmpChange();
-            }
-            else {
-                return resolveComponent(
-                    route.cmp || "MetaphorJs.Component",
-                    cfg,
-                    cfg.scope,
-                    node,
-                    null,
-                    args
-                )
-                    .done(function (newCmp) {
-
-                        self.currentComponent = newCmp;
-
-                        if (route.keepAlive) {
-                            newCmp[self.id] = route.id;
-                            self.cmpCache[route.id] = newCmp;
-                            self.domCache[route.id] = window.document.createDocumentFragment();
-                            newCmp.on("destroy", self.onCmpDestroy, self);
-                        }
-
-                        self.afterRouteCmpChange();
-                        self.afterCmpChange();
-                    })
-                    .fail(function(){
-
-                        if (route.onFail) {
-                            route.onFail.call(self);
-                        }
-                        else {
-                            self.onRouteFail(route);
-                        }
-                    });
-            }
-
-        }, true);
-    },
-
-
-    onCmpDestroy: function(cmp) {
-
-        var self = this,
-            routeId = cmp[self.id];
-
-        if (routeId && self.cmpCache[routeId]) {
-            delete self.cmpCache[routeId];
-            delete self.domCache[routeId];
-        }
-    },
-
-
-
-    setComponent: function(cmp) {
-
-        var self    = this,
-            node    = self.node;
-
-        self.beforeCmpChange(cmp);
-
-        stopAnimation(self.node);
-        self.clearComponent();
-        self.currentView = null;
-
-        animate(node, "enter", function(){
-
-            var cfg     = isObject(cmp) ? cmp : {},
-                cls     = (isString(cmp) ? cmp : null) || "MetaphorJs.Component",
-                scope   = cfg.scope || self.scope.$new();
-
-            cfg.destroyEl = false;
-
-            return resolveComponent(cls, cfg, scope, node).done(function(newCmp){
-                self.currentComponent = newCmp;
-                self.afterCmpChange();
-            });
-
-        }, true);
-    },
-
-
-
-    beforeRouteCmpChange: function(route) {
-
-    },
-
-    afterRouteCmpChange: function() {
-
-    },
-
-    beforeCmpChange: function(cmpCls) {
-
-    },
-
-    afterCmpChange: function() {
-        var self = this;
-        if (self.scrollOnChange) {
-            raf(function () {
-                self.node.scrollTop = 0;
-            });
-        }
-    },
-
-
-
-    destroy: function() {
-
-        var self    = this;
-
-        self.clearComponent();
-
-        if (self.route) {
-            mhistory.un("location-change", self.onLocationChange, self);
-
-            var i, l, j;
-
-            for (i = 0, l = self.route.length; i < l; i++) {
-                if (self.route[i].params) {
-                    for (j in self.route[i].params) {
-                        self.route[i].params[j].$destroy();
-                    }
-                }
-            }
-
-            self.route = null;
-        }
-
-        if (self.watchable) {
-            self.watchable.unsubscribeAndDestroy(self.onCmpChange, self);
-            self.watchable = null;
-        }
-
-        self.scope = null;
-        self.currentComponent = null;
-
-        self.$super();
-    }
-});
-
-
-
-
-
-
-
-
-Directive.registerAttribute("mjs-app", 100, returnFalse);
-
-function isField(el) {
-    var tag	= el.nodeName.toLowerCase(),
-        type = el.type;
-    if (tag == 'input' || tag == 'textarea' || tag == 'select') {
-        if (type != "submit" && type != "reset" && type != "button") {
-            return true;
-        }
-    }
-    return false;
-};
-
-
-
-/**
- * @param {Element} elem
- */
-var getValue = function(){
-
-
-    var rreturn = /\r/,
-
-        hooks = {
-
-        option: function(elem) {
-            var val = elem.getAttribute("value") || elem.value;
-
-            return val != undf ?
-                   val :
-                   trim( elem.innerText || elem.textContent );
-        },
-
-        select: function(elem) {
-
-            var value, option,
-                options = elem.options,
-                index = elem.selectedIndex,
-                one = elem.type === "select-one" || index < 0,
-                values = one ? null : [],
-                max = one ? index + 1 : options.length,
-                disabled,
-                i = index < 0 ?
-                    max :
-                    one ? index : 0;
-
-            // Loop through all the selected options
-            for ( ; i < max; i++ ) {
-                option = options[ i ];
-
-                disabled = option.disabled ||
-                           option.parentNode.disabled;
-
-                // IE6-9 doesn't update selected after form reset (#2551)
-                if ((option.selected || i === index) && !disabled ) {
-                    // Get the specific value for the option
-                    value = getValue(option);
-
-                    // We don't need an array for one selects
-                    if ( one ) {
-                        return value;
-                    }
-
-                    // Multi-Selects return an array
-                    values.push( value );
-                }
-            }
-
-            return values;
-        },
-
-        radio: function( elem ) {
-            return isNull(elem.getAttribute("value")) ? "on" : elem.value;
-        },
-
-        checkbox: function( elem ) {
-            return isNull(elem.getAttribute("value")) ? "on" : elem.value;
-        }
-    };
-
-    return function(elem) {
-
-        var hook, ret;
-
-        hook = hooks[elem.type] || hooks[elem.nodeName.toLowerCase()];
-
-        if (hook && (ret = hook(elem, "value")) !== undf) {
-            return ret;
-        }
-
-        ret = elem.value;
-
-        return isString(ret) ?
-            // Handle most common string cases
-               ret.replace(rreturn, "") :
-            // Handle cases where value is null/undef or number
-               ret == null ? "" : ret;
-
-    };
-}();
-
-
-
-/**
- * @param {*} val
- * @param {[]} arr
- * @returns {boolean}
- */
-function inArray(val, arr) {
-    return arr ? (aIndexOf.call(arr, val) != -1) : false;
-};
-
-
-
-/**
- * @param {Element} el
- * @param {*} val
- */
-var setValue = function() {
-
-    var hooks = {
-        select:  function(elem, value) {
-
-            var optionSet, option,
-                options     = elem.options,
-                values      = toArray(value),
-                i           = options.length,
-                selected,
-                setIndex    = -1;
-
-            while ( i-- ) {
-                option      = options[i];
-                selected    = inArray(option.value, values);
-
-                if (selected) {
-                    setAttr(option, "selected", "selected");
-                    option.selected = true;
-                    optionSet = true;
-                }
-                else {
-                    removeAttr(option, "selected");
-                }
-
-                if (!selected && !isNull(getAttr(option, "mjs-default-option"))) {
-                    setIndex = i;
-                }
-            }
-
-            // Force browsers to behave consistently when non-matching value is set
-            if (!optionSet) {
-                elem.selectedIndex = setIndex;
-            }
-
-            return values;
-        }
-    };
-
-    hooks["radio"] = hooks["checkbox"] = function(elem, value) {
-        if (isArray(value) ) {
-            return (elem.checked = inArray(getValue(elem), value));
-        }
-    };
-
-
-    return function(el, val) {
-
-        if (el.nodeType !== 1) {
-            return;
-        }
-
-        // Treat null/undefined as ""; convert numbers to string
-        if (isNull(val)) {
-            val = "";
-        }
-        else if (isNumber(val)) {
-            val += "";
-        }
-
-        var hook = hooks[el.type] || hooks[el.nodeName.toLowerCase()];
-
-        // If set returns undefined, fall back to normal setting
-        if (!hook || hook(el, val, "value") === undf) {
-            el.value = val;
-        }
-    };
-}();
-
-
-var removeListener = function(){
-
-    var fn = null,
-        prefix = null;
-
-    return function removeListener(el, event, func) {
-
-        if (fn === null) {
-            if (el.removeEventListener) {
-                fn = "removeEventListener";
-                prefix = "";
-            }
-            else {
-                fn = "detachEvent";
-                prefix = "on";
-            }
-            //fn = el.detachEvent ? "detachEvent" : "removeEventListener";
-            //prefix = el.detachEvent ? "on" : "";
-        }
-
-        el[fn](prefix + event, func);
-    }
-}();
-
-var isAndroid = function(){
-
-    var android = null;
-
-    return function isAndroid() {
-
-        if (android === null) {
-            android = parseInt((/android (\d+)/i.exec(navigator.userAgent) || [])[1], 10) || false;
-        }
-
-        return android;
-    };
-
-}();
-
-
-var isIE = function(){
-
-    var msie;
-
-    return function isIE() {
-
-        if (msie === null) {
-            var ua = navigator.userAgent;
-            msie = parseInt((/msie (\d+)/i.exec(ua) || [])[1], 10);
-            if (isNaN(msie)) {
-                msie = parseInt((/trident\/.*; rv:(\d+)/i.exec(ua) || [])[1], 10) || false;
-            }
-        }
-
-        return msie;
-    };
-}();
-
-
-
-/**
- * @param {String} event
- * @return {boolean}
- */
-var browserHasEvent = function(){
-
-    var eventSupport = {},
-        divElm;
-
-    return function browserHasEvent(event) {
-        // IE9 implements 'input' event it's so fubared that we rather pretend that it doesn't have
-        // it. In particular the event is not fired when backspace or delete key are pressed or
-        // when cut operation is performed.
-
-        if (eventSupport[event] === undf) {
-
-            if (event == 'input' && isIE() == 9) {
-                return eventSupport[event] = false;
-            }
-            if (!divElm) {
-                divElm = window.document.createElement('div');
-            }
-
-            eventSupport[event] = !!('on' + event in divElm);
-        }
-
-        return eventSupport[event];
-    };
-}();
-
-
-
-
-var Input = function(el, changeFn, changeFnContext) {
-
-    if (el.$$input) {
-        if (changeFn) {
-            el.$$input.on("change", changeFn, changeFnContext);
-        }
-        return el.$$input;
-    }
-
-    var self    = this,
-        cfg     = getNodeConfig(el);
-
-    self.observable     = new Observable;
-    self.el             = el;
-    self.inputType      = el.type.toLowerCase();
-    self.dataType       = cfg.type || self.inputType;
-    self.listeners      = [];
-
-    if (changeFn) {
-        self.onChange(changeFn, changeFnContext);
-    }
-};
-
-extend(Input.prototype, {
-
-    el: null,
-    inputType: null,
-    dataType: null,
-    listeners: null,
-    radio: null,
-    keydownDelegate: null,
-    changeInitialized: false,
-
-    destroy: function() {
-
-        var self        = this,
-            i;
-
-        self.observable.destroy();
-        self._addOrRemoveListeners(removeListener, true);
-
-        self.el.$$input = null;
-
-        for (i in self) {
-            if (self.hasOwnProperty(i)) {
-                self[i] = null;
-            }
-        }
-    },
-
-    _addOrRemoveListeners: function(fn, onlyUsed) {
-
-        var self        = this,
-            type        = self.inputType,
-            listeners   = self.listeners,
-            radio       = self.radio,
-            el          = self.el,
-            used,
-            i, ilen,
-            j, jlen;
-
-        for (i = 0, ilen = listeners.length; i < ilen; i++) {
-
-            used = !!listeners[i][2];
-
-            if (used == onlyUsed) {
-                if (type == "radio") {
-                    for (j = 0, jlen = radio.length; j < jlen; j++) {
-                        fn(radio[j], listeners[i][0], listeners[i][1]);
-                    }
-                }
-                else {
-                    fn(el, listeners[i][0], listeners[i][1]);
-                }
-                listeners[i][2] = !onlyUsed;
-            }
-        }
-    },
-
-    initInputChange: function() {
-
-        var self = this,
-            type = self.inputType;
-
-        if (type == "radio") {
-            self.initRadioInput();
-        }
-        else if (type == "checkbox") {
-            self.initCheckboxInput();
-        }
-        else {
-            self.initTextInput();
-        }
-
-        self._addOrRemoveListeners(addListener, false);
-
-        self.changeInitialized = true;
-    },
-
-    initRadioInput: function() {
-
-        var self    = this,
-            el      = self.el,
-            name    = el.name,
-            parent;
-
-        if (isAttached(el)) {
-            parent  = el.ownerDocument;
-        }
-        else {
-            parent = el;
-            while (parent.parentNode) {
-                parent = parent.parentNode;
-            }
-        }
-
-        self.radio  = select("input[name="+name+"]", parent);
-
-        self.onRadioInputChangeDelegate = bind(self.onRadioInputChange, self);
-        self.listeners.push(["click", self.onRadioInputChangeDelegate, false]);
-    },
-
-    initCheckboxInput: function() {
-
-        var self    = this;
-
-        self.onCheckboxInputChangeDelegate = bind(self.onCheckboxInputChange, self);
-        self.listeners.push(["click", self.onCheckboxInputChangeDelegate, false]);
-    },
-
-    initTextInput: function() {
-
-        var composing   = false,
-            self        = this,
-            listeners   = self.listeners,
-            timeout;
-
-        // In composition mode, users are still inputing intermediate text buffer,
-        // hold the listener until composition is done.
-        // More about composition events:
-        // https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent
-        if (!isAndroid()) {
-
-            var compositionStart    = function() {
-                composing = true;
-            };
-
-            var compositionEnd  = function() {
-                composing = false;
-                listener();
-            };
-
-            listeners.push(["compositionstart", compositionStart, false]);
-            listeners.push(["compositionend", compositionEnd, false]);
-        }
-
-        var listener = self.onTextInputChangeDelegate = function() {
-            if (composing) {
-                return;
-            }
-            self.onTextInputChange();
-        };
-
-        var deferListener = function(ev) {
-            if (!timeout) {
-                timeout = setTimeout(function() {
-                    listener(ev);
-                    timeout = null;
-                }, 0);
-            }
-        };
-
-        var keydown = function(event) {
-            event = event || window.event;
-            var key = event.keyCode;
-
-            // ignore
-            //    command            modifiers                   arrows
-            if (key === 91 || (15 < key && key < 19) || (37 <= key && key <= 40)) {
-                return;
-            }
-
-            deferListener(event);
-        };
-
-        // if the browser does support "input" event, we are fine - except on
-        // IE9 which doesn't fire the
-        // input event on backspace, delete or cut
-        if (browserHasEvent('input')) {
-
-            listeners.push(["input", listener, false]);
-
-        } else {
-
-            listeners.push(["keydown", keydown, false]);
-
-            // if user modifies input value using context menu in IE,
-            // we need "paste" and "cut" events to catch it
-            if (browserHasEvent('paste')) {
-                listeners.push(["paste", deferListener, false]);
-                listeners.push(["cut", deferListener, false]);
-            }
-        }
-
-
-        // if user paste into input using mouse on older browser
-        // or form autocomplete on newer browser, we need "change" event to catch it
-
-        listeners.push(["change", listener, false]);
-    },
-
-    processValue: function(val) {
-
-        switch (this.dataType) {
-            case "number":
-            case "float":
-            case "double":
-                if (val === "" || isNaN(val = parseFloat(val))) {
-                    val = undf;
-                }
-                break;
-            case "int":
-            case "integer":
-                if (val === "" || isNaN(val = parseInt(val, 10))) {
-                    val = undf;
-                }
-                break;
-            case "bool":
-            case "boolean":
-                return !(val === "false" || val === "0" || val === 0 ||
-                        val === "off" || val === false || val === "");
-
-        }
-
-        return val;
-    },
-
-    onTextInputChange: function() {
-
-        var self    = this,
-            val     = self.getValue();
-
-        self.observable.trigger("change", self.processValue(val));
-    },
-
-    onCheckboxInputChange: function() {
-
-        var self    = this,
-            node    = self.el;
-
-        self.observable.trigger("change", self.processValue(
-            node.checked ? (getAttr(node, "value") || true) : false)
-        );
-    },
-
-    onRadioInputChange: function(e) {
-
-        e = e || window.event;
-
-        var self    = this,
-            trg     = e.target || e.srcElement;
-
-        self.observable.trigger("change", self.processValue(trg.value));
-    },
-
-    setValue: function(val) {
-
-        var self    = this,
-            type    = self.inputType,
-            radio,
-            i, len;
-
-        val = self.processValue(val);
-
-        if (type == "radio") {
-
-            radio = self.radio;
-
-            for (i = 0, len = radio.length; i < len; i++) {
-                radio[i].checked = self.processValue(radio[i].value) == val;
-            }
-        }
-        else if (type == "checkbox") {
-            var node        = self.el;
-            node.checked    = val === true || val == self.processValue(node.value);
-        }
-        else {
-
-            if (val === undf) {
-                val = "";
-            }
-
-            setValue(self.el, val);
-        }
-    },
-
-    getValue: function() {
-
-        var self    = this,
-            type    = self.inputType,
-            radio,
-            i, l;
-
-        if (type == "radio") {
-            radio = self.radio;
-            for (i = 0, l = radio.length; i < l; i++) {
-                if (radio[i].checked) {
-                    return self.processValue(radio[i].value);
-                }
-            }
-            return null;
-        }
-        else if (type == "checkbox") {
-            return self.processValue(self.el.checked ? (getAttr(self.el, "value") || true) : false);
-        }
-        else {
-            return self.processValue(getValue(self.el));
-        }
-    },
-
-
-    onChange: function(fn, context) {
-        var self = this;
-        if (!self.changeInitialized) {
-            self.initInputChange();
-        }
-        this.observable.on("change", fn, context);
-    },
-
-    unChange: function(fn, context) {
-        this.observable.un("change", fn, context);
-    },
-
-
-    onKey: function(key, fn, context, args) {
-
-        var self = this;
-
-        if (!self.keydownDelegate) {
-            self.keydownDelegate = bind(self.keyHandler, self);
-            self.listeners.push(["keydown", self.keydownDelegate, false]);
-            addListener(self.el, "keydown", self.keydownDelegate);
-            self.observable.createEvent("key", false, false, self.keyEventFilter);
-        }
-
-        self.observable.on("key", fn, context, {
-            key: key,
-            prepend: args
-        });
-    },
-
-    unKey: function(key, fn, context) {
-
-        var self    = this;
-        self.observable.un("key", fn, context);
-    },
-
-    keyEventFilter: function(l, args) {
-
-        var key = l.key,
-            e = args[0];
-
-        if (typeof key != "object") {
-            return key == e.keyCode;
-        }
-        else {
-            if (key.ctrlKey !== undf && key.ctrlKey != e.ctrlKey) {
-                return false;
-            }
-            if (key.shiftKey !== undf && key.shiftKey != e.shiftKey) {
-                return false;
-            }
-            return !(key.keyCode !== undf && key.keyCode != e.keyCode);
-        }
-    },
-
-    keyHandler: function(event) {
-
-        var e       = normalizeEvent(event || window.event),
-            self    = this;
-
-        self.observable.trigger("key", e);
-    }
-
-
-}, true, false);
-
-
-Input.get = function(node) {
-    if (node.$$input) {
-        return node.$$input;
-    }
-    return new Input(node);
-};
-
-Input.getValue = getValue;
-Input.setValue = setValue;
-
-
-
-
-
-
-
-
-Directive.registerAttribute("mjs-bind", 1000, defineClass({
-
-    $extends: Directive,
-
-    isInput: false,
-    input: null,
-    lockInput: null,
-    recursive: false,
-    textRenderer: null,
-
-    $init: function(scope, node, expr) {
-
-        var self    = this,
-            cfg     = getNodeConfig(node, scope);
-
-        self.isInput    = isField(node);
-        self.recursive  = cfg.recursive || getAttr(node, "mjs-recursive") !== null;
-        self.lockInput  = cfg.lockInput;
-
-        removeAttr(node, "mjs-recursive");
-
-        if (self.isInput) {
-            self.input  = new Input(node, self.onInputChange, self);
-        }
-
-        if (self.recursive) {
-            self.scope  = scope;
-            self.node   = node;
-            self.textRenderer = new TextRenderer(scope, '{{' + expr + '}}', null, null, true);
-            self.textRenderer.subscribe(self.onTextRendererChange, self);
-            self.onTextRendererChange();
-
-            if (scope instanceof Scope) {
-                scope.$on("destroy", self.onScopeDestroy, self);
-            }
-        }
-        else {
-            self.$super(scope, node, expr);
-        }
-    },
-
-    onInputChange: function() {
-
-        var self = this;
-        if (self.lockInput) {
-            self.onChange();
-        }
-    },
-
-    onTextRendererChange: function() {
-
-        var self    = this;
-        self.updateElement(self.textRenderer.getString());
-    },
-
-    onChange: function() {
-        var self    = this,
-            val     = self.watcher.getLastResult();
-
-        self.updateElement(val);
-    },
-
-    updateElement: function(val) {
-
-        var self = this;
-
-        if (self.isInput) {
-            self.input.setValue(val);
-        }
-        else {
-            self.node[typeof self.node.textContent == "string" ? "textContent" : "innerText"] = val;
-        }
-    },
-
-    destroy: function() {
-
-        var self    = this;
-
-        if (self.textRenderer) {
-            self.textRenderer.$destroy();
-            self.textRenderer = null;
-        }
-
-        if (self.input) {
-            self.input.destroy();
-            self.input = null;
-        }
-
-        self.$super();
-    }
-}));
-
-
-
-
-
-
-Directive.registerAttribute("mjs-bind-html", 1000, defineClass({
-
-    $extends: "attr.mjs-bind",
-
-    updateElement: function(val) {
-        this.node.innerHTML = val;
-    }
-}));
-
-
-
-
-Directive.registerAttribute("mjs-break-if", 500, function(scope, node, expr){
-
-    var res = !!createGetter(expr)(scope);
-
-    if (res) {
-        node.parentNode.removeChild(node);
-    }
-
-    return !res;
-});
 
 
 
@@ -13262,191 +12036,49 @@ Directive.registerAttribute("mjs-break-if", 500, function(scope, node, expr){
 
 (function(){
 
-    var toggleClass = function(node, cls, toggle, doAnim) {
+    var types = [];
 
-        var has;
+    function detectModelType(expr, scope) {
+        var tmp = expr.split(" in "),
+            model = tmp.length === 1 ? expr : tmp[1],
+            obj = evaluate(model, scope, {filterLookup: filterLookup}),
+            i = 0,
+            l = types.length;
 
-        if (toggle !== null) {
-            if (toggle == hasClass(node, cls)) {
-                return;
+        for (; i < l; i++) {
+            if (obj instanceof types[i][0]) {
+                return types[i][1]
             }
-            has = !toggle;
-        }
-        else {
-            has = hasClass(node, cls);
         }
 
-        if (has) {
-            if (doAnim) {
-                animate(node, [cls + "-remove"], null, true).done(function(){
-                    removeClass(node, cls);
-                });
-            }
-            else {
-                removeClass(node, cls);
-            }
+        return null;
+    }
+
+    var eachDirective = function eachDirective(scope, node, expr, parentRenderer, attr) {
+        var tagMode = node.nodeName.toLowerCase() === "mjs-each";
+        if (tagMode) {
+            expr = getAttr(node, "value");
         }
-        else {
-            if (doAnim) {
-                animate(node, [cls + "-add"], null, true).done(function(){
-                    addClass(node, cls);
-                });
-            }
-            else {
-                addClass(node, cls);
-            }
-        }
+        var handler = detectModelType(expr, scope) || ListRenderer;
+        return new handler(scope, node, expr, parentRenderer, attr);
     };
 
-    var flatten = function(obj) {
 
-        var list = {},
-            i, j, l;
-
-        if (!obj) {
-            return list;
-        }
-
-        if (isString(obj)) {
-            list[obj] = true;
-        }
-        else if (isArray(obj)) {
-            for (i = -1, l = obj.length; ++i < l; list[obj[i]] = true){}
-        }
-        else {
-            for (i in obj) {
-                if (i == '_') {
-                    for (j = -1, l = obj._.length; ++j < l;
-                         list[obj._[j]] = true){}
-                }
-                else {
-                    list[i] = obj[i];
-                }
-            }
-        }
-
-        return list;
+    eachDirective.registerType = function(objectClass, handlerClass) {
+        types.push([objectClass, handlerClass]);
     };
 
-    Directive.registerAttribute("mjs-class", 1000, defineClass({
+    eachDirective.$stopRenderer = true;
+    eachDirective.$registerBy = "id";
 
-        $extends: Directive,
+    eachDirective.registerType(Array, ListRenderer);
 
-        initial: true,
-
-        onChange: function() {
-
-            var self    = this,
-                node    = self.node,
-                clss    = flatten(self.watcher.getLastResult()),
-                prev    = flatten(self.watcher.getPrevValue()),
-                i;
-
-            stopAnimation(node);
-
-            for (i in prev) {
-                if (prev.hasOwnProperty(i)) {
-                    if (clss[i] === undf) {
-                        toggleClass(node, i, false, false);
-                    }
-                }
-            }
-
-            for (i in clss) {
-                if (clss.hasOwnProperty(i)) {
-                    toggleClass(node, i, clss[i] ? true : false, !self.initial);
-                }
-            }
-
-            self.initial = false;
-        }
-    }));
+    Directive.registerAttribute("each", 100, eachDirective);
+    Directive.registerTag("each", eachDirective);
 
 }());
 
 
-
-
-Directive.registerAttribute("mjs-cmp-prop", 200,
-    ['$parentCmp', '$node', '$attrValue', function(parentCmp, node, expr){
-
-       if (parentCmp) {
-            parentCmp[expr] = node;
-       }
-}]);
-
-
-
-(function(){
-
-    var cmpAttr = function(scope, node, expr, parentRenderer){
-
-
-        var cmpName,
-            as,
-            tmp,
-            i, len,
-            part,
-            nodeCfg = getNodeConfig(node, scope);
-
-
-
-        tmp     = expr.split(' ');
-
-        for (i = 0, len = tmp.length; i < len; i++) {
-
-            part = tmp[i];
-
-            if (part == '' || part == 'as') {
-                continue;
-            }
-
-            if (!cmpName) {
-                cmpName = part;
-            }
-            else {
-                as      = part;
-            }
-        }
-
-
-        var constr          = nsGet(cmpName, true),
-            sameScope       = nodeCfg.sameScope || constr.$sameScope,
-            isolateScope    = nodeCfg.isolateScope || constr.$isolateScope;
-
-        scope       = isolateScope ? scope.$newIsolated() : (sameScope ? scope : scope.$new());
-
-        var cfg     = extend({
-            scope: scope,
-            node: node,
-            as: as,
-            parentRenderer: parentRenderer,
-            destroyScope: !sameScope
-        }, nodeCfg, false, false);
-
-        resolveComponent(cmpName, cfg, scope, node);
-
-        return constr.$resumeRenderer || !!constr.$shadow;
-    };
-
-    cmpAttr.$breakScope = false;
-
-    Directive.registerAttribute("mjs-cmp", 200, cmpAttr);
-
-}());
-
-
-
-Directive.registerAttribute("mjs-config", 50, function(scope, node, expr){
-    getNodeConfig(node, scope, expr);
-});
-
-
-
-
-
-
-Directive.registerAttribute("mjs-each", 100, ListRenderer);
 
 
 var getStyle = function(node, prop, numeric) {
@@ -13525,7 +12157,7 @@ var getDimensions = function(type, name) {
 
     var rnumnonpx = new RegExp( "^([+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|))(?!px)[a-z%]+$", "i"),
         cssExpand = [ "Top", "Right", "Bottom", "Left" ],
-        defaultExtra = !type ? "content" : (type == "inner" ? "padding" : "");
+        defaultExtra = !type ? "content" : (type === "inner" ? "padding" : "");
 
     var augmentWidthOrHeight = function(elem, name, extra, isBorderBox, styles) {
         var i = extra === (isBorderBox ? "border" : "content") ?
@@ -13774,7 +12406,7 @@ var EventBuffer = function(){
             self.running = true;
             self.currentEvent = e;
 
-            if (itv == "raf") {
+            if (itv === "raf") {
                 raf(self.triggerDelegate);
             }
             else {
@@ -13814,6 +12446,11 @@ var EventBuffer = function(){
         },
 
         breakFilter: function(l, args, event) {
+
+            if (!this.watchers[event.watcher]) {
+                return false;
+            }
+
             var self        = this,
                 breakValue  = l.breakValue,
                 luft        = l.breakLuft || 0,
@@ -13827,7 +12464,7 @@ var EventBuffer = function(){
                 min         = Math.min(prev, current),
                 max         = Math.max(prev, current);
 
-            if (breakValue == "!=") {
+            if (breakValue === "!=") {
                 return prev != current;
             }
 
@@ -13978,17 +12615,17 @@ var EventHandler = defineClass({
 
         cfg = cfg || {};
 
-        if (typeof cfg == "string") {
+        if (typeof cfg === "string") {
 
-            self.updateRoot = cfg.indexOf('$root') + cfg.indexOf('$parent') != -2;
+            self.updateRoot = cfg.indexOf('$root') + cfg.indexOf('$parent') !== -2;
 
             var fc = cfg.substr(0,1);
 
-            if (fc == '{') {
+            if (fc === '{') {
                 self.watcher = createWatchable(scope, cfg, self.onConfigChange, self);
                 cfg = extend({}, self.watcher.getLastResult(), true, true);
             }
-            else if (fc == '=') {
+            else if (fc === '=') {
                 cfg = cfg.substr(1);
                 self.watcher = createWatchable(scope, cfg, self.onConfigChange, self);
                 cfg = extend({}, self.watcher.getLastResult(), true, true);
@@ -14018,6 +12655,10 @@ var EventHandler = defineClass({
 
         extend(cfg, defaults, false, false);
 
+        if (cfg.handler && typeof cfg.handler === "string") {
+            cfg.handler = createGetter(cfg.handler);
+        }
+
         if (cfg.event) {
             tmp = {};
             var events = cfg.event.split(","),
@@ -14033,10 +12674,6 @@ var EventHandler = defineClass({
             tmp = {};
             tmp[event] = cfg;
             cfg = tmp;
-        }
-
-        if (cfg.handler && typeof cfg.handler == "string") {
-            cfg.handler = createGetter(cfg.handler);
         }
 
         this.cfg = cfg;
@@ -14055,7 +12692,7 @@ var EventHandler = defineClass({
         var self        = this,
             updateRoot  = self.updateRoot;
 
-        return function(e){
+        var handler = function(e){
 
             if (self.$destroyed || self.$destroying) {
                 return;
@@ -14075,10 +12712,10 @@ var EventHandler = defineClass({
             e = normalizeEvent(e || window.event);
 
             if (keyCode) {
-                if (typeof keyCode == "number" && keyCode != e.keyCode) {
+                if (typeof keyCode === "number" && keyCode !== e.keyCode) {
                     return null;
                 }
-                else if (keyCode.indexOf(e.keyCode) == -1) {
+                else if (keyCode.indexOf(e.keyCode) === -1) {
                     return null;
                 }
             }
@@ -14101,7 +12738,7 @@ var EventHandler = defineClass({
             preventDefault && e.preventDefault();
 
             if (self.$destroyed || self.$destroying) {
-                return returnValue != undf ? returnValue : undf;
+                return returnValue !== undf ? returnValue : undf;
             }
 
             scope.$event = null;
@@ -14115,23 +12752,37 @@ var EventHandler = defineClass({
                 return returnValue;
             }
         };
+
+        if (cfg.async) {
+            return function(e) {
+                async(handler, null, [e], 
+                        typeof cfg.async == "number" ? cfg.async : null);
+            };
+        }
+        else {
+            return handler;
+        }
     },
 
     up: function() {
 
         var self    = this,
-            cfg     = self.cfg,
+            allCfg  = self.cfg,
             ls      = self.listeners,
             bs      = self.buffers,
             node    = self.node,
             scope   = self.scope,
-            buffer  = cfg.buffer,
+            cfg,
+            buffer,
             handler,
             event;
 
-        for (event in cfg) {
+        for (event in allCfg) {
+            cfg = allCfg[event];
+            buffer = cfg.buffer;
+
             if (cfg['if'] === undf || cfg['if']) {
-                handler = self.createHandler(cfg[event], scope);
+                handler = self.createHandler(cfg, scope);
                 ls.push([event, handler]);
 
                 if (buffer) {
@@ -14188,25 +12839,11 @@ var EventHandler = defineClass({
 
 
 
-(function() {
-
-    Directive.registerAttribute("mjs-event", 1000, function(scope, node, expr){
-
-        var eh = new EventHandler(scope, node, expr);
-
-        return function(){
-            eh.$destroy();
-            eh = null;
-        };
-    });
-}());
-
-
-
 (function(){
 
     var events = ['click', 'dblclick', 'mousedown', 'mouseup', 'mouseover',
                   'mouseout', 'mousemove', 'keydown', 'keyup', 'keypress',
+                  'change',
                   'focus', 'blur', 'copy', 'cut', 'paste', 'load', 'mousewheel',
                   'touchstart', 'touchend', 'touchcancel', 'touchleave', 'touchmove'],
         i, len;
@@ -14215,7 +12852,39 @@ var EventHandler = defineClass({
 
         (function(name){
 
-            Directive.registerAttribute("mjs-" + name, 1000, function(scope, node, expr){
+            Directive.registerAttribute(name, 1000,
+                function(scope, node, expr, renderer, attr){
+
+                var cfg = attr && attr.config ? extend({}, attr.config) : null,
+                    keep = false,
+                    k;
+
+                if (cfg) {
+                    for (k in cfg) {
+                        if (cfg.hasOwnProperty(k)) {
+                            keep = true;
+                            break;
+                        }
+                    }
+                    if (cfg.preventDefault) {
+                        cfg.preventDefault = createGetter(cfg.preventDefault)(scope);
+                    }
+                    if (cfg.stopPropagation) {
+                        cfg.stopPropagation = createGetter(cfg.stopPropagation)(scope);
+                    }
+                    if (cfg.async) {
+                        cfg.async = createGetter(cfg.async)(scope);
+                    }
+                }
+
+                if (!keep) {
+                    cfg = null;
+                }
+
+                if (cfg) {
+                    cfg.handler = expr;
+                    expr = cfg;
+                }
 
                 var eh = new EventHandler(scope, node, expr, name, {
                     preventDefault: true
@@ -14230,10 +12899,10 @@ var EventHandler = defineClass({
         }(events[i]));
     }
 
-    Directive.registerAttribute("mjs-submit", 1000, function(scope, node, expr){
+    Directive.registerAttribute("submit", 1000, function(scope, node, expr){
 
         var fn = createFunc(expr),
-            updateRoot = expr.indexOf('$root') + expr.indexOf('$parent') != -2,
+            updateRoot = expr.indexOf('$root') + expr.indexOf('$parent') !== -2,
             handler = function(){
                 fn(scope);
                 updateRoot ? scope.$root.$check() : scope.$check();
@@ -14257,21 +12926,24 @@ var EventHandler = defineClass({
 
 
 
-Directive.registerAttribute("mjs-show", 500, defineClass({
+Directive.registerAttribute("show", 500, defineClass({
 
+    $class: "Directive.attr.Show",
     $extends: Directive,
 
+    animate: false,
     initial: true,
     display: "",
 
-    $init: function(scope, node, expr) {
+    $init: function(scope, node, expr, renderer, attr) {
 
         var self    = this,
-            cfg = getNodeConfig(node, scope);
+            cfg     = attr ? attr.config : {};
 
         self.display = cfg.display || "";
+        self.animate = !!cfg.animate;
 
-        self.$super(scope, node, expr);
+        self.$super(scope, node, expr, renderer, attr);
     },
 
     runAnimation: function(show) {
@@ -14287,25 +12959,27 @@ Directive.registerAttribute("mjs-show", 500, defineClass({
                 }
             };
 
-        self.initial ? done() : animate(
+        self.initial || !self.animate ? done() : animate(
             self.node,
             show ? "show" : "hide",
             function() {
                 if (show) {
-                    style.display = self.display;
+                    var p = new Promise;
+                    raf(function(){
+                        style.display = self.display;
+                        p.resolve();
+                    });
+                    return p;
                 }
-            },
-            true)
+            })
             .done(done);
     },
 
-    onChange: function() {
-        var self    = this,
-            val     = self.watcher.getLastResult();
-
+    onChange: function(val) {
+        var self    = this;
         self.runAnimation(val);
-
         self.initial = false;
+        self.$super(val);
     }
 }));
 
@@ -14315,9 +12989,18 @@ Directive.registerAttribute("mjs-show", 500, defineClass({
 
 
 
-Directive.registerAttribute("mjs-hide", 500, defineClass({
+Directive.registerAttribute("hide", 500, defineClass({
 
-    $extends: "attr.mjs-show",
+    $class: "Directive.attr.Hide",
+    $extends: "Directive.attr.Show",
+
+    $init: function(scope, node, expr, renderer, attr) {
+
+        var self    = this;
+
+        self.$super(scope, node, expr, renderer, attr);
+        self.display = null;
+    },
 
     onChange: function() {
         var self    = this,
@@ -14325,6 +13008,8 @@ Directive.registerAttribute("mjs-hide", 500, defineClass({
 
         self.runAnimation(!val);
         self.initial = false;
+
+        self.saveStateOnChange(val);
     }
 }));
 
@@ -14333,27 +13018,28 @@ Directive.registerAttribute("mjs-hide", 500, defineClass({
 
 
 
-Directive.registerAttribute("mjs-if", 500, Directive.$extend({
+Directive.registerAttribute("if", 500, Directive.$extend({
 
+    $class: "Directive.attr.If",
     parentEl: null,
     prevEl: null,
     nextEl: null,
     el: null,
     initial: true,
     cfg: null,
+    animate: false,
 
-    $init: function(scope, node, expr) {
+    $init: function(scope, node, expr, renderer, attr) {
 
         var self    = this;
 
-        self.parentEl   = node.parentNode;
-        self.prevEl     = node.previousSibling;
-        self.nextEl     = node.nextSibling;
+        self.createCommentHolders(node, this.$class);
 
-        self.cfg = getNodeConfig(node, self.scope);
+        //self.parentEl   = node.parentNode;
+        self.cfg        = attr ? attr.config : {};
+        self.animate    = !!self.cfg.animate;
 
-        self.$super(scope, node, expr);
-
+        self.$super(scope, node, expr, renderer, attr);
     },
 
     onScopeDestroy: function() {
@@ -14361,9 +13047,8 @@ Directive.registerAttribute("mjs-if", 500, Directive.$extend({
         var self    = this;
 
         self.prevEl = null;
-        self.parentEl = null;
+        //self.parentEl = null;
         self.nextEl = null;
-
 
         self.$super();
     },
@@ -14371,41 +13056,11 @@ Directive.registerAttribute("mjs-if", 500, Directive.$extend({
     onChange: function() {
         var self    = this,
             val     = self.watcher.getLastResult(),
-            parent  = self.parentEl,
-            node    = self.node,
-            next;
-
-        if (self.prevEl && self.prevEl.parentNode === parent) {
-            next = self.prevEl.nextSibling;
-            if (!next) {
-                next = false;
-            }
-        }
-        else if (self.nextEl && self.nextEl.parentNode === parent) {
-            next = self.nextEl;
-        }
-
-        //console.log(node, self.prevEl, self.nextEl, next)
+            parent  = self.prevEl.parentNode,
+            node    = self.node;
 
         var show    = function(){
-
-            var np = self.cfg.nodePosition;
-
-            if (np == "append") {
-                parent.appendChild(node);
-            }
-            else if (np == "prepend") {
-                parent.insertBefore(node, parent.firstChild);
-            }
-            else if (next) {
-                parent.insertBefore(node, next);
-            }
-            else if (next === false) {
-                parent.appendChild(node);
-            }
-            else {
-                parent.insertBefore(node, parent.firstChild);
-            }
+            parent.insertBefore(node, self.nextEl);
         };
 
         var hide    = function() {
@@ -14413,20 +13068,23 @@ Directive.registerAttribute("mjs-if", 500, Directive.$extend({
         };
 
         if (val) {
-            self.initial ? show() : animate(node, "enter", show, true);
+            self.initial || !self.animate ?
+                show() : animate(node, "enter", show);
         }
         else {
             if (node.parentNode) {
-                self.initial ? hide() : animate(node, "leave", null, true).done(hide);
+                self.initial || !self.animate ?
+                    hide() : animate(node, "leave").done(hide);
             }
         }
 
+        self.$super(val);
 
         if (self.initial) {
             self.initial = false;
         }
         else {
-            if (self.cfg.ifOnce) {
+            if (self.cfg.once) {
                 self.$destroy();
             }
         }
@@ -14438,14 +13096,10 @@ Directive.registerAttribute("mjs-if", 500, Directive.$extend({
 
 
 
-Directive.registerAttribute("mjs-ignore", 0, returnFalse);
 
+Directive.registerAttribute("in-focus", 500, Directive.$extend({
 
-
-
-
-
-Directive.registerAttribute("mjs-in-focus", 500, Directive.$extend({
+    $class: "Directive.attr.InFocus",
 
     onChange: function() {
 
@@ -14459,74 +13113,160 @@ Directive.registerAttribute("mjs-in-focus", 500, Directive.$extend({
 }));
 
 
-
-
-Directive.registerAttribute("mjs-include-file", 900, function(scope, node, filePath){
-
-    var r = require,
-        fs = r("fs");
-
-    node.innerHTML = fs.readFileSync(filePath).toString();
-});
-
-
-
-
-Directive.registerAttribute("mjs-include", 1100, function(scope, node, tplExpr, parentRenderer){
-
-    var tpl = new Template({
-        scope: scope,
-        node: node,
-        url: tplExpr,
-        parentRenderer: parentRenderer
-    });
-
-    if (tpl.ownRenderer) {
+var toBool = function(val) {
+    if (!val) { // real false, empty string, null, zero
         return false;
     }
-    else {
-        return tpl.initPromise;
+    if (typeof val === "string") {
+        val = val.toLowerCase();
+        if (val === "false" || val === "no" || val === '0') {
+            return false;
+        }
     }
+    return true;
+};
+
+
+
+
+Directive.registerAttribute("include", 1100,
+    function(scope, node, tplExpr, parentRenderer, attr){
+
+    var cfg = attr ? attr.config : {},
+        asis = toBool(cfg.asis),
+        html = cfg.html,
+        tplCfg = {
+            scope: scope,
+            node: node,
+            parentRenderer: parentRenderer,
+            animate: !!cfg.animate,
+            ownRenderer: !asis // do not render if asis=true
+        };
+
+    if (html) {
+        tplCfg['html'] = html;
+    }
+    else {
+        tplCfg['url'] = tplExpr;
+    }
+
+    var tpl = new Template(tplCfg);
+
+    return false; // stop renderer
 });
 
 
 
 
 
-Directive.registerAttribute("mjs-init", 250, function(scope, node, expr){
+Directive.registerAttribute("init", 250, function(scope, node, expr){
     createFunc(expr)(scope);
 });
 
 
 
-Directive.registerAttribute("mjs-key", 1000, function(scope, node, expr){
+(function(){
 
-    var cfg = createGetter(expr)(scope),
-        handler = cfg.handler,
-        context = cfg.context || scope;
+var keys = {
+    "enter": 13,
+    "esc": 27,
+    "backspace": 8
+};
 
-    delete cfg.handler;
-    delete cfg.context;
+/*
+value is always an array in the end:
+[{keyCode: 1, handler: fn}, {...}]
 
-    if (typeof handler == "string") {
-        var h = createFunc(handler);
-        handler = function(){
-            return function(e) {
-                scope.$event = e;
-                h(scope);
-                scope.$event = null;
-                scope.$check();
-            };
-        }(scope);
+DO NOT MIX {key}="{...}" with  {key.enter}="{...}"
+
+NO:
+{key}="{...}"
+{key.enter}="{...}"
+
+YES:
+{key}="{...}"
+
+or
+
+{key}="[{...}]"
+{key.enter}="{...}"
+
+ */
+
+Directive.registerAttribute("key", 1000, function(scope, node, expr, renderer, attr){
+
+    var values = attr ? attr.values : null,
+        parts, k, part, i, l;
+
+    if (values) {
+
+        parts = [];
+
+        for (k in values) {
+            part = values[k];
+
+            if (keys[k]) {
+                k = keys[k];
+            }
+
+            if (part.substr(0,1) === '{') {
+                parts.push('{keyCode: ' + k + ', ' + part.substr(1));
+            }
+            else {
+                parts.push('{keyCode: ' + k + ', handler: "' + part + '"}');
+            }
+        }
+        expr = '[' + parts.join(',') + ']';
     }
 
-    Input.get(node).onKey(cfg, handler, context);
+    var allCfg = createGetter(expr)(scope),
+        uninstall = [];
+
+    if (!isArray(allCfg)) {
+        allCfg = [allCfg];
+    }
+
+    var createHandler = function(cfg) {
+
+        var handler = cfg.handler;
+        var context = cfg.context || scope;
+        var h;
+
+        delete cfg.handler;
+        delete cfg.context;
+
+        if (typeof handler === "string") {
+            h = createFunc(handler);
+            handler = function(){
+                return function(e) {
+                    scope.$event = e;
+                    h(scope);
+                    scope.$event = null;
+                    scope.$check();
+                };
+            }(scope);
+        }
+
+        Input.get(node).onKey(cfg, handler, context);
+
+        return function() {
+            Input.get(node).unKey(cfg, handler, context);
+        };
+    };
+
+    for (i = 0, l = allCfg.length; i < l; i++) {
+        uninstall.push(createHandler(allCfg[i]));
+    }
 
     return function() {
-        Input.get(node).unKey(cfg, handler, context);
+        var i, l;
+        for (i = 0, l = uninstall.length; i < l; i++) {
+            uninstall[i]();
+        }
     };
 });
 
+}());
 
 
 
@@ -14534,24 +13274,32 @@ Directive.registerAttribute("mjs-key", 1000, function(scope, node, expr){
 
 
 
-Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
 
+Directive.registerAttribute("model", 1000, Directive.$extend({
+
+    $class: "Directive.attr.Model",
     inProg: false,
     input: null,
     binding: null,
     updateRoot: false,
+    changeCb: null,
+    initial: false,
 
     autoOnChange: false,
 
-    $init: function(scope, node, expr) {
+    $init: function(scope, node, expr, renderer, attr) {
 
         var self    = this,
-            cfg     = getNodeConfig(node, scope);
+            cfg     = attr ? attr.config : {};
 
         self.node           = node;
-        self.input          = Input.get(node);
+        self.input          = Input.get(node, scope);
+        self.updateRoot     = expr.indexOf('$root') + expr.indexOf('$parent') !== -2;
         self.binding        = cfg.binding || "both";
-        self.updateRoot     = expr.indexOf('$root') + expr.indexOf('$parent') != -2;
+
+        if (cfg.change) {
+            self.changeCb   = createFunc(cfg.change);
+        }
 
         self.input.onChange(self.onInputChange, self);
 
@@ -14560,15 +13308,19 @@ Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
         var inputValue      = self.input.getValue(),
             scopeValue      = self.watcher.getLastResult();
 
+        self.initial = true;
+
         if (scopeValue !== inputValue) {
             // scope value takes priority
-            if (self.binding != "input" && scopeValue != undf) {
+            if (self.binding !== "input" && scopeValue !== undf) {
                 self.onChange(scopeValue);
             }
-            else if (self.binding != "scope" && inputValue != undf) {
+            else if (self.binding !== "scope" && inputValue !== undf) {
                 self.onInputChange(inputValue);
             }
         }
+
+        self.initial = false;
     },
 
     onInputChange: function(val) {
@@ -14576,9 +13328,9 @@ Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
         var self    = this,
             scope   = self.scope;
 
-        if (self.binding != "scope") {
+        if (self.binding !== "scope") {
 
-            if (val && isString(val) && val.indexOf('\\{') != -1) {
+            if (val && isString(val) && val.indexOf('\\{') !== -1) {
                 val = val.replace(/\\{/g, '{');
             }
 
@@ -14611,15 +13363,34 @@ Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
 
         var self    = this,
             val     = self.watcher.getLastResult(),
+            binding = self.binding,
             ie;
 
-        if (self.binding != "input" && !self.inProg) {
+        if (self.binding !== "input" && !self.inProg) {
+
+            // when scope value changed but this field
+            // is not in focus, it should try to
+            // change input's value, but not react
+            // to input's 'change' and 'input' events --
+            // fields like select or radio may not have
+            // this value in its options. that will change
+            // value to undefined and bubble back to scope
+            if (window.document.activeElement !== self.node) {
+                self.binding = "scope";
+            }
+
             if ((ie = isIE()) && ie < 8) {
                 async(self.input.setValue, self.input, [val]);
             }
             else {
                 self.input.setValue(val);
             }
+
+            self.binding = binding;
+        }
+
+        if (self.changeCb && !self.initial && val != self.watcher.getPrevValue()) {
+            self.changeCb(self.scope);
         }
     }
 
@@ -14628,47 +13399,12 @@ Directive.registerAttribute("mjs-model", 1000, Directive.$extend({
 
 
 
-Directive.registerAttribute("mjs-on", 1000, function(scope, node, expr){
-
-    var cfgs = createGetter(expr)(scope);
-
-    var toggle = function(mode) {
-
-        var cfg, event, obj, i, l, fn;
-
-        for (i = 0, l = cfgs.length; i < l; i++) {
-            cfg = cfgs[i];
-            event = cfg[0];
-            obj = cfg[1];
-
-            if (obj.$destroyed || obj.$destroying) {
-                continue;
-            }
-
-            if (obj && event && (fn = (obj[mode] || obj['$' + mode]))) {
-                fn.call(obj, event, scope.$check, scope);
-            }
-        }
-    };
-
-    toggle("on");
-
-    return function() {
-        if (toggle) {
-            toggle("un");
-            cfgs = null;
-            toggle = null;
-        }
-    };
-});
 
 
 
+Directive.registerAttribute("options", 100, defineClass({
 
-
-
-Directive.registerAttribute("mjs-options", 100, defineClass({
-
+    $class: "Directive.attr.Options",
     $extends: Directive,
 
     model: null,
@@ -14693,7 +13429,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
             node.removeChild(node.firstChild);
         }
 
-        self.defOption && setAttr(self.defOption, "mjs-default-option", "");
+        self.defOption && setAttr(self.defOption, "default-option", "");
 
         try {
             var value = createGetter(self.model)(scope);
@@ -14701,7 +13437,8 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
                 self.bindStore(value, "on");
             }
             else {
-                self.watcher = createWatchable(scope, self.model, self.onChange, self, null, ns);
+                self.watcher = createWatchable(scope, self.model, self.onChange, self,
+                    {filterLookup: filterLookup});
             }
         }
         catch (thrownError) {
@@ -14745,9 +13482,15 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
 
         scope.item      = item;
         scope.$index    = index;
-        config          = self.getterFn(scope);
 
-        config.group    != undf && (config.group = ""+config.group);
+        if (self.defaultOptionTpl && isPlainObject(item)) {
+            config      = item;
+        }
+        else {
+            config      = self.getterFn(scope);
+        }
+
+        config.group    !== undf && (config.group = ""+config.group);
 
         if (config.group !== self.prevGroup) {
 
@@ -14767,7 +13510,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
         self.prevGroup  = config.group;
 
         option  = window.document.createElement("option");
-        setAttr(option, "value", config.value);
+        setAttr(option, "value", config.value || "");
         option.text = config.name;
 
         if (msie && msie < 9) {
@@ -14835,13 +13578,15 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
         var splitIndex  = expr.indexOf(" in "),
             model, item;
 
-        if (splitIndex == -1) {
+        if (splitIndex === -1) {
             model   = expr;
             item    = '{name: .item, value: .$index}';
+            this.defaultOptionTpl = true;
         }
         else {
             model   = expr.substr(splitIndex + 4);
             item    = expr.substr(0, splitIndex);
+            this.defaultOptionTpl = false;
         }
 
         this.model = model;
@@ -14902,7 +13647,7 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
     for (i = 0, l = booleanAttrs.length; i < l; i++) {
         (function(name){
 
-            Directive.registerAttribute("mjs-" + name, 1000, function(scope, node, expr){
+            Directive.registerAttribute("" + name, 1000, function(scope, node, expr){
                 return new PropertyDirective(scope, node, expr, name);
             });
 
@@ -14914,9 +13659,110 @@ Directive.registerAttribute("mjs-options", 100, defineClass({
 
 
 
-Directive.registerAttribute("mjs-scope-prop", 200, function(scope, node, expr){
+Directive.registerAttribute("ref", 200, function(scope, node, expr){
     scope[expr] = node;
 });
+
+
+
+
+Directive.registerAttribute("source-src", 1000, defineClass({
+
+    $class: "Directive.attr.SourceSrc",
+    $extends: Directive,
+
+    usePreload: true,
+    noCache: false,
+    attr: null,
+
+    lastPromise: null,
+    src: null,
+
+    $constructor: function(scope, node, expr, renderer, attr) {
+
+        var self = this,
+            cfg = attr ? attr.config : {};
+
+        self.attr = attr;
+
+        if (cfg.deferred) {
+            self.$plugins.push("plugin.SrcDeferred");
+        }
+        /*if (cfg.preloadSize) {
+            self.$plugins.push("plugin.SrcSize");
+        }*/
+        if (cfg.plugin) {
+            var tmp = cfg.plugin.split(","),
+                i, l;
+            for (i = 0, l = tmp.length; i < l; i++) {
+                self.$plugins.push(trim(tmp[i]));
+            }
+        }
+
+        self.$super(scope, node, expr);
+    },
+
+    $init: function(scope, node, expr, renderer, attr) {
+
+        var self = this,
+            cfg = attr ? attr.config : {};
+
+        if (cfg.noCache) {
+            self.noCache = true;
+        }
+        self.$super(scope, node, expr);
+    },
+
+    onChange: function() {
+        this.doChange();
+    },
+
+    doChange: function() {
+        var self = this;
+        
+        if (self.$destroyed || self.$destroying) {
+            return;
+        }
+
+        var src = self.watcher.getLastResult();
+
+        if (!src) {
+            return;
+        }
+
+        self.src = src;
+
+        if (self.noCache) {
+            src += (src.indexOf("?") !== -1 ? "&amp;" : "?") + "_" + (new Date).getTime();
+        }
+
+        if (self.node) {
+            self.doChangeSource(src);
+            self.onSrcChanged();
+        }
+    },
+
+    doChangeSource: function(src) {
+        var self = this,
+            node = self.node,
+            srcs = select("source", node),
+            source = window.document.createElement("source"),
+            i, l;
+
+        if (srcs.length) {
+            for (i  = 0, l = srcs.length; i < l; i++) {
+                node.removeChild(srcs[i]);
+            }
+        }
+
+        setAttr(source, "src", src);
+        node.appendChild(source);
+    },
+
+    onSrcChanged: function() {
+
+    }
+}));
 
 
 
@@ -15025,21 +13871,25 @@ var preloadImage = function() {
 
 
 
-Directive.registerAttribute("mjs-src", 1000, defineClass({
+Directive.registerAttribute("src", 1000, defineClass({
 
+    $class: "Directive.attr.Src",
     $extends: Directive,
 
     queue: null,
     usePreload: true,
     noCache: false,
+    attr: null,
 
     lastPromise: null,
     src: null,
 
-    $constructor: function(scope, node, expr) {
+    $constructor: function(scope, node, expr, renderer, attr) {
 
         var self = this,
-            cfg = getNodeConfig(node, scope);
+            cfg = attr ? attr.config : {};
+
+        self.attr = attr;
 
         if (cfg.deferred) {
             self.$plugins.push("plugin.SrcDeferred");
@@ -15047,8 +13897,8 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
         if (cfg.preloadSize) {
             self.$plugins.push("plugin.SrcSize");
         }
-        if (cfg.srcPlugin) {
-            var tmp = cfg.srcPlugin.split(","),
+        if (cfg.plugin) {
+            var tmp = cfg.plugin.split(","),
                 i, l;
             for (i = 0, l = tmp.length; i < l; i++) {
                 self.$plugins.push(trim(tmp[i]));
@@ -15058,10 +13908,10 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
         self.$super(scope, node, expr);
     },
 
-    $init: function(scope, node, expr) {
+    $init: function(scope, node, expr, renderer, attr) {
 
         var self = this,
-            cfg = getNodeConfig(node, scope);
+            cfg = attr ? attr.config : {};
 
         if (cfg.noCache) {
             self.noCache = true;
@@ -15105,7 +13955,7 @@ Directive.registerAttribute("mjs-src", 1000, defineClass({
         self.src = src;
 
         if (self.noCache) {
-            src += (src.indexOf("?") != -1 ? "&amp;" : "?") + "_" + (new Date).getTime();
+            src += (src.indexOf("?") !== -1 ? "&amp;" : "?") + "_" + (new Date).getTime();
         }
 
         if (self.usePreload) {
@@ -15192,7 +14042,30 @@ var removeStyle = (function() {
 
 
 
-Directive.registerAttribute("mjs-style", 1000, Directive.$extend({
+/*
+value is always an object in the end
+DO NOT MIX style="{}" with style.prop="expression".
+ */
+
+
+Directive.registerAttribute("style", 1000, Directive.$extend({
+
+    $class: "Directive.attr.Style",
+    $init: function(scope, node, expr, renderer, attr) {
+
+        var values = attr ? attr.values : null,
+            parts, k;
+
+        if (values) {
+            parts = [];
+            for (k in values) {
+                parts.push("'" + k + "'" + ': ' + values[k]);
+            }
+            expr = '{' + parts.join(', ') + '}';
+        }
+
+        this.$super(scope, node, expr);
+    },
 
     onChange: function() {
 
@@ -15201,7 +14074,7 @@ Directive.registerAttribute("mjs-style", 1000, Directive.$extend({
             style   = node.style,
             props   = self.watcher.getLastResult(),
             prev    = self.watcher.getPrevValue(),
-            k;
+            k, trg;
 
         for (k in prev) {
             if (!props || props[k] === undf) {
@@ -15211,8 +14084,11 @@ Directive.registerAttribute("mjs-style", 1000, Directive.$extend({
 
         if (props) {
             for (k in props) {
-                if (props[k]) {
-                    style[k] = props[k];
+
+                trg = toCamelCase(k);
+
+                if (props[k] !== undf && props[k] !== null) {
+                    style[trg] = props[k];
                 }
                 else {
                     removeStyle(node, k);
@@ -15272,583 +14148,98 @@ function transclude(node, replace) {
 
 
 
-Directive.registerAttribute("mjs-transclude", 1000, function(scope, node) {
+Directive.registerAttribute("transclude", 1000, function(scope, node) {
     return transclude(node);
 });
 
 
 
-Directive.registerAttribute("mjs-view", 200, function(scope, node, cls) {
-    resolveComponent(cls || "MetaphorJs.View", {scope: scope, node: node}, scope, node);
+    /*
+        Update scope on given event.
+        Not exactly template's business, but still
+    */
+Directive.registerAttribute("update-on", 1000,
+    function(scope, node, expr, renderer, attr){
+
+    var values = attr ? attr.values : null,
+        cfg = attr ? attr.config : {},
+        parts, k, part,
+        execFn;
+
+    if (values) {
+
+        parts = [];
+
+        for (k in values) {
+            part = values[k];
+            parts.push("['" + k + "', " + part + ']');
+        }
+        expr = '[' + parts.join(',') + ']';
+    }
+
+    var cfgs = createGetter(expr)(scope);
+
+    if (cfg.code) {
+        var code = createFunc(cfg.code);
+        execFn = function() {
+            scope.$event = toArray(arguments);
+            code(scope);
+            scope.$event = null;
+            scope.$check();
+        };
+    }
+    else {
+        execFn = scope.$check;
+    }
+
+    var toggle = function(mode) {
+
+        var cfg, event, obj, i, l, fn;
+
+        for (i = 0, l = cfgs.length; i < l; i++) {
+            cfg = cfgs[i];
+            event = cfg[0];
+            obj = cfg[1];
+
+            if (obj.$destroyed || obj.$destroying) {
+                continue;
+            }
+
+            if (obj && event && (fn = (obj[mode] || obj['$' + mode]))) {
+                fn.call(obj, event, execFn, scope);
+            }
+        }
+    };
+
+    toggle("on");
+
+    return function() {
+        if (toggle) {
+            toggle("un");
+            cfgs = null;
+            toggle = null;
+        }
+    };
+});
+
+
+
+Directive.registerAttribute("view", 200, function(scope, node, cls, parentRenderer, attr) {
+    var cfg = {scope: scope, node: node};
+    resolveComponent(
+        cls || "MetaphorJs.View",
+        cfg,
+        scope, node,
+        [cfg, attr]
+    );
     return false;
 });
 
 
 
 
-
-Directive.registerTag("mjs-bind-html", function(scope, node) {
-
-    var expr    = getAttr(node, "value"),
-        w       = createWatchable(scope, expr, null, null, null, ns),
-        text    = w.getLastResult(),
-        //text    = createGetter(expr)(scope),
-        frg     = toFragment(text),
-        next    = node.nextSibling,
-        nodes   = toArray(frg.childNodes);
-
-    node.parentNode.insertBefore(frg, next);
-    node.parentNode.removeChild(node);
-
-    w.unsubscribeAndDestroy();
-
-    return nodes;
-});
-
-
-
-
-Directive.registerTag("mjs-bind", function(scope, node) {
-
-    var expr    = getAttr(node, "value"),
-        text    = createGetter(expr)(scope),
-        frg     = window.document.createTextNode(text),
-        next    = node.nextSibling;
-
-    node.parentNode.insertBefore(frg, next);
-    node.parentNode.removeChild(node);
-
-    return [frg];
-});
-
-
-
-Directive.registerTag("mjs-each", ListRenderer);
-
-
-
-
-
-Directive.registerTag("mjs-if", function(scope, node) {
-
-    var expr = getAttr(node, "value"),
-        res = !!createGetter(expr)(scope);
-
-    if (!res) {
-        node.parentNode.removeChild(node);
-        return false;
-    }
-    else {
-        var nodes = toArray(node.childNodes),
-            frg = toFragment(node.childNodes),
-            next = node.nextSibling;
-
-        node.parentNode.insertBefore(frg, next);
-        node.parentNode.removeChild(node);
-
-        return nodes;
-    }
-
-});
-
-
-
-Directive.registerTag("mjs-include", function(scope, node, value, parentRenderer) {
-
-
-    var tpl = new Template({
-        scope: scope,
-        node: node,
-        url: getAttr(node, "src"),
-        parentRenderer: parentRenderer,
-        replace: true
-    });
-
-    return tpl.initPromise;
-
-});
-
-
-
-
-
-Directive.registerTag("mjs-tag", function(scope, node) {
-
-    var expr = getAttr(node, "value"),
-        tag = createGetter(expr)(scope);
-
-    if (!tag) {
-        node.parentNode.removeChild(node);
-        return false;
-    }
-    else {
-        var el = window.document.createElement(tag),
-            next = node.nextSibling,
-            attrMap = getAttrMap(node),
-            k;
-
-        while (node.firstChild) {
-            el.appendChild(node.firstChild);
-        }
-
-        delete attrMap['value'];
-
-        for (k in attrMap) {
-            setAttr(el, k, attrMap[k]);
-        }
-
-        node.parentNode.insertBefore(el, next);
-        node.parentNode.removeChild(node);
-
-        return [el];
-    }
-
-});
-
-
-
-Directive.registerTag("mjs-transclude", function(scope, node) {
+Directive.registerTag("transclude", function(scope, node) {
     return transclude(node, true);
-});
-
-
-
-nsAdd("filter.collect", function(input, scope, prop) {
-
-    var res = [],
-        i, l, val;
-
-    for (i = 0, l = input.length; i < l; i++) {
-        val = input[i][prop];
-        if (val != undf) {
-            res.push(val);
-        }
-    }
-
-    return res;
-});
-
-
-
-
-var filterArray = function(){
-
-
-    var compareValues = function(value, to, opt) {
-
-            if (isFunction(to)) {
-                return to(value, opt);
-            }
-            else if (to === "" || to === undf) {
-                return true;
-            }
-            else if (value === undf) {
-                return false;
-            }
-            else if (isBool(value)) {
-                return value === to;
-            }
-            else if (to instanceof RegExp) {
-                return to.test("" + value);
-            }
-            else if (opt == "strict") {
-                return ""+value === ""+to;
-            }
-            else if (opt === true || opt === null || opt === undf) {
-                return (""+value).toLowerCase().indexOf((""+to).toLowerCase()) != -1;
-            }
-            else if (opt === false) {
-                return (""+value).toLowerCase().indexOf((""+to).toLowerCase()) == -1;
-            }
-            return false;
-        },
-
-        compare = function(value, by, opt) {
-
-            if (isFunction(by)) {
-                return by(value, opt);
-            }
-
-            if (isPrimitive(value)) {
-                if (by.$ === undf) {
-                    return true;
-                }
-                else {
-                    return compareValues(value, by.$, opt);
-                }
-            }
-
-            var k, i;
-            for (k in by) {
-                if (k == '$') {
-                    for (i in value) {
-                        if (compareValues(value[i], by.$, opt)) {
-                            return true;
-                        }
-                    }
-                }
-                else {
-                    if (compareValues(value[k], by[k], opt)) {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        };
-
-    var filterArray = function filterArray(a, by, opt) {
-
-        if (!isPlainObject(by) && !isFunction(by)) {
-            by = {$: by};
-        }
-
-        var ret = [],
-            i, l;
-
-        for (i = -1, l = a.length; ++i < l;) {
-            if (compare(a[i], by, opt)) {
-                ret.push(a[i]);
-            }
-        }
-
-        return ret;
-    };
-
-    filterArray.compare = compare;
-
-    return filterArray;
-
-}();
-
-
-
-nsAdd("filter.filter", function(val, scope, by, opt) {
-    return filterArray(val, by, opt);
-});
-
-
-
-
-
-
-nsAdd("filter.get", function(val, scope, prop) {
-    var tmp = (""+prop).split("."),
-        key;
-
-    while (key = tmp.shift()) {
-        val = val[key];
-        if (val == undf) {
-            return undf;
-        }
-    }
-
-    return val;
-});
-
-
-
-
-
-
-nsAdd("filter.join", function(input, scope, separator) {
-
-    separator = separator || ", ";
-
-    if (input && input.length) {
-        if (!isArray(input)){
-            input = toArray(input);
-        }
-        return input.join(separator);
-    }
-
-    return "";
-});
-
-
-
-nsAdd("filter.l", function(key, scope) {
-    return scope.$app.lang.get(key);
-});
-
-
-
-
-nsAdd("filter.limitTo", function(input, scope, limit){
-
-    var isS = isString(input);
-
-    if (!isArray(input) && !isS) {
-        return input;
-    }
-
-    if (Math.abs(Number(limit)) === Infinity) {
-        limit = Number(limit);
-    } else {
-        limit = parseInt(limit, 10);
-    }
-
-    if (isS) {
-        //NaN check on limit
-        if (limit) {
-            return limit >= 0 ? input.slice(0, limit) : input.slice(limit, input.length);
-        } else {
-            return "";
-        }
-    }
-
-    var out = [],
-        i, n;
-
-    // if abs(limit) exceeds maximum length, trim it
-    if (limit > input.length)
-        limit = input.length;
-    else if (limit < -input.length)
-        limit = -input.length;
-
-    if (limit > 0) {
-        i = 0;
-        n = limit;
-    } else {
-        i = input.length + limit;
-        n = input.length;
-    }
-
-    for (; i<n; i++) {
-        out.push(input[i]);
-    }
-
-    return out;
-});
-
-
-
-
-nsAdd("filter.linkify", function(input, scope, target){
-    target = target ? ' target="'+target+'"' : "";
-    if (input) {
-        var exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-        return input.replace(exp, '<a href="$1"'+target+'>$1</a>');
-    }
-    return "";
-});
-
-
-
-
-nsAdd("filter.lowercase", function(val){
-    return val.toLowerCase();
-});
-
-
-
-nsAdd("filter.map", function(array, scope, fnName) {
-
-    var i, l,
-        fn = nsGet(fnName, true) ||
-                window[fnName] ||
-                createGetter(fnName)(scope);
-
-    if (fn) {
-        for (i = 0, l = array.length; i < l; i++) {
-            array[i] = fn(array[i]);
-        }
-    }
-
-    return array;
-});
-
-var dateFormats = {};
-
-
-
-
-
-nsAdd("filter.moment",  function(val, scope, format) {
-    format  = dateFormats[format] || format;
-    return moment(val).format(format);
-});
-
-
-var numberFormats = {};
-
-
-
-
-
-
-
-nsAdd("filter.numeral",  function(val, scope, format) {
-    format  = numberFormats[format] || format;
-    return numeral(val).format(format);
-});
-
-
-
-nsAdd("filter.offset", function(input, scope, offset){
-
-    var isS = isString(input);
-
-    if (!isArray(input) && !isS) {
-        return input;
-    }
-
-    if (Math.abs(Number(offset)) === Infinity) {
-        offset = Number(offset);
-    } else {
-        offset = parseInt(offset, 10);
-    }
-
-    if (isS) {
-        return input.substr(offset);
-    }
-    else {
-        return input.slice(offset);
-    }
-});
-
-
-
-nsAdd("filter.p", function(key, scope, number) {
-    return scope.$app.lang.plural(key, parseInt(number, 10) || 0);
-});
-
-
-
-nsAdd("filter.preloaded", function(val, scope) {
-
-    if (!val) {
-        return false;
-    }
-
-    var promise = preloadImage.check(val);
-
-    if (promise === true || !promise) {
-        return !!promise;
-    }
-
-    if (isThenable(promise)) {
-        promise.always(function(){
-            scope.$check();
-        });
-        return false;
-    }
-    else {
-        return true;
-    }
-
-});
-
-
-
-function sortArray(arr, by, dir) {
-
-    if (!dir) {
-        dir = "asc";
-    }
-
-    var ret = arr.slice();
-
-    ret.sort(function(a, b) {
-        var typeA = typeof a,
-            typeB = typeof b,
-            valueA  = a,
-            valueB  = b;
-
-        if (typeA != typeB) {
-            return 0;
-        }
-
-        if (typeA == "object") {
-            if (isFunction(by)) {
-                valueA = by(a);
-                valueB = by(b);
-            }
-            else {
-                valueA = a[by];
-                valueB = b[by];
-            }
-        }
-
-        if (typeof valueA == "number") {
-            return valueA - valueB;
-        }
-        else {
-            valueA = ("" + valueA).toLowerCase();
-            valueB = ("" + valueB).toLowerCase();
-
-            if (valueA === valueB) return 0;
-            return valueA > valueB ? 1 : -1;
-        }
-    });
-
-    return dir == "desc" ? ret.reverse() : ret;
-
-};
-
-
-
-nsAdd("filter.sortBy", function(val, scope, field, dir) {
-    return sortArray(val, field, dir);
-});
-
-
-
-
-nsAdd("filter.split", function(input, scope, sep, limit) {
-
-    limit       = limit || undf;
-    sep         = sep || "/\\n|,/";
-
-    if (!input) {
-        return [];
-    }
-
-    input       = "" + input;
-
-    if (sep.substr(0,1) == '/' && sep.substr(sep.length - 1) == "/") {
-        sep = getRegExp(sep.substring(1, sep.length-1));
-    }
-
-    var list = input.split(sep, limit),
-        i, l;
-
-    for (i = -1, l = list.length; ++i < l; list[i] = trim(list[i])){}
-
-    return list;
-});
-
-
-
-
-
-nsAdd("filter.toArray", function(input){
-
-    if (isPlainObject(input)) {
-        var list = [],
-            k;
-        for (k in input) {
-            if (input.hasOwnProperty(k)) {
-                list.push({key: k, value: input[k]});
-            }
-        }
-        return list;
-    }
-
-    return toArray(input);
-});
-
-
-
-nsAdd("filter.ucfirst", function(val){
-    return val.substr(0, 1).toUpperCase() + val.substr(1);
-});
-
-
-
-
-nsAdd("filter.uppercase", function(val){
-    return val.toUpperCase();
 });
 
 
@@ -15911,8 +14302,22 @@ function onReady(fn, w) {
 
 function initApp(node, cls, data, autorun) {
 
+
+    var attrs = getAttrSet(node, function(name) {
+        return !!nsGet("directive.attr." + name, true);
+    });
+
+    var cfg = attrs.directive.app ? attrs.directive.app.config : {},
+        i, l;
+
+    if (attrs.subnames['app']) {
+        for (i = 0, l = attrs.subnames['app'].length; i < l; i++) {
+            removeAttr(node, attrs.subnames[i]);
+        }
+    }
+
     try {
-        var p = resolveComponent(cls || "MetaphorJs.App", false, data, node, [node, data]);
+        var p = resolveComponent(cls || "MetaphorJs.App", extend({}, cfg), data, node, [node, data]);
 
         if (autorun !== false) {
             return p.done(function(app){
@@ -15946,7 +14351,12 @@ function run(w, appData) {
 
         for (i = -1, l = appNodes.length; ++i < l;){
             el      = appNodes[i];
-            initApp(el, getAttr(el, "mjs-app"), appData, true);
+            initApp(
+                el,
+                getAttr(el, "mjs-app"),
+                appData,
+                true
+            );
         }
     }, win);
 
@@ -15962,6 +14372,162 @@ run();
 
 
 var factory = cs.factory;
+
+
+
+/**
+ * @mixin Observable
+ * @description Mixin adds observable features to the host object.
+ *              It adds 'callback' option to the host config. See $beforeInit.
+ *              Mixin is designed for MetaphorJs class system.
+ * @code examples/mixin.js
+ */
+ns.register("mixin.Observable", {
+
+    /**
+     * @private
+     * @type {Observable}
+     * @description You can use this instance in your $init function
+     */
+    $$observable: null,
+
+    /**
+     * @private
+     * @type {object}
+     */
+    $$callbackContext: null,
+
+    /**
+     * @protected
+     * @type {object} {
+     *      Override this to define event properties. 
+     *      Object's key is event name, value - either returnResult or 
+     *      options object. See {@link class:Observable.createEvent}
+     * }
+     */
+    $$events: null,
+
+    /**
+     * @method
+     * @private
+     * @param {object} cfg {
+     *      This is a config that was passed to the host object's constructor.
+     *      It is being passed to mixin's $beforeInit automatically.
+     *      @type {object} callback {
+     *          Here, except for 'context', '$context' and 'scope', 
+     *          keys are event names and values are listeners. 
+     *          @type {object} context All given listeners context
+     *          @type {object} scope The same
+     *      }
+     * }
+     */
+    $beforeInit: function(cfg) {
+        var self = this;
+        self.$$observable = new Observable;
+        self.$initObservable(cfg);
+    },
+
+    /**
+     * @method
+     * @private
+     * @ignore
+     * @param {object} cfg
+     */
+    $initObservable: function(cfg) {
+
+        var self    = this,
+            obs     = self.$$observable,
+            i;
+
+        if (cfg && cfg.callback) {
+            var ls = cfg.callback,
+                context = ls.context || ls.scope || ls.$context,
+                events = extend({}, self.$$events, ls.$events, true, false);
+
+            for (i in events) {
+                obs.createEvent(i, events[i]);
+            }
+
+            ls.context = null;
+            ls.scope = null;
+
+            for (i in ls) {
+                if (ls[i]) {
+                    obs.on(i, ls[i], context || self);
+                }
+            }
+
+            cfg.callback = null;
+
+            if (context) {
+                self.$$callbackContext = context;
+            }
+        }
+        else if (self.$$events) {
+            for (i in self.$$events) {
+                obs.createEvent(i, self.$$events[i]);
+            }
+        }
+    },
+
+    /**
+     * @method
+     * @see {@link class:Observable.on}
+     */
+    on: function() {
+        var o = this.$$observable;
+        return o ? o.on.apply(o, arguments) : null;
+    },
+
+    /**
+     * @method
+     * @see {@link class:Observable.un}
+     */
+    un: function() {
+        var o = this.$$observable;
+        return o ? o.un.apply(o, arguments) : null;
+    },
+
+    /**
+     * @method
+     * @see {@link class:Observable.once}
+     */
+    once: function() {
+        var o = this.$$observable;
+        return o ? o.once.apply(o, arguments) : null;
+    },
+
+    /**
+     * @method
+     * @see {@link class:Observable.trigger}
+     */
+    trigger: function() {
+        var o = this.$$observable;
+        return o ? o.trigger.apply(o, arguments) : null;
+    },
+
+    /**
+     * @method
+     * @private
+     * @ignore
+     */
+    $beforeDestroy: function() {
+        this.$$observable.trigger("before-destroy", this);
+    },
+
+    /**
+     * @method
+     * @private
+     * @ignore
+     */
+    $afterDestroy: function() {
+        var self = this;
+        self.$$observable.trigger("destroy", self);
+        self.$$observable.destroy();
+        self.$$observable = null;
+    }
+});
+
 
 
 
@@ -16618,7 +15184,7 @@ var Model = function(){
          */
         create: function(model, cfg) {
 
-            if (model == "MetaphorJs.Model") {
+            if (model === "MetaphorJs.Model") {
                 return factory(model, cfg);
             }
             else {
@@ -17153,6 +15719,146 @@ var Record = defineClass({
 
 
 
+var filterArray = function(){
+
+
+    var compareValues = function(value, to, opt) {
+
+            if (isFunction(to)) {
+                return to(value, opt);
+            }
+            else if (to === "" || to === undf) {
+                return true;
+            }
+            else if (value === undf) {
+                return false;
+            }
+            else if (isBool(value)) {
+                return value === to;
+            }
+            else if (to instanceof RegExp) {
+                return to.test("" + value);
+            }
+            else if (opt == "strict") {
+                return ""+value === ""+to;
+            }
+            else if (opt === true || opt === null || opt === undf) {
+                return (""+value).toLowerCase().indexOf((""+to).toLowerCase()) != -1;
+            }
+            else if (opt === false) {
+                return (""+value).toLowerCase().indexOf((""+to).toLowerCase()) == -1;
+            }
+            return false;
+        },
+
+        compare = function(value, by, opt) {
+
+            if (isFunction(by)) {
+                return by(value, opt);
+            }
+
+            if (isPrimitive(value)) {
+                if (by.$ === undf) {
+                    return true;
+                }
+                else {
+                    return compareValues(value, by.$, opt);
+                }
+            }
+
+            var k, i;
+            for (k in by) {
+                if (k == '$') {
+                    for (i in value) {
+                        if (compareValues(value[i], by.$, opt)) {
+                            return true;
+                        }
+                    }
+                }
+                else {
+                    if (compareValues(value[k], by[k], opt)) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        };
+
+    var filterArray = function filterArray(a, by, opt) {
+
+        if (!isPlainObject(by) && !isFunction(by)) {
+            by = {$: by};
+        }
+
+        var ret = [],
+            i, l;
+
+        for (i = -1, l = a.length; ++i < l;) {
+            if (compare(a[i], by, opt)) {
+                ret.push(a[i]);
+            }
+        }
+
+        return ret;
+    };
+
+    filterArray.compare = compare;
+
+    return filterArray;
+
+}();
+
+
+
+function sortArray(arr, by, dir) {
+
+    if (!dir) {
+        dir = "asc";
+    }
+
+    var ret = arr.slice();
+
+    ret.sort(function(a, b) {
+        var typeA = typeof a,
+            typeB = typeof b,
+            valueA  = a,
+            valueB  = b;
+
+        if (typeA != typeB) {
+            return 0;
+        }
+
+        if (typeA == "object") {
+            if (isFunction(by)) {
+                valueA = by(a);
+                valueB = by(b);
+            }
+            else {
+                valueA = a[by];
+                valueB = b[by];
+            }
+        }
+
+        if (typeof valueA == "number") {
+            return valueA - valueB;
+        }
+        else {
+            valueA = ("" + valueA).toLowerCase();
+            valueB = ("" + valueB).toLowerCase();
+
+            if (valueA === valueB) return 0;
+            return valueA > valueB ? 1 : -1;
+        }
+    });
+
+    return dir == "desc" ? ret.reverse() : ret;
+
+};
+
+
+
+
 
 
 var Store = function(){
@@ -17517,7 +16223,7 @@ var Store = function(){
              * @returns {boolean}
              */
             isEmpty: function() {
-                return this.length == 0;
+                return this.length === 0;
             },
 
             /**
@@ -17554,6 +16260,20 @@ var Store = function(){
              */
             getParam: function(k) {
                 return this.extraParams[k];
+            },
+
+            /**
+             * @returns object
+             */
+            getParams: function() {
+                return extend({}, this.extraParams);
+            },
+
+            /**
+             * @returns void
+             */
+            clearParams: function() {
+                this.extraParams = {};
             },
 
             /**
@@ -18266,12 +16986,13 @@ var Store = function(){
                     i       = 0,
                     l       = self.length;
 
-                if (l == 0) {
+                if (l === 0) {
                     return;
                 }
 
                 if (index == null) {
-                    index   = 0;
+                    //index   = 0; ??
+                    return;
                 }
                 while (index < 0) {
                     index   = l + index;
@@ -18293,7 +17014,7 @@ var Store = function(){
 
                     var id      = self.getRecordId(rec);
 
-                    if (id != undf){
+                    if (id !== undf){
                         delete self.map[id];
                         delete self.currentMap[id];
                     }
@@ -18312,12 +17033,12 @@ var Store = function(){
                         self.bindRecord("un", rec);
                         rec.detachStore(self);
 
-                        if (length == 1) {
+                        if (length === 1) {
                             return rec.$destroyed ? undf : rec;
                         }
                     }
                     else {
-                        if (length == 1) {
+                        if (length === 1) {
                             return rec;
                         }
                     }
@@ -18426,7 +17147,7 @@ var Store = function(){
                     }
                 }
 
-                if(id != undf){
+                if(id !== undf){
                     self.map[id] = rec;
                 }
 
@@ -18494,7 +17215,11 @@ var Store = function(){
              * @returns MetaphorJs.Record|Object|null
              */
             remove: function(rec, silent, skipUpdate) {
-                return this.removeAt(this.indexOf(rec, true), 1, silent, skipUpdate, true);
+                var inx = this.indexOf(rec, true);
+                if (inx !== -1) {
+                    return this.removeAt(inx, 1, silent, skipUpdate, true);
+                }
+                return null;
             },
 
             /**
@@ -18504,7 +17229,10 @@ var Store = function(){
              * @returns MetaphorJs.Record|Object|null
              */
             removeId: function(id, silent, skipUpdate) {
-                return this.removeAt(this.indexOfId(id, true), 1, silent, skipUpdate, true);
+                var inx = this.indexOfId(id, true);
+                if (inx !== -1) {
+                    return this.removeAt(inx, 1, silent, skipUpdate, true);
+                }
             },
 
 
@@ -18512,16 +17240,16 @@ var Store = function(){
             /**
              * @param {MetaphorJs.Record|Object} rec
              * @param {boolean} unfiltered
-             * @returns bool
+             * @returns boolean
              */
             contains: function(rec, unfiltered) {
-                return this.indexOf(rec, unfiltered) != -1;
+                return this.indexOf(rec, unfiltered) !== -1;
             },
 
             /**
              * @param {string|int} id
              * @param {boolean} unfiltered
-             * @returns bool
+             * @returns boolean
              */
             containsId: function(id, unfiltered) {
                 if (unfiltered) {
@@ -18749,7 +17477,7 @@ var Store = function(){
              */
             findBy: function(fn, context, start, unfiltered) {
                 var inx = this.findIndexBy(fn, context, start, unfiltered);
-                return inx == -1 ? undf : this.getAt(inx, unfiltered);
+                return inx === -1 ? undf : this.getAt(inx, unfiltered);
             },
 
             /**
@@ -18803,7 +17531,7 @@ var Store = function(){
 
                 }, self, 0, unfiltered);
 
-                return inx != -1 ? self.getAt(inx, unfiltered) : null;
+                return inx !== -1 ? self.getAt(inx, unfiltered) : null;
             },
 
             /**
@@ -19096,76 +17824,83 @@ defineClass({
 
 var StoreRenderer = ListRenderer.$extend({
 
-        $class: "StoreRenderer",
-        store: null,
+    $class: "StoreRenderer",
+    store: null,
 
-        $constructor: function(scope, node, expr) {
 
-            var cfg = getNodeConfig(node, scope);
+    $constructor: function(scope, node, expr, parentRenderer, attr) {
 
-            if (cfg.pullNext) {
-                if (cfg.buffered) {
-                    cfg.bufferedPullNext = true;
-                    cfg.buffered = false;
-                }
-                this.$plugins.push(typeof cfg.pullNext == "string" ? cfg.pullNext : "plugin.ListPullNext");
+        var cfg = attr ? attr.config : {};
+
+        if (cfg.pullNext) {
+            if (cfg.buffered) {
+                cfg.bufferedPullNext = true;
+                cfg.buffered = false;
             }
 
-            this.$super(scope, node, expr);
-        },
-
-        afterInit: function(scope, node, expr) {
-
-            var self            = this,
-                store;
-
-            self.store          = store = createGetter(self.model)(scope);
-            self.watcher        = createWatchable(store, ".current", self.onChange, self, null, ns);
-            self.trackByFn      = bind(store.getRecordId, store);
-            self.griDelegate    = bind(store.indexOfId, store);
-            self.bindStore(store, "on");
-        },
-
-
-        bindStore: function(store, fn) {
-
-            var self    = this;
-
-            store[fn]("update", self.onStoreUpdate, self);
-            store[fn]("clear", self.onStoreUpdate, self);
-            store[fn]("destroy", self.onStoreDestroy, self);
-        },
-
-        onStoreUpdate: function() {
-            this.watcher.check();
-        },
-
-        getListItem: function(list, index) {
-            return this.store.getRecordData(list[index]);
-        },
-
-        onStoreDestroy: function() {
-            var self = this;
-            if (self.watcher) {
-                self.onStoreUpdate();
-                self.watcher.unsubscribeAndDestroy(self.onChange, self);
-                self.watcher = null;
-            }
-        },
-
-        destroy: function() {
-            var self = this;
-            if (!self.store.$destroyed) {
-                self.bindStore(self.store, "un");
-            }
-            self.$super();
+            this.$plugins.push(
+                typeof cfg.pullNext === "string" ?
+                    cfg.pullNext : "plugin.ListPullNext");
         }
 
+        this.$super(scope, node, expr, parentRenderer, attr);
     },
-    {
-        $stopRenderer: true,
-        $registerBy: "id"
+
+    afterInit: function(scope, node, expr, parentRenderer, attr) {
+
+        var self            = this,
+            store;
+
+        self.store          = store = createGetter(self.model)(scope);
+        self.watcher        = createWatchable(store, ".current", self.onChange, self, {filterLookup: filterLookup});
+        
+        if (self.trackByFn !== false) {
+            self.trackByFn      = bind(store.getRecordId, store);
+        }
+        
+        self.griDelegate    = bind(store.indexOfId, store);
+        self.bindStore(store, "on");
+    },
+
+    bindStore: function(store, fn) {
+
+        var self    = this;
+
+        store[fn]("update", self.onStoreUpdate, self);
+        store[fn]("clear", self.onStoreUpdate, self);
+        store[fn]("destroy", self.onStoreDestroy, self);
+    },
+
+    onStoreUpdate: function() {
+        this.watcher.check();
+    },
+
+    getListItem: function(list, index) {
+        return this.store.getRecordData(list[index]);
+    },
+
+    onStoreDestroy: function() {
+        var self = this;
+        if (self.watcher) {
+            self.onStoreUpdate();
+            self.watcher.unsubscribeAndDestroy(self.onChange, self);
+            self.watcher = null;
+        }
+    },
+
+    destroy: function() {
+        var self = this;
+        if (!self.store.$destroyed) {
+            self.bindStore(self.store, "un");
+        }
+        self.$super();
     }
+
+},
+{
+    $stopRenderer: true,
+    $registerBy: "id"
+}
 );
 
 
@@ -19174,7 +17909,11 @@ var StoreRenderer = ListRenderer.$extend({
 
 
 
-Directive.registerAttribute("mjs-each-in-store", 100, StoreRenderer);
+
+
+Directive.getDirective("attr", "each")
+    .registerType(Store, StoreRenderer);
+
 
 
 
@@ -19362,8 +18101,9 @@ defineClass({
 
     afterInit: function() {
 
-        var self = this,
-            cfg     = getNodeConfig(self.list.tpl);
+        var self    = this,
+            attr    = self.list.attr,
+            cfg     = attr ? attr.config : {};
 
         self.itemSize       = cfg.itemSize;
         self.itemsOffsite   = parseInt(cfg.itemsOffsite || 5, 10);
@@ -19714,7 +18454,8 @@ defineClass({
 
     $init: function(list, args) {
 
-        var cfg = getNodeConfig(args[1]);
+        var attr = list.attr,
+            cfg = attr ? attr.config : {};
 
         if (cfg.bufferedPullNext) {
             this.buffered = cfg.bufferedPullNext;
@@ -19776,7 +18517,7 @@ function setStyle(el, name, value) {
         style = el.style,
         k;
 
-    if (typeof name == "string") {
+    if (typeof name === "string") {
         props = {};
         props[name] = value;
     }
@@ -20210,14 +18951,15 @@ defineClass({
             return null;
         }
 
-        var otype = type;
+        type    = type || self.type;
 
         var pBase   = self.getPositionBase(),
             size    = dlg.getDialogSize(),
-            offset  = pBase && !absolute ? getPosition(target, pBase) : getOffset(target),
+            offset  = pBase && !absolute ?
+                        getPosition(target, pBase) :
+                            getOffset(target),
             tsize   = dlg.getTargetSize(),
             pos     = {},
-            type    = type || self.type,
             pri     = type.substr(0, 1),
             sec     = type.substr(1),
             offsetX = cfg.position.offsetX,
@@ -20272,12 +19014,14 @@ defineClass({
                 switch (pri) {
                     case "t":
                     case "b": {
-                        pos.x   = offset.left + (tsize.width / 2) - (size.width / 2);
+                        pos.x   = offset.left + (tsize.width / 2) -
+                                    (size.width / 2);
                         break;
                     }
                     case "r":
                     case "l": {
-                        pos.y   = offset.top + (tsize.height / 2) - (size.height / 2);
+                        pos.y   = offset.top + (tsize.height / 2) -
+                                    (size.height / 2);
                         break;
                     }
                 }
@@ -20302,7 +19046,8 @@ defineClass({
     },
 
     getAllPositions: function() {
-        return ["t", "r", "b", "l", "tl", "tr", "rt", "rb", "br", "bl", "lb", "lt", "tlc", "trc", "brc", "blc"];
+        return ["t", "r", "b", "l", "tl", "tr", "rt", "rb",
+                "br", "bl", "lb", "lt", "tlc", "trc", "brc", "blc"];
     }
 
 });
@@ -21412,7 +20157,7 @@ var Dialog = (function(){
     var manager = factory("dialog.Manager");
 
     var defaultEventProcessor = function(dlg, e, type, returnMode){
-        if (type == "show" || !returnMode) {
+        if (type === "show" || !returnMode) {
             e.preventDefault();
             e.stopPropagation();
             return false;
@@ -22478,7 +21223,7 @@ var Dialog = (function(){
 
             if (cfg.target && cfg.useHref) {
                 var href = getAttr(self.getTarget(), "href");
-                if (href.substr(0, 1) == "#") {
+                if (href.substr(0, 1) === "#") {
                     cfg.render.el = href;
                 }
                 else {
@@ -22677,8 +21422,8 @@ var Dialog = (function(){
             var self    = this,
                 cfg     = self.cfg,
                 fns     = ["show", "hide", "toggle"],
-                lfn     = mode == "bind" ? addListener : removeListener,
-                dfn     = mode == "bind" ? delegate : undelegate,
+                lfn     = mode === "bind" ? addListener : removeListener,
+                dfn     = mode === "bind" ? delegate : undelegate,
                 fn,
                 fnCfg,
                 selector,
@@ -22710,17 +21455,21 @@ var Dialog = (function(){
                 for (selector in fnCfg) {
 
                     if (only) {
-                        if (only == '_self') {
-                            if (selector != '_self' && selector != "_overlay" && selector.substr(0,1) != '>') {
+                        if (only === '_self') {
+                            if (selector !== '_self' &&
+                                selector !== "_overlay" &&
+                                selector.substr(0,1) !== '>') {
                                 continue;
                             }
                         }
-                        else if (selector != only) {
+                        else if (selector !== only) {
                             continue;
                         }
                     }
 
-                    if ((selector == '_self' || selector == '_overlay' || selector.substr(0,1) == '>')
+                    if ((selector === '_self' ||
+                            selector === '_overlay' ||
+                            selector.substr(0,1) === '>')
                         && !self.node) {
 
                         self.bindSelfOnRender = true;
@@ -22759,7 +21508,7 @@ var Dialog = (function(){
                             break;
 
                         default:
-                            el  = selector.substr(0,1) == '>' ?
+                            el  = selector.substr(0,1) === '>' ?
                                   select(selector.substr(1), self.node) :
                                   select(selector);
 
@@ -22805,7 +21554,7 @@ var Dialog = (function(){
         },
 
         onButtonKeyup: function(e) {
-            if (e.keyCode == 13 || e.keyCode == 32) {
+            if (e.keyCode === 13 || e.keyCode === 32) {
                 var target  = e.target,
                     btnId   = data(target, "metaphorjsTooltip-button-id");
 
@@ -23382,7 +22131,7 @@ var Dialog = (function(){
 
             self.cfg.position.type = type;
 
-            if (self.positionClass != cls || !self.position) {
+            if (self.positionClass !== cls || !self.position) {
                 if (self.position) {
                     self.position.$destroy();
                     self.position = null;
@@ -23407,8 +22156,8 @@ var Dialog = (function(){
 
             if (!self.position) {
 
-                if (!self.positionGetType && cfgPos.type != "custom") {
-                    if (isFunction(cfgPos.get) && cfgPos.type != "m") {
+                if (!self.positionGetType && cfgPos.type !== "custom") {
+                    if (isFunction(cfgPos.get) && cfgPos.type !== "m") {
                         cfgPos.type = "custom";
                     }
                 }
@@ -23426,7 +22175,7 @@ var Dialog = (function(){
                     return;
                 }
 
-                if (self.positionClass != cls) {
+                if (self.positionClass !== cls) {
                     self.position   = factory(self.getPositionClass(type), self);
                 }
                 else {
@@ -23443,7 +22192,7 @@ var Dialog = (function(){
                 return false;
             }
 
-            if (isFunction(type) || type == "custom") {
+            if (isFunction(type) || type === "custom") {
                 return "dialog.position.Custom";
             }
 
@@ -23452,10 +22201,10 @@ var Dialog = (function(){
             if (!fc) {
                 return false;
             }
-            else if (fc == "w") {
+            else if (fc === "w") {
                 return "dialog.position.Window";
             }
-            else if (fc == "m") {
+            else if (fc === "m") {
                 return "dialog.position.Mouse";
             }
             else {
@@ -23529,7 +22278,7 @@ var Dialog = (function(){
 
             var isStr = isString(newTarget);
 
-            if (isStr && newTarget.substr(0,1) != "#") {
+            if (isStr && newTarget.substr(0,1) !== "#") {
                 self.dynamicTarget = true;
                 self.target        = null;
             }
@@ -23897,7 +22646,7 @@ var Dialog = (function(){
             if (cfgScroll === true || cfgScroll === false) {
                 return window;
             }
-            else if (typeof cfgScroll == "string") {
+            else if (typeof cfgScroll === "string") {
                 return select(cfgScroll).shift();
             }
             else {
@@ -23930,7 +22679,7 @@ var Dialog = (function(){
             }
 
             return animate(node, a, function(){
-                if (section == "show" && !skipDisplay) {
+                if (section === "show" && !skipDisplay) {
 
                     var p = new Promise;
 
@@ -23972,7 +22721,7 @@ var Dialog = (function(){
 
             self.overlay.append();
 
-            if (self.node) {
+            if (self.node && cfg.render.appendTo !== false) {
                 to.appendChild(self.node);
             }
         },
@@ -23993,7 +22742,7 @@ var Dialog = (function(){
 
             if (node) {
                 if (!self.cfg.render.keepInDOM) {
-                    node.parentNode.removeChild(node);
+                    node.parentNode && node.parentNode.removeChild(node);
                 }
                 self.node = null;
             }
@@ -24030,6 +22779,643 @@ var Dialog = (function(){
     return Dialog;
 
 }());
+
+var htmlTags = [
+    "a",
+    "abbr",
+    "address",
+    "area",
+    "article",
+    "aside",
+    "audio",
+    "b",
+    "base",
+    "bdi",
+    "bdo",
+    "blockquote",
+    "body",
+    "br",
+    "button",
+    "canvas",
+    "caption",
+    "cite",
+    "code",
+    "col",
+    "colgroup",
+    "data",
+    "datalist",
+    "dd",
+    "del",
+    "details",
+    "dfn",
+    "dialog",
+    "div",
+    "dl",
+    "dt",
+    "em",
+    "embed",
+    "fieldset",
+    "figcaption",
+    "figure",
+    "footer",
+    "form",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "head",
+    "header",
+    "hgroup",
+    "hr",
+    "html",
+    "i",
+    "iframe",
+    "img",
+    "input",
+    "ins",
+    "kbd",
+    "keygen",
+    "label",
+    "legend",
+    "li",
+    "link",
+    "main",
+    "map",
+    "mark",
+    "math",
+    "menu",
+    "menuitem",
+    "meta",
+    "meter",
+    "nav",
+    "noscript",
+    "object",
+    "ol",
+    "optgroup",
+    "option",
+    "output",
+    "p",
+    "param",
+    "picture",
+    "pre",
+    "progress",
+    "q",
+    "rb",
+    "rp",
+    "rt",
+    "rtc",
+    "ruby",
+    "s",
+    "samp",
+    "script",
+    "section",
+    "select",
+    "slot",
+    "small",
+    "source",
+    "span",
+    "strong",
+    "style",
+    "sub",
+    "summary",
+    "sup",
+    "svg",
+    "table",
+    "tbody",
+    "td",
+    "template",
+    "textarea",
+    "tfoot",
+    "th",
+    "thead",
+    "time",
+    "title",
+    "tr",
+    "track",
+    "u",
+    "ul",
+    "var",
+    "video",
+    "wbr"
+];
+
+
+
+
+
+
+/**
+ * @namespace MetaphorJs
+ * @class Component
+ */
+var Component = defineClass({
+
+    $class: "Component",
+    $mixins: ["mixin.Observable"],
+
+    /**
+     * @access protected
+     * @var string
+     */
+    id:             null,
+
+    originalId:     false,
+
+    /**
+     * @var Element
+     * @access protected
+     */
+    node:           null,
+
+    /**
+     * @var boolean
+     * @access private
+     */
+    _nodeReplaced:  false,
+
+    /**
+     * @var string
+     */
+    cls:            null,
+
+    /**
+     * @var string|Element
+     * @access protected
+     */
+    renderTo:       null,
+
+    /**
+     * @var {boolean}
+     */
+    autoRender:     true,
+
+    /**
+     * @var bool
+     * @access protected
+     */
+    rendered:       false,
+
+    /**
+     * @var bool
+     * @access protected
+     */
+    hidden:         false,
+
+    /**
+     * @var bool
+     * @access protected
+     */
+    destroyEl:      true,
+
+
+    /**
+     * @var {bool}
+     */
+    destroyScope:   false,
+
+    /**
+     * @var {Scope}
+     */
+    scope:          null,
+
+    /**
+     * @var {Template}
+     */
+    template:       null,
+
+    /**
+     * @var string
+     */
+    templateUrl:    null,
+
+    /**
+     * @var string
+     */
+    tag:            null,
+
+    /**
+     * @var string
+     */
+    as:             null,
+
+
+    /**
+     * @constructor
+     * @param {object} cfg {
+     *      @type string id Element id
+     *      @type string|Element el
+     *      @type string|Element renderTo
+     *      @type bool hidden
+     *      @type bool destroyEl
+     * }
+     */
+    $init: function(cfg) {
+
+        var self    = this;
+
+        cfg = cfg || {};
+
+        self.$super(cfg);
+
+        extend(self, cfg, true, false);
+
+        if (!self.scope) {
+            self.scope = new Scope;
+        }
+
+        if (self.as) {
+            self.scope[self.as] = self;
+        }
+
+        if (self.node) {
+            var nodeId = getAttr(self.node, "id");
+            if (nodeId) {
+                self.originalId = true;
+                if (!self.id) {
+                    self.id = nodeId;
+                }
+            }
+        }
+
+        self.id = self.id || "cmp-" + nextUid();
+
+        if (!self.node && self.node !== false) {
+            self._createNode();
+        }
+
+        self.beforeInitComponent.apply(self, arguments);
+        self.initComponent.apply(self, arguments);
+
+        if (self.scope.$app){
+            self.scope.$app.registerCmp(self, self.scope, "id");
+        }
+
+        var tpl = self.template,
+            url = self.templateUrl;
+
+        self._nodeReplaced = !inArray(self.node.tagName.toLowerCase(), htmlTags);
+
+        if (!tpl || !(tpl instanceof Template)) {
+
+            self.template = tpl = new Template({
+                scope: self.scope,
+                node: self.node,
+                deferRendering: !tpl || self._nodeReplaced,
+                ownRenderer: true,
+                replace: self._nodeReplaced,
+                tpl: tpl,
+                url: url,
+                shadow: self.constructor.$shadow,
+                animate: !self.hidden && !!self.animate,
+                passAttrs: self.passAttrs
+            });
+
+            self.template.on("first-node", self.onFirstNodeReported, self);
+        }
+        else if (tpl instanceof Template) {
+            // it may have just been created
+            self.template.node = self.node;
+        }
+
+        self.afterInitComponent.apply(self, arguments);
+
+        self.template.on("rendered", self.onRenderingFinished, self);
+
+        if (self.parentRenderer) {
+            self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
+        }
+
+        if (self.node) {
+            self._initElement();
+        }
+
+        if (self.autoRender) {
+
+            if (tpl.initPromise) {
+                tpl.initPromise.done(self.render, self);
+            }
+            else {
+                self.render();
+            }
+        }
+    },
+
+    _createNode: function() {
+
+        var self    = this;
+        self.node   = window.document.createElement(self.tag || 'div');
+    },
+
+    _initElement: function() {
+
+        var self    = this,
+            node    = self.node;
+
+        if (!self.originalId) {
+            setAttr(node, "id", self.id);
+        }
+
+        self.initNode();
+    },
+
+    releaseNode: function() {
+
+        var self = this,
+            node = self.node;
+
+        removeAttr(node, "cmp-id");
+
+        if (self.cls) {
+            removeClass(node, self.cls);
+        }
+    },
+
+    onFirstNodeReported: function(node) {
+        var self = this;
+        if (self._nodeReplaced) {
+            setAttr(node, "cmp-id", self.id);
+            node.$$cmpId = self.id;
+        }
+    },
+
+    initNode: function() {
+
+        var self = this,
+            node = self.node;
+
+        setAttr(node, "cmp-id", self.id);
+        node.$$cmpId = self.id;
+
+        if (self.cls) {
+            addClass(node, self.cls);
+        }
+
+        if (self.hidden) {
+            node.style.display = "none";
+        }
+    },
+
+    replaceNodeWithTemplate: function() {
+        var self = this;
+
+        if (self._nodeReplaced && self.node.parentNode) {
+            removeAttr(self.node, "id");
+            //self.node.parentNode.removeChild(self.node);
+        }
+
+        self.node = self.template.node;
+
+        // document fragment
+        if (self.node.nodeType === 11 || isArray(self.node)) {
+            var ch = self.node.nodeType === 11 ?
+                self.node.childNodes :
+                self.node,
+                i, l;
+            for (i = 0, l = ch.length; i < l; i++) {
+                if (ch[i].nodeType === 1) {
+                    self.node = ch[i];
+                    break;
+                }
+            }
+        }
+
+        self._initElement();
+    },
+
+    render: function() {
+
+        var self        = this;
+
+        if (self.rendered) {
+            return;
+        }
+
+        if ((self._nodeReplaced && self.node !== self.template.node) ||
+            !self.node) {
+            self.replaceNodeWithTemplate();
+        }
+
+        self.trigger('render', self);
+        self.template.startRendering();
+    },
+
+    onRenderingFinished: function() {
+        var self = this;
+
+        if ((self._nodeReplaced && self.node !== self.template.node) ||
+            !self.node) {
+            self.replaceNodeWithTemplate();
+        }
+
+        if (self.renderTo) {
+            self.renderTo.appendChild(self.node);
+        }
+        else if (!isAttached(self.node)) {
+            window.document.body.appendChild(self.node);
+        }
+
+        self.rendered   = true;
+        self.afterRender();
+        self.trigger('after-render', self);
+    },
+
+
+    /**
+     * @access public
+     * @method
+     */
+    show: function() {
+        var self    = this;
+        if (!self.hidden) {
+            return;
+        }
+        if (self.trigger('before-show', self) === false) {
+            return false;
+        }
+
+        if (!self.rendered) {
+            self.render();
+        }
+
+        self.template.setAnimation(true);
+        self.showApply();
+
+        self.hidden = false;
+        self.onShow();
+        self.trigger("show", self);
+    },
+
+    showApply: function() {
+        var self = this;
+        if (self.node) {
+            self.node.style.display = "block";
+        }
+
+    },
+
+    /**
+     * @access public
+     * @method
+     */
+    hide: function() {
+        var self    = this;
+        if (self.hidden) {
+            return;
+        }
+        if (self.trigger('before-hide', self) === false) {
+            return false;
+        }
+
+        self.template.setAnimation(false);
+        self.hideApply();
+
+        self.hidden = true;
+        self.onHide();
+        self.trigger("hide", self);
+    },
+
+    hideApply: function() {
+        var self = this;
+        if (self.node) {
+            self.node.style.display = "none";
+        }
+    },
+
+    freezeByView: function(view) {
+        var self = this;
+        self.releaseNode();
+        self.scope.$freeze();
+        self.trigger("view-freeze", self, view);
+
+    },
+
+    unfreezeByView: function(view) {
+        var self = this;
+        self.initNode();
+        self.scope.$unfreeze();
+        self.trigger("view-unfreeze", self, view);
+        self.scope.$check();
+    },
+
+    /**
+     * @access public
+     * @return bool
+     */
+    isHidden: function() {
+        return this.hidden;
+    },
+
+    /**
+     * @access public
+     * @return bool
+     */
+    isRendered: function() {
+        return this.rendered;
+    },
+
+    /**
+     * @access public
+     * @return bool
+     */
+    isDestroyed: function() {
+        return this.destroyed;
+    },
+
+    /**
+     * @access public
+     * @return Element
+     */
+    getEl: function() {
+        return this.node;
+    },
+
+    /**
+     * @method
+     * @access protected
+     */
+    beforeInitComponent:  emptyFn,
+
+    /**
+     * @method
+     * @access protected
+     */
+    initComponent:  emptyFn,
+
+    /**
+     * @method
+     * @access protected
+     */
+    afterInitComponent:  emptyFn,
+
+    /**
+     * @method
+     * @access protected
+     */
+    afterRender:    emptyFn,
+
+    /**
+     * @method
+     * @access protected
+     */
+    onShow:         emptyFn,
+
+    /**
+     * @method
+     * @access protected
+     */
+    onHide:         emptyFn,
+
+    onParentRendererDestroy: function() {
+        this.$destroy();
+    },
+
+    destroy:      function() {
+
+        var self    = this;
+
+        if (self.template) {
+            self.template.$destroy();
+        }
+
+        if (self.destroyEl) {
+            if (self.node && isAttached(self.node)) {
+                self.node.parentNode.removeChild(self.node);
+            }
+        }
+        else if (self.node) {
+
+            if (!self.originalId) {
+                removeAttr(self.node, "id");
+            }
+
+            self.releaseNode();
+        }
+
+        if (self.destroyScope && self.scope) {
+            self.scope.$destroy();
+        }
+
+        self.$super();
+    }
+
+}, {
+    registerDirective: function(cmp) {
+        if (typeof(cmp) === "string") {
+            Directive.registerComponent(cmp);
+        }
+        else {
+            Directive.registerComponent(cmp.prototype.$class, cmp);
+        }
+    }
+});
+
+/**
+ * @md-end-class
+ */
+
+
 
 
 
@@ -24090,6 +23476,10 @@ Component.$extend({
         self.dialog.on("before-show", self.onBeforeDialogShow, self);
         self.dialog.on("before-hide", self.onBeforeDialogHide, self);
         self.dialog.on("destroy", self.onDialogDestroy, self);
+    },
+
+    getDialog: function() {
+        return this.dialog;
     },
 
     // skips the append part
@@ -26064,7 +25454,7 @@ var Validator = (function(){
 
             self.$initObservable(cfg);
 
-            self.isForm         = tag == 'form';
+            self.isForm         = tag === 'form';
             self.isField        = /input|select|textarea/.test(tag);
 
             self.fields         = {};
@@ -26230,7 +25620,7 @@ var Validator = (function(){
         getErrors: function(plain) {
 
             var self    = this,
-                ers     = plain == true ? [] : {},
+                ers     = plain === true ? [] : {},
                 err,
                 i, j,
                 all     = [self.fields, self.groups],
@@ -26330,7 +25720,6 @@ var Validator = (function(){
                 cfg         = self.cfg,
                 fields      = self.fields,
                 fcfg,
-                name,
                 f;
 
             if (!id) {
@@ -26513,7 +25902,7 @@ var Validator = (function(){
                 nodes   = el.getElementsByTagName("input"),
                 submits = select(".submit", el),
                 resets  = select(".reset", el),
-                fn      = mode == "bind" ? addListener : removeListener,
+                fn      = mode === "bind" ? addListener : removeListener,
                 i, l,
                 type,
                 node;
@@ -26521,22 +25910,22 @@ var Validator = (function(){
             for (i = 0, l = nodes.length; i < l; i++) {
                 node = nodes[i];
                 type = node.type;
-                if (type == "submit") {
+                if (type === "submit") {
                     fn(node, "click", self.onRealSubmitClickDelegate);
                 }
-                else if (type == "reset") {
+                else if (type === "reset") {
                     fn(node, "click", self.resetDelegate);
                 }
             }
 
             for (i = -1, l = submits.length;
                  ++i < l;
-                 submits[i].type != "submit" && fn(submits[i], "click", self.onSubmitClickDelegate)
+                 submits[i].type !== "submit" && fn(submits[i], "click", self.onSubmitClickDelegate)
             ){}
 
             for (i = -1, l = resets.length;
                  ++i < l;
-                 resets[i].type != "reset" && fn(resets[i], "click", self.resetDelegate)
+                 resets[i].type !== "reset" && fn(resets[i], "click", self.resetDelegate)
             ){}
 
             if (self.isForm) {
@@ -26591,7 +25980,7 @@ var Validator = (function(){
                 return false;
             }
 
-            var buttonClicked = self.submitButton ? true : false;
+            var buttonClicked = !!self.submitButton;
 
             if (self.isForm) {
 
@@ -26647,7 +26036,7 @@ var Validator = (function(){
             }
 
             var res = self.trigger('submit', self);
-            self.preventFormSubmit = !res;
+            self.preventFormSubmit = res === false;
             return !self.isForm ? false : res;
         },
 
@@ -26849,8 +26238,9 @@ defineClass({
     scopeState: null,
     fields: null,
     formName: null,
+    nodeCfg: null,
 
-    $init: function(node, scope, renderer) {
+    $init: function(node, scope, renderer, nodeCfg) {
 
         var self        = this;
 
@@ -26858,6 +26248,7 @@ defineClass({
         self.scope      = scope;
         self.scopeState = {};
         self.fields     = [];
+        self.nodeCfg    = nodeCfg;
         self.validator  = self.createValidator();
         self.formName   = getAttr(node, 'name') || getAttr(node, 'id') || '$form';
 
@@ -26876,10 +26267,10 @@ defineClass({
         var self    = this,
             node    = self.node,
             cfg     = {},
-            ncfg    = getNodeConfig(node),
+            ncfg    = self.nodeCfg,
             submit;
 
-        if (submit = ncfg.submit) {
+        if ((submit = ncfg.submit)) {
             cfg.callback = cfg.callback || {};
             cfg.callback.submit = function(fn, scope){
                 return function() {
@@ -27068,16 +26459,18 @@ defineClass({
 
 
 
-Directive.registerAttribute("mjs-validate", 250, function(scope, node, expr, renderer) {
+Directive.registerAttribute("validate", 250,
+    function(scope, node, expr, renderer, attr) {
 
     var cls     = expr || "validator.Component",
-        constr  = nsGet(cls);
+        constr  = nsGet(cls),
+        cfg     = attr ? attr.config : {};
 
     if (!constr) {
         error(new Error("Class '"+cls+"' not found"));
     }
     else {
-        return new constr(node, scope, renderer);
+        return new constr(node, scope, renderer, cfg);
     }
 });
 
@@ -27162,7 +26555,7 @@ Directive.registerAttribute("mjs-validate", 250, function(scope, node, expr, ren
                 r = newRenderers[i].renderer;
                 id = r.id;
 
-                if (i == 0) {
+                if (i === 0) {
                     fl = el.offsetLeft;
                     ft = el.offsetTop;
                 }
@@ -27200,10 +26593,8 @@ Directive.registerAttribute("mjs-validate", 250, function(scope, node, expr, ren
                 el,
                 "move",
                 startCallback,
-                false,
-                ns,
                 function(el, position, stage){
-                    if (position == 0 && stage != "start" && to) {
+                    if (position === 0 && stage !== "start" && to) {
                         var prefixes = getAnimationPrefixes();
                         style[prefixes.transform] = "translateX("+to.left+"px) translateY("+to.top+"px)";
                     }
@@ -27228,7 +26619,7 @@ Directive.registerAttribute("mjs-validate", 250, function(scope, node, expr, ren
                 startAnimation  = new Promise,
                 applyFrom       = new Promise,
                 donePromise     = new Promise,
-                animReady       = Promise.counter(newrs.length),
+                animReady       = Promise.counter(newRenderers.length),
                 startCallback   = function(){
                     animReady.countdown();
                     return startAnimation;
@@ -27241,7 +26632,7 @@ Directive.registerAttribute("mjs-validate", 250, function(scope, node, expr, ren
                     r.scope.$destroy();
 
                     stopAnimation(r.el);
-                    animPromises.push(animate(r.el, "leave", null, false, ns)
+                    animPromises.push(animate(r.el, "leave")
                         .done(function(el){
                             el.style.visibility = "hidden";
                         }));
@@ -27252,8 +26643,8 @@ Directive.registerAttribute("mjs-validate", 250, function(scope, node, expr, ren
                 r = newRenderers[i];
                 stopAnimation(r.el);
 
-                r.action == "enter" ?
-                animPromises.push(animate(r.el, "enter", startCallback, false, ns)) :
+                r.action === "enter" ?
+                animPromises.push(animate(r.el, "enter", startCallback)) :
                 animPromises.push(
                     self.moveAnimation(
                         r.el,
@@ -27325,6 +26716,7 @@ defineClass({
 
     directive: null,
 
+    queue: null,
     scrollEl: null,
     scrollDelegate: null,
     resizeDelegate: null,
@@ -27338,7 +26730,9 @@ defineClass({
         var self = this;
         self.directive = directive;
         directive.$intercept("onChange", self.onChange, self, "instead");
-
+        self.queue = 
+            directive.queue || 
+            new Queue({auto: true, async: true, mode: Queue.REPLACE, thenable: true});
     },
 
     $beforeHostInit: function(scope, node) {
@@ -27420,6 +26814,7 @@ defineClass({
 
     $beforeHostDestroy: function(){
         this.stopWatching();
+        this.queue.destroy();
     }
 
 });
@@ -27446,16 +26841,17 @@ defineClass({
 
     $afterHostInit: function(scope, node) {
 
-        var cfg     = getNodeConfig(node, scope),
+        var attr    = self.directive.attr,
+            cfg     = attr ? attr.config : {},
             size    = cfg.preloadSize,
             style   = node.style;
 
-        if (size != "attr") {
+        if (size !== "attr") {
             size    = createGetter(size)(scope);
         }
 
-        var width   = size == "attr" ? parseInt(getAttr(node, "width"), 10) : size.width,
-            height  = size == "attr" ? parseInt(getAttr(node, "height"), 10) : size.height;
+        var width   = size === "attr" ? parseInt(getAttr(node, "width"), 10) : size.width,
+            height  = size === "attr" ? parseInt(getAttr(node, "height"), 10) : size.height;
 
         if (width || height) {
             style.display = "block";
@@ -27485,5 +26881,4 @@ defineClass({
     }
 
 });
-
-}());
+}());/* BUNDLE END 003 */

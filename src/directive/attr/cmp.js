@@ -2,14 +2,14 @@
 var Directive = require("../../class/Directive.js"),
     extend = require("../../func/extend.js"),
     resolveComponent = require("../../func/resolveComponent.js"),
-    nsGet = require("metaphorjs-namespace/src/func/nsGet.js");
+    ns = require("metaphorjs-namespace/src/var/ns.js");
 
 (function(){
 
     var cmpAttr = function(scope, node, cmpName, parentRenderer, attr){
 
         var constr  = typeof cmpName === "string" ?
-                        nsGet(cmpName, true) : cmpName,
+                        ns.get(cmpName, true) : cmpName,
             nodecfg = attr ? attr.config : {};
 
         if (!constr) {

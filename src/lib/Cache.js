@@ -121,7 +121,7 @@ module.exports = function(){
             /**
              * @method
              */
-            destroy: function() {
+            $destroy: function() {
 
                 var self = this;
 

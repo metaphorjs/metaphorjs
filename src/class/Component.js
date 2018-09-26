@@ -1,6 +1,7 @@
 
 
-var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
+var cls = require("metaphorjs-class/src/cls.js"),
+    MetaphorJs = require("../MetaphorJs.js"),
     emptyFn = require("../func/emptyFn.js"),
     nextUid = require("../func/nextUid.js"),
     getAttr = require("../func/dom/getAttr.js"),
@@ -23,10 +24,10 @@ require("metaphorjs-observable/src/mixin/Observable.js");
  * @namespace MetaphorJs
  * @class Component
  */
-module.exports = defineClass({
+module.exports = cls({
 
-    $class: "Component",
-    $mixins: ["mixin.Observable"],
+    $class: "MetaphorJs.Component",
+    $mixins: [MetaphorJs.mixin.Observable],
 
     /**
      * @access protected
@@ -484,7 +485,7 @@ module.exports = defineClass({
         this.$destroy();
     },
 
-    destroy:      function() {
+    onDestroy:      function() {
 
         var self    = this;
 

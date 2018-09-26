@@ -1,8 +1,8 @@
 var createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     animate = require("metaphorjs-animate/src/func/animate.js"),
 
-    defineClass = require("metaphorjs-class/src/func/defineClass.js"),
-    Directive = require("metaphorjs/src/class/Directive.js"),
+    cls = require("metaphorjs-class/src/cls.js"),
+    Directive = require("./Directive.js"),
 
     filterLookup = require("../func/filterLookup.js"),
     toArray = require("../func/array/toArray.js"),
@@ -20,9 +20,9 @@ var createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"
 
 
 
-module.exports = defineClass({
+module.exports = cls({
 
-    $class: "ListRenderer",
+    $class: "MetaphorJs.ListRenderer",
 
     id: null,
 
@@ -608,7 +608,7 @@ module.exports = defineClass({
     },
 
 
-    destroy: function() {
+    onDestroy: function() {
 
         var self        = this,
             renderers   = self.renderers,
@@ -624,7 +624,7 @@ module.exports = defineClass({
             self.trackByWatcher.unsubscribeAndDestroy();
         }
 
-        self.queue.destroy();
+        self.queue.$destroy();
 
         if (self.watcher) {
             self.watcher.unsubscribeAndDestroy(self.onChange, self);

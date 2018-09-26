@@ -8,7 +8,7 @@ var nextUid = require("../func/nextUid.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     Observable = require("metaphorjs-observable/src/lib/Observable.js"),
     isNull = require("../func/isNull.js"),
-    defineClass = require("metaphorjs-class/src/func/defineClass.js");
+    cls = require("metaphorjs-class/src/cls.js");
 
 
 module.exports = function(){
@@ -45,9 +45,9 @@ module.exports = function(){
             return new TextRenderer(scope, origin, opt);
         };
 
-    var TextRenderer = defineClass({
+    var TextRenderer = cls({
 
-        $class: "TextRenderer",
+        $class: "MetaphorJs.TextRenderer",
 
         id: null,
         parent: null,
@@ -365,7 +365,7 @@ module.exports = function(){
             self.watchers = [];
         },
 
-        destroy: function() {
+        onDestroy: function() {
 
             var self = this;
 

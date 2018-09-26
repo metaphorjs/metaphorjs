@@ -6,29 +6,27 @@ var trim = require("../func/trim.js"),
     undf = require("../var/undf.js"),
     isString = require("../func/isString.js"),
     filterLookup = require("../func/filterLookup.js"),
-    defineClass = require("metaphorjs-class/src/func/defineClass.js"),
-    nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
-    nsGet = require("metaphorjs-namespace/src/func/nsGet.js");
+    cls = require("metaphorjs-class/src/cls.js"),
+    MetaphorJs = require("../MetaphorJs.js"),
+    ns = require("metaphorjs-namespace/src/var/ns.js");
 
 
-module.exports = function(){
+module.exports = (function() {
+
+    var attr = {},
+        tag = {},
+        component = {};
+
+    MetaphorJs.directive = MetaphorJs.directive || {
+        attr: attr,
+        tag: tag,
+        component: component
+    };
 
     var attributes          = [],
         attributesSorted    = false,
-
         compare             = function(a, b) {
-            //if (a is less than b by some ordering criterion)
-            if (a.priority < b.priority) {
-                return -1;
-            }
-
-            //if (a is greater than b by the ordering criterion)
-            if (a.priority > b.priority) {
-                return 1;
-            }
-
-            // a must be equal to b
-            return 0;
+            return b.priority - a.priority;
         },
 
         commentHolders      = function(node, name) {
@@ -51,9 +49,9 @@ module.exports = function(){
             return [before, after];
         };
 
-    return defineClass({
+    return cls({
 
-        $class: "Directive",
+        $class: "MetaphorJs.Directive",
 
         watcher: null,
         stateFn: null,
@@ -118,7 +116,7 @@ module.exports = function(){
             }
         },
 
-        destroy: function() {
+        onDestroy: function() {
             var self    = this;
 
             if (self.scope) {
@@ -142,15 +140,15 @@ module.exports = function(){
     }, {
 
         getDirective: function(type, name) {
-            return nsGet("directive." + type +"."+ name, true);
+            return ns.get("directive." + type +"."+ name, true);
         },
 
         registerAttribute: function registerAttribute(name, priority, handler) {
-            if (!nsGet("directive.attr." + name, true)) {
+            if (!attr[name]) {
                 attributes.push({
                     priority: priority,
                     name: name,
-                    handler: nsAdd("directive.attr." + name, handler)
+                    handler: attr[name] = handler
                 });
                 attributesSorted = false;
             }
@@ -165,8 +163,8 @@ module.exports = function(){
         },
 
         registerTag: function registerTag(name, handler) {
-            if (!nsGet("directive.tag." + name, true)) {
-                nsAdd("directive.tag." + name, handler)
+            if (!tag[name]) {
+                tag[name] = handler;
             }
         },
 
@@ -176,16 +174,16 @@ module.exports = function(){
                 cmp = name;
             }
             if (isString(cmp)) {
-                cmp = nsGet(cmp, true);
+                cmp = ns.get(cmp, true);
             }
-            if (!nsGet("directive.component." + name, true)) {
-                nsAdd("directive.component." + name.toLowerCase(), cmp)
+            if (!component[name]) {
+                component[name] = cmp;
             }
         },
 
         commentHolders: commentHolders
     });
 
-}();
+}());
 
 

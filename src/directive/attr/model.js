@@ -1,7 +1,4 @@
 
-
-
-
 var async = require("../../func/async.js"),
     isIE = require("../../func/browser/isIE.js"),
     undf = require("../../var/undf.js"),
@@ -11,11 +8,9 @@ var async = require("../../func/async.js"),
     createFunc = require("metaphorjs-watchable/src/func/createFunc.js"),
     Directive = require("../../class/Directive.js");
 
-
-
 Directive.registerAttribute("model", 1000, Directive.$extend({
 
-    $class: "Directive.attr.Model",
+    $class: "MetaphorJs.Directive.attr.Model",
     inProg: false,
     input: null,
     binding: null,
@@ -89,10 +84,10 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         }
     },
 
-    destroy: function() {
+    onDestroy: function() {
 
         var self        = this;
-        self.input.destroy();
+        self.input.$destroy();
         self.$super();
     },
 

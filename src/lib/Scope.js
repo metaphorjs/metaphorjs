@@ -263,7 +263,7 @@ extend(Scope.prototype, {
 
         self.$$destroyed = true;
         self.$$observable.trigger("destroy");
-        self.$$observable.destroy();
+        self.$$observable.$destroy();
 
         if (self.$parent && self.$parent.$un) {
             self.$parent.$un("check", self.$$onParentCheck, self);

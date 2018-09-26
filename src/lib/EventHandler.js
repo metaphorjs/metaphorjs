@@ -1,5 +1,5 @@
 
-var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
+var cls = require("metaphorjs-class/src/cls.js"),
     addListener = require("../func/event/addListener.js"),
     removeListener = require("../func/event/removeListener.js"),
     trim = require("../func/trim.js"),
@@ -12,7 +12,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js");
 
-module.exports = defineClass({
+module.exports = cls({
 
     cfg: null,
     scope: null,
@@ -246,7 +246,7 @@ module.exports = defineClass({
         self.listeners  = [];
     },
 
-    destroy: function() {
+    $destroy: function() {
         var self = this;
         self.down();
         if (self.watcher) {

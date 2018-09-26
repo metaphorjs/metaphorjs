@@ -1,5 +1,5 @@
 
-var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
+var cls = require("metaphorjs-class/src/cls.js"),
     addListener = require("../func/event/addListener.js"),
     removeListener = require("../func/event/removeListener.js"),
     bind = require("../func/bind.js"),
@@ -11,9 +11,9 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     Promise = require("metaphorjs-promise/src/lib/Promise.js"),
     raf = require('metaphorjs-animate/src/func/raf.js');
 
-module.exports = defineClass({
+module.exports = cls({
 
-    $class: "plugin.ListBuffered",
+    $class: "MetaphorJs.plugin.ListBuffered",
 
     list: null,
     enabled: true,

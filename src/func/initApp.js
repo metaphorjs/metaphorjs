@@ -4,14 +4,15 @@ var error = require("./error.js"),
     getAttrSet = require("./dom/getAttrSet.js"),
     removeAttr = require("./dom/removeAttr.js"),
     extend = require("./extend.js"),
-    nsGet = require("metaphorjs-namespace/src/func/nsGet.js"),
+    MetaphorJs = require("../MetaphorJs.js"),
     Promise = require("metaphorjs-promise/src/lib/Promise.js");
 
 module.exports = function initApp(node, cls, data, autorun) {
 
+    var attrDirs = MetaphorJs.directive.attr;
 
     var attrs = getAttrSet(node, function(name) {
-        return !!nsGet("directive.attr." + name, true);
+        return !!attrDirs[name];
     });
 
     var cfg = attrs.directive.app ? attrs.directive.app.config : {},

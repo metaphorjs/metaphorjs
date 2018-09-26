@@ -1,11 +1,13 @@
 
-var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
+require("./__init.js");
+
+var MetaphorJs = require("../MetaphorJs.js"),
     preloadImage = require("../func/preloadImage.js"),
     isThenable = require("../func/isThenable.js");
 
-module.exports = (function(){
+(function(){
 
-    var preloaded = nsAdd("filter.preloaded", function(val, scope) {
+    var preloaded = MetaphorJs.filter.preloaded = function(val, scope) {
 
         if (!val) {
             return false;
@@ -26,8 +28,7 @@ module.exports = (function(){
         else {
             return true;
         }
-
-    });
+    };
 
     preloaded.$undeterministic = true;
 

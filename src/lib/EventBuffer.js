@@ -1,5 +1,5 @@
 
-var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
+var cls = require("metaphorjs-class/src/cls.js"),
     Observable = require("metaphorjs-observable/src/lib/Observable.js"),
     bind = require("../func/bind.js"),
     addListener = require("../func/event/addListener.js"),
@@ -17,7 +17,7 @@ module.exports = function(){
         return '$$' + event + "_" + interval;
     };
 
-    var EventBuffer = defineClass({
+    var EventBuffer = cls({
 
         observable: null,
         handlerDelegate: null,
@@ -237,14 +237,14 @@ module.exports = function(){
             }
         },
 
-        destroy: function() {
+        $destroy: function() {
 
             var self = this;
 
             delete self.node[self.id];
 
             self.down();
-            self.observable.destroy();
+            self.observable.$destroy();
 
         }
 

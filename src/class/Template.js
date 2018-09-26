@@ -4,7 +4,6 @@ var data = require("../func/dom/data.js"),
     toFragment = require("../func/dom/toFragment.js"),
     clone = require("../func/dom/clone.js"),
     toArray = require("../func/array/toArray.js"),
-    isArray = require("../func/isArray.js"),
     animate = require("metaphorjs-animate/src/func/animate.js"),
     extend = require("../func/extend.js"),
     nextUid = require("../func/nextUid.js"),
@@ -18,8 +17,7 @@ var data = require("../func/dom/data.js"),
     Scope = require("metaphorjs/src/lib/Scope.js"),
     Observable = require("metaphorjs-observable/src/lib/Observable.js"),
     ajax = require("metaphorjs-ajax/src/func/ajax.js"),
-    removeAttr = require("../func/dom/removeAttr.js"),
-    defineClass = require("metaphorjs-class/src/func/defineClass.js"),
+    cls = require("metaphorjs-class/src/cls.js"),
     select = require("metaphorjs-select/src/func/select.js"),
     getAttr = require("../func/dom/getAttr.js"),
     setAttr = require("../func/dom/setAttr.js");
@@ -164,9 +162,9 @@ module.exports = function(){
 
     cache.addFinder(findInScripts);
 
-    return defineClass({
+    return cls({
 
-        $class:             "Template",
+        $class:             "MetaphorJs.Template",
 
         _watcher:           null,
         _tpl:               null,
@@ -215,7 +213,10 @@ module.exports = function(){
                 self.scope = new Scope;
             }
 
-            observable.createEvent("rendered-" + self.id, false, true);
+            observable.createEvent("rendered-" + self.id, {
+                returnResult: false,
+                autoTrigger: true
+            });
 
             self.tpl && (self.tpl = trim(self.tpl));
             self.url && (self.url = trim(self.url));
@@ -571,7 +572,7 @@ module.exports = function(){
             this.$destroy();
         },
 
-        destroy: function() {
+        onDestroy: function() {
 
             var self = this;
 

@@ -1,8 +1,10 @@
 
-var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
+require("./__init.js");
+
+var MetaphorJs = require("../MetaphorJs.js"),
     undf = require("../var/undf.js");
 
-nsAdd("filter.collect", function(input, scope, prop) {
+MetaphorJs.filter.collect = function(input, scope, prop) {
 
     var res = [],
         i, l, val;
@@ -19,4 +21,4 @@ nsAdd("filter.collect", function(input, scope, prop) {
     }
 
     return res;
-});
+};

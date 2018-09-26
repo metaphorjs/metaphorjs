@@ -1,7 +1,6 @@
 
 
-var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
-    removeAttr = require("../../func/dom/removeAttr.js"),
+var removeAttr = require("../../func/dom/removeAttr.js"),
     setAttr = require("../../func/dom/setAttr.js"),
     Directive = require("../../class/Directive.js");
 
@@ -11,9 +10,7 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     var booleanAttrs = ["selected", "checked", "disabled", "readonly", "open", "required"],
         i, l;
 
-    var PropertyDirective = defineClass({
-
-        $extends: Directive,
+    var PropertyDirective = Directive.$extend({
 
         propName: null,
 

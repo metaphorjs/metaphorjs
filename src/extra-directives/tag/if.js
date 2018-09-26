@@ -1,14 +1,12 @@
 
 var Directive = require("../../class/Directive.js"),
-    defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     toFragment = require("../../func/dom/toFragment.js"),
     getAttr = require("../../func/dom/getAttr.js"),
     undf = require("../../var/undf.js"),
     toArray = require("../../func/array/toArray.js");
 
-Directive.registerTag("if", defineClass({
-    $class: "Directive.tag.If",
-    $extends: "Directive.attr.If",
+Directive.registerTag("if", Directive.attr.If.$extend({
+    $class: "MetaphorJs.Directive.tag.If",
     autoOnChange: false,
     children: null,
     childrenFrag: null,
@@ -70,7 +68,7 @@ Directive.registerTag("if", defineClass({
         }
     },
 
-    destroy: function() {
+    onDestroy: function() {
         this.children = null;
         this.$super();
     }

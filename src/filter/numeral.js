@@ -1,10 +1,12 @@
 
 
-var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
+require("./__init.js");
+
+var MetaphorJs = require("../MetaphorJs.js"),
     numberFormats = require("../var/numberFormats.js");
 
 
-nsAdd("filter.numeral",  function(val, scope, format) {
+MetaphorJs.filter.numeral = function(val, scope, format) {
     format  = numberFormats[format] || format;
     return numeral(val).format(format);
-});
+};

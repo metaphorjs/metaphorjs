@@ -1,9 +1,11 @@
 
-var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
+require("./__init.js");
+
+var MetaphorJs = require("../MetaphorJs.js"),
     filterArray = require("../func/array/filterArray.js");
 
-nsAdd("filter.filter", function(val, scope, by, opt) {
+MetaphorJs.filter.filter = function(val, scope, by, opt) {
     return filterArray(val, by, opt);
-});
+};
 
 

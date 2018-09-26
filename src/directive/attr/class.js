@@ -1,7 +1,6 @@
 
 
 var Directive = require("../../class/Directive.js"),
-    defineClass = require("metaphorjs-class/src/func/defineClass.js"),
     animate = require("metaphorjs-animate/src/func/animate.js"),
     stopAnimation = require("metaphorjs-animate/src/func/stopAnimation.js"),
     addClass = require("../../func/dom/addClass.js"),
@@ -96,10 +95,9 @@ DO NOT put class="{}" when using class.name="{}"
         return list;
     };
 
-    Directive.registerAttribute("class", 1000, defineClass({
+    Directive.registerAttribute("class", 1000, Directive.$extend({
 
-        $class: "Directive.attr.Class",
-        $extends: Directive,
+        $class: "MetaphorJs.Directive.attr.Class",
         initial: true,
         animate: false,
 

@@ -1,7 +1,9 @@
 
-var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
+require("./__init.js");
+
+var MetaphorJs = require("../MetaphorJs.js")
     sortArray = require("../func/array/sortArray.js");
 
-nsAdd("filter.sortBy", function(val, scope, field, dir) {
+MetaphorJs.filter.sortBy = function(val, scope, field, dir) {
     return sortArray(val, field, dir);
-});
+};

@@ -1,10 +1,12 @@
 
 
-var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
+require("./__init.js");
+
+var MetaphorJs = require("../MetaphorJs.js")
     toArray = require("../func/array/toArray.js"),
     isPlainObject = require("../func/isPlainObject.js");
 
-nsAdd("filter.toArray", function(input){
+MetaphorJs.filter.toArray = function(input){
 
     if (isPlainObject(input)) {
         var list = [],
@@ -18,4 +20,4 @@ nsAdd("filter.toArray", function(input){
     }
 
     return toArray(input);
-});
+};

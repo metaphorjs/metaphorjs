@@ -6,6 +6,7 @@ var nextUid = require("../func/nextUid.js"),
     isThenable = require("../func/isThenable.js"),
     Scope = require("../lib/Scope.js"),
     Directive = require("./Directive.js"),
+    MetaphorJs = require("../MetaphorJs.js"),
     TextRenderer = require("./TextRenderer.js"),
     slice = require("../func/array/slice.js"),
     setAttr = require("../func/dom/setAttr.js"),
@@ -15,9 +16,8 @@ var nextUid = require("../func/nextUid.js"),
     undf = require("../var/undf.js"),
 
     Observable = require("metaphorjs-observable/src/lib/Observable.js"),
-    nsGet = require("metaphorjs-namespace/src/func/nsGet.js"),
     Promise = require("metaphorjs-promise/src/lib/Promise.js"),
-    defineClass = require("metaphorjs-class/src/func/defineClass.js");
+    cls = require("metaphorjs-class/src/cls.js");
 
 require("../func/array/aIndexOf.js");
 
@@ -25,9 +25,10 @@ module.exports = function(){
 
     var handlers                = null,
         createText              = TextRenderer.create,
+        dirs                    = MetaphorJs.directive,
 
         lookupDirective = function(name) {
-            return !!nsGet("directive.attr." + name, true);
+            return !!dirs.attr[name];
         },
 
         nodeChildren = function(res, el, fn, fnScope, finish, cnt) {
@@ -126,9 +127,9 @@ module.exports = function(){
 
         observer = new Observable;
 
-    return defineClass({
+    return cls({
 
-        $class: "Renderer",
+        $class: "MetaphorJs.Renderer",
 
         id: null,
         el: null,
@@ -316,7 +317,7 @@ module.exports = function(){
                 // this tag represents component
                 // we just pass it to attr.cmp directive
                 // by adding it to the attr map
-                if (c = nsGet("directive.component." + tag, true)) {
+                if (c = dirs.component[tag]) {
 
                     as = attrs.config.as || c.tag;
 
@@ -342,7 +343,7 @@ module.exports = function(){
                     }
                     else {
 
-                        f = nsGet("directive.attr.cmp", true);
+                        f = dirs.attr.cmp;
                         var passAttrs = extend({}, attrs);
                         delete passAttrs['directive']['cmp'];
 
@@ -367,7 +368,7 @@ module.exports = function(){
                 }
 
                 // this is a tag directive
-                else if (f = nsGet("directive.tag." + tag, true)) {
+                else if (f = dirs.tag[tag]) {
 
                     res = self.runHandler(
                         f, scope, node, 
@@ -523,7 +524,7 @@ module.exports = function(){
         },
 
 
-        destroy: function() {
+        onDestroy: function() {
 
             var self    = this,
                 texts   = self.texts,

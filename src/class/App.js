@@ -1,6 +1,7 @@
 
 
-var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
+var cls = require("metaphorjs-class/src/cls.js"),
+    MetaphorJs = require("../MetaphorJs.js"),
     emptyFn = require("../func/emptyFn.js"),
     slice = require("../func/array/slice.js"),
     getAttr = require("../func/dom/getAttr.js"),
@@ -14,10 +15,11 @@ var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
 require("metaphorjs-observable/src/mixin/Observable.js");
 require("../mixin/Provider.js");
 
-module.exports = defineClass({
+module.exports = cls({
 
-    $class: "App",
-    $mixins: ["mixin.Observable", "mixin.Provider"],
+    $class: "MetaphorJs.App",
+    $mixins: [MetaphorJs.mixin.Observable, 
+                MetaphorJs.mixin.Provider],
 
     lang: null,
     scope: null,
@@ -152,13 +154,13 @@ module.exports = defineClass({
         scope.$on("$destroy", deregister);
     },
 
-    destroy: function() {
+    onDestroy: function() {
 
         var self    = this;
 
         self.renderer.$destroy();
         self.scope.$destroy();
-        self.lang.destroy();
+        self.lang.$destroy();
 
         self.$super();
     }

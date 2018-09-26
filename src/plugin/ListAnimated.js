@@ -1,5 +1,5 @@
 
-var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
+var cls = require("metaphorjs-class/src/cls.js"),
     animate = require("metaphorjs-animate/src/func/animate.js"),
     stopAnimation = require("metaphorjs-animate/src/func/stopAnimation.js"),
     raf = require("metaphorjs-animate/src/func/raf.js"),
@@ -222,9 +222,9 @@ module.exports = (function(){
 
 
 
-    return defineClass({
+    return cls({
 
-        $class: "plugin.ListAnimated",
+        $class: "MetaphorJs.plugin.ListAnimated",
 
         $init: function(list) {
 

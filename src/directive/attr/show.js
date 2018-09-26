@@ -1,16 +1,14 @@
 
 
-var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
-    animate = require("metaphorjs-animate/src/func/animate.js"),
+var animate = require("metaphorjs-animate/src/func/animate.js"),
     Promise = require("metaphorjs-promise/src/lib/Promise.js"),
     raf = require("metaphorjs-animate/src/func/raf.js"),
     Directive = require("../../class/Directive.js");
 
 
-Directive.registerAttribute("show", 500, defineClass({
+Directive.registerAttribute("show", 500, Directive.$extend({
 
-    $class: "Directive.attr.Show",
-    $extends: Directive,
+    $class: "MetaphorJs.Directive.attr.Show",
 
     animate: false,
     initial: true,

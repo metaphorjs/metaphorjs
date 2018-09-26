@@ -1,6 +1,8 @@
 
-var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js");
+require("./__init.js");
 
-nsAdd("filter.l", function(key, scope) {
+var MetaphorJs = require("../MetaphorJs.js");
+
+MetaphorJs.filter.l = function(key, scope) {
     return scope.$app.lang.get(key);
-});
+};

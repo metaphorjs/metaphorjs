@@ -239,7 +239,7 @@ module.exports = function(){
             }
         },
 
-        destroy: function() {
+        $destroy: function() {
 
             this.store = null;
 
