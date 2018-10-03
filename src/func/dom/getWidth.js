@@ -1,4 +1,12 @@
 
-var getDimensions = require("./util/getDimensions.js");
+require("./__init.js");
+var _dom_getDimensions = require("./_/_getDimensions.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-module.exports = getDimensions("", "Width");
+/**
+ * Get element width
+ * @function MetaphorJs.dom.getWidth
+ * @param {DomNode} el
+ * @returns {int}
+ */
+module.exports = MetaphorJs.dom.getWidth = _dom_getDimensions("", "Width");

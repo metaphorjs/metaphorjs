@@ -1,13 +1,11 @@
 
 
-var trim = require("../func/trim.js"),
-    createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
+var createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     createSetter = require("metaphorjs-watchable/src/func/createSetter.js"),
-    undf = require("../var/undf.js"),
-    isString = require("../func/isString.js"),
-    filterLookup = require("../func/filterLookup.js"),
+    undf = require("metaphorjs-shared/src/var/undf.js"),
+    isString = require("metaphorjs-shared/src/func/isString.js"),
     cls = require("metaphorjs-class/src/cls.js"),
-    MetaphorJs = require("../MetaphorJs.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js");
 
 
@@ -68,7 +66,7 @@ module.exports = (function() {
                 config      = attr ? attr.config : {},
                 val;
 
-            expr            = trim(expr);
+            expr            = expr.trim();
 
             self.node       = node;
             self.expr       = expr;

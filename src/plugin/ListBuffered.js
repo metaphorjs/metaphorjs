@@ -1,14 +1,15 @@
+require("metaphorjs-promise/src/lib/Promise.js");
+
 
 var cls = require("metaphorjs-class/src/cls.js"),
     addListener = require("../func/event/addListener.js"),
     removeListener = require("../func/event/removeListener.js"),
-    bind = require("../func/bind.js"),
+    bind = require("metaphorjs-shared/src/func/bind.js"),
     getScrollParent = require("../func/dom/getScrollParent.js"),
     addClass = require("../func/dom/addClass.js"),
     getPosition = require("../func/dom/getPosition.js"),
     getScrollLeft = require("../func/dom/getScrollLeft.js"),
     getScrollTop = require("../func/dom/getScrollTop.js"),
-    Promise = require("metaphorjs-promise/src/lib/Promise.js"),
     raf = require('metaphorjs-animate/src/func/raf.js');
 
 module.exports = cls({
@@ -240,7 +241,7 @@ module.exports = cls({
             rs          = list.renderers,
             bot         = self.botStub,
             bs          = self.getBufferState(self.dynamicOffset),
-            promise     = new Promise,
+            promise     = new MetaphorJs.lib.Promise,
             doc         = window.document,
             fragment,
             i, x, r;
@@ -358,7 +359,7 @@ module.exports = cls({
             sp      = self.scrollEl || getScrollParent(list.parentEl),
             hor     = self.horizontal,
             prop    = hor ? "scrollLeft" : "scrollTop",
-            promise = new Promise,
+            promise = new MetaphorJs.lib.Promise,
             pos;
 
 

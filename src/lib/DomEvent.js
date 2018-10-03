@@ -1,13 +1,16 @@
 
-var returnFalse = require("../func/returnFalse.js"),
-    returnTrue = require("../func/returnTrue.js"),
-    undf = require("../var/undf.js"),
-    isNull = require("../func/isNull.js"),
-    extend = require("../func/extend.js");
+var returnFalse = require("metaphorjs-shared/src/func/returnFalse.js"),
+    returnTrue = require("metaphorjs-shared/src/func/returnTrue.js"),
+    undf = require("metaphorjs-shared/src/var/undf.js"),
+    isNull = require("metaphorjs-shared/src/func/isNull.js"),
+    extend = require("metaphorjs-shared/src/func/extend.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 // from jQuery
 
-var DomEvent = function(src) {
+module.exports = MetaphorJs.lib.DomEvent = function(){
+
+var DomEvent = function DomEvent(src) {
 
     if (src instanceof DomEvent) {
         return src;
@@ -118,4 +121,6 @@ extend(DomEvent.prototype, {
     }
 }, true, false);
 
-module.exports = DomEvent;
+return DomEvent;
+
+}();

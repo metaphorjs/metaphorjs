@@ -1,10 +1,12 @@
+require("./__init.js");
 
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-module.exports = function(){
+module.exports = MetaphorJs.browser.isIE = function(){
 
     var msie;
 
-    return function isIE() {
+    return function browser_isIE() {
 
         if (msie === null) {
             var ua = navigator.userAgent;

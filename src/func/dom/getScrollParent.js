@@ -1,7 +1,16 @@
 
-var getStyle = require("./getStyle.js");
+require("./__init.js");
+require("./getStyle.js");
 
-module.exports = function() {
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+
+/**
+ * Get element's scrolling parent
+ * @function MetaphorJs.dom.getScrollParent
+ * @param {DomNode} node
+ * @returns {DomNode}
+ */
+module.exports = MetaphorJs.dom.getScrollParent = function() {
 
     var rOvf        = /(auto|scroll)/,
         body,
@@ -15,7 +24,7 @@ module.exports = function() {
             return rOvf.test(overflow(node));
         };
 
-    return function getScrollParent(node) {
+    return function dom_getScrollParent(node) {
 
         if (!body) {
             body = window.document.body;

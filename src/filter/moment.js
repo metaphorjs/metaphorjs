@@ -1,10 +1,10 @@
 
 require("./__init.js");
-
-var MetaphorJs = require("../MetaphorJs.js"),
-    dateFormats = require("../var/dateFormats.js");
+require("metaphorjs-shared/src/lib/Cache.js");
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 MetaphorJs.filter.moment = function(val, scope, format) {
-    format  = dateFormats[format] || format;
-    return val ? moment(val).format(format) : "";
+    return val ? moment(val).format(
+        MetaphorJs.lib.Cache.global().get(format, format)
+    ) : "";
 };

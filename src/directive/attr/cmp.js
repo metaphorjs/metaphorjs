@@ -13,7 +13,7 @@ var Directive = require("../../class/Directive.js"),
             nodecfg = attr ? attr.config : {};
 
         if (!constr) {
-            throw "Component " + cmpName + " not found";
+            throw new Error("Component " + cmpName + " not found");
         }
 
         var sameScope       = nodecfg.sameScope || constr.$sameScope,

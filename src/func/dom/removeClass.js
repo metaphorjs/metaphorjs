@@ -1,12 +1,19 @@
 
-var getClsReg = require("./getClsReg.js");
+require("./__init.js");
+
+require("./__init.js");
+require("./getClsReg.js");
+
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
- * @param {Element} el
- * @param {String} cls
+ * Remove element's class
+ * @function MetaphorJs.dom.removeClass
+ * @param {DomNode} el
+ * @param {string} cls
  */
-module.exports = function removeClass(el, cls) {
+module.exports = MetaphorJs.dom.removeClass = function(el, cls) {
     if (cls) {
-        el.className = el.className.replace(getClsReg(cls), '');
+        el.className = el.className.replace(MetaphorJs.dom.getClsReg(cls), '');
     }
 };

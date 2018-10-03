@@ -1,3 +1,4 @@
+require("../lib/Queue.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
     getScrollParent = require("../func/dom/getScrollParent.js"),
@@ -8,8 +9,7 @@ var cls = require("metaphorjs-class/src/cls.js"),
     getHeight = require("../func/dom/getHeight.js"),
     addListener = require("../func/event/addListener.js"),
     removeListener = require("../func/event/removeListener.js"),
-    Queue = require("../lib/Queue.js"),
-    bind = require("../func/bind.js");
+    bind = require("metaphorjs-shared/src/func/bind.js");
 
 module.exports = cls({
 
@@ -33,7 +33,8 @@ module.exports = cls({
         directive.$intercept("onChange", self.onChange, self, "instead");
         self.queue = 
             directive.queue || 
-            new Queue({auto: true, async: true, mode: Queue.REPLACE, thenable: true});
+            new MetaphorJs.lib.Queue({auto: true, async: true, 
+                            mode: MetaphorJs.lib.Queue.REPLACE, thenable: true});
     },
 
     $beforeHostInit: function(scope, node) {

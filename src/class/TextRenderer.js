@@ -1,14 +1,13 @@
 
+require("metaphorjs-observable/src/lib/Observable.js");
 
-var nextUid = require("../func/nextUid.js"),
-    bind = require("../func/bind.js"),
-    trim = require("../func/trim.js"),
-    undf = require("../var/undf.js"),
-    filterLookup = require("../func/filterLookup.js"),
+var nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
+    bind = require("metaphorjs-shared/src/func/bind.js"),
+    undf = require("metaphorjs-shared/src/var/undf.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
-    Observable = require("metaphorjs-observable/src/lib/Observable.js"),
-    isNull = require("../func/isNull.js"),
-    cls = require("metaphorjs-class/src/cls.js");
+    isNull = require("metaphorjs-shared/src/func/isNull.js"),
+    cls = require("metaphorjs-class/src/cls.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
 module.exports = function(){
@@ -22,7 +21,7 @@ module.exports = function(){
 
         rReplaceEscape          = /\\{/g,
 
-        observer                = new Observable,
+        observer                = new MetaphorJs.lib.Observable,
 
         //parent, userData, recursive
         factory                 = function(scope, origin, opt) {
@@ -236,7 +235,7 @@ module.exports = function(){
                 recursive   = self.recursive,
                 getter      = null;
 
-            expr        = trim(expr);
+            expr        = expr.trim();
 
             if (expr.substr(0,1) === '-') {
                 var inx = expr.indexOf(" "),

@@ -1,12 +1,11 @@
 
 
 require("./__init.js");
-
-var MetaphorJs = require("../MetaphorJs.js"),
-    numberFormats = require("../var/numberFormats.js");
-
+require("metaphorjs-shared/src/lib/Cache.js");
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 MetaphorJs.filter.numeral = function(val, scope, format) {
-    format  = numberFormats[format] || format;
-    return numeral(val).format(format);
+    return numeral(val).format(
+        MetaphorJs.lib.Cache.global().get(format, format)
+    );
 };

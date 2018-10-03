@@ -1,5 +1,5 @@
 
-var async = require("../../func/async.js"),
+var async = require("metaphorjs-shared/src/func/async.js"),
     isIE = require("../../func/browser/isIE.js"),
     undf = require("../../var/undf.js"),
     Input = require("metaphorjs-input/src/lib/Input.js"),

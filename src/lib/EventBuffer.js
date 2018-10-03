@@ -1,7 +1,7 @@
+require("metaphorjs-observable/src/lib/Observable.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
-    Observable = require("metaphorjs-observable/src/lib/Observable.js"),
-    bind = require("../func/bind.js"),
+    bind = require("metaphorjs-shared/src/func/bind.js"),
     addListener = require("../func/event/addListener.js"),
     removeListener = require("../func/event/removeListener.js"),
     getWidth = require("../func/dom/getWidth.js"),
@@ -46,7 +46,7 @@ module.exports = function(){
             self.watchers = {};
             self.node = node;
             self.event = event;
-            self.observable = new Observable;
+            self.observable = new MetaphorJs.lib.Observable;
             self.interval = interval || 0;
             self.handlerDelegate = bind(self.handler, self);
             self.triggerDelegate = bind(self.trigger, self);

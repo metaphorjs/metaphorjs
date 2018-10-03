@@ -1,9 +1,13 @@
 
-module.exports = function(){
+require("./__init.js");
+
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+
+module.exports = MetaphorJs.browser.isAndroid = function(){
 
     var android = null;
 
-    return function isAndroid() {
+    return function browser_isAndroid() {
 
         if (android === null) {
             android = parseInt((/android (\d+)/i.exec(navigator.userAgent) || [])[1], 10) || false;

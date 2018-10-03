@@ -2,7 +2,7 @@
 
 require("./__init.js");
 
-var MetaphorJs = require("../MetaphorJs.js");
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 MetaphorJs.filter.linkify = function(input, scope, target){
     target = target ? ' target="'+target+'"' : "";

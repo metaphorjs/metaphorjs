@@ -2,8 +2,7 @@
 
 var setAttr = require("../../func/dom/setAttr.js"),
     Directive = require("../../class/Directive.js"),
-    select = require("metaphorjs-select/src/func/select.js"),
-    trim = require("../../func/trim.js");
+    select = require("metaphorjs-select/src/func/select.js");
 
 Directive.registerAttribute("source-src", 1000, Directive.$extend({
 
@@ -33,7 +32,7 @@ Directive.registerAttribute("source-src", 1000, Directive.$extend({
             var tmp = cfg.plugin.split(","),
                 i, l;
             for (i = 0, l = tmp.length; i < l; i++) {
-                self.$plugins.push(trim(tmp[i]));
+                self.$plugins.push(tmp[i].trim());
             }
         }
 

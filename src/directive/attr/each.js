@@ -4,7 +4,6 @@
 var Directive = require("../../class/Directive.js"),
     evaluate = require("metaphorjs-watchable/src/func/evaluate.js"),
     getAttr = require("../../func/dom/getAttr.js"),
-    filterLookup = require("../../func/filterLookup.js"),
     ListRenderer = require("../../class/ListRenderer.js");
 
 

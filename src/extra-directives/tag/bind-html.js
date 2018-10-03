@@ -3,8 +3,7 @@ var Directive = require("../../class/Directive.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     toFragment = require("../../func/dom/toFragment.js"),
     getAttr = require("../../func/dom/getAttr.js"),
-    toArray = require("../../func/array/toArray.js"),
-    filterLookup = require("../../func/filterLookup.js");
+    toArray = require("../../func/array/toArray.js");
 
 Directive.registerTag("bind-html", function(scope, node) {
 

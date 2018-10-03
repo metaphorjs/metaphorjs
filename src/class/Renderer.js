@@ -1,25 +1,22 @@
 
+require("metaphorjs-observable/src/lib/Observable.js");
+require("metaphorjs-promise/src/lib/Promise.js");
 
-var nextUid = require("../func/nextUid.js"),
-    isArray = require("../func/isArray.js"),
-    toArray = require("../func/array/toArray.js"),
-    isThenable = require("../func/isThenable.js"),
+var nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
+    isArray = require("metaphorjs-shared/src/func/isArray.js"),
+    toArray = require("metaphorjs-shared/src/func/toArray.js"),
+    isThenable = require("metaphorjs-shared/src/func/isThenable.js"),
     Scope = require("../lib/Scope.js"),
     Directive = require("./Directive.js"),
-    MetaphorJs = require("../MetaphorJs.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     TextRenderer = require("./TextRenderer.js"),
-    slice = require("../func/array/slice.js"),
     setAttr = require("../func/dom/setAttr.js"),
     removeAttr = require("../func/dom/removeAttr.js"),
     getAttrSet = require("../func/dom/getAttrSet.js"),
-    extend = require("../func/extend.js"),
-    undf = require("../var/undf.js"),
-
-    Observable = require("metaphorjs-observable/src/lib/Observable.js"),
-    Promise = require("metaphorjs-promise/src/lib/Promise.js"),
+    extend = require("metaphorjs-shared/src/func/extend.js"),
+    undf = require("metaphorjs-shared/src/var/undf.js"),
     cls = require("metaphorjs-class/src/cls.js");
 
-require("../func/array/aIndexOf.js");
 
 module.exports = function(){
 
@@ -43,7 +40,7 @@ module.exports = function(){
                     return;
                 }
                 else {
-                    children = slice.call(res);
+                    children = res.slice();
                 }
             }
 
@@ -125,7 +122,7 @@ module.exports = function(){
             --cnt.countdown === 0 && finish && finish.call(fnScope);
         },
 
-        observer = new Observable;
+        observer = new MetaphorJs.lib.Observable;
 
     return cls({
 
@@ -427,8 +424,8 @@ module.exports = function(){
                 }
 
                 if (defers.length && !attrs.config.ignoreInside) {
-                    var deferred = new Promise;
-                    Promise.all(defers).done(function(values){
+                    var deferred = new MetaphorJs.lib.Promise;
+                    MetaphorJs.lib.Promise.all(defers).done(function(values){
                         collectNodes(nodes, values);
                         deferred.resolve(nodes);
                     });
@@ -456,8 +453,8 @@ module.exports = function(){
 
                 if (attrs.config.ignoreInside) {
                     if (defers.length) {
-                        var deferred = new Promise;
-                        return Promise.all(defers).done(function(){
+                        var deferred = new MetaphorJs.lib.Promise;
+                        MetaphorJs.lib.Promise.all(defers).done(function(){
                             return deferred.resolve(false);
                         });
                         return deferred;

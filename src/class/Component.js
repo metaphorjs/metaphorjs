@@ -1,20 +1,19 @@
 
 
 var cls = require("metaphorjs-class/src/cls.js"),
-    MetaphorJs = require("../MetaphorJs.js"),
-    emptyFn = require("../func/emptyFn.js"),
-    nextUid = require("../func/nextUid.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+    emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
+    nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     getAttr = require("../func/dom/getAttr.js"),
     setAttr = require("../func/dom/setAttr.js"),
     removeAttr = require("../func/dom/removeAttr.js"),
     isAttached = require("../func/dom/isAttached.js"),
-    extend = require("../func/extend.js"),
+    extend = require("metaphorjs-shared/src/func/extend.js"),
     Template = require("./Template.js"),
     Scope = require("../lib/Scope.js"),
     Directive = require("./Directive.js"),
     addClass = require("../func/dom/addClass.js"),
-    inArray = require("../func/array/inArray.js"),
-    isArray = require("../func/isArray.js"),
+    isArray = require("metaphorjs-shared/src/func/isArray.js"),
     htmlTags = require("../var/htmlTags.js"),
     removeClass = require("../func/dom/removeClass.js");
 
@@ -169,7 +168,7 @@ module.exports = cls({
         var tpl = self.template,
             url = self.templateUrl;
 
-        self._nodeReplaced = !inArray(self.node.tagName.toLowerCase(), htmlTags);
+        self._nodeReplaced = htmlTags.indexOf(self.node.tagName.toLowerCase()) === -1;
 
         if (!tpl || !(tpl instanceof Template)) {
 

@@ -1,8 +1,8 @@
 
 require("./__init.js");
 
-var MetaphorJs = require("../MetaphorJs.js"),
-    undf = require("../var/undf.js");
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+    undf = require("metaphorjs-shared/src/var/undf.js");
 
 MetaphorJs.filter.collect = function(input, scope, prop) {
 

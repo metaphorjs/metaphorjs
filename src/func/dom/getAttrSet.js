@@ -1,9 +1,18 @@
 
-var toCamelCase = require("../toCamelCase.js"),
-    removeAttr = require("./removeAttr.js"),
-    isArray = require("../isArray.js");
+require("./__init.js");
+require("./removeAttr.js")
 
-module.exports = (function() {
+var toCamelCase = require("metaphorjs-shared/src/func/toCamelCase.js"),
+    isArray = require("metaphorjs-shared/src/func/isArray.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+
+/**
+ * Get node attributes classified by directive
+ * @function MetaphorJs.dom.getAttrSet
+ * @param {DomNode} node
+ * @returns {object}
+ */
+module.exports = MetaphorJs.dom.getAttrSet = (function() {
 
 
     // regular expression seems to be a few milliseconds faster
@@ -13,18 +22,18 @@ module.exports = (function() {
     var removeDirective = function removeDirective(node, directive) {
         if (this.directive[directive] && 
             this.directive[directive].original) {
-            removeAttr(node, this.directive[directive].original);
+            MetaphorJs.dom.removeAttr(node, this.directive[directive].original);
         }
         var i, l, sn = this.subnames[directive];
         if (sn) {
             for (i = 0, l = sn.length; i < l; i++) {
-                removeAttr(node, sn[i]);
+                MetaphorJs.dom.removeAttr(node, sn[i]);
             }
             delete this.subnames[directive];
         }
     };
 
-    return function getAttrSet(node, lookupDirective) {
+    return function dom_getAttrSet(node) {
 
         var set = {
                 directive: {},

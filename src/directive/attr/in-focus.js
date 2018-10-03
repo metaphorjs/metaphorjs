@@ -1,7 +1,7 @@
 
 
 var Directive = require("../../class/Directive.js"),
-    async = require("../../func/async.js");
+    async = require("metaphorjs-shared/src/func/async.js");
 
 
 Directive.registerAttribute("in-focus", 500, Directive.$extend({

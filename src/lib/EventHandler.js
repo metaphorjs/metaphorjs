@@ -2,10 +2,9 @@
 var cls = require("metaphorjs-class/src/cls.js"),
     addListener = require("../func/event/addListener.js"),
     removeListener = require("../func/event/removeListener.js"),
-    trim = require("../func/trim.js"),
     undf = require("../var/undf.js"),
     extend = require("../func/extend.js"),
-    async = require("../func/async.js"),
+    async = require("metaphorjs-shared/src/func/async.js"),
     isPlainObject = require("../func/isPlainObject.js"),
     normalizeEvent = require("../func/event/normalizeEvent.js"),
     EventBuffer = require("./EventBuffer.js"),
@@ -84,7 +83,7 @@ module.exports = cls({
                 i, l;
 
             for (i = 0, l = events.length; i < l; i++) {
-                tmp[trim(events[i])] = cfg;
+                tmp[events[i].trim()] = cfg;
             }
 
             cfg = tmp;

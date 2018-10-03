@@ -1,9 +1,9 @@
 
 require("./__init.js");
 
-var MetaphorJs = require("../MetaphorJs.js"),
-    isArray = require("../func/isArray.js"),
-    isString = require("../func/isString.js");
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+    isArray = require("metaphorjs-shared/src/func/isArray.js"),
+    isString = require("metaphorjs-shared/src/func/isString.js");
 
 MetaphorJs.filter.offset = function(input, scope, offset){
 

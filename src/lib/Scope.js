@@ -1,17 +1,17 @@
+require("metaphorjs-observable/src/lib/Observable.js");
 
-var Observable = require("metaphorjs-observable/src/lib/Observable.js"),
-    Watchable = require("metaphorjs-watchable/src/lib/Watchable.js"),
+var Watchable = require("metaphorjs-watchable/src/lib/Watchable.js"),
     createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     createSetter = require("metaphorjs-watchable/src/func/createSetter.js"),
     createFunc = require("metaphorjs-watchable/src/func/createFunc.js"),
-    extend = require("../func/extend.js"),
-    undf = require("../var/undf.js"),
-    async = require("../func/async.js");
+    extend = require("metaphorjs-shared/src/func/extend.js"),
+    undf = require("metaphorjs-shared/src/var/undf.js"),
+    async = require("metaphorjs-shared/src/func/async.js");
 
 var Scope = function(cfg) {
     var self    = this;
 
-    self.$$observable    = new Observable;
+    self.$$observable    = new MetaphorJs.lib.Observable;
     self.$$historyWatchers  = {};
     extend(self, cfg, true, false);
 

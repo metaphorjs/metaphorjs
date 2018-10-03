@@ -1,9 +1,25 @@
 
-var nextUid = require("../nextUid.js"),
-    undf = require("../../var/undf.js");
+require("./__init.js");
 
+var nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
+    undf = require("metaphorjs-shared/src/var/undf.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-module.exports = function(){
+/**
+ * Get dom data value
+ * @function MetaphorJs.dom.data
+ * @param {Element} el
+ * @param {string} key
+ */
+
+/**
+ * Set dom data value
+ * @function MetaphorJs.dom.data
+ * @param {Element} el
+ * @param {string} key
+ * @param {*} value
+ */
+module.exports = MetaphorJs.dom.data = function(){
 
     var dataCache   = {},
 
@@ -11,12 +27,8 @@ module.exports = function(){
             return el._mjsid || (el._mjsid = nextUid());
         };
 
-    /**
-     * @param {Element} el
-     * @param {String} key
-     * @param {*} value optional
-     */
-    return function data(el, key, value) {
+
+    return function dom_data(el, key, value) {
         var id  = getNodeId(el),
             obj = dataCache[id];
 

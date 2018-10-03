@@ -1,6 +1,6 @@
 
 var Directive = require("../../class/Directive.js"),
-    toArray = require("metaphorjs/src/func/array/toArray.js"),
+    toArray = require("metaphorjs-shared/src/func/toArray.js"),
     createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     createFunc = require("metaphorjs-watchable/src/func/createFunc.js");
 

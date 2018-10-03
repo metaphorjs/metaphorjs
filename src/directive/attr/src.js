@@ -1,11 +1,9 @@
-
+require("metaphorjs-shared/src/lib/Queue.js");
 
 var raf = require("metaphorjs-animate/src/func/raf.js"),
     preloadImage = require("../../func/preloadImage.js"),
     setAttr = require("../../func/dom/setAttr.js"),
-    Directive = require("../../class/Directive.js"),
-    Queue = require("../../lib/Queue.js"),
-    trim = require("../../func/trim.js");
+    Directive = require("../../class/Directive.js");
 
 Directive.registerAttribute("src", 1000, Directive.$extend({
 
@@ -36,7 +34,7 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
             var tmp = cfg.plugin.split(","),
                 i, l;
             for (i = 0, l = tmp.length; i < l; i++) {
-                self.$plugins.push(trim(tmp[i]));
+                self.$plugins.push(tmp[i].trim());
             }
         }
 
@@ -59,7 +57,8 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
             node.style.visibility = "hidden"
         }
 
-        self.queue = new Queue({auto: true, async: true, mode: Queue.REPLACE, thenable: true});
+        self.queue = new MetaphorJs.lib.Queue({auto: true, async: true, 
+                                    mode: MetaphorJs.lib.Queue.REPLACE, thenable: true});
         self.$super(scope, node, expr);
     },
 

@@ -1,7 +1,7 @@
 
 require("./__init.js");
 
-var MetaphorJs = require("../MetaphorJs.js"),
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js"),
     createGetter = require("metaphorjs-watchable/src/func/createGetter.js");
 

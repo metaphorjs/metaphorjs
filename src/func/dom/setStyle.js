@@ -1,6 +1,14 @@
+require("./__init.js");
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-
-module.exports = function setStyle(el, name, value) {
+/**
+ * Set element's style
+ * @function MetaphorJs.dom.setStyle
+ * @param {DomNode} el
+ * @param {string} name
+ * @param {*} value
+ */
+module.exports = MetaphorJs.dom.setStyle = function dom_setStyle(el, name, value) {
 
     if (!el || !el.style) {
         return;

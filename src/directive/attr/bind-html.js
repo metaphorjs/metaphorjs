@@ -2,7 +2,7 @@
 
 var Directive = require("../../class/Directive.js");
 
-require("./bind.js");
+require("metaphorjs-shared/src/func/bind.js");
 
 Directive.registerAttribute("bind-html", 1000, Directive.attr.Bind.$extend({
 

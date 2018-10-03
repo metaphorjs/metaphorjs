@@ -4,21 +4,19 @@ var createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"
     cls = require("metaphorjs-class/src/cls.js"),
     Directive = require("./Directive.js"),
 
-    filterLookup = require("../func/filterLookup.js"),
     toArray = require("../func/array/toArray.js"),
     nextUid = require("../func/nextUid.js"),
     emptyFn = require("../func/emptyFn.js"),
     Renderer = require("./Renderer.js"),
-    Queue = require("../lib/Queue.js"),
     isNull = require("../func/isNull.js"),
     isNumber = require("../func/isNumber.js"),
     isPrimitive = require("../func/isPrimitive.js"),
-    bind = require("../func/bind.js"),
+    bind = require("metaphorjs-shared/src/func/bind.js"),
     undf = require("../var/undf.js"),
     isFunction = require("../func/isFunction.js"),
     getAttr = require("../func/dom/getAttr.js");
 
-
+require("../lib/Queue.js");
 
 module.exports = cls({
 
@@ -107,9 +105,9 @@ module.exports = cls({
         self.parentEl   = node.parentNode;
         self.node       = null; //node;
 
-        self.queue      = new Queue({
+        self.queue      = new MetaphorJs.lib.Queue({
             async: false, auto: true, thenable: true,
-            stack: false, context: self, mode: Queue.ONCE
+            stack: false, context: self, mode: MetaphorJs.lib.Queue.ONCE
         });
 
         self.parentEl.removeChild(node);
@@ -281,7 +279,8 @@ module.exports = cls({
 
     onChange: function(current, prev) {
         var self = this;
-        self.queue.prepend(self.applyChanges, self, [prev], Queue.REPLACE);
+        self.queue.prepend(self.applyChanges, self, [prev], 
+                            MetaphorJs.lib.Queue.REPLACE);
     },
 
     applyChanges: function(prevList) {

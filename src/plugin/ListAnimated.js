@@ -1,9 +1,9 @@
+require("metaphorjs-promise/src/lib/Promise.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
     animate = require("metaphorjs-animate/src/func/animate.js"),
     stopAnimation = require("metaphorjs-animate/src/func/stopAnimation.js"),
     raf = require("metaphorjs-animate/src/func/raf.js"),
-    Promise = require("metaphorjs-promise/src/lib/Promise.js"),
     getAnimationPrefixes = require("metaphorjs-animate/src/func/getAnimationPrefixes.js");
 
 module.exports = (function(){
@@ -144,10 +144,10 @@ module.exports = (function(){
             }
 
             var animPromises    = [],
-                startAnimation  = new Promise,
-                applyFrom       = new Promise,
-                donePromise     = new Promise,
-                animReady       = Promise.counter(newRenderers.length),
+                startAnimation  = new MetaphorJs.lib.Promise,
+                applyFrom       = new MetaphorJs.lib.Promise,
+                donePromise     = new MetaphorJs.lib.Promise,
+                animReady       = MetaphorJs.lib.Promise.counter(newRenderers.length),
                 startCallback   = function(){
                     animReady.countdown();
                     return startAnimation;
@@ -198,7 +198,7 @@ module.exports = (function(){
                 });
             });
 
-            Promise.all(animPromises).always(function(){
+            MetaphorJs.lib.Promise.all(animPromises).always(function(){
                 raf(function(){
                     var prefixes = getAnimationPrefixes();
                     self.doUpdate(vars.updateStart || 0);

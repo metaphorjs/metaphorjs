@@ -1,5 +1,14 @@
 
-module.exports = (function() {
+require("./__init.js");
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+
+/**
+ * Remove specific style from element
+ * @function MetaphorJs.dom.removeStyle
+ * @param {DomNode} node
+ * @param {string} name Style property name
+ */
+module.exports = MetaphorJs.dom.removeStyle = (function() {
 
     var div = window.document.createElement("div");
 

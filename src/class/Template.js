@@ -1,44 +1,41 @@
 
+require("../func/dom/data.js"),
+require("../func/dom/toFragment.js"),
+require("../func/dom/clone.js"),
+require("metaphorjs-animate/src/animate/animate.js"),
+require("metaphorjs-select/src/func/select.js"),
+require("../func/dom/getAttr.js"),
+require("../func/dom/setAttr.js");
+require("metaphorjs-promise/src/lib/Promise.js");
+require("metaphorjs-observable/src/lib/Observable.js");
+require("metaphorjs-shared/src/lib/Cache.js");
 
-var data = require("../func/dom/data.js"),
-    toFragment = require("../func/dom/toFragment.js"),
-    clone = require("../func/dom/clone.js"),
-    toArray = require("../func/array/toArray.js"),
-    animate = require("metaphorjs-animate/src/func/animate.js"),
-    extend = require("../func/extend.js"),
-    nextUid = require("../func/nextUid.js"),
-    trim = require("../func/trim.js"),
-    filterLookup = require("../func/filterLookup.js"),
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+    toArray = require("metaphorjs-shared/src/func/toArray.js"),
+    extend = require("metaphorjs-shared/src/func/extend.js"),
+    nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     Renderer = require("./Renderer.js"),
-    Cache = require("../lib/Cache.js"),
-    Promise = require("metaphorjs-promise/src/lib/Promise.js"),
     Scope = require("metaphorjs/src/lib/Scope.js"),
-    Observable = require("metaphorjs-observable/src/lib/Observable.js"),
     ajax = require("metaphorjs-ajax/src/func/ajax.js"),
-    cls = require("metaphorjs-class/src/cls.js"),
-    select = require("metaphorjs-select/src/func/select.js"),
-    getAttr = require("../func/dom/getAttr.js"),
-    setAttr = require("../func/dom/setAttr.js");
+    cls = require("metaphorjs-class/src/cls.js");
+    
 
+module.exports = function() {
 
-
-
-module.exports = function(){
-
-    var observable      = new Observable,
-        cache           = new Cache,
+    var observable      = new MetaphorJs.lib.Observable,
+        cache           = new MetaphorJs.lib.Cache,
         options         = {},
 
         getFragmentContent  = function(frg) {
             var div = window.document.createElement("div");
-            div.appendChild(clone(frg));
+            div.appendChild(MetaphorJs.dom.clone(frg));
             return div.innerHTML;
         },
 
         resolveInclude  = function(cmt, tplId) {
-            var frg = getTemplate(trim(tplId));
+            var frg = getTemplate(tplId.trim());
             if (!frg) {
                 return "";
             }
@@ -64,7 +61,7 @@ module.exports = function(){
                 if (!opt.processed) {
                     tpl = processTextTemplate(tplId, tpl);
                 }
-                tpl = toFragment(tpl);
+                tpl = MetaphorJs.dom.toFragment(tpl);
                 cache.add(tplId, tpl);
             }
             else if (tpl && tpl.nodeType) {
@@ -72,7 +69,7 @@ module.exports = function(){
                     tpl = tpl.content;
                 }
                 else {
-                    tpl = toFragment(tpl.childNodes);
+                    tpl = MetaphorJs.dom.toFragment(tpl.childNodes);
                 }
                 cache.add(tplId, tpl);
             }
@@ -105,7 +102,7 @@ module.exports = function(){
 
             options[tplId].processed = true;
 
-            return toFragment(tpl);
+            return MetaphorJs.dom.toFragment(tpl);
         },
 
         findInPrebuilt = function(tplId) {
@@ -218,8 +215,8 @@ module.exports = function(){
                 autoTrigger: true
             });
 
-            self.tpl && (self.tpl = trim(self.tpl));
-            self.url && (self.url = trim(self.url));
+            self.tpl && (self.tpl = self.tpl.trim());
+            self.url && (self.url = self.url.trim());
 
             var node    = self.node,
                 tpl     = self.tpl || self.url;
@@ -248,7 +245,8 @@ module.exports = function(){
             if (tpl) {
 
                 if (node && node.firstChild && !self.shadow) {
-                    data(node, "mjs-transclude", toFragment(node.childNodes));
+                    MetaphorJs.dom.data(node, "mjs-transclude", 
+                        MetaphorJs.dom.toFragment(node.childNodes));
                 }
 
                 if (isExpression(tpl)) {
@@ -278,7 +276,7 @@ module.exports = function(){
                     self,
                     {filterLookup: filterLookup});
 
-                self.initPromise    = new Promise;
+                self.initPromise    = new MetaphorJs.lib.Promise;
                 self.onHtmlChange();
             }
             else {
@@ -367,21 +365,21 @@ module.exports = function(){
                 url     = null;
             }
 
-            self.initPromise    = new Promise;
-            self.tplPromise     = new Promise;
+            self.initPromise    = new MetaphorJs.lib.Promise;
+            self.tplPromise     = new MetaphorJs.lib.Promise;
 
             if (self.ownRenderer) {
                 self.initPromise.resolve(false);
             }
 
-            return new Promise(function(resolve, reject){
+            return new MetaphorJs.lib.Promise(function(resolve, reject){
                 if (tpl || url) {
 
                     if (url) {
                         resolve(getTemplate(tpl) || loadTemplate(url));
                     }
                     else {
-                        resolve(getTemplate(tpl) || toFragment(tpl));
+                        resolve(getTemplate(tpl) || MetaphorJs.dom.toFragment(tpl));
                     }
                 }
                 else {
@@ -408,7 +406,7 @@ module.exports = function(){
             var htmlVal = self._watcher.getLastResult();
 
             if (htmlVal) {
-                self._fragment = toFragment(htmlVal);
+                self._fragment = MetaphorJs.dom.toFragment(htmlVal);
                 self.applyTemplate();
             }
             else if (el) {
@@ -475,16 +473,16 @@ module.exports = function(){
 
             if (self.replace) {
 
-                frg = clone(self._fragment);
+                frg = MetaphorJs.dom.clone(self._fragment);
                 children = toArray(frg.childNodes);
 
                 if (el && el.nodeType) {
-                    var transclude = el ? data(el, "mjs-transclude") : null;
+                    var transclude = el ? MetaphorJs.dom.data(el, "mjs-transclude") : null;
 
                     if (transclude) {
-                        var tr = select("[{transclude}], [mjs-transclude], mjs-transclude", frg);
+                        var tr = MetaphorJs.dom.select("[{transclude}], [mjs-transclude], mjs-transclude", frg);
                         if (tr.length) {
-                            data(tr[0], "mjs-transclude", transclude);
+                            MetaphorJs.dom.data(tr[0], "mjs-transclude", transclude);
                         }
                     }
 
@@ -498,10 +496,10 @@ module.exports = function(){
             else {
 
                 if (el) {
-                    el.appendChild(clone(self._fragment));
+                    el.appendChild(MetaphorJs.dom.clone(self._fragment));
                 }
                 else {
-                    self.node = el = clone(self._fragment);
+                    self.node = el = MetaphorJs.dom.clone(self._fragment);
                 }
                 self.initPromise.resolve(el);
             }
@@ -517,13 +515,13 @@ module.exports = function(){
 
             var self        = this,
                 el          = self.node,
-                deferred    = new Promise;
+                deferred    = new MetaphorJs.lib.Promise;
 
             if (!self._initial && self.animate) {
-                animate(el, "leave")
+                MetaphorJs.animate.animate(el, "leave")
                     .done(self.doApplyTemplate, self)
                     .done(deferred.resolve, deferred);
-                animate(el, "enter");
+                MetaphorJs.animate.animate(el, "enter");
             }
             else {
                 self.doApplyTemplate();
@@ -539,7 +537,7 @@ module.exports = function(){
 
             var self    = this,
                 fr      = self._fragment,
-                cnts    = select("content", fr),
+                cnts    = MetaphorJs.dom.select("content", fr),
                 el, next,
                 tr, sel,
                 i, l;
@@ -549,9 +547,9 @@ module.exports = function(){
                 tr      = window.document.createElement("transclude");
                 el      = cnts[i];
                 next    = el.nextSibling;
-                sel     = getAttr(el, "select");
+                sel     = MetaphorJs.dom.getAttr(el, "select");
 
-                sel && setAttr(tr, "select", sel);
+                sel && MetaphorJs.dom.setAttr(tr, "select", sel);
 
                 fr.removeChild(el);
                 fr.insertBefore(tr, next);

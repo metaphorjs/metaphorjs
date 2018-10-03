@@ -2,9 +2,9 @@
 
 require("./__init.js");
 
-var MetaphorJs = require("../MetaphorJs.js")
-    toArray = require("../func/array/toArray.js"),
-    isPlainObject = require("../func/isPlainObject.js");
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js")
+    toArray = require("metaphorjs-shared/src/array/toArray.js"),
+    isPlainObject = require("metaphorjs-shared/src/func/isPlainObject.js");
 
 MetaphorJs.filter.toArray = function(input){
 

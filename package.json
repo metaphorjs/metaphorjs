@@ -18,5 +18,8 @@
     "bugs": {
         "url": "https://github.com/metaphorjs/metaphorjs/issues"
     },
-    "homepage": "https://github.com/metaphorjs/metaphorjs"
+    "homepage": "https://github.com/metaphorjs/metaphorjs",
+    "devDependencies": {
+        "jsdom": "^9.12.0"
+    }
 }

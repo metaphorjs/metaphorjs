@@ -1,5 +1,0 @@
-Put *.sh files into a directory which is parent to all repos
-
-clone.sh - clone all repos
-npm.sh - run npm install
-pull.sh - pull changes for all repos

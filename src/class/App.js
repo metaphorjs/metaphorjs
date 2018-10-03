@@ -1,25 +1,25 @@
 
 
 var cls = require("metaphorjs-class/src/cls.js"),
-    MetaphorJs = require("../MetaphorJs.js"),
-    emptyFn = require("../func/emptyFn.js"),
-    slice = require("../func/array/slice.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+    emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
+    toArray = require("metaphorjs-shared/src/func/toArray.js"),
     getAttr = require("../func/dom/getAttr.js"),
     Scope = require("../lib/Scope.js"),
     Renderer = require("../class/Renderer.js"),
-    Promise = require("metaphorjs-promise/src/lib/Promise.js"),
     Text = require("../lib/Text.js"),
-    removeAttr = require("../func/dom/removeAttr.js"),
-    destroy = require("../func/destroy.js");
+    removeAttr = require("../func/dom/removeAttr.js");
 
+require("metaphorjs-promise/src/lib/Promise.js");
+require("metaphorjs-shared/src/mixin/Provider.js");
 require("metaphorjs-observable/src/mixin/Observable.js");
-require("../mixin/Provider.js");
 
-module.exports = cls({
+
+module.exports = MetaphorJs.App = cls({
 
     $class: "MetaphorJs.App",
     $mixins: [MetaphorJs.mixin.Observable, 
-                MetaphorJs.mixin.Provider],
+                MetaphorJs.lib.Provider],
 
     lang: null,
     scope: null,
@@ -33,8 +33,6 @@ module.exports = cls({
         var self        = this,
             scope       = data instanceof Scope ? data : new Scope(data),
             args;
-
-        destroy.collect(self);
 
         removeAttr(node, "mjs-app");
 
@@ -55,7 +53,7 @@ module.exports = cls({
         self.renderer       = new Renderer(node, scope);
         self.renderer.on("rendered", self.afterRender, self);
 
-        args = slice.call(arguments);
+        args = toArray(arguments);
         args[1] = scope;
         self.initApp.apply(self, args);
     },
@@ -116,7 +114,7 @@ module.exports = cls({
             components = self.components;
 
         if (!cmpListeners[cmpId]) {
-            cmpListeners[cmpId] = new Promise;
+            cmpListeners[cmpId] = new MetaphorJs.lib.Promise;
         }
 
         if (fn) {
