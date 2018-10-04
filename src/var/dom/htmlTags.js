@@ -1,5 +1,4 @@
 
-require("../__init.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
