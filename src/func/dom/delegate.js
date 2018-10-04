@@ -1,7 +1,7 @@
 
 require("./__init.js");
 require("metaphorjs-shared/src/lib/Cache.js");
-require("metaphorjs-select/src/func/is.js");
+require("metaphorjs/src/func/dom/is.js");
 require("./addListener.js");
 require("./normalizeEvent.js");
 

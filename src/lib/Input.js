@@ -9,7 +9,7 @@ require("metaphorjs/src/func/browser/isAndroid.js");
 require("metaphorjs/src/func/browser/hasEvent.js");
 require("metaphorjs/src/func/dom/getAttr.js");
 require("metaphorjs/src/func/dom/normalizeEvent.js");
-require("metaphorjs-select/src/func/select.js");
+require("metaphorjs/src/func/dom/select.js");
 
 var bind    = require("metaphorjs-shared/src/func/bind.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),

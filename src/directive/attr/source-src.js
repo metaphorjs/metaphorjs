@@ -2,7 +2,7 @@
 
 var setAttr = require("../../func/dom/setAttr.js"),
     Directive = require("../../class/Directive.js"),
-    select = require("metaphorjs-select/src/func/select.js");
+    select = require("metaphorjs/src/func/dom/select.js");
 
 Directive.registerAttribute("source-src", 1000, Directive.$extend({
 

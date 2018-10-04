@@ -3,7 +3,7 @@ require("../func/dom/data.js"),
 require("../func/dom/toFragment.js"),
 require("../func/dom/clone.js"),
 require("metaphorjs-animate/src/animate/animate.js"),
-require("metaphorjs-select/src/func/select.js"),
+require("metaphorjs/src/func/dom/select.js"),
 require("../func/dom/getAttr.js"),
 require("../func/dom/setAttr.js");
 require("metaphorjs-promise/src/lib/Promise.js");
