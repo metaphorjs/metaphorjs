@@ -12,7 +12,7 @@ var extend = require("metaphorjs-shared/src/func/extend.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-    
+
 module.exports = MetaphorJs.lib.History = function() {
 
     var win,
@@ -412,8 +412,19 @@ module.exports = MetaphorJs.lib.History = function() {
     });
 
 
+    /**
+     * Browser pushState wrapper and polyfill. 
+     * @object MetaphorJs.lib.History
+     */
     return extend(api, observable.getApi(), {
 
+        /**
+         * @property {function} push {
+         *  Push new url
+         *  @param {string} url
+         *  @param {object} state
+         * }
+         */
         push: function(url, state) {
             init();
 
@@ -429,37 +440,82 @@ module.exports = MetaphorJs.lib.History = function() {
             }
         },
 
+        /**
+         * @property {function} replace {
+         *  Replace current url with another url
+         *  @param {string} url
+         *  @param {object} state
+         * }
+         */
         replace: function(url, state) {
             init();
             replaceState(url, null, state);
         },
 
+        /**
+         * Update state of current url
+         * @property {function} saveState {
+         *  @param {object} state
+         * }
+         */
         saveState: function(state) {
             init();
             replaceState(getCurrentUrl(), null, state);
         },
 
+        /**
+         * Merge new state into current state 
+         * @property {function} mergeState {
+         *  @param {object} state
+         * }
+         */
         mergeState: function(state) {
             this.saveState(extend({}, history.state, state, true, false));
         },
 
+        /**
+         * Get current state
+         * @property {function} getState {
+         *  @returns {object}
+         * }
+         */
         getState: function() {
             return history.state;
         },
 
+        /**
+         * Get current instance id
+         * @property {functrion} getCurrentStateId {
+         *  @returns {string}
+         * }
+         */
         getCurrentStateId: function() {
             return currentId;
         },
 
+        /**
+         * Get current url
+         * @property {function} current {
+         *  @returns {string} url
+         * }
+         */
         current: function() {
             init();
             return getCurrentUrl();
         },
 
+        /**
+         * Initialize instance 
+         * @property {function} init
+         */
         init: function() {
             return init();
         },
 
+        /**
+         * Polyfill window.pushState and replaceState
+         * @property {function} polyfill
+         */
         polyfill: function() {
             init();
             window.history.pushState = function(state, title, url) {

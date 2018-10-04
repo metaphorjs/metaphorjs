@@ -1,11 +1,9 @@
-
+require("../lib/History.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
     animate = require("metaphorjs-animate/src/func/animate.js"),
     stopAnimation = require("metaphorjs-animate/src/func/stopAnimation.js"),
-    mhistory = require("metaphorjs-history/src/lib/History.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
-    currentUrl = require("metaphorjs-history/src/func/currentUrl.js"),
     parseLocation = require("metaphorjs-history/src/func/parseLocation.js"),
     UrlParam = require("metaphorjs-history/src/lib/UrlParam.js"),
     raf = require("metaphorjs-animate/src/func/raf.js"),
@@ -94,8 +92,8 @@ module.exports = cls({
         self.scope.$app.registerCmp(self, self.scope, "id");
 
         if (self.route) {
-            mhistory.init();
-            mhistory.on("location-change", self.onLocationChange, self);
+            MetaphorJs.lib.History.init();
+            MetaphorJs.lib.History.on("location-change", self.onLocationChange, self);
             self.initRoutes();
             self.onLocationChange();
         }
@@ -160,7 +158,7 @@ module.exports = cls({
     onLocationChange: function() {
 
         var self        = this,
-            url         = currentUrl(),
+            url         = MetaphorJs.lib.History.current(),
             loc         = parseLocation(url),
             path        = loc.pathname + loc.search + loc.hash,
             routes      = self.route,
@@ -519,7 +517,7 @@ module.exports = cls({
         self.clearComponent();
 
         if (self.route) {
-            mhistory.un("location-change", self.onLocationChange, self);
+            MetaphorJs.lib.History.un("location-change", self.onLocationChange, self);
 
             var i, l, j;
 

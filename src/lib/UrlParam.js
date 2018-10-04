@@ -14,6 +14,10 @@ module.exports = MetaphorJs.lib.UrlParam = (function(){
 
     var cache = {};
 
+    /**
+     * Url param watcher
+     * @class MetaphorJs.lib.UrlParam
+     */
     var UrlParam = cls({
 
         $mixins: [MetaphorJs.mixin.Observable],
@@ -28,6 +32,24 @@ module.exports = MetaphorJs.lib.UrlParam = (function(){
         value: null,
         enabled: true,
 
+        /**
+         * @method
+         * @constructor
+         * @param {object} cfg {
+         *  @type {string} id unique param id
+         *  @type {string|RegExp} regexp
+         *  @type {string} name
+         *  @type {function} extractor {
+         *      @param {string} url     
+         *      @returns {*} value
+         *  }
+         *  @type {object} context extractor's context
+         *  @type {int} valueIndex {
+         *      Index in regexp match array
+         *      @default 1
+         *  }
+         * }
+         */
         $init: function(cfg) {
 
             var self = this;
@@ -52,6 +74,10 @@ module.exports = MetaphorJs.lib.UrlParam = (function(){
             }
         },
 
+        /**
+         * Enable watcher (enabled by default)
+         * @method 
+         */
         enable: function() {
             var self = this;
             if (!self.enabled) {
@@ -63,6 +89,10 @@ module.exports = MetaphorJs.lib.UrlParam = (function(){
             }
         },
 
+        /**
+         * Disable watcher
+         * @method
+         */
         disable: function() {
             var self = this;
             if (self.enabled) {
@@ -83,6 +113,12 @@ module.exports = MetaphorJs.lib.UrlParam = (function(){
             }
         },
 
+        /**
+         * Extract param value from url
+         * @method
+         * @param {string} url
+         * @returns {string}
+         */
         extractValue: function(url) {
             var self = this;
             if (self.regexp) {
@@ -94,16 +130,29 @@ module.exports = MetaphorJs.lib.UrlParam = (function(){
             }
         },
 
+        /**
+         * Get current param value
+         * @method
+         * @returns {string|null}
+         */
         getValue: function() {
             return this.value;
         },
 
+        /**
+         * Get previous value
+         * @method
+         * @returns {string|null}
+         */
         getPrev: function() {
             return this.prev;
         },
 
+        /**
+         * Destroy param watcher if there are no listeners
+         * @method
+         */
         destroyIfIdle: function() {
-
             var self = this;
             if (!self.$$observable.hasListener()) {
                 self.$destroy();
@@ -117,6 +166,13 @@ module.exports = MetaphorJs.lib.UrlParam = (function(){
 
     }, {
 
+        /**
+         * Get already initialized instance based on cfg.id
+         * @static
+         * @method
+         * @param {object} cfg See constructor
+         * @returns {MetaphorJs.lib.UrlParam}
+         */
         get: function(cfg) {
             if (cfg.id && cache[cfg.id]) {
                 return cache[cfg.id];
