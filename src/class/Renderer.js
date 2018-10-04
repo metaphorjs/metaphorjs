@@ -1,4 +1,4 @@
-
+require("../lib/Scope.js");
 require("metaphorjs-observable/src/lib/Observable.js");
 require("metaphorjs-promise/src/lib/Promise.js");
 
@@ -6,7 +6,6 @@ var nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
     isThenable = require("metaphorjs-shared/src/func/isThenable.js"),
-    Scope = require("../lib/Scope.js"),
     Directive = require("./Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     TextRenderer = require("./TextRenderer.js"),
@@ -146,7 +145,7 @@ module.exports = function(){
             self.parent         = parent;
             self.passedAttrs    = passedAttrs;
 
-            if (scope instanceof Scope) {
+            if (scope instanceof MetaphorJs.lib.Scope) {
                 scope.$on("destroy", self.$destroy, self);
             }
 

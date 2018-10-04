@@ -1,23 +1,60 @@
 require("metaphorjs-observable/src/lib/Observable.js");
+require("../func/dom/addListener.js");
+require("../func/dom/removeListener.js");
+require("../func/dom/getWidth.js");
+require("../func/dom/getHeight.js");
+require("../func/dom/getScrollTop.js");
+require("../func/dom/getScrollLeft.js");
 
-var cls = require("metaphorjs-class/src/cls.js"),
-    bind = require("metaphorjs-shared/src/func/bind.js"),
-    addListener = require("../func/event/addListener.js"),
-    removeListener = require("../func/event/removeListener.js"),
-    getWidth = require("../func/dom/getWidth.js"),
-    getHeight = require("../func/dom/getHeight.js"),
-    getScrollTop = require("../func/dom/getScrollTop.js"),
-    getScrollLeft = require("../func/dom/getScrollLeft.js"),
-    raf = require("metaphorjs-animate/src/func/raf.js");
+var bind = require("metaphorjs-shared/src/func/bind.js"),
+    extend = require("metaphorjs-shared/src/func/extend.js"),
+    raf = require("metaphorjs-animate/src/func/raf.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-
-module.exports = function(){
+/**
+ * Allows you to subscribe to a dom event and call handler
+ * no sooner than given interval;<br>
+ * Also you can subscribe to a specific change: like media query in css.
+ * @class MetaphorJs.lib.EventBuffer
+ */
+module.exports = MetaphorJs.lib.EventBuffer = function(){
 
     var bufferKey = function(event, interval) {
         return '$$' + event + "_" + interval;
     };
 
-    var EventBuffer = cls({
+    /**
+     * @method EventBuffer
+     * @constructor
+     * @param {DomNode} node 
+     * @param {string} event Dom event name
+     * @param {int} interval 
+     */
+    var EventBuffer = function(node, event, interval) {
+
+        var self = this,
+            key = bufferKey(event, interval);
+
+        if (node[key]) {
+            return node[key];
+        }
+
+        node[key] = self;
+
+        self.id = key;
+        self.breaks = {};
+        self.watchers = {};
+        self.node = node;
+        self.event = event;
+        self.observable = new MetaphorJs.lib.Observable;
+        self.interval = interval || 0;
+        self.handlerDelegate = bind(self.handler, self);
+        self.triggerDelegate = bind(self.trigger, self);
+
+        self.up();
+    };
+
+    extend(EventBuffer.prototype, {
 
         observable: null,
         handlerDelegate: null,
@@ -29,30 +66,6 @@ module.exports = function(){
         currentEvent: null,
         interval: null,
         id: null,
-
-        $init: function(node, event, interval) {
-
-            var self = this,
-                key = bufferKey(event, interval);
-
-            if (node[key]) {
-                return node[key];
-            }
-
-            node[key] = self;
-
-            self.id = key;
-            self.breaks = {};
-            self.watchers = {};
-            self.node = node;
-            self.event = event;
-            self.observable = new MetaphorJs.lib.Observable;
-            self.interval = interval || 0;
-            self.handlerDelegate = bind(self.handler, self);
-            self.triggerDelegate = bind(self.trigger, self);
-
-            self.up();
-        },
 
         handler: function(e) {
             var self = this;
@@ -89,22 +102,47 @@ module.exports = function(){
             }
         },
 
+        /**
+         * Shorthand for adding width watcher
+         * @method
+         */
         watchWidth: function() {
-            this.addWatcher("width", getWidth);
+            this.addWatcher("width", MetaphorJs.dom.getWidth);
         },
 
+        /**
+         * Shorthand for adding height watcher
+         * @method
+         */
         watchHeight: function() {
-            this.addWatcher("width", getHeight);
+            this.addWatcher("width", MetaphorJs.dom.getHeight);
         },
 
+        /**
+         * Shorthand for adding scrolltop watcher
+         * @method
+         */
         watchScrollTop: function() {
-            this.addWatcher("scrollTop", getScrollTop);
+            this.addWatcher("scrollTop", MetaphorJs.dom.getScrollTop);
         },
 
+        /**
+         * Shorthand for adding scrollleft watcher
+         * @method
+         */
         watchScrollLeft: function() {
-            this.addWatcher("scrollLeft", getScrollLeft);
+            this.addWatcher("scrollLeft", MetaphorJs.dom.getScrollLeft);
         },
 
+        /**
+         * Add your own watcher
+         * @method
+         * @param {string} name Watcher name
+         * @param {function} fn {
+         *  @param {DomNode} node
+         * }
+         * @param {object} context fn's context
+         */
         addWatcher: function(name, fn, context) {
             if (!this.watchers[name]) {
                 this.watchers[name] = {
@@ -116,6 +154,11 @@ module.exports = function(){
             }
         },
 
+        /**
+         * Remove watcher
+         * @method
+         * @param {string} name
+         */
         removeWatcher: function(name) {
             delete this.watchers[name];
         },
@@ -149,6 +192,20 @@ module.exports = function(){
                     (min <= highBreak && highBreak <= max);
         },
 
+
+        /**
+         * Add break listener (media query stop)
+         * @method
+         * @param {string} watcher Watcher name
+         * @param {int} breakValue 
+         * @param {function} fn {
+         *  Listener function
+         *  @param {Event} event Native dom event
+         * }
+         * @param {object} context fn's context
+         * @param {object} options Options are passed to 
+         * MetaphorJs.lib.Observable.on()
+         */
         onBreak: function(watcher, breakValue, fn, context, options) {
             var self = this,
                 name = watcher + "_" + breakValue;
@@ -167,6 +224,15 @@ module.exports = function(){
             self.breaks[name].on(fn, context, options);
         },
 
+        /**
+         * Unsubscribe from a break
+         * @method
+         * @param {string} watcher Watcher name
+         * @param {int} breakValue 
+         * @param {function} fn
+         * @param {object} context fn's context
+         * @param {boolean} destroy Destroy if there are no more listeners
+         */
         unBreak: function(watcher, breakValue, fn, context, destroy) {
             var self = this,
                 name = watcher + "_" + breakValue;
@@ -183,10 +249,26 @@ module.exports = function(){
             }
         },
 
+        /**
+         * Subscribe to dom event
+         * @method
+         * @param {function} fn {
+         *  @param {Event} event 
+         * }
+         * @param {object} context fn's context
+         * @param {object} options Observable's options
+         */
         on: function(fn, context, options) {
             this.observable.on(this.event, fn, context, options);
         },
 
+        /**
+         * Ubsubscribe from dom event
+         * @method
+         * @param {function} fn 
+         * @param {object} context fn's context
+         * @param {boolean} destroy Destroy if there are no more listeners
+         */
         un: function(fn, context, destroy) {
             var self = this;
             self.observable.un(self.event, fn, context);
@@ -220,16 +302,28 @@ module.exports = function(){
             self.next();
         },
 
+        /**
+         * Start listening to DOM event. (Called automatically from constructor)
+         * @method
+         */
         up: function() {
             var self = this;
-            addListener(self.node, self.event, self.handlerDelegate);
+            MetaphorJs.dom.addListener(self.node, self.event, self.handlerDelegate);
         },
 
+        /**
+         * Stop listening to DOM event
+         * @method
+         */
         down: function() {
             var self = this;
-            removeListener(self.node, self.event, self.handlerDelegate);
+            MetaphorJs.dom.removeListener(self.node, self.event, self.handlerDelegate);
         },
 
+        /**
+         * Destroy if there are no listeners
+         * @method
+         */
         destroyIfIdle: function() {
             if (this.observable && !this.observable.hasListener()) {
                 this.$destroy();
@@ -237,6 +331,9 @@ module.exports = function(){
             }
         },
 
+        /**
+         * @method
+         */
         $destroy: function() {
 
             var self = this;
@@ -247,20 +344,29 @@ module.exports = function(){
             self.observable.$destroy();
 
         }
-
-    }, {
-        get: function(node, event, interval) {
-            var key = bufferKey(event, interval);
-
-            if (node[key]) {
-                return node[key];
-            }
-
-            return node[key] = new EventBuffer(node, event, interval);
-        }
     });
 
-    return EventBuffer;
 
+    /**
+     * Get existing event buffer
+     * @method get
+     * @static
+     * @param {DomNode} node 
+     * @param {string} event 
+     * @param {int} interval 
+     * @returns {MetaphorJs.lib.EventBuffer}
+     */
+    EventBuffer.get = function(node, event, interval) {
+        var key = bufferKey(event, interval);
+
+        if (node[key]) {
+            return node[key];
+        }
+
+        return node[key] = new EventBuffer(node, event, interval);
+    
+    };
+
+    return EventBuffer;
 }();
 

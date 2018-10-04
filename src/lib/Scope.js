@@ -6,9 +6,19 @@ var Watchable = require("metaphorjs-watchable/src/lib/Watchable.js"),
     createFunc = require("metaphorjs-watchable/src/func/createFunc.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     undf = require("metaphorjs-shared/src/var/undf.js"),
-    async = require("metaphorjs-shared/src/func/async.js");
+    async = require("metaphorjs-shared/src/func/async.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-var Scope = function(cfg) {
+/**
+ * The scope object is what templates see while rendering
+ * @class MetaphorJs.lib.Scope
+ */
+/**
+ * @method Scope
+ * @constructor
+ * @param {object} cfg Whatever data should be visible in template
+ */
+MetaphorJs.lib.Scope = function(cfg) {
     var self    = this;
 
     self.$$observable    = new MetaphorJs.lib.Observable;
@@ -16,9 +26,27 @@ var Scope = function(cfg) {
     extend(self, cfg, true, false);
 
     if (self.$parent) {
+        /**
+         * @event check
+         * @param {array} changes 
+         */
         self.$parent.$on("check", self.$$onParentCheck, self);
+        /**
+         * @event changed
+         */
+        /**
+         * @event destroy
+         */
         self.$parent.$on("destroy", self.$$onParentDestroy, self);
+        /**
+         * @event freeze
+         * @param {MetaphorJs.lib.Scope}
+         */
         self.$parent.$on("freeze", self.$freeze, self);
+        /**
+         * @event unfreeze
+         * @param {MetaphorJs.lib.Scope}
+         */
         self.$parent.$on("unfreeze", self.$unfreeze, self);
     }
     else {
@@ -27,13 +55,33 @@ var Scope = function(cfg) {
     }
 };
 
-extend(Scope.prototype, {
+extend(MetaphorJs.lib.Scope.prototype, {
 
+    /**
+     * @property {MetaphorJs.App}
+     */
     $app: null,
+
+    /**
+     * @property {MetaphorJs.lib.Scope}
+     */
     $parent: null,
+
+    /**
+     * @property {MetaphorJs.lib.Scope}
+     */
     $root: null,
+
+    /**
+     * @property {boolean}
+     */
     $isRoot: false,
+
+    /**
+     * @property {int}
+     */
     $level: 0,
+
     $static: false,
     $$frozen: false,
     $$observable: null,
@@ -45,9 +93,15 @@ extend(Scope.prototype, {
 
     $$tmt: null,
 
+    /**
+     * Create child scope
+     * @method
+     * @param {object} data Child scope data
+     * @returns {MetaphorJs.lib.Scope}
+     */
     $new: function(data) {
         var self = this;
-        return new Scope(extend({}, data, {
+        return new MetaphorJs.lib.Scope(extend({}, data, {
             $parent: self,
             $root: self.$root,
             $app: self.$app,
@@ -56,14 +110,25 @@ extend(Scope.prototype, {
         }, true, false));
     },
 
-    $newIsolated: function() {
-        return new Scope({
+    /**
+     * Create child scope with no relation to this scope (no $parent)
+     * but with $app propery set.
+     * @method
+     * @param {object} data Child scope data
+     * @returns {MetaphorJs.lib.Scope}
+     */
+    $newIsolated: function(data) {
+        return new MetaphorJs.lib.Scope(extend({}, data, {
             $app: this.$app,
             $level: self.$level + 1,
             $static: this.$static
-        });
+        }, true, false));
     },
 
+    /**
+     * Freeze the scope. It will not perfom checks and trigger change events
+     * @method
+     */
     $freeze: function() {
         var self = this;
         if (!self.$$frozen) {
@@ -72,6 +137,10 @@ extend(Scope.prototype, {
         }
     },
 
+    /**
+     * Unfreeze scope. Resume checking for changes
+     * @method
+     */
     $unfreeze: function() {
         var self = this;
         if (self.$$frozen) {
@@ -80,22 +149,59 @@ extend(Scope.prototype, {
         }
     },
 
+    /**
+     * Subsrcibe to scope events
+     * @method 
+     * @param {string} event
+     * @param {function} fn
+     * @param {object} fnScope 
+     */
     $on: function(event, fn, fnScope) {
         return this.$$observable.on(event, fn, fnScope);
     },
 
+    /**
+     * Unsubsrcibe from scope events
+     * @method 
+     * @param {string} event
+     * @param {function} fn
+     * @param {object} fnScope 
+     */
     $un: function(event, fn, fnScope) {
         return this.$$observable.un(event, fn, fnScope);
     },
 
+    /**
+     * Create a watcher on js expression
+     * @method
+     * @param {string} expr js expression
+     * @param {function} fn {
+     *  @param {*} value
+     * }
+     * @param {object} fnScope
+     * @returns {MetaphorJs.lib.Watchable}
+     */
     $watch: function(expr, fn, fnScope) {
         return Watchable.create(this, expr, fn, fnScope);
     },
 
+    /**
+     * Stop watching js expression
+     * @method
+     * @param {string} expr js expression
+     * @param {function} fn 
+     * @param {object} fnScope
+     */
     $unwatch: function(expr, fn, fnScope) {
         return Watchable.unsubscribeAndDestroy(this, expr, fn, fnScope);
     },
 
+    /**
+     * Create function that returns value of js expression
+     * @method
+     * @param {string} expr js expression
+     * @returns {function}
+     */
     $createGetter: function(expr) {
         var self    = this,
             getter  = createGetter(expr);
@@ -104,6 +210,14 @@ extend(Scope.prototype, {
         };
     },
 
+    /**
+     * Create function that executes js expression and uses one argument
+     * @method
+     * @param {string} expr js expression
+     * @returns {function} {
+     *  @param {*} value
+     * }
+     */
     $createSetter: function(expr) {
         var self    = this,
             setter  = createSetter(expr);
@@ -112,6 +226,12 @@ extend(Scope.prototype, {
         };
     },
 
+    /**
+     * Create function that executes js expression
+     * @method
+     * @param {string} expr js expression
+     * @returns {function}
+     */
     $createFunc: function(expr) {
         var self    = this,
             fn      = createFunc(expr);
@@ -120,6 +240,12 @@ extend(Scope.prototype, {
         };
     },
 
+    /**
+     * Watch changes in page url. Triggers regular change event
+     * @method
+     * @param {string} prop Scope property name
+     * @param {string} param Url param name
+     */
     $watchHistory: function(prop, param) {
         var self = this;
         if (!self.$$historyWatchers[param]) {
@@ -128,6 +254,11 @@ extend(Scope.prototype, {
         }
     },
 
+    /**
+     * Stop watching changes in page url.
+     * @method
+     * @param {string} param Url param name
+     */
     $unwatchHistory: function(param) {
         var self = this;
         if (!self.$$historyWatchers[param]) {
@@ -136,6 +267,17 @@ extend(Scope.prototype, {
         }
     },
 
+    /**
+     * Create function that passes all arguments to <code>fn</code>,
+     * checks for changes in scope and returns fn's result.
+     * @method
+     * @param {function|string} fn {
+     *  If <code>fn</code> is string, <code>context[fn]</code> function
+     *  will be used and replaced by the wrapped version
+     * }
+     * @param {object} context 
+     * @returns {function}
+     */
     $wrap: function(fn, context) {
         var self = this,
             name;
@@ -158,6 +300,12 @@ extend(Scope.prototype, {
         return wrapper;
     },
 
+    /**
+     * Get value from this scope or one of its parents.
+     * @method
+     * @param {string} key
+     * @returns {*}
+     */
     $get: function(key) {
 
         var s = this;
@@ -172,6 +320,18 @@ extend(Scope.prototype, {
         return undf;
     },
 
+    /**
+     * Set scope value and check for changes.
+     * @method
+     * @param {string} key
+     * @param {*} value
+     */
+
+     /**
+     * Set scope value and check for changes.
+     * @method
+     * @param {object} obj Key:value pairs
+     */
     $set: function(key, value) {
         var self = this;
         if (typeof key === "string") {
@@ -203,6 +363,11 @@ extend(Scope.prototype, {
         }
     },
 
+    /**
+     * Schedule a delayed check
+     * @method
+     * @param {int} timeout
+     */
     $scheduleCheck: function(timeout) {
         var self = this;
         if (!self.$$tmt) {
@@ -210,6 +375,12 @@ extend(Scope.prototype, {
         }
     },
 
+    /**
+     * Check for changes and trigger change events.<br>
+     * If changes are found, the check will run again
+     * until no changes is found.
+     * @method
+     */
     $check: function() {
         var self = this,
             changes;
@@ -247,11 +418,10 @@ extend(Scope.prototype, {
         }
     },
 
-    $reset: function(resetVars) {
-        var self = this;
-        self.$$observable.trigger("reset");
-    },
-
+    /**
+     * Destroy scope
+     * @method
+     */
     $destroy: function() {
 
         var self    = this,
@@ -292,4 +462,4 @@ extend(Scope.prototype, {
 }, true, false);
 
 
-module.exports = Scope;
+module.exports = MetaphorJs.lib.Scope;

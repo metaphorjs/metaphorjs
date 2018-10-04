@@ -1,18 +1,16 @@
-
+require("../lib/Plural.js");
+require("../lib/Scope.js");
+require("metaphorjs-promise/src/lib/Promise.js");
+require("metaphorjs-shared/src/mixin/Provider.js");
+require("metaphorjs-observable/src/mixin/Observable.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
     getAttr = require("../func/dom/getAttr.js"),
-    Scope = require("../lib/Scope.js"),
     Renderer = require("../class/Renderer.js"),
-    Text = require("../lib/Text.js"),
     removeAttr = require("../func/dom/removeAttr.js");
-
-require("metaphorjs-promise/src/lib/Promise.js");
-require("metaphorjs-shared/src/mixin/Provider.js");
-require("metaphorjs-observable/src/mixin/Observable.js");
 
 
 module.exports = MetaphorJs.App = cls({
@@ -31,7 +29,9 @@ module.exports = MetaphorJs.App = cls({
     $init: function(node, data) {
 
         var self        = this,
-            scope       = data instanceof Scope ? data : new Scope(data),
+            scope       = data instanceof MetaphorJs.lib.Scope ? 
+                                data : 
+                                new MetaphorJs.lib.Scope(data),
             args;
 
         removeAttr(node, "mjs-app");
@@ -39,7 +39,7 @@ module.exports = MetaphorJs.App = cls({
         scope.$app      = self;
         self.$super();
 
-        self.lang       = new Text;
+        self.lang       = new MetaphorJs.lib.Plural;
 
         self.scope          = scope;
         self.cmpListeners   = {};

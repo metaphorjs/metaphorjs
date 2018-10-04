@@ -9,6 +9,7 @@ require("../func/dom/setAttr.js");
 require("metaphorjs-promise/src/lib/Promise.js");
 require("metaphorjs-observable/src/lib/Observable.js");
 require("metaphorjs-shared/src/lib/Cache.js");
+require("../lib/Scope.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
@@ -17,7 +18,6 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     Renderer = require("./Renderer.js"),
-    Scope = require("metaphorjs/src/lib/Scope.js"),
     ajax = require("metaphorjs-ajax/src/func/ajax.js"),
     cls = require("metaphorjs-class/src/cls.js");
     
@@ -207,7 +207,7 @@ module.exports = function() {
             self.id     = nextUid();
 
             if (!self.scope) {
-                self.scope = new Scope;
+                self.scope = new MetaphorJs.lib.Scope;
             }
 
             observable.createEvent("rendered-" + self.id, {

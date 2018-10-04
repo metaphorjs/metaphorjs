@@ -1,11 +1,16 @@
 
 
-var isPlainObject = require("../func/isPlainObject.js"),
-    isArray = require("../func/isArray.js"),
-    extend = require("../func/extend.js"),
-    undf = require("../var/undf.js");
+var isPlainObject = require("metaphorjs-shared/src/func/isPlainObject.js"),
+    isArray = require("metaphorjs-shared/src/func/isArray.js"),
+    extend = require("metaphorjs-shared/src/func/extend.js"),
+    undf = require("metaphorjs-shared/src/var/undf.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-module.exports = function(){
+/**
+ * A storage of plural definitions
+ * @class MetaphorJs.lib.Plural
+ */
+module.exports = MetaphorJs.lib.Plural = function(){
 
     var pluralDef       = function($number, $locale) {
 
@@ -177,7 +182,12 @@ module.exports = function(){
         };
 
 
-    var Text = function(locale) {
+    /**
+     * @method Plural
+     * @constructor
+     * @param {string} locale 2char locale id
+     */
+    var Plural = function(locale) {
 
         var self    = this;
         self.store  = {};
@@ -186,15 +196,36 @@ module.exports = function(){
         }
     };
 
-    extend(Text.prototype, {
+    extend(Plural.prototype, {
 
         store: null,
         locale: "en",
 
+        /**
+         * @method
+         * @param {string} locale 2char locale id
+         */
         setLocale: function(locale) {
             this.locale = locale;
         },
 
+        /**
+         * Set plural definition
+         * @method
+         * @param {string} key
+         * @param {array|object} value {
+         *  Array:<br>
+         *  0: Singular form<br>
+         *  1: Plural form<br>
+         *  2: Second plural form<br>
+         *  3: Third plural form<br>
+         *  Object:<br>
+         *  <int>: Respective number<br>
+         *  "one": Singular form for 1<br>
+         *  "negative": Negative values form<br>
+         *  "other": All other
+         * }
+         */
         set: function(key, value) {
             var store = this.store;
             if (store[key] === undf) {
@@ -202,16 +233,36 @@ module.exports = function(){
             }
         },
 
+        /**
+         * Load plural definitions
+         * @method
+         * @param {object} keys {
+         *  key: definition pairs; see set()
+         * }
+         */
         load: function(keys) {
             extend(this.store, keys, false, false);
         },
 
+        /**
+         * Get definition. If key is not found, will return -- key --
+         * @method
+         * @param {string} key
+         * @returns {array|object|string}
+         */
         get: function(key) {
-            var self    = this;
+            var self = this;
             return self.store[key] ||
                    (self === globalText ? '-- ' + key + ' --' : globalText.get(key));
         },
 
+        /**
+         * Get variant best suited for the number
+         * @method
+         * @param {string} key
+         * @param {int} number
+         * @returns {string}
+         */
         plural: function(key, number) {
             var self    = this,
                 strings = typeof key === "string" ? self.get(key): key,
@@ -239,20 +290,22 @@ module.exports = function(){
             }
         },
 
+        /**
+         * Destroy definitions store
+         * @method
+         */
         $destroy: function() {
-
             this.store = null;
-
         }
 
     }, true, false);
 
 
-    var globalText  = new Text;
+    var globalText  = new Plural;
 
-    Text.global     = function() {
+    Plural.global     = function() {
         return globalText;
     };
 
-    return Text;
+    return Plural;
 }();

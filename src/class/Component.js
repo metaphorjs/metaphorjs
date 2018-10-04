@@ -10,13 +10,13 @@ var cls = require("metaphorjs-class/src/cls.js"),
     isAttached = require("../func/dom/isAttached.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     Template = require("./Template.js"),
-    Scope = require("../lib/Scope.js"),
     Directive = require("./Directive.js"),
     addClass = require("../func/dom/addClass.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
     htmlTags = require("../var/htmlTags.js"),
     removeClass = require("../func/dom/removeClass.js");
 
+require("../lib/Scope.js");
 require("metaphorjs-observable/src/mixin/Observable.js");
 
 /**
@@ -135,7 +135,7 @@ module.exports = cls({
         extend(self, cfg, true, false);
 
         if (!self.scope) {
-            self.scope = new Scope;
+            self.scope = new MetaphorJs.lib.Scope;
         }
 
         if (self.as) {

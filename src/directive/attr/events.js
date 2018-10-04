@@ -1,6 +1,6 @@
+require("../../lib/EventHandler.js");
 
 var Directive = require("../../class/Directive.js"),
-    EventHandler = require("../../lib/EventHandler.js"),
     createFunc = require("metaphorjs-watchable/src/func/createFunc.js"),
     createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     extend = require("../../func/extend.js"),
@@ -53,7 +53,7 @@ var Directive = require("../../class/Directive.js"),
                     expr = cfg;
                 }
 
-                var eh = new EventHandler(scope, node, expr, name, {
+                var eh = new MetaphorJs.lib.EventHandler(scope, node, expr, name, {
                     preventDefault: true
                 });
 

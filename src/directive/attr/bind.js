@@ -1,9 +1,8 @@
-
+require("../../lib/Scope.js");
 
 var Directive = require("../../class/Directive.js"),
     isField = require("../../func/dom/isField.js"),
     TextRenderer = require("../../class/TextRenderer.js"),
-    Scope = require("../../lib/Scope.js"),
     Input = require("metaphorjs-input/src/lib/Input.js");
 
 Directive.registerAttribute("bind", 1000, Directive.$extend({
@@ -37,7 +36,7 @@ Directive.registerAttribute("bind", 1000, Directive.$extend({
             self.textRenderer.subscribe(self.onTextRendererChange, self);
             self.onTextRendererChange();
 
-            if (scope instanceof Scope) {
+            if (scope instanceof MetaphorJs.lib.Scope) {
                 scope.$on("destroy", self.onScopeDestroy, self);
             }
         }

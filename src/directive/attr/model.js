@@ -1,9 +1,9 @@
+require("../../lib/Scope.js");
 
 var async = require("metaphorjs-shared/src/func/async.js"),
     isIE = require("../../func/browser/isIE.js"),
     undf = require("../../var/undf.js"),
     Input = require("metaphorjs-input/src/lib/Input.js"),
-    Scope = require("../../lib/Scope.js"),
     isString = require("../../func/isString.js"),
     createFunc = require("metaphorjs-watchable/src/func/createFunc.js"),
     Directive = require("../../class/Directive.js");
@@ -74,7 +74,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             self.watcher.setValue(val);
 
             self.inProg = true;
-            if (scope instanceof Scope) {
+            if (scope instanceof MetaphorJs.lib.Scope) {
                 self.updateRoot ? scope.$root.$check() : scope.$check();
             }
             else {
