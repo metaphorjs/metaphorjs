@@ -13,7 +13,7 @@ var cls = require("metaphorjs-class/src/cls.js"),
     Directive = require("./Directive.js"),
     addClass = require("../func/dom/addClass.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
-    htmlTags = require("../var/htmlTags.js"),
+    htmlTags = require("../var/dom/htmlTags"),
     removeClass = require("../func/dom/removeClass.js");
 
 require("../lib/Scope.js");

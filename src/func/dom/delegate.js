@@ -5,7 +5,7 @@ require("metaphorjs/src/func/dom/is.js");
 require("./addListener.js");
 require("./normalizeEvent.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js")
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
  * Delegate dom event
