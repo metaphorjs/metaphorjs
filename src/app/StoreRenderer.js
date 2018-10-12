@@ -1,6 +1,7 @@
 
-var createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
-    createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
+require("../lib/Expression.js");
+
+var createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     bind = require("metaphorjs-shared/src/func/bind.js"),
     ListRenderer = require("metaphorjs/src/class/ListRenderer.js");
 
@@ -32,7 +33,7 @@ module.exports = ListRenderer.$extend({
         var self            = this,
             store;
 
-        self.store          = store = createGetter(self.model)(scope);
+        self.store          = store = MetaphorJs.lib.Expression.parse(self.model)(scope);
         self.watcher        = createWatchable(store, ".current", self.onChange, self, {filterLookup: filterLookup});
         
         if (self.trackByFn !== false) {

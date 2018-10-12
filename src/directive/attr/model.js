@@ -1,11 +1,11 @@
 require("../../lib/Scope.js");
+require("../../lib/Expression.js");
 
 var async = require("metaphorjs-shared/src/func/async.js"),
     isIE = require("../../func/browser/isIE.js"),
     undf = require("../../var/undf.js"),
     Input = require("metaphorjs-input/src/lib/Input.js"),
     isString = require("../../func/isString.js"),
-    createFunc = require("metaphorjs-watchable/src/func/createFunc.js"),
     Directive = require("../../class/Directive.js");
 
 Directive.registerAttribute("model", 1000, Directive.$extend({
@@ -31,7 +31,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         self.binding        = cfg.binding || "both";
 
         if (cfg.change) {
-            self.changeCb   = createFunc(cfg.change);
+            self.changeCb   = MetaphorJs.lib.Expression.parse(cfg.change);
         }
 
         self.input.onChange(self.onInputChange, self);

@@ -7,6 +7,13 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
 
 (function(){
 
+    /**
+     * @filter preloaded
+     * Will return true once image is loaded. It will trigger scope check 
+     * automatically once the image is loaded.
+     * @param {string} input Image url
+     * @returns {boolean} 
+     */
     var preloaded = MetaphorJs.filter.preloaded = function(val, scope) {
 
         if (!val) {

@@ -1,8 +1,8 @@
+require("../../lib/Expression.js");
 
 var Directive = require("../../class/Directive.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
-    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
-    createFunc = require("metaphorjs-watchable/src/func/createFunc.js");
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
     /*
         Update scope on given event.
@@ -27,10 +27,10 @@ Directive.registerAttribute("update-on", 1000,
         expr = '[' + parts.join(',') + ']';
     }
 
-    var cfgs = createGetter(expr)(scope);
+    var cfgs = MetaphorJs.lib.Expression.run(expr, scope);
 
     if (cfg.code) {
-        var code = createFunc(cfg.code);
+        var code = MetaphorJs.lib.Expression.parse(cfg.code);
         execFn = function() {
             scope.$event = toArray(arguments);
             code(scope);

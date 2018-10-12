@@ -5,7 +5,14 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
     isString = require("metaphorjs-shared/src/func/isString.js");
 
-MetaphorJs.filter.offset = function(input, scope, offset){
+/**
+ * @filter offset
+ * Get slice of array or string starting from offset
+ * @param {array|string} input
+ * @param {int} offset
+ * @returns {array|string}
+ */
+MetaphorJs.filter.offset = function(input, scope, offset) {
 
     var isS = isString(input);
 

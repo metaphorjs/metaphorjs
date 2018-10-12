@@ -4,6 +4,13 @@ require("./__init.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
+/**
+ * @filter linkify
+ * Transform text links into html links
+ * @param {string} input Text
+ * @param {string} target Optional target parameter
+ * @returns {string}
+ */
 MetaphorJs.filter.linkify = function(input, scope, target){
     target = target ? ' target="'+target+'"' : "";
     if (input) {

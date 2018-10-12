@@ -1,15 +1,15 @@
 require("../../func/dom/getAttr.js");
 require("../../func/dom/setAttr.js");
+require("../../lib/Expression.js");
 
 var Directive = require("../../class/Directive.js"),
-    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
 Directive.registerTag("tag", function directive_tag_tag(scope, node) {
 
     var expr = getAttr(node, "value"),
-        tag = createGetter(expr)(scope),
+        tag = MetaphorJs.lib.Expression.run(expr, scope),
         i, l, a;
 
     if (!tag) {

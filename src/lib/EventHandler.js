@@ -3,12 +3,12 @@ require("../func/dom/addListener.js");
 require("../func/dom/removeListener.js");
 require("../func/dom/normalizeEvent.js");
 require("./EventBuffer.js");
+require("./Expression.js");
 
 var undf = require("metaphorjs-shared/src/var/undf.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     async = require("metaphorjs-shared/src/func/async.js"),
     isPlainObject = require("metaphorjs-shared/src/func/isPlainObject.js"),
-    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
@@ -53,7 +53,7 @@ MetaphorJs.lib.EventHandler = function(scope, node, cfg, event, defaults) {
             cfg = extend({}, self.watcher.getLastResult(), true, true);
         }
         else {
-            var handler = createGetter(cfg);
+            var handler = MetaphorJs.lib.Expression.parse(cfg);
             cfg = {
                 handler: handler
             };
@@ -89,7 +89,7 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
         extend(cfg, defaults, false, false);
 
         if (cfg.handler && typeof cfg.handler === "string") {
-            cfg.handler = createGetter(cfg.handler);
+            cfg.handler = MetaphorJs.lib.Expression.parse(cfg.handler);
         }
 
         if (cfg.event) {

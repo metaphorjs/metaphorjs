@@ -1,8 +1,10 @@
 
+require("../lib/Expression.js");
+
 var cls = require("metaphorjs-class/src/cls.js"),
-    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     getAttr = require("../func/dom/getAttr.js"),
-    removeStyle = require("../func/dom/removeStyle.js");
+    removeStyle = require("../func/dom/removeStyle.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 module.exports = cls({
 
@@ -30,7 +32,7 @@ module.exports = cls({
             style   = node.style;
 
         if (size !== "attr") {
-            size    = createGetter(size)(scope);
+            size    = MetaphorJs.lib.Expression.parse(size)(scope);
         }
 
         var width   = size === "attr" ? parseInt(getAttr(node, "width"), 10) : size.width,

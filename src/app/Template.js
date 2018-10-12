@@ -10,12 +10,12 @@ require("metaphorjs-promise/src/lib/Promise.js");
 require("metaphorjs-observable/src/lib/Observable.js");
 require("metaphorjs-shared/src/lib/Cache.js");
 require("../lib/Scope.js");
+require("../lib/Expression.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
-    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     Renderer = require("./Renderer.js"),
     ajax = require("metaphorjs-ajax/src/func/ajax.js"),
@@ -80,7 +80,7 @@ module.exports = function() {
         processTextTemplate = function(tplId, tpl) {
             if (tpl.substr(0,5) === "<!--{") {
                 var inx = tpl.indexOf("-->"),
-                    opt = createGetter(tpl.substr(4, inx-4))({});
+                    opt = MetaphorJs.lib.Expression.parse(tpl.substr(4, inx-4))({});
 
                 options[tplId] = opt;
                 options[tplId].processed = true;

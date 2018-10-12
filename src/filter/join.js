@@ -6,6 +6,12 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js");
 
+/**
+ * @filter join
+ * @param {array} input
+ * @param {string} separator
+ * @returns {string}
+ */
 MetaphorJs.filter.join = function(input, scope, separator) {
 
     separator = separator || ", ";

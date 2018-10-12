@@ -6,6 +6,16 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js")
     undf = require("metaphorjs-shared/src/var/undf.js"),
     getRegExp = require("metaphorjs-shared/src/func/getRegExp.js");
 
+/**
+ * @filter split
+ * Split string into parts
+ * @param {string} input
+ * @param {string|RegExp} separator {
+ *  Can also pass "/regexp/" as a string 
+ * }
+ * @param {int} limit
+ * @returns {array}
+ */
 MetaphorJs.filter.split = function(input, scope, sep, limit) {
 
     limit       = limit || undf;
@@ -17,7 +27,7 @@ MetaphorJs.filter.split = function(input, scope, sep, limit) {
 
     input       = "" + input;
 
-    if (sep.substr(0,1) == '/' && sep.substr(sep.length - 1) == "/") {
+    if (sep.substr(0,1) === '/' && sep.substr(sep.length - 1) === "/") {
         sep = getRegExp(sep.substring(1, sep.length-1));
     }
 

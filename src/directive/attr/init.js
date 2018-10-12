@@ -1,8 +1,9 @@
 
+require("../../lib/Expression.js");
 
 var Directive = require("../../class/Directive.js"),
-    createFunc = require("metaphorjs-watchable/src/func/createFunc.js");
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 Directive.registerAttribute("init", 250, function(scope, node, expr){
-    createFunc(expr)(scope);
+    MetaphorJs.lib.Expression.run(expr, scope);
 });

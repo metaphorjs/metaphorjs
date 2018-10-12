@@ -1,4 +1,4 @@
-
+require("../../lib/Expression.js");
 
 
 var cls = require("metaphorjs-class/src/cls.js"),
@@ -11,7 +11,6 @@ var cls = require("metaphorjs-class/src/cls.js"),
     setAttr = require("../../func/dom/setAttr.js"),
     undf = require("../../var/undf.js"),
     isIE = require("../../func/browser/isIE.js"),
-    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     Directive = require("../../class/Directive.js");
 
 
@@ -41,10 +40,10 @@ Directive.registerAttribute("options", 100, Directive.$extend({
             node.removeChild(node.firstChild);
         }
 
-        self.defOption && setAttr(self.defOption, "default-option", "");
+        self.defOption && MetaphorJs.dom.setAttr(self.defOption, "default-option", "");
 
         try {
-            var value = createGetter(self.model)(scope);
+            var value = MetaphorJs.lib.Expression.parse(self.model)(scope);
             if (cls.isInstanceOf(value, "Store")) {
                 self.bindStore(value, "on");
             }
@@ -142,7 +141,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
             value       = getValue(node),
             def         = self.defOption,
             tmpScope    = self.scope.$new(),
-            msie        = isIE(),
+            msie        = MetaphorJs.dom.isIE(),
             parent, next,
             i, len;
 
@@ -202,7 +201,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         }
 
         this.model = model;
-        this.getterFn = createGetter(item);
+        this.getterFn = MetaphorJs.lib.Expression.parse(item);
     },
 
     onDestroy: function() {

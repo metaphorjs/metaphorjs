@@ -1,10 +1,10 @@
 require("../../lib/EventHandler.js");
+require("../../lib/Expression.js");
 
 var Directive = require("../../class/Directive.js"),
-    createFunc = require("metaphorjs-watchable/src/func/createFunc.js"),
-    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
     extend = require("../../func/extend.js"),
-    Input = require("metaphorjs-input/src/lib/Input.js");
+    Input = require("metaphorjs-input/src/lib/Input.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 (function(){
 
@@ -34,13 +34,13 @@ var Directive = require("../../class/Directive.js"),
                         }
                     }
                     if (cfg.preventDefault) {
-                        cfg.preventDefault = createGetter(cfg.preventDefault)(scope);
+                        cfg.preventDefault = MetaphorJs.lib.Expression.parse(cfg.preventDefault)(scope);
                     }
                     if (cfg.stopPropagation) {
-                        cfg.stopPropagation = createGetter(cfg.stopPropagation)(scope);
+                        cfg.stopPropagation = MetaphorJs.lib.Expression.parse(cfg.stopPropagation)(scope);
                     }
                     if (cfg.async) {
-                        cfg.async = createGetter(cfg.async)(scope);
+                        cfg.async = MetaphorJs.lib.Expression.parse(cfg.async)(scope);
                     }
                 }
 
@@ -68,7 +68,7 @@ var Directive = require("../../class/Directive.js"),
 
     Directive.registerAttribute("submit", 1000, function(scope, node, expr){
 
-        var fn = createFunc(expr),
+        var fn = MetaphorJs.lib.Expression.parse(expr),
             updateRoot = expr.indexOf('$root') + expr.indexOf('$parent') !== -2,
             handler = function(){
                 fn(scope);

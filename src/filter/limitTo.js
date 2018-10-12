@@ -5,7 +5,14 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
     isString = require("metaphorjs-shared/src/func/isString.js");
 
-MetaphorJs.filter.limitTo = function(input, scope, limit){
+/**
+ * @filter limitTo
+ * Limit array size or string length
+ * @param {array|string} input
+ * @param {int} limit
+ * @return {array|string}
+ */
+MetaphorJs.filter.limitTo = function(input, scope, limit) {
 
     var isS = isString(input);
 

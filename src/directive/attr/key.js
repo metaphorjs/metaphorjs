@@ -1,9 +1,10 @@
 
+require("../../lib/Expression.js");
+
 var Directive = require("../../class/Directive.js"),
-    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
-    createFunc = require("metaphorjs-watchable/src/func/createFunc.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
-    Input = require("metaphorjs-input/src/lib/Input.js");
+    Input = require("metaphorjs-input/src/lib/Input.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 (function(){
 
@@ -59,7 +60,7 @@ Directive.registerAttribute("key", 1000, function(scope, node, expr, renderer, a
         expr = '[' + parts.join(',') + ']';
     }
 
-    var allCfg = createGetter(expr)(scope),
+    var allCfg = MetaphorJs.lib.Expression.parse(expr)(scope),
         uninstall = [];
 
     if (!isArray(allCfg)) {
@@ -76,7 +77,7 @@ Directive.registerAttribute("key", 1000, function(scope, node, expr, renderer, a
         delete cfg.context;
 
         if (typeof handler === "string") {
-            h = createFunc(handler);
+            h = MetaphorJs.lib.Expression.parse(handler);
             handler = function(){
                 return function(e) {
                     scope.$event = e;

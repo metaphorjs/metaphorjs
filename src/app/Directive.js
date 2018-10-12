@@ -1,7 +1,7 @@
 
+require("../lib/Expression.js");
 
 var createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
-    createSetter = require("metaphorjs-watchable/src/func/createSetter.js"),
     undf = require("metaphorjs-shared/src/var/undf.js"),
     isString = require("metaphorjs-shared/src/func/isString.js"),
     cls = require("metaphorjs-class/src/cls.js"),
@@ -75,7 +75,7 @@ module.exports = (function() {
             self.watcher    = createWatchable(scope, expr, self.onChange, self, {filterLookup: filterLookup});
 
             if (self.saveState) {
-                self.stateFn = createSetter(self.saveState);
+                self.stateFn = MetaphorJs.lib.Expression.parse(self.saveState);
             }
 
             if (self.autoOnChange && (val = self.watcher.getLastResult()) !== undf) {

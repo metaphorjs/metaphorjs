@@ -1,23 +1,37 @@
 
 require("./__init.js");
+require("../lib/Expression.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
-    ns = require("metaphorjs-namespace/src/var/ns.js"),
-    createGetter = require("metaphorjs-watchable/src/func/createGetter.js");
+    ns = require("metaphorjs-namespace/src/var/ns.js");
 
-module.exports = MetaphorJs.filter.map = function(array, scope, fnName) {
+/**
+ * @filter map
+ * @param {array} input
+ * @param {string} fnName {
+ *  Either a namespace entry, or global function name or 
+ *  expression to try against current scope. In any case
+ *  it must resolve into a function that accepts 
+ *  mapped item as first argument.
+ *  @param {*} item
+ *  @returns {*}
+ * }
+ * @returns {array} new array
+ */
+MetaphorJs.filter.map = function(array, scope, fnName) {
 
     var i, l,
+        res = [],
         fn = ns.get(fnName, true) ||
                 window[fnName] ||
-                createGetter(fnName)(scope);
+                MetaphorJs.lib.Expression.run(fnName, scope);
     array = array || [];
 
     if (fn) {
         for (i = 0, l = array.length; i < l; i++) {
-            array[i] = fn(array[i]);
+            res.push(fn(array[i]));
         }
     }
 
-    return array;
+    return res;
 };

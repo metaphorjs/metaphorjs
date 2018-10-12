@@ -1,9 +1,7 @@
 require("metaphorjs-observable/src/lib/Observable.js");
+require("./Expression.js");
 
 var Watchable = require("metaphorjs-watchable/src/lib/Watchable.js"),
-    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
-    createSetter = require("metaphorjs-watchable/src/func/createSetter.js"),
-    createFunc = require("metaphorjs-watchable/src/func/createFunc.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     undf = require("metaphorjs-shared/src/var/undf.js"),
     async = require("metaphorjs-shared/src/func/async.js"),
@@ -204,7 +202,7 @@ extend(MetaphorJs.lib.Scope.prototype, {
      */
     $createGetter: function(expr) {
         var self    = this,
-            getter  = createGetter(expr);
+            getter  = MetaphorJs.lib.Expression.parse(expr);
         return function() {
             return getter(self);
         };
@@ -220,7 +218,7 @@ extend(MetaphorJs.lib.Scope.prototype, {
      */
     $createSetter: function(expr) {
         var self    = this,
-            setter  = createSetter(expr);
+            setter  = MetaphorJs.lib.Expression.parse(expr);
         return function(value) {
             return setter(value, self);
         };
@@ -234,7 +232,7 @@ extend(MetaphorJs.lib.Scope.prototype, {
      */
     $createFunc: function(expr) {
         var self    = this,
-            fn      = createFunc(expr);
+            fn      = MetaphorJs.lib.Expression.parse(expr);
         return function() {
             return fn(self);
         };
