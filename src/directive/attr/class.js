@@ -1,29 +1,24 @@
 
+require("metaphorjs-animate/src/animate/animate.js");
+require("metaphorjs-animate/src/animate/stop.js");
+require("../../func/dom/addClass.js");
+require("../../func/dom/removeClass.js");
+require("../../func/dom/hasClass.js");
 
-var Directive = require("../../class/Directive.js"),
-    animate = require("metaphorjs-animate/src/func/animate.js"),
-    stopAnimation = require("metaphorjs-animate/src/func/stopAnimation.js"),
-    addClass = require("../../func/dom/addClass.js"),
-    removeClass = require("../../func/dom/removeClass.js"),
-    hasClass = require("../../func/dom/hasClass.js"),
-    isArray = require("../../func/isArray.js"),
-    isString = require("../../func/isString.js"),
-    undf = require("../../var/undf.js");
-
-
+var Directive = require("../../app/Directive.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+    isArray = require("metaphorjs-shared/src/func/isArray.js"),
+    isString = require("metaphorjs-shared/src/func/isString.js"),
+    undf = require("metaphorjs-shared/src/var/undf.js");
 
 /*
-
 value is always an object in the end
 {class: "condition", class: "condition"}
 
 array turns into _: []
 {_: [class, class]}
 (which is then turned into {class: true, class: true}
-
-
 DO NOT put class="{}" when using class.name="{}"
-
  */
 
 
@@ -34,33 +29,33 @@ DO NOT put class="{}" when using class.name="{}"
         var has;
 
         if (toggle !== null) {
-            if (toggle === hasClass(node, cls)) {
+            if (toggle === MetaphorJs.dom.hasClass(node, cls)) {
                 return;
             }
             has = !toggle;
         }
         else {
-            has = hasClass(node, cls);
+            has = MetaphorJs.dom.hasClass(node, cls);
         }
 
         if (has) {
             if (doAnim) {
-                animate(node, [cls + "-remove"]).done(function(){
-                    removeClass(node, cls);
+                MetaphorJs.animate.animate(node, [cls + "-remove"]).done(function(){
+                    MetaphorJs.dom.removeClass(node, cls);
                 });
             }
             else {
-                removeClass(node, cls);
+                MetaphorJs.dom.removeClass(node, cls);
             }
         }
         else {
             if (doAnim) {
-                animate(node, [cls + "-add"]).done(function(){
-                    addClass(node, cls);
+                MetaphorJs.animate.animate(node, [cls + "-add"]).done(function(){
+                    MetaphorJs.dom.addClass(node, cls);
                 });
             }
             else {
-                addClass(node, cls);
+                MetaphorJs.dom.addClass(node, cls);
             }
         }
     };
@@ -95,9 +90,8 @@ DO NOT put class="{}" when using class.name="{}"
         return list;
     };
 
-    Directive.registerAttribute("class", 1000, Directive.$extend({
+    Directive.Class = Directive.registerAttribute("class", 1000, Directive.$extend({
 
-        $class: "MetaphorJs.Directive.attr.Class",
         initial: true,
         animate: false,
 
@@ -136,7 +130,7 @@ DO NOT put class="{}" when using class.name="{}"
                 prev    = flatten(self.watcher.getPrevValue()),
                 i;
 
-            stopAnimation(node);
+            MetaphorJs.animate.stop(node);
 
             for (i in prev) {
                 if (prev.hasOwnProperty(i)) {

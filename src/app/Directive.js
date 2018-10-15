@@ -138,7 +138,7 @@ module.exports = (function() {
     }, {
 
         getDirective: function(type, name) {
-            return ns.get("directive." + type +"."+ name, true);
+            return ns.get("MetaphorJs.directive." + type +"."+ name, true);
         },
 
         registerAttribute: function registerAttribute(name, priority, handler) {

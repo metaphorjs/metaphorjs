@@ -1,7 +1,9 @@
 
+require("../../func/app/resolve.js");
+
 var Directive = require("../../class/Directive.js"),
     extend = require("../../func/extend.js"),
-    resolveComponent = require("../../func/resolveComponent.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js");
 
 (function(){
@@ -28,7 +30,7 @@ var Directive = require("../../class/Directive.js"),
             destroyScope: !sameScope
         }, nodecfg, false, false);
 
-        resolveComponent(cmpName, cfg, newScope, node, [cfg])
+        MetaphorJs.app.resolve(cmpName, cfg, newScope, node, [cfg])
             .done(function(cmp){
                 if (nodecfg.ref) {
                     scope[nodecfg.ref] = cmp;

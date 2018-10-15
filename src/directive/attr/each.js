@@ -1,10 +1,10 @@
 
-
+require("../../func/dom/getAttr.js");
+require("../../class/ListRenderer.js");
 
 var Directive = require("../../class/Directive.js"),
     evaluate = require("metaphorjs-watchable/src/func/evaluate.js"),
-    getAttr = require("../../func/dom/getAttr.js"),
-    ListRenderer = require("../../class/ListRenderer.js");
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
 (function(){
@@ -20,7 +20,7 @@ var Directive = require("../../class/Directive.js"),
 
         for (; i < l; i++) {
             if (obj instanceof types[i][0]) {
-                return types[i][1]
+                return types[i][1];
             }
         }
 
@@ -30,9 +30,9 @@ var Directive = require("../../class/Directive.js"),
     var eachDirective = function eachDirective(scope, node, expr, parentRenderer, attr) {
         var tagMode = node.nodeName.toLowerCase() === "mjs-each";
         if (tagMode) {
-            expr = getAttr(node, "value");
+            expr = MetaphorJs.dom.getAttr(node, "value");
         }
-        var handler = detectModelType(expr, scope) || ListRenderer;
+        var handler = detectModelType(expr, scope) || MetaphorJs.app.ListRenderer;
         return new handler(scope, node, expr, parentRenderer, attr);
     };
 
@@ -44,7 +44,7 @@ var Directive = require("../../class/Directive.js"),
     eachDirective.$stopRenderer = true;
     eachDirective.$registerBy = "id";
 
-    eachDirective.registerType(Array, ListRenderer);
+    eachDirective.registerType(Array, MetaphorJs.app.ListRenderer);
 
     Directive.registerAttribute("each", 100, eachDirective);
     Directive.registerTag("each", eachDirective);
