@@ -9,6 +9,7 @@ describe("MetaphorJs.lib.MutartionObserver", function() {
     var dataObj = {
         a: 1,
         b: 2,
+        arr: [1, 2, 3],
         c: function() {
             return this.a + this.b;
         },
@@ -33,19 +34,19 @@ describe("MetaphorJs.lib.MutartionObserver", function() {
             prevValue = prev;
         });
 
-        assert.equal("attr", observer.type);
-        assert.equal(1, observer.getValue());
-        assert.equal(false, observer.check());
+        assert.strictEqual("attr", observer.type);
+        assert.strictEqual(1, observer.getValue());
+        assert.strictEqual(false, observer.check());
     
         dataObj.a = 2;
 
-        assert.equal(true, observer.check());
-        assert.equal(true, ok);
-        assert.equal(2, currentValue);
-        assert.equal(1, prevValue);
+        assert.strictEqual(true, observer.check());
+        assert.strictEqual(true, ok);
+        assert.strictEqual(2, currentValue);
+        assert.strictEqual(1, prevValue);
 
         var second = MetaphorJs.lib.MutationObserver.get(dataObj, "this.a");
-        assert.equal(true, observer === second);
+        assert.strictEqual(true, observer === second);
     });
 
     it("should work as expression watcher", function(){
@@ -63,15 +64,15 @@ describe("MetaphorJs.lib.MutartionObserver", function() {
             prevValue = prev;
         });
 
-        assert.equal(4, observer.getValue());
-        assert.equal("expr", observer.type);
+        assert.strictEqual(4, observer.getValue());
+        assert.strictEqual("expr", observer.type);
 
         dataObj.a = 3;
 
-        assert.equal(true, observer.check());
-        assert.equal(true, ok);
-        assert.equal(6, currentValue);
-        assert.equal(4, prevValue);
+        assert.strictEqual(true, observer.check());
+        assert.strictEqual(true, ok);
+        assert.strictEqual(6, currentValue);
+        assert.strictEqual(4, prevValue);
     });
 
     it("should work with pipes", function() {
@@ -89,14 +90,14 @@ describe("MetaphorJs.lib.MutartionObserver", function() {
             prevValue = prev;
         });
 
-        assert.equal(5, observer.getValue());
-        assert.equal("expr", observer.type);
+        assert.strictEqual(5, observer.getValue());
+        assert.strictEqual("expr", observer.type);
 
         observer.setValue(2);
-        assert.equal(true, observer.check());
-        assert.equal(true, ok);
-        assert.equal(6, currentValue);
-        assert.equal(5, prevValue);
+        assert.strictEqual(true, observer.check());
+        assert.strictEqual(true, ok);
+        assert.strictEqual(6, currentValue);
+        assert.strictEqual(5, prevValue);
     });
 
     it("should react to pipe param change", function() {
@@ -117,16 +118,32 @@ describe("MetaphorJs.lib.MutartionObserver", function() {
             prevValue = prev;
         });
 
-        assert.equal(prev, observer.getValue());
-        assert.equal("expr", observer.type);
-        assert.equal(false, observer.check());
+        assert.strictEqual(prev, observer.getValue());
+        assert.strictEqual("expr", observer.type);
+        assert.strictEqual(false, observer.check());
 
         dataObj.b++;
 
-        assert.equal(true, observer.check());
-        assert.equal(true, ok);
-        assert.equal(dataObj.pipe2(a, null, dataObj.b), currentValue);
-        assert.equal(prev, prevValue);
+        assert.strictEqual(true, observer.check());
+        assert.strictEqual(true, ok);
+        assert.strictEqual(dataObj.pipe2(a, null, dataObj.b), currentValue);
+        assert.strictEqual(prev, prevValue);
+    });
+
+    it("should work with arrays", function() {
+        var observer = MetaphorJs.lib.MutationObserver.get(dataObj, "this.arr"),
+            currentValue,
+            prevValue;
+
+        observer.subscribe(function(curr, prev){
+            currentValue = curr;
+            prevValue = prev;
+        });
+
+        dataObj.arr.push(4);
+
+        assert.strictEqual(true, observer.check());
+        assert.deepStrictEqual([1,2,3,4], currentValue);
     });
 
 });

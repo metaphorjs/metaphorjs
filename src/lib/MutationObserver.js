@@ -12,6 +12,9 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
 require("metaphorjs-observable/src/lib/Observable.js");
 require("./Expression.js");
 
+/**
+ * @class MetaphorJs.lib.MutationObserver
+ */
 module.exports = MetaphorJs.lib.MutationObserver = (function(){
 
     var observable = new MetaphorJs.lib.Observable;
@@ -56,6 +59,7 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
         self.currentValue = null;
         self.prevValue = null;
         self.setterFn = null;
+        self.getterFn = null;
 
         if (isFunction(expr)) {
             self.getterFn = expr;
@@ -113,7 +117,7 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
             dataObj.$$mo[expr] = self;
         }
 
-        self.currentValue = self.getterFn(dataObj);
+        self.currentValue = copy(self.getterFn(dataObj));
         self.type = type;
     };
 
@@ -127,6 +131,11 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
             return this.staticValue;
         },
 
+        /**
+         * Check for changes
+         * @method
+         * @returns {boolean} true for changes
+         */
         check: function() {
 
             var self = this,
@@ -147,34 +156,88 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
             return this.getterFn(this.dataObj);
         },
 
+        /**
+         * Get current value of expression
+         * @method
+         * @returns {*}
+         */
         getValue: function() {
             return this.currentValue;
         },
 
+        /**
+         * If the expression uses input pipes, use this method to trigger them
+         * @method
+         * @param {*} newValue 
+         * @returns {*} resulting value
+         */
         setValue: function(newValue) {  
-            this.setterFn(this.dataObj, newValue);
+            return this.setterFn(this.dataObj, newValue);
         },
 
+        /**
+         * Get previous value
+         * @method
+         * @returns {*}
+         */
         getPrevValue: function() {
             return this.prevValue;
         },
 
+        /**
+         * 
+         * @param {function} fn {
+         *  @param {*} currentValue
+         *  @param {*} prevValue
+         * }
+         * @param {object} context fn's context
+         * @param {object} opt See MetaphorJs.lib.Observable.on()
+         * @returns {MetaphorJs.lib.MutationObserver} self
+         */
         subscribe: function(fn, context, opt) {
             opt = opt || {};
             opt.allowDupes = true;
             observable.on(this.id, fn, context, opt);
+            return this;
         },
 
+        /**
+         * Unsubscribe from changes event
+         * @param {function} fn 
+         * @param {object} context 
+         * @returns {MetaphorJs.lib.MutationObserver} self
+         */
         unsubscribe: function(fn, context) {
             observable.un(this.id, fn, context);
+            return this;
         },
 
-        $destroy: function() {
-
+        /**
+         * Destroy observer
+         * @param {boolean} ifUnobserved 
+         * @returns {boolean} true for destroyed
+         */
+        $destroy: function(ifUnobserved) {
+            var self = this;
+            if (ifUnobserved && observable.hasListeners(self.id)) {
+                return false;
+            }
+            observable.destroyEvent(self.id);
+            for (var key in self) {
+                if (self.hasOwnProperty(key)) {
+                    self[key] = null;
+                }
+            }
+            return true;
         }
     });
 
-    MutationObserver.get = function(dataObj, expr, listener, context) {
+    /**
+     * See the constructor parameters
+     * @static
+     * @method
+     */
+    MutationObserver.get = function(dataObj, expr, listener, context, opt) {
 
         expr = expr.trim();
 
@@ -185,11 +248,37 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
             }
             return mo;
         }
-        return new MutationObserver(dataObj, expr, listener, context);
+
+        return new MutationObserver(dataObj, expr, listener, context, opt);
     };
 
-    MutationObserver.$destroy = function(dataObj, expr) {
+    /**
+     * Destroy an observer
+     * @static
+     * @method
+     * @param {object} dataObj
+     * @param {string|null} expr If null, destroy all observers on this object
+     * @param {boolean} ifUnobserved Destroy only if unobserved
+     */
+    MutationObserver.$destroy = function(dataObj, expr, ifUnobserved) {
 
+        var key, all = true;
+
+        if (dataObj && dataObj.$$mo) {
+            for (key in dataObj.$$mo) {
+                if (dataObj.$$mo.hasOwnProperty(key) && 
+                    (!expr || key === expr)) {
+                    if (dataObj.$$mo[key].$destroy(ifUnobserved)) {
+                        delete dataObj.$$mo[key];
+                    }
+                    else all = false;
+                }
+            }
+
+            if (all) {
+                delete dataObj.$$mo;
+            }
+        }
     }
 
     return MutationObserver;
