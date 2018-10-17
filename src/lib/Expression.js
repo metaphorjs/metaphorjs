@@ -3,6 +3,7 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     error = require("metaphorjs-shared/src/func/error.js"),
     isFunction = require("metaphorjs-shared/src/func/isFunction.js"),
     isString = require("metaphorjs-shared/src/func/isString.js"),
+    isArray = require("metaphorjs-shared/src/func/isArray.js"),
     emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
     split = require("metaphorjs-shared/src/func/split.js");
 
@@ -15,7 +16,362 @@ module.exports = MetaphorJs.lib.Expression = (function() {
         fnBodyStart     = 'try {',
         fnBodyEnd       = ';} catch (thrownError) { /*DEBUG-START*/console.log(thrownError);/*DEBUG-END*/return undefined; }',    
         cache           = {},
-        filterSources   = [];
+        filterSources   = [],
+
+        isAtom          = function(expr) {
+            return !expr.trim().match(/[^a-zA-Z0-9_$\.]/)
+        },
+
+        isProperty      = function(expr) {
+            var match = expr.match(/^this\.([a-zA-Z0-9_$]+)$/);
+            return match ? match[1] : false;
+        },
+
+        isStatic        = function(val) {
+
+            if (!isString(val)) {
+                return {
+                    value: val
+                };
+            }
+
+            var first   = val.substr(0, 1),
+                last    = val.length - 1,
+                num;
+
+            if (first === '"' || first === "'") {
+                if (val.indexOf(first, 1) === last) {
+                    return {value: val.substring(1, last)};
+                }
+            }
+            else if (val === 'true' || val === 'false') {
+                return {value: val === 'true'};
+            }
+            else if ((num = parseFloat(val)) == val) {
+                return {value: num};
+            }
+
+            return false;
+        },
+
+        getFilter       = function(name, filters) {
+            if (filters) {
+                if (isArray(filters)) {
+                    filters = filters.concat(filterSources);
+                }
+                else if (filters.hasOwnProperty(name)) {
+                    return filters[name];
+                }
+            }
+            else {
+                filters = filterSources;
+            }
+            var i, l = filterSources.length;
+            for (i = 0; i < l; i++) {
+                if (filterSources[i] && filterSources[i].hasOwnProperty(name)) {
+                    return filterSources[i][name];
+                }
+            }
+
+            return null;
+        },
+
+
+        expression      = function(expr, opt) {
+            opt = opt || {};
+
+            if (typeof opt === "string" && opt === "setter") {
+                opt = {
+                    setter: true
+                };
+            }
+
+            var asCode = opt.asCode === true,
+                isSetter = opt.setter === true,
+                static,
+                cacheKey;
+
+            if (static = isStatic(expr)) {
+
+                cacheKey = expr + "_static";
+
+                if (cache[cacheKey]) {
+                    return cache[cacheKey];
+                }
+
+                if (isSetter) {
+                    throw new Error("Static value cannot work as setter");
+                }
+
+                if (opt.asCode) {
+                    return "".concat(
+                        "function() {",
+                            "return ", expr,
+                        "}"
+                    );
+                }
+
+                return cache[cacheKey] = function() {
+                    return static.value;
+                };
+            }
+            try {
+
+                var atom = isAtom(expr);
+                cacheKey = expr + "_" + (isSetter ? "setter" : "getter");
+
+                if (!atom && isSetter) {
+                    throw new Error("Complex expression cannot work as setter");
+                }
+
+                if (!cache[cacheKey] || asCode) {
+
+                    var code = expr.replace(REG_REPLACE_EXPR, REG_REPLACER),
+                        body = 
+                            !atom || !isSetter ? 
+                                "".concat(
+                                    fnBodyStart, 
+                                    'return ', code, 
+                                    fnBodyEnd
+                                ) : 
+                                "".concat(
+                                    fnBodyStart, 
+                                    'return ', code, ' = $$$$', 
+                                    fnBodyEnd
+                                );
+
+                    if (asCode) {
+                        return "function(____, $$$$) {" + body + "}";
+                    }
+                    else {
+                        cache[cacheKey] = new Function(
+                            '____',
+                            '$$$$',
+                            body
+                        );
+                    }
+                }
+                return cache[cacheKey];
+            }
+            catch (thrownError) {
+                error(thrownError);
+                return emptyFn;
+            }
+        },
+
+        preparePipe     = function(pipe, filters) {
+
+            var name    = pipe.shift(),
+                fn      = isFunction(name) ? name : null,
+                params  = [],
+                fchar   = fn ? null : name.substr(0,1),
+                opt     = {
+                    neg: false,
+                    dblneg: false,
+                    undeterm: false,
+                    name: name
+                },
+                i, l;
+
+            if (!fn) {
+                if (name.substr(0, 2) === "!!") {
+                    name = name.substr(2);
+                    opt.dblneg = true;
+                }
+                else {
+                    if (fchar === "!") {
+                        name = name.substr(1);
+                        opt.neg = true;
+                    }
+                    else if (fchar === "?") {
+                        name = name.substr(1);
+                        opt.undeterm = true;
+                    }
+                }
+
+                opt.name = name;
+            }
+            else {
+                opt.name = fn.name;
+            }
+
+            !fn && (fn = getFilter(name, filters));
+
+            if (isFunction(fn)) {
+
+                for (i = -1, l = pipe.length; ++i < l;
+                    params.push(expressionFn(pipe[i]))) {}
+
+                if (fn.$undeterministic) {
+                    opt.undeterm = true;
+                }
+
+                return {
+                    fn: fn, 
+                    origArgs: pipe, 
+                    params: params, 
+                    opt: opt
+                };
+            }
+
+            return null;
+        },
+
+        parsePipes      = function(expr, isInput, filters) {
+
+            var separator   = isInput ? ">>" : "|";
+
+            if (expr.indexOf(separator) === -1) {
+                return expr;
+            }
+
+            var parts   = split(expr, separator),
+                ret     = isInput ? parts.pop() : parts.shift(),
+                pipes   = [],
+                pipe,
+                i, l;
+
+            for(i = 0, l = parts.length; i < l; i++) {
+                pipe = split(parts[i].trim(), ':');
+                pipe = preparePipe(pipe, filters);
+                pipe && pipes.push(pipe);
+            }
+
+            return {
+                expr: ret.trim(),
+                pipes: pipes
+            }
+        },
+
+
+        deconstructor       = function(expr, opt) {
+
+            opt = opt || {};
+
+            var isNormalPipe = expr.indexOf("|") !== -1,
+                isInputPipe = expr.indexOf(">>") !== -1,
+                res,
+                struct = {
+                    fn: null,
+                    getterFn: null,
+                    setterFn: null,
+                    expr: expr,
+                    pipes: [],
+                    inputPipes: []
+                };
+
+            if (!isNormalPipe && !isInputPipe) {
+                struct.fn = expressionFn(struct.expr, opt);
+                return struct;
+            }
+
+            if (isNormalPipe) {
+                res = parsePipes(struct.expr, false, opt.filters);
+                struct.expr = res.expr;
+                struct.pipes = res.pipes;
+            }
+
+            if (isInputPipe) {
+                res = parsePipes(struct.expr, true, opt.filters);
+                struct.expr = res.expr;
+                struct.inputPipes = res.pipes;
+                opt.setter = true;
+            }
+
+            struct.fn = expressionFn(struct.expr, opt);
+
+            if (isInputPipe) {
+                opt.setter = false;
+                struct.getterFn = expressionFn(struct.expr, opt);
+                struct.setterFn = struct.fn;
+            }
+            else {
+                struct.getterFn = struct.fn;
+            }
+
+            return struct;
+        },
+
+        runThroughPipes     = function(val, pipes, dataObj) {
+
+            var j,
+                args,
+                pipe,
+
+                jlen    = pipes.length,
+                z, zl;
+
+            for (j = 0; j < jlen; j++) {
+                pipe    = pipes[j];
+                args    = [];
+                for (z = -1, zl = pipe.params.length; ++z < zl;
+                        args.push(pipe.params[z](dataObj))){}
+
+                args.unshift(dataObj);
+                args.unshift(val);
+
+                val     = pipe.fn.apply(dataObj, args);
+                
+                if (pipe.opt.neg) {
+                    val = !val;
+                }
+                else if (pipe.opt.dblneg) {
+                    val = !!val;
+                }
+            }
+        
+            return val;
+        },
+
+
+        constructor         = function(struct, opt) {
+
+            if (struct.pipes.length === 0 && struct.inputPipes.length === 0) {
+                return struct.fn;
+            }
+
+            opt = opt || {};
+
+            return function(dataObj, inputVal) {
+
+                var val;
+
+                if (struct.inputPipes.length && !opt.getterOnly) {
+                    val = inputVal;
+                    val = runThroughPipes(val, struct.inputPipes, dataObj);
+                    struct.setterFn(dataObj, val);
+                }
+
+                if (struct.pipes && !opt.setterOnly) {
+                    if (opt.getterOnly) {
+                        val = struct.getterFn(dataObj);
+                    }
+                    else if (!struct.inputPipes.length) {
+                        val = struct.fn(dataObj);
+                    }
+                    val = runThroughPipes(val, struct.pipes, dataObj);
+                }
+
+                return val;
+            };
+        },
+
+        expressionFn,
+        parserFn,
+        deconstructorFn,
+        constructorFn,
+
+        parser      = function(expr, opt) {
+            return constructorFn(deconstructorFn(expr, opt), opt);
+        },
+
+        reset       = function() {
+            parserFn = parser;
+            deconstructorFn = deconstructor;
+            constructorFn = constructor;
+            expressionFn = expression;
+        };
+
 
     if (typeof window !== "undefined") {
         filterSources.push(window);
@@ -24,302 +380,6 @@ module.exports = MetaphorJs.lib.Expression = (function() {
         filterSources.push(MetaphorJs.filter)
     }
 
-    var isAtom = function(expr) {
-        return !expr.trim().match(/[^a-zA-Z0-9_$\.]/)
-    };
-
-    var isStatic    = function(val) {
-
-        if (!isString(val)) {
-            return {
-                static: val
-            };
-        }
-
-        var first   = val.substr(0, 1),
-            last    = val.length - 1,
-            num;
-
-        if (first === '"' || first === "'") {
-            if (val.indexOf(first, 1) === last) {
-                return {static: val.substring(1, last)};
-            }
-        }
-        if ((num = parseFloat(val)) == val) {
-            return {static: num};
-        }
-
-        return false;
-    };
-
-    var getFilter = function(name, filters) {
-        if (filters && filters[name]) {
-            return filters[name];
-        }
-        var i, l = filterSources.length;
-        for (i = 0; i < l; i++) {
-            if (filterSources[i][name]) {
-                return filterSources[i][name];
-            }
-        }
-
-        return null;
-    };
-
-
-    var expression = function(expr, opt) {
-        opt = opt || {};
-        var asCode = opt.asCode || false,
-            static;
-
-        if (static = isStatic(expr)) {
-            if (opt.asCode) {
-                return "".concat(
-                    "function() {",
-                        "return ", expr,
-                    "}"
-                );
-            }
-            return cache[expr] = function() {
-                return static.static;
-            };
-        }
-        try {
-            if (!cache[expr] || asCode) {
-
-                var atom = isAtom(expr);
-
-                var code = expr.replace(REG_REPLACE_EXPR, REG_REPLACER),
-                    body = 
-                        !atom ? 
-                        "".concat(
-                            fnBodyStart, 
-                            'return ', code, 
-                            fnBodyEnd
-                        ) : 
-                        "".concat(
-                            fnBodyStart, 
-                            'if (arguments.length > 1 && typeof arguments[1] !== "undefined") {',
-                                'return ', code, ' = $$$$', 
-                            '} else {', 
-                                'return ', code, 
-                            '}',
-                            fnBodyEnd
-                        );
-
-                if (asCode) {
-                    return "function(____, $$$$) {" + body + "}";
-                }
-                else {
-                    cache[expr] = new Function(
-                        '____',
-                        '$$$$',
-                        body
-                    );
-                    return cache[expr]
-                }
-            }
-            return cache[expr];
-        }
-        catch (thrownError) {
-            error(thrownError);
-            return emptyFn;
-        }
-    };
-
-    var preparePipe = function(pipe, filters) {
-
-        var name    = pipe.shift(),
-            fn      = isFunction(name) ? name : null,
-            params  = [],
-            fchar   = fn ? null : name.substr(0,1),
-            opt     = {
-                neg: false,
-                dblneg: false,
-                undeterm: false,
-                name: name
-            },
-            i, l;
-
-        if (!fn) {
-            if (name.substr(0, 2) === "!!") {
-                name = name.substr(2);
-                opt.dblneg = true;
-            }
-            else {
-                if (fchar === "!") {
-                    name = name.substr(1);
-                    opt.neg = true;
-                }
-                else if (fchar === "?") {
-                    name = name.substr(1);
-                    opt.undeterm = true;
-                }
-            }
-
-            opt.name = name;
-        }
-        else {
-            opt.name = fn.name;
-        }
-
-        !fn && (fn = getFilter(name, filters));
-
-        if (isFunction(fn)) {
-
-            for (i = -1, l = pipe.length; ++i < l;
-                 params.push(expressionFn(pipe[i]))) {}
-
-            if (fn.$undeterministic) {
-                opt.undeterm = true;
-            }
-
-            return {
-                fn: fn, 
-                origArgs: pipe, 
-                params: params, 
-                opt: opt
-            };
-        }
-
-        return null;
-    };
-
-    var parsePipes = function(expr, isInput, filters) {
-
-        var self        = this,
-            separator   = isInput ? ">>" : "|";
-
-        if (expr.indexOf(separator) === -1) {
-            return expr;
-        }
-
-        var parts   = split(expr, separator),
-            ret     = isInput ? parts.pop() : parts.shift(),
-            pipes   = [],
-            pipe,
-            i, l;
-
-        for(i = 0, l = parts.length; i < l; i++) {
-            pipe = split(parts[i].trim(), ':');
-            pipe = preparePipe(pipe, filters);
-            pipe && pipes.push(pipe);
-        }
-
-        return {
-            expr: ret.trim(),
-            pipes: pipes
-        }
-    };
-
-
-    var deconstructor = function(expr, filters) {
-        var isNormalPipe = expr.indexOf("|") !== -1,
-            isInputPipe = expr.indexOf(">>") !== -1,
-            res,
-            struct = {
-                fn: null,
-                expr: expr,
-                pipes: [],
-                inputPipes: []
-            };
-
-        if (!isNormalPipe && !isInputPipe) {
-            struct.fn = expressionFn(struct.expr);
-            return struct;
-        }
-
-        if (isNormalPipe) {
-            res = parsePipes(struct.expr, false, filters);
-            struct.expr = res.expr;
-            struct.pipes = res.pipes;
-        }
-
-        if (isInputPipe) {
-            res = parsePipes(struct.expr, true, filters);
-            struct.expr = res.expr;
-            struct.inputPipes = res.pipes;
-        }
-
-        struct.fn = expressionFn(struct.expr);
-
-        return struct;
-    };
-
-    var runThroughPipes = function(val, pipes, dataObj) {
-
-        var j,
-            args,
-            pipe,
-
-            jlen    = pipes.length,
-            z, zl;
-
-        for (j = 0; j < jlen; j++) {
-            pipe    = pipes[j];
-            args    = [];
-            for (z = -1, zl = pipe.params.length; ++z < zl;
-                    args.push(pipe.params[z](dataObj))){}
-
-            args.unshift(dataObj);
-            args.unshift(val);
-
-            val     = pipe.fn.apply(dataObj, args);
-
-            if (pipe.opt.neg) {
-                val = !val;
-            }
-            else if (pipe.opt.dblneg) {
-                val = !!val;
-            }
-        }
-    
-        return val;
-    };
-
-
-    var constructor = function(struct) {
-
-        if (struct.pipes.length === 0 && struct.inputPipes.length === 0) {
-            return struct.fn;
-        }
-
-        return function(dataObj, inputVal) {
-
-            var val;
-
-            if (struct.inputPipes.length) {
-                val = inputVal;
-                val = runThroughPipes(val, struct.inputPipes, dataObj);
-                struct.fn(dataObj, val);
-            }
-
-            if (struct.pipes) {
-                if (!struct.inputPipes.length) {
-                    val = struct.fn(dataObj);
-                }
-                val = runThroughPipes(val, struct.pipes, dataObj);
-            }
-
-            return val;
-        };
-    };
-
-    var expressionFn,
-        parserFn,
-        deconstructorFn,
-        constructorFn;
-
-    var parser = function(expr, filters) {
-        return constructor(deconstructorFn(expr, filters));
-    };
-
-    var reset = function() {
-        parserFn = parser;
-        deconstructorFn = deconstructor;
-        constructorFn = constructor;
-        expressionFn = expression;
-    };
     reset();
 
     /**
@@ -415,7 +475,14 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          * @property {function} setConstructorFn {
          *  Takes result of <code>deconstructor</code> and 
          *  returns function with the same api as <code>expression</code>
-         *  @param {function} constructor
+         *  @param {function} constructor {
+         *      @param {object} struct As returned from deconstructorFn
+         *      @param {object} opt {
+         *          @type {boolean} getterOnly
+         *          @type {boolean} setterOnly
+         *      }
+         *      @returns {function} Same that expressionFn and parserFn returns
+         *  }
          * }
          */
         setConstructorFn: function(constructor) {
@@ -476,37 +543,72 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          * Get executable function out of code string (no pipes)
          * @property {function} expression
          * @param {string} expr 
+         * @param {object|string} opt See <code>parse</code>
          * @returns {function} {
          *  @param {object} dataObj Data object to execute expression against
          *  @param {*} value Optional value which makes function a setter
          *  @returns {*} value of expression on data object
          * }
          */
-        expression: function(expr) {
-            return expressionFn(expr);
+        expression: function(expr, opt) {
+            return expressionFn(expr, opt);
         },
 
         /**
          * @property {function} deconstruct {
          *  See setDeconstructorFn
          *  @param {string} expr 
+         *  @param {object|string} opt See <code>parse</code>
          *  @returns {function} 
          * }
          */
-        deconstruct: function(expr) {
-            return deconstructorFn(expr);
+        deconstruct: function(expr, opt) {
+            return deconstructorFn(expr, opt);
+        },
+
+        /**
+         * Get a expression function out of deconstructed parts
+         * @property {function} construct {
+         *  @param {object} struct Result of <code>deconstruct(expr)</code>
+         *  @param {object} opt {
+         *      @type {boolean} setterOnly
+         *      @type {boolean} getterOnly
+         *  }
+         *  @returns {function} {
+         *  @param {object} dataObj Data object to execute expression against
+         *  @param {*} value Optional value which makes function a setter
+         *  @returns {*} value of expression on data object
+         * }
+         * }
+         */
+        construct: function(struct, opt) {
+            return constructorFn(struct, opt);
         },
 
         /**
          * @property {function} parse {
          *  See setParserFn
          *  @param {string} expr 
-         *  @param {object} filters
+         *  @param {object|string} opt {
+         *      @type {object} filters
+         *      @type {boolean} setter {    
+         *          @default false
+         *      }
+         *  }
          *  @returns {function}
          * }
          */
-        parse: function(expr, filters) {
-            return parserFn(expr, filters);
+        parse: function(expr, opt) {
+            return parserFn(expr, opt);
+        },
+
+        /**
+         * @property {function} setter
+         */
+        setter: function(expr, opt) {
+            opt = opt || {};
+            opt.setter = true;
+            return parserFn(expr, opt);
         },
 
         /**
@@ -515,18 +617,64 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          * @param {string} expr 
          * @param {object} dataObj 
          * @param {*} inputValue
-         * @param {object} filters
+         * @param {object} opt See <code>parse</code>
          */
-        run: function(expr, dataObj, inputValue, filters) {
-            return parserFn(expr, filters)(dataObj, inputValue);
+        run: function(expr, dataObj, inputValue, opt) {
+            return parserFn(expr, opt)(dataObj, inputValue);
         },
+
+        /**
+         * Execute code on given data object as a setter
+         * @property {function} run
+         * @param {string} expr 
+         * @param {object} dataObj 
+         * @param {*} inputValue
+         * @param {object} opt See <code>parse</code>
+         */
+        set: function(expr, dataObj, inputValue, opt) {
+            opt = opt || {};
+            opt.setter = true;
+            return parserFn(expr, opt)(dataObj, inputValue);
+        },
+
+        
 
         /**
          * Check if given expression is a static string or number
          * @property {function} isStatic
          * @param {string} expr
-         * @returns {boolean}
+         * @returns {boolean|object} {  
+         *  Static value can be 0 or false, so it must be returned contained.<br>
+         *  So it is either false or ret.value
+         *  @type {*} value 
+         * }
          */
-        isStatic: isStatic
+        isStatic: isStatic,
+
+        /**
+         * Checks if given expression is simple getter (no function or operations)
+         * @property {function} isAtom {
+         *  @param {string} expr
+         *  @returns {boolean}
+         * }
+         */
+        isAtom: isAtom,
+
+        /**
+         * Checks if given expression is a property getter
+         * @property {function} isProperty {
+         *  @param {string} expr 
+         *  @returns {string|boolean} property name or false
+         * }
+         */
+        isProperty: isProperty,
+
+        /**
+         * Clear expression cache
+         * @property {function} clearCache
+         */
+        clearCache: function() {
+            cache = {};
+        }
     }
 }());

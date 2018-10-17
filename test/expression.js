@@ -27,9 +27,9 @@ describe("Expression tester", function(){
         res;
 
         res = MetaphorJs.lib.Expression.run("this.a", dataObj);
-        assert.equal(2, res);
+        assert.equal(2, res, "Result value of atom expression");
         res = MetaphorJs.lib.Expression.run("this.b() * this.a", dataObj);
-        assert.equal(6, res);
+        assert.equal(6, res, "Result value of complex expression");
     });
 
     it("should parse and run pipes", function(){
@@ -43,9 +43,9 @@ describe("Expression tester", function(){
         res;
 
         res = MetaphorJs.lib.Expression.run("this.a | f1:this.b()", dataObj);
-        assert.equal(6, res);
+        assert.equal(6, res, "Result value of a filter");
         res = MetaphorJs.lib.Expression.run("this.a | f2:'--'", dataObj);
-        assert.equal('--2--', res);
+        assert.equal('--2--', res, "Result value of a string filter");
     });
 
     it("should parse and run input pipes", function(){
@@ -58,9 +58,11 @@ describe("Expression tester", function(){
         },
         res;
 
-        res = expression.run("f >> this.a", dataObj, 2, dataObj);
-        assert.equal(4, res);
-        assert.equal(4, dataObj.a);
+        res = expression.run("f >> this.a", dataObj, 2, {
+            filters: dataObj
+        });
+        assert.equal(4, res, "Result value of a filter");
+        assert.equal(4, dataObj.a, "dataObj property should change");
     });
 
     it("should run both input and output pipes", function() {
@@ -76,9 +78,11 @@ describe("Expression tester", function(){
         },
         res;
 
-        res = expression.run("f:this.b:10 >> this.a | f1:this.b:10", dataObj, 2, dataObj);
-        assert.equal(-7, dataObj.a); // 2 + 1 - 10 = -7
-        assert.equal(2, res); // -7 - 1 + 10 = 2
-        
+        res = expression.run("f:this.b:10 >> this.a | f1:this.b:10", dataObj, 2, {
+            filters: dataObj
+        });
+        assert.equal(-7, dataObj.a, "dataObj property changed"); // 2 + 1 - 10 = -7
+        assert.equal(2, res, "result value of filters"); // -7 - 1 + 10 = 2
+
     });
 });
