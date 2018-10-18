@@ -1,17 +1,17 @@
 require("../../lib/Expression.js");
-
+require("../../lib/MutationObserver.js");
+require("../../func/dom/getInputValue.js"),
+require("../../func/dom/setInputValue.js"),
+require("../../func/dom/setAttr.js"),
+require("../../func/browser/isIE.js")
 
 var cls = require("metaphorjs-class/src/cls.js"),
-    createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     toArray = require("../../func/array/toArray.js"),
-    getValue = require("metaphorjs-input/src/func/getValue.js"),
-    setValue = require("metaphorjs-input/src/func/setValue.js"),
     error = require("metaphorjs-shared/src/func/error.js"),
     isPlainObject = require("../../func/isPlainObject.js"),
-    setAttr = require("../../func/dom/setAttr.js"),
     undf = require("../../var/undf.js"),
-    isIE = require("../../func/browser/isIE.js"),
-    Directive = require("../../class/Directive.js");
+    Directive = require("../../class/Directive.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
 Directive.registerAttribute("options", 100, Directive.$extend({
@@ -48,8 +48,8 @@ Directive.registerAttribute("options", 100, Directive.$extend({
                 self.bindStore(value, "on");
             }
             else {
-                self.watcher = createWatchable(scope, self.model, self.onChange, self,
-                    {filterLookup: filterLookup});
+                self.watcher = MetaphorJs.lib.MutationObverser(
+                    scope, self.model, self.onChange, self);
             }
         }
         catch (thrownError) {
@@ -87,7 +87,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
 
         var self        = this,
             parent      = self.groupEl || self.fragment,
-            msie        = isIE(),
+            msie        = MetaphorJs.browser.isIE(),
             config,
             option;
 
@@ -107,9 +107,9 @@ Directive.registerAttribute("options", 100, Directive.$extend({
 
             if (config.group){
                 self.groupEl = parent = window.document.createElement("optgroup");
-                setAttr(parent, "label", config.group);
+                MetaphorJs.dom.setAttr(parent, "label", config.group);
                 if (config.disabledGroup) {
-                    setAttr(parent, "disabled", "disabled");
+                    MetaphorJs.dom.setAttr(parent, "disabled", "disabled");
                 }
                 self.fragment.appendChild(parent);
             }
@@ -121,14 +121,14 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         self.prevGroup  = config.group;
 
         option  = window.document.createElement("option");
-        setAttr(option, "value", config.value || "");
+        MetaphorJs.dom.setAttr(option, "value", config.value || "");
         option.text = config.name;
 
         if (msie && msie < 9) {
             option.innerHTML = config.name;
         }
         if (config.disabled) {
-            setAttr(option, "disabled", "disabled");
+            MetaphorJs.dom.setAttr(option, "disabled", "disabled");
         }
 
         parent.appendChild(option);
@@ -138,10 +138,10 @@ Directive.registerAttribute("options", 100, Directive.$extend({
 
         var self        = this,
             node        = self.node,
-            value       = getValue(node),
+            value       = MetaphorJs.dom.getInputValue(node),
             def         = self.defOption,
             tmpScope    = self.scope.$new(),
-            msie        = MetaphorJs.dom.isIE(),
+            msie        = MetaphorJs.browser.isIE(),
             parent, next,
             i, len;
 
@@ -180,7 +180,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
             parent.insertBefore(node, next);
         }
 
-        setValue(node, value);
+        MetaphorJs.dom.setInputValue(node, value);
     },
 
 

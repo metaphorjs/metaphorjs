@@ -1,31 +1,26 @@
 require("../lib/History.js");
+require("../lib/UrlParam.js");
+require("metaphorjs-animate/src/animate/animate.js");
+require("metaphorjs-animate/src/animate/stop.js");
+require("metaphorjs-shared/src/func/browser/parseLocation.js");
+require("../func/dom/data.js");
+require("../func/dom/toFragment.js");
+require("../func/app/resolve.js");
+require("../func/dom/addClass.js")
+require("../func/dom/removeClass.js")
+require("../lib/MutationObserver.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
-    animate = require("metaphorjs-animate/src/func/animate.js"),
-    stopAnimation = require("metaphorjs-animate/src/func/stopAnimation.js"),
-    createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
-    parseLocation = require("metaphorjs-history/src/func/parseLocation.js"),
-    UrlParam = require("metaphorjs-history/src/lib/UrlParam.js"),
     raf = require("metaphorjs-animate/src/func/raf.js"),
-
-    extend = require("../func/extend.js"),
-    data = require("../func/dom/data.js"),
+    extend = require("metaphorjs-shared/src/func/extend.js"),
     async = require("metaphorjs-shared/src/func/async.js"),
-    toFragment = require("../func/dom/toFragment.js"),
-    resolveComponent = require("../func/resolveComponent.js"),
-    isObject = require("../func/isObject.js"),
-    isString = require("../func/isString.js"),
-    isThenable = require("../func/isThenable.js"),
-
-    nextUid = require("../func/nextUid.js"),
-
-    addClass = require("../func/dom/addClass.js"),
-    removeClass = require("../func/dom/removeClass.js");
-
+    isObject = require("metaphorjs-shared/src/func/isObject.js"),
+    isString = require("metaphorjs-shared/src/func/isString.js"),
+    isThenable = require("metaphorjs-shared/src/func/isThenable.js"),
+    nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 module.exports = cls({
-
-    $class: "MetaphorJs.View",
 
     /**
      * [
@@ -77,7 +72,7 @@ module.exports = cls({
         var node = self.node;
 
         if (node && node.firstChild) {
-            data(node, "mjs-transclude", toFragment(node.childNodes));
+            data(node, "mjs-transclude", MetaphorJs.dom.toFragment(node.childNodes));
         }
 
         if (!self.id) {
@@ -98,7 +93,8 @@ module.exports = cls({
             self.onLocationChange();
         }
         else if (self.cmp) {
-            self.watchable = createWatchable(self.scope, self.cmp, self.onCmpChange, self, {filterLookup: filterLookup});
+            self.watchable = MetaphorJs.lib.MutationObserver.get(
+                self.scope, self.cmp, self.onCmpChange, self);
             self.onCmpChange();
         }
     },
@@ -127,7 +123,7 @@ module.exports = cls({
                     for (j = 0, z = route.params.length; j < z; j++) {
                         param = route.params[j];
                         if (param.name) {
-                            params[param.name] = new UrlParam(extend({}, param, {enabled: false}, true, false));
+                            params[param.name] = new MetaphorJs.lib.UrlParam(extend({}, param, {enabled: false}, true, false));
                         }
                     }
                     route.params = params;
@@ -145,7 +141,7 @@ module.exports = cls({
     onCmpChange: function() {
 
         var self    = this,
-            cmp     = self.watchable.getLastResult() || self.defaultCmp;
+            cmp     = self.watchable.getValue() || self.defaultCmp;
 
         if (cmp) {
             self.setComponent(cmp);
@@ -159,7 +155,7 @@ module.exports = cls({
 
         var self        = this,
             url         = MetaphorJs.lib.History.current(),
-            loc         = parseLocation(url),
+            loc         = MetaphorJs.browser.parseLocation(url),
             path        = loc.pathname + loc.search + loc.hash,
             routes      = self.route,
             def,
@@ -252,16 +248,16 @@ module.exports = cls({
             cview   = self.currentView || {};
 
         if (self.currentCls) {
-            removeClass(self.node, self.currentCls);
+            MetaphorJs.dom.removeClass(self.node, self.currentCls);
         }
 
         if (self.currentHtmlCls) {
-            removeClass(window.document.documentElement, self.currentHtmlCls);
+            MetaphorJs.dom.removeClass(window.document.documentElement, self.currentHtmlCls);
         }
 
         if (self.currentComponent) {
 
-            animate(node, self.animate ? "leave" : null).done(function(){
+            MetaphorJs.animate.animate(node, self.animate ? "leave" : null).done(function(){
                 
                 if (!cview.keepAlive) {
                     
@@ -323,11 +319,11 @@ module.exports = cls({
 
         if (route.cls) {
             self.currentCls = route.cls;
-            addClass(self.node, route.cls);
+            MetaphorJs.dom.addClass(self.node, route.cls);
         }
         if (route.htmlCls) {
             self.currentHtmlCls = route.htmlCls;
-            addClass(window.document.documentElement, route.htmlCls);
+            MetaphorJs.dom.addClass(window.document.documentElement, route.htmlCls);
         }
     },
 
@@ -357,7 +353,7 @@ module.exports = cls({
 
         self.toggleRouteParams(cview, "disable");
         self.toggleRouteParams(route, "enable");
-        stopAnimation(self.node);
+        MetaphorJs.animate.stop(self.node);
         self.clearComponent();
 
         if (cview.teardown) {
@@ -368,7 +364,7 @@ module.exports = cls({
 
         self.currentView = route;
 
-        animate(node, self.animate ? "enter" : null, function(){
+        MetaphorJs.animate.animate(node, self.animate ? "enter" : null, function(){
 
             var args    = matches || [],
                 cfg     = {
@@ -406,8 +402,8 @@ module.exports = cls({
 
                 if (route.cmp) {
 
-                    return resolveComponent(
-                        route.cmp || "MetaphorJs.Component",
+                    return MetaphorJs.app.resolve(
+                        route.cmp || "MetaphorJs.app.Component",
                         cfg,
                         cfg.scope,
                         node,
@@ -465,19 +461,19 @@ module.exports = cls({
 
         self.beforeCmpChange(cmp);
 
-        stopAnimation(self.node);
+        MetaphorJs.animate.stop(self.node);
         self.clearComponent();
         self.currentView = null;
 
-        animate(node, self.animate ? "enter" : null, function(){
+        MetaphorJs.animate.animate(node, self.animate ? "enter" : null, function(){
 
             var cfg     = isObject(cmp) ? cmp : {},
-                cls     = (isString(cmp) ? cmp : null) || "MetaphorJs.Component",
+                cls     = (isString(cmp) ? cmp : null) || "MetaphorJs.app.Component",
                 scope   = cfg.scope || self.scope.$new();
 
             cfg.destroyEl = false;
 
-            return resolveComponent(cls, cfg, scope, node, [cfg]).done(function(newCmp){
+            return MetaphorJs.app.resolve(cls, cfg, scope, node, [cfg]).done(function(newCmp){
                 self.currentComponent = newCmp;
                 self.afterCmpChange();
             });
@@ -533,7 +529,8 @@ module.exports = cls({
         }
 
         if (self.watchable) {
-            self.watchable.unsubscribeAndDestroy(self.onCmpChange, self);
+            self.watchable.unsubscribe(self.onCmpChange, self);
+            self.watchable.$destroy(true);
             self.watchable = null;
         }
 

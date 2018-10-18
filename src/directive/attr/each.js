@@ -1,9 +1,9 @@
 
 require("../../func/dom/getAttr.js");
 require("../../class/ListRenderer.js");
+require("../../lib/Expression.js");
 
 var Directive = require("../../class/Directive.js"),
-    evaluate = require("metaphorjs-watchable/src/func/evaluate.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
@@ -14,7 +14,7 @@ var Directive = require("../../class/Directive.js"),
     function detectModelType(expr, scope) {
         var tmp = expr.split(" in "),
             model = tmp.length === 1 ? expr : tmp[1],
-            obj = evaluate(model, scope, {filterLookup: filterLookup}),
+            obj = MetaphorJs.lib.Expression.run(model, scope),
             i = 0,
             l = types.length;
 

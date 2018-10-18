@@ -4,12 +4,12 @@ require("../func/dom/removeListener.js");
 require("../func/dom/normalizeEvent.js");
 require("./EventBuffer.js");
 require("./Expression.js");
+require("./MutationObserver.js");
 
 var undf = require("metaphorjs-shared/src/var/undf.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     async = require("metaphorjs-shared/src/func/async.js"),
     isPlainObject = require("metaphorjs-shared/src/func/isPlainObject.js"),
-    createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
@@ -44,13 +44,13 @@ MetaphorJs.lib.EventHandler = function(scope, node, cfg, event, defaults) {
         var fc = cfg.substr(0,1);
 
         if (fc === '{') {
-            self.watcher = createWatchable(scope, cfg, self.onConfigChange, self);
-            cfg = extend({}, self.watcher.getLastResult(), true, true);
+            self.watcher = MetaphorJs.lib.MutationObserver(scope, cfg, self.onConfigChange, self);
+            cfg = extend({}, self.watcher.getValue(), true, true);
         }
         else if (fc === '=') {
             cfg = cfg.substr(1);
-            self.watcher = createWatchable(scope, cfg, self.onConfigChange, self);
-            cfg = extend({}, self.watcher.getLastResult(), true, true);
+            self.watcher = MetaphorJs.lib.MutationObserver(scope, cfg, self.onConfigChange, self);
+            cfg = extend({}, self.watcher.getValue(), true, true);
         }
         else {
             var handler = MetaphorJs.lib.Expression.parse(cfg);
@@ -275,7 +275,8 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
         var self = this;
         self.down();
         if (self.watcher) {
-            self.watcher.unsubscribeAndDestroy(self.onConfigChange, self);
+            self.watcher.unsubscribe(self.onConfigChange, self);
+            self.watcher.$destroy(true);
         }
     }
 });

@@ -1,8 +1,8 @@
 
 require("../lib/Expression.js");
+require("../lib/MutationObserver.js");
 
-var createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
-    undf = require("metaphorjs-shared/src/var/undf.js"),
+var undf = require("metaphorjs-shared/src/var/undf.js"),
     isString = require("metaphorjs-shared/src/func/isString.js"),
     cls = require("metaphorjs-class/src/cls.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
@@ -72,13 +72,16 @@ module.exports = (function() {
             self.expr       = expr;
             self.scope      = scope;
             self.saveState  = config.saveState;
-            self.watcher    = createWatchable(scope, expr, self.onChange, self, {filterLookup: filterLookup});
+            self.watcher    = MetaphorJs.lib.MutationObserver.get(scope, expr, self.onChange, self);
 
             if (self.saveState) {
-                self.stateFn = MetaphorJs.lib.Expression.parse(self.saveState);
+                self.stateFn = MetaphorJs.lib.Expression.parse(self.saveState, {
+                    setter: true,
+                    setterOnly: true
+                });
             }
 
-            if (self.autoOnChange && (val = self.watcher.getLastResult()) !== undf) {
+            if (self.autoOnChange && (val = self.watcher.getValue()) !== undf) {
                 self.onChange(val, undf);
             }
 
@@ -123,7 +126,8 @@ module.exports = (function() {
             }
 
             if (self.watcher) {
-                self.watcher.unsubscribeAndDestroy(self.onChange, self);
+                self.watcher.unsubscribe(self.onChange, self);
+                self.watcher.$destroy(true);
             }
 
             if (self.prevEl) {

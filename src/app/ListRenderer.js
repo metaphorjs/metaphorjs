@@ -1,26 +1,26 @@
-var createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
-    animate = require("metaphorjs-animate/src/func/animate.js"),
 
+var animate = require("metaphorjs-animate/src/func/animate.js"),
     cls = require("metaphorjs-class/src/cls.js"),
     Directive = require("./Directive.js"),
-
-    toArray = require("../func/array/toArray.js"),
-    nextUid = require("../func/nextUid.js"),
-    emptyFn = require("../func/emptyFn.js"),
-    Renderer = require("./Renderer.js"),
-    isNull = require("../func/isNull.js"),
-    isNumber = require("../func/isNumber.js"),
-    isPrimitive = require("../func/isPrimitive.js"),
+    toArray = require("metaphorjs-shared/src/func/array/toArray.js"),
+    nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
+    emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
+    isNull = require("metaphorjs-shared/src/func/isNull.js"),
+    isNumber = require("metaphorjs-shared/src/func/isNumber.js"),
+    isPrimitive = require("metaphorjs-shared/src/func/isPrimitive.js"),
     bind = require("metaphorjs-shared/src/func/bind.js"),
-    undf = require("../var/undf.js"),
-    isFunction = require("../func/isFunction.js"),
-    getAttr = require("../func/dom/getAttr.js");
+    undf = require("metaphorjs-shared/src/var/undf.js"),
+    isFunction = require("metaphorjs-shared/src/func/isFunction.js"),
+    levenshteinDiff = require("metaphorjs-shared/src/func/levenshteinDiff.js"),
+    levenshteinMove = require("metaphorjs-shared/src/func/levenshteinMove.js");
 
-require("../lib/Queue.js");
+require("../func/dom/getAttr.js");
+require("../func/dom/toFragment.js");
+require("./Renderer.js");
+require("metaphorjs-shared/src/lib/Queue.js");
+require("../lib/MutationObserver.js");
 
-module.exports = cls({
-
-    $class: "MetaphorJs.ListRenderer",
+module.exports = MetaphorJs.app.ListRenderer = cls({
 
     id: null,
 
@@ -90,12 +90,12 @@ module.exports = cls({
         var self = this;
 
         if (self.tagMode) {
-            expr = getAttr(node, "value");
+            expr = MetaphorJs.dom.getAttr(node, "value");
         }
 
         self.parseExpr(expr);
 
-        self.tpl        = self.tagMode ? toFragment(node.childNodes) : node;
+        self.tpl        = self.tagMode ? MetaphorJs.dom.toFragment(node.childNodes) : node;
         self.renderers  = [];
 
         var cmts = Directive.commentHolders(node, self.$class + "-" + self.id);
@@ -114,7 +114,7 @@ module.exports = cls({
 
         self.afterInit(scope, node, expr, parentRenderer, attr);
 
-        self.queue.add(self.render, self, [toArray(self.watcher.getLastResult())]);
+        self.queue.add(self.render, self, [toArray(self.watcher.getValue())]);
     },
 
     afterInit: function(scope, node) {
@@ -122,12 +122,12 @@ module.exports = cls({
         var self        = this,
             cfg         = self.cfg;
 
-        self.watcher    = createWatchable(scope, self.model, self.onChange, self, {filterLookup: filterLookup});
+        self.watcher    = MetaphorJs.lib.MutationObserver.get(scope, self.model, self.onChange, self);
         self.trackBy    = cfg.trackby; // lowercase from attributes
         
         if (self.trackBy !== false) {
             if (self.trackBy && self.trackBy !== '$') {
-                self.trackByWatcher = createWatchable(scope, self.trackBy, self.onChangeTrackBy, self, {filterLookup: filterLookup});
+                self.trackByWatcher = MetaphorJs.lib.MutationObserver.get(scope, self.trackBy, self.onChangeTrackBy, self);
             }
             else if (self.trackBy !== '$' && !self.watcher.hasInputPipes()) {
                 self.trackBy    = '$$'+self.watcher.id;
@@ -169,7 +169,7 @@ module.exports = cls({
 
             if (!renderers[i].hidden) {
                 if (tm) {
-                    fragment.appendChild(toFragment(renderers[i].el));
+                    fragment.appendChild(MetaphorJs.dom.toFragment(renderers[i].el));
                 }
                 else {
                     fragment.appendChild(renderers[i].el);
@@ -191,7 +191,7 @@ module.exports = cls({
             index       = start || 0,
             cnt         = renderers.length,
             x           = end || cnt - 1,
-            list        = self.watcher.getLastResult(),
+            list        = self.watcher.getValue(),
             trackByFn   = self.getTrackByFunction();
 
         if (x > cnt - 1) {
@@ -212,7 +212,7 @@ module.exports = cls({
 
         var self = this;
 
-        list = list || self.watcher.getLastResult();
+        list = list || self.watcher.getValue();
         rs = rs || self.renderers;
         trackByFn = trackByFn || self.getTrackByFunction();
 
@@ -234,7 +234,7 @@ module.exports = cls({
         scope.$getRawIndex = self.griDelegate;
 
         if (!item.renderer) {
-            item.renderer  = new Renderer(item.el, scope);
+            item.renderer  = new MetaphorJs.app.Renderer(item.el, scope);
             item.renderer.process();
             item.rendered = true;
         }
@@ -289,7 +289,7 @@ module.exports = cls({
             renderers   = self.renderers,
             tpl         = self.tpl,
             index       = 0,
-            list        = toArray(self.watcher.getLastResult()),
+            list        = toArray(self.watcher.getValue()),
             updateStart = null,
             animateMove = self.animateMove,
             newrs       = [],
@@ -313,7 +313,8 @@ module.exports = cls({
         }
         else {
 
-            var prs  = self.watcher.getMovePrescription(prevList, self.getTrackByFunction(), list);
+            var prs = levenshteinDiff(prevList, list);
+            prs = levenshteinMove(prevList, list, prs, self.getTrackByFunction());
 
             // redefine renderers
             for (i = 0, len = prs.length; i < len; i++) {
@@ -425,7 +426,7 @@ module.exports = cls({
             if (r.hidden) {
                 if (el.parentNode) {
                     if (tm) {
-                        el.parentNode.removeChild(toFragment(el));
+                        el.parentNode.removeChild(MetaphorJs.dom.toFragment(el));
                     }
                     else {
                         el.parentNode.removeChild(el);
@@ -439,58 +440,12 @@ module.exports = cls({
                 if (rs[j].attached) {
                     next = rs[j].lastEl.nextSibling;
                     break;
-                    //if (next && next.parentNode === parent) {
-                    //    break;
-                    //}
                 }
             }
 
             if (!next) {
                 next = nc;
             }
-
-            // positions of some elements have changed
-            /*if (oldrs) {
-                // oldrs looks like [obj, obj, null, obj] where nulls are instead
-                // of items that were moved somewhere else
-                if (oldrs && oldrs[i]) {
-                    // so if item is found in oldrs[i] it means it hasn't moved
-                    next = oldrs[i].lastEl.nextSibling;
-                }
-                // if oldrs is shorter than rs, then we put all following items
-                // at the end
-                else if (oldrs && oldrs.length && oldrs.length <= i) {
-                    next = self.nextEl && self.nextEl.parentNode === parent ?
-                           self.nextEl : null;
-                }
-                // if oldrs[i] === null or it is empty
-                // we put the first item before nextEl and all all following
-                // items after first one
-                else {
-                    next = i > 0 ? (rs[i - 1].lastEl.nextSibling || nc) : nc;
-                }
-            }
-            // items were hidden/shown but positions haven't changed
-            else {
-                for (j = Math.max(i - 1, 0); j < l; j++) {
-                    if (j === i) {
-                        continue;
-                    }
-                    if (rs[j].attached && rs[j].lastEl.parentNode === parent) {
-                        next = j < i ? rs[j].lastEl.nextSibling : rs[j].firstEl;
-                        if (next.parentNode === parent) {
-                            break;
-                        }
-                    }
-                }
-                if (!next) {
-                    next = nc;
-                }
-            }
-
-            if (next && next.parentNode !== parent) {
-                next = null;
-            }*/
 
             if (r.firstEl !== next) {
                 if (next && r.lastEl.nextSibling !== next) {
@@ -559,7 +514,7 @@ module.exports = cls({
         }
 
         var self        = this,
-            list        = self.watcher.getUnfilteredValue(),
+            list        = self.watcher.getValue(),
             trackByFn   = self.getTrackByFunction(),
             i, l;
 
@@ -620,13 +575,15 @@ module.exports = cls({
         }
 
         if (self.trackByWatcher) {
-            self.trackByWatcher.unsubscribeAndDestroy();
+            self.trackByWatcher.unsubscribe(self.onChangeTrackBy, self);
+            self.trackByWatcher.$destroy(true);
         }
 
         self.queue.$destroy();
 
         if (self.watcher) {
-            self.watcher.unsubscribeAndDestroy(self.onChange, self);
+            self.watcher.unsubscribe(self.onChange, self);
+            self.watcher.$destroy(true);
         }
     }
 

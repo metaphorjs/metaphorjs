@@ -19,6 +19,18 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
 
     var observable = new MetaphorJs.lib.Observable;
 
+    var checkAll = function() {
+        var k, changes = 0;
+        for (k in this) {
+            if (this.hasOwnProperty(k) && k !== "$checkAll") {
+                if (this[k].check()){
+                    changes++;
+                }
+            }
+        }
+        return changes;
+    };
+
     /**
      * @constructor
      * @method
@@ -60,6 +72,7 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
         self.prevValue = null;
         self.setterFn = null;
         self.getterFn = null;
+        self.exprStruct = null;
 
         if (isFunction(expr)) {
             self.getterFn = expr;
@@ -108,11 +121,15 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
                     struct, {setterOnly: true}
                 );
             }
+
+            self.exprStruct = struct;
         }
 
         if (dataObj) {
             if (!dataObj["$$mo"]) {
-                dataObj.$$mo = {};
+                dataObj.$$mo = {
+                    $checkAll: checkAll
+                };
             }
             dataObj.$$mo[expr] = self;
         }
@@ -210,6 +227,24 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
         unsubscribe: function(fn, context) {
             observable.un(this.id, fn, context);
             return this;
+        },
+
+        /**
+         * Does the expression have input pipes
+         * @method
+         * @returns {boolean}
+         */
+        hasInputPipes: function() {
+            return this.exprStruct && this.exprStruct.inputPipes.length > 0;
+        },
+
+        /**
+         * Does the expression have output pipes
+         * @method
+         * @returns {boolean}
+         */
+        hasOutputPipes: function() {
+            return this.exprStruct && this.exprStruct.pipes.length > 0;
         },
 
         /**

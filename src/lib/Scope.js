@@ -1,8 +1,8 @@
 require("metaphorjs-observable/src/lib/Observable.js");
 require("./Expression.js");
+require("./MutationObserver.js");
 
-var Watchable = require("metaphorjs-watchable/src/lib/Watchable.js"),
-    extend = require("metaphorjs-shared/src/func/extend.js"),
+var extend = require("metaphorjs-shared/src/func/extend.js"),
     undf = require("metaphorjs-shared/src/var/undf.js"),
     async = require("metaphorjs-shared/src/func/async.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
@@ -56,7 +56,7 @@ MetaphorJs.lib.Scope = function(cfg) {
 extend(MetaphorJs.lib.Scope.prototype, {
 
     /**
-     * @property {MetaphorJs.App}
+     * @property {MetaphorJs.app.App}
      */
     $app: null,
 
@@ -177,10 +177,10 @@ extend(MetaphorJs.lib.Scope.prototype, {
      *  @param {*} value
      * }
      * @param {object} fnScope
-     * @returns {MetaphorJs.lib.Watchable}
+     * @returns {MetaphorJs.lib.MutationObserver}
      */
     $watch: function(expr, fn, fnScope) {
-        return Watchable.create(this, expr, fn, fnScope);
+        return MetaphorJs.lib.MutationObserver.get(this, expr, fn, fnScope);
     },
 
     /**
@@ -191,51 +191,11 @@ extend(MetaphorJs.lib.Scope.prototype, {
      * @param {object} fnScope
      */
     $unwatch: function(expr, fn, fnScope) {
-        return Watchable.unsubscribeAndDestroy(this, expr, fn, fnScope);
-    },
-
-    /**
-     * Create function that returns value of js expression
-     * @method
-     * @param {string} expr js expression
-     * @returns {function}
-     */
-    $createGetter: function(expr) {
-        var self    = this,
-            getter  = MetaphorJs.lib.Expression.parse(expr);
-        return function() {
-            return getter(self);
-        };
-    },
-
-    /**
-     * Create function that executes js expression and uses one argument
-     * @method
-     * @param {string} expr js expression
-     * @returns {function} {
-     *  @param {*} value
-     * }
-     */
-    $createSetter: function(expr) {
-        var self    = this,
-            setter  = MetaphorJs.lib.Expression.parse(expr);
-        return function(value) {
-            return setter(value, self);
-        };
-    },
-
-    /**
-     * Create function that executes js expression
-     * @method
-     * @param {string} expr js expression
-     * @returns {function}
-     */
-    $createFunc: function(expr) {
-        var self    = this,
-            fn      = MetaphorJs.lib.Expression.parse(expr);
-        return function() {
-            return fn(self);
-        };
+        var mo = MetaphorJs.lib.MutationObserver.exists(this, expr);
+        if (mo) {
+            mo.unsubscribe(fn, fnScope);
+            mo.$destroy(true);
+        }
     },
 
     /**
@@ -248,7 +208,7 @@ extend(MetaphorJs.lib.Scope.prototype, {
         var self = this;
         if (!self.$$historyWatchers[param]) {
             self.$$historyWatchers[param] = prop;
-            MetaphorJs.history.on("change-" + param, self.$$onHistoryChange, self);
+            MetaphorJs.lib.History.on("change-" + param, self.$$onHistoryChange, self);
         }
     },
 
@@ -261,62 +221,10 @@ extend(MetaphorJs.lib.Scope.prototype, {
         var self = this;
         if (!self.$$historyWatchers[param]) {
             delete self.$$historyWatchers[param];
-            MetaphorJs.history.un("change-" + param, self.$$onHistoryChange, self);
+            MetaphorJs.lib.History.un("change-" + param, self.$$onHistoryChange, self);
         }
     },
 
-    /**
-     * Create function that passes all arguments to <code>fn</code>,
-     * checks for changes in scope and returns fn's result.
-     * @method
-     * @param {function|string} fn {
-     *  If <code>fn</code> is string, <code>context[fn]</code> function
-     *  will be used and replaced by the wrapped version
-     * }
-     * @param {object} context 
-     * @returns {function}
-     */
-    $wrap: function(fn, context) {
-        var self = this,
-            name;
-
-        if (typeof fn === "string") {
-            name = fn;
-            fn = context[name];
-        }
-
-        var wrapper = function() {
-            var res = fn.apply(context, arguments);
-            self.$check();
-            return res;
-        };
-
-        if (name) {
-            context[name] = wrapper;
-        }
-
-        return wrapper;
-    },
-
-    /**
-     * Get value from this scope or one of its parents.
-     * @method
-     * @param {string} key
-     * @returns {*}
-     */
-    $get: function(key) {
-
-        var s = this;
-
-        while (s) {
-            if (s[key] !== undf) {
-                return s[key];
-            }
-            s = s.$parent;
-        }
-
-        return undf;
-    },
 
     /**
      * Set scope value and check for changes.
@@ -324,7 +232,6 @@ extend(MetaphorJs.lib.Scope.prototype, {
      * @param {string} key
      * @param {*} value
      */
-
      /**
      * Set scope value and check for changes.
      * @method
@@ -393,8 +300,8 @@ extend(MetaphorJs.lib.Scope.prototype, {
             self.$$tmt = null;
         }
 
-        if (self.$$watchers) {
-            changes = self.$$watchers.$checkAll();
+        if (self.$$mo) {
+            changes = self.$$mo.$checkAll();
         }
 
         self.$$checking = false;
@@ -440,8 +347,8 @@ extend(MetaphorJs.lib.Scope.prototype, {
             self.$parent.$un("unfreeze", self.$unfreeze, self);
         }
 
-        if (self.$$watchers) {
-            self.$$watchers.$destroyAll();
+        if (self.$$mo) {
+            MetaphorJs.lib.MutationObserver.$destroy(self);
         }
 
         for (param in self.$$historyWatchers) {

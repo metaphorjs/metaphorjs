@@ -11,18 +11,17 @@ require("metaphorjs-observable/src/lib/Observable.js");
 require("metaphorjs-shared/src/lib/Cache.js");
 require("../lib/Scope.js");
 require("../lib/Expression.js");
+require("../lib/MutationObserver.js");
+require("./Renderer.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
-    createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
-    Renderer = require("./Renderer.js"),
     ajax = require("metaphorjs-ajax/src/func/ajax.js"),
     cls = require("metaphorjs-class/src/cls.js");
-    
 
-module.exports = function() {
+module.exports = MetaphorJs.app.Template = function() {
 
     var observable      = new MetaphorJs.lib.Observable,
         cache           = new MetaphorJs.lib.Cache,
@@ -110,7 +109,6 @@ module.exports = function() {
                 tpl = __MetaphorJsPrebuilt['__tpls'][tplId];
                 delete __MetaphorJsPrebuilt['__tpls'][tplId];
                 return tpl;
-                //return processTextTemplate(tplId, tpl);
             }
         },
 
@@ -160,8 +158,6 @@ module.exports = function() {
     cache.addFinder(findInScripts);
 
     return cls({
-
-        $class:             "MetaphorJs.Template",
 
         _watcher:           null,
         _tpl:               null,
@@ -250,13 +246,13 @@ module.exports = function() {
                 }
 
                 if (isExpression(tpl)) {
-                    self._watcher = createWatchable(
+                    self._watcher = MetaphorJs.lib.MutationObserver.get(
                         self.scope,
                         tpl,
                         self.onChange,
-                        self,
-                        {filterLookup: filterLookup});
-                    var val = self._watcher.getLastResult();
+                        self
+                    );
+                    var val = self._watcher.getValue();
                     if (typeof val !== "string") {
                         extend(self, val, true, false);
                     }
@@ -269,12 +265,12 @@ module.exports = function() {
                 }
             }
             else if (self.html) {
-                self._watcher = createWatchable(
+                self._watcher = MetaphorJs.lib.MutationObserver.get(
                     self.scope,
                     self.html,
                     self.onHtmlChange,
-                    self,
-                    {filterLookup: filterLookup});
+                    self
+                );
 
                 self.initPromise    = new MetaphorJs.lib.Promise;
                 self.onHtmlChange();
@@ -302,7 +298,7 @@ module.exports = function() {
         doRender: function() {
             var self = this;
             if (!self._renderer) {
-                self._renderer   = new Renderer(self.node, self.scope, null, self.passAttrs);
+                self._renderer   = new MetaphorJs.app.Renderer(self.node, self.scope, null, self.passAttrs);
                 self._renderer.on("rendered", self.onRendered, self);
                 self._renderer.on("first-node", self.onFirstNodeReported, self);
                 self._renderer.process();
@@ -353,7 +349,7 @@ module.exports = function() {
             var self    = this,
                 url     = self.url,
                 tpl     = self._watcher ?
-                          self._watcher.getLastResult() :
+                          self._watcher.getValue() :
                           (self.tpl || url);
 
             if (self._watcher && !tpl) {
@@ -403,7 +399,7 @@ module.exports = function() {
                 self._renderer = null;
             }
 
-            var htmlVal = self._watcher.getLastResult();
+            var htmlVal = self._watcher.getValue();
 
             if (htmlVal) {
                 self._fragment = MetaphorJs.dom.toFragment(htmlVal);
@@ -426,7 +422,7 @@ module.exports = function() {
                 self._renderer = null;
             }
 
-            var tplVal = self._watcher.getLastResult();
+            var tplVal = self._watcher.getValue();
 
             if (tplVal) {
                 self.resolveTemplate()
@@ -454,11 +450,6 @@ module.exports = function() {
                             prev.nextSibling !== next) {
                         prev.parentNode.removeChild(prev.nextSibling);
                     }
-                    /*for (i = 0, l = el.length; i < l; i++) {
-                        if (el[i].parentNode) {
-                            el[i].parentNode.removeChild(el[i]);
-                        }
-                    }*/
                 }
                 else if (el.firstChild) {
                     while (el.firstChild) {
@@ -588,11 +579,12 @@ module.exports = function() {
 
             if (self._watcher) {
                 if (self.html) {
-                    self._watcher.unsubscribeAndDestroy(self.onHtmlChange, self);
+                    self._watcher.unsubscribe(self.onHtmlChange, self);
                 }
                 else {
-                    self._watcher.unsubscribeAndDestroy(self.onChange, self);
+                    self._watcher.unsubscribe(self.onChange, self);
                 }
+                self._watcher.$destroy(true);
             }
         }
 

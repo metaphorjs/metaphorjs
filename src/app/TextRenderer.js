@@ -1,16 +1,16 @@
 
 require("metaphorjs-observable/src/lib/Observable.js");
+require("../lib/MutationObserver.js");
 
 var nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     bind = require("metaphorjs-shared/src/func/bind.js"),
     undf = require("metaphorjs-shared/src/var/undf.js"),
-    createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
     isNull = require("metaphorjs-shared/src/func/isNull.js"),
     cls = require("metaphorjs-class/src/cls.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
-module.exports = function(){
+module.exports = MetaphorJs.app.TextRenderer = function(){
 
     var startSymbol             = '{{',
         endSymbol               = '}}',
@@ -231,24 +231,10 @@ module.exports = function(){
                 ws          = self.watchers,
                 b           = self.boundary,
                 w,
-                isLang      = false,
                 recursive   = self.recursive,
                 getter      = null;
 
             expr        = expr.trim();
-
-            if (expr.substr(0,1) === '-') {
-                var inx = expr.indexOf(" "),
-                    mods = expr.substr(1,inx);
-                expr = expr.substr(inx);
-
-                if (!recursive && mods.indexOf("r") !== -1) {
-                    recursive = true;
-                }
-                if (mods.indexOf("l") !== -1) {
-                    isLang = true;
-                }
-            }
 
             /*if (typeof expr === "number") {
                 var getterId = expr;
@@ -261,22 +247,13 @@ module.exports = function(){
                 }
             }*/
 
-            w = createWatchable(
+            w = MetaphorJs.lib.MutationObserver.get(
                 self.scope,
-                expr,
-                self.onDataChange,
-                self,
-                {
-                    filterLookup: filterLookup, mock: mock, getterFn: getter,
-                    userData: {
-                        recursive: recursive
-                    }
-                }
+                expr
             );
-
-            if (isLang && !w.hasPipe("l")) {
-                w.addPipe("l");
-            }
+            w.subscribe(self.onDataChange, self, {
+                append: [{recursive: recursive}]
+            })
 
             ws.push(w);
 
@@ -324,12 +301,12 @@ module.exports = function(){
                 val;
 
             for (i = -1, l = ws.length; ++i < l; ){
-                val     = ws[i].getLastResult();
+                val     = ws[i].getValue();
 
                 //TODO: watcher must have userData!
                 // if it doesn't, it was taken from cache and it is wrong
                 // because -rl flags may be different
-                rec     = self.recursive || (ws[i].userData && ws[i].userData.recursive);
+                rec     = self.recursive;// || (ws[i].userData && ws[i].userData.recursive);
                 if (val === undf) {
                     val = "";
                 }
@@ -358,8 +335,10 @@ module.exports = function(){
                 ws      = self.watchers,
                 i, l;
 
-            for (i = -1, l = ws.length; ++i < l;
-                 ws[i].unsubscribeAndDestroy(self.onDataChange, self)){}
+            for (i = -1, l = ws.length; ++i < l;){
+                     ws[i].unsubscribe(self.onDataChange, self);
+                     ws[i].$destroy(true);
+                 }
 
             self.watchers = [];
         },

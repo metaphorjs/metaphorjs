@@ -1,13 +1,13 @@
 
 require("../lib/Expression.js");
+require("../lib/MutationObserver.js");
+require("../app/ListRenderer.js")
 
-var createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
-    bind = require("metaphorjs-shared/src/func/bind.js"),
-    ListRenderer = require("metaphorjs/src/class/ListRenderer.js");
+var bind = require("metaphorjs-shared/src/func/bind.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-module.exports = ListRenderer.$extend({
+module.exports = MetaphorJs.app.StoreRenderer = MetaphorJs.app.ListRenderer.$extend({
 
-    $class: "MetaphorJs.model.StoreRenderer",
     store: null,
 
     $constructor: function(scope, node, expr, parentRenderer, attr) {
@@ -34,7 +34,7 @@ module.exports = ListRenderer.$extend({
             store;
 
         self.store          = store = MetaphorJs.lib.Expression.parse(self.model)(scope);
-        self.watcher        = createWatchable(store, ".current", self.onChange, self, {filterLookup: filterLookup});
+        self.watcher        = MetaphorJs.lib.MutationObserver.get(store, "this.current", self.onChange, self);
         
         if (self.trackByFn !== false) {
             self.trackByFn      = bind(store.getRecordId, store);
@@ -65,7 +65,8 @@ module.exports = ListRenderer.$extend({
         var self = this;
         if (self.watcher) {
             self.onStoreUpdate();
-            self.watcher.unsubscribeAndDestroy(self.onChange, self);
+            self.watcher.unsubscribe(self.onChange, self);
+            self.watcher.$destroy(true);
             self.watcher = null;
         }
     },
