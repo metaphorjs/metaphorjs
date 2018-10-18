@@ -223,6 +223,9 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
                 return false;
             }
             observable.destroyEvent(self.id);
+            if (self.dataObj && self.dataObj['$$mo']) {
+                delete self.dataObj['$$mo'][self.origExpr];
+            }
             for (var key in self) {
                 if (self.hasOwnProperty(key)) {
                     self[key] = null;
@@ -240,9 +243,9 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
     MutationObserver.get = function(dataObj, expr, listener, context, opt) {
 
         expr = expr.trim();
+        var mo = MutationObserver.exists(dataObj, expr);
 
-        if (dataObj && dataObj.$$mo && dataObj.$$mo[expr]) {
-            var mo = dataObj.$$mo[expr];
+        if (mo) {
             if (listener) {
                 mo.subscribe(listener, context);
             }
@@ -250,6 +253,24 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
         }
 
         return new MutationObserver(dataObj, expr, listener, context, opt);
+    };
+
+    /**
+     * Check if mutation observer exists on the object and return it or false
+     * @static
+     * @method
+     * @param {object} dataObj
+     * @param {string} expr
+     * @returns {MetaphorJs.lib.MutationObserver|boolean}
+     */
+    MutationObserver.exists = function(dataObj, expr) {
+        expr = expr.trim();
+
+        if (dataObj && dataObj.$$mo && dataObj.$$mo[expr]) {
+            return dataObj.$$mo[expr];
+        }
+
+        return false;
     };
 
     /**

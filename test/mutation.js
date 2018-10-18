@@ -10,6 +10,11 @@ describe("MetaphorJs.lib.MutartionObserver", function() {
         a: 1,
         b: 2,
         arr: [1, 2, 3],
+        obj: {
+            a: 1,
+            b: 2,
+            c: 3
+        },
         c: function() {
             return this.a + this.b;
         },
@@ -146,4 +151,31 @@ describe("MetaphorJs.lib.MutartionObserver", function() {
         assert.deepStrictEqual([1,2,3,4], currentValue);
     });
 
+    it("should work with objects", function() {
+        var observer = MetaphorJs.lib.MutationObserver.get(dataObj, "this.obj"),
+            currentValue;
+
+        observer.subscribe(function(curr, prev){
+            currentValue = curr;
+            prevValue = prev;
+        });
+
+        dataObj.obj.c = 4;
+
+        assert.strictEqual(true, observer.check());
+        assert.deepStrictEqual({a: 1, b: 2, c: 4}, currentValue);
+    });
+
+    it("should destroy observer", function() {
+        
+        var observer;
+        observer = MetaphorJs.lib.MutationObserver.get(dataObj, "this.obj");
+        observer.$destroy();
+
+        assert.strictEqual(false, MetaphorJs.lib.MutationObserver.exists(dataObj, "this.obj"))
+
+        MetaphorJs.lib.MutationObserver.$destroy(dataObj);
+        
+        assert.strictEqual(undefined, dataObj['$$mo']);
+    });
 });
