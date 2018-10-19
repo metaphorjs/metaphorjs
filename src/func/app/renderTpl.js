@@ -1,9 +1,10 @@
 
 require("./__init.js");
 require("../dom/toFragment.js");
+require("../../app/Renderer.js");
 
-var Renderer = require("../../class/Renderer.js"),
-    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+var 
+MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
  * Render template from string to DomFragment

@@ -23,9 +23,8 @@ require("metaphorjs-observable/src/mixin/Observable.js");
  * @namespace MetaphorJs
  * @class Component
  */
-module.exports = cls({
+module.exports = MetaphorJs.app.Component = cls({
 
-    $class: "MetaphorJs.Component",
     $mixins: [MetaphorJs.mixin.Observable],
 
     /**

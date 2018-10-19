@@ -323,7 +323,8 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
         if (dataObj && dataObj.$$mo) {
             for (key in dataObj.$$mo) {
                 if (dataObj.$$mo.hasOwnProperty(key) && 
-                    (!expr || key === expr)) {
+                    (!expr || key === expr) &&
+                    key[0] !== '$') {
                     if (dataObj.$$mo[key].$destroy(ifUnobserved)) {
                         delete dataObj.$$mo[key];
                     }

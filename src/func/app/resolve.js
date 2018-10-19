@@ -5,11 +5,11 @@ require("../dom/toFragment.js");
 require("../dom/data.js");
 require("../dom/addClass.js");
 require("../dom/removeClass.js");
+require("../../app/Template.js")
 
 var extend = require("metaphorjs-shared/src/func/extend.js"),
     error = require("metaphorjs-shared/src/func/error.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js"),
-    Template = require("../../class/Template.js"),
     isString = require("metaphorjs-shared/src/func/isString.js"),
     isFunction = require("metaphorjs-shared/src/func/isFunction.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");

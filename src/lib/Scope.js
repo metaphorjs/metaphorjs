@@ -170,6 +170,21 @@ extend(MetaphorJs.lib.Scope.prototype, {
     },
 
     /**
+     * Create a function out of an expression and bind it to the scope
+     * @method
+     * @param {string} expr 
+     * @param {object} opt See MetaphorJs.lib.Expression.parse
+     * @returns {function}
+     */
+    $parseExpression: function(expr, opt) {
+        var self = this,
+            func = MetaphorJs.lib.Expression.parse(expr, opt);
+        return function(inputVal) {
+            return func(self, inputVal);
+        }
+    },
+
+    /**
      * Create a watcher on js expression
      * @method
      * @param {string} expr js expression
