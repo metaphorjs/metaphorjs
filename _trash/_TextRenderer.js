@@ -46,8 +46,6 @@ module.exports = MetaphorJs.app.TextRenderer = function(){
 
     var TextRenderer = cls({
 
-        $class: "MetaphorJs.TextRenderer",
-
         id: null,
         parent: null,
         isRoot: null,
@@ -358,7 +356,17 @@ module.exports = MetaphorJs.app.TextRenderer = function(){
         }
 
     }, {
-        create: factory
+        create: factory,
+
+        render: function(input, scope) {
+
+            var tr = factory(scope, input, {
+                recursive: true
+            });
+            var text = tr.render();
+            tr.$destroy();
+            return text;
+        }
     });
 
     return TextRenderer;
