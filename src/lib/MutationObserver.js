@@ -254,7 +254,7 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
          */
         $destroy: function(ifUnobserved) {
             var self = this;
-            if (ifUnobserved && observable.hasListeners(self.id)) {
+            if (ifUnobserved && observable.hasListener(self.id)) {
                 return false;
             }
             observable.destroyEvent(self.id);
@@ -269,6 +269,33 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
             return true;
         }
     });
+
+
+    /**
+     * Check data object for changes
+     * @static
+     * @method
+     * @param {object} dataObj
+     * @param {string} expr {
+     *  Optional expression 
+     *  @optional
+     * }
+     * @returns {bool|int} Either true|false for specific expression or number of changes
+     */
+    MutationObserver.check = function(dataObj, expr)  {
+        var mo;
+        if (expr) {
+            mo = MutationObserver.exists(dataObj, expr);
+            if (!mo) {
+                throw new Error("MutationObserver not found for expression: " + expr);
+            }
+            return mo.check();
+        }
+        if (!dataObj.$$mo) {
+            return false;
+        }
+        return dataObj.$$mo.$checkAll();
+    };
 
     /**
      * See the constructor parameters
