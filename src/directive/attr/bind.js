@@ -1,5 +1,5 @@
 require("../../lib/Scope.js");
-require("../../app/TextRenderer.js");
+require("../../app/Text.js");
 require("../../func/dom/isField.js");
 require("metaphorjs-input/src/lib/Input.js");
 

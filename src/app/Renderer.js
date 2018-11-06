@@ -1,6 +1,7 @@
 require("../lib/Scope.js");
 require("metaphorjs-observable/src/lib/Observable.js");
 require("metaphorjs-promise/src/lib/Promise.js");
+require("./Text.js");
 
 var nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
@@ -8,7 +9,6 @@ var nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     isThenable = require("metaphorjs-shared/src/func/isThenable.js"),
     Directive = require("./Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
-    TextRenderer = require("./TextRenderer.js"),
     setAttr = require("../func/dom/setAttr.js"),
     removeAttr = require("../func/dom/removeAttr.js"),
     getAttrSet = require("../func/dom/getAttrSet.js"),
@@ -20,7 +20,7 @@ var nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
 module.exports = function(){
 
     var handlers                = null,
-        createText              = TextRenderer.create,
+        //createText              = TextRenderer.create,
         dirs                    = MetaphorJs.directive,
 
         lookupDirective = function(name) {
