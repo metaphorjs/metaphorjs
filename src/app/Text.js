@@ -163,14 +163,29 @@ module.exports = MetaphorJs.app.Text = (function(){
             }
         },
 
+        /**
+         * Get processed text
+         * @method
+         * @returns {string}
+         */
         getString: function() {
             return this.text;
         },
 
+        /**
+         * Subscribe to changes in text
+         * @param {function} fn 
+         * @param {object} context 
+         */
         subscribe: function(fn, context) {
             return events.on(this.id, fn, context);
         },
 
+        /**
+         * Unsubscribe from changes in text
+         * @param {function} fn 
+         * @param {object} context 
+         */
         unsubscribe: function(fn, context) {
             return events.un(this.id, fn, context);
         },
@@ -178,11 +193,17 @@ module.exports = MetaphorJs.app.Text = (function(){
         /**
          * Used only in standalone mode. When part of an app, 
          * use scope.$check()
+         * @method
+         * @returns {int}
          */
         check: function() {
-            MetaphorJs.lib.MutationObserver.check(this.scope);
+            return MetaphorJs.lib.MutationObserver.check(this.scope);
         },
 
+        /**
+         * Destroy text container
+         * @method
+         */
         $destroy: function() {
             var self = this;
             self.destroyed  = true;
@@ -192,6 +213,19 @@ module.exports = MetaphorJs.app.Text = (function(){
         }
     });
 
+    /**
+     * Statically process text without subscribing to changes
+     * @static
+     * @method
+     * @param {string} text Text template
+     * @param {object} dataObj Data object (app.Scope) to read variables from
+     * @param {array|null} observers {
+     *  Pass empty array 
+     *  @type {MetaphorJs.lib.MutationObserver} observer
+     * }
+     * @param {bool} recursive Recursively process text template
+     * @returns {string}
+     */
     Text.render = render;
 
     return Text;
