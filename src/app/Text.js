@@ -144,11 +144,12 @@ module.exports = MetaphorJs.app.Text = (function(){
         },
 
         _onDataChange: function() {
-            async(self._processDelegate);
+            async(this._processDelegate);
         },
 
         _observeData: function(obs, mode) {
-            var i, l;
+            var i, l,
+                self = this;
             for (i = 0, l = obs.length; i < l; i++) {
                 // subscribe/unsubscribe
                 obs[i][mode](self._onDataChange, self);
@@ -172,6 +173,14 @@ module.exports = MetaphorJs.app.Text = (function(){
 
         unsubscribe: function(fn, context) {
             return events.un(this.id, fn, context);
+        },
+
+        /**
+         * Used only in standalone mode. When part of an app, 
+         * use scope.$check()
+         */
+        check: function() {
+            MetaphorJs.lib.MutationObserver.check(this.scope);
         },
 
         $destroy: function() {
