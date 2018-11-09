@@ -3,8 +3,7 @@ require("./__init.js");
 require("../dom/toFragment.js");
 require("../../app/Renderer.js");
 
-var 
-MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
  * Render template from string to DomFragment
@@ -21,7 +20,7 @@ module.exports = MetaphorJs.app.renderTpl = function app_renderTpl(htmlString, s
 
     var fragment = MetaphorJs.dom.toFragment(div.childNodes);
 
-    var renderer = new Renderer(fragment, scope);
+    var renderer = new MetaphorJs.app.Renderer(fragment, scope);
     renderer.process();
 
     return fragment;

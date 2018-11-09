@@ -11,9 +11,9 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
 
 /**
  * Text renderer
- * @class MetaphorJs.app.Text
+ * @class MetaphorJs.lib.Text
  */
-module.exports = MetaphorJs.app.Text = (function(){
+module.exports = MetaphorJs.lib.Text = (function(){
 
     var startSymbol             = '{{',
         endSymbol               = '}}',
@@ -22,7 +22,18 @@ module.exports = MetaphorJs.app.Text = (function(){
 
         events                  = new MetaphorJs.lib.Observable,
 
-        _process                = function(text, scope, observers) {
+        _procExpr               = function(expr, scope, observers) {
+            if (observers) {
+                var w = MetaphorJs.lib.MutationObserver.get(scope, expr);
+                observers.push(w);
+                return w.getValue();
+            }
+            else {
+                return MetaphorJs.lib.Expression.run(expr, scope);
+            }
+        },
+
+        _process                = function(text, scope, observers, fullExpr) {
 
             var index       = 0,
                 textLength  = text.length,
@@ -31,6 +42,10 @@ module.exports = MetaphorJs.app.Text = (function(){
                 expr,
                 w,
                 result      = "";
+
+            if (fullExpr) {
+                return _procExpr(text, scope, observers);
+            }
 
             while (index < textLength) {
                 if (((startIndex = text.indexOf(startSymbol, index)) !== -1) &&
@@ -42,15 +57,7 @@ module.exports = MetaphorJs.app.Text = (function(){
                     if (endIndex !== startIndex + startSymbolLength) {
                         expr = text.substring(startIndex + startSymbolLength, endIndex);
                         expr = expr.trim();
-
-                        if (observers) {
-                            w = MetaphorJs.lib.MutationObserver.get(scope, expr);
-                            result += w.getValue();
-                            observers.push(w);
-                        }
-                        else {
-                            result += MetaphorJs.lib.Expression.run(expr, scope)
-                        }
+                        result += _procExpr(expr, scope, observers);
                     }
 
                     index = endIndex + endSymbolLength;
@@ -67,7 +74,7 @@ module.exports = MetaphorJs.app.Text = (function(){
             return result;
         },
 
-        render                  = function(text, scope, observers, recursive) {
+        render = function(text, scope, observers, recursive, fullExpr) {
 
             var result,
                 prev = text,
@@ -78,7 +85,7 @@ module.exports = MetaphorJs.app.Text = (function(){
                     throw new Error(
                         "Got more than 100 iterations on template: " + self.origin);
                 }
-                result = _process(prev, scope, observers);
+                result = _process(prev, scope, observers, fullExpr);
                 if (!recursive || result === prev) {
                     return result;
                 }
@@ -107,9 +114,14 @@ module.exports = MetaphorJs.app.Text = (function(){
         self.text       = "";
         self.scope      = scope;
         self.destroyed  = false;
+        self.fullExpr   = false;
+        self.recursive  = false;
 
         if (opt.recursive === true || opt.recursive === false) {
             self.recursive = opt.recursive;
+        }
+        if (opt.fullExpr === true || opt.fullExpr === false) {
+            self.fullExpr = opt.fullExpr;
         }
 
         self._processDelegate = bind(self._process, self);
@@ -133,7 +145,7 @@ module.exports = MetaphorJs.app.Text = (function(){
             self.observers = [];
 
             self.text = render(self.origin, self.scope, 
-                                self.observers, self.recursive);
+                                self.observers, self.recursive, self.fullExpr);
 
             self._observeData(self.observers, "subscribe");
             self._destroyObservers(obs);
@@ -176,9 +188,12 @@ module.exports = MetaphorJs.app.Text = (function(){
          * Subscribe to changes in text
          * @param {function} fn 
          * @param {object} context 
+         * @param {object} opt {
+         *  MetaphorJs.lib.Observable.on() options
+         * }
          */
-        subscribe: function(fn, context) {
-            return events.on(this.id, fn, context);
+        subscribe: function(fn, context, opt) {
+            return events.on(this.id, fn, context, opt);
         },
 
         /**
@@ -227,6 +242,18 @@ module.exports = MetaphorJs.app.Text = (function(){
      * @returns {string}
      */
     Text.render = render;
+
+    /**
+     * Does the text have expressions
+     * @static
+     * @method
+     * @param {string} text
+     * @returns {boolean}
+     */
+    Text.applicable = function(text) {
+        return !text || !text.indexOf ||
+                text.indexOf(startSymbol) === -1 ? false : true;
+    };
 
     return Text;
 }());

@@ -1,3 +1,4 @@
+require("../dev/env.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     assert = require('assert');

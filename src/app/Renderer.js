@@ -1,31 +1,27 @@
 require("../lib/Scope.js");
 require("metaphorjs-observable/src/lib/Observable.js");
 require("metaphorjs-promise/src/lib/Promise.js");
-require("./Text.js");
+require("../lib/Text.js");
+require("../func/dom/setAttr.js");
+require("./Directive.js");
+require("../lib/Config.js");
 
 var nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
     isThenable = require("metaphorjs-shared/src/func/isThenable.js"),
-    Directive = require("./Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
-    setAttr = require("../func/dom/setAttr.js"),
     removeAttr = require("../func/dom/removeAttr.js"),
     getAttrSet = require("../func/dom/getAttrSet.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
-    undf = require("metaphorjs-shared/src/var/undf.js"),
-    cls = require("metaphorjs-class/src/cls.js");
+    undf = require("metaphorjs-shared/src/var/undf.js");
 
 
-module.exports = function(){
+module.exports = MetaphorJs.app.Renderer = function() {
 
     var handlers                = null,
         //createText              = TextRenderer.create,
         dirs                    = MetaphorJs.directive,
-
-        lookupDirective = function(name) {
-            return !!dirs.attr[name];
-        },
 
         nodeChildren = function(res, el, fn, fnScope, finish, cnt) {
 
@@ -123,9 +119,28 @@ module.exports = function(){
 
         observer = new MetaphorJs.lib.Observable;
 
-    return cls({
+    var Renderer = function(el, scope, parent, passedAttrs) {
 
-        $class: "MetaphorJs.Renderer",
+        var self            = this;
+
+        self.id             = nextUid();
+        self.el             = el;
+        self.scope          = scope;
+        self.texts          = [];
+        self.parent         = parent;
+        self.passedAttrs    = passedAttrs;
+
+        if (scope instanceof MetaphorJs.lib.Scope) {
+            scope.$on("destroy", self.$destroy, self);
+        }
+
+        if (parent) {
+            parent.on("destroy", self.$destroy, self);
+        }
+    };
+    
+    
+    extend(Renderer.prototype, {
 
         id: null,
         el: null,
@@ -134,25 +149,6 @@ module.exports = function(){
         parent: null,
         passedAttrs: null,
         reportFirstNode: true,
-
-        $init: function(el, scope, parent, passedAttrs) {
-            var self            = this;
-
-            self.id             = nextUid();
-            self.el             = el;
-            self.scope          = scope;
-            self.texts          = [];
-            self.parent         = parent;
-            self.passedAttrs    = passedAttrs;
-
-            if (scope instanceof MetaphorJs.lib.Scope) {
-                scope.$on("destroy", self.$destroy, self);
-            }
-
-            if (parent) {
-                parent.on("destroy", self.$destroy, self);
-            }
-        },
 
         on: function(event, fn, context) {
             return observer.on(event + '-' + this.id, fn, context);
@@ -174,7 +170,7 @@ module.exports = function(){
             return this.el;
         },
 
-        runHandler: function(f, parentScope, node, attr, attrs) {
+        runHandler: function(f, parentScope, node, nodeConfig, attrs) {
 
             var self    = this,
                 scope   = f.$isolateScope ?
@@ -183,18 +179,19 @@ module.exports = function(){
                            parentScope.$new() :
                            parentScope),
                 app     = parentScope.$app,
-                value   = attr ? attr.value : null,
+                //value   = attr ? attr.value : null,
                 // attribute directives receive mods,
                 // tag directives receive cmpConfig
                 inject  = {
                     $scope: scope,
                     $node: node,
-                    $attr: attr,
-                    $attrValue: value,
+                    //$attr: attr,
+                    //$attrValue: value,
+                    $nodeConfig: nodeConfig,
                     $attrMap: attrs,
                     $renderer: self
                 },
-                args    = [scope, node, value, self, attr],
+                args    = [scope, node, nodeConfig, self],
                 inst;
 
             if (attrs.reference) {
@@ -248,17 +245,22 @@ module.exports = function(){
                 nodeType    = node.nodeType,
                 texts       = self.texts,
                 scope       = self.scope,
+                textStr,
                 textRenderer;
 
             // text node
             if (nodeType === 3) {
-                textRenderer    = createText(
-                    scope,
-                    node.textContent || node.nodeValue,
-                    {userData: texts.length});
 
-                if (textRenderer) {
-                    textRenderer.subscribe(self.onTextChange, self);
+                textStr = node.textContent || node.nodeValue;
+
+                if (MetaphorJs.lib.Text.applicable(textStr)) {
+                    textRenderer = new MetaphorJs.lib.Text(
+                        self.scope,
+                        textStr
+                    );
+                    textRenderer.subscribe(self.onTextChange, self, {
+                        append: [texts.length]
+                    });
                     texts.push({
                         node: node,
                         tr: textRenderer
@@ -276,14 +278,14 @@ module.exports = function(){
                 }
 
                 if (!handlers) {
-                    handlers = Directive.getAttributes();
+                    handlers = MetaphorJs.app.Directive.getAttributes();
                 }
 
                 var tag     = node.tagName.toLowerCase(),
                     defers  = [],
                     nodes   = [],
                     i, l, f, len, c,
-                    attrs, as,
+                    attrs, as, config,
                     attrProps,
                     name,
                     res,
@@ -294,7 +296,10 @@ module.exports = function(){
                     tag = tag.substr(4);
                 }
 
-                attrs = getAttrSet(node, lookupDirective);
+                attrs = getAttrSet(node);
+                config = new MetaphorJs.lib.Config(attrs.config, {
+                    scope: self.scope
+                });
 
                 if (attrs.config.ignore) {
                     return false;
@@ -315,16 +320,20 @@ module.exports = function(){
                 // by adding it to the attr map
                 if (c = dirs.component[tag]) {
 
-                    as = attrs.config.as || c.tag;
+                    as = (attrs.config.as ? attrs.config.as.expression : null) || 
+                            c.tag;
 
                     if (as) {
 
                         attrs["directive"]['cmp'] = {
-                            value: c.prototype.$class,
                             name: "cmp",
                             original: "{cmp}",
-                            config: extend({}, attrs.config),
-                            values: null
+                            config: extend({}, attrs.config, {
+                                value: {
+                                    mode: MetaphorJs.lib.Config.MODE_STATIC,
+                                    expression: c.prototype.$class
+                                }
+                            })
                         };
 
                         as = window.document.createElement(as);
@@ -334,7 +343,7 @@ module.exports = function(){
                         }
                         node = as;
                         for (name in attrs.rest) {
-                            setAttr(node, name, attrs.rest[name]);
+                            MetaphorJs.dom.setAttr(node, name, attrs.rest[name]);
                         }
                     }
                     else {
@@ -345,10 +354,17 @@ module.exports = function(){
 
                         attrs.config.passAttrs = passAttrs;
 
-                        res = self.runHandler(f, scope, node, {
-                            value: c,
-                            config: attrs.config
-                        }, attrs);
+                        config = new MetaphorJs.lib.Config(
+                            extend({}, attrs.config, {
+                                value: {
+                                    mode: MetaphorJs.lib.Config.MODE_STATIC,
+                                    expression: c
+                                }
+                            }, true, false),
+                            {scope: self.scope}
+                        );
+
+                        res = self.runHandler(f, scope, node, config, attrs);
                         someHandler = true;
 
                         if (res === false) {
@@ -368,7 +384,7 @@ module.exports = function(){
 
                     res = self.runHandler(
                         f, scope, node, 
-                        {value: null, config: attrs.config}, 
+                        new MetaphorJs.lib.Config(attrs.config, {scope: self.scope}), 
                         attrs
                     );
                     someHandler = true;
@@ -401,7 +417,13 @@ module.exports = function(){
                         }
                         attrs.removeDirective(node, name);
 
-                        res     = self.runHandler(handler, scope, node, attrProps, attrs);
+                        res     = self.runHandler(
+                            handler, scope, node, 
+                            new MetaphorJs.lib.Config(
+                                attrProps.config, {scope: self.scope}
+                            ), 
+                            attrs
+                        );
 
                         someHandler = true;
                         attrProps.handled = true;
@@ -434,17 +456,19 @@ module.exports = function(){
                 // this is a plain attribute
                 for (i in attrs['attribute']) {
 
-                    textRenderer = createText(
-                        scope,
-                        attrs['attribute'][i].value,
-                        {userData: texts.length, force: true});
-
+                    textStr = attrs['attribute'][i].value;
+                    textRenderer = new MetaphorJs.lib.Text(self.scope, textStr, {
+                        recursive: !!attrs.config.recursive,
+                        fullExpr: !MetaphorJs.lib.Text.applicable(textStr)
+                    });
+                    
                     removeAttr(node, attrs['attribute'][i].original);
-                    textRenderer.subscribe(self.onTextChange, self);
+                    textRenderer.subscribe(self.onTextChange, self, {
+                        append: [texts.length]
+                    });
                     texts.push({
                         node: node,
                         attr: i,
-                        //attrProp: attrs['attribute'][i],
                         tr: textRenderer
                     });
                     self.renderText(texts.length - 1);
@@ -511,7 +535,7 @@ module.exports = function(){
                     text.node.src = res;
                 }
 
-                setAttr(text.node, attrName, res);
+                MetaphorJs.dom.setAttr(text.node, attrName, res);
             }
             else {
                 //text.node.textContent = res;
@@ -520,7 +544,7 @@ module.exports = function(){
         },
 
 
-        onDestroy: function() {
+        $destroy: function() {
 
             var self    = this,
                 texts   = self.texts,
@@ -535,12 +559,13 @@ module.exports = function(){
             observer.trigger("destroy-" + self.id);
         }
 
-    }, {
+    })
+    
+    Renderer.skip = function(tag, value) {
+        skipMap[tag] = value;
+    };
 
-        setSkip: function(tag, value) {
-            skipMap[tag] = value;
-        }
-    });
+    return Renderer;
 
 }();
 

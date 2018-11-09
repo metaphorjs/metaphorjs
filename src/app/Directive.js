@@ -9,7 +9,7 @@ var undf = require("metaphorjs-shared/src/var/undf.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js");
 
 
-module.exports = (function() {
+module.exports = MetaphorJs.app.Directive = (function() {
 
     var attr = {},
         tag = {},
@@ -48,8 +48,6 @@ module.exports = (function() {
         };
 
     return cls({
-
-        $class: "MetaphorJs.Directive",
 
         watcher: null,
         stateFn: null,

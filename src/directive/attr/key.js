@@ -104,6 +104,7 @@ Directive.registerAttribute("key", 1000, function(scope, node, expr, renderer, a
         for (i = 0, l = uninstall.length; i < l; i++) {
             uninstall[i]();
         }
+        uninstall = null;
     };
 });
 

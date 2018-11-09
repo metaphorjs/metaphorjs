@@ -1,0 +1,22 @@
+<html>
+<head>
+
+</head>
+<body>
+    <div id="test1" 
+            {dir}="this.a" 
+            {dir.value-expr}="this.b"
+            {dir.value-static}:="2"
+            {dir.value-expr-single}*="this.a"
+            {dir.$cfg-expr}="this.b" 
+            {dir.$cfg-stat}:="1"
+            {dir.$cfg-expr-single}*="this.a" 
+            [value]="this.a"></div>
+
+    <comp id="test2" 
+            $as:="div" 
+            $cfg-expr="this.a" 
+            $cfg-static:="1" 
+            $cfg-single*="this.b"></comp>
+</body>
+</html>

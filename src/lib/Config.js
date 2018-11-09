@@ -7,6 +7,7 @@ var extend = require("metaphorjs-shared/src/func/extend.js"),
     toBool = require("metaphorjs-shared/src/func/toBool.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
+    undf = require("metaphorjs-shared/src/var/undf.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
@@ -20,51 +21,35 @@ module.exports = MetaphorJs.lib.Config = (function(){
         MODE_DYNAMIC = 2,
         MODE_SINGLE = 3;
 
-    var detectMode = function(name) {
-        mode = MODE_DYNAMIC;
-
-        if (name[0] === '$') {
-            mode = MODE_STATIC;
-            name = name.substr(1);
-        }
-
-        if (name[0] === '$') {
-            mode = MODE_SINGLE;
-            name = name.substr(1);
-        }
-
-        return [mode, name];
-    };
-
     /**
      * @constructor
      * @method
-     * @param {object} values Attribute values map
+     * @param {object} properties Attribute expressions/properties map
      * @param {object} cfg {
      *  @type {object} scope Data object
-     *  @type {object} properties Each property config
+     *  @type {object} setTo set all values to this object
      * }
      */
-    var Config = function(values, cfg) {
+    var Config = function(properties, cfg) {
 
-        var self = this;
+        var self = this,
+            k;
 
         self.id = nextUid();
         self.values = {};
         self.propeties = {};
         self.cfg = cfg;
 
-        var k;
-
-        if (cfg.properties) {
-            for (k in cfg.properties) {
-                self.setProperty(k, cfg.properties[k]);
+        if (properties) {
+            for (k in properties) {
+                self.setProperty(
+                    k, 
+                    typeof properties[k] === "string" ? 
+                        {expression: properties[k]}:
+                        properties[k]
+                );
             }
-        }
-
-
-        if (values) {
-            self._initialCalc(values);
+            self._initialCalc();
         }
     };
 
@@ -75,49 +60,65 @@ module.exports = MetaphorJs.lib.Config = (function(){
         values: null,
         cfg: null,
 
-        _initialCalc: function(values) {
+        _initialCalc: function() {
             var self = this,
-                k, value, prop, setTo,
+                k, prop,
                 scope = self.cfg.scope,
-                item, name;
+                name;
 
-            self.values = {};
+            for (name in self.properties) {
 
-            for (k in values) {
+                prop = self.properties[k];
 
-                item = detectMode(k);
-                name = item[1];
-                prop = self.setProperty(name, {
-                    mode: item[0]
-                });
-        
-                if (prop.mode === MODE_STATIC) {
-                    value = values[k];
-                }
-                else if (prop.mode === MODE_SINGLE) {
-                    value = MetaphorJs.lib.Expression.run(values[k], scope);
-                }
-                else {
-                    prop.mo = MetaphorJs.lib.MutationObserver.get(scope, values[k]);
+                if (prop.mode === MODE_DYNAMIC) {
+                    prop.mo = MetaphorJs.lib.MutationObserver.get(
+                        scope, prop.expression
+                    );
                     prop.mo.subscribe(self._onPropMutated, self, {
                         append: [name]
                     });
-                    value = prop.mo.getValue();
-                }
-
-                value = self._prepareValue(value, prop);
-                self.values[name] = value;
-
-                setTo = self.cfg.setTo || prop.setTo;
-                if (setTo) {
-                    setTo[name] = value;
                 }
             }
         },
 
 
+        _calcProperty: function(name) {
+
+            var self = this,
+                prop = self.getProperty(k),
+                value,
+                setTo;
+
+            if (prop.mode === MODE_STATIC) {
+                value = values[name];
+            }
+            else if (prop.mode === MODE_SINGLE) {
+                value = MetaphorJs.lib.Expression.run(
+                    prop.expression, 
+                    self.scope
+                );
+            }
+            else {
+                value = prop.mo.getValue();
+            }
+
+            value = self._prepareValue(value, prop);
+            self.values[name] = value;
+
+            setTo = self.cfg.setTo || prop.setTo;
+            if (setTo) {
+                setTo[name] = value;
+            }
+
+            return value;
+        },
+
 
         _prepareValue: function(value, prop) {
+
+            if (!prop.type) {
+                return value;
+            }
 
             switch (prop.type) {
                 case 'int':
@@ -165,13 +166,21 @@ module.exports = MetaphorJs.lib.Config = (function(){
          */
         setProperty: function(name, cfg) {
 
-
             if (this.propeties[name]) {
                 return extend(this.propeties[name], cfg, false, false);
             }
 
-            cfg.setAs = cfg.setAs || name;
+            //cfg.setAs = cfg.setAs || name;
             return this.propeties[name] = cfg;
+        },
+
+        /**
+         * Get property config
+         * @param {string} name 
+         * @returns {object}
+         */
+        getProperty: function(name) {
+            return this.properties[name] || null;
         },
 
         /**
@@ -180,7 +189,14 @@ module.exports = MetaphorJs.lib.Config = (function(){
          * @returns {object}
          */
         getValues: function() {
-            return this.values;
+            var self, k, vs = {};
+            for (k in self.properties) {
+                if (self.values[k] === undf) {
+                    vs[k] = self._calcProperty(k);
+                }
+                else vs[k] = self.values[k];
+            }
+            return vs;
         },
 
         /**
@@ -190,6 +206,9 @@ module.exports = MetaphorJs.lib.Config = (function(){
          * @returns {*}
          */
         getValue: function(name) {
+            if (this.values[name] === undf) {
+                this._calcProperty(name);
+            }
             return this.values[name];
         },
 
@@ -242,6 +261,10 @@ module.exports = MetaphorJs.lib.Config = (function(){
             else {
                 $$observable.on(this.id, name, fn);
             }
+        },
+
+        setTo: function(obj) {
+            this.cfg.setTo = obj;
         },
 
         /**
