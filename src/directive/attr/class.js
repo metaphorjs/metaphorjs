@@ -8,7 +8,6 @@ require("../../func/dom/hasClass.js");
 var Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
-    isString = require("metaphorjs-shared/src/func/isString.js"),
     undf = require("metaphorjs-shared/src/var/undf.js");
 
 /*
@@ -60,74 +59,70 @@ DO NOT put class="{}" when using class.name="{}"
         }
     };
 
-    var flatten = function(obj) {
 
-        var list = {},
-            i, j, l;
+    var flatten = function(values) {
+        var clss = {},
+            i, l, val,
+            j, jl;
 
-        if (!obj) {
-            return list;
-        }
+        for (i = 0, l = values.length; i < l; i++) {
+            val = values[i];
 
-        if (isString(obj)) {
-            list[obj] = true;
-        }
-        else if (isArray(obj)) {
-            for (i = -1, l = obj.length; ++i < l; list[obj[i]] = true){}
-        }
-        else {
-            for (i in obj) {
-                if (i === '_') {
-                    for (j = -1, l = obj._.length; ++j < l;
-                         list[obj._[j]] = true){}
+            if (typeof val === 'string') {
+                clss[val] = true;
+                continue;
+            }
+            else if (isArray(val)) {
+                for (j = -1, jl = val.length; ++j < jl; clss[val[j]] = true){}
+            }
+            for (j in val) {
+                if (j === '_') {
+                    for (j = -1, jl = val._.length; ++j < jl;
+                         clss[val._[j]] = true){}
                 }
                 else {
-                    list[i] = obj[i];
+                    clss[j] = val[j];
                 }
             }
         }
 
-        return list;
+        return clss;
     };
 
     Directive.Class = Directive.registerAttribute("class", 1000, Directive.$extend({
 
         initial: true,
-        animate: false,
+        prev: null,
 
-        $init: function(scope, node, expr, renderer, attr) {
-
-            var self = this, 
-                values = attr ? attr.values : null,
-                cfg = attr ? attr.config : {},
-                k,
-                parts;
-
-            self.animate = !!cfg.animate;
-
-            if (values) {
-                parts = [];
-                if (expr) {
-                    if (expr.substr(0,1) != '[') {
-                        expr = '[' + expr + ']';
-                    }
-                    parts.push('_: ' + expr);
+        $init: function(scope, node, config, renderer) {
+            config.setProperty("animate", {type: "bool"});
+            config.eachProperty(function(k){
+                if (k.indexOf("value.") === 0) {
+                    config.on(k, self.onChange, self);
                 }
-                for (k in values) {
-                    parts.push("'" + k + "'" + ': ' + values[k]);
-                }
-                expr = '{' + parts.join(', ') + '}';
+            });
+            this.$super(scope, node, config);
+        },
+
+        getCurrentValue: function() {
+            var all = this.config.getAllValues(),
+                values = [];
+            
+            if (all[""]) {
+                values.push(all['']);
+                delete all[''];
             }
-
-            this.$super(scope, node, expr);
+            values.push(all);
+            
+            return flatten(values);
         },
 
         onChange: function() {
 
             var self    = this,
                 node    = self.node,
-                clss    = flatten(self.watcher.getLastResult()),
-                prev    = flatten(self.watcher.getPrevValue()),
+                clss    = self.getCurrentValue(),
+                prev    = self.prev,
                 i;
 
             MetaphorJs.animate.stop(node);
@@ -142,7 +137,9 @@ DO NOT put class="{}" when using class.name="{}"
 
             for (i in clss) {
                 if (clss.hasOwnProperty(i)) {
-                    toggleClass(node, i, !!clss[i], !self.initial && self.animate);
+                    toggleClass(node, i, !!clss[i], 
+                        !self.initial && 
+                        self.config.get("animate"));
                 }
             }
 

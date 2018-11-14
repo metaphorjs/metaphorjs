@@ -20,7 +20,7 @@ var cls = require("metaphorjs-class/src/cls.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-module.exports = cls({
+module.exports = MetaphorJs.app.Router = cls({
 
     /**
      * [
@@ -54,19 +54,14 @@ module.exports = cls({
     currentHtmlCls: null,
 
     scrollOnChange: true,
-
     animate: false,
 
-    $init: function(cfg, attr)  {
+    $init: function(cfg)  {
 
         var self    = this;
 
         extend(self, cfg, true, false);
-
-        if (attr) {
-            extend(self, attr.config, true, false);
-        }
-
+ 
         self.routeMap = {};
 
         var node = self.node;
@@ -83,8 +78,7 @@ module.exports = cls({
         self.domCache = {};
 
         self.initView();
-
-        self.scope.$app.registerCmp(self, self.scope, "id");
+        self.scope.$app.registerCmp(self, self.scope, "id");        
 
         if (self.route) {
             MetaphorJs.lib.History.init();
@@ -112,7 +106,7 @@ module.exports = cls({
             route,
             i, l,
             j, z;
-        
+
         if (routes) {
             for (i = 0, l = routes.length; i < l; i++) {
                 route = routes[i];
@@ -123,7 +117,9 @@ module.exports = cls({
                     for (j = 0, z = route.params.length; j < z; j++) {
                         param = route.params[j];
                         if (param.name) {
-                            params[param.name] = new MetaphorJs.lib.UrlParam(extend({}, param, {enabled: false}, true, false));
+                            params[param.name] = new MetaphorJs.lib.UrlParam(
+                                extend({}, param, {enabled: false}, true, false)
+                            );
                         }
                     }
                     route.params = params;

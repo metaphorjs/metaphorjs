@@ -3,18 +3,19 @@
 var Directive = require("../../class/Directive.js"),
     async = require("metaphorjs-shared/src/func/async.js");
 
-
 Directive.registerAttribute("in-focus", 500, Directive.$extend({
 
     $class: "MetaphorJs.Directive.attr.InFocus",
 
-    onChange: function() {
+    initialSet: function() {
+        this.config.setProperty("value", {type: "bool"});
+        this.$super();
+    },
 
+    onChange: function(val) {
         var self    = this;
-
-        if (self.watcher.getLastResult()) {
+        if (val) {
             async(self.node.focus, self.node, [], 300);
         }
     }
-
 }));

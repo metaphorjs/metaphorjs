@@ -1,8 +1,9 @@
 
+require("../../func/dom/removeAttr.js");
+require("../../func/dom/setAttr.js");
 
-var removeAttr = require("../../func/dom/removeAttr.js"),
-    setAttr = require("../../func/dom/setAttr.js"),
-    Directive = require("../../class/Directive.js");
+var Directive = require("../../class/Directive.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
 (function(){
@@ -14,9 +15,10 @@ var removeAttr = require("../../func/dom/removeAttr.js"),
 
         propName: null,
 
-        $init: function(scope, node, expr, propName) {
+        $init: function(scope, node, config, propName) {
             this.propName = propName;
-            this.$super(scope, node, expr);
+            config.setProperty("value", {type: "bool"});
+            this.$super(scope, node, config);
         },
 
         onChange: function(val) {
@@ -26,21 +28,19 @@ var removeAttr = require("../../func/dom/removeAttr.js"),
             val = !!val;
 
             if (val) {
-                setAttr(this.node, name, name);
+                MetaphorJs.dom.setAttr(this.node, name, name);
             }
             else {
-                removeAttr(this.node, name);
+                MetaphorJs.dom.removeAttr(this.node, name);
             }
         }
     });
 
     for (i = 0, l = booleanAttrs.length; i < l; i++) {
         (function(name){
-
-            Directive.registerAttribute("" + name, 1000, function(scope, node, expr){
-                return new PropertyDirective(scope, node, expr, name);
+            Directive.registerAttribute("" + name, 1000, function(scope, node, config){
+                return new PropertyDirective(scope, node, config, name);
             });
-
         }(booleanAttrs[i]));
     }
 

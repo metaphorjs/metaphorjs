@@ -188,10 +188,10 @@ module.exports = MetaphorJs.app.Renderer = function() {
                     //$attr: attr,
                     //$attrValue: value,
                     $nodeConfig: nodeConfig,
-                    $attrMap: attrs,
+                    $attrSet: attrs,
                     $renderer: self
                 },
-                args    = [scope, node, nodeConfig, self],
+                args    = [scope, node, nodeConfig, self, attrs],
                 inst;
 
             if (attrs.reference) {
@@ -298,7 +298,8 @@ module.exports = MetaphorJs.app.Renderer = function() {
 
                 attrs = getAttrSet(node);
                 config = new MetaphorJs.lib.Config(attrs.config, {
-                    scope: self.scope
+                    scope: self.scope,
+                    deferInit: true
                 });
 
                 if (attrs.config.ignore) {
@@ -361,8 +362,9 @@ module.exports = MetaphorJs.app.Renderer = function() {
                                     expression: c
                                 }
                             }, true, false),
-                            {scope: self.scope}
+                            {scope: self.scope, deferInit: true}
                         );
+                        self.on("destroy", config.$destroy, config);
 
                         res = self.runHandler(f, scope, node, config, attrs);
                         someHandler = true;
@@ -382,11 +384,12 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 // this is a tag directive
                 else if (f = dirs.tag[tag]) {
 
-                    res = self.runHandler(
-                        f, scope, node, 
-                        new MetaphorJs.lib.Config(attrs.config, {scope: self.scope}), 
-                        attrs
+                    config = new MetaphorJs.lib.Config(
+                        attrs.config, 
+                        {scope: self.scope, deferInit: true}
                     );
+                    self.on("destroy", config.$destroy, config);
+                    res = self.runHandler(f, scope, node, config, attrs);
                     someHandler = true;
 
                     attrs.removeDirective(node, tag);
@@ -417,13 +420,12 @@ module.exports = MetaphorJs.app.Renderer = function() {
                         }
                         attrs.removeDirective(node, name);
 
-                        res     = self.runHandler(
-                            handler, scope, node, 
-                            new MetaphorJs.lib.Config(
-                                attrProps.config, {scope: self.scope}
-                            ), 
-                            attrs
+                        config = new MetaphorJs.lib.Config(
+                            attrProps.config, 
+                            {scope: self.scope, deferInit: true}
                         );
+                        self.on("destroy", config.$destroy, config);
+                        res     = self.runHandler(handler, scope, node, config, attrs);
 
                         someHandler = true;
                         attrProps.handled = true;
@@ -559,7 +561,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
             observer.trigger("destroy-" + self.id);
         }
 
-    })
+    });
     
     Renderer.skip = function(tag, value) {
         skipMap[tag] = value;

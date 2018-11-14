@@ -1,9 +1,11 @@
 require("metaphorjs-shared/src/lib/Queue.js");
+require("../../func/preloadImage.js");
+require("../../func/dom/setAttr.js");
 
 var raf = require("metaphorjs-animate/src/func/raf.js"),
-    preloadImage = require("../../func/preloadImage.js"),
-    setAttr = require("../../func/dom/setAttr.js"),
-    Directive = require("../../class/Directive.js");
+    Directive = require("../../class/Directive.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+
 
 Directive.registerAttribute("src", 1000, Directive.$extend({
 
@@ -17,49 +19,45 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
     lastPromise: null,
     src: null,
 
-    $constructor: function(scope, node, expr, renderer, attr) {
+    $constructor: function(scope, node, config, renderer, attrSet) {
 
-        var self = this,
-            cfg = attr ? attr.config : {};
+        config.setProperty("deferred", {type: "bool"});
+        config.setProperty("noCache", {type: "bool"});
+        config.setProperty("noPreload", {type: "bool"});
+        config.lateInit();
 
-        self.attr = attr;
+        var self = this;
 
-        if (cfg.deferred) {
+        if (config.get("deferred")) {
             self.$plugins.push("MetaphorJs.plugin.SrcDeferred");
         }
-        if (cfg.preloadSize) {
+        if (config.get("preloadSize")) {
             self.$plugins.push("MetaphorJs.plugin.SrcSize");
         }
-        if (cfg.plugin) {
-            var tmp = cfg.plugin.split(","),
+        if (config.get("plugin")) {
+            var tmp = config.get("plugin").split(","),
                 i, l;
             for (i = 0, l = tmp.length; i < l; i++) {
                 self.$plugins.push(tmp[i].trim());
             }
         }
 
-        self.$super(scope, node, expr);
+        self.$super(scope, node, config);
     },
 
-    $init: function(scope, node, expr, renderer, attr) {
+    $init: function(scope, node, config, renderer, attrSet) {
 
-        var self = this,
-            cfg = attr ? attr.config : {};
+        var self = this;
 
-        if (cfg.noCache) {
-            self.noCache = true;
-        }
+        self.usePreload = !config.get("noPreload");
 
-        if (cfg.noPreload) {
-            self.usePreload = false;
-        }
-        else {
+        if (self.usePreload) {
             node.style.visibility = "hidden"
         }
 
         self.queue = new MetaphorJs.lib.Queue({auto: true, async: true, 
                                     mode: MetaphorJs.lib.Queue.REPLACE, thenable: true});
-        self.$super(scope, node, expr);
+        self.$super(scope, node, config, renderer, attrSet);
     },
 
 
@@ -80,7 +78,7 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
             return;
         }
 
-        var src = self.watcher.getLastResult();
+        var src = self.config.get("value");
 
         if (!src) {
             return;
@@ -88,12 +86,12 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
 
         self.src = src;
 
-        if (self.noCache) {
+        if (self.config.get("noCache")) {
             src += (src.indexOf("?") !== -1 ? "&amp;" : "?") + "_" + (new Date).getTime();
         }
 
         if (self.usePreload) {
-            self.lastPromise = preloadImage(src);
+            self.lastPromise = MetaphorJs.dom.preloadImage(src);
             if (self.lastPromise) {
                 self.lastPromise.done(self.onImagePreloaded, self);
             }
@@ -101,7 +99,7 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
         else {
             if (self.node) {
                 self.node.src = src;
-                setAttr(self.node, "src", src);
+                MetaphorJs.dom.setAttr(self.node, "src", src);
                 self.onSrcChanged();
             }
         }
@@ -126,7 +124,7 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
             raf(function(){
                 if (self.node) {
                     self.node.src = src;
-                    setAttr(self.node, "src", src);
+                    MetaphorJs.dom.setAttr(self.node, "src", src);
                     self.onSrcChanged();
                     self.node.style.visibility = "";
                     self.scope.$scheduleCheck(50);

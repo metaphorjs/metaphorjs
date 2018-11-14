@@ -1,11 +1,10 @@
 
-
-var Directive = require("metaphorjs/src/class/Directive.js"),
-    Store = require("../class/Store.js"),
-    StoreRenderer = require("../class/StoreRenderer.js");
-
+require("../class/StoreRenderer.js");
+require("../class/Store.js");
 require("metaphorjs/src/directive/attr/each.js");
 
+var Directive = require("metaphorjs/src/class/Directive.js");
+
 Directive.getDirective("attr", "each")
-    .registerType(Store, StoreRenderer);
+    .registerType(MetaphorJs.model.Store, MetaphorJs.app.StoreRenderer);
 

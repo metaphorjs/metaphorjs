@@ -20,112 +20,46 @@ var undf = require("metaphorjs-shared/src/var/undf.js"),
 /**
  * @method EventHandler
  * @constructor
- * @param {MetaphorJs.lib.Scope} scope 
- * @param {DomNode} node 
- * @param {object} cfg Directive config
  * @param {string} event Dom event name
- * @param {object} defaults Default config
+ * @param {MetaphorJs.lib.Scope} scope 
+ * @param {Node} node 
+ * @param {MetaphorJs.lib.Config} cfg MetaphorJs.lib.Config
  */
-MetaphorJs.lib.EventHandler = function(scope, node, cfg, event, defaults) {
+MetaphorJs.lib.EventHandler = function(event, scope, node, cfg) {
 
-    var self = this;
+    var self = this,
+        expr = cfg.getProperty("value").expression;
 
-    self.event = event;
-    self.prevEvent = {};
-
-    defaults = defaults || {};
-
-    cfg = cfg || {};
-
-    if (typeof cfg === "string") {
-
-        self.updateRoot = cfg.indexOf('$root') + cfg.indexOf('$parent') !== -2;
-
-        var fc = cfg.substr(0,1);
-
-        if (fc === '{') {
-            self.watcher = MetaphorJs.lib.MutationObserver(scope, cfg, self.onConfigChange, self);
-            cfg = extend({}, self.watcher.getValue(), true, true);
-        }
-        else if (fc === '=') {
-            cfg = cfg.substr(1);
-            self.watcher = MetaphorJs.lib.MutationObserver(scope, cfg, self.onConfigChange, self);
-            cfg = extend({}, self.watcher.getValue(), true, true);
-        }
-        else {
-            var handler = MetaphorJs.lib.Expression.parse(cfg);
-            cfg = {
-                handler: handler
-            };
-        }
-    }
-
-    self.buffers    = {};
-    self.listeners  = [];
+    self.config     = cfg;
+    self.event      = event;
+    self.prevEvent  = {};
+    self.updateRoot = expr.indexOf('$root') + expr.indexOf('$parent') !== -2;
     self.scope      = scope;
     self.node       = node;
+    self.handler    = null;
+    self.buffer     = null;
 
-    self.prepareConfig(cfg, defaults);
+    if (cfg.hasProperty("if")) {
+        cfg.on("if", self.onIfChange, self);
+    }
 
     self.up();
 };
 
 extend(MetaphorJs.lib.EventHandler.prototype, {
 
-    cfg: null,
-    scope: null,
-    node: null,
-    listeners: null,
-    event: null,
-    buffers: null,
-    updateRoot: false,
-    prevEvent: null,
 
-    prepareConfig: function(cfg, defaults) {
-
-        var tmp,
-            event = this.event;
-
-        extend(cfg, defaults, false, false);
-
-        if (cfg.handler && typeof cfg.handler === "string") {
-            cfg.handler = MetaphorJs.lib.Expression.parse(cfg.handler);
-        }
-
-        if (cfg.event) {
-            tmp = {};
-            var events = cfg.event.split(","),
-                i, l;
-
-            for (i = 0, l = events.length; i < l; i++) {
-                tmp[events[i].trim()] = cfg;
-            }
-
-            cfg = tmp;
-        }
-        else if (event) {
-            tmp = {};
-            tmp[event] = cfg;
-            cfg = tmp;
-        }
-
-        this.cfg = cfg;
+    onIfChange: function(val) {
+        this[val?"up":"down"]();
     },
 
-    onConfigChange: function(val) {
-        var self = this;
-        val = extend({}, val, true, true);
-        self.down();
-        self.prepareConfig(val);
-        self.up();
-    },
-
-    createHandler: function(cfg, scope) {
+    createHandler: function() {
 
         var self        = this,
-            updateRoot  = self.updateRoot;
+            scope       = self.scope,
+            asnc;
 
-        var handler = function(e){
+        var handler = function(e) {
 
             if (self.$destroyed || self.$destroying) {
                 return;
@@ -135,7 +69,9 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
                 preventDefault = false,
                 returnValue = undf,
                 stopPropagation = false,
-                res;
+                res,
+                cfg = self.config.getValues(),
+                handler = self.config.get("value");
 
             cfg.preventDefault !== undf && (preventDefault = cfg.preventDefault);
             cfg.stopPropagation !== undf && (stopPropagation = cfg.stopPropagation);
@@ -157,8 +93,8 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
             scope.$eventNode = self.node;
             scope.$prevEvent = self.prevEvent[e.type];
 
-            if (cfg.handler) {
-                res = cfg.handler.call(cfg.context || null, scope);
+            if (handler) {
+                res = handler.call(cfg.context || null, scope);
 
                 if (res && isPlainObject(res)) {
                     res.preventDefault !== undf && (preventDefault = res.preventDefault);
@@ -179,17 +115,17 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
 
             self.prevEvent[e.type] = e;
 
-            updateRoot ? scope.$root.$check() : scope.$check();
+            self.updateRoot ? scope.$root.$check() : scope.$check();
 
             if (returnValue !== undf) {
                 return returnValue;
             }
         };
 
-        if (cfg.async) {
+        if (asnc = self.config.get("async")) {
             return function(e) {
                 async(handler, null, [e], 
-                        typeof cfg.async == "number" ? cfg.async : null);
+                        typeof asnc == "number" ? asnc : null);
             };
         }
         else {
@@ -204,33 +140,17 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
     up: function() {
 
         var self    = this,
-            allCfg  = self.cfg,
-            ls      = self.listeners,
-            bs      = self.buffers,
-            node    = self.node,
-            scope   = self.scope,
-            cfg,
-            buffer,
-            handler,
-            event;
+            cfg     = self.config,
+            buffer  = cfg.get("buffer");
 
-        for (event in allCfg) {
-            cfg = allCfg[event];
-            buffer = cfg.buffer;
-
-            if (cfg['if'] === undf || cfg['if']) {
-                handler = self.createHandler(cfg, scope);
-                ls.push([event, handler]);
-
-                if (buffer) {
-                    if (!bs[event]) {
-                        bs[event] = MetaphorJs.lib.EventBuffer.get(node, event, buffer);
-                        bs[event].on(handler);
-                    }
-                }
-                else {
-                    MetaphorJs.dom.addListener(node, event, handler);
-                }
+        if (!cfg.hasProperty("if") || cfg.get('if')) {
+            self.handler = self.createHandler();
+            if (buffer) {
+                self.buffer = MetaphorJs.lib.EventBuffer.get(self.node, self.event, buffer);
+                self.buffer.on(self.handler);
+            }
+            else {
+                MetaphorJs.dom.addListener(self.node, self.event, self.handler);
             }
         }
     },
@@ -241,31 +161,16 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
      */
     down: function() {
 
-        var self    = this,
-            ls      = self.listeners,
-            bs      = self.buffers,
-            node    = self.node,
-            buffer  = self.cfg.buffer,
-            event,
-            handler,
-            i, l;
+        var self    = this;
 
-
-        for (i = 0, l = ls.length; i < l; i++) {
-            event = ls[i][0];
-            handler = ls[i][1];
-            if (buffer) {
-                bs[event].un(handler);
-                if (bs[event].destroyIfIdle() === true) {
-                    delete bs[event];
-                }
-            }
-            else {
-                MetaphorJs.dom.removeListener(node, event, handler);
-            }
+        if (self.buffer) {
+            self.buffer.un(self.handler);
+            self.buffer.destroyIfIdle();
+            self.buffer = null;
         }
-
-        self.listeners  = [];
+        else {
+            MetaphorJs.dom.removeListener(self.node, self.event, self.handler);
+        }
     },
 
     /**
@@ -274,10 +179,7 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
     $destroy: function() {
         var self = this;
         self.down();
-        if (self.watcher) {
-            self.watcher.unsubscribe(self.onConfigChange, self);
-            self.watcher.$destroy(true);
-        }
+        self.config.clear();
     }
 });
 

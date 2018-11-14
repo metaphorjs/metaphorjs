@@ -1,6 +1,7 @@
 
 require("../lib/Expression.js");
 require("../lib/MutationObserver.js");
+require("../func/dom/commentWrap.js");
 
 var undf = require("metaphorjs-shared/src/var/undf.js"),
     isString = require("metaphorjs-shared/src/func/isString.js"),
@@ -13,7 +14,12 @@ module.exports = MetaphorJs.app.Directive = (function() {
 
     var attr = {},
         tag = {},
-        component = {};
+        component = {},
+        attributes          = [],
+        attributesSorted    = false,
+        compare             = function(a, b) {
+            return b.priority - a.priority;
+        }
 
     MetaphorJs.directive = MetaphorJs.directive || {
         attr: attr,
@@ -21,56 +27,24 @@ module.exports = MetaphorJs.app.Directive = (function() {
         component: component
     };
 
-    var attributes          = [],
-        attributesSorted    = false,
-        compare             = function(a, b) {
-            return b.priority - a.priority;
-        },
-
-        commentHolders      = function(node, name) {
-
-            name = name || "";
-
-            var before = window.document.createComment(name + " - start"),
-                after = window.document.createComment(name + " - end"),
-                parent = node.parentNode;
-
-            parent.insertBefore(before, node);
-
-            if (node.nextSibling) {
-                parent.insertBefore(after, node.nextSibling);
-            }
-            else {
-                parent.appendChild(after);
-            }
-
-            return [before, after];
-        };
-
     return cls({
 
         watcher: null,
         stateFn: null,
         scope: null,
         node: null,
-        expr: null,
         mods: null,
+        wrapperOpen: null,
+        wrapperClose: null,
 
-        autoOnChange: true,
+        $init: function(scope, node, config, renderer, attrSet) {
 
-        $init: function(scope, node, expr, renderer, attr) {
+            var self        = this;
 
-            var self        = this,
-                config      = attr ? attr.config : {},
-                val;
-
-            expr            = expr.trim();
-
+            self.config     = config;
             self.node       = node;
-            self.expr       = expr;
             self.scope      = scope;
             self.saveState  = config.saveState;
-            self.watcher    = MetaphorJs.lib.MutationObserver.get(scope, expr, self.onChange, self);
 
             if (self.saveState) {
                 self.stateFn = MetaphorJs.lib.Expression.parse(self.saveState, {
@@ -79,31 +53,36 @@ module.exports = MetaphorJs.app.Directive = (function() {
                 });
             }
 
-            if (self.autoOnChange && (val = self.watcher.getValue()) !== undf) {
-                self.onChange(val, undf);
-            }
-
             scope.$on("destroy", self.onScopeDestroy, self);
             scope.$on("reset", self.onScopeReset, self);
+
+            self.initialSet();
+        },
+
+        initialSet: function() {
+            var self = this;
+            self.config.lateInit();
+            self.config.on("value", self.onChange, self);
+            if ((val = self.config.get("value")) !== undf) {
+                self.onChange(val, undf);
+            }
         },
 
         getChildren: function() {
             return null;
         },
 
-        createCommentHolders: function(node, name) {
-            var cmts = commentHolders(node, name || this.$class);
-            this.prevEl = cmts[0];
-            this.nextEl = cmts[1];
+        createCommentWrap: function(node, name) {
+            var cmts = MetaphorJs.dom.commentWrap(node, name || this.$class);
+            this.wrapperOpen = cmts[0];
+            this.wrapperClose = cmts[1];
         },
 
         onScopeDestroy: function() {
             this.$destroy();
         },
 
-        onScopeReset: function() {
-
-        },
+        onScopeReset: function() {},
 
         onChange: function(val) {
             this.saveStateOnChange(val);
@@ -128,21 +107,34 @@ module.exports = MetaphorJs.app.Directive = (function() {
                 self.watcher.$destroy(true);
             }
 
-            if (self.prevEl) {
-                self.prevEl.parentNode.removeChild(self.prevEl);
+            if (self.wrapperOpen) {
+                self.wrapperOpen.parentNode.removeChild(self.wrapperOpen);
             }
-            if (self.nextEl) {
-                self.nextEl.parentNode.removeChild(self.nextEl);
+            if (self.wrapperClose) {
+                self.wrapperClose.parentNode.removeChild(self.wrapperClose);
             }
 
             self.$super();
         }
     }, {
 
+        /**
+         * Get directive by name
+         * @static
+         * @method
+         * @param {string} type 
+         * @param {string} name 
+         */
         getDirective: function(type, name) {
             return ns.get("MetaphorJs.directive." + type +"."+ name, true);
         },
 
+        /**
+         * Register attribute directive
+         * @param {string} name Attribute name
+         * @param {int} priority 
+         * @param {function|MetaphorJs.app.Directive} handler 
+         */
         registerAttribute: function registerAttribute(name, priority, handler) {
             if (!attr[name]) {
                 attributes.push({
@@ -154,6 +146,12 @@ module.exports = MetaphorJs.app.Directive = (function() {
             }
         },
 
+        /**
+         * Get attribute directives sorted by priority
+         * @static
+         * @method
+         * @returns {array}
+         */
         getAttributes: function getAttributes() {
             if (!attributesSorted) {
                 attributes.sort(compare);
@@ -162,13 +160,22 @@ module.exports = MetaphorJs.app.Directive = (function() {
             return attributes;
         },
 
+        /**
+         * Register tag directive
+         * @param {string} name Tag name (case insensitive)
+         * @param {function|MetaphorJs.app.Directive} handler 
+         */
         registerTag: function registerTag(name, handler) {
             if (!tag[name]) {
                 tag[name] = handler;
             }
         },
 
-        // components are case sensitive
+        /**
+         * Register tag component
+         * @param {string} name Tag name (case sensitive)
+         * @param {MetaphorJs.app.Component} cmp 
+         */
         registerComponent: function(name, cmp) {
             if (!cmp) {
                 cmp = name;
@@ -179,11 +186,6 @@ module.exports = MetaphorJs.app.Directive = (function() {
             if (!component[name]) {
                 component[name] = cmp;
             }
-        },
-
-        commentHolders: commentHolders
+        }
     });
-
 }());
-
-

@@ -1,8 +1,7 @@
 
+require("metaphorjs-animate/src/func/animate.js");
 
-
-var animate = require("metaphorjs-animate/src/func/animate.js"),
-    Directive = require("../../class/Directive.js");
+var Directive = require("../../class/Directive.js");
 
 
 Directive.registerAttribute("if", 500, Directive.$extend({
@@ -16,38 +15,31 @@ Directive.registerAttribute("if", 500, Directive.$extend({
     cfg: null,
     animate: false,
 
-    $init: function(scope, node, expr, renderer, attr) {
+    $init: function(scope, node, config, renderer, attrSet) {
 
         var self    = this;
-
-        self.createCommentHolders(node, this.$class);
-
-        //self.parentEl   = node.parentNode;
-        self.cfg        = attr ? attr.config : {};
-        self.animate    = !!self.cfg.animate;
-
-        self.$super(scope, node, expr, renderer, attr);
+        config.setProperty("value", {type: "bool"});
+        config.setProperty("once", {type: "bool"});
+        self.createCommentWrap(node, "if");
+        self.$super(scope, node, expr, renderer, attrSet);
     },
 
     onScopeDestroy: function() {
 
         var self    = this;
-
-        self.prevEl = null;
-        //self.parentEl = null;
-        self.nextEl = null;
-
+        self.wrapperOpen = null;
+        self.wrapperClose = null;
         self.$super();
     },
 
     onChange: function() {
         var self    = this,
-            val     = self.watcher.getLastResult(),
-            parent  = self.prevEl.parentNode,
+            val     = self.config.get("value"),
+            parent  = self.wrapperOpen.parentNode,
             node    = self.node;
 
         var show    = function(){
-            parent.insertBefore(node, self.nextEl);
+            parent.insertBefore(node, self.wrapperClose);
         };
 
         var hide    = function() {
@@ -55,13 +47,13 @@ Directive.registerAttribute("if", 500, Directive.$extend({
         };
 
         if (val) {
-            self.initial || !self.animate ?
-                show() : animate(node, "enter", show);
+            self.initial || !self.config.get("animate") ?
+                show() : MetaphorJs.animate.animate(node, "enter", show);
         }
         else {
             if (node.parentNode) {
-                self.initial || !self.animate ?
-                    hide() : animate(node, "leave").done(hide);
+                self.initial || !self.config.get("animate") ?
+                    hide() : MetaphorJs.animate.animate(node, "leave").done(hide);
             }
         }
 
@@ -71,10 +63,9 @@ Directive.registerAttribute("if", 500, Directive.$extend({
             self.initial = false;
         }
         else {
-            if (self.cfg.once) {
+            if (self.config.get("once")) {
                 self.$destroy();
             }
         }
     }
-
 }));

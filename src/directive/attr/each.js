@@ -27,13 +27,19 @@ var Directive = require("../../class/Directive.js"),
         return null;
     }
 
-    var eachDirective = function eachDirective(scope, node, expr, parentRenderer, attr) {
-        var tagMode = node.nodeName.toLowerCase() === "mjs-each";
+    var eachDirective = function eachDirective(scope, node, config, parentRenderer, attrSet) {
+        config.setProperty("value", {disabled: true});
+        config.lateInit();
+        var tagMode = node.nodeName.toLowerCase() === "mjs-each",
+            expr;
         if (tagMode) {
             expr = MetaphorJs.dom.getAttr(node, "value");
         }
+        else {
+            expr = config.getProperty("value").expression;
+        }
         var handler = detectModelType(expr, scope) || MetaphorJs.app.ListRenderer;
-        return new handler(scope, node, expr, parentRenderer, attr);
+        return new handler(scope, node, expr, parentRenderer, attrSet);
     };
 
 

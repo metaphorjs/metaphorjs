@@ -1,5 +1,4 @@
 
-
 var Directive = require("../../app/Directive.js");
 
 Directive.BindHtml = Directive.registerAttribute("bind-html", 1000, 

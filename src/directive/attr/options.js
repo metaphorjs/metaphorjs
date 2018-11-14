@@ -26,12 +26,17 @@ Directive.registerAttribute("options", 100, Directive.$extend({
     groupEl: null,
     fragment: null,
 
-    $init: function(scope, node, expr) {
+    $init: function(scope, node, config) {
 
-        var self    = this;
+        config.setProperty("value", {disabled: true});
+        config.lateInit();
+
+        var self    = this,
+            expr    = config.getProperty("value").expression;
 
         self.parseExpr(expr);
 
+        self.config     = config;
         self.node       = node;
         self.scope      = scope;
         self.defOption  = node.options.length ? node.options[0] : null;
@@ -43,8 +48,8 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         self.defOption && MetaphorJs.dom.setAttr(self.defOption, "default-option", "");
 
         try {
-            var value = MetaphorJs.lib.Expression.parse(self.model)(scope);
-            if (cls.isInstanceOf(value, "Store")) {
+            var value = MetaphorJs.lib.Expression.run(self.model, scope);
+            if (cls.isInstanceOf(value, "MetaphorJs.model.Store")) {
                 self.bindStore(value, "on");
             }
             else {

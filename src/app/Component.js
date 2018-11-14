@@ -1,27 +1,25 @@
 
+require("../func/dom/getAttr.js");
+require("../func/dom/setAttr.js");
+require("../func/dom/removeAttr.js");
+require("../func/dom/isAttached.js");
+require("./Template.js");
+require("./Directive.js");
+require("../func/dom/addClass.js");
+require("../func/dom/removeClass.js");
+require("../lib/Scope.js");
+require("metaphorjs-observable/src/mixin/Observable.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
-    getAttr = require("../func/dom/getAttr.js"),
-    setAttr = require("../func/dom/setAttr.js"),
-    removeAttr = require("../func/dom/removeAttr.js"),
-    isAttached = require("../func/dom/isAttached.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
-    Template = require("./Template.js"),
-    Directive = require("./Directive.js"),
-    addClass = require("../func/dom/addClass.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
-    htmlTags = require("../var/dom/htmlTags"),
-    removeClass = require("../func/dom/removeClass.js");
-
-require("../lib/Scope.js");
-require("metaphorjs-observable/src/mixin/Observable.js");
+    htmlTags = require("../var/dom/htmlTags");
 
 /**
- * @namespace MetaphorJs
- * @class Component
+ * @class MetaphorJs.app.Component
  */
 module.exports = MetaphorJs.app.Component = cls({
 
@@ -142,7 +140,7 @@ module.exports = MetaphorJs.app.Component = cls({
         }
 
         if (self.node) {
-            var nodeId = getAttr(self.node, "id");
+            var nodeId = MetaphorJs.dom.getAttr(self.node, "id");
             if (nodeId) {
                 self.originalId = true;
                 if (!self.id) {
@@ -169,9 +167,9 @@ module.exports = MetaphorJs.app.Component = cls({
 
         self._nodeReplaced = htmlTags.indexOf(self.node.tagName.toLowerCase()) === -1;
 
-        if (!tpl || !(tpl instanceof Template)) {
+        if (!tpl || !(tpl instanceof MetaphorJs.app.Template)) {
 
-            self.template = tpl = new Template({
+            self.template = tpl = new MetaphorJs.app.Template({
                 scope: self.scope,
                 node: self.node,
                 deferRendering: !tpl || self._nodeReplaced,
@@ -226,7 +224,7 @@ module.exports = MetaphorJs.app.Component = cls({
             node    = self.node;
 
         if (!self.originalId) {
-            setAttr(node, "id", self.id);
+            MetaphorJs.dom.setAttr(node, "id", self.id);
         }
 
         self.initNode();
@@ -237,17 +235,17 @@ module.exports = MetaphorJs.app.Component = cls({
         var self = this,
             node = self.node;
 
-        removeAttr(node, "cmp-id");
+        MetaphorJs.dom.removeAttr(node, "cmp-id");
 
         if (self.cls) {
-            removeClass(node, self.cls);
+            MetaphorJs.dom.removeClass(node, self.cls);
         }
     },
 
     onFirstNodeReported: function(node) {
         var self = this;
         if (self._nodeReplaced) {
-            setAttr(node, "cmp-id", self.id);
+            MetaphorJs.dom.setAttr(node, "cmp-id", self.id);
             node.$$cmpId = self.id;
         }
     },
@@ -257,11 +255,11 @@ module.exports = MetaphorJs.app.Component = cls({
         var self = this,
             node = self.node;
 
-        setAttr(node, "cmp-id", self.id);
+        MetaphorJs.dom.setAttr(node, "cmp-id", self.id);
         node.$$cmpId = self.id;
 
         if (self.cls) {
-            addClass(node, self.cls);
+            MetaphorJs.dom.addClass(node, self.cls);
         }
 
         if (self.hidden) {
@@ -273,7 +271,7 @@ module.exports = MetaphorJs.app.Component = cls({
         var self = this;
 
         if (self._nodeReplaced && self.node.parentNode) {
-            removeAttr(self.node, "id");
+            MetaphorJs.dom.removeAttr(self.node, "id");
             //self.node.parentNode.removeChild(self.node);
         }
 
@@ -364,7 +362,6 @@ module.exports = MetaphorJs.app.Component = cls({
         if (self.node) {
             self.node.style.display = "block";
         }
-
     },
 
     /**
@@ -522,8 +519,3 @@ module.exports = MetaphorJs.app.Component = cls({
         }
     }
 });
-
-/**
- * @md-end-class
- */
-

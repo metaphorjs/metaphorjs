@@ -8,11 +8,16 @@ var Directive = require("../../class/Directive.js"),
 
 (function(){
 
-    var cmpAttr = function(scope, node, cmpName, parentRenderer, attr){
+    var cmpAttr = function(scope, node, config, parentRenderer, attrSet){
 
-        var constr  = typeof cmpName === "string" ?
+        config.lateInit();
+        config.setProperty("sameScope", {type: "bool"});
+        config.setProperty("isolateScope", {type: "bool"});
+
+        var cmpName = config.get("value"),
+            constr  = typeof cmpName === "string" ?
                         ns.get(cmpName, true) : cmpName,
-            nodecfg = attr ? attr.config : {};
+            nodecfg = config.getValues();
 
         if (!constr) {
             throw new Error("Component " + cmpName + " not found");
@@ -21,7 +26,8 @@ var Directive = require("../../class/Directive.js"),
         var sameScope       = nodecfg.sameScope || constr.$sameScope,
             isolateScope    = nodecfg.isolateScope || constr.$isolateScope;
 
-        var newScope = isolateScope ? scope.$newIsolated() : (sameScope ? scope : scope.$new());
+        var newScope = isolateScope ? scope.$newIsolated() : 
+                                        (sameScope ? scope : scope.$new());
 
         var cfg     = extend({
             scope: newScope,
@@ -32,8 +38,8 @@ var Directive = require("../../class/Directive.js"),
 
         MetaphorJs.app.resolve(cmpName, cfg, newScope, node, [cfg])
             .done(function(cmp){
-                if (nodecfg.ref) {
-                    scope[nodecfg.ref] = cmp;
+                if (attrSet.ref) {
+                    scope[attrSet.ref] = cmp;
                 }
             });
 

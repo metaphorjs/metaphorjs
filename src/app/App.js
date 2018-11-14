@@ -1,5 +1,8 @@
-require("../lib/Plural.js");
 require("../lib/Scope.js");
+require("./Renderer.js");
+require("../func/dom/getAttr.js");
+require("../func/dom/removeAttr.js");
+require("metaphorjs-shared/src/lib/LocalText.js");
 require("metaphorjs-promise/src/lib/Promise.js");
 require("metaphorjs-shared/src/mixin/Provider.js");
 require("metaphorjs-observable/src/mixin/Observable.js");
@@ -7,15 +10,13 @@ require("metaphorjs-observable/src/mixin/Observable.js");
 var cls = require("metaphorjs-class/src/cls.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
-    toArray = require("metaphorjs-shared/src/func/toArray.js"),
-    getAttr = require("../func/dom/getAttr.js"),
-    Renderer = require("../class/Renderer.js"),
-    removeAttr = require("../func/dom/removeAttr.js");
+    toArray = require("metaphorjs-shared/src/func/toArray.js");
 
+/**
+ * @class MetaphorJs.app.App
+ */
+module.exports = MetaphorJs.app.App = cls({
 
-module.exports = MetaphorJs.App = cls({
-
-    $class: "MetaphorJs.App",
     $mixins: [MetaphorJs.mixin.Observable, 
                 MetaphorJs.lib.Provider],
 
@@ -26,6 +27,12 @@ module.exports = MetaphorJs.App = cls({
     components: null,
     sourceObs: null,
 
+    /**
+     * @constructor
+     * @method
+     * @param {Node} node 
+     * @param {object} data 
+     */
     $init: function(node, data) {
 
         var self        = this,
@@ -34,12 +41,12 @@ module.exports = MetaphorJs.App = cls({
                                 new MetaphorJs.lib.Scope(data),
             args;
 
-        removeAttr(node, "mjs-app");
+        MetaphorJs.dom.removeAttr(node, "mjs-app");
 
         scope.$app      = self;
         self.$super();
 
-        self.lang       = new MetaphorJs.lib.Plural;
+        self.lang       = new MetaphorJs.lib.LocalText;
 
         self.scope          = scope;
         self.cmpListeners   = {};
@@ -49,8 +56,9 @@ module.exports = MetaphorJs.App = cls({
         self.value('$app', self);
         self.value('$rootScope', scope.$root);
         self.value('$lang', self.lang);
+        self.value('$locale', self.lang);
 
-        self.renderer       = new Renderer(node, scope);
+        self.renderer       = new MetaphorJs.app.Renderer(node, scope);
         self.renderer.on("rendered", self.afterRender, self);
 
         args = toArray(arguments);
@@ -64,10 +72,19 @@ module.exports = MetaphorJs.App = cls({
 
     },
 
+    /**
+     * Start processing the DOM
+     * @method
+     */
     run: function() {
         this.renderer.process();
     },
 
+    /**
+     * Create data source gate
+     * @param {string} name Source name
+     * @param {string|bool} returnResult See MetaphorJs.lib.Observable.createEvent()
+     */
     createSource: function(name, returnResult) {
         var key = "source-" + name,
             self = this;
@@ -77,20 +94,42 @@ module.exports = MetaphorJs.App = cls({
         }
     },
 
+    /**
+     * Register data source
+     * @param {string} name Source name
+     * @param {function} fn Function yielding the data
+     * @param {object} context fn's context
+     */
     registerSource: function(name, fn, context) {
         this.on("source-" + name, fn, context);
     },
 
+    /**
+     * Unregister data source
+     * @param {string} name Source name
+     * @param {function} fn Data function
+     * @param {object} context fn's context
+     */
     unregisterSource: function(name, fn, context) {
         this.un("source-" + name, fn, context);
     },
 
+    /**
+     * Collect data from data source
+     * @param {string} name Source name
+     * @returns {object|array}
+     */
     collect: function(name) {
         arguments[0] = "source-" + arguments[0];
         return this.trigger.apply(this, arguments);
     },
 
-
+    /**
+     * Get parent component for given node
+     * @param {Node} node 
+     * @param {bool} includeSelf 
+     * @returns {MetaphorJs.app.Component}
+     */
     getParentCmp: function(node, includeSelf) {
 
         var self    = this,
@@ -98,7 +137,7 @@ module.exports = MetaphorJs.App = cls({
             id;
 
         while (parent) {
-            if (id = (getAttr(parent, "cmp-id") || parent.$$cmpId)) {
+            if (id = (MetaphorJs.dom.getAttr(parent, "cmp-id") || parent.$$cmpId)) {
                 return self.getCmp(id);
             }
             parent = parent.parentNode;
@@ -107,6 +146,13 @@ module.exports = MetaphorJs.App = cls({
         return null;
     },
 
+    /**
+     * Register callback for when component becomes available
+     * @param {string} cmpId 
+     * @param {function} fn 
+     * @param {object} context 
+     * @returns {MetaphorJs.lib.Promise}
+     */
     onAvailable: function(cmpId, fn, context) {
 
         var self = this,
@@ -128,10 +174,21 @@ module.exports = MetaphorJs.App = cls({
         return cmpListeners[cmpId];
     },
 
+    /**
+     * Get component
+     * @param {string} id 
+     * @returns {MetaphorJs.app.Component}
+     */
     getCmp: function(id) {
         return this.components[id] || null;
     },
 
+    /**
+     * Register component
+     * @param {MetaphorJs.app.Component} cmp 
+     * @param {MetaphorJs.lib.Scope} scope 
+     * @param {string} byKey 
+     */
     registerCmp: function(cmp, scope, byKey) {
         var self = this,
             id = cmp[byKey],

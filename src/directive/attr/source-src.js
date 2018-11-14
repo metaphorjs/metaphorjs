@@ -1,54 +1,42 @@
+require("metaphorjs/src/func/dom/select.js");
+require("../../func/dom/setAttr.js");
 
-
-var setAttr = require("../../func/dom/setAttr.js"),
-    Directive = require("../../class/Directive.js"),
-    select = require("metaphorjs/src/func/dom/select.js");
+var Directive = require("../../class/Directive.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 Directive.registerAttribute("source-src", 1000, Directive.$extend({
 
     $class: "MetaphorJs.Directive.attr.SourceSrc",
 
     usePreload: true,
-    noCache: false,
     attr: null,
 
     lastPromise: null,
     src: null,
 
-    $constructor: function(scope, node, expr, renderer, attr) {
+    $constructor: function(scope, node, config, renderer, attrSet) {
 
-        var self = this,
-            cfg = attr ? attr.config : {};
+        config.setProperty("deferred", {type: "bool"});
+        config.setProperty("noCache", {type: "bool"});
+        config.lateInit();
 
-        self.attr = attr;
+        var self = this;
 
-        if (cfg.deferred) {
+        if (config.get("deferred")) {
             self.$plugins.push("plugin.SrcDeferred");
         }
-        /*if (cfg.preloadSize) {
-            self.$plugins.push("plugin.SrcSize");
-        }*/
-        if (cfg.plugin) {
-            var tmp = cfg.plugin.split(","),
+
+        if (config.get("plugin")) {
+            var tmp = config.get("plugin").split(","),
                 i, l;
             for (i = 0, l = tmp.length; i < l; i++) {
                 self.$plugins.push(tmp[i].trim());
             }
         }
 
-        self.$super(scope, node, expr);
+        self.$super(scope, node, config);
     },
 
-    $init: function(scope, node, expr, renderer, attr) {
-
-        var self = this,
-            cfg = attr ? attr.config : {};
-
-        if (cfg.noCache) {
-            self.noCache = true;
-        }
-        self.$super(scope, node, expr);
-    },
 
     onChange: function() {
         this.doChange();
@@ -61,7 +49,7 @@ Directive.registerAttribute("source-src", 1000, Directive.$extend({
             return;
         }
 
-        var src = self.watcher.getLastResult();
+        var src = self.config.get("value");
 
         if (!src) {
             return;
@@ -69,7 +57,7 @@ Directive.registerAttribute("source-src", 1000, Directive.$extend({
 
         self.src = src;
 
-        if (self.noCache) {
+        if (self.config.get("noCache")) {
             src += (src.indexOf("?") !== -1 ? "&amp;" : "?") + "_" + (new Date).getTime();
         }
 
@@ -82,7 +70,7 @@ Directive.registerAttribute("source-src", 1000, Directive.$extend({
     doChangeSource: function(src) {
         var self = this,
             node = self.node,
-            srcs = select("source", node),
+            srcs = MetaphorJs.dom.select("source", node),
             source = window.document.createElement("source"),
             i, l;
 
@@ -92,7 +80,7 @@ Directive.registerAttribute("source-src", 1000, Directive.$extend({
             }
         }
 
-        setAttr(source, "src", src);
+        MetaphorJs.dom.setAttr(source, "src", src);
         node.appendChild(source);
     },
 

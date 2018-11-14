@@ -1,9 +1,8 @@
 require("../../lib/EventHandler.js");
 require("../../lib/Expression.js");
+require("metaphorjs-input/src/lib/Input.js");
 
 var Directive = require("../../class/Directive.js"),
-    extend = require("../../func/extend.js"),
-    Input = require("metaphorjs-input/src/lib/Input.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 (function(){
@@ -15,47 +14,31 @@ var Directive = require("../../class/Directive.js"),
                   'touchstart', 'touchend', 'touchcancel', 'touchleave', 'touchmove'],
         i, len;
 
+    var prepareConfig = function(config) {
+        config.setProperty("preventDefault", {type: "bool", defaultValue: true});
+        config.setProperty("stopPropagation", {type: "bool"});
+        config.setProperty("if", {type: "bool"});
+        config.eachProperty(function(k){
+            if (k === 'value' || k.indexOf('value.') === 0) {
+                config.setProperty(k, {
+                    mode: MetaphorJs.lib.Config.MODE_GETTER
+                });
+            }
+        });
+        config.lateInit();
+        return config;
+    };
+
     for (i = 0, len = events.length; i < len; i++) {
 
         (function(name){
 
             Directive.registerAttribute(name, 1000,
-                function(scope, node, expr, renderer, attr){
+                function(scope, node, config, renderer, attrSet) {
 
-                var cfg = attr && attr.config ? extend({}, attr.config) : null,
-                    keep = false,
-                    k;
-
-                if (cfg) {
-                    for (k in cfg) {
-                        if (cfg.hasOwnProperty(k)) {
-                            keep = true;
-                            break;
-                        }
-                    }
-                    if (cfg.preventDefault) {
-                        cfg.preventDefault = MetaphorJs.lib.Expression.parse(cfg.preventDefault)(scope);
-                    }
-                    if (cfg.stopPropagation) {
-                        cfg.stopPropagation = MetaphorJs.lib.Expression.parse(cfg.stopPropagation)(scope);
-                    }
-                    if (cfg.async) {
-                        cfg.async = MetaphorJs.lib.Expression.parse(cfg.async)(scope);
-                    }
-                }
-
-                if (!keep) {
-                    cfg = null;
-                }
-
-                if (cfg) {
-                    cfg.handler = expr;
-                    expr = cfg;
-                }
-
-                var eh = new MetaphorJs.lib.EventHandler(scope, node, expr, name, {
-                    preventDefault: true
-                });
+                var eh = new MetaphorJs.lib.EventHandler(
+                    scope, node, prepareConfig(config), name
+                );
 
                 return function(){
                     eh.$destroy();
@@ -66,19 +49,22 @@ var Directive = require("../../class/Directive.js"),
         }(events[i]));
     }
 
-    Directive.registerAttribute("submit", 1000, function(scope, node, expr){
+    Directive.registerAttribute("submit", 1000, function(scope, node, config) {
 
-        var fn = MetaphorJs.lib.Expression.parse(expr),
+        prepareConfig(config);
+
+        var fn = config.get("value"),
+            expr = config.getProperty("value").expression,
             updateRoot = expr.indexOf('$root') + expr.indexOf('$parent') !== -2,
             handler = function(){
                 fn(scope);
                 updateRoot ? scope.$root.$check() : scope.$check();
             };
 
-        Input.get(node).onKey(13, handler);
+        MetaphorJs.lib.Input.get(node).onKey(13, handler);
 
         return function() {
-            Input.get(node).unKey(13, handler);
+            MetaphorJs.lib.Input.get(node).unKey(13, handler);
             handler = null;
             fn = null;
         };

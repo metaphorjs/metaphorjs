@@ -34,60 +34,41 @@ or
 
  */
 
-Directive.registerAttribute("key", 1000, function(scope, node, expr, renderer, attr){
+Directive.registerAttribute("key", 1000, function(scope, node, config, renderer, attrSet){
 
-    var values = attr ? attr.values : null,
-        parts, k, part, i, l;
-
-    if (values) {
-
-        parts = [];
-
-        for (k in values) {
-            part = values[k];
-
-            if (keys[k]) {
-                k = keys[k];
-            }
-
-            if (part.substr(0,1) === '{') {
-                parts.push('{keyCode: ' + k + ', ' + part.substr(1));
-            }
-            else {
-                parts.push('{keyCode: ' + k + ', handler: "' + part + '"}');
+    config.setProperty("value", {disabled: true});
+    config.eachProperty(function(k, prop){
+        if (k.indexOf('value.') === 0) {
+            if (prop.expression.charAt(0) !== '{') {
+                config.setProperty(k, {mode: MetaphorJs.lib.Config.MODE_GETTER});
             }
         }
-        expr = '[' + parts.join(',') + ']';
-    }
+    });
+    config.lateInit();
 
-    var allCfg = MetaphorJs.lib.Expression.parse(expr)(scope),
-        uninstall = [];
+    var createHandler = function(name, cfg) {
 
-    if (!isArray(allCfg)) {
-        allCfg = [allCfg];
-    }
+        if (typeof cfg === "function") {
+            cfg = {handler: cfg};
+        }
 
-    var createHandler = function(cfg) {
-
-        var handler = cfg.handler;
+        var h = cfg.handler;
         var context = cfg.context || scope;
-        var h;
 
         delete cfg.handler;
         delete cfg.context;
 
-        if (typeof handler === "string") {
-            h = MetaphorJs.lib.Expression.parse(handler);
-            handler = function(){
-                return function(e) {
-                    scope.$event = e;
-                    h(scope);
-                    scope.$event = null;
-                    scope.$check();
-                };
-            }(scope);
+        if (!cfg.keyCode) {
+            cfg.keyCode = keys[name] || parseInt(name,10);
         }
 
+        var handler = function(e) {
+            scope.$event = e;
+            h(scope);
+            scope.$event = null;
+            scope.$check();
+        };
+        
         Input.get(node).onKey(cfg, handler, context);
 
         return function() {
@@ -95,8 +76,11 @@ Directive.registerAttribute("key", 1000, function(scope, node, expr, renderer, a
         };
     };
 
-    for (i = 0, l = allCfg.length; i < l; i++) {
-        uninstall.push(createHandler(allCfg[i]));
+    var cfgs = config.getAllValues(),
+        name;
+    
+    for (name in cfgs) {
+        uninstall.push(createHandler(name, cfgs[name]));
     }
 
     return function() {

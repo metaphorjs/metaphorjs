@@ -1,8 +1,10 @@
+require("../../func/dom/removeStyle.js")
 
 var Directive = require("../../class/Directive.js"),
     undf = require("../../var/undf.js"),
+    extend = require("metaphorjs-shared/src/func/extend.js"),
     toCamelCase = require("../../func/toCamelCase.js"),
-    removeStyle = require("../../func/dom/removeStyle.js");
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /*
 value is always an object in the end
@@ -13,20 +15,28 @@ DO NOT MIX style="{}" with style.prop="expression".
 Directive.registerAttribute("style", 1000, Directive.$extend({
 
     $class: "MetaphorJs.Directive.attr.Style",
-    $init: function(scope, node, expr, renderer, attr) {
+    $init: function(scope, node, config, renderer, attrSet) {
 
-        var values = attr ? attr.values : null,
-            parts, k;
+        var self = this;
 
-        if (values) {
-            parts = [];
-            for (k in values) {
-                parts.push("'" + k + "'" + ': ' + values[k]);
+        config.eachProperty(function(k){
+            if (k.indexOf("value.") === 0) {
+                config.on(k, self.onChange, self);
             }
-            expr = '{' + parts.join(', ') + '}';
+        });
+
+        this.$super(scope, node, config);
+    },
+
+    getCurrentValue: function() {
+        var style = this.config.getAllValues();
+        
+        if (style[""]) {
+            extend(style, style[""]);
+            delete style[''];
         }
 
-        this.$super(scope, node, expr);
+        return style;
     },
 
     onChange: function() {
@@ -34,13 +44,13 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
         var self    = this,
             node    = self.node,
             style   = node.style,
-            props   = self.watcher.getLastResult(),
-            prev    = self.watcher.getPrevValue(),
+            props   = self.getCurrentValue(),
+            prev    = self.prev,
             k, trg;
 
         for (k in prev) {
             if (!props || props[k] === undf) {
-                removeStyle(node, k);
+                MetaphorJs.dom.removeStyle(node, k);
             }
         }
 
@@ -53,9 +63,11 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
                     style[trg] = props[k];
                 }
                 else {
-                    removeStyle(node, k);
+                    MetaphorJs.dom.removeStyle(node, k);
                 }
             }
         }
+
+        self.prev = props;
     }
 }));

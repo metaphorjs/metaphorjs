@@ -1,8 +1,14 @@
 
-var animate = require("metaphorjs-animate/src/func/animate.js"),
-    cls = require("metaphorjs-class/src/cls.js"),
-    Directive = require("./Directive.js"),
-    toArray = require("metaphorjs-shared/src/func/array/toArray.js"),
+require("../func/dom/commentWrap.js");
+require("../func/dom/getAttr.js");
+require("../func/dom/toFragment.js");
+require("./Renderer.js");
+require("metaphorjs-shared/src/lib/Queue.js");
+require("../lib/MutationObserver.js");
+require("metaphorjs-animate/src/animate/animate.js");
+
+var cls = require("metaphorjs-class/src/cls.js"),
+    toArray = require("metaphorjs-shared/src/func/toArray.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
     isNull = require("metaphorjs-shared/src/func/isNull.js"),
@@ -10,15 +16,12 @@ var animate = require("metaphorjs-animate/src/func/animate.js"),
     isPrimitive = require("metaphorjs-shared/src/func/isPrimitive.js"),
     bind = require("metaphorjs-shared/src/func/bind.js"),
     undf = require("metaphorjs-shared/src/var/undf.js"),
+    
     isFunction = require("metaphorjs-shared/src/func/isFunction.js"),
     levenshteinDiff = require("metaphorjs-shared/src/func/levenshteinDiff.js"),
-    levenshteinMove = require("metaphorjs-shared/src/func/levenshteinMove.js");
+    levenshteinMove = require("metaphorjs-shared/src/func/levenshteinMove.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-require("../func/dom/getAttr.js");
-require("../func/dom/toFragment.js");
-require("./Renderer.js");
-require("metaphorjs-shared/src/lib/Queue.js");
-require("../lib/MutationObserver.js");
 
 module.exports = MetaphorJs.app.ListRenderer = cls({
 
@@ -45,47 +48,49 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
     buffered: false,
     bufferPlugin: null,
 
-    $constructor: function(scope, node, expr, parentRenderer, attr) {
+    $constructor: function(scope, node, config, parentRenderer) {
 
-        var self    = this,
-            cfg     = attr ? attr.config : {};
+        config.setProperty("trackBy", {type: 'bool'});
 
-        self.cfg            = cfg;
+        var self    = this, 
+            cfg     = config.getValues();
+
+        self.cfg            = config;
         self.scope          = scope;
 
         self.tagMode        = node.nodeName.toLowerCase() === "mjs-each";
-        self.animateMove    = !self.tagMode && !cfg['buffered'] &&
-                                cfg["animateMove"] && animate.cssAnimationSupported();
-        self.animate        = !self.tagMode && !cfg['buffered'] && cfg["animate"];
+        self.animateMove    = !self.tagMode && 
+                                !cfg.get['buffered'] &&
+                                cfg["animateMove"] && 
+                                animate.cssAnimationSupported();
+        self.animate        = !self.tagMode && 
+                                !cfg['buffered'] && 
+                                cfg["animate"];
         self.id             = cfg['id'] || nextUid();
 
         if (self.animate) {
-            self.$plugins.push(cfg['animatePlugin'] || "plugin.ListAnimated");
+            self.$plugins.push(cfg['animatePlugin'] || "MetaphorJs.plugin.ListAnimated");
         }
 
         if (cfg['observable']) {
-            self.$plugins.push(cfg['observable'] || "plugin.Observable");
+            self.$plugins.push(cfg['observable'] || "MetaphorJs.plugin.Observable");
         }
 
-        if (self.tagMode) {
-            cfg['buffered'] = false;
-        }
-
-        if (cfg['buffered']) {
+        if (cfg['buffered'] && !self.tagMode) {
             self.buffered = true;
-            self.$plugins.push(cfg['buffered'] || "plugin.ListBuffered");
+            self.$plugins.push(cfg['buffered'] || "MetaphorJs.plugin.ListBuffered");
         }
 
         if (cfg['plugin']) {
             self.$plugins.push(cfg['plugin']);
         }
 
-        if (cfg['trackby'] && cfg['trackby'] === 'false') {
+        if (config.get('trackby') === false) {
             self.trackBy = false;
         }
     },
 
-    $init: function(scope, node, expr, parentRenderer, attr) {
+    $init: function(scope, node, config, parentRenderer) {
 
         var self = this;
 
@@ -98,7 +103,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
         self.tpl        = self.tagMode ? MetaphorJs.dom.toFragment(node.childNodes) : node;
         self.renderers  = [];
 
-        var cmts = Directive.commentHolders(node, self.$class + "-" + self.id);
+        var cmts = MetaphorJs.dom.commentWrap(node, self.$class + "-" + self.id);
 
         self.prevEl     = cmts[0];
         self.nextEl     = cmts[1];

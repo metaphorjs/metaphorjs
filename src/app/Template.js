@@ -13,6 +13,7 @@ require("../lib/Scope.js");
 require("../lib/Expression.js");
 require("../lib/MutationObserver.js");
 require("./Renderer.js");
+require("../func/dom/commentWrap.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
@@ -79,7 +80,7 @@ module.exports = MetaphorJs.app.Template = function() {
         processTextTemplate = function(tplId, tpl) {
             if (tpl.substr(0,5) === "<!--{") {
                 var inx = tpl.indexOf("-->"),
-                    opt = MetaphorJs.lib.Expression.parse(tpl.substr(4, inx-4))({});
+                    opt = MetaphorJs.lib.Expression.run(tpl.substr(4, inx-4), {});
 
                 options[tplId] = opt;
                 options[tplId].processed = true;
@@ -219,14 +220,10 @@ module.exports = MetaphorJs.app.Template = function() {
 
             //node && removeAttr(node, "include");
 
-            if (self.replace && node) {
-                self._prevEl = window.document.createComment(self.id + " - start");
-                self._nextEl = window.document.createComment(self.id + " - end");
-                var parent = node.parentNode;
-                if (parent) {
-                    parent.insertBefore(self._prevEl, node);
-                    parent.insertBefore(self._nextEl, node.nextSibling);
-                }
+            if (self.replace && node && node.parentNode) {
+                var cmts = MetaphorJs.com.commentWrap(node, self.id);
+                self._prevEl = cmts[0];
+                self._nextEl = cmts[1];
             }
 
             if (self.shadow) {
@@ -281,7 +278,6 @@ module.exports = MetaphorJs.app.Template = function() {
                 }
             }
 
-            // moved from if (tpl)
             if (self.ownRenderer && self.parentRenderer) {
                 self.parentRenderer.on("destroy",
                     self.onParentRendererDestroy,

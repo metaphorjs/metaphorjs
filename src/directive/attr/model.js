@@ -1,12 +1,14 @@
 require("../../lib/Scope.js");
 require("../../lib/Expression.js");
+require("../../lib/Input.js");
 
 var async = require("metaphorjs-shared/src/func/async.js"),
     isIE = require("../../func/browser/isIE.js"),
     undf = require("../../var/undf.js"),
-    Input = require("metaphorjs-input/src/lib/Input.js"),
     isString = require("../../func/isString.js"),
-    Directive = require("../../class/Directive.js");
+    Directive = require("../../class/Directive.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+
 
 Directive.registerAttribute("model", 1000, Directive.$extend({
 
@@ -20,26 +22,34 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
     autoOnChange: false,
 
-    $init: function(scope, node, expr, renderer, attr) {
+    $init: function(scope, node, config, renderer, attrSet) {
+
+        config.setProperty("change", {mode: MetaphorJs.lib.Config.MODE_FNSET});
+        config.setProperty("binding", {defaultValue: "both"});
+        config.lateInit();
 
         var self    = this,
-            cfg     = attr ? attr.config : {};
+            expr    = config.getProperty("value").expression;
+
+        self.getterFn       = config.get("value").getter;
+        self.setterFn       = config.get("value").setter;
+        if (config.hasProperty("change")) {
+            self.changeFn   = MetaphorJs.lib.Expression.parse(config.get("change"));
+        }
 
         self.node           = node;
         self.input          = Input.get(node, scope);
         self.updateRoot     = expr.indexOf('$root') + expr.indexOf('$parent') !== -2;
-        self.binding        = cfg.binding || "both";
+        self.binding        = config.get("binding");
 
-        if (cfg.change) {
-            self.changeCb   = MetaphorJs.lib.Expression.parse(cfg.change);
-        }
+        
 
         self.input.onChange(self.onInputChange, self);
 
-        self.$super(scope, node, expr);
+        self.$super(scope, node, config, renderer, attrSet);
 
         var inputValue      = self.input.getValue(),
-            scopeValue      = self.watcher.getLastResult();
+            scopeValue      = self.getterFn(scope);
 
         self.initial = true;
 
@@ -67,25 +77,24 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
                 val = val.replace(/\\{/g, '{');
             }
 
-            if (self.watcher.getLastResult() == val) {
+            if (self.getterFn(self.scope) == val) {
                 return;
             }
 
-            self.watcher.setValue(val);
+            self.setterFn(self.scope, val);
 
             self.inProg = true;
             if (scope instanceof MetaphorJs.lib.Scope) {
                 self.updateRoot ? scope.$root.$check() : scope.$check();
             }
             else {
-                self.watcher.checkAll();
+                self.config.check("value");
             }
             self.inProg = false;
         }
     },
 
     onDestroy: function() {
-
         var self        = this;
         self.input.$destroy();
         self.$super();
@@ -95,11 +104,11 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     onChange: function() {
 
         var self    = this,
-            val     = self.watcher.getLastResult(),
+            val     = self.getterFn(self.scope),
             binding = self.binding,
             ie;
 
-        if (self.binding !== "input" && !self.inProg) {
+        if (binding !== "input" && !self.inProg) {
 
             // when scope value changed but this field
             // is not in focus, it should try to
@@ -122,8 +131,8 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             self.binding = binding;
         }
 
-        if (self.changeCb && !self.initial && val != self.watcher.getPrevValue()) {
-            self.changeCb(self.scope);
+        if (self.changeFn && !self.initial) {
+            self.changeFn(self.scope);
         }
     }
 
