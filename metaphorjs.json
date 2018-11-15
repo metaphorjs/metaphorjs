@@ -43,8 +43,15 @@
         "test": {
             "target": "dev-test/metaphorjs.test.js",
             "files": [
-                "all"
-            ]
+                "all",
+                "dev-test/index.js"
+            ],
+            "omit": [
+                "src/bootstrap/apps.js"
+            ],
+            "options": {
+                "wrap": true
+            }
         },
 
         "standalone": {

@@ -3,7 +3,7 @@ require("metaphorjs-observable/src/lib/Observable.js");
 require("metaphorjs/src/func/dom/getAttr.js");
 require("metaphorjs/src/func/dom/addListener.js");
 require("metaphorjs/src/func/dom/normalizeEvent.js");
-require("metaphorjs-shared/src/func/browser/parseLocation.js"),
+require("metaphorjs-shared/src/func/browser/parseLocation.js");
 require("metaphorjs-shared/src/func/browser/joinLocation.js");
 
 var extend = require("metaphorjs-shared/src/func/extend.js"),

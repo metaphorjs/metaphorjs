@@ -1,9 +1,9 @@
 require("../../lib/Expression.js");
 require("../../lib/MutationObserver.js");
-require("../../func/dom/getInputValue.js"),
-require("../../func/dom/setInputValue.js"),
-require("../../func/dom/setAttr.js"),
-require("../../func/browser/isIE.js")
+require("../../func/dom/getInputValue.js");
+require("../../func/dom/setInputValue.js");
+require("../../func/dom/setAttr.js");
+require("../../func/browser/isIE.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),

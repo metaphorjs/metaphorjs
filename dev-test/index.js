@@ -1,10 +1,25 @@
 
-var defineClass = MetaphorJs.cs.define;
+require("../src/app/App.js");
+require("../src/app/Router.js");
+require("../src/app/Component.js");
+require("../src/func/app/resolve.js");
+require("../src/func/app/init.js");
+require("../src/func/dom/onReady.js");
+require("metaphorjs-model/src/model/Model.js");
+require("metaphorjs-model/src/model/Record.js");
+require("metaphorjs-model/src/model/Store.js");
+require("metaphorjs-dialog/src/dialog/Component.js");
+require("metaphorjs-promise/src/lib/Promise.js");
 
-defineClass({
+var cls = require("metaphorjs-class/src/cls.js"),
+    ns = require("metaphorjs-namespace/src/var/ns.js");
+
+ns.register("Test", {});
+
+cls({
 
     $class: "Test.MyApp2",
-    $extends: "MetaphorJs.App",
+    $extends: "MetaphorJs.app.App",
 
     initApp: function(node, scope, someValue) {
 
@@ -51,7 +66,7 @@ defineClass({
         });
     }
 
-},{
+}, {
     inject: ['$node', '$scope', 'someValue'],
     resolve: {
         someValue: function() {
@@ -66,10 +81,10 @@ defineClass({
 
 
 
-defineClass({
+cls({
 
     $class: "Test.MyView",
-    $extends: "MetaphorJs.View",
+    $extends: "MetaphorJs.app.Router",
 
         route: [
             {
@@ -96,15 +111,15 @@ defineClass({
         ]
     });
 
-defineClass({
+cls({
     $class: "Test.MyRecord",
-    $extends: "MetaphorJs.Record"
+    $extends: "MetaphorJs.model.Record"
 });
 
-defineClass({
+cls({
 
     $class: "Test.MyComponent",
-    $extends: "MetaphorJs.Component",
+    $extends: "MetaphorJs.app.Component",
 
         initComponent: function() {
 
@@ -112,7 +127,7 @@ defineClass({
 
             self.scope.title = "My Component" + (new Date).getTime();
 
-            var model   = new MetaphorJs.Model({
+            var model   = new MetaphorJs.model.Model({
                 type: "Test.MyRecord",
                 id: "id",
                 data: "record",
@@ -122,7 +137,7 @@ defineClass({
                 }
             });
 
-            self.scope.store = new MetaphorJs.Store({
+            self.scope.store = new MetaphorJs.model.Store({
                 model: model
             });
 
@@ -144,18 +159,18 @@ defineClass({
         createNew: function() {
 
             var node    = document.getElementById("newComponent");
-            MetaphorJs.resolveComponent("Test.DynamicComponent", {}, this.scope, node);
+            MetaphorJs.app.resolve("Test.DynamicComponent", {}, this.scope, node);
         },
 
         createRender: function() {
 
             var to  = document.getElementById("renderToComponent");
-            MetaphorJs.resolveComponent("Test.DynamicComponent", {renderTo: to}, this.scope);
+            MetaphorJs.app.resolve("Test.DynamicComponent", {renderTo: to}, this.scope);
         },
 
         createDialog: function() {
 
-            var dialog = new MetaphorJs.DialogComponent({
+            var dialog = new MetaphorJs.dialog.Component({
                 dialogCfg: {
                     cls: {
                         dialog: "dialog"
@@ -187,7 +202,7 @@ defineClass({
         resolve: {
             deferred: ['$node', '$scope', 'test', function(node, scope, test) {
 
-                return new MetaphorJs.Promise(function(resolve, reject){
+                return new MetaphorJs.lib.Promise(function(resolve, reject){
                     setTimeout(function(){
                         resolve((new Date).getTime());
                     }, 1000);
@@ -196,10 +211,10 @@ defineClass({
         }
     });
 
-defineClass({
+cls({
 
     $class: "Test.MyComponent2",
-    $extends: "MetaphorJs.Component",
+    $extends: "MetaphorJs.app.Component",
 
     template: 'cmp1-template',
 
@@ -213,10 +228,10 @@ defineClass({
     }
 });
 
-defineClass({
+cls({
 
     $class: "Test.TplComponent",
-    $extends: "MetaphorJs.Component",
+    $extends: "MetaphorJs.app.Component",
 
     initComponent: function() {
 
@@ -233,25 +248,24 @@ defineClass({
     }
 });
 
-defineClass({
+cls({
     $class: "Test.StringTemplate",
-    $extends: "MetaphorJs.Component"
+    $extends: "MetaphorJs.app.Component"
     }, {
     template: '<p>This template is inlined in components definition ({{.$root.a}})</p>'
 });
 
-defineClass({
+cls({
     $class: "Test.DynamicComponent",
-    $extends: "MetaphorJs.Component"
+    $extends: "MetaphorJs.app.Component"
     }, {
     template: '<p>This component was created dynamically</p><div mjs-transclude></div>'
 });
 
-defineClass({
+cls({
 
     $class: "Test.ChangeTemplate",
-    $extends: "MetaphorJs.Component",
-
+    $extends: "MetaphorJs.app.Component",
     template: '.tpl',
 
     initComponent: function() {
@@ -265,22 +279,22 @@ defineClass({
     }
 });
 
-defineClass({
+cls({
     $class: "Test.ViewComponent1",
-    $extends: "MetaphorJs.Component",
+    $extends: "MetaphorJs.app.Component",
     template: '<p>View template 1</p><div mjs-transclude></div>'
 });
 
-defineClass({
+cls({
     $class: "Test.ViewComponent2",
-    $extends: "MetaphorJs.Component",
+    $extends: "MetaphorJs.app.Component",
     template: '<p>View template 2</p><div mjs-transclude></div>'
 });
 
 
 
 
-MetaphorJs.onReady(function(){
+MetaphorJs.dom.onReady(function(){
     var dataObj     = {
         linkified: 'Linkified text aaa http://www.kuindji.com bbb',
         newItem: "",
@@ -298,7 +312,7 @@ MetaphorJs.onReady(function(){
     if (el) {
 
         //console.profile();
-        MetaphorJs.initApp(el, null, dataObj, false)
+        MetaphorJs.app.init(el, null, dataObj, false)
             .done(function (app) {
                 app.value("test", "123");
                 app.run();

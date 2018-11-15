@@ -1,5 +1,5 @@
 
-require("./History.js"),
+require("./History.js");
 require("metaphorjs-shared/src/func/browser/parseLocation.js");
 require("metaphorjs-observable/src/mixin/Observable.js");
 

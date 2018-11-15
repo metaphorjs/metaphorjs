@@ -1,9 +1,9 @@
 
 require("./__init.js");
-require("./getInputValue.js")
-require("metaphorjs/src/func/dom/getAttr.js"),
-require("metaphorjs/src/func/dom/setAttr.js"),
-require("metaphorjs/src/func/dom/removeAttr.js")
+require("./getInputValue.js");
+require("metaphorjs/src/func/dom/getAttr.js");
+require("metaphorjs/src/func/dom/setAttr.js");
+require("metaphorjs/src/func/dom/removeAttr.js");
 
 var toArray     = require("metaphorjs-shared/src/func/toArray.js"),
     isArray     = require("metaphorjs-shared/src/func/isArray.js"),
