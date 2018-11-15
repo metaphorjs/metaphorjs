@@ -88,10 +88,10 @@ module.exports = MetaphorJs.lib.Expression = (function() {
 
             var asCode = opt.asCode === true,
                 isSetter = opt.setter === true,
-                static,
+                statc,
                 cacheKey;
 
-            if (static = isStatic(expr)) {
+            if (statc = isStatic(expr)) {
 
                 cacheKey = expr + "_static";
 
@@ -112,7 +112,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
                 }
 
                 return cache[cacheKey] = function() {
-                    return static.value;
+                    return statc.value;
                 };
             }
             try {

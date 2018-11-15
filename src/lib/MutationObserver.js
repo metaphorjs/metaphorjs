@@ -53,7 +53,7 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
             id      = nextUid(),
             type    = "expr",
             propertyName,
-            static;
+            statc;
 
         opt = opt || {};
 
@@ -77,9 +77,9 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
         if (isFunction(expr)) {
             self.getterFn = expr;
         }
-        else if (static = MetaphorJs.lib.Expression.isStatic(expr)) {
+        else if (statc = MetaphorJs.lib.Expression.isStatic(expr)) {
             type = "static";
-            self.staticValue = static.value;
+            self.staticValue = statc.value;
             self.getterFn = bind(self.staticGetter, self);
         }
         else if (dataObj) {

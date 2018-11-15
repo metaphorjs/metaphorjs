@@ -21,8 +21,8 @@
     "mixin": {
         "core": {
             "files": [
-                ["src/MetaphorJs.js", {"as": "*"}],
-                "src/class/*",
+                ["metaphorjs-shared/src/MetaphorJs.js", {"as": "*"}],
+                "src/app/*",
                 "src/directive/**",
                 "src/filter/*",
                 "src/bootstrap/apps.js"
@@ -39,6 +39,13 @@
         }
     },
     "build": {
+
+        "test": {
+            "target": "dev-test/metaphorjs.test.js",
+            "files": [
+                "all"
+            ]
+        },
 
         "standalone": {
             "target": "dist/metaphorjs.js",

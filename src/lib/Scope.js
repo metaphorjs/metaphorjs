@@ -3,7 +3,6 @@ require("./Expression.js");
 require("./MutationObserver.js");
 
 var extend = require("metaphorjs-shared/src/func/extend.js"),
-    undf = require("metaphorjs-shared/src/var/undf.js"),
     async = require("metaphorjs-shared/src/func/async.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
