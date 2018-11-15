@@ -1,8 +1,8 @@
 require("../../lib/EventHandler.js");
 require("../../lib/Expression.js");
-require("metaphorjs-input/src/lib/Input.js");
+require("../../lib/Input.js");
 
-var Directive = require("../../class/Directive.js"),
+var Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 (function(){

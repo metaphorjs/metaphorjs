@@ -1,10 +1,11 @@
 require("metaphorjs-promise/src/lib/Promise.js");
+require("metaphorjs-animate/src/animate/animate.js");
+require("metaphorjs-animate/src/animate/stop.js");
+require("metaphorjs-animate/src/animate/getPrefixes.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
-    animate = require("metaphorjs-animate/src/func/animate.js"),
-    stopAnimation = require("metaphorjs-animate/src/func/stopAnimation.js"),
     raf = require("metaphorjs-animate/src/func/raf.js"),
-    getAnimationPrefixes = require("metaphorjs-animate/src/func/getAnimationPrefixes.js");
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 module.exports = (function(){
 
@@ -112,18 +113,18 @@ module.exports = (function(){
 
             applyFrom.done(function(){
                 if (from) {
-                    var prefixes = getAnimationPrefixes();
+                    var prefixes = MetaphorJs.animate.getPrefixes();
                     style[prefixes.transform] = "translateX("+from.left+"px) translateY("+from.top+"px)";
                 }
             });
 
-            return animate(
+            return MetaphorJs.animate.animate(
                 el,
                 "move",
                 startCallback,
                 function(el, position, stage){
                     if (position === 0 && stage !== "start" && to) {
-                        var prefixes = getAnimationPrefixes();
+                        var prefixes = MetaphorJs.animate.getPrefixes();
                         style[prefixes.transform] = "translateX("+to.left+"px) translateY("+to.top+"px)";
                     }
                 });
@@ -159,8 +160,8 @@ module.exports = (function(){
                 if (r) {
                     r.scope.$destroy();
 
-                    stopAnimation(r.el);
-                    animPromises.push(animate(r.el, "leave")
+                    MetaphorJs.animate.stop(r.el);
+                    animPromises.push(MetaphorJs.animate.animate(r.el, "leave")
                         .done(function(el){
                             el.style.visibility = "hidden";
                         }));
@@ -169,10 +170,10 @@ module.exports = (function(){
 
             for (i = 0, len = newRenderers.length; i < len; i++) {
                 r = newRenderers[i];
-                stopAnimation(r.el);
+                MetaphorJs.animate.stop(r.el);
 
                 r.action === "enter" ?
-                animPromises.push(animate(r.el, "enter", startCallback)) :
+                animPromises.push(MetaphorJs.animate.animate(r.el, "enter", startCallback)) :
                 animPromises.push(
                     self.moveAnimation(
                         r.el,
@@ -200,7 +201,7 @@ module.exports = (function(){
 
             MetaphorJs.lib.Promise.all(animPromises).always(function(){
                 raf(function(){
-                    var prefixes = getAnimationPrefixes();
+                    var prefixes = MetaphorJs.animate.getPrefixes();
                     self.doUpdate(vars.updateStart || 0);
                     self.removeOldElements(oldRenderers);
                     if (vars.doesMove) {

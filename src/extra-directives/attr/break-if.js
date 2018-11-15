@@ -1,11 +1,12 @@
-require("../../lib/Expression.js");
 
-var Directive = require("../../class/Directive.js"),
-    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+var Directive = require("../../app/Directive.js");
 
-Directive.registerAttribute("break-if", 500, function(scope, node, expr){
+Directive.registerAttribute("break-if", 500, function(scope, node, config) {
 
-    var res = !!MetaphorJs.lib.Expression.parse(expr)(scope);
+    config.setProperty("value", {type: "bool"});
+    config.lateInit();
+
+    var res = config.get("value");
 
     if (res) {
         node.parentNode.removeChild(node);

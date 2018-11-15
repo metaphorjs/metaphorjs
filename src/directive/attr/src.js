@@ -1,15 +1,15 @@
 require("metaphorjs-shared/src/lib/Queue.js");
-require("../../func/preloadImage.js");
+require("../../func/dom/preloadImage.js");
 require("../../func/dom/setAttr.js");
 
 var raf = require("metaphorjs-animate/src/func/raf.js"),
-    Directive = require("../../class/Directive.js"),
+    Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
 Directive.registerAttribute("src", 1000, Directive.$extend({
 
-    $class: "MetaphorJs.Directive.attr.Src",
+    $class: "MetaphorJs.app.Directive.attr.Src",
 
     queue: null,
     usePreload: true,

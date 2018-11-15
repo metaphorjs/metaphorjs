@@ -1,9 +1,9 @@
 
 require("../lib/Expression.js");
+require("../func/dom/getAttr.js");
+require("../func/dom/removeStyle.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
-    getAttr = require("../func/dom/getAttr.js"),
-    removeStyle = require("../func/dom/removeStyle.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 module.exports = cls({
@@ -35,8 +35,8 @@ module.exports = cls({
             size    = MetaphorJs.lib.Expression.parse(size)(scope);
         }
 
-        var width   = size === "attr" ? parseInt(getAttr(node, "width"), 10) : size.width,
-            height  = size === "attr" ? parseInt(getAttr(node, "height"), 10) : size.height;
+        var width   = size === "attr" ? parseInt(MetaphorJs.dom.getAttr(node, "width"), 10) : size.width,
+            height  = size === "attr" ? parseInt(MetaphorJs.dom.getAttr(node, "height"), 10) : size.height;
 
         if (width || height) {
             style.display = "block";
@@ -58,9 +58,9 @@ module.exports = cls({
 
         directive.onSrcChanged = self.origOnChange;
 
-        removeStyle(node, "width");
-        removeStyle(node, "height");
-        removeStyle(node, "display");
+        MetaphorJs.dom.removeStyle(node, "width");
+        MetaphorJs.dom.removeStyle(node, "height");
+        MetaphorJs.dom.removeStyle(node, "display");
 
         self.$destroy();
     }

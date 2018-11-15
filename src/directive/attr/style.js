@@ -1,9 +1,9 @@
 require("../../func/dom/removeStyle.js")
 
-var Directive = require("../../class/Directive.js"),
-    undf = require("../../var/undf.js"),
+var Directive = require("../../app/Directive.js"),
+    undf = require("metaphorjs-shared/src/var/undf.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
-    toCamelCase = require("../../func/toCamelCase.js"),
+    toCamelCase = require("metaphorjs-shared/src/func/toCamelCase.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /*
@@ -14,7 +14,7 @@ DO NOT MIX style="{}" with style.prop="expression".
 
 Directive.registerAttribute("style", 1000, Directive.$extend({
 
-    $class: "MetaphorJs.Directive.attr.Style",
+    $class: "MetaphorJs.app.Directive.attr.Style",
     $init: function(scope, node, config, renderer, attrSet) {
 
         var self = this;

@@ -1,31 +1,41 @@
 
-var Directive = require("../../class/Directive.js"),
-    toFragment = require("../../func/dom/toFragment.js"),
-    getAttr = require("../../func/dom/getAttr.js"),
-    undf = require("../../var/undf.js"),
-    toArray = require("../../func/array/toArray.js");
+require("../../func/dom/toFragment.js");
+require("../../func/dom/getAttr.js");
+
+var Directive = require("../../app/Directive.js"),
+    undf = require("metaphorjs-shared/src/var/undf.js"),
+    toArray = require("metaphorjs-shared/src/func/toArray.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+
 
 Directive.registerTag("if", Directive.attr.If.$extend({
-    $class: "MetaphorJs.Directive.tag.If",
+    $class: "MetaphorJs.app.Directive.tag.If",
     autoOnChange: false,
     children: null,
     childrenFrag: null,
 
-    $init: function(scope, node, expr, renderer, attr) {
+    $init: function(scope, node, config, renderer, attrSet) {
 
         var self    = this;
-        
-        self.children = toArray(node.childNodes);
-        self.childrenFrag = toFragment(self.children);
-        expr = getAttr(node, "value");
 
-        self.$super(scope, node, expr, renderer, attr);   
-        
+        self.children = toArray(node.childNodes);
+        self.childrenFrag = MetaphorJs.dom.toFragment(self.children);
+
+        config.setProperty("once", {type: "bool"});
+        config.setProperty("value", {
+            expression: MetaphorJs.dom.getAttr(node, "value"),
+            type: "bool"
+        });
+        config.lateInit();
+
+        self.createCommentWrap();
+        self.$super(scope, node, config, renderer, attrSet);   
+
         if (node.parentNode) {
             node.parentNode.removeChild(node); 
         }
 
-        var val = self.watcher.getLastResult();
+        var val = config.get("value");
         self.onChange(val || false, undf);
     },
 
@@ -35,23 +45,22 @@ Directive.registerTag("if", Directive.attr.If.$extend({
 
     onChange: function() {
         var self    = this,
-            val     = self.watcher.getLastResult(),
-            parent  = self.prevEl.parentNode;
+            val     = self.config.get("value"),
+            prev    = self.wrapperOpen,
+            next    = self.wrapperClose,
+            parent  = prev.parentNode;
 
         if (val) {
-            parent.insertBefore(self.childrenFrag, self.nextEl);
+            parent.insertBefore(self.childrenFrag, next);
         }
         else if (!self.initial) {
-            var prev = self.prevEl, 
-                next = self.nextEl, 
-                children = [],
+            var children = [],
                 sib;
 
             self.childrenFrag = window.document.createDocumentFragment();
-            while (prev.parentNode && prev.nextSibling && 
-                    prev.nextSibling !== next) {
+            while (prev.nextSibling && prev.nextSibling !== next) {
                 sib = prev.nextSibling;
-                prev.parentNode.removeChild(sib);
+                parent.removeChild(sib);
                 children.push(sib);
                 self.childrenFrag.appendChild(sib);
             }
@@ -62,7 +71,7 @@ Directive.registerTag("if", Directive.attr.If.$extend({
             self.initial = false;
         }
         else {
-            if (self.cfg.once) {
+            if (self.config.get("once")) {
                 self.$destroy();
             }
         }
@@ -70,6 +79,7 @@ Directive.registerTag("if", Directive.attr.If.$extend({
 
     onDestroy: function() {
         this.children = null;
+        this.childrenFrag = null;
         this.$super();
     }
 }));

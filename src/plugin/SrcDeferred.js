@@ -1,15 +1,16 @@
-require("../lib/Queue.js");
+require("metaphorjs-shared/src/lib/Queue.js");
+require("../func/dom/getScrollParent.js");
+require("../func/dom/getPosition.js");
+require("../func/dom/getScrollTop.js");
+require("../func/dom/getScrollLeft.js");
+require("../func/dom/getWidth.js");
+require("../func/dom/getHeight.js");
+require("../func/dom/addListener.js");
+require("../func/dom/removeListener.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
-    getScrollParent = require("../func/dom/getScrollParent.js"),
-    getPosition = require("../func/dom/getPosition.js"),
-    getScrollTop = require("../func/dom/getScrollTop.js"),
-    getScrollLeft = require("../func/dom/getScrollLeft.js"),
-    getWidth = require("../func/dom/getWidth.js"),
-    getHeight = require("../func/dom/getHeight.js"),
-    addListener = require("../func/event/addListener.js"),
-    removeListener = require("../func/event/removeListener.js"),
-    bind = require("metaphorjs-shared/src/func/bind.js");
+    bind = require("metaphorjs-shared/src/func/bind.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 module.exports = cls({
 
@@ -41,12 +42,12 @@ module.exports = cls({
 
         var self = this;
 
-        self.scrollEl = getScrollParent(node);
+        self.scrollEl = MetaphorJs.dom.getScrollParent(node);
         self.scrollDelegate = bind(self.onScroll, self);
         self.resizeDelegate = bind(self.onResize, self);
 
-        addListener(self.scrollEl, "scroll", self.scrollDelegate);
-        addListener(window, "resize", self.resizeDelegate);
+        MetaphorJs.dom.addListener(self.scrollEl, "scroll", self.scrollDelegate);
+        MetaphorJs.dom.addListener(window, "resize", self.resizeDelegate);
     },
 
     isVisible: function() {
@@ -57,18 +58,18 @@ module.exports = cls({
 
         var self = this,
             sEl = self.scrollEl,
-            st = getScrollTop(sEl),
-            sl = getScrollLeft(sEl),
+            st = MetaphorJs.dom.getScrollTop(sEl),
+            sl = MetaphorJs.dom.getScrollLeft(sEl),
             w = self.sw,
             h = self.sh,
             t,l;
 
         if (!self.position) {
-            self.position = getPosition(self.directive.node, sEl);
+            self.position = MetaphorJs.dom.getPosition(self.directive.node, sEl);
         }
         if (!w) {
-            w = self.sw = getWidth(sEl);
-            h = self.sh = getHeight(sEl);
+            w = self.sw = MetaphorJs.dom.getWidth(sEl);
+            h = self.sh = MetaphorJs.dom.getHeight(sEl);
         }
 
         t = self.position.top;
@@ -107,8 +108,8 @@ module.exports = cls({
     stopWatching: function() {
         var self = this;
         if (self.scrollEl) {
-            removeListener(self.scrollEl, "scroll", self.scrollDelegate);
-            removeListener(window, "resize", self.resizeDelegate);
+            MetaphorJs.dom.removeListener(self.scrollEl, "scroll", self.scrollDelegate);
+            MetaphorJs.dom.removeListener(window, "resize", self.resizeDelegate);
             self.scrollEl = null;
             self.checkVisibility = false;
         }

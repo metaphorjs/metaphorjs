@@ -89,8 +89,9 @@ DO NOT put class="{}" when using class.name="{}"
         return clss;
     };
 
-    Directive.Class = Directive.registerAttribute("class", 1000, Directive.$extend({
+    Directive.registerAttribute("class", 1000, Directive.$extend({
 
+        $class: "MetaphorJs.app.Directive.attr.Class",
         initial: true,
         prev: null,
 

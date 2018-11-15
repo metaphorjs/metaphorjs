@@ -2,7 +2,7 @@
 require("../../func/dom/removeAttr.js");
 require("../../func/dom/setAttr.js");
 
-var Directive = require("../../class/Directive.js"),
+var Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 

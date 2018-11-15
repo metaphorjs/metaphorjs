@@ -1,16 +1,16 @@
 require("metaphorjs-promise/src/lib/Promise.js");
-
+require("../func/dom/addListener.js");
+require("../func/dom/removeListener.js");
+require("../func/dom/getScrollParent.js");
+require("../func/dom/addClass.js");
+require("../func/dom/getPosition.js");
+require("../func/dom/getScrollLeft.js");
+require("../func/dom/getScrollTop.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
-    addListener = require("../func/event/addListener.js"),
-    removeListener = require("../func/event/removeListener.js"),
     bind = require("metaphorjs-shared/src/func/bind.js"),
-    getScrollParent = require("../func/dom/getScrollParent.js"),
-    addClass = require("../func/dom/addClass.js"),
-    getPosition = require("../func/dom/getPosition.js"),
-    getScrollLeft = require("../func/dom/getScrollLeft.js"),
-    getScrollTop = require("../func/dom/getScrollTop.js"),
-    raf = require('metaphorjs-animate/src/func/raf.js');
+    raf = require('metaphorjs-animate/src/func/raf.js'),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 module.exports = cls({
 
@@ -86,19 +86,19 @@ module.exports = cls({
 
     up: function() {
         var self = this;
-        addListener(self.scrollEl, "scroll", self.bufferEventDelegate);
-        addListener(window, "resize", self.bufferEventDelegate);
+        MetaphorJs.dom.addListener(self.scrollEl, "scroll", self.bufferEventDelegate);
+        MetaphorJs.dom.addListener(window, "resize", self.bufferEventDelegate);
     },
 
     down: function() {
         var self = this;
-        removeListener(self.scrollEl, "scroll", self.bufferEventDelegate);
-        removeListener(window, "resize", self.bufferEventDelegate);
+        MetaphorJs.dom.removeListener(self.scrollEl, "scroll", self.bufferEventDelegate);
+        MetaphorJs.dom.removeListener(window, "resize", self.bufferEventDelegate);
     },
 
     initScrollParent: function(cfg) {
         var self = this;
-        self.scrollEl = getScrollParent(self.list.parentEl);
+        self.scrollEl = MetaphorJs.dom.getScrollParent(self.list.parentEl);
     },
 
     initScrollStubs: function(cfg) {
@@ -128,8 +128,8 @@ module.exports = cls({
         self.topStub       = ofsTop = window.document.createElement(cfg.stub || "div");
         self.botStub       = ofsBot = window.document.createElement(cfg.stub || "div");
 
-        addClass(ofsTop, "mjs-buffer-top");
-        addClass(ofsBot, "mjs-buffer-bottom");
+        MetaphorJs.dom.addClass(ofsTop, "mjs-buffer-top");
+        MetaphorJs.dom.addClass(ofsBot, "mjs-buffer-bottom");
         for (i in style) {
             ofsTop.style[i] = style[i];
             ofsBot.style[i] = style[i];
@@ -153,7 +153,7 @@ module.exports = cls({
     getScrollOffset: function() {
 
         var self        = this,
-            position    = getPosition(self.topStub, self.scrollEl),
+            position    = MetaphorJs.dom.getPosition(self.topStub, self.scrollEl),
             ofs         = self.horizontal ? position.left : position.top;
 
         return self.scrollOffset = ofs;
@@ -169,7 +169,8 @@ module.exports = cls({
                           (window[hor ? "innerWidth" : "innerHeight"] ||
                            html[hor ? "clientWidth" : "clientHeight"]):
                           scrollEl[hor ? "offsetWidth" : "offsetHeight"],
-            scroll      = hor ? getScrollLeft(scrollEl) : getScrollTop(scrollEl),
+            scroll      = hor ? MetaphorJs.dom.getScrollLeft(scrollEl) : 
+                                MetaphorJs.dom.getScrollTop(scrollEl),
             sh          = scrollEl.scrollHeight,
             perRow      = self.getItemsPerRow(),
             isize       = self.getRowHeight(),
@@ -356,7 +357,7 @@ module.exports = cls({
         var self    = this,
             list    = self.list,
             isize   = self.itemSize,
-            sp      = self.scrollEl || getScrollParent(list.parentEl),
+            sp      = self.scrollEl || MetaphorJs.dom.getScrollParent(list.parentEl),
             hor     = self.horizontal,
             prop    = hor ? "scrollLeft" : "scrollTop",
             promise = new MetaphorJs.lib.Promise,
@@ -369,8 +370,8 @@ module.exports = cls({
                 pos     = isize * index;
                 if (sp === window) {
                     window.scrollTo(
-                        hor ? pos : getScrollLeft(),
-                        !hor ? pos : getScrollTop()
+                        hor ? pos : MetaphorJs.dom.getScrollLeft(),
+                        !hor ? pos : MetaphorJs.dom.getScrollTop()
                     );
                 }
                 else {

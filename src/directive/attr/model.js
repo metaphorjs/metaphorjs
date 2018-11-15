@@ -4,15 +4,15 @@ require("../../lib/Input.js");
 
 var async = require("metaphorjs-shared/src/func/async.js"),
     isIE = require("../../func/browser/isIE.js"),
-    undf = require("../../var/undf.js"),
-    isString = require("../../func/isString.js"),
-    Directive = require("../../class/Directive.js"),
+    undf = require("metaphorjs-shared/src/var/undf.js"),
+    isString = require("metaphorjs-shared/src/func/isString.js"),
+    Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
 Directive.registerAttribute("model", 1000, Directive.$extend({
 
-    $class: "MetaphorJs.Directive.attr.Model",
+    $class: "MetaphorJs.app.Directive.attr.Model",
     inProg: false,
     input: null,
     binding: null,

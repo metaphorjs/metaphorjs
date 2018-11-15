@@ -1,6 +1,6 @@
 require("../../lib/Expression.js");
 
-var Directive = require("../../class/Directive.js");
+var Directive = require("../../app/Directive.js");
 
     /*
         Update scope on given event.

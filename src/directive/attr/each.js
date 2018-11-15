@@ -1,9 +1,9 @@
 
 require("../../func/dom/getAttr.js");
-require("../../class/ListRenderer.js");
+require("../../app/ListRenderer.js");
 require("../../lib/Expression.js");
 
-var Directive = require("../../class/Directive.js"),
+var Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 

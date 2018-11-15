@@ -1,8 +1,8 @@
 
 require("../../func/app/resolve.js");
 
-var Directive = require("../../class/Directive.js"),
-    extend = require("../../func/extend.js"),
+var Directive = require("../../app/Directive.js"),
+    extend = require("metaphorjs-shared/src/func/extend.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js");
 

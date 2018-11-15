@@ -3,7 +3,7 @@
 require("./__init.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js")
-    toArray = require("metaphorjs-shared/src/array/toArray.js"),
+    toArray = require("metaphorjs-shared/src/func/toArray.js"),
     isPlainObject = require("metaphorjs-shared/src/func/isPlainObject.js");
 
 /**

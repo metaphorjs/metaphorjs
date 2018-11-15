@@ -1,8 +1,8 @@
 
+require("../../app/Template.js");
 
-var Directive = require("../../class/Directive.js"),
-    toBool = require("../../func/toBool.js"),
-    Template = require("../../class/Template.js");
+var Directive = require("../../app/Directive.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 Directive.registerAttribute("include", 1100,
     function(scope, node, config, parentRenderer, attrSet){
@@ -27,7 +27,7 @@ Directive.registerAttribute("include", 1100,
         tplCfg['url'] = config.get("value");
     }
 
-    var tpl = new Template(tplCfg);
+    var tpl = new MetaphorJs.app.Template(tplCfg);
 
     parentRenderer.on("destroy", function(){
         tpl.$destroy();

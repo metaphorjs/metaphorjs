@@ -1,12 +1,12 @@
 require("metaphorjs/src/func/dom/select.js");
 require("../../func/dom/setAttr.js");
 
-var Directive = require("../../class/Directive.js"),
+var Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 Directive.registerAttribute("source-src", 1000, Directive.$extend({
 
-    $class: "MetaphorJs.Directive.attr.SourceSrc",
+    $class: "MetaphorJs.app.Directive.attr.SourceSrc",
 
     usePreload: true,
     attr: null,

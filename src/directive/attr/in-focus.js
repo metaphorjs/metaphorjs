@@ -1,11 +1,11 @@
 
 
-var Directive = require("../../class/Directive.js"),
+var Directive = require("../../app/Directive.js"),
     async = require("metaphorjs-shared/src/func/async.js");
 
 Directive.registerAttribute("in-focus", 500, Directive.$extend({
 
-    $class: "MetaphorJs.Directive.attr.InFocus",
+    $class: "MetaphorJs.app.Directive.attr.InFocus",
 
     initialSet: function() {
         this.config.setProperty("value", {type: "bool"});

@@ -1,13 +1,13 @@
 require("../../lib/Expression.js");
+require("../../func/dom/getAttr.js");
 
-var Directive = require("../../class/Directive.js"),
-    getAttr = require("../../func/dom/getAttr.js"),
+var Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
 Directive.registerTag("bind", function(scope, node) {
 
-    var expr    = getAttr(node, "value"),
+    var expr    = MetaphorJs.dom.getAttr(node, "value"),
         text    = MetaphorJs.lib.Expression.run(expr, scope),
         frg     = window.document.createTextNode(text);
 

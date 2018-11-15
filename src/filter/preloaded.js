@@ -1,8 +1,8 @@
 
 require("./__init.js");
+require("../func/dom/preloadImage.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
-    preloadImage = require("../func/preloadImage.js"),
     isThenable = require("metaphorjs-shared/src/func/isThenable.js");
 
 (function(){
@@ -20,7 +20,7 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
             return false;
         }
 
-        var promise = preloadImage.check(val);
+        var promise = MetaphorJs.dom.preloadImage.check(val);
 
         if (promise === true || !promise) {
             return !!promise;

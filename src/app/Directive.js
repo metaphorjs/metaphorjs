@@ -36,6 +36,7 @@ module.exports = MetaphorJs.app.Directive = (function() {
         mods: null,
         wrapperOpen: null,
         wrapperClose: null,
+        autoOnChange: true,
 
         $init: function(scope, node, config, renderer, attrSet) {
 
@@ -63,7 +64,7 @@ module.exports = MetaphorJs.app.Directive = (function() {
             var self = this;
             self.config.lateInit();
             self.config.on("value", self.onChange, self);
-            if ((val = self.config.get("value")) !== undf) {
+            if (self.autoOnChange && (val = self.config.get("value")) !== undf) {
                 self.onChange(val, undf);
             }
         },
@@ -126,7 +127,7 @@ module.exports = MetaphorJs.app.Directive = (function() {
          * @param {string} name 
          */
         getDirective: function(type, name) {
-            return ns.get("MetaphorJs.directive." + type +"."+ name, true);
+            return ns.get("MetaphorJs.directive." + type +"."+ name);
         },
 
         /**

@@ -1,13 +1,14 @@
 require("../../lib/Scope.js");
-require("../../app/Text.js");
+require("../../lib/Text.js");
 require("../../func/dom/isField.js");
-require("metaphorjs-input/src/lib/Input.js");
+require("../../lib/Input.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     Directive = require("../../app/Directive.js");
 
-Directive.Bind = Directive.registerAttribute("bind", 1000, 
+Directive.registerAttribute("bind", 1000, 
     Directive.$extend({
+        $class: "MetaphorJs.app.Directive.attr.Bind",
         isInput: false,
         input: null,
         textRenderer: null,
@@ -32,7 +33,7 @@ Directive.Bind = Directive.registerAttribute("bind", 1000,
             if (config.get("recursive")) {
                 config.setProperty("value", {disabled: true});
                 config.setProperty("recursive", {disabled: true});
-                self.textRenderer = new MetaphorJs.app.Text(
+                self.textRenderer = new MetaphorJs.lib.Text(
                     scope, 
                     config.getProperty("value").expression, 
                     {recursive: true, fullExpr: true}

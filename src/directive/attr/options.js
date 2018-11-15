@@ -6,17 +6,17 @@ require("../../func/dom/setAttr.js"),
 require("../../func/browser/isIE.js")
 
 var cls = require("metaphorjs-class/src/cls.js"),
-    toArray = require("../../func/array/toArray.js"),
+    toArray = require("metaphorjs-shared/src/func/toArray.js"),
     error = require("metaphorjs-shared/src/func/error.js"),
-    isPlainObject = require("../../func/isPlainObject.js"),
-    undf = require("../../var/undf.js"),
-    Directive = require("../../class/Directive.js"),
+    isPlainObject = require("metaphorjs-shared/src/func/isPlainObject.js"),
+    undf = require("metaphorjs-shared/src/var/undf.js"),
+    Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
 Directive.registerAttribute("options", 100, Directive.$extend({
 
-    $class: "MetaphorJs.Directive.attr.Options",
+    $class: "MetaphorJs.app.Directive.attr.Options",
 
     model: null,
     store: null,

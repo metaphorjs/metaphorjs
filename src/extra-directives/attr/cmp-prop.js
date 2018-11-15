@@ -1,11 +1,11 @@
 
 
-var Directive = require("../../class/Directive.js");
+var Directive = require("../../app/Directive.js");
 
 Directive.registerAttribute("cmp-prop", 200,
-    ['$parentCmp', '$node', '$attrValue', function(parentCmp, node, expr){
-
+    ['$parentCmp', '$node', '$nodeConfig', function(parentCmp, node, config) {
+     config.lateInit();
        if (parentCmp) {
-            parentCmp[expr] = node;
+            parentCmp[config.get("value")] = node;
        }
 }]);

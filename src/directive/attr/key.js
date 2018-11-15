@@ -1,9 +1,8 @@
 
 require("../../lib/Expression.js");
+require("../../lib/Input.js");
 
-var Directive = require("../../class/Directive.js"),
-    isArray = require("metaphorjs-shared/src/func/isArray.js"),
-    Input = require("metaphorjs-input/src/lib/Input.js"),
+var Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 (function(){

@@ -1,7 +1,7 @@
 
 require("../../lib/Expression.js");
 
-var Directive = require("../../class/Directive.js"),
+var Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 Directive.registerAttribute("init", 250, function(scope, node, config) {

@@ -1,4 +1,4 @@
-require("../../class/Directive.js");
+require("../../app/Directive.js");
 require("../../func/app/resolve.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
