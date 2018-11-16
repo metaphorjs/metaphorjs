@@ -20,15 +20,15 @@ module.exports = MetaphorJs.app.init = function app_init(node, cls, data, autoru
     var cfg = attrs.directive.app ? attrs.directive.app.config : {},
         i, l;
 
-    if (attrs.subnames['app']) {
-        for (i = 0, l = attrs.subnames['app'].length; i < l; i++) {
-            MetaphorJs.dom.removeAttr(node, attrs.subnames[i]);
+    if (attrs.names['app']) {
+        for (i = 0, l = attrs.names['app'].length; i < l; i++) {
+            MetaphorJs.dom.removeAttr(node, attrs.names[i]);
         }
     }
 
     try {
         var p = MetaphorJs.app.resolve(
-                    cls || "MetaphorJs.App", 
+                    cls || "MetaphorJs.app.App", 
                     extend({}, cfg), 
                     data, 
                     node, 

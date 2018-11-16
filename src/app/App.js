@@ -18,7 +18,7 @@ var cls = require("metaphorjs-class/src/cls.js"),
 module.exports = MetaphorJs.app.App = cls({
 
     $mixins: [MetaphorJs.mixin.Observable, 
-                MetaphorJs.lib.Provider],
+                MetaphorJs.mixin.Provider],
 
     lang: null,
     scope: null,

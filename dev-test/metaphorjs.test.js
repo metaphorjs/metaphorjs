@@ -3866,7 +3866,8 @@ var Directive = MetaphorJs.app.Directive = (function() {
         },
 
         initialSet: function() {
-            var self = this;
+            var self = this,
+                val;
             self.config.lateInit();
             self.config.on("value", self.onChange, self);
             if (self.autoOnChange && (val = self.config.get("value")) !== undf) {
@@ -3923,6 +3924,9 @@ var Directive = MetaphorJs.app.Directive = (function() {
             self.$super();
         }
     }, {
+
+        attr: {},
+        tag: {},
 
         /**
          * Get directive by name
@@ -5336,7 +5340,7 @@ MetaphorJs.browser = MetaphorJs.browser || {};
 
 
 
-MetaphorJs.browser.isAndroid = function(){
+var browser_isAndroid = MetaphorJs.browser.isAndroid = function(){
 
     var android = null;
 
@@ -6163,7 +6167,7 @@ extend(Input.prototype, {
         // hold the listener until composition is done.
         // More about composition events:
         // https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent
-        if (!MetaphorJs.dom.isAndroid()) {
+        if (!browser_isAndroid()) {
 
             var compositionStart    = function() {
                 composing = true;
@@ -6468,7 +6472,7 @@ return Input;
 
 Directive.registerAttribute("bind", 1000, 
     Directive.$extend({
-        $class: "Directive.attr.Bind",
+        $class: "MetaphorJs.app.Directive.attr.Bind",
         isInput: false,
         input: null,
         textRenderer: null,
@@ -6488,6 +6492,7 @@ Directive.registerAttribute("bind", 1000,
                 self.input.onChange(self.onInputChange, self);
             }
 
+            config.setProperty("locked", {type: "bool"});
             config.lateInit();
 
             if (config.get("recursive")) {
@@ -6506,7 +6511,7 @@ Directive.registerAttribute("bind", 1000,
                 }
             }
             else {
-                self.$super(scope, node, expr);
+                self.$super(scope, node, config);
             }
         },
 
@@ -6560,7 +6565,7 @@ Directive.registerAttribute("bind", 1000,
 
 Directive.registerAttribute("bind-html", 1000, 
     Directive.attr.Bind.$extend({
-        $class: "Directive.attr.BindHtml",
+        $class: "MetaphorJs.app.Directive.attr.BindHtml",
         updateElement: function(val) {
             this.node.innerHTML = val;
         }
@@ -8301,7 +8306,7 @@ DO NOT put class="{}" when using class.name="{}"
 
     Directive.registerAttribute("class", 1000, Directive.$extend({
 
-        $class: "Directive.attr.Class",
+        $class: "MetaphorJs.app.Directive.attr.Class",
         initial: true,
         prev: null,
 
@@ -8686,7 +8691,7 @@ function toBool(val) {
  */
 var lib_Config = MetaphorJs.lib.Config = (function(){
 
-    $$observable = new lib_Observable;
+    var $$observable = new lib_Observable;
 
     var MODE_STATIC = 1,
         MODE_DYNAMIC = 2,
@@ -8711,7 +8716,7 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
 
         self.id = nextUid();
         self.values = {};
-        self.propeties = {};
+        self.properties = {};
         self.cfg = cfg || {};
         self.keys = [];
 
@@ -8734,7 +8739,7 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
     extend(Config.prototype, {
 
         id: null,
-        propeties: null,
+        properties: null,
         values: null,
         keys: null,
         cfg: null,
@@ -8750,44 +8755,28 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
 
         _initialCalc: function() {
             var self = this,
-                k, prop,
+                prop,
                 scope = self.cfg.scope,
                 name;
 
             for (name in self.properties) {
 
-                prop = self.properties[k];
+                prop = self.properties[name];
 
-                if (prop.disabled) {
+                if (!prop || prop.disabled || !prop.expression) {
                     continue;
                 }
 
-                if (prop.mode === MODE_DYNAMIC) {
+                if (prop.expression === true) {
+                    prop.mode = MODE_STATIC;
+                }
+                else if (prop.mode === MODE_DYNAMIC) {
                     prop.mo = lib_MutationObserver.get(
                         scope, prop.expression
                     );
                     prop.mo.subscribe(self._onPropMutated, self, {
                         append: [name]
                     });
-                }
-                else if (prop.mode === MODE_GETTER || 
-                            prop.mode === MODE_SETTER) {
-                    self.values[name] = lib_Expression.parse(
-                        prop.exression,
-                        {
-                            setter: prop.mode === MODE_SETTER,
-                            setterOnly: prop.mode === MODE_SETTER
-                        }
-                    );
-                }
-                else if (prop.mode === MODE_FNSET) {
-                    self.values[name] = {
-                        getter: lib_Expression.parse(prop.exression),
-                        setter: lib_Expression.setter(
-                            prop.exression,
-                            {setter: true, setterOnly: true}
-                        )
-                    };
                 }
             }
 
@@ -8798,25 +8787,44 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
         _calcProperty: function(name) {
 
             var self = this,
-                prop = self.getProperty(k),
+                prop = self.getProperty(name),
                 value,
                 setTo;
 
-            if (prop.disabled) {
+            if (!prop || prop.disabled) {
                 return null;
             }
 
             if (prop.mode === MODE_STATIC) {
-                value = values[name];
+                value = prop.expression;
             }
             else if (prop.mode === MODE_SINGLE) {
                 value = lib_Expression.run(
                     prop.expression, 
-                    self.scope
+                    self.cfg.scope
                 );
             }
-            else {
+            else if (prop.mode === MODE_DYNAMIC) {
                 value = prop.mo.getValue();
+            }
+            else if (prop.mode === MODE_GETTER || 
+                prop.mode === MODE_SETTER) {
+                value = lib_Expression.parse(
+                    prop.exression,
+                    {
+                        setter: prop.mode === MODE_SETTER,
+                        setterOnly: prop.mode === MODE_SETTER
+                    }
+                );
+            }
+            else if (prop.mode === MODE_FNSET) {
+                value = {
+                    getter: lib_Expression.parse(prop.exression),
+                    setter: lib_Expression.setter(
+                        prop.exression,
+                        {setter: true, setterOnly: true}
+                    )
+                };
             }
 
             if (value === undf) {
@@ -8864,7 +8872,7 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
         _onPropMutated: function(val, prev, name) {
 
             var self = this,
-                prop = self.propeties[name],
+                prop = self.properties[name],
                 setTo = prop.setTo || self.cfg.setTo;
 
             value = self._prepareValue(val, prop);
@@ -8885,17 +8893,27 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
          *  @type {string} type int|float|array|bool|string
          *  @type {object} setTo
          *  @type {boolean} disabled
+         *  @type {*} defaultValue
          *  @type {int} mode 1: static, 2: dynamic, 3: single run
          * }
          */
         setProperty: function(name, cfg) {
 
-            if (this.propeties[name]) {
-                return extend(this.propeties[name], cfg, false, false);
+            var self = this;
+
+            if (self.properties[name]) {
+                extend(self.properties[name], cfg, true, false);
+            }
+            else {
+                self.keys.push(name);
+                self.properties[name] = cfg;
             }
 
-            //cfg.setAs = cfg.setAs || name;
-            return this.propeties[name] = cfg;
+            if (!self.properties[name].mode) {
+                self.properties[name].mode = MODE_DYNAMIC;
+            }
+
+            return self.properties[name];
         },
 
         /**
@@ -9104,12 +9122,12 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
             id = self.id,
             k, prop;
 
-            if (self.propeties === null) {
+            if (self.properties === null) {
                 return;
             }
 
-            for (k in self.propeties) {
-                prop = self.propeties[k];
+            for (k in self.properties) {
+                prop = self.properties[k];
                 if (prop.mo) {
                     prop.mo.unsubscribe(self._onPropMutated, self);
                     prop.mo.$destroy(true);
@@ -9130,11 +9148,11 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
         $destroy: function() {
             var self = this;
 
-            if (self.propeties !== null) {
+            if (self.properties !== null) {
                 self.clear();
             }
 
-            self.propeties = null;
+            self.properties = null;
             self.values = null;
             self.cfg = null;
         }
@@ -9145,6 +9163,7 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
     Config.MODE_SINGLE = MODE_SINGLE;
     Config.MODE_GETTER = MODE_GETTER;
     Config.MODE_SETTER = MODE_SETTER;
+    Config.MODE_FNSET = MODE_FNSET;
 
     return Config;
 
@@ -14152,7 +14171,7 @@ var lib_EventHandler = MetaphorJs.lib.EventHandler;
 
 Directive.registerAttribute("show", 500, Directive.$extend({
 
-    $class: "Directive.attr.Show",
+    $class: "MetaphorJs.app.Directive.attr.Show",
     initial: true,
 
     initialSet: function() {
@@ -14205,7 +14224,7 @@ Directive.registerAttribute("show", 500, Directive.$extend({
 
 Directive.registerAttribute("hide", 500, Directive.attr.Show.$extend({
 
-    $class: "Directive.attr.Hide",
+    $class: "MetaphorJs.app.Directive.attr.Hide",
 
     onChange: function(val) {
         var self    = this;
@@ -14222,7 +14241,7 @@ Directive.registerAttribute("hide", 500, Directive.attr.Show.$extend({
 
 Directive.registerAttribute("if", 500, Directive.$extend({
 
-    $class: "Directive.attr.If",
+    $class: "MetaphorJs.app.Directive.attr.If",
     parentEl: null,
     prevEl: null,
     nextEl: null,
@@ -14237,7 +14256,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
         config.setProperty("value", {type: "bool"});
         config.setProperty("once", {type: "bool"});
         self.createCommentWrap(node, "if");
-        self.$super(scope, node, expr, renderer, attrSet);
+        self.$super(scope, node, config, renderer, attrSet);
     },
 
     onScopeDestroy: function() {
@@ -14292,7 +14311,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
 
 Directive.registerAttribute("in-focus", 500, Directive.$extend({
 
-    $class: "Directive.attr.InFocus",
+    $class: "MetaphorJs.app.Directive.attr.InFocus",
 
     initialSet: function() {
         this.config.setProperty("value", {type: "bool"});
@@ -14462,7 +14481,7 @@ Directive.registerAttribute("key", 1000, function(scope, node, config, renderer,
 
 Directive.registerAttribute("model", 1000, Directive.$extend({
 
-    $class: "Directive.attr.Model",
+    $class: "MetaphorJs.app.Directive.attr.Model",
     inProg: false,
     input: null,
     binding: null,
@@ -14474,7 +14493,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
     $init: function(scope, node, config, renderer, attrSet) {
 
-        config.setProperty("change", {mode: MetaphorJs.lib.Config.MODE_FNSET});
+        config.setProperty("value", {mode: MetaphorJs.lib.Config.MODE_FNSET});
         config.setProperty("binding", {defaultValue: "both"});
         config.lateInit();
 
@@ -14483,6 +14502,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
         self.getterFn       = config.get("value").getter;
         self.setterFn       = config.get("value").setter;
+
         if (config.hasProperty("change")) {
             self.changeFn   = lib_Expression.parse(config.get("change"));
         }
@@ -14600,7 +14620,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
 Directive.registerAttribute("options", 100, Directive.$extend({
 
-    $class: "Directive.attr.Options",
+    $class: "MetaphorJs.app.Directive.attr.Options",
 
     model: null,
     store: null,
@@ -14891,7 +14911,7 @@ Directive.registerAttribute("router", 200,
 
 Directive.registerAttribute("source-src", 1000, Directive.$extend({
 
-    $class: "Directive.attr.SourceSrc",
+    $class: "MetaphorJs.app.Directive.attr.SourceSrc",
 
     usePreload: true,
     attr: null,
@@ -15088,7 +15108,7 @@ var dom_preloadImage = MetaphorJs.dom.preloadImage = function() {
 
 Directive.registerAttribute("src", 1000, Directive.$extend({
 
-    $class: "Directive.attr.Src",
+    $class: "MetaphorJs.app.Directive.attr.Src",
 
     queue: null,
     usePreload: true,
@@ -15271,7 +15291,7 @@ DO NOT MIX style="{}" with style.prop="expression".
 
 Directive.registerAttribute("style", 1000, Directive.$extend({
 
-    $class: "Directive.attr.Style",
+    $class: "MetaphorJs.app.Directive.attr.Style",
     $init: function(scope, node, config, renderer, attrSet) {
 
         var self = this;
@@ -23191,7 +23211,7 @@ var validator_Component = MetaphorJs.validator.Component = cls({
 Directive.registerAttribute("validate", 250,
     function(scope, node, expr, renderer, attr) {
 
-    var cls     = expr || "validator_Component",
+    var cls     = expr || "MetaphorJs.validator.Component",
         constr  = ns.get(cls),
         cfg     = attr ? attr.config : {};
 
@@ -24583,7 +24603,7 @@ var lib_LocalText = MetaphorJs.lib.LocalText = function(){
 
 
 
-MetaphorJs.mixin.Provider = {
+var mixin_Provider = MetaphorJs.mixin.Provider = {
 
     /**
      * @type {Provider}
@@ -24653,7 +24673,7 @@ MetaphorJs.mixin.Provider = {
 var app_App = MetaphorJs.app.App = cls({
 
     $mixins: [mixin_Observable, 
-                MetaphorJs.lib.Provider],
+                mixin_Provider],
 
     lang: null,
     scope: null,
@@ -26827,15 +26847,15 @@ var app_init = MetaphorJs.app.init = function app_init(node, cls, data, autorun)
     var cfg = attrs.directive.app ? attrs.directive.app.config : {},
         i, l;
 
-    if (attrs.subnames['app']) {
-        for (i = 0, l = attrs.subnames['app'].length; i < l; i++) {
-            removeAttr(node, attrs.subnames[i]);
+    if (attrs.names['app']) {
+        for (i = 0, l = attrs.names['app'].length; i < l; i++) {
+            removeAttr(node, attrs.names[i]);
         }
     }
 
     try {
         var p = app_resolve(
-                    cls || "MetaphorJs.App", 
+                    cls || "MetaphorJs.app.App", 
                     extend({}, cfg), 
                     data, 
                     node, 
@@ -30819,7 +30839,7 @@ var dialog_Dialog = MetaphorJs.dialog.Dialog = (function(){
             }
 
             if (isFunction(type) || type === "custom") {
-                return "dialog_position_Custom";
+                return "MetaphorJs.dialog.position.Custom";
             }
 
             var fc = type.substr(0, 1);
@@ -30828,13 +30848,13 @@ var dialog_Dialog = MetaphorJs.dialog.Dialog = (function(){
                 return false;
             }
             else if (fc === "w") {
-                return "dialog_position_Window";
+                return "MetaphorJs.dialog.position.Window";
             }
             else if (fc === "m") {
-                return "dialog_position_Mouse";
+                return "MetaphorJs.dialog.position.Mouse";
             }
             else {
-                return "dialog_position_Target";
+                return "MetaphorJs.dialog.position.Target";
             }
         },
 
@@ -31574,7 +31594,7 @@ ns.register("Test", {});
 cls({
 
     $class: "Test.MyApp2",
-    $extends: "app_App",
+    $extends: "MetaphorJs.app.App",
 
     initApp: function(node, scope, someValue) {
 
@@ -31639,7 +31659,7 @@ cls({
 cls({
 
     $class: "Test.MyView",
-    $extends: "app_Router",
+    $extends: "MetaphorJs.app.Router",
 
         route: [
             {
@@ -31668,13 +31688,13 @@ cls({
 
 cls({
     $class: "Test.MyRecord",
-    $extends: "model_Record"
+    $extends: "MetaphorJs.model.Record"
 });
 
 cls({
 
     $class: "Test.MyComponent",
-    $extends: "app_Component",
+    $extends: "MetaphorJs.app.Component",
 
         initComponent: function() {
 
@@ -31769,7 +31789,7 @@ cls({
 cls({
 
     $class: "Test.MyComponent2",
-    $extends: "app_Component",
+    $extends: "MetaphorJs.app.Component",
 
     template: 'cmp1-template',
 
@@ -31786,7 +31806,7 @@ cls({
 cls({
 
     $class: "Test.TplComponent",
-    $extends: "app_Component",
+    $extends: "MetaphorJs.app.Component",
 
     initComponent: function() {
 
@@ -31805,14 +31825,14 @@ cls({
 
 cls({
     $class: "Test.StringTemplate",
-    $extends: "app_Component"
+    $extends: "MetaphorJs.app.Component"
     }, {
     template: '<p>This template is inlined in components definition ({{.$root.a}})</p>'
 });
 
 cls({
     $class: "Test.DynamicComponent",
-    $extends: "app_Component"
+    $extends: "MetaphorJs.app.Component"
     }, {
     template: '<p>This component was created dynamically</p><div mjs-transclude></div>'
 });
@@ -31820,7 +31840,7 @@ cls({
 cls({
 
     $class: "Test.ChangeTemplate",
-    $extends: "app_Component",
+    $extends: "MetaphorJs.app.Component",
     template: '.tpl',
 
     initComponent: function() {
@@ -31836,13 +31856,13 @@ cls({
 
 cls({
     $class: "Test.ViewComponent1",
-    $extends: "app_Component",
+    $extends: "MetaphorJs.app.Component",
     template: '<p>View template 1</p><div mjs-transclude></div>'
 });
 
 cls({
     $class: "Test.ViewComponent2",
-    $extends: "app_Component",
+    $extends: "MetaphorJs.app.Component",
     template: '<p>View template 2</p><div mjs-transclude></div>'
 });
 

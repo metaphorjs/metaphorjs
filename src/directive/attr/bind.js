@@ -28,6 +28,7 @@ Directive.registerAttribute("bind", 1000,
                 self.input.onChange(self.onInputChange, self);
             }
 
+            config.setProperty("locked", {type: "bool"});
             config.lateInit();
 
             if (config.get("recursive")) {
@@ -46,7 +47,7 @@ Directive.registerAttribute("bind", 1000,
                 }
             }
             else {
-                self.$super(scope, node, expr);
+                self.$super(scope, node, config);
             }
         },
 

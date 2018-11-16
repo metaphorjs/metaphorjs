@@ -7,42 +7,38 @@
     <script src="moment.min.js"></script>-->
 
     <script src="metaphorjs.test.js"></script>
-    <script src="index.js"></script>
-    <!--<script data-main="amd/main" src="amd/require.js"></script>-->
-
-
 </head>
 <body>
 
     <script type="text/mjs-template" id="test-template">
-        <p>{{.text}}</p>
-        <div mjs-transclude></div>
+        <p>{{this.text}}</p>
+        <div {transclude}></div>
     </script>
 
     <script type="text/mjs-template" id="cmp1-template">
-        <h2>{{.title}}</h2>
-        <div mjs-transclude></div>
+        <h2>{{this.title}}</h2>
+        <div {transclude}></div>
     </script>
 
     <script type="text/mjs-template" id="a+b">
-        <p>a + b = {{ .$root.a + .$root.b }}</p>
+        <p>a + b = {{ this.$root.a + this.$root.b }}</p>
     </script>
 
     <script type="text/mjs-template" id="a*b">
-        <p>a * b = {{ .$root.a * .$root.b }}</p>
+        <p>a * b = {{ this.$root.a * this.$root.b }}</p>
     </script>
 
 
-    <div id="render" mjs-init="
-            .inline = 'inline4';
-            .text = 'New Text';
-            .html = '<p>html text</p>';
-            .a = 1;
-            .b = 2;
-            .bool = true;
-            .alist = [0,1,2,3,4];
-            .sep = '/\\n|,/';
-            ">
+    <div id="render" {init}="
+        this.inline = 'inline4';
+        this.text = 'New Text';
+        this.html = '<p>html text</p>';
+        this.a = 1;
+        this.b = 2;
+        this.bool = true;
+        this.alist = [0,1,2,3,4];
+        this.sep = '/\\n|,/';
+    ">
 
         <h1>MetaphorJs Feature test</h1>
 
@@ -53,17 +49,17 @@
                 <h4>Bindings (read only)</h4>
 
                 <label class="case-label">Inline</label>
-                <div id="inline-binding" class="test">{{.inline}}</div>
+                <div id="inline-binding" class="test">{{this.inline}}</div>
 
                 <label class="case-label">mjs-bind</label>
-                <div id="binding" mjs-bind=".text" class="test"></div>
+                <div id="binding" {bind}="this.text" class="test"></div>
 
                 <label class="case-label">mjs-bind-html</label>
-                <div id="html-binding" mjs-bind-html=".html" class="test"></div>
+                <div id="html-binding" {bind-html}="this.html" class="test"></div>
 
                 <label class="case-label">Plain attribute (href)</label>
                 <p class="test">
-                    <a id="attr-binding-href" href="http://{{.inline}}.com">{{.text}}</a>
+                    <a id="attr-binding-href" [href]="http://{{this.inline}}.com">{{this.text}}</a>
                 </p>
             </div>
 
@@ -71,19 +67,23 @@
                 <h4>Bindings (read only)</h4>
                 <label class="case-label">Input field (value)</label>
                 <p class="test">
-                    <input id="binding-input-value" type="text" value="{{.a}}">
+                    <input id="binding-input-value" type="text" [value]="this.a">
                 </p>
                 <label class="case-label">Input field (mjs-bind)</label>
                 <p class="test">
-                    <input id="binding-input-bind" type="text" mjs-bind=".a" data-lock-input>
+                    <input id="binding-input-bind" type="text" 
+                        {bind}="this.a" {bind.$locked}>
                 </p>
                 <label class="case-label">Checkbox (mjs-bind)</label>
                 <p class="test">
-                    <input id="binding-checkbox" type="checkbox" mjs-bind=".bool">
+                    <input id="binding-checkbox" type="checkbox" {bind}="this.bool">
                 </p>
                 <label class="case-label">Radio (mjs-bind) (locked)</label>
                 <p class="test">
-                    <input id="radio-bind-1" checked type="radio" value="inline1" name="radio-bind" mjs-bind=".inline" data-lock-input>
+                    <input id="radio-bind-1" checked type="radio" 
+                            value="inline1" name="radio-bind" 
+                            {bind}="this.inline" 
+                            {bind.$locked}>
                     <input id="radio-bind-2" type="radio" value="inline2" name="radio-bind">
                     <input id="radio-bind-3" type="radio" value="inline3" name="radio-bind">
                 </p>
@@ -94,7 +94,7 @@
 
                 <label class="case-label">Select (mjs-bind)</label>
                 <p class="test">
-                    <select id="select-bind" mjs-bind=".a">
+                    <select id="select-bind" {bind}="this.a">
                         <option value="1">1</option>
                         <option value="2">2</option>
                         <option value="3">3</option>
@@ -103,65 +103,67 @@
                 </p>
                 <label class="case-label">Textarea (mjs-bind)</label>
                 <p class="test">
-                    <textarea id="textarea-bind-attr" mjs-bind=".inline"></textarea>
+                    <textarea id="textarea-bind-attr" {bind}="this.inline"></textarea>
                 </p>
                 <label class="case-label">Textarea (inline)</label>
                 <p class="test">
-                    <textarea id="textarea-bind-inline">{{.inline}}</textarea>
+                    <textarea id="textarea-bind-inline">{{this.inline}}</textarea>
                 </p>
             </div>
 
             <div class="case">
                 <h4>Muplitple inline binding</h4>
-                <div id="multiple-inline-binding" class="test">{{.inline}} <b>{{.text}}</b> {{.html}}</div>
+                <div id="multiple-inline-binding" class="test">{{this.inline}} <b>{{this.text}}</b> {{this.html}}</div>
             </div>
 
             <div class="case">
                 <h4>Filters</h4>
                 <label class="case-label">Uppercase (mjs-bind)</label>
-                <div id="filter-uppercase-binding" class="test" mjs-bind=".text | uppercase"></div>
+                <div id="filter-uppercase-binding" class="test" {bind}="this.text | uppercase"></div>
                 <label class="case-label">Uppercase (inline)</label>
-                <div id="filter-uppercase-inline" class="test">{{.text | uppercase}}</div>
+                <div id="filter-uppercase-inline" class="test">{{this.text | uppercase}}</div>
                 <label class="case-label">Lowercase (inline)</label>
-                <div id="filter-lowercase-inline" class="test">{{.text | lowercase}}</div>
+                <div id="filter-lowercase-inline" class="test">{{this.text | lowercase}}</div>
                 <label class="case-label">Limit to (string)</label>
-                <div id="filter-limit-string" class="test">{{.text | limitTo:.a}}</div>
+                <div id="filter-limit-string" class="test">{{this.text | limitTo:this.a}}</div>
 
             </div>
 
             <div class="case">
                 <h4>Filters</h4>
                 <label class="case-label">Linkify</label>
-                <p id="filter-linkify" class="test" mjs-bind-html=".linkified | linkify"></p>
+                <p id="filter-linkify" class="test" {bind-html}="this.linkified | linkify"></p>
             </div>
 
             <div class="case">
                 <h4>Expressions</h4>
                 <label class="case-label">.a + .b</label>
-                <div id="expr-a-plus-b" class="test">{{.a + .b}}</div>
+                <div id="expr-a-plus-b" class="test">{{this.a + this.b}}</div>
                 <label class="case-label">.bool ? "true" : "false"</label>
-                <div id="expr-bool" class="test">{{.bool ? "true": "false"}}</div>
+                <div id="expr-bool" class="test">{{this.bool ? "true": "false"}}</div>
             </div>
 
             <div class="case">
                 <h4>Model</h4>
                 <label class="case-label">Input (number)</label>
                 <p class="test">
-                    <input mjs-model=".a" type="number" data-type="number" id="model-input-a"/>
+                    <input {model}="this.a" type="number" data-type="number" id="model-input-a"/>
                 </p>
                 <label class="case-label">Checkbox (.bool)</label>
                 <p class="test">
-                    <input id="model-checkbox-bool" type="checkbox" mjs-model=".bool"/>
+                    <input id="model-checkbox-bool" type="checkbox" {model}="this.bool"/>
                 </p>
                 <label class="case-label">Radio (.inline)</label>
                 <p class="test">
-                    <input id="model-radio-1" checked type="radio" name="r" value="inline1" mjs-model="inline"/>1
+                    <input id="model-radio-1" checked type="radio" 
+                            name="r" value="inline1" 
+                            {model}="this.inline"/>1
                     <label><input id="model-radio-2" type="radio" name="r" value="inline2"/>2</label>
                     <input  id="model-radio-3" type="radio" name="r" value="inline3"/>3
                 </p>
                 <label class="case-label">Select (.a)</label>
                 <p class="test">
-                    <select id="model-select-a" mjs-model=".a" data-type="number">
+                    <select id="model-select-a" {model}="this.a" data-type="number">
                         <option value="1">1</option>
                         <option value="2">2</option>
                         <option value="3">3</option>
@@ -173,11 +175,11 @@
                 <h4>Model</h4>
                 <label class="case-label">Textarea (.text)</label>
                 <p class="test">
-                    <textarea id="model-textarea" mjs-model=".text"></textarea>
+                    <textarea id="model-textarea" {model}="this.text"></textarea>
                 </p>
                 <label class="case-label">Input (string .text)</label>
                 <p class="test">
-                    <input type="text" id="model-input" mjs-model=".text"/>
+                    <input type="text" id="model-input" {model}="this.text"/>
                 </p>
             </div>
 
@@ -185,30 +187,29 @@
                 <h4>mjs-class</h4>
                 <label class="case-label">Plain attribute</label>
                 <div class="test">
-                    <p id="class-inline" class="{{.inline}}">---</p>
+                    <p id="class-inline" [class]="this.inline">---</p>
                 </div>
                 <label class="case-label">mjs-class (string)</label>
                 <div class="test">
-                    <p id="class-string" mjs-class=".inline">---</p>
+                    <p id="class-string" {class}="this.inline">---</p>
                 </div>
                 <label class="case-label">mjs-class ({bool: .bool, inline1: .a == 0})</label>
                 <div class="test">
-                    <p id="class-object" mjs-class="{bool: .bool, inline1: .a == 0}">---</p>
+                    <p id="class-object" {class}="{bool: this.bool, inline1: this.a == 0}">---</p>
                 </div>
             </div>
 
             <div class="case">
                 <h4>mjs-if, mjs-show, mjs-hide</h4>
-                <div id="if-bool" mjs-if=".bool" class="test" mjs-animate>this should appear if .bool = true</div>
-                <div id="show-bool" mjs-show=".bool" class="test" mjs-animate>this should show if .bool = true</div>
-                <div id="hide-bool" mjs-hide=".bool" class="test" mjs-animate>this should hide if .bool = true</div>
+                <div id="if-bool" {if}="this.bool" class="test" {if.$animate}>this should appear if .bool = true</div>
+                <div id="show-bool" {show}="this.bool" class="test" {show.$animate}>this should show if .bool = true</div>
+                <div id="hide-bool" {hide}="this.bool" class="test" {hide.$animate}>this should hide if .bool = true</div>
             </div>
-
 
             <div class="case">
                 <h4>mjs-include</h4>
                 <label class="case-label">immediate</label>
-                <div mjs-include="test-template" mjs-animate>
+                <div {include}="test-template" {include.$animate}>
                     <p>transcluded text</p>
                 </div>
                 <label class="case-label">immediate (via tag)</label>
@@ -216,18 +217,23 @@
                     <p>transcluded text</p>
                 </mjs-include>
                 <label class="case-label">ajax</label>
-                <div mjs-include="template.html">
+                <div {include}="template.html">
                     <p>Transcluded text</p>
                 </div>
             </div>
 
             <div class="case">
                 <h4>mjs-validate</h4>
-                <form name="myForm" mjs-validate mjs-class="{error: .myForm.$invalid}" mjs-animate>
+                <form name="myForm" 
+                        {validate} 
+                        {class}="{error: this.myForm.$invalid}" 
+                        {class.$animate}>
                     <div>
-                        <input name="field1" data-validate-required mjs-class="{error: .myForm.field1.$invalid}"/>
+                        <input name="field1"
+                         data-validate-required 
+                         {class}="{error: this.myForm.field1.$invalid}"/>
                     </div>
-                    <div mjs-class="{error: .myForm.radio1.$invalid}">
+                    <div {class}="{error: this.myForm.radio1.$invalid}">
                         <label><input type="radio" name="radio1" value="1" data-validate-required/> -- 1</label>
                         <label><input type="radio" name="radio1" value="2"/> -- 2</label>
                         <label><input type="radio" name="radio1" value="3"/> -- 3</label>
@@ -239,18 +245,21 @@
                 </form>
             </div>
 
-            <div class="case" mjs-init=".dynamicList = []">
+            <div class="case" {init}="this.dynamicList = []">
                 <h4>dynamic list</h4>
 
-                <label><input id="radio-sep-1" type="radio" name="sep" value="/\n|,/" mjs-model=".sep"/> /\n|,/</label>
+                <label><input id="radio-sep-1" type="radio" 
+                                name="sep" value="/\n|,/" 
+                                {model}="this.sep"/> /\n|,/</label>
                 <label><input type="radio" name="sep" value="/\n/"/> /\n/</label>
                 <label><input type="radio" name="sep" value=","/> ,</label><br><br>
 
 
-                <textarea mjs-model="split:.sep >> .dynamicList" data-binding="input"></textarea>
+                <textarea {model}="split:this.sep >> this.dynamicList" 
+                            {model.$binding}="input"></textarea>
 
                 <ul>
-                    <li mjs-each="item in .dynamicList" mjs-recursive>
+                    <li {each}="item in this.dynamicList" mjs-recursive>
                         {{.item}}
                     </li>
                 </ul>
@@ -260,48 +269,49 @@
                 <h4>mjs-options</h4>
                 <label class="case-label">Generated from .alist</label>
                 <p class="test">
-                    <select mjs-bind=".a" mjs-options=".alist">
+                    <select {bind}="this.a" 
+                            {options}="this.alist">
                         <option>not selected</option>
                     </select>
                 </p>
                 <label class="case-label">Generated from .dynamicList</label>
                 <p class="test">
                     <select
-                    mjs-options="{
-                        name: .item,
-                        value: .$index,
-                        group: .$index - (.$index % 2),
-                        disabledGroup: .$index == 0,
-                        disabled: .$index == 4
-                        } in .dynamicList">
+                    {options}="{
+                        name: this.item,
+                        value: this.$index,
+                        group: this.$index - (this.$index % 2),
+                        disabledGroup: this.$index == 0,
+                        disabled: this.$index == 4
+                        } in this.dynamicList">
                         <option>default value</option>
                     </select>
                 </p>
             </div>
 
 
-            <div class="case" mjs-cmp="Test.TplComponent as ctrl">
-                <h2>{{ .title }}</h2>
+            <div class="case" {cmp}="Test.TplComponent">
+                <h2>{{ this.title }}</h2>
                 mjs-include change template:<br>
-                <a href="#" mjs-click=".tpl='a+b'">a + b</a> |
-                <a href="#" mjs-click=".tpl='a*b'">a * b</a>
+                <a href="#" (click)="this.tpl = 'a+b'">a + b</a> |
+                <a href="#" (click)="this.tpl = 'a*b'">a * b</a>
 
-                <div mjs-include=".tpl" mjs-animate></div>
+                <div {include}="this.tpl" {include.$animate}></div>
             </div>
 
-            <div class="case" mjs-cmp="Test.StringTemplate">
+            <div class="case" {cmp}="Test.StringTemplate">
 
             </div>
 
-            <div class="case" mjs-cmp="Test.ChangeTemplate">
+            <div class="case" {cmp}="Test.ChangeTemplate">
                 mjs-cmp change template:<br>
-                <a href="#" mjs-click=".tpl=.tpl1">tpl1</a> |
-                <a href="#" mjs-click=".tpl=.tpl2">tpl2</a>
+                <a href="#" (click)="this.tpl = this.tpl1">tpl1</a> |
+                <a href="#" (click)="this.tpl = this.tpl2">tpl2</a>
             </div>
 
             <div class="case">
                 <h4>mjs-view</h4>
-                <div mjs-view="Test.MyView" mjs-animate>
+                <div {router}="Test.MyView" {router.$animate}>
 
                 </div>
                 pushUrl: <a href="/1">/1</a> |
@@ -318,15 +328,18 @@
                 Dynamically created component with renderTo will go here
             </div>
 
-            <div class="case" mjs-ignore>
-                This element is ignored by renderer: {{ .$root.a }}
+            <div class="case" {ignore}>
+                This element is ignored by renderer: {{ this.$root.a }}
             </div>
 
-            <div class="case" mjs-view data-cmp=".viewCmp" data-default-cmp="Test.ViewComponent1">
+            <div class="case" 
+                    {router} 
+                    {router.$cmp}="this.viewCmp" 
+                    {router.$defaultCmp}:="Test.ViewComponent1">
                 <p>
                     change cmp:
-                    <a href="#" mjs-click=".$parent.viewCmp = 'Test.ViewComponent1'">Cmp1</a> |
-                    <a href="#" mjs-click=".$parent.viewCmp = 'Test.ViewComponent2'">Cmp2</a>
+                    <a href="#" (click)="this.$parent.viewCmp = 'Test.ViewComponent1'">Cmp1</a> |
+                    <a href="#" (click)="this.$parent.viewCmp = 'Test.ViewComponent2'">Cmp2</a>
                 </p>
             </div>
 
@@ -336,72 +349,73 @@
 
             <div class="case double">
                 <h4>mjs-each (attr)</h4>
-                <input mjs-model=".newItem" mjs-enter="if (.newItem) {.list.push({bool: false, txt: .newItem}); .newItem = '';}"/>
+                <input {model}="this.newItem" 
+                        (enter)="if (this.newItem) {this.list.push({bool: false, txt: this.newItem}); this.newItem = '';}"/>
                 <input type="button"
-                       mjs-disabled="!.newItem"
-                       mjs-click=".list.push({bool: false, txt: .newItem}); .newItem = '';"
+                       [disabled]="!this.newItem"
+                       (click)="this.list.push({bool: false, txt: this.newItem}); this.newItem = '';"
                        value="Add item"/>
 
-                <ul mjs-show=".bool" mjs-animate>
-                    <li mjs-each="item in .list | filter:.listFilter | sortBy:'txt':.sortBy"
-                        mjs-animate
-                        data-animate-move="true">
-                        <label mjs-class="{cls3: .item.bool}">
-                            <input type="checkbox" mjs-model=".item.bool"/>
-                            {{.$index}} -
-                            {{.item.txt}} -
-                            {{ .$first ? "first" : "" }} -
-                            {{ .$last ? "last" : "" }} -
-                            {{ .$even ? "even" : "" }} -
-                            {{ .$odd ? "odd" : "" }}
+                <ul {show}="this.bool" mjs-animate>
+                    <li {each}="item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy"
+                        {each.$animate}
+                        {each.$animateMove}>
+                        <label {class}="{cls3: this.item.bool}">
+                            <input type="checkbox" {model}="this.item.bool"/>
+                            {{this.$index}} -
+                            {{this.item.txt}} -
+                            {{ this.$first ? "first" : "" }} -
+                            {{ this.$last ? "last" : "" }} -
+                            {{ this.$even ? "even" : "" }} -
+                            {{ this.$odd ? "odd" : "" }}
                         </label>
-                        <a href="#" mjs-click=".$parent.list.splice(.$getRawIndex(.$trackId),1);">x</a>
+                        <a href="#" (click)="this.$parent.list.splice(this.$getRawIndex(this.$trackId),1);">x</a>
                     </li>
                 </ul>
 
-                <input mjs-model=".listFilter" placeholder="Search"/>
-                <a href="#" mjs-click=".sortBy='asc'">asc</a>
-                <a href="#" mjs-click=".sortBy='desc'">desc</a>
+                <input {model}="this.listFilter" placeholder="Search"/>
+                <a href="#" (click)="this.sortBy='asc'">asc</a>
+                <a href="#" (click)="this.sortBy='desc'">desc</a>
 
             </div>
 
             <div class="case double">
                 <h4>mjs-each (tag)</h4>
 
-                <mjs-each value="item in .list | filter:.listFilter | sortBy:'txt':.sortBy">
+                <mjs-each value="item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy">
                     <div>
-                        <label mjs-class="{cls3: .item.bool}">
-                            <input type="checkbox" mjs-model=".item.bool"/>
-                            {{.$index}} -
-                            {{.item.txt}} -
-                            {{ .$first ? "first" : "" }} -
-                            {{ .$last ? "last" : "" }} -
-                            {{ .$even ? "even" : "" }} -
-                            {{ .$odd ? "odd" : "" }}
+                        <label {class}="{cls3: this.item.bool}">
+                            <input type="checkbox" {model}="this.item.bool"/>
+                            {{this.$index}} -
+                            {{this.item.txt}} -
+                            {{ this.$first ? "first" : "" }} -
+                            {{ this.$last ? "last" : "" }} -
+                            {{ this.$even ? "even" : "" }} -
+                            {{ this.$odd ? "odd" : "" }}
                         </label>
-                        <a href="#" mjs-click=".$parent.list.splice(.$getRawIndex(.$trackId),1);">x</a>
+                        <a href="#" (click)="this.$parent.list.splice(this.$getRawIndex(this.$trackId),1);">x</a>
                     </div>
                 </mjs-each>
             </div>
 
-            <div class="case double" mjs-cmp="Test.MyComponent as ctrl">
-                <p mjs-cmp-prop="para">Component's transcluded text + {{ .$root.a}}</p>
-                <a href="#" mjs-click=".ctrl.reverse()">reverse</a> |
-                <a href="#" mjs-click=".ctrl.createNew()">create new component on existing element</a> |
-                <a href="#" mjs-click=".ctrl.createRender()">create new component and render to</a> |
-                <a href="#" mjs-click=".ctrl.createDialog()">create new dialog</a>
+            <div class="case double" {cmp}:="Test.MyComponent">
+                <p {cmp-prop}="para">Component's transcluded text + {{ this.$root.a}}</p>
+                <a href="#" (click)="this.ctrl.reverse()">reverse</a> |
+                <a href="#" (click)="this.ctrl.createNew()">create new component on existing element</a> |
+                <a href="#" (click)="this.ctrl.createRender()">create new component and render to</a> |
+                <a href="#" (click)="this.ctrl.createDialog()">create new dialog</a>
                 <br><br>
-                <button mjs-click=".store.load()">Load store</button>
-                <button mjs-click=".store.clear()">Clear store</button>
+                <button (click)="this.store.load()">Load store</button>
+                <button (click)="this.store.clear()">Clear store</button>
                 <ul>
-                    <li mjs-each-in-store="item in .store" mjs-animate>
-                        {{ .item.name }}
+                    <li {each}="item in this.store" {each.$animate}>
+                        {{ this.item.name }}
                     </li>
                 </ul>
             </div>
 
-            <div class="case double" id="myComponent1" mjs-cmp="Test.MyComponent as ctrl">
-                <p>This is another instance with deferred value: {{ .deferred }}</p>
+            <div class="case double" id="myComponent1" {cmp}="Test.MyComponent">
+                <p>This is another instance with deferred value: {{ this.deferred }}</p>
             </div>
 
         </div>
@@ -409,42 +423,39 @@
 
 
 
-    <div mjs-app="Test.MyApp2" class="cases" mjs-init=".a = 100" mjs-cloak>
+    <div mjs-app="Test.MyApp2" class="cases" {init}="this.a = 100" mjs-cloak>
 
         <div class="case">
             <h4>app's resolved value</h4>
-            <p class="test">{{.resolved}}</p>
+            <p class="test">{{this.resolved}}</p>
         </div>
 
         <div class="case">
             <h4>recursive rendering</h4>
             <p>
-                <a href="#" mjs-click=".changeLevel2()">Change level 2</a>
+                <a href="#" (click)="this.changeLevel2()">Change level 2</a>
             </p>
-            <p class="test" mjs-recursive>This is level 1: {{.level1}}</p>
+            <p class="test">This is level 1: {{this.level1}}</p>
         </div>
 
         <div class="case">
             <h4>lang substitution</h4>
             <label class="case-label">using normal expression with filter: 'key' | l</label>
             <p class="test">{{ 'key' | l}}</p>
-            <p class="test" mjs-recursive>{{'subkey1' | l}}</p>
-            <label class="case-label">using lang expression:</label>
-            <p class="test">{[ key ]}</p>
+            <p class="test">{{'subkey1' | l}}</p>
         </div>
 
         <div class="case">
             <h4>pluralization</h4>
             <p>
-                <a href="#" mjs-click=".increaseB()">Increase B</a>
+                <a href="#" (click)="this.increaseB()">Increase B</a>
             </p>
             <label class="case-label">using normal expression:</label>
-            <p class="test">{{.b}} {{ 'plr' | p:.b}}</p>
-            <label class="case-label">using lang expression:</label>
-            <p class="test">{{.b}} {[ plr | p:.b]}</p>
+            <p class="test">{{this.b}} {{ 'plr' | p:this.b}}</p>
 
-            <p><input type="number" data-type="number" mjs-model=".people"/></p>
-            <p class="test" mjs-recursive>{[ viewing | p:.people]}</p>
+            <p><input type="number" data-type="number" 
+                        {model}="this.people"/></p>
+            <p class="test" mjs-recursive>{{ 'viewing' | p:this.people }}</p>
         </div>
 
 

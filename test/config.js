@@ -17,18 +17,18 @@ describe("MetaphorJs.lib.Config", function(){
 
         var attrs = {
             dynamic: "this.a",
-            $static: "1",
-            $$single: "this.b"
+            static: {
+                expression: "1",
+                type: "int",
+                mode: MetaphorJs.lib.Config.MODE_STATIC
+            },
+            single: {
+                expression: "this.b",
+                mode: MetaphorJs.lib.Config.MODE_SINGLE
+            }
         };
 
-        var config = new MetaphorJs.lib.Config(attrs, {
-            scope: dataObj,
-            properties: {
-                static: {
-                    type: "int"
-                }
-            }
-        });
+        var config = new MetaphorJs.lib.Config(attrs, {scope: dataObj});
 
         var dynamicTriggered = false,
             staticTriggered = false,
@@ -38,9 +38,9 @@ describe("MetaphorJs.lib.Config", function(){
         config.on("static", function() { staticTriggered = true; });
         config.on("single", function() { singleTriggered = true; });
 
-        assert.strictEqual(1, config.getValue("dynamic"));
-        assert.strictEqual(1, config.getValue("static"));
-        assert.deepStrictEqual([1,2], config.getValue("single"));
+        assert.strictEqual(1, config.get("dynamic"));
+        assert.strictEqual(1, config.get("static"));
+        assert.deepStrictEqual([1,2], config.get("single"));
 
         var observerA = MetaphorJs.lib.MutationObserver.get(dataObj, "this.a"),
             observerB = MetaphorJs.lib.MutationObserver.get(dataObj, "this.b");

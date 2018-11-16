@@ -51,6 +51,6 @@ describe("MetaphorJs.app.Renderer", function(){
         renderer.process();
 
         var frag = MetaphorJs.app.renderTpl(getFile("1.html"), dataObj);
-        console.log(frag);
+        //console.log(frag);
     });
 });

@@ -21,7 +21,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
         config.setProperty("value", {type: "bool"});
         config.setProperty("once", {type: "bool"});
         self.createCommentWrap(node, "if");
-        self.$super(scope, node, expr, renderer, attrSet);
+        self.$super(scope, node, config, renderer, attrSet);
     },
 
     onScopeDestroy: function() {

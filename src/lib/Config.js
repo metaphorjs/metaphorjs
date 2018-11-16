@@ -16,7 +16,7 @@ var extend = require("metaphorjs-shared/src/func/extend.js"),
  */
 module.exports = MetaphorJs.lib.Config = (function(){
 
-    $$observable = new MetaphorJs.lib.Observable;
+    var $$observable = new MetaphorJs.lib.Observable;
 
     var MODE_STATIC = 1,
         MODE_DYNAMIC = 2,
@@ -41,7 +41,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
         self.id = nextUid();
         self.values = {};
-        self.propeties = {};
+        self.properties = {};
         self.cfg = cfg || {};
         self.keys = [];
 
@@ -64,7 +64,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
     extend(Config.prototype, {
 
         id: null,
-        propeties: null,
+        properties: null,
         values: null,
         keys: null,
         cfg: null,
@@ -80,44 +80,28 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
         _initialCalc: function() {
             var self = this,
-                k, prop,
+                prop,
                 scope = self.cfg.scope,
                 name;
 
             for (name in self.properties) {
 
-                prop = self.properties[k];
+                prop = self.properties[name];
 
-                if (prop.disabled) {
+                if (!prop || prop.disabled || !prop.expression) {
                     continue;
                 }
 
-                if (prop.mode === MODE_DYNAMIC) {
+                if (prop.expression === true) {
+                    prop.mode = MODE_STATIC;
+                }
+                else if (prop.mode === MODE_DYNAMIC) {
                     prop.mo = MetaphorJs.lib.MutationObserver.get(
                         scope, prop.expression
                     );
                     prop.mo.subscribe(self._onPropMutated, self, {
                         append: [name]
                     });
-                }
-                else if (prop.mode === MODE_GETTER || 
-                            prop.mode === MODE_SETTER) {
-                    self.values[name] = MetaphorJs.lib.Expression.parse(
-                        prop.exression,
-                        {
-                            setter: prop.mode === MODE_SETTER,
-                            setterOnly: prop.mode === MODE_SETTER
-                        }
-                    );
-                }
-                else if (prop.mode === MODE_FNSET) {
-                    self.values[name] = {
-                        getter: MetaphorJs.lib.Expression.parse(prop.exression),
-                        setter: MetaphorJs.lib.Expression.setter(
-                            prop.exression,
-                            {setter: true, setterOnly: true}
-                        )
-                    };
                 }
             }
 
@@ -128,25 +112,44 @@ module.exports = MetaphorJs.lib.Config = (function(){
         _calcProperty: function(name) {
 
             var self = this,
-                prop = self.getProperty(k),
+                prop = self.getProperty(name),
                 value,
                 setTo;
 
-            if (prop.disabled) {
+            if (!prop || prop.disabled) {
                 return null;
             }
 
             if (prop.mode === MODE_STATIC) {
-                value = values[name];
+                value = prop.expression;
             }
             else if (prop.mode === MODE_SINGLE) {
                 value = MetaphorJs.lib.Expression.run(
                     prop.expression, 
-                    self.scope
+                    self.cfg.scope
                 );
             }
-            else {
+            else if (prop.mode === MODE_DYNAMIC) {
                 value = prop.mo.getValue();
+            }
+            else if (prop.mode === MODE_GETTER || 
+                prop.mode === MODE_SETTER) {
+                value = MetaphorJs.lib.Expression.parse(
+                    prop.exression,
+                    {
+                        setter: prop.mode === MODE_SETTER,
+                        setterOnly: prop.mode === MODE_SETTER
+                    }
+                );
+            }
+            else if (prop.mode === MODE_FNSET) {
+                value = {
+                    getter: MetaphorJs.lib.Expression.parse(prop.exression),
+                    setter: MetaphorJs.lib.Expression.setter(
+                        prop.exression,
+                        {setter: true, setterOnly: true}
+                    )
+                };
             }
 
             if (value === undf) {
@@ -194,7 +197,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
         _onPropMutated: function(val, prev, name) {
 
             var self = this,
-                prop = self.propeties[name],
+                prop = self.properties[name],
                 setTo = prop.setTo || self.cfg.setTo;
 
             value = self._prepareValue(val, prop);
@@ -215,17 +218,27 @@ module.exports = MetaphorJs.lib.Config = (function(){
          *  @type {string} type int|float|array|bool|string
          *  @type {object} setTo
          *  @type {boolean} disabled
+         *  @type {*} defaultValue
          *  @type {int} mode 1: static, 2: dynamic, 3: single run
          * }
          */
         setProperty: function(name, cfg) {
 
-            if (this.propeties[name]) {
-                return extend(this.propeties[name], cfg, false, false);
+            var self = this;
+
+            if (self.properties[name]) {
+                extend(self.properties[name], cfg, true, false);
+            }
+            else {
+                self.keys.push(name);
+                self.properties[name] = cfg;
             }
 
-            //cfg.setAs = cfg.setAs || name;
-            return this.propeties[name] = cfg;
+            if (!self.properties[name].mode) {
+                self.properties[name].mode = MODE_DYNAMIC;
+            }
+
+            return self.properties[name];
         },
 
         /**
@@ -434,12 +447,12 @@ module.exports = MetaphorJs.lib.Config = (function(){
             id = self.id,
             k, prop;
 
-            if (self.propeties === null) {
+            if (self.properties === null) {
                 return;
             }
 
-            for (k in self.propeties) {
-                prop = self.propeties[k];
+            for (k in self.properties) {
+                prop = self.properties[k];
                 if (prop.mo) {
                     prop.mo.unsubscribe(self._onPropMutated, self);
                     prop.mo.$destroy(true);
@@ -460,11 +473,11 @@ module.exports = MetaphorJs.lib.Config = (function(){
         $destroy: function() {
             var self = this;
 
-            if (self.propeties !== null) {
+            if (self.properties !== null) {
                 self.clear();
             }
 
-            self.propeties = null;
+            self.properties = null;
             self.values = null;
             self.cfg = null;
         }
@@ -475,6 +488,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
     Config.MODE_SINGLE = MODE_SINGLE;
     Config.MODE_GETTER = MODE_GETTER;
     Config.MODE_SETTER = MODE_SETTER;
+    Config.MODE_FNSET = MODE_FNSET;
 
     return Config;
 

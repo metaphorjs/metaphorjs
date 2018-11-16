@@ -25,7 +25,10 @@ describe("getAttrSet", function(){
             node1 = dom.defaultView.document.getElementById("test1"),
             node2 = dom.defaultView.document.getElementById("test2");
         //getAttrSet(node);
-        console.log(getAttrSet(node1)['directive']['dir'])
-        console.log(getAttrSet(node2))
+
+        getAttrSet(node1)
+        getAttrSet(node2)
+        //console.log(getAttrSet(node1)['directive']['dir'])
+        //console.log(getAttrSet(node2))
     });
 });

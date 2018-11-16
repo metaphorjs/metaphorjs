@@ -61,7 +61,8 @@ module.exports = MetaphorJs.app.Directive = (function() {
         },
 
         initialSet: function() {
-            var self = this;
+            var self = this,
+                val;
             self.config.lateInit();
             self.config.on("value", self.onChange, self);
             if (self.autoOnChange && (val = self.config.get("value")) !== undf) {
@@ -118,6 +119,9 @@ module.exports = MetaphorJs.app.Directive = (function() {
             self.$super();
         }
     }, {
+
+        attr: {},
+        tag: {},
 
         /**
          * Get directive by name

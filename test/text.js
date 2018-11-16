@@ -1,5 +1,5 @@
 require("../dev/env.js");
-require("../src/app/Text.js");
+require("../src/lib/Text.js");
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     assert = require("assert");
 
@@ -12,7 +12,7 @@ describe("Text renderer", function(){
             a: "111"
         };
 
-        var text = MetaphorJs.app.Text.render(tpl, dataObj);
+        var text = MetaphorJs.lib.Text.render(tpl, dataObj);
 
         assert.strictEqual("aaa 111 bbb", text);
     });
@@ -25,7 +25,7 @@ describe("Text renderer", function(){
             b: '5'
         };
 
-        var text = MetaphorJs.app.Text.render(tpl, dataObj, null, true);
+        var text = MetaphorJs.lib.Text.render(tpl, dataObj, null, true);
         assert.strictEqual("1 3 5 4 2", text);
     });
 
@@ -35,7 +35,7 @@ describe("Text renderer", function(){
             a: "3"
         };
 
-        var t = new MetaphorJs.app.Text(dataObj, tpl);
+        var t = new MetaphorJs.lib.Text(dataObj, tpl);
 
         assert.strictEqual("1 3 2", t.getString());
 

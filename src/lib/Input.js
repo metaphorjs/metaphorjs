@@ -164,7 +164,7 @@ extend(Input.prototype, {
         // hold the listener until composition is done.
         // More about composition events:
         // https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent
-        if (!MetaphorJs.dom.isAndroid()) {
+        if (!MetaphorJs.browser.isAndroid()) {
 
             var compositionStart    = function() {
                 composing = true;

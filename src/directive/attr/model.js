@@ -24,7 +24,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
     $init: function(scope, node, config, renderer, attrSet) {
 
-        config.setProperty("change", {mode: MetaphorJs.lib.Config.MODE_FNSET});
+        config.setProperty("value", {mode: MetaphorJs.lib.Config.MODE_FNSET});
         config.setProperty("binding", {defaultValue: "both"});
         config.lateInit();
 
@@ -33,6 +33,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
         self.getterFn       = config.get("value").getter;
         self.setterFn       = config.get("value").setter;
+
         if (config.hasProperty("change")) {
             self.changeFn   = MetaphorJs.lib.Expression.parse(config.get("change"));
         }
