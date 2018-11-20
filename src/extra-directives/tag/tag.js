@@ -9,7 +9,7 @@ var Directive = require("../../app/Directive.js"),
 Directive.registerTag("tag", function directive_tag_tag(scope, node) {
 
     var expr = getAttr(node, "value"),
-        tag = MetaphorJs.lib.Expression.run(expr, scope),
+        tag = MetaphorJs.lib.Expression.get(expr, scope),
         i, l, a;
 
     if (!tag) {

@@ -52,7 +52,7 @@ extend(Input.prototype, {
     keydownDelegate: null,
     changeInitialized: false,
 
-    onDestroy: function() {
+    $destroy: function() {
 
         var self        = this,
             i;

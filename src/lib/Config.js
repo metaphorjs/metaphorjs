@@ -23,7 +23,8 @@ module.exports = MetaphorJs.lib.Config = (function(){
         MODE_SINGLE = 3,
         MODE_GETTER = 4,
         MODE_SETTER = 5,
-        MODE_FNSET = 6;
+        MODE_FUNC = 6,
+        MODE_FNSET = 7;
 
     /**
      * @constructor
@@ -120,36 +121,43 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 return null;
             }
 
-            if (prop.mode === MODE_STATIC) {
-                value = prop.expression;
-            }
-            else if (prop.mode === MODE_SINGLE) {
-                value = MetaphorJs.lib.Expression.run(
-                    prop.expression, 
-                    self.cfg.scope
-                );
-            }
-            else if (prop.mode === MODE_DYNAMIC) {
-                value = prop.mo.getValue();
-            }
-            else if (prop.mode === MODE_GETTER || 
-                prop.mode === MODE_SETTER) {
-                value = MetaphorJs.lib.Expression.parse(
-                    prop.exression,
-                    {
-                        setter: prop.mode === MODE_SETTER,
-                        setterOnly: prop.mode === MODE_SETTER
+            if (prop.expression !== undf) {
+                if (prop.mode === MODE_STATIC) {
+                    value = prop.expression;
+                }
+                else if (prop.mode === MODE_SINGLE) {
+                    value = MetaphorJs.lib.Expression.get(
+                        prop.expression, 
+                        self.cfg.scope
+                    );
+                }
+                else if (prop.mode === MODE_DYNAMIC) {
+                    if (prop.mo) {
+                        value = prop.mo.getValue();
                     }
-                );
-            }
-            else if (prop.mode === MODE_FNSET) {
-                value = {
-                    getter: MetaphorJs.lib.Expression.parse(prop.exression),
-                    setter: MetaphorJs.lib.Expression.setter(
-                        prop.exression,
-                        {setter: true, setterOnly: true}
-                    )
-                };
+                }
+                else if (prop.mode === MODE_GETTER || 
+                         prop.mode === MODE_SETTER) {
+                    value = MetaphorJs.lib.Expression.parse(
+                        prop.expression,
+                        {
+                            setter: prop.mode === MODE_SETTER,
+                            setterOnly: prop.mode === MODE_SETTER
+                        }
+                    );
+                }
+                else if (prop.mode === MODE_FNSET) {
+                    value = {
+                        getter: MetaphorJs.lib.Expression.parse(prop.expression),
+                        setter: MetaphorJs.lib.Expression.setter(
+                            prop.expression,
+                            {setter: true, setterOnly: true}
+                        )
+                    };
+                }
+                else if (prop.mode === MODE_FUNC) {
+                    value = MetaphorJs.lib.Expression.func(prop.expression);
+                }
             }
 
             if (value === undf) {
@@ -198,7 +206,8 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
             var self = this,
                 prop = self.properties[name],
-                setTo = prop.setTo || self.cfg.setTo;
+                setTo = prop.setTo || self.cfg.setTo,
+                value;
 
             value = self._prepareValue(val, prop);
             self.values[name] = val;
@@ -256,7 +265,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
          * @returns {object}
          */
         getValues: function() {
-            var self, k, vs = {};
+            var self = this, k, vs = {};
             for (k in self.properties) {
                 if (self.values[k] === undf) {
                     vs[k] = self._calcProperty(k);
@@ -276,7 +285,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
          * @param {object} context 
          */
         eachProperty: function(fn, context) {
-            var k;
+            var k, self = this;
             for (k in self.properties) {
                 fn.call(context, k, self.properties[k], self);
             }
@@ -318,7 +327,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 vs = {};
 
             for (i = 0, l = self.keys.length; i < l; i++) {
-                k = keys[i];
+                k = self.keys[i];
                 if (k === "value") {
                     name = "";
                 }
@@ -488,6 +497,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
     Config.MODE_SINGLE = MODE_SINGLE;
     Config.MODE_GETTER = MODE_GETTER;
     Config.MODE_SETTER = MODE_SETTER;
+    Config.MODE_FUNC = MODE_FUNC;
     Config.MODE_FNSET = MODE_FNSET;
 
     return Config;

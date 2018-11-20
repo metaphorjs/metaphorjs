@@ -6,11 +6,14 @@ require("./clone.js");
 require("metaphorjs-shared/src/func/toArray.js");
 
 var toArray = require("metaphorjs-shared/src/func/toArray.js"),
-    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+    undf = require("metaphorjs-shared/src/var/undf.js");
 
 module.exports = MetaphorJs.dom.transclude = function dom_transclude(node, replace) {
 
-    var parent = node.parentNode;
+    var parent = node.parentNode,
+        contents;
+
     while (parent) {
         contents = MetaphorJs.dom.data(node, 'mjs-transclude');
         if (contents !== undf) {

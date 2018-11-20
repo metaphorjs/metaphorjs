@@ -48,12 +48,12 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         self.defOption && MetaphorJs.dom.setAttr(self.defOption, "default-option", "");
 
         try {
-            var value = MetaphorJs.lib.Expression.run(self.model, scope);
+            var value = MetaphorJs.lib.Expression.get(self.model, scope);
             if (cls.isInstanceOf(value, "MetaphorJs.model.Store")) {
                 self.bindStore(value, "on");
             }
             else {
-                self.watcher = MetaphorJs.lib.MutationObverser(
+                self.watcher = new MetaphorJs.lib.MutationObserver(
                     scope, self.model, self.onChange, self);
             }
         }

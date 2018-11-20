@@ -1,5 +1,6 @@
 
 require("../../func/app/resolve.js");
+require("../../lib/Config.js");
 
 var Directive = require("../../app/Directive.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
@@ -10,9 +11,10 @@ var Directive = require("../../app/Directive.js"),
 
     var cmpAttr = function(scope, node, config, parentRenderer, attrSet){
 
-        config.lateInit();
+        config.setProperty("value", {mode: MetaphorJs.lib.Config.MODE_STATIC});
         config.setProperty("sameScope", {type: "bool"});
         config.setProperty("isolateScope", {type: "bool"});
+        config.lateInit();
 
         var cmpName = config.get("value"),
             constr  = typeof cmpName === "string" ?

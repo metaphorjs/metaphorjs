@@ -48,7 +48,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
     buffered: false,
     bufferPlugin: null,
 
-    $constructor: function(scope, node, config, parentRenderer) {
+    $constructor: function(scope, node, config, parentRenderer, attrSet) {
 
         config.setProperty("trackBy", {type: 'bool'});
 
@@ -60,7 +60,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
 
         self.tagMode        = node.nodeName.toLowerCase() === "mjs-each";
         self.animateMove    = !self.tagMode && 
-                                !cfg.get['buffered'] &&
+                                !cfg['buffered'] &&
                                 cfg["animateMove"] && 
                                 animate.cssAnimationSupported();
         self.animate        = !self.tagMode && 
@@ -90,12 +90,16 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
         }
     },
 
-    $init: function(scope, node, config, parentRenderer) {
+    $init: function(scope, node, config, parentRenderer, attrSet) {
 
-        var self = this;
+        var self = this,
+            expr;
 
         if (self.tagMode) {
             expr = MetaphorJs.dom.getAttr(node, "value");
+        }
+        else {
+            expr = config.getProperty("value").expression;
         }
 
         self.parseExpr(expr);
@@ -117,7 +121,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
 
         self.parentEl.removeChild(node);
 
-        self.afterInit(scope, node, expr, parentRenderer, attr);
+        self.afterInit(scope, node, config, parentRenderer, attrSet);
 
         self.queue.add(self.render, self, [toArray(self.watcher.getValue())]);
     },

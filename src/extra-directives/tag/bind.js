@@ -8,7 +8,7 @@ var Directive = require("../../app/Directive.js"),
 Directive.registerTag("bind", function(scope, node) {
 
     var expr    = MetaphorJs.dom.getAttr(node, "value"),
-        text    = MetaphorJs.lib.Expression.run(expr, scope),
+        text    = MetaphorJs.lib.Expression.get(expr, scope),
         frg     = window.document.createTextNode(text);
 
     node.parentNode.insertBefore(frg, node);

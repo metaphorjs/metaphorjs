@@ -14,7 +14,7 @@ var Directive = require("../../app/Directive.js"),
     function detectModelType(expr, scope) {
         var tmp = expr.split(" in "),
             model = tmp.length === 1 ? expr : tmp[1],
-            obj = MetaphorJs.lib.Expression.run(model, scope),
+            obj = MetaphorJs.lib.Expression.get(model, scope),
             i = 0,
             l = types.length;
 
@@ -39,7 +39,8 @@ var Directive = require("../../app/Directive.js"),
             expr = config.getProperty("value").expression;
         }
         var handler = detectModelType(expr, scope) || MetaphorJs.app.ListRenderer;
-        return new handler(scope, node, expr, parentRenderer, attrSet);
+
+        return new handler(scope, node, config, parentRenderer, attrSet);
     };
 
 

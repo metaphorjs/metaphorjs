@@ -49,7 +49,7 @@ module.exports = MetaphorJs.dom.getInputValue = function(){
                 // IE6-9 doesn't update selected after form reset (#2551)
                 if ((option.selected || i === index) && !disabled ) {
                     // Get the specific value for the option
-                    value = getValue(option);
+                    value = MetaphorJs.dom.getInputValue(option);
 
                     // We don't need an array for one selects
                     if ( one ) {

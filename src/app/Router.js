@@ -67,7 +67,7 @@ module.exports = MetaphorJs.app.Router = cls({
         var node = self.node;
 
         if (node && node.firstChild) {
-            data(node, "mjs-transclude", MetaphorJs.dom.toFragment(node.childNodes));
+            MetaphorJs.dom.data(node, "mjs-transclude", MetaphorJs.dom.toFragment(node.childNodes));
         }
 
         if (!self.id) {

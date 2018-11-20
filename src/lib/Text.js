@@ -29,7 +29,7 @@ module.exports = MetaphorJs.lib.Text = (function(){
                 return w.getValue();
             }
             else {
-                return MetaphorJs.lib.Expression.run(expr, scope);
+                return MetaphorJs.lib.Expression.get(expr, scope);
             }
         },
 

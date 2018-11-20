@@ -39,7 +39,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         }
 
         self.node           = node;
-        self.input          = Input.get(node, scope);
+        self.input          = MetaphorJs.lib.Input.get(node, scope);
         self.updateRoot     = expr.indexOf('$root') + expr.indexOf('$parent') !== -2;
         self.binding        = config.get("binding");
 

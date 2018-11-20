@@ -2,14 +2,10 @@
 <html>
 <head>
     <link rel="stylesheet" href="style.css">
-
-    <!--<script src="numeral.min.js"></script>
-    <script src="moment.min.js"></script>-->
-
     <script src="metaphorjs.test.js"></script>
 </head>
 <body>
-
+<!--
     <script type="text/mjs-template" id="test-template">
         <p>{{this.text}}</p>
         <div {transclude}></div>
@@ -27,7 +23,7 @@
     <script type="text/mjs-template" id="a*b">
         <p>a * b = {{ this.$root.a * this.$root.b }}</p>
     </script>
-
+-->
 
     <div id="render" {init}="
         this.inline = 'inline4';
@@ -63,6 +59,7 @@
                 </p>
             </div>
 
+            <!--
             <div class="case">
                 <h4>Bindings (read only)</h4>
                 <label class="case-label">Input field (value)</label>
@@ -342,11 +339,12 @@
                     <a href="#" (click)="this.$parent.viewCmp = 'Test.ViewComponent2'">Cmp2</a>
                 </p>
             </div>
-
+            -->
         </div>
 
         <div class="cases">
 
+            <!--
             <div class="case double">
                 <h4>mjs-each (attr)</h4>
                 <input {model}="this.newItem" 
@@ -417,14 +415,15 @@
             <div class="case double" id="myComponent1" {cmp}="Test.MyComponent">
                 <p>This is another instance with deferred value: {{ this.deferred }}</p>
             </div>
-
+            -->
         </div>
     </div>
 
 
-
+<!--
     <div mjs-app="Test.MyApp2" class="cases" {init}="this.a = 100" mjs-cloak>
 
+    
         <div class="case">
             <h4>app's resolved value</h4>
             <p class="test">{{this.resolved}}</p>
@@ -464,7 +463,7 @@
     </div>
 
 
-
+-->
 
 </body>
 </html>

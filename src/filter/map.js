@@ -24,7 +24,7 @@ MetaphorJs.filter.map = function(array, scope, fnName) {
         res = [],
         fn = ns.get(fnName, true) ||
                 window[fnName] ||
-                MetaphorJs.lib.Expression.run(fnName, scope);
+                MetaphorJs.lib.Expression.get(fnName, scope);
     array = array || [];
 
     if (fn) {

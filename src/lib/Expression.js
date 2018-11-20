@@ -14,7 +14,9 @@ module.exports = MetaphorJs.lib.Expression = (function() {
     var REG_REPLACE_EXPR    = /((^|[^a-z0-9_$\]\)'"])|(this))(\.)([^0-9])/ig,
         REG_REPLACER        = "$2____.$5",
         fnBodyStart     = 'try {',
-        fnBodyEnd       = ';} catch (thrownError) { /*DEBUG-START*/console.log(thrownError);/*DEBUG-END*/return undefined; }',    
+        fnBodyEnd       = ';} catch (thrownError) { '+
+                            '/*DEBUG-START*/console.log("expr");console.log(thrownError);/*DEBUG-END*/'+
+                            'return undefined; }',    
         cache           = {},
         filterSources   = [],
 
@@ -88,6 +90,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
 
             var asCode = opt.asCode === true,
                 isSetter = opt.setter === true,
+                noReturn = opt.noReturn === true,
                 statc,
                 cacheKey;
 
@@ -106,7 +109,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
                 if (opt.asCode) {
                     return "".concat(
                         "function() {",
-                            "return ", expr,
+                            "return ", expr, 
                         "}"
                     );
                 }
@@ -131,14 +134,18 @@ module.exports = MetaphorJs.lib.Expression = (function() {
                             !atom || !isSetter ? 
                                 "".concat(
                                     fnBodyStart, 
-                                    'return ', code, 
+                                    noReturn ? '' : 'return ', 
+                                    code,
                                     fnBodyEnd
                                 ) : 
                                 "".concat(
                                     fnBodyStart, 
-                                    'return ', code, ' = $$$$', 
+                                    noReturn ? '' : 'return ', 
+                                    code, ' = $$$$', 
                                     fnBodyEnd
                                 );
+
+                    body.replace('"expr"', '"' +expr+ '"');
 
                     if (asCode) {
                         return "function(____, $$$$) {" + body + "}";
@@ -154,6 +161,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
                 return cache[cacheKey];
             }
             catch (thrownError) {
+                error(new Error("Error parsing expression: " + expr));
                 error(thrownError);
                 return emptyFn;
             }
@@ -603,7 +611,32 @@ module.exports = MetaphorJs.lib.Expression = (function() {
         },
 
         /**
-         * @property {function} setter
+         * @property {function} func {
+         *  @param {string} expr 
+         *  @param {object} opt {
+         *      @type {boolean} noReturn {    
+         *          @default true
+         *      }
+         *  }
+         *  @returns {function}
+         * }
+         */
+        func: function(expr, opt) {
+            opt = opt || {};
+            opt.noReturn = true;
+            return parserFn(expr, opt);
+        },
+
+        /**
+         * @property {function} setter {
+         *  @param {string} expr 
+         *  @param {object} opt {
+         *      @type {boolean} setter {    
+         *          @default true
+         *      }
+         *  }
+         *  @returns {function}
+         * }
          */
         setter: function(expr, opt) {
             opt = opt || {};
@@ -620,6 +653,20 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          * @param {object} opt See <code>parse</code>
          */
         run: function(expr, dataObj, inputValue, opt) {
+            opt = opt || {};
+            opt.noReturn = true;
+            parserFn(expr, opt)(dataObj, inputValue);
+        },
+
+        /**
+         * Execute code on given data object
+         * @property {function} run
+         * @param {string} expr 
+         * @param {object} dataObj 
+         * @param {*} inputValue
+         * @param {object} opt See <code>parse</code>
+         */
+        get: function(expr, dataObj, inputValue, opt) {
             return parserFn(expr, opt)(dataObj, inputValue);
         },
 

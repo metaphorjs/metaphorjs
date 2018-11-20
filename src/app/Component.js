@@ -184,7 +184,7 @@ module.exports = MetaphorJs.app.Component = cls({
 
             self.template.on("first-node", self.onFirstNodeReported, self);
         }
-        else if (tpl instanceof Template) {
+        else if (tpl instanceof MetaphorJs.app.Template) {
             // it may have just been created
             self.template.node = self.node;
         }

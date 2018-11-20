@@ -92,7 +92,7 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
 
     if (tpl || tplUrl) {
 
-        cfg.template = new Template({
+        cfg.template = new MetaphorJs.app.Template({
             scope: scope,
             node: node,
             deferRendering: true,

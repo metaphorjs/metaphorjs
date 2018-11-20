@@ -80,7 +80,7 @@ module.exports = MetaphorJs.app.Template = function() {
         processTextTemplate = function(tplId, tpl) {
             if (tpl.substr(0,5) === "<!--{") {
                 var inx = tpl.indexOf("-->"),
-                    opt = MetaphorJs.lib.Expression.run(tpl.substr(4, inx-4), {});
+                    opt = MetaphorJs.lib.Expression.get(tpl.substr(4, inx-4), {});
 
                 options[tplId] = opt;
                 options[tplId].processed = true;

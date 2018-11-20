@@ -37,7 +37,7 @@ var Directive = require("../../app/Directive.js"),
                 function(scope, node, config, renderer, attrSet) {
 
                 var eh = new MetaphorJs.lib.EventHandler(
-                    scope, node, prepareConfig(config), name
+                    name, scope, node, prepareConfig(config)
                 );
 
                 return function(){
