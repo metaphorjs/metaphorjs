@@ -44,6 +44,7 @@
             "target": "dev-test/metaphorjs.test.js",
             "files": [
                 "all",
+                "src/extra-directives/**",
                 "dev-test/index.js"
             ],
             "omit": [

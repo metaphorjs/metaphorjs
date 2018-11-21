@@ -7,7 +7,7 @@
 <body>
 
     <script type="text/mjs-template" id="test-template">
-        <p>{{this.text}}</p>
+        <p>{{this.$root.text}}</p>
         <div {transclude}></div>
     </script>
 
@@ -315,7 +315,7 @@
                 <a href="/3">/3</a> |
                 <a href="http://www.kuindji.com">outside</a><br><br>
             </div>
-<!--
+
             <div class="case" id="newComponent">
                 Dynamically created component on existing element will go here
             </div>
@@ -327,7 +327,7 @@
             <div class="case" {ignore}>
                 This element is ignored by renderer: {{ this.$root.a }}
             </div>
-
+<!--
             <div class="case" 
                     {router} 
                     {router.$cmp}="this.viewCmp" 

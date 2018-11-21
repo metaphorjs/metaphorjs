@@ -222,7 +222,7 @@ module.exports = MetaphorJs.dom.select = function() {
         };
 
 
-    return function(selector, root) {
+    return function(selector, root, noNative) {
 
         /* clean root with document */
         root = root || doc;
@@ -234,7 +234,7 @@ module.exports = MetaphorJs.dom.select = function() {
             i, node, ind, mod,
             attrs, attrName, eql, value;
 
-        if (qsa && root.querySelectorAll) {
+        if (qsa && root.querySelectorAll && !noNative) {
             /* replace not quoted args with quoted one -- Safari doesn't understand either */
             try {
                 sets = toArray(root.querySelectorAll(selector.replace(rQuote, '="$1"')));
@@ -245,7 +245,7 @@ module.exports = MetaphorJs.dom.select = function() {
             }
         }
 
-        if (!qsa || qsaErr) {
+        if (!qsa || qsaErr || noNative) {
 
             /* quick return or generic call, missed ~ in attributes selector */
             if (rGeneric.test(selector)) {

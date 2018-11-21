@@ -222,7 +222,7 @@ module.exports = MetaphorJs.app.Template = function() {
             //node && removeAttr(node, "include");
 
             if (self.replace && node && node.parentNode) {
-                var cmts = MetaphorJs.com.commentWrap(node, self.id);
+                var cmts = MetaphorJs.dom.commentWrap(node, self.id);
                 self._prevEl = cmts[0];
                 self._nextEl = cmts[1];
             }
@@ -468,7 +468,7 @@ module.exports = MetaphorJs.app.Template = function() {
                     var transclude = el ? MetaphorJs.dom.data(el, "mjs-transclude") : null;
 
                     if (transclude) {
-                        var tr = MetaphorJs.dom.select("[{transclude}], [mjs-transclude], mjs-transclude", frg);
+                        var tr = MetaphorJs.dom.select("[{transclude}], [mjs-transclude], mjs-transclude", frg, true);
                         if (tr.length) {
                             MetaphorJs.dom.data(tr[0], "mjs-transclude", transclude);
                         }

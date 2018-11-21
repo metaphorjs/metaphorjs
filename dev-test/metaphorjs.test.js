@@ -5770,7 +5770,7 @@ var select = MetaphorJs.dom.select = function() {
         };
 
 
-    return function(selector, root) {
+    return function(selector, root, noNative) {
 
         /* clean root with document */
         root = root || doc;
@@ -5782,7 +5782,7 @@ var select = MetaphorJs.dom.select = function() {
             i, node, ind, mod,
             attrs, attrName, eql, value;
 
-        if (qsa && root.querySelectorAll) {
+        if (qsa && root.querySelectorAll && !noNative) {
             /* replace not quoted args with quoted one -- Safari doesn't understand either */
             try {
                 sets = toArray(root.querySelectorAll(selector.replace(rQuote, '="$1"')));
@@ -5793,7 +5793,7 @@ var select = MetaphorJs.dom.select = function() {
             }
         }
 
-        if (!qsa || qsaErr) {
+        if (!qsa || qsaErr || noNative) {
 
             /* quick return or generic call, missed ~ in attributes selector */
             if (rGeneric.test(selector)) {
@@ -11819,7 +11819,7 @@ var app_Template = MetaphorJs.app.Template = function() {
             //node && removeAttr(node, "include");
 
             if (self.replace && node && node.parentNode) {
-                var cmts = MetaphorJs.com.commentWrap(node, self.id);
+                var cmts = dom_commentWrap(node, self.id);
                 self._prevEl = cmts[0];
                 self._nextEl = cmts[1];
             }
@@ -12065,7 +12065,7 @@ var app_Template = MetaphorJs.app.Template = function() {
                     var transclude = el ? dom_data(el, "mjs-transclude") : null;
 
                     if (transclude) {
-                        var tr = select("[{transclude}], [mjs-transclude], mjs-transclude", frg);
+                        var tr = select("[{transclude}], [mjs-transclude], mjs-transclude", frg, true);
                         if (tr.length) {
                             dom_data(tr[0], "mjs-transclude", transclude);
                         }
@@ -25013,6 +25013,238 @@ cls({
         dom_removeStyle(node, "display");
 
         self.$destroy();
+    }
+
+});
+
+
+
+Directive.registerAttribute("break-if", 500, function(scope, node, config) {
+
+    config.setProperty("value", {type: "bool"});
+    config.lateInit();
+
+    var res = config.get("value");
+
+    if (res) {
+        node.parentNode.removeChild(node);
+    }
+
+    return !res;
+});
+
+
+
+
+Directive.registerAttribute("cmp-prop", 200,
+    ['$parentCmp', '$node', '$nodeConfig', function(parentCmp, node, config) {
+     config.lateInit();
+       if (parentCmp) {
+            parentCmp[config.get("value")] = node;
+       }
+}]);
+
+
+
+
+Directive.registerAttribute("ignore", 0, returnFalse);
+
+
+
+
+Directive.registerAttribute("include-file", 900, function(scope, node, config){
+
+    config.lateInit();
+
+    var r = require,
+        fs = r("fs"),
+        filePath = config.get("value");
+
+    node.innerHTML = fs.readFileSync(filePath).toString();
+});
+
+
+
+
+
+
+
+Directive.registerTag("bind-html", function(scope, node) {
+
+    var expr    = dom_getAttr(node, "value"),
+        text    = lib_Expression.get(expr, scope),
+        frg     = dom_toFragment(text),
+        nodes   = toArray(frg.childNodes);
+
+    node.parentNode.insertBefore(frg, node);
+    node.parentNode.removeChild(node);
+
+    return nodes;
+});
+
+
+
+
+
+
+Directive.registerTag("bind", function(scope, node) {
+
+    var expr    = dom_getAttr(node, "value"),
+        text    = lib_Expression.get(expr, scope),
+        frg     = window.document.createTextNode(text);
+
+    node.parentNode.insertBefore(frg, node);
+    node.parentNode.removeChild(node);
+
+    return [frg];
+});
+
+
+
+
+
+
+
+Directive.registerTag("if", Directive.attr.If.$extend({
+    $class: "MetaphorJs.app.Directive.tag.If",
+    autoOnChange: false,
+    children: null,
+    childrenFrag: null,
+
+    $init: function(scope, node, config, renderer, attrSet) {
+
+        var self    = this;
+
+        self.children = toArray(node.childNodes);
+        self.childrenFrag = dom_toFragment(self.children);
+
+        config.setProperty("once", {type: "bool"});
+        config.setProperty("value", {
+            expression: dom_getAttr(node, "value"),
+            type: "bool"
+        });
+        config.lateInit();
+
+        self.createCommentWrap();
+        self.$super(scope, node, config, renderer, attrSet);   
+
+        if (node.parentNode) {
+            node.parentNode.removeChild(node); 
+        }
+
+        var val = config.get("value");
+        self.onChange(val || false, undf);
+    },
+
+    getChildren: function() {
+        return this.children;
+    },
+
+    onChange: function() {
+        var self    = this,
+            val     = self.config.get("value"),
+            prev    = self.wrapperOpen,
+            next    = self.wrapperClose,
+            parent  = prev.parentNode;
+
+        if (val) {
+            parent.insertBefore(self.childrenFrag, next);
+        }
+        else if (!self.initial) {
+            var children = [],
+                sib;
+
+            self.childrenFrag = window.document.createDocumentFragment();
+            while (prev.nextSibling && prev.nextSibling !== next) {
+                sib = prev.nextSibling;
+                parent.removeChild(sib);
+                children.push(sib);
+                self.childrenFrag.appendChild(sib);
+            }
+            self.children = children;
+        }
+
+        if (self.initial) {
+            self.initial = false;
+        }
+        else {
+            if (self.config.get("once")) {
+                self.$destroy();
+            }
+        }
+    },
+
+    onDestroy: function() {
+        this.children = null;
+        this.childrenFrag = null;
+        this.$super();
+    }
+}));
+
+
+
+
+
+
+Directive.registerTag("include", function(scope, node, config, parentRenderer, attrSet) {
+
+    config.setProperty("asis", {type: "bool"});
+    config.lateInit();
+
+    var tpl = new app_Template({
+        scope: scope,
+        node: node,
+        url: dom_getAttr(node, "src"),
+        parentRenderer: parentRenderer,
+        replace: true,
+        ownRenderer: !config.get("asis") // if asis, do not render stuff
+    });
+
+    parentRenderer.on("destroy", function(){
+        tpl.$destroy();
+        tpl = null;
+    });
+
+    return false; // stop renderer
+});
+
+
+
+
+
+
+
+
+Directive.registerTag("tag", function directive_tag_tag(scope, node) {
+
+    var expr = getAttr(node, "value"),
+        tag = lib_Expression.get(expr, scope),
+        i, l, a;
+
+    if (!tag) {
+        node.parentNode.removeChild(node);
+        return false;
+    }
+    else {
+        var el = window.document.createElement(tag),
+            next = node.nextSibling,
+            attrs = node.attributes;
+
+        while (node.firstChild) {
+            el.appendChild(node.firstChild);
+        }
+
+        for (i = 0, l = attrs.length; i < l; i++) {
+            a = attrs[i];
+            if (a.name !== "value") {
+                dom_setAttr(el, a.name, a.value);
+            }
+        }
+
+        node.parentNode.insertBefore(el, next);
+        node.parentNode.removeChild(node);
+
+        return [el];
     }
 
 });
