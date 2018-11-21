@@ -1,5 +1,6 @@
 require("../../lib/Scope.js");
 require("../../lib/Expression.js");
+require("../../lib/MutationObserver.js");
 require("../../lib/Input.js");
 
 var async = require("metaphorjs-shared/src/func/async.js"),
@@ -7,6 +8,7 @@ var async = require("metaphorjs-shared/src/func/async.js"),
     undf = require("metaphorjs-shared/src/var/undf.js"),
     isString = require("metaphorjs-shared/src/func/isString.js"),
     Directive = require("../../app/Directive.js"),
+    emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
@@ -25,14 +27,17 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     $init: function(scope, node, config, renderer, attrSet) {
 
         config.setProperty("value", {mode: MetaphorJs.lib.Config.MODE_FNSET});
-        config.setProperty("binding", {defaultValue: "both"});
+        config.setProperty("binding", {
+            defaultValue: "both",
+            mode: MetaphorJs.lib.Config.MODE_STATIC
+        });
         config.lateInit();
 
         var self    = this,
             expr    = config.getProperty("value").expression;
 
-        self.getterFn       = config.get("value").getter;
-        self.setterFn       = config.get("value").setter;
+        //self.getterFn       = config.get("value").getter;
+        //self.setterFn       = config.get("value").setter;
 
         if (config.hasProperty("change")) {
             self.changeFn   = MetaphorJs.lib.Expression.parse(config.get("change"));
@@ -42,15 +47,19 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         self.input          = MetaphorJs.lib.Input.get(node, scope);
         self.updateRoot     = expr.indexOf('$root') + expr.indexOf('$parent') !== -2;
         self.binding        = config.get("binding");
+        self.mo             = MetaphorJs.lib.MutationObserver.get(
+                                scope, expr, null, null, {
+                                    setter: true
+                                }
+                            );
 
-        
-
+        self.mo.subscribe(self.onChange, self);
         self.input.onChange(self.onInputChange, self);
 
         self.$super(scope, node, config, renderer, attrSet);
 
         var inputValue      = self.input.getValue(),
-            scopeValue      = self.getterFn(scope);
+            scopeValue      = self.mo.getValue(); //self.getterFn(scope);
 
         self.initial = true;
 
@@ -67,6 +76,8 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         self.initial = false;
     },
 
+    initialSet: emptyFn,
+
     onInputChange: function(val) {
 
         var self    = this,
@@ -78,11 +89,13 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
                 val = val.replace(/\\{/g, '{');
             }
 
-            if (self.getterFn(self.scope) == val) {
+            //if (self.getterFn(self.scope) == val) {
+            if (self.mo.getValue() == val) {
                 return;
             }
 
-            self.setterFn(self.scope, val);
+            self.mo.setValue(val);
+            //self.setterFn(self.scope, val);
 
             self.inProg = true;
             if (scope instanceof MetaphorJs.lib.Scope) {
@@ -98,6 +111,12 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     onDestroy: function() {
         var self        = this;
         self.input.$destroy();
+
+        if (self.mo) {
+            self.mo.ubsubscribe(self.onChange, self);
+            self.mo.$destroy(true);
+        }
+
         self.$super();
     },
 
@@ -105,7 +124,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     onChange: function() {
 
         var self    = this,
-            val     = self.getterFn(self.scope),
+            val     = self.mo.getValue(), //self.getterFn(self.scope),
             binding = self.binding,
             ie;
 

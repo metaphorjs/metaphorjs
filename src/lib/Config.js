@@ -54,7 +54,6 @@ module.exports = MetaphorJs.lib.Config = (function(){
                         {expression: properties[k]}:
                         properties[k]
                 );
-                self.keys.push(k);
             }
             if (!self.cfg.deferInit) {
                 self._initialCalc();
@@ -142,17 +141,15 @@ module.exports = MetaphorJs.lib.Config = (function(){
                         prop.expression,
                         {
                             setter: prop.mode === MODE_SETTER,
-                            setterOnly: prop.mode === MODE_SETTER
+                            setterOnly: prop.mode === MODE_SETTER,
+                            getterOnly: prop.mode === MODE_GETTER
                         }
                     );
                 }
                 else if (prop.mode === MODE_FNSET) {
                     value = {
-                        getter: MetaphorJs.lib.Expression.parse(prop.expression),
-                        setter: MetaphorJs.lib.Expression.setter(
-                            prop.expression,
-                            {setter: true, setterOnly: true}
-                        )
+                        getter: MetaphorJs.lib.Expression.getter(prop.expression),
+                        setter: MetaphorJs.lib.Expression.setter(prop.expression)
                     };
                 }
                 else if (prop.mode === MODE_FUNC) {

@@ -7,7 +7,8 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
     bind = require("metaphorjs-shared/src/func/bind.js"),
     equals = require("metaphorjs-shared/src/func/equals.js"),
-    copy = require("metaphorjs-shared/src/func/copy.js");
+    copy = require("metaphorjs-shared/src/func/copy.js"),
+    emptyFn = require("metaphorjs-shared/src/func/emptyFn.js");
 
 require("metaphorjs-observable/src/lib/Observable.js");
 require("./Expression.js");
@@ -70,9 +71,11 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
         self.dataObj = null;
         self.currentValue = null;
         self.prevValue = null;
+        self.rawInput = null;
         self.setterFn = null;
         self.getterFn = null;
         self.exprStruct = null;
+        self.sub = [];
 
         if (isFunction(expr)) {
             self.getterFn = expr;
@@ -80,7 +83,7 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
         else if (statc = MetaphorJs.lib.Expression.isStatic(expr)) {
             type = "static";
             self.staticValue = statc.value;
-            self.getterFn = bind(self.staticGetter, self);
+            self.getterFn = bind(self._staticGetter, self);
         }
         else if (dataObj) {
             propertyName = expr;
@@ -89,7 +92,7 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
                 dataObj.hasOwnProperty(propertyName))) {
                     type = "attr";
                     self.propertyName = propertyName;
-                    self.getterFn = bind(self.propertyGetter, self);
+                    self.getterFn = bind(self._propertyGetter, self);
                 }
             self.dataObj = dataObj;
         }
@@ -111,18 +114,15 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
             var struct = MetaphorJs.lib.Expression.deconstruct(expr, {
                 filters: opt.filters
             });
+            self.exprStruct = struct;
 
             self.getterFn = MetaphorJs.lib.Expression.construct(
                 struct, {getterOnly: true}
             );
 
-            if (struct.inputPipes.length) {
-                self.setterFn = MetaphorJs.lib.Expression.construct(
-                    struct, {setterOnly: true}
-                );
+            if (struct.inputPipes.length || opt.setter) {
+                self._initSetter();
             }
-
-            self.exprStruct = struct;
         }
 
         if (dataObj) {
@@ -131,7 +131,9 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
                     $checkAll: checkAll
                 };
             }
-            dataObj.$$mo[expr] = self;
+            if (!dataObj.$$mo[expr]) {
+                dataObj.$$mo[expr] = self;
+            }
         }
 
         self.currentValue = copy(self.getterFn(dataObj));
@@ -140,11 +142,15 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
 
     extend(MutationObserver.prototype, {
 
-        propertyGetter: function() {
+        _propertyGetter: function() {
             return this.dataObj[this.propertyName];
         },
 
-        staticGetter: function() {
+        _propertySetter: function(dataObj, newValue) {
+            this.dataObj[this.propertyName] = newValue;
+        },
+
+        _staticGetter: function() {
             return this.staticValue;
         },
 
@@ -169,8 +175,37 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
             return false;
         },
 
+        _initSetter: function() {
+            var self = this, struct = self.exprStruct;
+
+            if (self.type === "attr") {
+                self.setterFn = bind(self._propertySetter, self);
+            }
+            else {
+                self.setterFn = MetaphorJs.lib.Expression.construct(
+                    struct, {setterOnly: true}
+                );
+                var i, l, p, j, jl;
+                for (i = 0, l = struct.inputPipes.length; i < l; i++) {
+                    p = struct.inputPipes[i];
+                    for (j = 0, jl = p.expressions.length; j < jl; j++) {
+                        self.sub.push(
+                            MetaphorJs.lib.MutationObserver.get(
+                                self.dataObj, p.expressions[j],
+                                self._onSubChange, self
+                            )
+                        );
+                    }
+                }  
+            }
+        },
+
         _getValue: function() {
             return this.getterFn(this.dataObj);
+        },
+
+        _onSubChange: function() {
+            this.setValue(this.rawInput);
         },
 
         /**
@@ -189,7 +224,12 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
          * @returns {*} resulting value
          */
         setValue: function(newValue) {  
-            return this.setterFn(this.dataObj, newValue);
+            var self = this;
+            self.rawInput = newValue;
+            if (!self.setterFn) {
+                self._initSetter();
+            }
+            self.setterFn(self.dataObj, newValue);
         },
 
         /**
@@ -253,13 +293,20 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
          * @returns {boolean} true for destroyed
          */
         $destroy: function(ifUnobserved) {
-            var self = this;
+            var self = this, i, l, s;
             if (ifUnobserved && observable.hasListener(self.id)) {
                 return false;
             }
+            for (i = 0, l = self.sub.length; i < l; i++) {
+                s = self.sub[i];
+                s.unsubscribe(self._onSubChange, self);
+                s.$destroy(true);
+            }
             observable.destroyEvent(self.id);
             if (self.dataObj && self.dataObj['$$mo']) {
-                delete self.dataObj['$$mo'][self.origExpr];
+                if (self.dataObj['$$mo'][self.origExpr] === self) {
+                    delete self.dataObj['$$mo'][self.origExpr];
+                }
             }
             for (var key in self) {
                 if (self.hasOwnProperty(key)) {

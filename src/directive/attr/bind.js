@@ -52,9 +52,10 @@ Directive.registerAttribute("bind", 1000,
         },
 
         onInputChange: function(val) {
-            var self = this;
-            if (self.config.get("locked") && val != self.config.get("value")) {
-                self.onChange();
+            var self = this,
+                cfgVal = self.config.get("value");
+            if (self.config.get("locked") && val != cfgVal) {
+                self.onChange(cfgVal);
             }
         },
 

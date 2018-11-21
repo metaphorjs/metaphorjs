@@ -95,20 +95,22 @@ DO NOT put class="{}" when using class.name="{}"
         initial: true,
         prev: null,
 
-        $init: function(scope, node, config, renderer) {
+        $init: function(scope, node, config, renderer, attrSet) {
+
             config.setProperty("animate", {type: "bool"});
+            config.lateInit();
             config.eachProperty(function(k){
-                if (k.indexOf("value.") === 0) {
+                if (k === 'value' || k.indexOf("value.") === 0) {
                     config.on(k, self.onChange, self);
                 }
             });
-            this.$super(scope, node, config);
+            this.$super(scope, node, config, renderer, attrSet);
         },
 
         getCurrentValue: function() {
             var all = this.config.getAllValues(),
                 values = [];
-            
+
             if (all[""]) {
                 values.push(all['']);
                 delete all[''];
@@ -128,10 +130,12 @@ DO NOT put class="{}" when using class.name="{}"
 
             MetaphorJs.animate.stop(node);
 
-            for (i in prev) {
-                if (prev.hasOwnProperty(i)) {
-                    if (clss[i] === undf) {
-                        toggleClass(node, i, false, false);
+            if (prev) {
+                for (i in prev) {
+                    if (prev.hasOwnProperty(i)) {
+                        if (clss[i] === undf) {
+                            toggleClass(node, i, false, false);
+                        }
                     }
                 }
             }
@@ -144,6 +148,7 @@ DO NOT put class="{}" when using class.name="{}"
                 }
             }
 
+            self.prev = clss;
             self.initial = false;
         }
     }));

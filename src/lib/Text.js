@@ -89,6 +89,7 @@ module.exports = MetaphorJs.lib.Text = (function(){
                 if (!recursive || result === prev) {
                     return result;
                 }
+                fullExpr = false; // only first iteration can be fullExpr
                 prev = result;
                 iter++;
             }

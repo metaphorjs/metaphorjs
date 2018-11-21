@@ -18,7 +18,7 @@ module.exports = MetaphorJs.app.Directive = (function() {
         attributes          = [],
         attributesSorted    = false,
         compare             = function(a, b) {
-            return b.priority - a.priority;
+            return a.priority - b.priority;
         }
 
     MetaphorJs.directive = MetaphorJs.directive || {

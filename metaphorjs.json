@@ -24,7 +24,7 @@
                 ["metaphorjs-shared/src/MetaphorJs.js", {"as": "*"}],
                 "src/app/*",
                 "src/directive/**",
-                "src/filter/*",
+                "src/filter/**",
                 "src/bootstrap/apps.js"
             ]
         },

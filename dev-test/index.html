@@ -5,7 +5,7 @@
     <script src="metaphorjs.test.js"></script>
 </head>
 <body>
-<!--
+
     <script type="text/mjs-template" id="test-template">
         <p>{{this.text}}</p>
         <div {transclude}></div>
@@ -23,7 +23,7 @@
     <script type="text/mjs-template" id="a*b">
         <p>a * b = {{ this.$root.a * this.$root.b }}</p>
     </script>
--->
+
 
     <div id="render" {init}="
         this.inline = 'inline4';
@@ -59,14 +59,14 @@
                 </p>
             </div>
 
-            <!--
+            
             <div class="case">
                 <h4>Bindings (read only)</h4>
                 <label class="case-label">Input field (value)</label>
                 <p class="test">
                     <input id="binding-input-value" type="text" [value]="this.a">
                 </p>
-                <label class="case-label">Input field (mjs-bind)</label>
+                <label class="case-label">Input field (mjs-bind) (locked)</label>
                 <p class="test">
                     <input id="binding-input-bind" type="text" 
                         {bind}="this.a" {bind.$locked}>
@@ -123,7 +123,6 @@
                 <div id="filter-lowercase-inline" class="test">{{this.text | lowercase}}</div>
                 <label class="case-label">Limit to (string)</label>
                 <div id="filter-limit-string" class="test">{{this.text | limitTo:this.a}}</div>
-
             </div>
 
             <div class="case">
@@ -142,7 +141,7 @@
 
             <div class="case">
                 <h4>Model</h4>
-                <label class="case-label">Input (number)</label>
+                <label class="case-label">Input (number) (.a)</label>
                 <p class="test">
                     <input {model}="this.a" type="number" data-type="number" id="model-input-a"/>
                 </p>
@@ -168,6 +167,8 @@
                     </select>
                 </p>
             </div>
+
+
             <div class="case">
                 <h4>Model</h4>
                 <label class="case-label">Textarea (.text)</label>
@@ -223,7 +224,7 @@
                 <h4>mjs-validate</h4>
                 <form name="myForm" 
                         {validate} 
-                        {class}="{error: this.myForm.$invalid}" 
+                        {class.error}="this.myForm.$invalid" 
                         {class.$animate}>
                     <div>
                         <input name="field1"
@@ -256,12 +257,12 @@
                             {model.$binding}="input"></textarea>
 
                 <ul>
-                    <li {each}="item in this.dynamicList" mjs-recursive>
-                        {{.item}}
-                    </li>
+                    <li {each}="item in this.dynamicList"
+                        {bind}="this.item"
+                        {bind.$recursive}></li>
                 </ul>
             </div>
-
+<!--
             <div class="case">
                 <h4>mjs-options</h4>
                 <label class="case-label">Generated from .alist</label>

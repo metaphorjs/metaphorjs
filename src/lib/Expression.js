@@ -109,7 +109,8 @@ module.exports = MetaphorJs.lib.Expression = (function() {
                 if (opt.asCode) {
                     return "".concat(
                         "function() {",
-                            "return ", expr, 
+                            "return ", 
+                            expr, 
                         "}"
                     );
                 }
@@ -121,7 +122,10 @@ module.exports = MetaphorJs.lib.Expression = (function() {
             try {
 
                 var atom = isAtom(expr);
-                cacheKey = expr + "_" + (isSetter ? "setter" : "getter");
+                cacheKey = expr + "_" + (
+                            isSetter ? "setter" : 
+                                (noReturn ? "func" : "getter")
+                            );
 
                 if (!atom && isSetter) {
                     throw new Error("Complex expression cannot work as setter");
@@ -140,12 +144,18 @@ module.exports = MetaphorJs.lib.Expression = (function() {
                                 ) : 
                                 "".concat(
                                     fnBodyStart, 
-                                    noReturn ? '' : 'return ', 
+                                    //noReturn ? '' : 'return ', 
                                     code, ' = $$$$', 
                                     fnBodyEnd
                                 );
 
-                    body.replace('"expr"', '"' +expr+ '"');
+                    /*DEBUG-START*/
+                    var esc = expr.replace(/\n/g, '\\n');
+                    esc = esc.replace(/\r/g, '\\r');
+                    esc = esc.replace(/'/g, "\\'");
+                    esc = esc.replace(/"/g, '\\"');
+                    body = body.replace('"expr"', '"' +esc+ '"');
+                    /*DEBUG-END*/
 
                     if (asCode) {
                         return "function(____, $$$$) {" + body + "}";
@@ -172,6 +182,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
             var name    = pipe.shift(),
                 fn      = isFunction(name) ? name : null,
                 params  = [],
+                exprs   = [],
                 fchar   = fn ? null : name.substr(0,1),
                 opt     = {
                     neg: false,
@@ -208,7 +219,11 @@ module.exports = MetaphorJs.lib.Expression = (function() {
             if (isFunction(fn)) {
 
                 for (i = -1, l = pipe.length; ++i < l;
-                    params.push(expressionFn(pipe[i]))) {}
+                    params.push(expressionFn(pipe[i]))) {
+                        if (!isStatic(pipe[i])) {
+                            exprs.push(pipe[i]);
+                        }
+                    }
 
                 if (fn.$undeterministic) {
                     opt.undeterm = true;
@@ -218,6 +233,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
                     fn: fn, 
                     origArgs: pipe, 
                     params: params, 
+                    expressions: exprs,
                     opt: opt
                 };
             }
@@ -583,9 +599,9 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          *      @type {boolean} getterOnly
          *  }
          *  @returns {function} {
-         *  @param {object} dataObj Data object to execute expression against
-         *  @param {*} value Optional value which makes function a setter
-         *  @returns {*} value of expression on data object
+         *      @param {object} dataObj Data object to execute expression against
+         *      @param {*} value Optional value which makes function a setter
+         *      @returns {*} value of expression on data object
          * }
          * }
          */
@@ -624,6 +640,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
         func: function(expr, opt) {
             opt = opt || {};
             opt.noReturn = true;
+            opt.getterOnly = true;
             return parserFn(expr, opt);
         },
 
@@ -641,6 +658,28 @@ module.exports = MetaphorJs.lib.Expression = (function() {
         setter: function(expr, opt) {
             opt = opt || {};
             opt.setter = true;
+            opt.setterOnly = true;
+            return parserFn(expr, opt);
+        },
+
+        /**
+         * @property {function} getter {
+         *  @param {string} expr 
+         *  @param {object} opt {
+         *      @type {boolean} setter {    
+         *          @default false
+         *      }
+         *      @type {boolean} getterOnly {
+         *          @default true
+         *      }
+         *  }
+         *  @returns {function}
+         * }
+         */
+        getter: function(expr, opt) {
+            opt = opt || {};
+            opt.setter = false;
+            opt.getterOnly = true;
             return parserFn(expr, opt);
         },
 
@@ -667,6 +706,8 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          * @param {object} opt See <code>parse</code>
          */
         get: function(expr, dataObj, inputValue, opt) {
+            opt = opt || {};
+            opt.getterOnly = true;
             return parserFn(expr, opt)(dataObj, inputValue);
         },
 
@@ -681,6 +722,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
         set: function(expr, dataObj, inputValue, opt) {
             opt = opt || {};
             opt.setter = true;
+            opt.setterOnly = true;
             return parserFn(expr, opt)(dataObj, inputValue);
         },
 

@@ -2,7 +2,7 @@
 
 require("./__init.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js")
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     undf = require("metaphorjs-shared/src/var/undf.js"),
     getRegExp = require("metaphorjs-shared/src/func/getRegExp.js");
 

@@ -7,6 +7,7 @@ var Directive = require("../../app/Directive.js"),
 Directive.registerAttribute("include", 1100,
     function(scope, node, config, parentRenderer, attrSet){
 
+    config.setProperty("value", {disabled: true});
     config.setProperty("asis", {type: "bool"});
     config.setProperty("animate", {type: "bool"});
     config.lateInit();
@@ -24,7 +25,7 @@ Directive.registerAttribute("include", 1100,
         tplCfg['html'] = html;
     }
     else {
-        tplCfg['url'] = config.get("value");
+        tplCfg['url'] = config.getProperty("value").expression;
     }
 
     var tpl = new MetaphorJs.app.Template(tplCfg);

@@ -144,11 +144,12 @@ module.exports = MetaphorJs.app.Template = function() {
         },
 
         isExpression = function(str) {
-            if (str.substr(0,1) === '.') {
+            /*if (str.substr(0,1) === '.') {
                 var second = str.substr(1,1);
                 return !(second === '.' || second === '/');
-            }
-            return str.substr(0,1) === '{' || str.substr(0,5) === 'this.';
+            }*/
+            //str.substr(0,1) === '{' || 
+            return str.substr(0,5) === 'this.';
         };
 
     if (typeof __MetaphorJsPrebuilt !== "undefined" &&

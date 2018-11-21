@@ -356,7 +356,8 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
                 if (opt.asCode) {
                     return "".concat(
                         "function() {",
-                            "return ", expr, 
+                            "return ", 
+                            expr, 
                         "}"
                     );
                 }
@@ -368,7 +369,10 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
             try {
 
                 var atom = isAtom(expr);
-                cacheKey = expr + "_" + (isSetter ? "setter" : "getter");
+                cacheKey = expr + "_" + (
+                            isSetter ? "setter" : 
+                                (noReturn ? "func" : "getter")
+                            );
 
                 if (!atom && isSetter) {
                     throw new Error("Complex expression cannot work as setter");
@@ -387,12 +391,18 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
                                 ) : 
                                 "".concat(
                                     fnBodyStart, 
-                                    noReturn ? '' : 'return ', 
+                                    //noReturn ? '' : 'return ', 
                                     code, ' = $$$$', 
                                     fnBodyEnd
                                 );
 
-                    body.replace('"expr"', '"' +expr+ '"');
+                    /*DEBUG-START*/
+                    var esc = expr.replace(/\n/g, '\\n');
+                    esc = esc.replace(/\r/g, '\\r');
+                    esc = esc.replace(/'/g, "\\'");
+                    esc = esc.replace(/"/g, '\\"');
+                    body = body.replace('"expr"', '"' +esc+ '"');
+                    /*DEBUG-END*/
 
                     if (asCode) {
                         return "function(____, $$$$) {" + body + "}";
@@ -419,6 +429,7 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
             var name    = pipe.shift(),
                 fn      = isFunction(name) ? name : null,
                 params  = [],
+                exprs   = [],
                 fchar   = fn ? null : name.substr(0,1),
                 opt     = {
                     neg: false,
@@ -455,7 +466,11 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
             if (isFunction(fn)) {
 
                 for (i = -1, l = pipe.length; ++i < l;
-                    params.push(expressionFn(pipe[i]))) {}
+                    params.push(expressionFn(pipe[i]))) {
+                        if (!isStatic(pipe[i])) {
+                            exprs.push(pipe[i]);
+                        }
+                    }
 
                 if (fn.$undeterministic) {
                     opt.undeterm = true;
@@ -465,6 +480,7 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
                     fn: fn, 
                     origArgs: pipe, 
                     params: params, 
+                    expressions: exprs,
                     opt: opt
                 };
             }
@@ -830,9 +846,9 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
          *      @type {boolean} getterOnly
          *  }
          *  @returns {function} {
-         *  @param {object} dataObj Data object to execute expression against
-         *  @param {*} value Optional value which makes function a setter
-         *  @returns {*} value of expression on data object
+         *      @param {object} dataObj Data object to execute expression against
+         *      @param {*} value Optional value which makes function a setter
+         *      @returns {*} value of expression on data object
          * }
          * }
          */
@@ -871,6 +887,7 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
         func: function(expr, opt) {
             opt = opt || {};
             opt.noReturn = true;
+            opt.getterOnly = true;
             return parserFn(expr, opt);
         },
 
@@ -888,6 +905,28 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
         setter: function(expr, opt) {
             opt = opt || {};
             opt.setter = true;
+            opt.setterOnly = true;
+            return parserFn(expr, opt);
+        },
+
+        /**
+         * @property {function} getter {
+         *  @param {string} expr 
+         *  @param {object} opt {
+         *      @type {boolean} setter {    
+         *          @default false
+         *      }
+         *      @type {boolean} getterOnly {
+         *          @default true
+         *      }
+         *  }
+         *  @returns {function}
+         * }
+         */
+        getter: function(expr, opt) {
+            opt = opt || {};
+            opt.setter = false;
+            opt.getterOnly = true;
             return parserFn(expr, opt);
         },
 
@@ -914,6 +953,8 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
          * @param {object} opt See <code>parse</code>
          */
         get: function(expr, dataObj, inputValue, opt) {
+            opt = opt || {};
+            opt.getterOnly = true;
             return parserFn(expr, opt)(dataObj, inputValue);
         },
 
@@ -928,6 +969,7 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
         set: function(expr, dataObj, inputValue, opt) {
             opt = opt || {};
             opt.setter = true;
+            opt.setterOnly = true;
             return parserFn(expr, opt)(dataObj, inputValue);
         },
 
@@ -2321,9 +2363,11 @@ var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
         self.dataObj = null;
         self.currentValue = null;
         self.prevValue = null;
+        self.rawInput = null;
         self.setterFn = null;
         self.getterFn = null;
         self.exprStruct = null;
+        self.sub = [];
 
         if (isFunction(expr)) {
             self.getterFn = expr;
@@ -2331,7 +2375,7 @@ var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
         else if (statc = lib_Expression.isStatic(expr)) {
             type = "static";
             self.staticValue = statc.value;
-            self.getterFn = bind(self.staticGetter, self);
+            self.getterFn = bind(self._staticGetter, self);
         }
         else if (dataObj) {
             propertyName = expr;
@@ -2340,7 +2384,7 @@ var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
                 dataObj.hasOwnProperty(propertyName))) {
                     type = "attr";
                     self.propertyName = propertyName;
-                    self.getterFn = bind(self.propertyGetter, self);
+                    self.getterFn = bind(self._propertyGetter, self);
                 }
             self.dataObj = dataObj;
         }
@@ -2362,18 +2406,15 @@ var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
             var struct = lib_Expression.deconstruct(expr, {
                 filters: opt.filters
             });
+            self.exprStruct = struct;
 
             self.getterFn = lib_Expression.construct(
                 struct, {getterOnly: true}
             );
 
-            if (struct.inputPipes.length) {
-                self.setterFn = lib_Expression.construct(
-                    struct, {setterOnly: true}
-                );
+            if (struct.inputPipes.length || opt.setter) {
+                self._initSetter();
             }
-
-            self.exprStruct = struct;
         }
 
         if (dataObj) {
@@ -2382,7 +2423,9 @@ var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
                     $checkAll: checkAll
                 };
             }
-            dataObj.$$mo[expr] = self;
+            if (!dataObj.$$mo[expr]) {
+                dataObj.$$mo[expr] = self;
+            }
         }
 
         self.currentValue = copy(self.getterFn(dataObj));
@@ -2391,11 +2434,15 @@ var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
 
     extend(MutationObserver.prototype, {
 
-        propertyGetter: function() {
+        _propertyGetter: function() {
             return this.dataObj[this.propertyName];
         },
 
-        staticGetter: function() {
+        _propertySetter: function(dataObj, newValue) {
+            this.dataObj[this.propertyName] = newValue;
+        },
+
+        _staticGetter: function() {
             return this.staticValue;
         },
 
@@ -2420,8 +2467,37 @@ var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
             return false;
         },
 
+        _initSetter: function() {
+            var self = this, struct = self.exprStruct;
+
+            if (self.type === "attr") {
+                self.setterFn = bind(self._propertySetter, self);
+            }
+            else {
+                self.setterFn = lib_Expression.construct(
+                    struct, {setterOnly: true}
+                );
+                var i, l, p, j, jl;
+                for (i = 0, l = struct.inputPipes.length; i < l; i++) {
+                    p = struct.inputPipes[i];
+                    for (j = 0, jl = p.expressions.length; j < jl; j++) {
+                        self.sub.push(
+                            MetaphorJs.lib.MutationObserver.get(
+                                self.dataObj, p.expressions[j],
+                                self._onSubChange, self
+                            )
+                        );
+                    }
+                }  
+            }
+        },
+
         _getValue: function() {
             return this.getterFn(this.dataObj);
+        },
+
+        _onSubChange: function() {
+            this.setValue(this.rawInput);
         },
 
         /**
@@ -2440,7 +2516,12 @@ var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
          * @returns {*} resulting value
          */
         setValue: function(newValue) {  
-            return this.setterFn(this.dataObj, newValue);
+            var self = this;
+            self.rawInput = newValue;
+            if (!self.setterFn) {
+                self._initSetter();
+            }
+            self.setterFn(self.dataObj, newValue);
         },
 
         /**
@@ -2504,13 +2585,20 @@ var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
          * @returns {boolean} true for destroyed
          */
         $destroy: function(ifUnobserved) {
-            var self = this;
+            var self = this, i, l, s;
             if (ifUnobserved && observable.hasListener(self.id)) {
                 return false;
             }
+            for (i = 0, l = self.sub.length; i < l; i++) {
+                s = self.sub[i];
+                s.unsubscribe(self._onSubChange, self);
+                s.$destroy(true);
+            }
             observable.destroyEvent(self.id);
             if (self.dataObj && self.dataObj['$$mo']) {
-                delete self.dataObj['$$mo'][self.origExpr];
+                if (self.dataObj['$$mo'][self.origExpr] === self) {
+                    delete self.dataObj['$$mo'][self.origExpr];
+                }
             }
             for (var key in self) {
                 if (self.hasOwnProperty(key)) {
@@ -3870,7 +3958,7 @@ var Directive = MetaphorJs.app.Directive = (function() {
         attributes          = [],
         attributesSorted    = false,
         compare             = function(a, b) {
-            return b.priority - a.priority;
+            return a.priority - b.priority;
         }
 
     MetaphorJs.directive = MetaphorJs.directive || {
@@ -4531,6 +4619,7 @@ var lib_Text = MetaphorJs.lib.Text = (function(){
                 if (!recursive || result === prev) {
                     return result;
                 }
+                fullExpr = false; // only first iteration can be fullExpr
                 prev = result;
                 iter++;
             }
@@ -6563,9 +6652,10 @@ Directive.registerAttribute("bind", 1000,
         },
 
         onInputChange: function(val) {
-            var self = this;
-            if (self.config.get("locked") && val != self.config.get("value")) {
-                self.onChange();
+            var self = this,
+                cfgVal = self.config.get("value");
+            if (self.config.get("locked") && val != cfgVal) {
+                self.onChange(cfgVal);
             }
         },
 
@@ -8357,20 +8447,22 @@ DO NOT put class="{}" when using class.name="{}"
         initial: true,
         prev: null,
 
-        $init: function(scope, node, config, renderer) {
+        $init: function(scope, node, config, renderer, attrSet) {
+
             config.setProperty("animate", {type: "bool"});
+            config.lateInit();
             config.eachProperty(function(k){
-                if (k.indexOf("value.") === 0) {
+                if (k === 'value' || k.indexOf("value.") === 0) {
                     config.on(k, self.onChange, self);
                 }
             });
-            this.$super(scope, node, config);
+            this.$super(scope, node, config, renderer, attrSet);
         },
 
         getCurrentValue: function() {
             var all = this.config.getAllValues(),
                 values = [];
-            
+
             if (all[""]) {
                 values.push(all['']);
                 delete all[''];
@@ -8390,10 +8482,12 @@ DO NOT put class="{}" when using class.name="{}"
 
             animate_stop(node);
 
-            for (i in prev) {
-                if (prev.hasOwnProperty(i)) {
-                    if (clss[i] === undf) {
-                        toggleClass(node, i, false, false);
+            if (prev) {
+                for (i in prev) {
+                    if (prev.hasOwnProperty(i)) {
+                        if (clss[i] === undf) {
+                            toggleClass(node, i, false, false);
+                        }
                     }
                 }
             }
@@ -8406,6 +8500,7 @@ DO NOT put class="{}" when using class.name="{}"
                 }
             }
 
+            self.prev = clss;
             self.initial = false;
         }
     }));
@@ -8776,7 +8871,6 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                         {expression: properties[k]}:
                         properties[k]
                 );
-                self.keys.push(k);
             }
             if (!self.cfg.deferInit) {
                 self._initialCalc();
@@ -8864,17 +8958,15 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                         prop.expression,
                         {
                             setter: prop.mode === MODE_SETTER,
-                            setterOnly: prop.mode === MODE_SETTER
+                            setterOnly: prop.mode === MODE_SETTER,
+                            getterOnly: prop.mode === MODE_GETTER
                         }
                     );
                 }
                 else if (prop.mode === MODE_FNSET) {
                     value = {
-                        getter: lib_Expression.parse(prop.expression),
-                        setter: lib_Expression.setter(
-                            prop.expression,
-                            {setter: true, setterOnly: true}
-                        )
+                        getter: lib_Expression.getter(prop.expression),
+                        setter: lib_Expression.setter(prop.expression)
                     };
                 }
                 else if (prop.mode === MODE_FUNC) {
@@ -11628,11 +11720,12 @@ var app_Template = MetaphorJs.app.Template = function() {
         },
 
         isExpression = function(str) {
-            if (str.substr(0,1) === '.') {
+            /*if (str.substr(0,1) === '.') {
                 var second = str.substr(1,1);
                 return !(second === '.' || second === '/');
-            }
-            return str.substr(0,1) === '{' || str.substr(0,5) === 'this.';
+            }*/
+            //str.substr(0,1) === '{' || 
+            return str.substr(0,5) === 'this.';
         };
 
     if (typeof __MetaphorJsPrebuilt !== "undefined" &&
@@ -12658,6 +12751,7 @@ function levenshteinMove(a1, a2, prs, getKey) {
 
 
 
+
 var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
 
     id: null,
@@ -12697,7 +12791,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
         self.animateMove    = !self.tagMode && 
                                 !cfg['buffered'] &&
                                 cfg["animateMove"] && 
-                                animate.cssAnimationSupported();
+                                animate_isCssSupported();
         self.animate        = !self.tagMode && 
                                 !cfg['buffered'] && 
                                 cfg["animate"];
@@ -12742,7 +12836,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
         self.tpl        = self.tagMode ? dom_toFragment(node.childNodes) : node;
         self.renderers  = [];
 
-        var cmts = dom_commentWrap(node, self.$class + "-" + self.id);
+        var cmts = dom_commentWrap(node,  "list -" + self.id);
 
         self.prevEl     = cmts[0];
         self.nextEl     = cmts[1];
@@ -12767,7 +12861,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
             cfg         = self.cfg;
 
         self.watcher    = lib_MutationObserver.get(scope, self.model, self.onChange, self);
-        self.trackBy    = cfg.trackby; // lowercase from attributes
+        self.trackBy    = cfg.get("trackby"); // lowercase from attributes
         
         if (self.trackBy !== false) {
             if (self.trackBy && self.trackBy !== '$') {
@@ -12958,7 +13052,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
         else {
 
             var prs = levenshteinDiff(prevList, list);
-            prs = levenshteinMove(prevList, list, prs, self.getTrackByFunction());
+            prs = levenshteinMove(prevList, list, prs.prescription, self.getTrackByFunction());
 
             // redefine renderers
             for (i = 0, len = prs.length; i < len; i++) {
@@ -12994,7 +13088,6 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
         }
 
         self.renderers  = newrs;
-
         self.reflectChanges({
             oldRenderers:   renderers,
             updateStart:    updateStart,
@@ -14398,6 +14491,7 @@ Directive.registerAttribute("in-focus", 500, Directive.$extend({
 Directive.registerAttribute("include", 1100,
     function(scope, node, config, parentRenderer, attrSet){
 
+    config.setProperty("value", {disabled: true});
     config.setProperty("asis", {type: "bool"});
     config.setProperty("animate", {type: "bool"});
     config.lateInit();
@@ -14415,7 +14509,7 @@ Directive.registerAttribute("include", 1100,
         tplCfg['html'] = html;
     }
     else {
-        tplCfg['url'] = config.get("value");
+        tplCfg['url'] = config.getProperty("value").expression;
     }
 
     var tpl = new app_Template(tplCfg);
@@ -14543,6 +14637,7 @@ Directive.registerAttribute("key", 1000, function(scope, node, config, renderer,
 
 
 
+
 Directive.registerAttribute("model", 1000, Directive.$extend({
 
     $class: "MetaphorJs.app.Directive.attr.Model",
@@ -14558,14 +14653,17 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     $init: function(scope, node, config, renderer, attrSet) {
 
         config.setProperty("value", {mode: MetaphorJs.lib.Config.MODE_FNSET});
-        config.setProperty("binding", {defaultValue: "both"});
+        config.setProperty("binding", {
+            defaultValue: "both",
+            mode: MetaphorJs.lib.Config.MODE_STATIC
+        });
         config.lateInit();
 
         var self    = this,
             expr    = config.getProperty("value").expression;
 
-        self.getterFn       = config.get("value").getter;
-        self.setterFn       = config.get("value").setter;
+        //self.getterFn       = config.get("value").getter;
+        //self.setterFn       = config.get("value").setter;
 
         if (config.hasProperty("change")) {
             self.changeFn   = lib_Expression.parse(config.get("change"));
@@ -14575,15 +14673,19 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         self.input          = lib_Input.get(node, scope);
         self.updateRoot     = expr.indexOf('$root') + expr.indexOf('$parent') !== -2;
         self.binding        = config.get("binding");
+        self.mo             = lib_MutationObserver.get(
+                                scope, expr, null, null, {
+                                    setter: true
+                                }
+                            );
 
-        
-
+        self.mo.subscribe(self.onChange, self);
         self.input.onChange(self.onInputChange, self);
 
         self.$super(scope, node, config, renderer, attrSet);
 
         var inputValue      = self.input.getValue(),
-            scopeValue      = self.getterFn(scope);
+            scopeValue      = self.mo.getValue(); //self.getterFn(scope);
 
         self.initial = true;
 
@@ -14600,6 +14702,8 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         self.initial = false;
     },
 
+    initialSet: emptyFn,
+
     onInputChange: function(val) {
 
         var self    = this,
@@ -14611,11 +14715,13 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
                 val = val.replace(/\\{/g, '{');
             }
 
-            if (self.getterFn(self.scope) == val) {
+            //if (self.getterFn(self.scope) == val) {
+            if (self.mo.getValue() == val) {
                 return;
             }
 
-            self.setterFn(self.scope, val);
+            self.mo.setValue(val);
+            //self.setterFn(self.scope, val);
 
             self.inProg = true;
             if (scope instanceof lib_Scope) {
@@ -14631,6 +14737,12 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     onDestroy: function() {
         var self        = this;
         self.input.$destroy();
+
+        if (self.mo) {
+            self.mo.ubsubscribe(self.onChange, self);
+            self.mo.$destroy(true);
+        }
+
         self.$super();
     },
 
@@ -14638,7 +14750,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     onChange: function() {
 
         var self    = this,
-            val     = self.getterFn(self.scope),
+            val     = self.mo.getValue(), //self.getterFn(self.scope),
             binding = self.binding,
             ie;
 
@@ -19567,6 +19679,516 @@ Directive.getDirective("attr", "each")
 Directive.registerTag("transclude", function(scope, node) {
     return dom_transclude(node, true);
 });
+
+
+
+
+
+/**
+ * @filter collect
+ * @param {array} input Array of objects
+ * @param {string} field Field name to collect from objects
+ * @returns {array}
+ */
+MetaphorJs.filter.collect = function(input, scope, prop) {
+
+    var res = [],
+        i, l, val;
+
+    if (!input) {
+        return res;
+    }
+
+    for (i = 0, l = input.length; i < l; i++) {
+        val = input[i][prop];
+        if (val != undf) {
+            res.push(val);
+        }
+    }
+
+    return res;
+};
+
+
+
+
+
+/**
+ * @filter filter
+ * See <code>filterArray</code> function
+ * @param {array} input
+ * @param {string|boolean|regexp|function} by
+ * @param {string|boolean|null} opt true | false | "strict"
+ * @returns {array}
+ */
+MetaphorJs.filter.filter = function(val, scope, by, opt) {
+    return filterArray(val, by, opt);
+};
+
+
+
+
+
+
+/**
+ * @filter get
+ * @param {object} input
+ * @param {string} prop {   
+ *  Property name or path to property ("a.b.c")
+ * }
+ * @returns {*}
+ */
+MetaphorJs.filter.get = function(val, scope, prop) {
+    var tmp = (""+prop).split("."),
+        key;
+
+    while (key = tmp.shift()) {
+        val = val[key];
+        if (val === undf) {
+            return undf;
+        }
+    }
+
+    return val;
+};
+
+
+
+
+
+
+
+
+/**
+ * @filter join
+ * @param {array} input
+ * @param {string} separator
+ * @returns {string}
+ */
+MetaphorJs.filter.join = function(input, scope, separator) {
+
+    separator = separator || ", ";
+
+    if (input && input.length) {
+        if (!isArray(input)){
+            input = toArray(input);
+        }
+        return input.join(separator);
+    }
+
+    return "";
+};
+
+
+
+
+
+/**
+ * @filter l
+ * @param {string} input Get text value from MetaphorJs.lib.LocalText
+ * @returns {string}
+ */
+MetaphorJs.filter.l = function(key, scope) {
+    return scope.$app.lang.get(key);
+};
+
+
+
+
+
+
+/**
+ * @filter limitTo
+ * Limit array size or string length
+ * @param {array|string} input
+ * @param {int} limit
+ * @return {array|string}
+ */
+MetaphorJs.filter.limitTo = function(input, scope, limit) {
+
+    var isS = isString(input);
+
+    if (!isArray(input) && !isS) {
+        return input;
+    }
+
+    if (Math.abs(Number(limit)) === Infinity) {
+        limit = Number(limit);
+    } else {
+        limit = parseInt(limit, 10);
+    }
+
+    if (isS) {
+        //NaN check on limit
+        if (limit) {
+            return limit >= 0 ? input.slice(0, limit) : input.slice(limit, input.length);
+        } else {
+            return "";
+        }
+    }
+
+    var out = [],
+        i, n;
+
+    // if abs(limit) exceeds maximum length, trim it
+    if (limit > input.length)
+        limit = input.length;
+    else if (limit < -input.length)
+        limit = -input.length;
+
+    if (limit > 0) {
+        i = 0;
+        n = limit;
+    } else {
+        i = input.length + limit;
+        n = input.length;
+    }
+
+    for (; i<n; i++) {
+        out.push(input[i]);
+    }
+
+    return out;
+};
+
+
+
+
+
+
+/**
+ * @filter linkify
+ * Transform text links into html links
+ * @param {string} input Text
+ * @param {string} target Optional target parameter
+ * @returns {string}
+ */
+MetaphorJs.filter.linkify = function(input, scope, target){
+    target = target ? ' target="'+target+'"' : "";
+    if (input) {
+        var exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+        return input.replace(exp, '<a href="$1"'+target+'>$1</a>');
+    }
+    return "";
+};
+
+
+
+
+
+
+/**
+ * @filter lowercase
+ * Transform to lower case
+ * @param {string} input
+ * @returns {string}
+ */
+MetaphorJs.filter.lowercase = function(val){
+    return (""+val).toLowerCase();
+};
+
+
+
+
+
+
+/**
+ * @filter map
+ * @param {array} input
+ * @param {string} fnName {
+ *  Either a namespace entry, or global function name or 
+ *  expression to try against current scope. In any case
+ *  it must resolve into a function that accepts 
+ *  mapped item as first argument.
+ *  @param {*} item
+ *  @returns {*}
+ * }
+ * @returns {array} new array
+ */
+MetaphorJs.filter.map = function(array, scope, fnName) {
+
+    var i, l,
+        res = [],
+        fn = ns.get(fnName, true) ||
+                window[fnName] ||
+                lib_Expression.get(fnName, scope);
+    array = array || [];
+
+    if (fn) {
+        for (i = 0, l = array.length; i < l; i++) {
+            res.push(fn(array[i]));
+        }
+    }
+
+    return res;
+};
+
+
+
+
+
+/**
+ * @filter moment
+ * Pass given input value through moment.js lib
+ * @param {string|int|Date} input date value
+ * @param {string} format date format
+ * @returns {string}
+ */
+MetaphorJs.filter.moment = function(val, scope, format) {
+    return val ? moment(val).format(
+        lib_Cache.global().get(format, format)
+    ) : "";
+};
+
+
+
+
+
+
+/**
+ * @filter moment
+ * Pass given input value through numeral.js lib
+ * @param {string|int} input 
+ * @param {string} format number format
+ * @returns {string}
+ */
+MetaphorJs.filter.numeral = function(val, scope, format) {
+    return numeral(val).format(
+        lib_Cache.global().get(format, format)
+    );
+};
+
+
+
+
+
+/**
+ * @filter offset
+ * Get slice of array or string starting from offset
+ * @param {array|string} input
+ * @param {int} offset
+ * @returns {array|string}
+ */
+MetaphorJs.filter.offset = function(input, scope, offset) {
+
+    var isS = isString(input);
+
+    if (!isArray(input) && !isS) {
+        return input;
+    }
+
+    if (Math.abs(Number(offset)) === Infinity) {
+        offset = Number(offset);
+    } else {
+        offset = parseInt(offset, 10);
+    }
+
+    if (isS) {
+        return input.substr(offset);
+    }
+    else {
+        return input.slice(offset);
+    }
+};
+
+
+
+
+
+/**
+ * @filter p 
+ * Get plural text form from LocalText lib
+ * @param {string} input Lang key
+ * @param {int} number Number to find text form for
+ * @returns {string}
+ */
+MetaphorJs.filter.p = function(key, scope, number) {
+    return scope.$app.lang.plural(key, parseInt(number, 10) || 0);
+};
+
+
+
+
+
+
+/**
+ * @filter p 
+ * Get plural text form from LocalText lib
+ * @param {int} input Number to find text form for
+ * @param {string} key Lang key
+ * @returns {string}
+ */
+MetaphorJs.filter.pl = function(number, scope, key) {
+    return scope.$app.lang.plural(key, parseInt(number, 10) || 0);
+};
+
+
+
+
+
+
+(function(){
+
+    /**
+     * @filter preloaded
+     * Will return true once image is loaded. It will trigger scope check 
+     * automatically once the image is loaded.
+     * @param {string} input Image url
+     * @returns {boolean} 
+     */
+    var preloaded = MetaphorJs.filter.preloaded = function(val, scope) {
+
+        if (!val) {
+            return false;
+        }
+
+        var promise = dom_preloadImage.check(val);
+
+        if (promise === true || !promise) {
+            return !!promise;
+        }
+
+        if (isThenable(promise)) {
+            promise.always(function(){
+                scope.$check();
+            });
+            return false;
+        }
+        else {
+            return true;
+        }
+    };
+
+    preloaded.$undeterministic = true;
+
+    return preloaded;
+}());
+
+
+
+
+/**
+ * @filter r
+ * @param {string} input Render text recursively
+ * @returns {string}
+ */
+MetaphorJs.filter.r = function(input, scope) {
+    return scope.$app.lang.get(key);
+};
+
+
+
+
+
+
+/**
+ * @filter sortBy
+ * Sort array of objects by object field
+ * @param {array} input
+ * @param {function|string|object} field {
+ *  See <code>sortArray()</code> function
+ * }
+ * @param {string} dir
+ * @returns {array}
+ */
+MetaphorJs.filter.sortBy = function(val, scope, field, dir) {
+    return sortArray(val, field, dir);
+};
+
+
+
+
+
+
+/**
+ * @filter split
+ * Split string into parts
+ * @param {string} input
+ * @param {string|RegExp} separator {
+ *  Can also pass "/regexp/" as a string 
+ * }
+ * @param {int} limit
+ * @returns {array}
+ */
+MetaphorJs.filter.split = function(input, scope, sep, limit) {
+
+    limit       = limit || undf;
+    sep         = sep || "/\\n|,/";
+
+    if (!input) {
+        return [];
+    }
+
+    input       = "" + input;
+
+    if (sep.substr(0,1) === '/' && sep.substr(sep.length - 1) === "/") {
+        sep = getRegExp(sep.substring(1, sep.length-1));
+    }
+
+    var list = input.split(sep, limit),
+        i, l;
+
+    for (i = -1, l = list.length; ++i < l; list[i] = list[i].trim()){}
+
+    return list;
+};
+
+
+
+
+
+
+
+/**
+ * @filter toArray
+ * @code src-docs/code/filter/toArray.js
+ * @param {*} input
+ * @returns {array}
+ */
+MetaphorJs.filter.toArray = function(input) {
+
+    if (isPlainObject(input)) {
+        var list = [],
+            k;
+        for (k in input) {
+            if (input.hasOwnProperty(k)) {
+                list.push({key: k, value: input[k]});
+            }
+        }
+        return list;
+    }
+
+    return toArray(input);
+};
+
+
+
+
+
+/**
+ * @filter ucfirst
+ * Transform first character to upper case
+ * @param {string} input
+ * @returns {string}
+ */
+MetaphorJs.filter.ucfirst = function(val){
+    return val.substr(0, 1).toUpperCase() + val.substr(1);
+};
+
+
+
+
+
+
+/**
+ * @filter uppercase
+ * Transform to upper case
+ * @param {string} input
+ * @returns {string}
+ */
+MetaphorJs.filter.uppercase = function(val){
+    return (""+val).toUpperCase();
+};
 
 
 

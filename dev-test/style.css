@@ -119,7 +119,7 @@ label.case-label {
 .mjs-enter-active, .mjs-leave-active, .ng-enter-active, .ng-leave-active {
     -webkit-transition: -webkit-transform 0.4s, opacity 0.4s;
     -moz-transition: -moz-transform 0.4s, opacity 0.4s;
-    -o-transition:   -o-transform: 0.4s, opacity 0.4s;
+    -o-transition: -o-transform 0.4s, opacity 0.4s;
     transition:  transform 0.4s, opacity 0.4s;
 }
 
@@ -151,7 +151,7 @@ label.case-label {
 .mjs-move-active {
     -webkit-transition: -webkit-transform 0.4s;
     -moz-transition: -moz-transform 0.4s;
-    -o-transition:   -o-transform 0.4s;
+    -o-transition: -o-transform 0.4s;
     transition:  transform 0.4s;
 }
 
@@ -160,7 +160,7 @@ label.case-label {
 .ng-enter, .ng-leave {
     -webkit-transition: -webkit-transform 0.4s, opacity 0.4s;
     -moz-transition: -moz-transform 0.4s, opacity 0.4s;
-    -o-transition:   -o-transform: 0.4s, opacity 0.4s;
+    -o-transition: -o-transform 0.4s, opacity 0.4s;
     transition:  transform 0.4s, opacity 0.4s;
 }
 

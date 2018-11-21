@@ -6,6 +6,7 @@ require("./Renderer.js");
 require("metaphorjs-shared/src/lib/Queue.js");
 require("../lib/MutationObserver.js");
 require("metaphorjs-animate/src/animate/animate.js");
+require("metaphorjs-animate/src/animate/isCssSupported.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
@@ -16,7 +17,7 @@ var cls = require("metaphorjs-class/src/cls.js"),
     isPrimitive = require("metaphorjs-shared/src/func/isPrimitive.js"),
     bind = require("metaphorjs-shared/src/func/bind.js"),
     undf = require("metaphorjs-shared/src/var/undf.js"),
-    
+
     isFunction = require("metaphorjs-shared/src/func/isFunction.js"),
     levenshteinDiff = require("metaphorjs-shared/src/func/levenshteinDiff.js"),
     levenshteinMove = require("metaphorjs-shared/src/func/levenshteinMove.js"),
@@ -62,7 +63,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
         self.animateMove    = !self.tagMode && 
                                 !cfg['buffered'] &&
                                 cfg["animateMove"] && 
-                                animate.cssAnimationSupported();
+                                MetaphorJs.animate.isCssSupported();
         self.animate        = !self.tagMode && 
                                 !cfg['buffered'] && 
                                 cfg["animate"];
@@ -107,7 +108,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
         self.tpl        = self.tagMode ? MetaphorJs.dom.toFragment(node.childNodes) : node;
         self.renderers  = [];
 
-        var cmts = MetaphorJs.dom.commentWrap(node, self.$class + "-" + self.id);
+        var cmts = MetaphorJs.dom.commentWrap(node,  "list -" + self.id);
 
         self.prevEl     = cmts[0];
         self.nextEl     = cmts[1];
@@ -132,7 +133,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
             cfg         = self.cfg;
 
         self.watcher    = MetaphorJs.lib.MutationObserver.get(scope, self.model, self.onChange, self);
-        self.trackBy    = cfg.trackby; // lowercase from attributes
+        self.trackBy    = cfg.get("trackby"); // lowercase from attributes
         
         if (self.trackBy !== false) {
             if (self.trackBy && self.trackBy !== '$') {
@@ -323,7 +324,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
         else {
 
             var prs = levenshteinDiff(prevList, list);
-            prs = levenshteinMove(prevList, list, prs, self.getTrackByFunction());
+            prs = levenshteinMove(prevList, list, prs.prescription, self.getTrackByFunction());
 
             // redefine renderers
             for (i = 0, len = prs.length; i < len; i++) {
@@ -359,7 +360,6 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
         }
 
         self.renderers  = newrs;
-
         self.reflectChanges({
             oldRenderers:   renderers,
             updateStart:    updateStart,
