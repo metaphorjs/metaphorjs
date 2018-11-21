@@ -530,6 +530,10 @@ module.exports = MetaphorJs.app.Router = cls({
             self.watchable = null;
         }
 
+        if (self.node) {
+            MetaphorJs.dom.data(self.node, "mjs-transclude", null, "remove");
+        }
+
         self.scope = null;
         self.currentComponent = null;
 

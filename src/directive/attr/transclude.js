@@ -3,6 +3,7 @@ require("../../func/dom/transclude.js");
 var Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-Directive.registerAttribute("transclude", 1000, function(scope, node) {
+Directive.registerAttribute("transclude", 1000, 
+    function(scope, node, config, renderer, attrSet) {
     return MetaphorJs.dom.transclude(node);
 });

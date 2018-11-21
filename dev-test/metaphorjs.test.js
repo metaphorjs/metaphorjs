@@ -7891,6 +7891,8 @@ var lib_Promise = MetaphorJs.lib.Promise = function(){
  * @param {Element} el
  * @param {string} key
  * @param {*} value
+ * @param {string|null} action Pass "remove" to delete one data key or all keys
+ * @returns {*}
  */
 var dom_data = MetaphorJs.dom.data = function(){
 
@@ -7901,9 +7903,19 @@ var dom_data = MetaphorJs.dom.data = function(){
         };
 
 
-    return function dom_data(el, key, value) {
+    return function dom_data(el, key, value, action) {
         var id  = getNodeId(el),
             obj = dataCache[id];
+
+        if (action === 'remove') {
+            if (key) {
+                obj && (delete obj[key]);
+            }
+            else {
+                delete dataCache[id];
+            }
+            return;
+        }
 
         if (value !== undf) {
             if (!obj) {
@@ -12159,6 +12171,10 @@ var app_Template = MetaphorJs.app.Template = function() {
                 self._originalNode.createShadowRoot();
             }
 
+            if (self.node) {
+                dom_data(self.node, "mjs-transclude", null, "remove");
+            }
+
             if (self._watcher) {
                 if (self.html) {
                     self._watcher.unsubscribe(self.onHtmlChange, self);
@@ -15549,7 +15565,7 @@ var dom_transclude = MetaphorJs.dom.transclude = function dom_transclude(node, r
         contents;
 
     while (parent) {
-        contents = dom_data(node, 'mjs-transclude');
+        contents = dom_data(parent, 'mjs-transclude');
         if (contents !== undf) {
             break;
         }
@@ -15584,7 +15600,8 @@ var dom_transclude = MetaphorJs.dom.transclude = function dom_transclude(node, r
 
 
 
-Directive.registerAttribute("transclude", 1000, function(scope, node) {
+Directive.registerAttribute("transclude", 1000, 
+    function(scope, node, config, renderer, attrSet) {
     return dom_transclude(node);
 });
 
@@ -26881,6 +26898,10 @@ var app_Router = MetaphorJs.app.Router = cls({
             self.watchable = null;
         }
 
+        if (self.node) {
+            dom_data(self.node, "mjs-transclude", null, "remove");
+        }
+
         self.scope = null;
         self.currentComponent = null;
 
@@ -32530,28 +32551,28 @@ cls({
     $class: "Test.StringTemplate",
     $extends: "MetaphorJs.app.Component"
     }, {
-    template: '<p>This template is inlined in components definition ({{.$root.a}})</p>'
+    template: '<p>This template is inlined in components definition ({{this.$root.a}})</p>'
 });
 
 cls({
     $class: "Test.DynamicComponent",
     $extends: "MetaphorJs.app.Component"
     }, {
-    template: '<p>This component was created dynamically</p><div mjs-transclude></div>'
+    template: '<p>This component was created dynamically</p><div {transclude}></div>'
 });
 
 cls({
 
     $class: "Test.ChangeTemplate",
     $extends: "MetaphorJs.app.Component",
-    template: '.tpl',
+    template: 'this.tpl',
 
     initComponent: function() {
 
         var scope = this.scope;
 
-        scope.tpl1 = '<p>Template 1</p><div mjs-transclude></div>';
-        scope.tpl2 = '<p>Template 2</p><div mjs-transclude></div>';
+        scope.tpl1 = '<p>Template 1</p><div {transclude}></div>';
+        scope.tpl2 = '<p>Template 2</p><div {transclude}></div>';
 
         scope.tpl = scope.tpl1;
     }
@@ -32560,13 +32581,13 @@ cls({
 cls({
     $class: "Test.ViewComponent1",
     $extends: "MetaphorJs.app.Component",
-    template: '<p>View template 1</p><div mjs-transclude></div>'
+    template: '<p>View template 1</p><div {transclude}></div>'
 });
 
 cls({
     $class: "Test.ViewComponent2",
     $extends: "MetaphorJs.app.Component",
-    template: '<p>View template 2</p><div mjs-transclude></div>'
+    template: '<p>View template 2</p><div {transclude}></div>'
 });
 
 

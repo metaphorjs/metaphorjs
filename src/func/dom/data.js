@@ -18,6 +18,8 @@ var nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
  * @param {Element} el
  * @param {string} key
  * @param {*} value
+ * @param {string|null} action Pass "remove" to delete one data key or all keys
+ * @returns {*}
  */
 module.exports = MetaphorJs.dom.data = function(){
 
@@ -28,9 +30,19 @@ module.exports = MetaphorJs.dom.data = function(){
         };
 
 
-    return function dom_data(el, key, value) {
+    return function dom_data(el, key, value, action) {
         var id  = getNodeId(el),
             obj = dataCache[id];
+
+        if (action === 'remove') {
+            if (key) {
+                obj && (delete obj[key]);
+            }
+            else {
+                delete dataCache[id];
+            }
+            return;
+        }
 
         if (value !== undf) {
             if (!obj) {

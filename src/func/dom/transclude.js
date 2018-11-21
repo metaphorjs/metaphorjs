@@ -15,7 +15,7 @@ module.exports = MetaphorJs.dom.transclude = function dom_transclude(node, repla
         contents;
 
     while (parent) {
-        contents = MetaphorJs.dom.data(node, 'mjs-transclude');
+        contents = MetaphorJs.dom.data(parent, 'mjs-transclude');
         if (contents !== undf) {
             break;
         }

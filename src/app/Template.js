@@ -574,6 +574,10 @@ module.exports = MetaphorJs.app.Template = function() {
                 self._originalNode.createShadowRoot();
             }
 
+            if (self.node) {
+                MetaphorJs.dom.data(self.node, "mjs-transclude", null, "remove");
+            }
+
             if (self._watcher) {
                 if (self.html) {
                     self._watcher.unsubscribe(self.onHtmlChange, self);
