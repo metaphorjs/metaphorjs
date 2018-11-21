@@ -53,7 +53,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
                 self.bindStore(value, "on");
             }
             else {
-                self.watcher = new MetaphorJs.lib.MutationObserver(
+                self.watcher = MetaphorJs.lib.MutationObserver.get(
                     scope, self.model, self.onChange, self);
             }
         }
@@ -196,7 +196,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
 
         if (splitIndex === -1) {
             model   = expr;
-            item    = '{name: .item, value: .$index}';
+            item    = '{name: this.item, value: this.$index}';
             this.defaultOptionTpl = true;
         }
         else {
@@ -206,7 +206,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         }
 
         this.model = model;
-        this.getterFn = MetaphorJs.lib.Expression.parse(item);
+        this.getterFn = MetaphorJs.lib.Expression.getter(item);
     },
 
     onDestroy: function() {
