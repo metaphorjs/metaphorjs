@@ -418,7 +418,7 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
                 return cache[cacheKey];
             }
             catch (thrownError) {
-                error(new Error("Error parsing expression: " + expr));
+                error(new Error("Error parsing expression: " + expr + "; \n\n\n" + body));
                 error(thrownError);
                 return emptyFn;
             }
@@ -12177,10 +12177,6 @@ var app_Template = MetaphorJs.app.Template = function() {
                 self._originalNode.createShadowRoot();
             }
 
-            //if (self.node) {
-            //    dom_data(self.node, "mjs-transclude", null, "remove");
-            //}
-
             if (self._watcher) {
                 if (self.html) {
                     self._watcher.unsubscribe(self.onHtmlChange, self);
@@ -14612,7 +14608,7 @@ Directive.registerAttribute("key", 1000, function(scope, node, config, renderer,
     config.eachProperty(function(k, prop){
         if (k.indexOf('value.') === 0) {
             if (prop.expression.charAt(0) !== '{') {
-                config.setProperty(k, {mode: lib_Config.MODE_GETTER});
+                config.setProperty(k, {mode: lib_Config.MODE_FUNC});
             }
         }
     });
@@ -14641,18 +14637,21 @@ Directive.registerAttribute("key", 1000, function(scope, node, config, renderer,
             scope.$check();
         };
         
-        Input.get(node).onKey(cfg, handler, context);
+        lib_Input.get(node).onKey(cfg, handler, context);
 
         return function() {
-            Input.get(node).unKey(cfg, handler, context);
+            lib_Input.get(node).unKey(cfg, handler, context);
         };
     };
 
     var cfgs = config.getAllValues(),
-        name;
+        name,
+        uninstall = [];
     
     for (name in cfgs) {
-        uninstall.push(createHandler(name, cfgs[name]));
+        if (cfgs.hasOwnProperty(name) && cfgs[name]) {
+            uninstall.push(createHandler(name, cfgs[name]));
+        }
     }
 
     return function() {
@@ -14775,7 +14774,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         self.input.$destroy();
 
         if (self.mo) {
-            self.mo.ubsubscribe(self.onChange, self);
+            self.mo.unsubscribe(self.onChange, self);
             self.mo.$destroy(true);
         }
 
@@ -15049,7 +15048,8 @@ Directive.registerAttribute("options", 100, Directive.$extend({
 
 (function(){
 
-    var booleanAttrs = ["selected", "checked", "disabled", "readonly", "open", "required"],
+    var booleanAttrs = ["selected", "checked", "disabled", 
+                        "readonly", "open", "required"],
         i, l;
 
     var PropertyDirective = Directive.$extend({
@@ -15059,6 +15059,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         $init: function(scope, node, config, propName) {
             this.propName = propName;
             config.setProperty("value", {type: "bool"});
+            config.lateInit();
             this.$super(scope, node, config);
         },
 

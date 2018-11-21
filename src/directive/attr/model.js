@@ -114,7 +114,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         self.input.$destroy();
 
         if (self.mo) {
-            self.mo.ubsubscribe(self.onChange, self);
+            self.mo.unsubscribe(self.onChange, self);
             self.mo.$destroy(true);
         }
 

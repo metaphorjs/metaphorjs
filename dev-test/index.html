@@ -343,13 +343,19 @@
 
         <div class="cases">
 
-            <!--
-            <div class="case double">
+            
+            <div class="case double" 
+                    {init}="this.newItem = '';
+                            this.listFilter = '';
+                            this.sortBy = 'asc'">
                 <h4>mjs-each (attr)</h4>
                 <input {model}="this.newItem" 
-                        (enter)="if (this.newItem) {this.list.push({bool: false, txt: this.newItem}); this.newItem = '';}"/>
+                        (key.enter)="if (this.newItem) {
+                                        this.list.push({bool: false, txt: this.newItem}); 
+                                        this.newItem = '';
+                                    }"/>
                 <input type="button"
-                       [disabled]="!this.newItem"
+                       {disabled}="!this.newItem"
                        (click)="this.list.push({bool: false, txt: this.newItem}); this.newItem = '';"
                        value="Add item"/>
 
@@ -359,8 +365,8 @@
                         {each.$animateMove}>
                         <label {class}="{cls3: this.item.bool}">
                             <input type="checkbox" {model}="this.item.bool"/>
-                            {{this.$index}} -
-                            {{this.item.txt}} -
+                            {{ this.$index }} -
+                            {{ this.item.txt }} -
                             {{ this.$first ? "first" : "" }} -
                             {{ this.$last ? "last" : "" }} -
                             {{ this.$even ? "even" : "" }} -
@@ -375,7 +381,7 @@
                 <a href="#" (click)="this.sortBy='desc'">desc</a>
 
             </div>
-
+<!--
             <div class="case double">
                 <h4>mjs-each (tag)</h4>
 

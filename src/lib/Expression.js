@@ -171,7 +171,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
                 return cache[cacheKey];
             }
             catch (thrownError) {
-                error(new Error("Error parsing expression: " + expr));
+                error(new Error("Error parsing expression: " + expr + "; \n\n\n" + body));
                 error(thrownError);
                 return emptyFn;
             }

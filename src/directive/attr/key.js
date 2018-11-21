@@ -40,7 +40,7 @@ Directive.registerAttribute("key", 1000, function(scope, node, config, renderer,
     config.eachProperty(function(k, prop){
         if (k.indexOf('value.') === 0) {
             if (prop.expression.charAt(0) !== '{') {
-                config.setProperty(k, {mode: MetaphorJs.lib.Config.MODE_GETTER});
+                config.setProperty(k, {mode: MetaphorJs.lib.Config.MODE_FUNC});
             }
         }
     });
@@ -69,18 +69,21 @@ Directive.registerAttribute("key", 1000, function(scope, node, config, renderer,
             scope.$check();
         };
         
-        Input.get(node).onKey(cfg, handler, context);
+        MetaphorJs.lib.Input.get(node).onKey(cfg, handler, context);
 
         return function() {
-            Input.get(node).unKey(cfg, handler, context);
+            MetaphorJs.lib.Input.get(node).unKey(cfg, handler, context);
         };
     };
 
     var cfgs = config.getAllValues(),
-        name;
+        name,
+        uninstall = [];
     
     for (name in cfgs) {
-        uninstall.push(createHandler(name, cfgs[name]));
+        if (cfgs.hasOwnProperty(name) && cfgs[name]) {
+            uninstall.push(createHandler(name, cfgs[name]));
+        }
     }
 
     return function() {

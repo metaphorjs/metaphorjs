@@ -8,7 +8,8 @@ var Directive = require("../../app/Directive.js"),
 
 (function(){
 
-    var booleanAttrs = ["selected", "checked", "disabled", "readonly", "open", "required"],
+    var booleanAttrs = ["selected", "checked", "disabled", 
+                        "readonly", "open", "required"],
         i, l;
 
     var PropertyDirective = Directive.$extend({
@@ -18,6 +19,7 @@ var Directive = require("../../app/Directive.js"),
         $init: function(scope, node, config, propName) {
             this.propName = propName;
             config.setProperty("value", {type: "bool"});
+            config.lateInit();
             this.$super(scope, node, config);
         },
 
