@@ -39,7 +39,7 @@ MetaphorJs.lib.EventHandler = function(event, scope, node, cfg) {
     self.handler    = null;
     self.buffer     = null;
 
-    if (cfg.hasProperty("if")) {
+    if (cfg.hasExpression("if")) {
         cfg.on("if", self.onIfChange, self);
     }
 
@@ -143,8 +143,9 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
             cfg     = self.config,
             buffer  = cfg.get("buffer");
 
-        if (!cfg.hasProperty("if") || cfg.get('if')) {
+        if (!cfg.hasExpression("if") || cfg.get('if')) {
             self.handler = self.createHandler();
+
             if (buffer) {
                 self.buffer = MetaphorJs.lib.EventBuffer.get(self.node, self.event, buffer);
                 self.buffer.on(self.handler);

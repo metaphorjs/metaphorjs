@@ -21,7 +21,7 @@ var Directive = require("../../app/Directive.js"),
         config.eachProperty(function(k){
             if (k === 'value' || k.indexOf('value.') === 0) {
                 config.setProperty(k, {
-                    mode: MetaphorJs.lib.Config.MODE_GETTER
+                    mode: MetaphorJs.lib.Config.MODE_FUNC
                 });
             }
         });

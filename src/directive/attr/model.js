@@ -39,7 +39,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         //self.getterFn       = config.get("value").getter;
         //self.setterFn       = config.get("value").setter;
 
-        if (config.hasProperty("change")) {
+        if (config.hasExpression("change")) {
             self.changeFn   = MetaphorJs.lib.Expression.parse(config.get("change"));
         }
 

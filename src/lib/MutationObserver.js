@@ -7,8 +7,7 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
     bind = require("metaphorjs-shared/src/func/bind.js"),
     equals = require("metaphorjs-shared/src/func/equals.js"),
-    copy = require("metaphorjs-shared/src/func/copy.js"),
-    emptyFn = require("metaphorjs-shared/src/func/emptyFn.js");
+    copy = require("metaphorjs-shared/src/func/copy.js");
 
 require("metaphorjs-observable/src/lib/Observable.js");
 require("./Expression.js");

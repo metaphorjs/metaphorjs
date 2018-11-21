@@ -298,6 +298,15 @@ module.exports = MetaphorJs.lib.Config = (function(){
         },
 
         /**
+         * Does this config has a property with expression
+         * @param {string} name 
+         * @returns {bool}
+         */
+        hasExpression: function(name) {
+            return !!(this.properties[name] && this.properties[name].expression);
+        },
+
+        /**
          * Get property keys
          * @returns {array}
          */

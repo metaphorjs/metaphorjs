@@ -9115,6 +9115,15 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
         },
 
         /**
+         * Does this config has a property with expression
+         * @param {string} name 
+         * @returns {bool}
+         */
+        hasExpression: function(name) {
+            return !!(this.properties[name] && this.properties[name].expression);
+        },
+
+        /**
          * Get property keys
          * @returns {array}
          */
@@ -14099,7 +14108,7 @@ MetaphorJs.lib.EventHandler = function(event, scope, node, cfg) {
     self.handler    = null;
     self.buffer     = null;
 
-    if (cfg.hasProperty("if")) {
+    if (cfg.hasExpression("if")) {
         cfg.on("if", self.onIfChange, self);
     }
 
@@ -14203,8 +14212,9 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
             cfg     = self.config,
             buffer  = cfg.get("buffer");
 
-        if (!cfg.hasProperty("if") || cfg.get('if')) {
+        if (!cfg.hasExpression("if") || cfg.get('if')) {
             self.handler = self.createHandler();
+
             if (buffer) {
                 self.buffer = lib_EventBuffer.get(self.node, self.event, buffer);
                 self.buffer.on(self.handler);
@@ -14266,7 +14276,7 @@ var lib_EventHandler = MetaphorJs.lib.EventHandler;
         config.eachProperty(function(k){
             if (k === 'value' || k.indexOf('value.') === 0) {
                 config.setProperty(k, {
-                    mode: MetaphorJs.lib.Config.MODE_GETTER
+                    mode: MetaphorJs.lib.Config.MODE_FUNC
                 });
             }
         });
@@ -14665,7 +14675,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         //self.getterFn       = config.get("value").getter;
         //self.setterFn       = config.get("value").setter;
 
-        if (config.hasProperty("change")) {
+        if (config.hasExpression("change")) {
             self.changeFn   = lib_Expression.parse(config.get("change"));
         }
 
