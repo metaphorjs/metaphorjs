@@ -17,7 +17,7 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
 
     // regular expression seems to be a few milliseconds faster
     // than plain parsing
-    var reg = /^([\[({#$])([^)\]}"':\*]+)[\])}]?([:\*]?)$/;
+    var reg = /^([\[({#$])([^)\]}"':\*]+)[\])}]?([:\*!]?)$/;
 
     var removeDirective = function removeDirective(node, directive) {
         if (this.directive[directive] && 
@@ -34,9 +34,10 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
     };
 
     var execModes = {
-        '': MetaphorJs.lib.Config.MODE_DYNAMIC,
+        '*': MetaphorJs.lib.Config.MODE_DYNAMIC,
         ':': MetaphorJs.lib.Config.MODE_STATIC,
-        '*': MetaphorJs.lib.Config.MODE_SINGLE
+        '!': MetaphorJs.lib.Config.MODE_SINGLE,
+        '': null
     };
 
     return function dom_getAttrSet(node, tagMode) {

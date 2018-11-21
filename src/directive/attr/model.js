@@ -2,6 +2,7 @@ require("../../lib/Scope.js");
 require("../../lib/Expression.js");
 require("../../lib/MutationObserver.js");
 require("../../lib/Input.js");
+require("../../lib/Config.js");
 
 var async = require("metaphorjs-shared/src/func/async.js"),
     isIE = require("../../func/browser/isIE.js"),

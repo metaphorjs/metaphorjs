@@ -327,18 +327,18 @@
             <div class="case" {ignore}>
                 This element is ignored by renderer: {{ this.$root.a }}
             </div>
-<!--
+
             <div class="case" 
                     {router} 
                     {router.$cmp}="this.viewCmp" 
-                    {router.$defaultCmp}:="Test.ViewComponent1">
+                    {router.$default-cmp}:="Test.ViewComponent1">
                 <p>
                     change cmp:
-                    <a href="#" (click)="this.$parent.viewCmp = 'Test.ViewComponent1'">Cmp1</a> |
+                    <a href="#" (click)="this.$parent.viewCmp = 'Test.ViewComponent1'; console.log(this.$parent)">Cmp1</a> |
                     <a href="#" (click)="this.$parent.viewCmp = 'Test.ViewComponent2'">Cmp2</a>
                 </p>
             </div>
-            -->
+   
         </div>
 
         <div class="cases">

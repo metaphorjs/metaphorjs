@@ -11,9 +11,10 @@ var Directive = require("../../app/Directive.js"),
 
     var cmpAttr = function(scope, node, config, parentRenderer, attrSet){
 
-        config.setProperty("value", {mode: MetaphorJs.lib.Config.MODE_STATIC});
+        config.setProperty("value", {defaultMode: MetaphorJs.lib.Config.MODE_STATIC});
         config.setProperty("sameScope", {type: "bool"});
         config.setProperty("isolateScope", {type: "bool"});
+        config.setProperty("as", {defaultMode: MetaphorJs.lib.Config.MODE_STATIC});
         config.lateInit();
 
         var cmpName = config.get("value"),

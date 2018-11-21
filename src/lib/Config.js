@@ -92,6 +92,10 @@ module.exports = MetaphorJs.lib.Config = (function(){
                     continue;
                 }
 
+                if (!prop.mode) {
+                    prop.mode = prop.defaultMode || MODE_DYNAMIC;
+                }
+
                 if (prop.expression === true) {
                     prop.mode = MODE_STATIC;
                 }
@@ -120,7 +124,12 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 return null;
             }
 
-            if (prop.expression !== undf) {
+            if (prop.expression) {
+
+                if (!prop.mode) {
+                    prop.mode = prop.defaultMode || MODE_DYNAMIC;
+                }
+
                 if (prop.mode === MODE_STATIC) {
                     value = prop.expression;
                 }
@@ -238,10 +247,6 @@ module.exports = MetaphorJs.lib.Config = (function(){
             else {
                 self.keys.push(name);
                 self.properties[name] = cfg;
-            }
-
-            if (!self.properties[name].mode) {
-                self.properties[name].mode = MODE_DYNAMIC;
             }
 
             return self.properties[name];

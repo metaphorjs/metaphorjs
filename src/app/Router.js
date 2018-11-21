@@ -47,9 +47,6 @@ module.exports = MetaphorJs.app.Router = cls({
 
     routeMap: null,
 
-    watchable: null,
-    defaultCmp: null,
-
     currentCls: null,
     currentHtmlCls: null,
 
@@ -61,13 +58,14 @@ module.exports = MetaphorJs.app.Router = cls({
         var self    = this;
 
         extend(self, cfg, true, false);
- 
+
         self.routeMap = {};
 
         var node = self.node;
 
         if (node && node.firstChild) {
-            MetaphorJs.dom.data(node, "mjs-transclude", MetaphorJs.dom.toFragment(node.childNodes));
+            MetaphorJs.dom.data(node, "mjs-transclude", 
+                MetaphorJs.dom.toFragment(node.childNodes));
         }
 
         if (!self.id) {
@@ -86,9 +84,8 @@ module.exports = MetaphorJs.app.Router = cls({
             self.initRoutes();
             self.onLocationChange();
         }
-        else if (self.cmp) {
-            self.watchable = MetaphorJs.lib.MutationObserver.get(
-                self.scope, self.cmp, self.onCmpChange, self);
+        else if (self.config.hasExpression("cmp")) {
+            self.config.on("cmp", self.onCmpChange, self);
             self.onCmpChange();
         }
     },
@@ -137,14 +134,10 @@ module.exports = MetaphorJs.app.Router = cls({
     onCmpChange: function() {
 
         var self    = this,
-            cmp     = self.watchable.getValue() || self.defaultCmp;
+            cmp     = self.config.get("cmp") || 
+                        self.config.get("defaultCmp");
 
-        if (cmp) {
-            self.setComponent(cmp);
-        }
-        else if (self.defaultCmp) {
-            self.setComponent(self.defaultCmp);
-        }
+        cmp && self.setComponent(cmp);
     },
 
     onLocationChange: function() {
@@ -199,8 +192,8 @@ module.exports = MetaphorJs.app.Router = cls({
         if (def) {
             self.resolveRoute(def);
         }
-        else if (self.defaultCmp) {
-            self.setComponent(self.defaultCmp);
+        else if (self.config.hasExpression("defaultCmp")) {
+            self.setComponent(self.config.get("defaultCmp"));
         }
     },
 
@@ -256,13 +249,13 @@ module.exports = MetaphorJs.app.Router = cls({
             MetaphorJs.animate.animate(node, self.animate ? "leave" : null).done(function(){
                 
                 if (!cview.keepAlive) {
-                    
+
                     if (self.currentComponent &&
                         !self.currentComponent.$destroyed &&
                         !self.currentComponent.$destroying) {
                         self.currentComponent.$destroy();
                     }
-                    
+
                     while (node.firstChild) {
                         node.removeChild(node.firstChild);
                     }
@@ -493,7 +486,7 @@ module.exports = MetaphorJs.app.Router = cls({
 
     afterCmpChange: function() {
         var self = this;
-        if (self.scrollOnChange) {
+        if (self.config.get("scrollOnChange")) {
             raf(function () {
                 self.node.scrollTop = 0;
             });

@@ -1,6 +1,7 @@
 
 require("../../lib/Expression.js");
 require("../../lib/Input.js");
+require("../../lib/Config.js");
 
 var Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");

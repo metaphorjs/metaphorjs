@@ -8921,6 +8921,10 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                     continue;
                 }
 
+                if (!prop.mode) {
+                    prop.mode = prop.defaultMode || MODE_DYNAMIC;
+                }
+
                 if (prop.expression === true) {
                     prop.mode = MODE_STATIC;
                 }
@@ -8949,7 +8953,12 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                 return null;
             }
 
-            if (prop.expression !== undf) {
+            if (prop.expression) {
+
+                if (!prop.mode) {
+                    prop.mode = prop.defaultMode || MODE_DYNAMIC;
+                }
+
                 if (prop.mode === MODE_STATIC) {
                     value = prop.expression;
                 }
@@ -9067,10 +9076,6 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
             else {
                 self.keys.push(name);
                 self.properties[name] = cfg;
-            }
-
-            if (!self.properties[name].mode) {
-                self.properties[name].mode = MODE_DYNAMIC;
             }
 
             return self.properties[name];
@@ -9370,7 +9375,7 @@ var getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
 
     // regular expression seems to be a few milliseconds faster
     // than plain parsing
-    var reg = /^([\[({#$])([^)\]}"':\*]+)[\])}]?([:\*]?)$/;
+    var reg = /^([\[({#$])([^)\]}"':\*]+)[\])}]?([:\*!]?)$/;
 
     var removeDirective = function removeDirective(node, directive) {
         if (this.directive[directive] && 
@@ -9387,9 +9392,10 @@ var getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
     };
 
     var execModes = {
-        '': lib_Config.MODE_DYNAMIC,
+        '*': lib_Config.MODE_DYNAMIC,
         ':': lib_Config.MODE_STATIC,
-        '*': lib_Config.MODE_SINGLE
+        '!': lib_Config.MODE_SINGLE,
+        '': null
     };
 
     return function dom_getAttrSet(node, tagMode) {
@@ -12171,9 +12177,9 @@ var app_Template = MetaphorJs.app.Template = function() {
                 self._originalNode.createShadowRoot();
             }
 
-            if (self.node) {
-                dom_data(self.node, "mjs-transclude", null, "remove");
-            }
+            //if (self.node) {
+            //    dom_data(self.node, "mjs-transclude", null, "remove");
+            //}
 
             if (self._watcher) {
                 if (self.html) {
@@ -12351,9 +12357,10 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
 
     var cmpAttr = function(scope, node, config, parentRenderer, attrSet){
 
-        config.setProperty("value", {mode: lib_Config.MODE_STATIC});
+        config.setProperty("value", {defaultMode: lib_Config.MODE_STATIC});
         config.setProperty("sameScope", {type: "bool"});
         config.setProperty("isolateScope", {type: "bool"});
+        config.setProperty("as", {defaultMode: lib_Config.MODE_STATIC});
         config.lateInit();
 
         var cmpName = config.get("value"),
@@ -14276,6 +14283,7 @@ var lib_EventHandler = MetaphorJs.lib.EventHandler;
 
 
 
+
 (function(){
 
     var events = ['click', 'dblclick', 'mousedown', 'mouseup', 'mouseover',
@@ -14292,7 +14300,7 @@ var lib_EventHandler = MetaphorJs.lib.EventHandler;
         config.eachProperty(function(k){
             if (k === 'value' || k.indexOf('value.') === 0) {
                 config.setProperty(k, {
-                    mode: MetaphorJs.lib.Config.MODE_FUNC
+                    mode: lib_Config.MODE_FUNC
                 });
             }
         });
@@ -14569,6 +14577,7 @@ Directive.registerAttribute("init", 250, function(scope, node, config) {
 
 
 
+
 (function(){
 
 var keys = {
@@ -14603,7 +14612,7 @@ Directive.registerAttribute("key", 1000, function(scope, node, config, renderer,
     config.eachProperty(function(k, prop){
         if (k.indexOf('value.') === 0) {
             if (prop.expression.charAt(0) !== '{') {
-                config.setProperty(k, {mode: MetaphorJs.lib.Config.MODE_GETTER});
+                config.setProperty(k, {mode: lib_Config.MODE_GETTER});
             }
         }
     });
@@ -14664,6 +14673,7 @@ Directive.registerAttribute("key", 1000, function(scope, node, config, renderer,
 
 
 
+
 Directive.registerAttribute("model", 1000, Directive.$extend({
 
     $class: "MetaphorJs.app.Directive.attr.Model",
@@ -14678,10 +14688,10 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
     $init: function(scope, node, config, renderer, attrSet) {
 
-        config.setProperty("value", {mode: MetaphorJs.lib.Config.MODE_FNSET});
+        config.setProperty("value", {mode: lib_Config.MODE_FNSET});
         config.setProperty("binding", {
             defaultValue: "both",
-            mode: MetaphorJs.lib.Config.MODE_STATIC
+            mode: lib_Config.MODE_STATIC
         });
         config.lateInit();
 
@@ -15081,7 +15091,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
 
 
 Directive.registerAttribute("ref", 200, function(scope, node, config){
-    config.setProperty("value", {mode: MetaphorJs.lib.Config.MODE_STATIC});
+    config.setProperty("value", {defaultMode: lib_Config.MODE_STATIC});
     config.lateInit();
     scope[config.get("value")] = node;
 });
@@ -15090,23 +15100,29 @@ Directive.registerAttribute("ref", 200, function(scope, node, config){
 
 
 
+
 Directive.registerAttribute("router", 200, 
     function(scope, node, config, parentRenderer) {
-    
-    config.setProperty("value", {mode: MetaphorJs.lib.Config.MODE_STATIC});
+
+    config.setProperty("scrollOnChange", {type: "bool"});
+    config.setProperty("value", {
+        defaultMode: lib_Config.MODE_STATIC,
+        defaultValue: "MetaphorJs.app.Router"
+    });
+    config.setProperty("defaultCmp", {
+        defaultMode: lib_Config.MODE_STATIC
+    });
     config.lateInit();
 
-    var cfg = extend({scope: scope, node: node}, config.getValues()),
-        cls = config.getValue("value")
+    var cfg = {scope: scope, node: node, config: config};
 
     app_resolve(
-        cls || "MetaphorJs.app.Router",
+        config.get("value"),
         cfg,
         scope, node,
         [cfg]
     );
 
-    config.clear();
     return false;
 });
 
@@ -25036,8 +25052,10 @@ Directive.registerAttribute("break-if", 500, function(scope, node, config) {
 
 
 
+
 Directive.registerAttribute("cmp-prop", 200,
     ['$parentCmp', '$node', '$nodeConfig', function(parentCmp, node, config) {
+     config.setProperty("value", {defaultMode: lib_Config.MODE_STATIC})
      config.lateInit();
        if (parentCmp) {
             parentCmp[config.get("value")] = node;
@@ -26651,9 +26669,6 @@ var app_Router = MetaphorJs.app.Router = cls({
 
     routeMap: null,
 
-    watchable: null,
-    defaultCmp: null,
-
     currentCls: null,
     currentHtmlCls: null,
 
@@ -26665,13 +26680,14 @@ var app_Router = MetaphorJs.app.Router = cls({
         var self    = this;
 
         extend(self, cfg, true, false);
- 
+
         self.routeMap = {};
 
         var node = self.node;
 
         if (node && node.firstChild) {
-            dom_data(node, "mjs-transclude", dom_toFragment(node.childNodes));
+            dom_data(node, "mjs-transclude", 
+                dom_toFragment(node.childNodes));
         }
 
         if (!self.id) {
@@ -26690,9 +26706,8 @@ var app_Router = MetaphorJs.app.Router = cls({
             self.initRoutes();
             self.onLocationChange();
         }
-        else if (self.cmp) {
-            self.watchable = lib_MutationObserver.get(
-                self.scope, self.cmp, self.onCmpChange, self);
+        else if (self.config.hasExpression("cmp")) {
+            self.config.on("cmp", self.onCmpChange, self);
             self.onCmpChange();
         }
     },
@@ -26741,14 +26756,10 @@ var app_Router = MetaphorJs.app.Router = cls({
     onCmpChange: function() {
 
         var self    = this,
-            cmp     = self.watchable.getValue() || self.defaultCmp;
+            cmp     = self.config.get("cmp") || 
+                        self.config.get("defaultCmp");
 
-        if (cmp) {
-            self.setComponent(cmp);
-        }
-        else if (self.defaultCmp) {
-            self.setComponent(self.defaultCmp);
-        }
+        cmp && self.setComponent(cmp);
     },
 
     onLocationChange: function() {
@@ -26803,8 +26814,8 @@ var app_Router = MetaphorJs.app.Router = cls({
         if (def) {
             self.resolveRoute(def);
         }
-        else if (self.defaultCmp) {
-            self.setComponent(self.defaultCmp);
+        else if (self.config.hasExpression("defaultCmp")) {
+            self.setComponent(self.config.get("defaultCmp"));
         }
     },
 
@@ -26860,13 +26871,13 @@ var app_Router = MetaphorJs.app.Router = cls({
             animate_animate(node, self.animate ? "leave" : null).done(function(){
                 
                 if (!cview.keepAlive) {
-                    
+
                     if (self.currentComponent &&
                         !self.currentComponent.$destroyed &&
                         !self.currentComponent.$destroying) {
                         self.currentComponent.$destroy();
                     }
-                    
+
                     while (node.firstChild) {
                         node.removeChild(node.firstChild);
                     }
@@ -27097,7 +27108,7 @@ var app_Router = MetaphorJs.app.Router = cls({
 
     afterCmpChange: function() {
         var self = this;
-        if (self.scrollOnChange) {
+        if (self.config.get("scrollOnChange")) {
             raf(function () {
                 self.node.scrollTop = 0;
             });
