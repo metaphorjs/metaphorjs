@@ -47,8 +47,6 @@ cls({
             self.scope.b++;
         };
 
-
-
         self.scope.people = 0;
 
         self.lang.setLocale("ru");
@@ -85,31 +83,30 @@ cls({
 
     $class: "Test.MyView",
     $extends: "MetaphorJs.app.Router",
-
-        route: [
-            {
-                template: 'test-template',
-                "default": true
-            },
-            {
-                reg: /^\/1$/,
-                cmp: "Test.MyComponent"
-            },
-            {
-                reg: /^\/2\/(\d+)$/,
-                params: ["param"],
-                cmp: "Test.MyComponent2"
-            },
-            {
-                reg: /^\/2$/,
-                cmp: "Test.MyComponent2"
-            },
-            {
-                reg: /^\/3$/,
-                template: "a+b"
-            }
-        ]
-    });
+    route: [
+        {
+            template: 'test-template',
+            "default": true
+        },
+        {
+            regexp: /^\/1$/,
+            cmp: "Test.MyComponent"
+        },
+        {
+            regexp: /^\/2\/(\d+)$/,
+            params: ["param"],
+            cmp: "Test.MyComponent2"
+        },
+        {
+            regexp: /^\/2$/,
+            cmp: "Test.MyComponent2"
+        },
+        {
+            regexp: /^\/3$/,
+            template: "a+b"
+        }
+    ]
+});
 
 cls({
     $class: "Test.MyRecord",

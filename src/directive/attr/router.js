@@ -6,6 +6,10 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
 
 MetaphorJs.app.Directive.registerAttribute("router", 200, 
     function(scope, node, config, parentRenderer) {
+    
+    config.setProperty("value", {mode: MetaphorJs.lib.Config.MODE_STATIC});
+    config.lateInit();
+
     var cfg = extend({scope: scope, node: node}, config.getValues()),
         cls = config.getValue("value")
 

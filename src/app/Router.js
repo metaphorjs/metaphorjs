@@ -396,7 +396,10 @@ module.exports = MetaphorJs.app.Router = cls({
             }
             else {
 
-                if (route.cmp) {
+                if (route.setup) {
+                    route.setup(route, matches);
+                }
+                else {
 
                     return MetaphorJs.app.resolve(
                         route.cmp || "MetaphorJs.app.Component",
@@ -428,9 +431,6 @@ module.exports = MetaphorJs.app.Router = cls({
                             self.onRouteFail(route);
                         }
                     });
-                }
-                else if (route.setup) {
-                    route.setup(route, matches);
                 }
             }
         });

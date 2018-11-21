@@ -15092,6 +15092,10 @@ Directive.registerAttribute("ref", 200, function(scope, node, config){
 
 Directive.registerAttribute("router", 200, 
     function(scope, node, config, parentRenderer) {
+    
+    config.setProperty("value", {mode: MetaphorJs.lib.Config.MODE_STATIC});
+    config.lateInit();
+
     var cfg = extend({scope: scope, node: node}, config.getValues()),
         cls = config.getValue("value")
 
@@ -26764,7 +26768,10 @@ var app_Router = MetaphorJs.app.Router = cls({
             }
             else {
 
-                if (route.cmp) {
+                if (route.setup) {
+                    route.setup(route, matches);
+                }
+                else {
 
                     return app_resolve(
                         route.cmp || "MetaphorJs.app.Component",
@@ -26796,9 +26803,6 @@ var app_Router = MetaphorJs.app.Router = cls({
                             self.onRouteFail(route);
                         }
                     });
-                }
-                else if (route.setup) {
-                    route.setup(route, matches);
                 }
             }
         });
@@ -32346,8 +32350,6 @@ cls({
             self.scope.b++;
         };
 
-
-
         self.scope.people = 0;
 
         self.lang.setLocale("ru");
@@ -32384,31 +32386,30 @@ cls({
 
     $class: "Test.MyView",
     $extends: "MetaphorJs.app.Router",
-
-        route: [
-            {
-                template: 'test-template',
-                "default": true
-            },
-            {
-                reg: /^\/1$/,
-                cmp: "Test.MyComponent"
-            },
-            {
-                reg: /^\/2\/(\d+)$/,
-                params: ["param"],
-                cmp: "Test.MyComponent2"
-            },
-            {
-                reg: /^\/2$/,
-                cmp: "Test.MyComponent2"
-            },
-            {
-                reg: /^\/3$/,
-                template: "a+b"
-            }
-        ]
-    });
+    route: [
+        {
+            template: 'test-template',
+            "default": true
+        },
+        {
+            regexp: /^\/1$/,
+            cmp: "Test.MyComponent"
+        },
+        {
+            regexp: /^\/2\/(\d+)$/,
+            params: ["param"],
+            cmp: "Test.MyComponent2"
+        },
+        {
+            regexp: /^\/2$/,
+            cmp: "Test.MyComponent2"
+        },
+        {
+            regexp: /^\/3$/,
+            template: "a+b"
+        }
+    ]
+});
 
 cls({
     $class: "Test.MyRecord",
