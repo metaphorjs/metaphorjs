@@ -359,12 +359,13 @@
                        (click)="this.list.push({bool: false, txt: this.newItem}); this.newItem = '';"
                        value="Add item"/>
 
-                <ul {show}="this.bool" mjs-animate>
+                <ul {show}="this.bool" {show.$animate}>
                     <li {each}="item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy"
                         {each.$animate}
                         {each.$animateMove}>
                         <label {class}="{cls3: this.item.bool}">
-                            <input type="checkbox" {model}="this.item.bool"/>
+                            <input type="checkbox" 
+                                    {model}="this.item.bool"/>
                             {{ this.$index }} -
                             {{ this.item.txt }} -
                             {{ this.$first ? "first" : "" }} -
@@ -381,16 +382,17 @@
                 <a href="#" (click)="this.sortBy='desc'">desc</a>
 
             </div>
-<!--
+
             <div class="case double">
                 <h4>mjs-each (tag)</h4>
 
                 <mjs-each value="item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy">
                     <div>
                         <label {class}="{cls3: this.item.bool}">
-                            <input type="checkbox" {model}="this.item.bool"/>
-                            {{this.$index}} -
-                            {{this.item.txt}} -
+                            <input type="checkbox" 
+                                    {model}="this.item.bool"/>
+                            {{ this.$index }} -
+                            {{ this.item.txt }} -
                             {{ this.$first ? "first" : "" }} -
                             {{ this.$last ? "last" : "" }} -
                             {{ this.$even ? "even" : "" }} -
@@ -400,7 +402,7 @@
                     </div>
                 </mjs-each>
             </div>
-
+<!--
             <div class="case double" {cmp}:="Test.MyComponent">
                 <p {cmp-prop}="para">Component's transcluded text + {{ this.$root.a}}</p>
                 <a href="#" (click)="this.ctrl.reverse()">reverse</a> |

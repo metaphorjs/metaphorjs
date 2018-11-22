@@ -17,12 +17,10 @@ var cls = require("metaphorjs-class/src/cls.js"),
     isPrimitive = require("metaphorjs-shared/src/func/isPrimitive.js"),
     bind = require("metaphorjs-shared/src/func/bind.js"),
     undf = require("metaphorjs-shared/src/var/undf.js"),
-
     isFunction = require("metaphorjs-shared/src/func/isFunction.js"),
     levenshteinDiff = require("metaphorjs-shared/src/func/levenshteinDiff.js"),
     levenshteinMove = require("metaphorjs-shared/src/func/levenshteinMove.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
-
 
 module.exports = MetaphorJs.app.ListRenderer = cls({
 
@@ -458,10 +456,10 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
 
             if (r.firstEl !== next) {
                 if (next && r.lastEl.nextSibling !== next) {
-                    parent.insertBefore(tm ? toFragment(el) : el, next);
+                    parent.insertBefore(tm ? MetaphorJs.dom.toFragment(el) : el, next);
                 }
                 else if (!next) {
-                    parent.appendChild(tm ? toFragment(el) : el);
+                    parent.appendChild(tm ? MetaphorJs.dom.toFragment(el) : el);
                 }
             }
 

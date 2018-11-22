@@ -67,7 +67,7 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
         self.origExpr = expr;
         self.propertyName = null;
         self.staticValue = null;
-        self.dataObj = null;
+        self.dataObj = dataObj;
         self.currentValue = null;
         self.prevValue = null;
         self.rawInput = null;
@@ -93,7 +93,6 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
                     self.propertyName = propertyName;
                     self.getterFn = bind(self._propertyGetter, self);
                 }
-            self.dataObj = dataObj;
         }
         
         if (!self.getterFn && type === "expr") {
@@ -135,7 +134,8 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
             }
         }
 
-        self.currentValue = copy(self.getterFn(dataObj));
+        self.currentValue = self._getValue();
+        self.currentValueCopy = copy(self.currentValue);
         self.type = type;
     };
 
@@ -161,13 +161,14 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
         check: function() {
 
             var self = this,
-                curr = self.currentValue,
+                curr = self.currentValueCopy,
                 val = self._getValue();
 
             if (!equals(val, curr)) {
                 self.prevValue = curr;
-                self.currentValue = copy(val);
-                observable.trigger(self.id, self.currentValue, curr);
+                self.currentValue = val;
+                self.currentValueCopy = copy(val);
+                observable.trigger(self.id, self.currentValue, self.prevValue);
                 return true;
             }
 
@@ -214,6 +215,15 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
          */
         getValue: function() {
             return this.currentValue;
+        },
+
+        /**
+         * Get copy of current value of expression
+         * @method
+         * @returns {*}
+         */
+        getCopy: function() {
+            return this.currentValueCopy;
         },
 
         /**

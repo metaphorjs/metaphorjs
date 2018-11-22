@@ -268,6 +268,12 @@ module.exports = MetaphorJs.lib.Expression = (function() {
         },
 
 
+        _initSetter         = function(struct) {
+            struct.setterFn = expressionFn(struct.expr, {
+                setter: true
+            });
+        },
+
         deconstructor       = function(expr, opt) {
 
             opt = opt || {};
@@ -350,7 +356,12 @@ module.exports = MetaphorJs.lib.Expression = (function() {
 
         constructor         = function(struct, opt) {
 
-            if (struct.pipes.length === 0 && struct.inputPipes.length === 0) {
+            if (struct.pipes.length === 0 && 
+                struct.inputPipes.length === 0) {
+                if (opt.setterOnly) {
+                    !struct.setterFn && _initSetter(struct);
+                    return struct.setterFn;
+                }
                 return struct.fn;
             }
 
@@ -363,6 +374,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
                 if (struct.inputPipes.length && !opt.getterOnly) {
                     val = inputVal;
                     val = runThroughPipes(val, struct.inputPipes, dataObj);
+                    !struct.setterFn && _initSetter(struct);
                     struct.setterFn(dataObj, val);
                 }
 

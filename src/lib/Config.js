@@ -234,22 +234,42 @@ module.exports = MetaphorJs.lib.Config = (function(){
          *  @type {object} setTo
          *  @type {boolean} disabled
          *  @type {*} defaultValue
+         *  @type {int} defaultMode
          *  @type {int} mode 1: static, 2: dynamic, 3: single run
          * }
          */
-        setProperty: function(name, cfg) {
 
-            var self = this;
+        /**
+         * Set or update property
+         * @param {string} name 
+         * @param {string} cfg 
+         * @param {*} val 
+         */
+        setProperty: function(name, cfg, val) {
 
-            if (self.properties[name]) {
-                extend(self.properties[name], cfg, true, false);
+            var self = this,
+                props = self.properties;
+
+            if (props[name]) {
+                if (val === undf) {
+                    extend(props[name], cfg, true, false);
+                }
+                else {
+                    props[name][cfg] = val;
+                }
             }
             else {
                 self.keys.push(name);
-                self.properties[name] = cfg;
+                if (val === undf) {
+                    props[name] = cfg;
+                }
+                else {
+                    props[name] = {};
+                    props[name][cfg] = val;
+                }
             }
 
-            return self.properties[name];
+            return props[name];
         },
 
         /**

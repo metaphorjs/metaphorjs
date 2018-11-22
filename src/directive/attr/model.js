@@ -26,19 +26,24 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     autoOnChange: false,
 
     $init: function(scope, node, config, renderer, attrSet) {
+        
+        var self    = this,
+            expr    = config.getProperty("value").expression;
 
-        config.setProperty("value", {mode: MetaphorJs.lib.Config.MODE_FNSET});
+        config.setProperty("value", "mode", MetaphorJs.lib.Config.MODE_FNSET);
+        config.setProperty("checkRoot", {
+            type: 'bool',
+            defaultValue: expr.indexOf('$root') !== -1
+        });
+        config.setProperty("checkParent", {
+            type: 'bool',
+            defaultValue: expr.indexOf('$parent') !== -1
+        });
         config.setProperty("binding", {
             defaultValue: "both",
             mode: MetaphorJs.lib.Config.MODE_STATIC
         });
         config.lateInit();
-
-        var self    = this,
-            expr    = config.getProperty("value").expression;
-
-        //self.getterFn       = config.get("value").getter;
-        //self.setterFn       = config.get("value").setter;
 
         if (config.hasExpression("change")) {
             self.changeFn   = MetaphorJs.lib.Expression.parse(config.get("change"));
@@ -46,7 +51,6 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
         self.node           = node;
         self.input          = MetaphorJs.lib.Input.get(node, scope);
-        self.updateRoot     = expr.indexOf('$root') + expr.indexOf('$parent') !== -2;
         self.binding        = config.get("binding");
         self.mo             = MetaphorJs.lib.MutationObserver.get(
                                 scope, expr, null, null, {
@@ -60,7 +64,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         self.$super(scope, node, config, renderer, attrSet);
 
         var inputValue      = self.input.getValue(),
-            scopeValue      = self.mo.getValue(); //self.getterFn(scope);
+            scopeValue      = self.mo.getValue(); 
 
         self.initial = true;
 
@@ -90,17 +94,23 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
                 val = val.replace(/\\{/g, '{');
             }
 
-            //if (self.getterFn(self.scope) == val) {
             if (self.mo.getValue() == val) {
                 return;
             }
 
             self.mo.setValue(val);
-            //self.setterFn(self.scope, val);
-
             self.inProg = true;
+
             if (scope instanceof MetaphorJs.lib.Scope) {
-                self.updateRoot ? scope.$root.$check() : scope.$check();
+                if (self.config.get("checkRoot")) {
+                    scope.$root.$check();
+                }
+                else if (self.config.get("checkParent")) {
+                    scope.$parent.$check();
+                }
+                else {
+                    scope.$check();
+                }
             }
             else {
                 self.config.check("value");

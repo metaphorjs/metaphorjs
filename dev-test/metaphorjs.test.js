@@ -515,6 +515,12 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
         },
 
 
+        _initSetter         = function(struct) {
+            struct.setterFn = expressionFn(struct.expr, {
+                setter: true
+            });
+        },
+
         deconstructor       = function(expr, opt) {
 
             opt = opt || {};
@@ -597,7 +603,12 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
 
         constructor         = function(struct, opt) {
 
-            if (struct.pipes.length === 0 && struct.inputPipes.length === 0) {
+            if (struct.pipes.length === 0 && 
+                struct.inputPipes.length === 0) {
+                if (opt.setterOnly) {
+                    !struct.setterFn && _initSetter(struct);
+                    return struct.setterFn;
+                }
                 return struct.fn;
             }
 
@@ -610,6 +621,7 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
                 if (struct.inputPipes.length && !opt.getterOnly) {
                     val = inputVal;
                     val = runThroughPipes(val, struct.inputPipes, dataObj);
+                    !struct.setterFn && _initSetter(struct);
                     struct.setterFn(dataObj, val);
                 }
 
@@ -2360,7 +2372,7 @@ var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
         self.origExpr = expr;
         self.propertyName = null;
         self.staticValue = null;
-        self.dataObj = null;
+        self.dataObj = dataObj;
         self.currentValue = null;
         self.prevValue = null;
         self.rawInput = null;
@@ -2386,7 +2398,6 @@ var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
                     self.propertyName = propertyName;
                     self.getterFn = bind(self._propertyGetter, self);
                 }
-            self.dataObj = dataObj;
         }
         
         if (!self.getterFn && type === "expr") {
@@ -2428,7 +2439,8 @@ var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
             }
         }
 
-        self.currentValue = copy(self.getterFn(dataObj));
+        self.currentValue = self._getValue();
+        self.currentValueCopy = copy(self.currentValue);
         self.type = type;
     };
 
@@ -2454,13 +2466,14 @@ var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
         check: function() {
 
             var self = this,
-                curr = self.currentValue,
+                curr = self.currentValueCopy,
                 val = self._getValue();
 
             if (!equals(val, curr)) {
                 self.prevValue = curr;
-                self.currentValue = copy(val);
-                observable.trigger(self.id, self.currentValue, curr);
+                self.currentValue = val;
+                self.currentValueCopy = copy(val);
+                observable.trigger(self.id, self.currentValue, self.prevValue);
                 return true;
             }
 
@@ -2507,6 +2520,15 @@ var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
          */
         getValue: function() {
             return this.currentValue;
+        },
+
+        /**
+         * Get copy of current value of expression
+         * @method
+         * @returns {*}
+         */
+        getCopy: function() {
+            return this.currentValueCopy;
         },
 
         /**
@@ -9063,22 +9085,42 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
          *  @type {object} setTo
          *  @type {boolean} disabled
          *  @type {*} defaultValue
+         *  @type {int} defaultMode
          *  @type {int} mode 1: static, 2: dynamic, 3: single run
          * }
          */
-        setProperty: function(name, cfg) {
 
-            var self = this;
+        /**
+         * Set or update property
+         * @param {string} name 
+         * @param {string} cfg 
+         * @param {*} val 
+         */
+        setProperty: function(name, cfg, val) {
 
-            if (self.properties[name]) {
-                extend(self.properties[name], cfg, true, false);
+            var self = this,
+                props = self.properties;
+
+            if (props[name]) {
+                if (val === undf) {
+                    extend(props[name], cfg, true, false);
+                }
+                else {
+                    props[name][cfg] = val;
+                }
             }
             else {
                 self.keys.push(name);
-                self.properties[name] = cfg;
+                if (val === undf) {
+                    props[name] = cfg;
+                }
+                else {
+                    props[name] = {};
+                    props[name][cfg] = val;
+                }
             }
 
-            return self.properties[name];
+            return props[name];
         },
 
         /**
@@ -12779,7 +12821,6 @@ function levenshteinMove(a1, a2, prs, getKey) {
 
 
 
-
 var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
 
     id: null,
@@ -13214,10 +13255,10 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
 
             if (r.firstEl !== next) {
                 if (next && r.lastEl.nextSibling !== next) {
-                    parent.insertBefore(tm ? toFragment(el) : el, next);
+                    parent.insertBefore(tm ? dom_toFragment(el) : el, next);
                 }
                 else if (!next) {
-                    parent.appendChild(tm ? toFragment(el) : el);
+                    parent.appendChild(tm ? dom_toFragment(el) : el);
                 }
             }
 
@@ -14686,19 +14727,24 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     autoOnChange: false,
 
     $init: function(scope, node, config, renderer, attrSet) {
+        
+        var self    = this,
+            expr    = config.getProperty("value").expression;
 
-        config.setProperty("value", {mode: lib_Config.MODE_FNSET});
+        config.setProperty("value", "mode", lib_Config.MODE_FNSET);
+        config.setProperty("checkRoot", {
+            type: 'bool',
+            defaultValue: expr.indexOf('$root') !== -1
+        });
+        config.setProperty("checkParent", {
+            type: 'bool',
+            defaultValue: expr.indexOf('$parent') !== -1
+        });
         config.setProperty("binding", {
             defaultValue: "both",
             mode: lib_Config.MODE_STATIC
         });
         config.lateInit();
-
-        var self    = this,
-            expr    = config.getProperty("value").expression;
-
-        //self.getterFn       = config.get("value").getter;
-        //self.setterFn       = config.get("value").setter;
 
         if (config.hasExpression("change")) {
             self.changeFn   = lib_Expression.parse(config.get("change"));
@@ -14706,7 +14752,6 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
         self.node           = node;
         self.input          = lib_Input.get(node, scope);
-        self.updateRoot     = expr.indexOf('$root') + expr.indexOf('$parent') !== -2;
         self.binding        = config.get("binding");
         self.mo             = lib_MutationObserver.get(
                                 scope, expr, null, null, {
@@ -14720,7 +14765,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         self.$super(scope, node, config, renderer, attrSet);
 
         var inputValue      = self.input.getValue(),
-            scopeValue      = self.mo.getValue(); //self.getterFn(scope);
+            scopeValue      = self.mo.getValue(); 
 
         self.initial = true;
 
@@ -14750,17 +14795,23 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
                 val = val.replace(/\\{/g, '{');
             }
 
-            //if (self.getterFn(self.scope) == val) {
             if (self.mo.getValue() == val) {
                 return;
             }
 
             self.mo.setValue(val);
-            //self.setterFn(self.scope, val);
-
             self.inProg = true;
+
             if (scope instanceof lib_Scope) {
-                self.updateRoot ? scope.$root.$check() : scope.$check();
+                if (self.config.get("checkRoot")) {
+                    scope.$root.$check();
+                }
+                else if (self.config.get("checkParent")) {
+                    scope.$parent.$check();
+                }
+                else {
+                    scope.$check();
+                }
             }
             else {
                 self.config.check("value");
