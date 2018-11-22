@@ -24,13 +24,18 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
     node        = node || cfg.node;
     var config  = cfg.config || null;
 
+    cfg.config  = config;
     cfg.scope   = cfg.scope || scope;
     cfg.node    = cfg.node || node;
 
-    if (config) {
-        config.setType("cloak", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+    if (args.length === 0) {
+        args.push(cfg);
     }
 
+    if (config) {
+        config.setType("cloak", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setType("animate", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+    }
 
     var constr      = isString(cmp) ? ns.get(cmp) : cmp;
 
@@ -107,7 +112,7 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
             shadow: constr.$shadow,
             tpl: tpl,
             url: tplUrl,
-            animate: !!cfg.animate
+            animate: config ? config.get("animate") : false
         });
 
         defers.push(cfg.template.initPromise);
@@ -123,7 +128,6 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
 
     if (defers.length) {
         p = new MetaphorJs.lib.Promise;
-
         MetaphorJs.lib.Promise.all(defers)
             .done(function(){
                 p.resolve(

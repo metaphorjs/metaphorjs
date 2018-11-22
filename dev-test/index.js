@@ -155,10 +155,7 @@ cls({
 
         createNew: function() {
             var node    = document.getElementById("newComponent");
-            MetaphorJs.app.resolve("Test.DynamicComponent", {}, this.scope, node)
-                .done(function(){
-                    console.log("resolved Test.DynamicComponent");
-                });
+            MetaphorJs.app.resolve("Test.DynamicComponent", {}, this.scope, node);
         },
 
         createRender: function() {

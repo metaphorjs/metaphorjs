@@ -12303,13 +12303,18 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
     node        = node || cfg.node;
     var config  = cfg.config || null;
 
+    cfg.config  = config;
     cfg.scope   = cfg.scope || scope;
     cfg.node    = cfg.node || node;
 
-    if (config) {
-        config.setType("cloak", "bool", lib_Config.MODE_STATIC);
+    if (args.length === 0) {
+        args.push(cfg);
     }
 
+    if (config) {
+        config.setType("cloak", "bool", lib_Config.MODE_STATIC);
+        config.setType("animate", "bool", lib_Config.MODE_STATIC);
+    }
 
     var constr      = isString(cmp) ? ns.get(cmp) : cmp;
 
@@ -12386,7 +12391,7 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
             shadow: constr.$shadow,
             tpl: tpl,
             url: tplUrl,
-            animate: !!cfg.animate
+            animate: config ? config.get("animate") : false
         });
 
         defers.push(cfg.template.initPromise);
@@ -12402,7 +12407,6 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
 
     if (defers.length) {
         p = new lib_Promise;
-
         lib_Promise.all(defers)
             .done(function(){
                 p.resolve(
@@ -27571,7 +27575,6 @@ var app_Component = MetaphorJs.app.Component = cls({
         self._nodeReplaced = htmlTags.indexOf(self.node.tagName.toLowerCase()) === -1;
 
         if (!tpl || !(tpl instanceof app_Template)) {
-
             self.template = tpl = new app_Template({
                 scope: self.scope,
                 node: self.node,

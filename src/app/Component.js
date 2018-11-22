@@ -175,7 +175,6 @@ module.exports = MetaphorJs.app.Component = cls({
         self._nodeReplaced = htmlTags.indexOf(self.node.tagName.toLowerCase()) === -1;
 
         if (!tpl || !(tpl instanceof MetaphorJs.app.Template)) {
-
             self.template = tpl = new MetaphorJs.app.Template({
                 scope: self.scope,
                 node: self.node,

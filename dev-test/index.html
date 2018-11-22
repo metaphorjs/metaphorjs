@@ -316,14 +316,6 @@
                 <a href="http://www.kuindji.com">outside</a><br><br>
             </div>
 
-            <div class="case" id="newComponent">
-                Dynamically created component on existing element will go here
-            </div>
-
-            <div class="case" id="renderToComponent">
-                Dynamically created component with renderTo will go here
-            </div>
-
             <div class="case" {ignore}>
                 This element is ignored by renderer: {{ this.$root.a }}
             </div>
@@ -403,6 +395,14 @@
                 </mjs-each>
             </div>
 
+            <div class="case" id="newComponent">
+                Dynamically created component on existing element will go here
+            </div>
+
+            <div class="case" id="renderToComponent">
+                Dynamically created component with renderTo will go here
+            </div>
+            
             <div class="case double" 
                  {cmp}="Test.MyComponent"
                  {cmp.$as}="ctrl">
