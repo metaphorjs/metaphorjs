@@ -55,9 +55,6 @@ module.exports = MetaphorJs.lib.Config = (function(){
                         properties[k]
                 );
             }
-            if (!self.cfg.deferInit) {
-                self._initialCalc();
-            }
         }
     };
 
@@ -69,49 +66,25 @@ module.exports = MetaphorJs.lib.Config = (function(){
         keys: null,
         cfg: null,
 
-        /**
-         * If you used deferInit=true, use this method to finish
-         * initialization
-         * @method
-         */
-        lateInit: function() {
-            this._initialCalc();
-        },
-
-        _initialCalc: function() {
+        _initMo: function(name) {
             var self = this,
-                prop,
-                scope = self.cfg.scope,
-                name;
-
-            for (name in self.properties) {
-
                 prop = self.properties[name];
+            prop.mo = MetaphorJs.lib.MutationObserver.get(
+                self.cfg.scope, prop.expression
+            );
+            prop.mo.subscribe(self._onPropMutated, self, {
+                append: [name]
+            });
+        }, 
 
-                if (!prop || prop.disabled || !prop.expression) {
-                    continue;
-                }
-
-                if (!prop.mode) {
-                    prop.mode = prop.defaultMode || MODE_DYNAMIC;
-                }
-
-                if (prop.expression === true) {
-                    prop.mode = MODE_STATIC;
-                }
-                else if (prop.mode === MODE_DYNAMIC) {
-                    prop.mo = MetaphorJs.lib.MutationObserver.get(
-                        scope, prop.expression
-                    );
-                    prop.mo.subscribe(self._onPropMutated, self, {
-                        append: [name]
-                    });
-                }
+        _unsetMo: function(name) {
+            var self = this, prop = self.properties[name];
+            if (prop.mo) {
+                prop.mo.unsubscribe(self._onPropMutated, self);
+                prop.mo.$destroy(true);
+                prop.mo = null;
             }
-
-            self._initialCalc = emptyFn;
         },
-
 
         _calcProperty: function(name) {
 
@@ -127,7 +100,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
             if (prop.expression) {
 
                 if (!prop.mode) {
-                    prop.mode = prop.defaultMode || MODE_DYNAMIC;
+                    prop.mode = MODE_DYNAMIC;
                 }
 
                 if (prop.mode === MODE_STATIC) {
@@ -140,9 +113,8 @@ module.exports = MetaphorJs.lib.Config = (function(){
                     );
                 }
                 else if (prop.mode === MODE_DYNAMIC) {
-                    if (prop.mo) {
-                        value = prop.mo.getValue();
-                    }
+                    !prop.mo && self._initMo(name);
+                    value = prop.mo.getValue();
                 }
                 else if (prop.mode === MODE_GETTER || 
                          prop.mode === MODE_SETTER) {
@@ -216,13 +188,14 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 value;
 
             value = self._prepareValue(val, prop);
-            self.values[name] = val;
+
+            self.values[name] = value;
             if (setTo) {
-                setTo[name] = val;
+                setTo[name] = value;
             }
 
-            $$observable.trigger(this.id, name, val, prev);
-            $$observable.trigger(this.id +'-'+ name, val, prev);
+            $$observable.trigger(this.id, name, value, prev);
+            $$observable.trigger(this.id +'-'+ name, value, prev);
         },
 
         /**
@@ -248,27 +221,35 @@ module.exports = MetaphorJs.lib.Config = (function(){
         setProperty: function(name, cfg, val) {
 
             var self = this,
-                props = self.properties;
+                props = self.properties,
+                prop;
 
-            if (props[name]) {
-                if (val === undf) {
-                    extend(props[name], cfg, true, false);
-                }
-                else {
-                    props[name][cfg] = val;
-                }
-            }
-            else {
+            if (!props[name]) {
+                props[name] = {};
                 self.keys.push(name);
-                if (val === undf) {
-                    props[name] = cfg;
+            }
+
+            prop = props[name];
+            val === undf ?
+                extend(prop, cfg, true, false) :
+                prop[cfg] = val;
+
+            if (!prop.mode) {
+                if (prop.defaultMode) {
+                    prop.mode = prop.defaultMode;
                 }
-                else {
-                    props[name] = {};
-                    props[name][cfg] = val;
+                else if (prop.expression === true) {
+                    prop.mode = MODE_STATIC;
                 }
             }
 
+            if (prop.mode === MODE_DYNAMIC && 
+                prop.expression && 
+                !prop.mo && 
+                !prop.disabled) {
+                self._initMo(name);
+            }
+        
             return props[name];
         },
 
@@ -282,11 +263,20 @@ module.exports = MetaphorJs.lib.Config = (function(){
         },
 
         /**
+         * Get property expression
+         * @param {string} name 
+         */
+        getExpression: function(name) {
+            var prop = this.getProperty(name);
+            return prop ? (prop.expression || null) : null;
+        },
+
+        /**
          * Get all config values
          * @method
          * @returns {object}
          */
-        getValues: function() {
+        getAll: function() {
             var self = this, k, vs = {};
             for (k in self.properties) {
                 if (self.values[k] === undf) {
@@ -331,22 +321,86 @@ module.exports = MetaphorJs.lib.Config = (function(){
             return !!(this.properties[name] && this.properties[name].expression);
         },
 
+        _toggleProperty: function(name, val) {
+            var self = this,
+                prop = self.properties[name],
+                prev = prop ? prop.disabled || false : false;
+
+            if (!prop) {
+                prop = self.setProperty(name, {
+                    disabled: val
+                });
+            }
+            else if (prev !== val) {
+                prop.mode === MODE_DYNAMIC && self[val ? "_initMo" : "_unsetMo"](name);
+                prop.disabled = val;
+            }
+        },
+
+        /**
+         * Disable MutationObserver on a property
+         * @param {string} name 
+         */
+        disableProperty: function(name) {
+            this._toggleProperty(name, true);
+        },
+
+        /**
+         * Enable MutationObserver on a property
+         * @param {string} name 
+         */
+        enableProperty: function(name) {
+            this._toggleProperty(name, false);
+        },
+
+        /**
+         * Set property mode
+         * @param {string} name 
+         * @param {int} mode 
+         */
+        setMode: function(name, mode) {
+            this.setProperty(name, "mode", mode);
+        },
+
+        /**
+         * Set property type
+         * @param {string} name 
+         * @param {string} type 
+         * @param {int} defaultMode {
+         *  @optional
+         * }
+         */
+        setType: function(name, type, defaultMode) {
+            this.setProperty(name, "type", type);
+            if (defaultMode) {
+                this.setProperty(name, "defaultMode", defaultMode);
+            }
+        },
+
+        /**
+         * Set default mode
+         * @param {string} name 
+         * @param {int} mode 
+         */
+        setDefaultMode: function(name, mode) {
+            this.setProperty(name, "defaultMode", mode);
+        },
+
+        /**
+         * Set default value
+         * @param {string} name 
+         * @param {*} val 
+         */
+        setDefaultValue: function(name, val) {
+            this.setProperty(name, "defaultValue", val);
+        },
+
         /**
          * Get property keys
          * @returns {array}
          */
         getKeys: function() {
             return this.keys;
-        },
-
-        /**
-         * Get property value
-         * @method
-         * @param {string} name 
-         * @returns {*}
-         */
-        getValue: function(name) {
-            return this.get(name);
         },
 
         /**
@@ -366,7 +420,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                     name = k.replace("value.", "");
                 }
                 else continue;
-                vs[name] = self.getValue(k);
+                vs[name] = self.get(k);
             }
 
             return vs;
@@ -485,20 +539,15 @@ module.exports = MetaphorJs.lib.Config = (function(){
         clear: function() {
             var self = this,
             id = self.id,
-            k, prop;
+            k;
 
             if (self.properties === null) {
                 return;
             }
 
             for (k in self.properties) {
-                prop = self.properties[k];
-                if (prop.mo) {
-                    prop.mo.unsubscribe(self._onPropMutated, self);
-                    prop.mo.$destroy(true);
-                    prop.mo = null;
-                }
-                $$observable.destroyEvent(id +'-'+ prop.name);
+                self._unsetMo(k);
+                $$observable.destroyEvent(id +'-'+ k);
             }
 
             $$observable.destroyEvent(id);

@@ -16,17 +16,18 @@ var Directive = require("../../app/Directive.js"),
         i, len;
 
     var prepareConfig = function(config) {
-        config.setProperty("preventDefault", {type: "bool", defaultValue: true});
-        config.setProperty("stopPropagation", {type: "bool"});
-        config.setProperty("if", {type: "bool"});
+        config.setProperty("preventDefault", {
+            type: "bool", 
+            defaultValue: true,
+            defaultMode: MetaphorJs.lib.Config.MODE_STATIC
+        });
+        config.setType("stopPropagation", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setType("if", "bool");
         config.eachProperty(function(k){
             if (k === 'value' || k.indexOf('value.') === 0) {
-                config.setProperty(k, {
-                    mode: MetaphorJs.lib.Config.MODE_FUNC
-                });
+                config.setMode(k, MetaphorJs.lib.Config.MODE_FUNC);
             }
         });
-        config.lateInit();
         return config;
     };
 

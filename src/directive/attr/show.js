@@ -1,6 +1,7 @@
 
 require("metaphorjs-promise/src/lib/Promise.js");
 require("metaphorjs-animate/src/animate/animate.js");
+require("../../lib/Config.js");
 
 var raf = require("metaphorjs-animate/src/func/raf.js"),
     Directive = require("../../app/Directive.js");
@@ -12,7 +13,7 @@ Directive.registerAttribute("show", 500, Directive.$extend({
     initial: true,
 
     initialSet: function() {
-        this.config.setProperty("animate", {type: "bool"});
+        this.config.setType("animate", "bool", MetaphorJs.lib.Config.MODE_STATIC);
         this.$super();
     },
 

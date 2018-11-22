@@ -8,6 +8,7 @@ require("./Directive.js");
 require("../func/dom/addClass.js");
 require("../func/dom/removeClass.js");
 require("../lib/Scope.js");
+require("../lib/Config.js");
 require("metaphorjs-observable/src/mixin/Observable.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
@@ -134,9 +135,15 @@ module.exports = MetaphorJs.app.Component = cls({
         if (!self.scope) {
             self.scope = new MetaphorJs.lib.Scope;
         }
+        if (!self.config) {
+            self.config = new MetaphorJs.lib.Config(null, {
+                scope: self.scope
+            });
+        }
+        self._initConfig();
 
-        if (self.as) {
-            self.scope[self.as] = self;
+        if (self.config.hasExpression("as")) {
+            self.scope[self.config.get("as")] = self;
         }
 
         if (self.node) {
@@ -211,6 +218,8 @@ module.exports = MetaphorJs.app.Component = cls({
             }
         }
     },
+
+    _initConfig: emptyFn,
 
     _createNode: function() {
 

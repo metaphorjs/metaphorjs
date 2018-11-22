@@ -36,15 +36,14 @@ or
 
 Directive.registerAttribute("key", 1000, function(scope, node, config, renderer, attrSet){
 
-    config.setProperty("value", {disabled: true});
+    config.disableProperty("value");
     config.eachProperty(function(k, prop){
         if (k.indexOf('value.') === 0) {
             if (prop.expression.charAt(0) !== '{') {
-                config.setProperty(k, {mode: MetaphorJs.lib.Config.MODE_FUNC});
+                config.setMode(k, MetaphorJs.lib.Config.MODE_FUNC);
             }
         }
     });
-    config.lateInit();
 
     var createHandler = function(name, cfg) {
 

@@ -97,9 +97,8 @@ DO NOT put class="{}" when using class.name="{}"
 
         $init: function(scope, node, config, renderer, attrSet) {
 
-            config.setProperty("animate", {type: "bool"});
-            config.lateInit();
-            config.eachProperty(function(k){
+            config.setType("animate", "bool");
+            config.eachProperty(function(k) {
                 if (k === 'value' || k.indexOf("value.") === 0) {
                     config.on(k, self.onChange, self);
                 }

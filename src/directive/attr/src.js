@@ -1,6 +1,7 @@
 require("metaphorjs-shared/src/lib/Queue.js");
 require("../../func/dom/preloadImage.js");
 require("../../func/dom/setAttr.js");
+require("../../lib/Config.js");
 
 var raf = require("metaphorjs-animate/src/func/raf.js"),
     Directive = require("../../app/Directive.js"),
@@ -21,10 +22,11 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
 
     $constructor: function(scope, node, config, renderer, attrSet) {
 
-        config.setProperty("deferred", {type: "bool"});
-        config.setProperty("noCache", {type: "bool"});
-        config.setProperty("noPreload", {type: "bool"});
-        config.lateInit();
+        config.setType("deferred", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setType("noCache", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setType("noPreload", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setDefaultMode("preloadSize", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setDefaultMode("plugin", MetaphorJs.lib.Config.MODE_STATIC);
 
         var self = this;
 

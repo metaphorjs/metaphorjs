@@ -28,11 +28,10 @@ Directive.registerAttribute("options", 100, Directive.$extend({
 
     $init: function(scope, node, config) {
 
-        config.setProperty("value", {disabled: true});
-        config.lateInit();
+        config.disableProperty("value");
 
         var self    = this,
-            expr    = config.getProperty("value").expression;
+            expr    = config.getExpression("value");
 
         self.parseExpr(expr);
 

@@ -9,8 +9,6 @@ var Directive = require("../../app/Directive.js");
 Directive.registerAttribute("update-on", 1000,
     function(scope, node, config, renderer, attrSet) {
 
-        config.lateInit();
-
         var toggle = function(mode) {
             config.eachProperty(function(k){
                 if (k.indexOf("value.")===0) {

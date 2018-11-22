@@ -154,9 +154,11 @@ cls({
         },
 
         createNew: function() {
-
             var node    = document.getElementById("newComponent");
-            MetaphorJs.app.resolve("Test.DynamicComponent", {}, this.scope, node);
+            MetaphorJs.app.resolve("Test.DynamicComponent", {}, this.scope, node)
+                .done(function(){
+                    console.log("resolved Test.DynamicComponent");
+                });
         },
 
         createRender: function() {

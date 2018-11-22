@@ -1,6 +1,7 @@
 
 require("../../func/dom/toFragment.js");
 require("../../func/dom/getAttr.js");
+require("../../lib/Config.js");
 
 var Directive = require("../../app/Directive.js"),
     undf = require("metaphorjs-shared/src/var/undf.js"),
@@ -21,12 +22,11 @@ Directive.registerTag("if", Directive.attr.If.$extend({
         self.children = toArray(node.childNodes);
         self.childrenFrag = MetaphorJs.dom.toFragment(self.children);
 
-        config.setProperty("once", {type: "bool"});
+        config.setType("once", "bool", MetaphorJs.lib.Config.MODE_STATIC);
         config.setProperty("value", {
             expression: MetaphorJs.dom.getAttr(node, "value"),
             type: "bool"
         });
-        config.lateInit();
 
         self.createCommentWrap();
         self.$super(scope, node, config, renderer, attrSet);   

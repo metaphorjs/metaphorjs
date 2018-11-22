@@ -7,15 +7,15 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 MetaphorJs.app.Directive.registerAttribute("router", 200, 
     function(scope, node, config, parentRenderer) {
 
-    config.setProperty("scrollOnChange", {type: "bool"});
+    config.setProperty("scrollOnChange", {
+        type: "bool",
+        defaultMode: MetaphorJs.lib.Config.MODE_STATIC
+    });
     config.setProperty("value", {
         defaultMode: MetaphorJs.lib.Config.MODE_STATIC,
         defaultValue: "MetaphorJs.app.Router"
     });
-    config.setProperty("defaultCmp", {
-        defaultMode: MetaphorJs.lib.Config.MODE_STATIC
-    });
-    config.lateInit();
+    config.setDefaultMode("defaultCmp", MetaphorJs.lib.Config.MODE_STATIC);
 
     var cfg = {scope: scope, node: node, config: config};
 

@@ -70,7 +70,7 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
                 returnValue = undf,
                 stopPropagation = false,
                 res,
-                cfg = self.config.getValues(),
+                cfg = self.config.getAll(),
                 handler = self.config.get("value");
 
             cfg.preventDefault !== undf && (preventDefault = cfg.preventDefault);

@@ -1,5 +1,6 @@
 
 require("metaphorjs-animate/src/animate/animate.js");
+require("../../lib/Config.js");
 
 var Directive = require("../../app/Directive.js");
 
@@ -18,8 +19,8 @@ Directive.registerAttribute("if", 500, Directive.$extend({
     $init: function(scope, node, config, renderer, attrSet) {
 
         var self    = this;
-        config.setProperty("value", {type: "bool"});
-        config.setProperty("once", {type: "bool"});
+        config.setType("value", "bool");
+        config.setType("once", "bool", MetaphorJs.lib.Config.MODE_STATIC);
         self.createCommentWrap(node, "if");
         self.$super(scope, node, config, renderer, attrSet);
     },

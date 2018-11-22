@@ -28,15 +28,14 @@ Directive.registerAttribute("bind", 1000,
                 self.input.onChange(self.onInputChange, self);
             }
 
-            config.setProperty("locked", {type: "bool"});
-            config.lateInit();
+            config.setType("locked", "bool");
 
             if (config.get("recursive")) {
-                config.setProperty("value", {disabled: true});
-                config.setProperty("recursive", {disabled: true});
+                config.disableProperty("value");
+                config.disableProperty("recursive");
                 self.textRenderer = new MetaphorJs.lib.Text(
                     scope, 
-                    config.getProperty("value").expression, 
+                    config.getExpression("value"), 
                     {recursive: true, fullExpr: true}
                 );
                 self.textRenderer.subscribe(self.onTextRendererChange, self);

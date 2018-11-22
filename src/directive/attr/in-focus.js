@@ -8,7 +8,7 @@ Directive.registerAttribute("in-focus", 500, Directive.$extend({
     $class: "MetaphorJs.app.Directive.attr.InFocus",
 
     initialSet: function() {
-        this.config.setProperty("value", {type: "bool"});
+        this.config.setType("value", "bool");
         this.$super();
     },
 

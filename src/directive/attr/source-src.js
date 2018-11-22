@@ -1,5 +1,6 @@
 require("metaphorjs/src/func/dom/select.js");
 require("../../func/dom/setAttr.js");
+require("../../lib/Config.js");
 
 var Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
@@ -16,9 +17,9 @@ Directive.registerAttribute("source-src", 1000, Directive.$extend({
 
     $constructor: function(scope, node, config, renderer, attrSet) {
 
-        config.setProperty("deferred", {type: "bool"});
-        config.setProperty("noCache", {type: "bool"});
-        config.lateInit();
+        config.setType("deferred", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setType("noCache", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setDefaultMode("plugin", MetaphorJs.lib.Config.MODE_STATIC);
 
         var self = this;
 

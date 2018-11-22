@@ -6,6 +6,7 @@ require("../dom/data.js");
 require("../dom/addClass.js");
 require("../dom/removeClass.js");
 require("../../app/Template.js")
+require("../../lib/Config.js");
 
 var extend = require("metaphorjs-shared/src/func/extend.js"),
     error = require("metaphorjs-shared/src/func/error.js"),
@@ -21,9 +22,15 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
 
     scope       = scope || cfg.scope; // || new Scope;
     node        = node || cfg.node;
+    var config  = cfg.config || null;
 
     cfg.scope   = cfg.scope || scope;
     cfg.node    = cfg.node || node;
+
+    if (config) {
+        config.setType("cloak", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+    }
+
 
     var constr      = isString(cmp) ? ns.get(cmp) : cmp;
 
@@ -43,11 +50,11 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
         gProvider   = MetaphorJs.lib.Provider.global(),
         injectFn    = app ? app.inject : gProvider.inject,
         injectCt    = app ? app : gProvider,
-        cloak       = cfg.cloak || null,
+        cloak       = config ? config.get("cloak") : null,
         inject      = {
             $node: node || null,
             $scope: scope || null,
-            $config: cfg || null,
+            $config: config || null,
             $args: args || null
         };
 

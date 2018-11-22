@@ -18,8 +18,7 @@ var Directive = require("../../app/Directive.js"),
 
         $init: function(scope, node, config, propName) {
             this.propName = propName;
-            config.setProperty("value", {type: "bool"});
-            config.lateInit();
+            config.setType("value", "bool");
             this.$super(scope, node, config);
         },
 

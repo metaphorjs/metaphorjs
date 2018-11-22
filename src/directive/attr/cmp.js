@@ -3,24 +3,22 @@ require("../../func/app/resolve.js");
 require("../../lib/Config.js");
 
 var Directive = require("../../app/Directive.js"),
-    extend = require("metaphorjs-shared/src/func/extend.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js");
 
 (function(){
 
-    var cmpAttr = function(scope, node, config, parentRenderer, attrSet){
+    var cmpAttr = function(scope, node, config, parentRenderer, attrSet) { 
 
-        config.setProperty("value", {defaultMode: MetaphorJs.lib.Config.MODE_STATIC});
-        config.setProperty("sameScope", {type: "bool"});
-        config.setProperty("isolateScope", {type: "bool"});
-        config.setProperty("as", {defaultMode: MetaphorJs.lib.Config.MODE_STATIC});
-        config.lateInit();
+        config.setDefaultMode("value", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setType("sameScope", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setType("isolateScope", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setDefaultMode("as", MetaphorJs.lib.Config.MODE_STATIC);
 
         var cmpName = config.get("value"),
             constr  = typeof cmpName === "string" ?
                         ns.get(cmpName, true) : cmpName,
-            nodecfg = config.getValues();
+            nodecfg = config.getAll();
 
         if (!constr) {
             throw new Error("Component " + cmpName + " not found");
@@ -32,19 +30,29 @@ var Directive = require("../../app/Directive.js"),
         var newScope = isolateScope ? scope.$newIsolated() : 
                                         (sameScope ? scope : scope.$new());
 
-        var cfg     = extend({
+        /*var cfg     = extend({
             scope: newScope,
             node: node,
+            config: config,
             parentRenderer: parentRenderer,
             destroyScope: !sameScope
-        }, nodecfg, false, false);
+        }, nodecfg, false, false);*/
 
-        MetaphorJs.app.resolve(cmpName, cfg, newScope, node, [cfg])
-            .done(function(cmp){
+        var cfg = {
+            scope: newScope,
+            node: node,
+            config: config,
+            parentRenderer: parentRenderer,
+            destroyScope: !sameScope
+        };
+
+        MetaphorJs.app.resolve(cmpName, cfg, newScope, node, [cfg]);
+            /*.done(function(cmp) {
+
                 if (attrSet.ref) {
                     scope[attrSet.ref] = cmp;
                 }
-            });
+            });*/
 
         return constr.$resumeRenderer || !!constr.$shadow;
     };

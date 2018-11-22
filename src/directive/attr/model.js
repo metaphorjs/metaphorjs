@@ -30,7 +30,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         var self    = this,
             expr    = config.getProperty("value").expression;
 
-        config.setProperty("value", "mode", MetaphorJs.lib.Config.MODE_FNSET);
+        config.setMode("value", MetaphorJs.lib.Config.MODE_FNSET);
         config.setProperty("checkRoot", {
             type: 'bool',
             defaultValue: expr.indexOf('$root') !== -1
@@ -43,7 +43,6 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             defaultValue: "both",
             mode: MetaphorJs.lib.Config.MODE_STATIC
         });
-        config.lateInit();
 
         if (config.hasExpression("change")) {
             self.changeFn   = MetaphorJs.lib.Expression.parse(config.get("change"));

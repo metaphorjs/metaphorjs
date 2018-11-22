@@ -5,6 +5,7 @@ require("../func/dom/toFragment.js");
 require("./Renderer.js");
 require("metaphorjs-shared/src/lib/Queue.js");
 require("../lib/MutationObserver.js");
+require("../lib/Config.js");
 require("metaphorjs-animate/src/animate/animate.js");
 require("metaphorjs-animate/src/animate/isCssSupported.js");
 
@@ -49,10 +50,10 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
 
     $constructor: function(scope, node, config, parentRenderer, attrSet) {
 
-        config.setProperty("trackBy", {type: 'bool'});
+        config.setDefaultMode("trackBy", MetaphorJs.lib.Config.MODE_STATIC);
 
         var self    = this, 
-            cfg     = config.getValues();
+            cfg     = config.getAll();
 
         self.cfg            = config;
         self.scope          = scope;
@@ -98,7 +99,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
             expr = MetaphorJs.dom.getAttr(node, "value");
         }
         else {
-            expr = config.getProperty("value").expression;
+            expr = config.getExpression("value");
         }
 
         self.parseExpr(expr);

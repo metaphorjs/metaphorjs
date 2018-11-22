@@ -63,7 +63,6 @@ module.exports = MetaphorJs.app.Directive = (function() {
         initialSet: function() {
             var self = this,
                 val;
-            self.config.lateInit();
             self.config.on("value", self.onChange, self);
             if (self.autoOnChange && (val = self.config.get("value")) !== undf) {
                 self.onChange(val, undf);

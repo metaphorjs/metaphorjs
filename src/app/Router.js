@@ -1,5 +1,6 @@
 require("../lib/History.js");
 require("../lib/UrlParam.js");
+require("../lib/Config.js");
 require("metaphorjs-animate/src/animate/animate.js");
 require("metaphorjs-animate/src/animate/stop.js");
 require("metaphorjs-shared/src/func/browser/parseLocation.js");
@@ -60,6 +61,12 @@ module.exports = MetaphorJs.app.Router = cls({
         extend(self, cfg, true, false);
 
         self.routeMap = {};
+
+        if (!self.config) {
+            self.config = new MetaphorJs.lib.Config(null, {
+                scope: self.scope
+            });
+        }
 
         var node = self.node;
 

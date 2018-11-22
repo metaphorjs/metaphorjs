@@ -355,6 +355,8 @@ module.exports = MetaphorJs.lib.Expression = (function() {
 
 
         constructor         = function(struct, opt) {
+            
+            opt = opt || {};
 
             if (struct.pipes.length === 0 && 
                 struct.inputPipes.length === 0) {
@@ -364,8 +366,6 @@ module.exports = MetaphorJs.lib.Expression = (function() {
                 }
                 return struct.fn;
             }
-
-            opt = opt || {};
 
             return function(dataObj, inputVal) {
 

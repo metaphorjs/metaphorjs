@@ -28,15 +28,14 @@ var Directive = require("../../app/Directive.js"),
     }
 
     var eachDirective = function eachDirective(scope, node, config, parentRenderer, attrSet) {
-        config.setProperty("value", {disabled: true});
-        config.lateInit();
+        config.disableProperty("value");
         var tagMode = node.nodeName.toLowerCase() === "mjs-each",
             expr;
         if (tagMode) {
             expr = MetaphorJs.dom.getAttr(node, "value");
         }
         else {
-            expr = config.getProperty("value").expression;
+            expr = config.getExpression("value");
         }
         var handler = detectModelType(expr, scope) || MetaphorJs.app.ListRenderer;
 
