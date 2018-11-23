@@ -40,7 +40,6 @@ module.exports = MetaphorJs.lib.Text = (function(){
                 startIndex,
                 endIndex,
                 expr,
-                w,
                 result      = "";
 
             if (fullExpr) {
@@ -57,6 +56,9 @@ module.exports = MetaphorJs.lib.Text = (function(){
                     if (endIndex !== startIndex + startSymbolLength) {
                         expr = text.substring(startIndex + startSymbolLength, endIndex);
                         expr = expr.trim();
+
+
+
                         result += _procExpr(expr, scope, observers);
                     }
 
@@ -117,12 +119,16 @@ module.exports = MetaphorJs.lib.Text = (function(){
         self.destroyed  = false;
         self.fullExpr   = false;
         self.recursive  = false;
+        self.once       = false;
 
         if (opt.recursive === true || opt.recursive === false) {
             self.recursive = opt.recursive;
         }
         if (opt.fullExpr === true || opt.fullExpr === false) {
             self.fullExpr = opt.fullExpr;
+        }
+        if (opt.once === true || opt.once === false) {
+            self.once = opt.once;
         }
 
         self._processDelegate = bind(self._process, self);
@@ -146,7 +152,9 @@ module.exports = MetaphorJs.lib.Text = (function(){
             self.observers = [];
 
             self.text = render(self.origin, self.scope, 
-                                self.observers, self.recursive, self.fullExpr);
+                                self.observers, 
+                                self.recursive, 
+                                self.fullExpr);
 
             self._observeData(self.observers, "subscribe");
             self._destroyObservers(obs);

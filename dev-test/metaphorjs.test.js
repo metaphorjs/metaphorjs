@@ -20377,6 +20377,168 @@ MetaphorJs.filter.uppercase = function(val){
 
 
 
+
+
+
+
+
+
+var app_init = MetaphorJs.app.init = function app_init(node, cls, data, autorun) {
+
+    var attrDirs = MetaphorJs.directive.attr;
+
+    var attrs = dom_getAttrSet(node, function(name) {
+        return !!attrDirs[name];
+    });
+
+    var cfg = attrs.directive.app ? attrs.directive.app.config : {},
+        i, l;
+
+    if (attrs.names['app']) {
+        for (i = 0, l = attrs.names['app'].length; i < l; i++) {
+            dom_removeAttr(node, attrs.names[i]);
+        }
+    }
+
+    try {
+        var p = app_resolve(
+                    cls || "MetaphorJs.app.App", 
+                    extend({}, cfg), 
+                    data, 
+                    node, 
+                    [node, data]
+                );
+
+        if (autorun !== false) {
+            return p.done(function(app){
+                app.run();
+            });
+        }
+        else {
+            return p;
+        }
+    }
+    catch (thrownError) {
+        error(thrownError);
+        return lib_Promise.reject(thrownError);
+    }
+};
+
+
+
+
+
+
+
+/**
+ * Execute callback when window is ready
+ * @function MetaphorJs.dom.onReady
+ * @param {function} fn {
+ *  @param {Window} win
+ * }
+ * @param {Window} w optional window object
+ */
+var dom_onReady = MetaphorJs.dom.onReady = function dom_onReady(fn, w) {
+
+    var done    = false,
+        top     = true,
+        win     = w || window,
+        root, doc,
+
+        init    = function(e) {
+            if (e.type == 'readystatechange' && doc.readyState != 'complete') {
+                return;
+            }
+
+            dom_removeListener(e.type == 'load' ? win : doc, e.type, init);
+
+            if (!done && (done = true)) {
+                fn.call(win, e.type || e);
+            }
+        },
+
+        poll = function() {
+            try {
+                root.doScroll('left');
+            } 
+            catch(thrownError) {
+                setTimeout(poll, 50);
+                return;
+            }
+
+            init('poll');
+        };
+
+    doc     = win.document;
+    root    = doc.documentElement;
+
+    if (doc.readyState == 'complete') {
+        fn.call(win, 'lazy');
+    }
+    else {
+        if (doc.createEventObject && root.doScroll) {
+            try {
+                top = !win.frameElement;
+            } 
+            catch(thrownError) {}
+
+            top && poll();
+        }
+        dom_addListener(doc, 'DOMContentLoaded', init);
+        dom_addListener(doc, 'readystatechange', init);
+        dom_addListener(win, 'load', init);
+    }
+};
+
+
+
+
+
+
+
+
+
+/**
+ * Run application
+ * @function MetaphorJs.app.run
+ * @param {Window} win
+ * @param {object} appData
+ */
+var run = MetaphorJs.app.run = function app_run(w, appData) {
+
+    var win = w || window;
+
+    if (!win) {
+        throw new Error("Window object neither defined nor provided");
+    }
+
+    dom_onReady(function() {
+
+        var appNodes    = select("[mjs-app]", win.document),
+            i, l, el;
+
+        for (i = -1, l = appNodes.length; ++i < l;){
+            el      = appNodes[i];
+            app_init(
+                el,
+                dom_getAttr(el, "mjs-app"),
+                appData,
+                true
+            );
+        }
+    }, win);
+
+};
+
+
+
+
+run();
+
+
+
+
+
 // add namespace manually
 MetaphorJs.validator = MetaphorJs.validator || {};
 
@@ -27962,121 +28124,6 @@ var app_Component = MetaphorJs.app.Component = cls({
 
 
 
-
-
-
-
-
-
-
-var app_init = MetaphorJs.app.init = function app_init(node, cls, data, autorun) {
-
-    var attrDirs = MetaphorJs.directive.attr;
-
-    var attrs = dom_getAttrSet(node, function(name) {
-        return !!attrDirs[name];
-    });
-
-    var cfg = attrs.directive.app ? attrs.directive.app.config : {},
-        i, l;
-
-    if (attrs.names['app']) {
-        for (i = 0, l = attrs.names['app'].length; i < l; i++) {
-            dom_removeAttr(node, attrs.names[i]);
-        }
-    }
-
-    try {
-        var p = app_resolve(
-                    cls || "MetaphorJs.app.App", 
-                    extend({}, cfg), 
-                    data, 
-                    node, 
-                    [node, data]
-                );
-
-        if (autorun !== false) {
-            return p.done(function(app){
-                app.run();
-            });
-        }
-        else {
-            return p;
-        }
-    }
-    catch (thrownError) {
-        error(thrownError);
-        return lib_Promise.reject(thrownError);
-    }
-};
-
-
-
-
-
-
-
-/**
- * Execute callback when window is ready
- * @function MetaphorJs.dom.onReady
- * @param {function} fn {
- *  @param {Window} win
- * }
- * @param {Window} w optional window object
- */
-var dom_onReady = MetaphorJs.dom.onReady = function dom_onReady(fn, w) {
-
-    var done    = false,
-        top     = true,
-        win     = w || window,
-        root, doc,
-
-        init    = function(e) {
-            if (e.type == 'readystatechange' && doc.readyState != 'complete') {
-                return;
-            }
-
-            dom_removeListener(e.type == 'load' ? win : doc, e.type, init);
-
-            if (!done && (done = true)) {
-                fn.call(win, e.type || e);
-            }
-        },
-
-        poll = function() {
-            try {
-                root.doScroll('left');
-            } 
-            catch(thrownError) {
-                setTimeout(poll, 50);
-                return;
-            }
-
-            init('poll');
-        };
-
-    doc     = win.document;
-    root    = doc.documentElement;
-
-    if (doc.readyState == 'complete') {
-        fn.call(win, 'lazy');
-    }
-    else {
-        if (doc.createEventObject && root.doScroll) {
-            try {
-                top = !win.frameElement;
-            } 
-            catch(thrownError) {}
-
-            top && poll();
-        }
-        dom_addListener(doc, 'DOMContentLoaded', init);
-        dom_addListener(doc, 'readystatechange', init);
-        dom_addListener(win, 'load', init);
-    }
-};
-
-
 MetaphorJs.dialog = MetaphorJs.dialog || {pointer: {}, position: {}};
 
 /**
@@ -32776,7 +32823,7 @@ cls({
     inject: ['$node', '$scope', 'someValue'],
     resolve: {
         someValue: function() {
-            var p = new MetaphorJs.Promise;
+            var p = new lib_Promise;
             setTimeout(function(){
                 p.resolve((new Date).getTime());
             }, 100);

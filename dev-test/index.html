@@ -428,8 +428,10 @@
     </div>
 
 
-<!--
-    <div mjs-app="Test.MyApp2" class="cases" {init}="this.a = 100" mjs-cloak>
+
+    <div mjs-app="Test.MyApp2" class="cases" 
+            {init}="this.a = 100" 
+            mjs-cloak>
 
     
         <div class="case">
@@ -437,19 +439,21 @@
             <p class="test">{{this.resolved}}</p>
         </div>
 
+    
         <div class="case">
             <h4>recursive rendering</h4>
             <p>
                 <a href="#" (click)="this.changeLevel2()">Change level 2</a>
             </p>
-            <p class="test">This is level 1: {{this.level1}}</p>
+            <p class="test">This is level 1: 
+                <span {bind}="this.level1" {bind.$recursive}></span></p>
         </div>
 
         <div class="case">
             <h4>lang substitution</h4>
             <label class="case-label">using normal expression with filter: 'key' | l</label>
-            <p class="test">{{ 'key' | l}}</p>
-            <p class="test">{{'subkey1' | l}}</p>
+            <p class="test">{{ 'key' | l }}</p>
+            <p class="test" {bind}="'subkey1' | l" {bind.$recursive}></p>
         </div>
 
         <div class="case">
@@ -462,16 +466,17 @@
 
             <p><input type="number" data-type="number" 
                         {model}="this.people"/></p>
-            <p class="test" mjs-recursive>{{ 'viewing' | p:this.people }}</p>
+            <p class="test" 
+                    {bind}="'viewing' | p:this.people" 
+                    {bind.$recursive}></p>
         </div>
-
 
 
 
     </div>
 
 
--->
+
 
 </body>
 </html>

@@ -2,6 +2,7 @@ require("../../lib/Scope.js");
 require("../../lib/Text.js");
 require("../../func/dom/isField.js");
 require("../../lib/Input.js");
+require("../../lib/Config.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     Directive = require("../../app/Directive.js");
@@ -17,6 +18,9 @@ Directive.registerAttribute("bind", 1000,
         $init: function(scope, node, config, renderer) {
 
             var self    = this;
+
+            config.setType("recursive", "bool");
+            config.setType("once", "bool", MetaphorJs.lib.Config.MODE_STATIC);
 
             self.scope      = scope;
             self.node       = node;
@@ -36,7 +40,11 @@ Directive.registerAttribute("bind", 1000,
                 self.textRenderer = new MetaphorJs.lib.Text(
                     scope, 
                     config.getExpression("value"), 
-                    {recursive: true, fullExpr: true}
+                    {
+                        recursive: true, 
+                        fullExpr: true,
+                        once: config.get("once")
+                    }
                 );
                 self.textRenderer.subscribe(self.onTextRendererChange, self);
                 self.onTextRendererChange();

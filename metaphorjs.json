@@ -47,9 +47,6 @@
                 "src/extra-directives/**",
                 "dev-test/index.js"
             ],
-            "omit": [
-                "src/bootstrap/apps.js"
-            ],
             "options": {
                 "wrap": true
             }

@@ -68,7 +68,7 @@ cls({
     inject: ['$node', '$scope', 'someValue'],
     resolve: {
         someValue: function() {
-            var p = new MetaphorJs.Promise;
+            var p = new MetaphorJs.lib.Promise;
             setTimeout(function(){
                 p.resolve((new Date).getTime());
             }, 100);
