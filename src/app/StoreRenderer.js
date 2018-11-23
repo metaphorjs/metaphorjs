@@ -10,9 +10,9 @@ module.exports = MetaphorJs.app.StoreRenderer = MetaphorJs.app.ListRenderer.$ext
 
     store: null,
 
-    $constructor: function(scope, node, expr, parentRenderer, attr) {
+    $constructor: function(scope, node, config, parentRenderer, attrSet) {
 
-        var cfg = attr ? attr.config : {};
+        var cfg = config.getAll();
 
         if (cfg.pullNext) {
             if (cfg.buffered) {
@@ -25,15 +25,15 @@ module.exports = MetaphorJs.app.StoreRenderer = MetaphorJs.app.ListRenderer.$ext
                     cfg.pullNext : "MetaphorJs.plugin.ListPullNext");
         }
 
-        this.$super(scope, node, expr, parentRenderer, attr);
+        this.$super(scope, node, config, parentRenderer, attrSet);
     },
 
-    afterInit: function(scope, node, expr, parentRenderer, attr) {
+    afterInit: function(scope, node, config, parentRenderer, attrSet) {
 
         var self            = this,
             store;
 
-        self.store          = store = MetaphorJs.lib.Expression.parse(self.model)(scope);
+        self.store          = store = MetaphorJs.lib.Expression.get(self.model, scope);
         self.watcher        = MetaphorJs.lib.MutationObserver.get(store, "this.current", self.onChange, self);
         
         if (self.trackByFn !== false) {

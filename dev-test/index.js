@@ -127,7 +127,7 @@ cls({
             var model   = new MetaphorJs.model.Model({
                 type: "Test.MyRecord",
                 id: "id",
-                data: "record",
+                root: "record",
                 total: "total",
                 store: {
                     load: "data.json"

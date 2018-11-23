@@ -9070,24 +9070,41 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
 
             var self = this,
                 props = self.properties,
-                prop;
+                prop,
+                changed = false;
 
             if (!props[name]) {
                 props[name] = {};
                 self.keys.push(name);
+                changed = true;
             }
 
             prop = props[name];
-            val === undf ?
-                extend(prop, cfg, true, false) :
-                prop[cfg] = val;
+
+            if (val === undf) {
+                var k;
+                for (k in cfg) {
+                    if (cfg[k] !== prop[k]) {
+                        changed = true;
+                        prop[k] = cfg[k];
+                    }
+                }
+            }
+            else {
+                if (val !== prop[cfg]) {
+                    changed = true;
+                    prop[cfg] = val;
+                }
+            }
 
             if (!prop.mode) {
                 if (prop.defaultMode) {
                     prop.mode = prop.defaultMode;
+                    changed = true;
                 }
                 else if (prop.expression === true) {
                     prop.mode = MODE_STATIC;
+                    changed = true;
                 }
             }
 
@@ -9096,9 +9113,14 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                 !prop.mo && 
                 !prop.disabled) {
                 self._initMo(name);
+                changed = true;
+            }
+
+            if (changed && self.values[name] !== undf) {
+                delete self.values[name];
             }
         
-            return props[name];
+            return changed;
         },
 
         /**
@@ -15789,9 +15811,9 @@ var app_StoreRenderer = MetaphorJs.app.StoreRenderer = app_ListRenderer.$extend(
 
     store: null,
 
-    $constructor: function(scope, node, expr, parentRenderer, attr) {
+    $constructor: function(scope, node, config, parentRenderer, attrSet) {
 
-        var cfg = attr ? attr.config : {};
+        var cfg = config.getAll();
 
         if (cfg.pullNext) {
             if (cfg.buffered) {
@@ -15804,15 +15826,15 @@ var app_StoreRenderer = MetaphorJs.app.StoreRenderer = app_ListRenderer.$extend(
                     cfg.pullNext : "MetaphorJs.plugin.ListPullNext");
         }
 
-        this.$super(scope, node, expr, parentRenderer, attr);
+        this.$super(scope, node, config, parentRenderer, attrSet);
     },
 
-    afterInit: function(scope, node, expr, parentRenderer, attr) {
+    afterInit: function(scope, node, config, parentRenderer, attrSet) {
 
         var self            = this,
             store;
 
-        self.store          = store = lib_Expression.parse(self.model)(scope);
+        self.store          = store = lib_Expression.get(self.model, scope);
         self.watcher        = lib_MutationObserver.get(store, "this.current", self.onChange, self);
         
         if (self.trackByFn !== false) {
@@ -18783,7 +18805,7 @@ var model_Store = MetaphorJs.model.Store = function(){
 
                 var self    = this;
 
-                if (item instanceof Record) {
+                if (item instanceof model_Record) {
                     return item;
                 }
 
@@ -19143,7 +19165,7 @@ var model_Store = MetaphorJs.model.Store = function(){
                     self.map[id] = rec;
                 }
 
-                if (rec instanceof Record) {
+                if (rec instanceof model_Record) {
                     rec.attachStore(self);
                     self.bindRecord("on", rec);
                 }
@@ -19320,7 +19342,7 @@ var model_Store = MetaphorJs.model.Store = function(){
                 if (!keepRecords) {
                     for (i = 0, len = self.items.length; i < len; i++) {
                         rec = self.items[i];
-                        if (rec instanceof Record) {
+                        if (rec instanceof model_Record) {
                             self.bindRecord("un", rec);
                             rec.detachStore(self);
                         }
@@ -32813,7 +32835,7 @@ cls({
             var model   = new model_Model({
                 type: "Test.MyRecord",
                 id: "id",
-                data: "record",
+                root: "record",
                 total: "total",
                 store: {
                     load: "data.json"

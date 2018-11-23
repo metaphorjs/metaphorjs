@@ -222,24 +222,41 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
             var self = this,
                 props = self.properties,
-                prop;
+                prop,
+                changed = false;
 
             if (!props[name]) {
                 props[name] = {};
                 self.keys.push(name);
+                changed = true;
             }
 
             prop = props[name];
-            val === undf ?
-                extend(prop, cfg, true, false) :
-                prop[cfg] = val;
+
+            if (val === undf) {
+                var k;
+                for (k in cfg) {
+                    if (cfg[k] !== prop[k]) {
+                        changed = true;
+                        prop[k] = cfg[k];
+                    }
+                }
+            }
+            else {
+                if (val !== prop[cfg]) {
+                    changed = true;
+                    prop[cfg] = val;
+                }
+            }
 
             if (!prop.mode) {
                 if (prop.defaultMode) {
                     prop.mode = prop.defaultMode;
+                    changed = true;
                 }
                 else if (prop.expression === true) {
                     prop.mode = MODE_STATIC;
+                    changed = true;
                 }
             }
 
@@ -248,9 +265,14 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 !prop.mo && 
                 !prop.disabled) {
                 self._initMo(name);
+                changed = true;
+            }
+
+            if (changed && self.values[name] !== undf) {
+                delete self.values[name];
             }
         
-            return props[name];
+            return changed;
         },
 
         /**
