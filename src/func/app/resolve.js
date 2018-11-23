@@ -38,7 +38,6 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
     }
 
     var constr      = isString(cmp) ? ns.get(cmp) : cmp;
-
     if (!constr) {
         throw new Error("Component " + cmp + " not found");
     }
@@ -79,7 +78,7 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
                 fn = constr.resolve[i];
 
                 if (isFunction(fn)) {
-                    d.resolve(fn(scope, node));
+                    d.resolve(fn(scope, node, config));
                 }
                 /*else if (isString(fn)) {
                     d.resolve(injectFn(fn));
@@ -129,14 +128,14 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
     if (defers.length) {
         p = new MetaphorJs.lib.Promise;
         MetaphorJs.lib.Promise.all(defers)
-            .done(function(){
+            .done(function(values){
                 p.resolve(
                     injectFn.call(
                         injectCt, constr, null, extend({}, inject, cfg, false, false), args
                     )
                 );
             })
-            .fail(p.reject, p)
+            .fail(p.reject, p);
     }
     else {
         p = MetaphorJs.lib.Promise.resolve(

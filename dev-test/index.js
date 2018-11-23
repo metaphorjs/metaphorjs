@@ -142,7 +142,6 @@ cls({
         },
 
         afterRender: function() {
-
             if (this.para && window.console && window.console.log) {
                 console.log("got child property 'para': ", this.para);
             }
@@ -159,7 +158,6 @@ cls({
         },
 
         createRender: function() {
-
             var to  = document.getElementById("renderToComponent");
             MetaphorJs.app.resolve("Test.DynamicComponent", {renderTo: to}, this.scope);
         },
@@ -179,9 +177,11 @@ cls({
                         destroy: true
                     }
                 },
-                as: "dlg",
+                config: {
+                    as: "dlg",
+                },
                 scope: this.scope,
-                template: '<p>This is a dialog. <a href="#" mjs-click=".dlg.hide()">close</a></p>'
+                template: '<p>This is a dialog. <a href="#" (click)="this.dlg.hide()">close</a></p>'
             });
             dialog.show();
         },
@@ -197,7 +197,6 @@ cls({
         template: "cmp1-template",
         resolve: {
             deferred: ['$node', '$scope', 'test', function(node, scope, test) {
-
                 return new MetaphorJs.lib.Promise(function(resolve, reject){
                     setTimeout(function(){
                         resolve((new Date).getTime());

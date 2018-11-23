@@ -65,13 +65,16 @@ module.exports = MetaphorJs.app.Template = function() {
                 cache.add(tplId, tpl);
             }
             else if (tpl && tpl.nodeType) {
-                if ("content" in tpl) {
-                    tpl = tpl.content;
+                // do not re-create fragments;
+                if (tpl.nodeType !== 11) { // document fragment
+                    if ("content" in tpl) {
+                        tpl = tpl.content;
+                    }
+                    else {
+                        tpl = MetaphorJs.dom.toFragment(tpl.childNodes);
+                    }
+                    cache.add(tplId, tpl);
                 }
-                else {
-                    tpl = MetaphorJs.dom.toFragment(tpl.childNodes);
-                }
-                cache.add(tplId, tpl);
             }
 
             return tpl;

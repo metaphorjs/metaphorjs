@@ -140,6 +140,14 @@ module.exports = MetaphorJs.app.Component = cls({
                 scope: self.scope
             });
         }
+        else if (!(self.config instanceof MetaphorJs.lib.Config)) {
+            self.config = new MetaphorJs.lib.Config(
+                self.config, 
+                {
+                    scope: self.scope
+                }
+            );
+        }
         self._initConfig();
 
         if (self.config.hasExpression("as")) {
@@ -218,7 +226,10 @@ module.exports = MetaphorJs.app.Component = cls({
         }
     },
 
-    _initConfig: emptyFn,
+    _initConfig: function(){
+        var self = this;
+        self.config.setDefaultMode("as", MetaphorJs.lib.Config.MODE_STATIC);
+    },
 
     _createNode: function() {
 

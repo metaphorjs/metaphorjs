@@ -5,14 +5,14 @@ require("../lib/Text.js");
 require("../func/dom/setAttr.js");
 require("./Directive.js");
 require("../lib/Config.js");
+require("../func/dom/removeAttr.js");
+require("../func/dom/getAttrSet.js");
 
 var nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
     isThenable = require("metaphorjs-shared/src/func/isThenable.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
-    removeAttr = require("../func/dom/removeAttr.js"),
-    getAttrSet = require("../func/dom/getAttrSet.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     undf = require("metaphorjs-shared/src/var/undf.js");
 
@@ -179,14 +179,9 @@ module.exports = MetaphorJs.app.Renderer = function() {
                            parentScope.$new() :
                            parentScope),
                 app     = parentScope.$app,
-                //value   = attr ? attr.value : null,
-                // attribute directives receive mods,
-                // tag directives receive cmpConfig
                 inject  = {
                     $scope: scope,
                     $node: node,
-                    //$attr: attr,
-                    //$attrValue: value,
                     $nodeConfig: nodeConfig,
                     $attrSet: attrs,
                     $renderer: self
@@ -296,15 +291,15 @@ module.exports = MetaphorJs.app.Renderer = function() {
                     tag = tag.substr(4);
                 }
 
-                attrs = getAttrSet(node);
-                config = new MetaphorJs.lib.Config(attrs.config, {
-                    scope: self.scope,
-                    deferInit: true
-                });
+                attrs = MetaphorJs.dom.getAttrSet(node);
 
                 if (attrs.config.ignore) {
                     return false;
                 }
+
+                config = new MetaphorJs.lib.Config(attrs.config, {
+                    scope: self.scope
+                });                
 
                 if (self.passedAttrs) {
                     attrs['directive'] = extend(
@@ -416,13 +411,13 @@ module.exports = MetaphorJs.app.Renderer = function() {
                         handler = handlers[i].handler;
 
                         if (!handler.$keepAttribute) {
-                            removeAttr(node, attrProps.original);
+                            MetaphorJs.dom.removeAttr(node, attrProps.original);
                         }
                         attrs.removeDirective(node, name);
 
                         config = new MetaphorJs.lib.Config(
                             attrProps.config, 
-                            {scope: self.scope, deferInit: true}
+                            {scope: self.scope}
                         );
                         self.on("destroy", config.$destroy, config);
                         res     = self.runHandler(handler, scope, node, config, attrs);
@@ -464,7 +459,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
                         fullExpr: !MetaphorJs.lib.Text.applicable(textStr)
                     });
                     
-                    removeAttr(node, attrs['attribute'][i].original);
+                    MetaphorJs.dom.removeAttr(node, attrs['attribute'][i].original);
                     textRenderer.subscribe(self.onTextChange, self, {
                         append: [texts.length]
                     });

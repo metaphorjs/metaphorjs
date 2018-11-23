@@ -5,8 +5,8 @@ var _getScrollTopOrLeft = require("./_/_getScrollTopOrLeft.js"),
 
 /**
  * Get element's vertical scroll position
- * @function MetaphorJs.dom.getScrollLeft
+ * @function MetaphorJs.dom.getScrollTop
  * @param {DomNode} element
  * @returns {int}
  */
-module.exports = MetaphorJs.dom.getScrollLeft = _getScrollTopOrLeft(true);
+module.exports = MetaphorJs.dom.getScrollTop = _getScrollTopOrLeft(true);

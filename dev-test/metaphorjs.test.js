@@ -4966,7 +4966,7 @@ var dom_setAttr = MetaphorJs.dom.setAttr = function(el, name, value) {
  * @param {DomNode} node 
  * @param {string} name
  */
-var removeAttr = MetaphorJs.dom.removeAttr = function dom_removeAttr(el, name) {
+var dom_removeAttr = MetaphorJs.dom.removeAttr = function dom_removeAttr(el, name) {
     return el.removeAttribute(name);
 };
 
@@ -5017,7 +5017,7 @@ var dom_setInputValue = MetaphorJs.dom.setInputValue = function() {
                     optionSet = true;
                 }
                 else {
-                    removeAttr(option, "selected");
+                    dom_removeAttr(option, "selected");
                 }
 
                 if (!selected && !isNull(dom_getAttr(option, "default-option"))) {
@@ -9459,7 +9459,7 @@ function toCamelCase(str) {
  * @param {DomNode} node
  * @returns {object}
  */
-var getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
+var dom_getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
 
     // regular expression seems to be a few milliseconds faster
     // than plain parsing
@@ -9468,12 +9468,12 @@ var getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
     var removeDirective = function removeDirective(node, directive) {
         if (this.directive[directive] && 
             this.directive[directive].original) {
-            removeAttr(node, this.directive[directive].original);
+            dom_removeAttr(node, this.directive[directive].original);
         }
         var i, l, sn = this.names[directive];
         if (sn) {
             for (i = 0, l = sn.length; i < l; i++) {
-                removeAttr(node, sn[i]);
+                dom_removeAttr(node, sn[i]);
             }
             delete this.names[directive];
         }
@@ -9620,6 +9620,8 @@ var getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
     }
 
 }());
+
+
 
 
 
@@ -9793,14 +9795,9 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                            parentScope.$new() :
                            parentScope),
                 app     = parentScope.$app,
-                //value   = attr ? attr.value : null,
-                // attribute directives receive mods,
-                // tag directives receive cmpConfig
                 inject  = {
                     $scope: scope,
                     $node: node,
-                    //$attr: attr,
-                    //$attrValue: value,
                     $nodeConfig: nodeConfig,
                     $attrSet: attrs,
                     $renderer: self
@@ -9910,15 +9907,15 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                     tag = tag.substr(4);
                 }
 
-                attrs = getAttrSet(node);
-                config = new lib_Config(attrs.config, {
-                    scope: self.scope,
-                    deferInit: true
-                });
+                attrs = dom_getAttrSet(node);
 
                 if (attrs.config.ignore) {
                     return false;
                 }
+
+                config = new lib_Config(attrs.config, {
+                    scope: self.scope
+                });                
 
                 if (self.passedAttrs) {
                     attrs['directive'] = extend(
@@ -10030,13 +10027,13 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                         handler = handlers[i].handler;
 
                         if (!handler.$keepAttribute) {
-                            removeAttr(node, attrProps.original);
+                            dom_removeAttr(node, attrProps.original);
                         }
                         attrs.removeDirective(node, name);
 
                         config = new lib_Config(
                             attrProps.config, 
-                            {scope: self.scope, deferInit: true}
+                            {scope: self.scope}
                         );
                         self.on("destroy", config.$destroy, config);
                         res     = self.runHandler(handler, scope, node, config, attrs);
@@ -10078,7 +10075,7 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                         fullExpr: !lib_Text.applicable(textStr)
                     });
                     
-                    removeAttr(node, attrs['attribute'][i].original);
+                    dom_removeAttr(node, attrs['attribute'][i].original);
                     textRenderer.subscribe(self.onTextChange, self, {
                         append: [texts.length]
                     });
@@ -11756,13 +11753,16 @@ var app_Template = MetaphorJs.app.Template = function() {
                 cache.add(tplId, tpl);
             }
             else if (tpl && tpl.nodeType) {
-                if ("content" in tpl) {
-                    tpl = tpl.content;
+                // do not re-create fragments;
+                if (tpl.nodeType !== 11) { // document fragment
+                    if ("content" in tpl) {
+                        tpl = tpl.content;
+                    }
+                    else {
+                        tpl = dom_toFragment(tpl.childNodes);
+                    }
+                    cache.add(tplId, tpl);
                 }
-                else {
-                    tpl = dom_toFragment(tpl.childNodes);
-                }
-                cache.add(tplId, tpl);
             }
 
             return tpl;
@@ -12317,7 +12317,6 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
     }
 
     var constr      = isString(cmp) ? ns.get(cmp) : cmp;
-
     if (!constr) {
         throw new Error("Component " + cmp + " not found");
     }
@@ -12358,7 +12357,7 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
                 fn = constr.resolve[i];
 
                 if (isFunction(fn)) {
-                    d.resolve(fn(scope, node));
+                    d.resolve(fn(scope, node, config));
                 }
                 /*else if (isString(fn)) {
                     d.resolve(injectFn(fn));
@@ -12408,14 +12407,14 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
     if (defers.length) {
         p = new lib_Promise;
         lib_Promise.all(defers)
-            .done(function(){
+            .done(function(values){
                 p.resolve(
                     injectFn.call(
                         injectCt, constr, null, extend({}, inject, cfg, false, false), args
                     )
                 );
             })
-            .fail(p.reject, p)
+            .fail(p.reject, p);
     }
     else {
         p = lib_Promise.resolve(
@@ -13809,11 +13808,11 @@ var _getScrollTopOrLeft = function(vertical) {
 
 /**
  * Get element's vertical scroll position
- * @function MetaphorJs.dom.getScrollLeft
+ * @function MetaphorJs.dom.getScrollTop
  * @param {DomNode} element
  * @returns {int}
  */
-var dom_getScrollLeft = MetaphorJs.dom.getScrollLeft = _getScrollTopOrLeft(true);
+var dom_getScrollTop = MetaphorJs.dom.getScrollTop = _getScrollTopOrLeft(true);
 
 
 
@@ -13825,7 +13824,7 @@ var dom_getScrollLeft = MetaphorJs.dom.getScrollLeft = _getScrollTopOrLeft(true)
  * @param {DomNode} element
  * @returns {int}
  */
-MetaphorJs.dom.getScrollLeft = _getScrollTopOrLeft(false);
+var dom_getScrollLeft = MetaphorJs.dom.getScrollLeft = _getScrollTopOrLeft(false);
 
 
 
@@ -13949,7 +13948,7 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
          * @method
          */
         watchScrollTop: function() {
-            this.addWatcher("scrollTop", MetaphorJs.dom.getScrollTop);
+            this.addWatcher("scrollTop", dom_getScrollTop);
         },
 
         /**
@@ -15189,7 +15188,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
                 dom_setAttr(this.node, name, name);
             }
             else {
-                removeAttr(this.node, name);
+                dom_removeAttr(this.node, name);
             }
         }
     });
@@ -21796,7 +21795,7 @@ var validator_Field = MetaphorJs.validator.Field = (function(){
 
             var self = this;
 
-            removeAttr(self.elem, "data-validator");
+            dom_removeAttr(self.elem, "data-validator");
 
             if (self.errorBox) {
                 self.errorBox.parentNode.removeChild(self.errorBox);
@@ -24426,7 +24425,7 @@ MetaphorJs.dom.getOffet = function dom_getOffset(node) {
     }
 
     return {
-        top: box.top + MetaphorJs.dom.getScrollTop() - html.clientTop,
+        top: box.top + dom_getScrollTop() - html.clientTop,
         left: box.left + dom_getScrollLeft() - html.clientLeft
     };
 };
@@ -24671,7 +24670,7 @@ cls({
                            html[hor ? "clientWidth" : "clientHeight"]):
                           scrollEl[hor ? "offsetWidth" : "offsetHeight"],
             scroll      = hor ? dom_getScrollLeft(scrollEl) : 
-                                MetaphorJs.dom.getScrollTop(scrollEl),
+                                dom_getScrollTop(scrollEl),
             sh          = scrollEl.scrollHeight,
             perRow      = self.getItemsPerRow(),
             isize       = self.getRowHeight(),
@@ -24872,7 +24871,7 @@ cls({
                 if (sp === window) {
                     window.scrollTo(
                         hor ? pos : dom_getScrollLeft(),
-                        !hor ? pos : MetaphorJs.dom.getScrollTop()
+                        !hor ? pos : dom_getScrollTop()
                     );
                 }
                 else {
@@ -25021,7 +25020,7 @@ cls({
 
         var self = this,
             sEl = self.scrollEl,
-            st = MetaphorJs.dom.getScrollTop(sEl),
+            st = dom_getScrollTop(sEl),
             sl = dom_getScrollLeft(sEl),
             w = self.sw,
             h = self.sh,
@@ -25785,7 +25784,7 @@ var app_App = MetaphorJs.app.App = cls({
                                 new lib_Scope(data),
             args;
 
-        removeAttr(node, "mjs-app");
+        dom_removeAttr(node, "mjs-app");
 
         scope.$app      = self;
         self.$super();
@@ -27540,6 +27539,14 @@ var app_Component = MetaphorJs.app.Component = cls({
                 scope: self.scope
             });
         }
+        else if (!(self.config instanceof lib_Config)) {
+            self.config = new lib_Config(
+                self.config, 
+                {
+                    scope: self.scope
+                }
+            );
+        }
         self._initConfig();
 
         if (self.config.hasExpression("as")) {
@@ -27618,7 +27625,10 @@ var app_Component = MetaphorJs.app.Component = cls({
         }
     },
 
-    _initConfig: emptyFn,
+    _initConfig: function(){
+        var self = this;
+        self.config.setDefaultMode("as", lib_Config.MODE_STATIC);
+    },
 
     _createNode: function() {
 
@@ -27643,7 +27653,7 @@ var app_Component = MetaphorJs.app.Component = cls({
         var self = this,
             node = self.node;
 
-        removeAttr(node, "cmp-id");
+        dom_removeAttr(node, "cmp-id");
 
         if (self.cls) {
             dom_removeClass(node, self.cls);
@@ -27679,7 +27689,7 @@ var app_Component = MetaphorJs.app.Component = cls({
         var self = this;
 
         if (self._nodeReplaced && self.node.parentNode) {
-            removeAttr(self.node, "id");
+            dom_removeAttr(self.node, "id");
             //self.node.parentNode.removeChild(self.node);
         }
 
@@ -27941,7 +27951,7 @@ var app_init = MetaphorJs.app.init = function app_init(node, cls, data, autorun)
 
     var attrDirs = MetaphorJs.directive.attr;
 
-    var attrs = getAttrSet(node, function(name) {
+    var attrs = dom_getAttrSet(node, function(name) {
         return !!attrDirs[name];
     });
 
@@ -27950,7 +27960,7 @@ var app_init = MetaphorJs.app.init = function app_init(node, cls, data, autorun)
 
     if (attrs.names['app']) {
         for (i = 0, l = attrs.names['app'].length; i < l; i++) {
-            removeAttr(node, attrs.names[i]);
+            dom_removeAttr(node, attrs.names[i]);
         }
     }
 
@@ -28316,7 +28326,7 @@ var dialog_position_Abstract = MetaphorJs.dialog.position.Abstract = cls({
         else {
             w = dom_getWidth(window);
             h = dom_getHeight(window);
-            st = MetaphorJs.dom.getScrollTop(window);
+            st = dom_getScrollTop(window);
             sl = dom_getScrollLeft(window);
             return {
                 x: sl + sx,
@@ -28850,7 +28860,7 @@ var dialog_position_Window = MetaphorJs.dialog.position.Window = dialog_position
             type    = (type || self.type).substr(1),
             offsetX = self.offsetX,
             offsetY = self.offsetY,
-            st      = MetaphorJs.dom.getScrollTop(pBase),
+            st      = dom_getScrollTop(pBase),
             sl      = dom_getScrollLeft(pBase),
             ww      = dom_getOuterWidth(pBase),
             wh      = dom_getOuterHeight(pBase);
@@ -32302,7 +32312,7 @@ var dialog_Dialog = MetaphorJs.dialog.Dialog = (function(){
             if (trg) {
                 if (state === false) {
                     dom_data(trg, "tmp-title", dom_getAttr(trg, "title"));
-                    removeAttr(trg, 'title');
+                    dom_removeAttr(trg, 'title');
                 }
                 else if (title = dom_data(trg, "tmp-title")) {
                     dom_setAttr(trg, "title", title);
@@ -32818,7 +32828,6 @@ cls({
         },
 
         afterRender: function() {
-
             if (this.para && window.console && window.console.log) {
                 console.log("got child property 'para': ", this.para);
             }
@@ -32831,14 +32840,10 @@ cls({
 
         createNew: function() {
             var node    = document.getElementById("newComponent");
-            app_resolve("Test.DynamicComponent", {}, this.scope, node)
-                .done(function(){
-                    console.log("resolved Test.DynamicComponent");
-                });
+            app_resolve("Test.DynamicComponent", {}, this.scope, node);
         },
 
         createRender: function() {
-
             var to  = document.getElementById("renderToComponent");
             app_resolve("Test.DynamicComponent", {renderTo: to}, this.scope);
         },
@@ -32858,9 +32863,11 @@ cls({
                         destroy: true
                     }
                 },
-                as: "dlg",
+                config: {
+                    as: "dlg",
+                },
                 scope: this.scope,
-                template: '<p>This is a dialog. <a href="#" mjs-click=".dlg.hide()">close</a></p>'
+                template: '<p>This is a dialog. <a href="#" (click)="this.dlg.hide()">close</a></p>'
             });
             dialog.show();
         },
@@ -32876,7 +32883,6 @@ cls({
         template: "cmp1-template",
         resolve: {
             deferred: ['$node', '$scope', 'test', function(node, scope, test) {
-
                 return new lib_Promise(function(resolve, reject){
                     setTimeout(function(){
                         resolve((new Date).getTime());
