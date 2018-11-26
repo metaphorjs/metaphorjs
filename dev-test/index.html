@@ -23,6 +23,11 @@
     <script type="text/mjs-template" id="a*b">
         <p>a * b = {{ this.$root.a * this.$root.b }}</p>
     </script>
+    <script type="text/mjs-template" id="tagc">
+        <div class="component">
+            <p>This is a tag component</p>
+        </div>
+    </script>
 
 
     <div id="render" {init}="
@@ -423,6 +428,10 @@
           
             <div class="case double" id="myComponent1" {cmp}="Test.MyComponent">
                 <p>This is another instance with deferred value: {{ this.deferred }}</p>
+            </div>
+
+            <div class="case double">
+                <tagc></tagc>
             </div>
         </div>
     </div>

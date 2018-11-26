@@ -287,6 +287,13 @@ cls({
 });
 
 
+cls({
+    $class: "Test.TagComponent",
+    $extends: "MetaphorJs.app.Component",
+    $alias: "MetaphorJs.directive.component.tagc",
+    template: "tagc"
+});
+
 
 
 MetaphorJs.dom.onReady(function(){
