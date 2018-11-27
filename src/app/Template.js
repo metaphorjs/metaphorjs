@@ -109,9 +109,9 @@ module.exports = MetaphorJs.app.Template = function() {
         },
 
         findInPrebuilt = function(tplId) {
-            if (__MetaphorJsPrebuilt['__tpls'][tplId]) {
-                tpl = __MetaphorJsPrebuilt['__tpls'][tplId];
-                delete __MetaphorJsPrebuilt['__tpls'][tplId];
+            var tpl;
+            if (tpl = MetaphorJs.prebuilt.templates[tplId]) {
+                delete MetaphorJs.prebuilt.templates[tplId];
                 return tpl;
             }
         },
@@ -155,8 +155,7 @@ module.exports = MetaphorJs.app.Template = function() {
             return str.substr(0,5) === 'this.';
         };
 
-    if (typeof __MetaphorJsPrebuilt !== "undefined" &&
-                __MetaphorJsPrebuilt['__tpls']) {
+    if (MetaphorJs.prebuilt && MetaphorJs.prebuilt.templates) {
         cache.addFinder(findInPrebuilt);
     }
 

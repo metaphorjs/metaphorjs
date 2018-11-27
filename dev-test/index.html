@@ -6,30 +6,6 @@
 </head>
 <body>
 
-    <script type="text/mjs-template" id="test-template">
-        <p>{{this.$root.text}}</p>
-        <div {transclude}></div>
-    </script>
-
-    <script type="text/mjs-template" id="cmp1-template">
-        <h2>{{this.title}}</h2>
-        <div {transclude}></div>
-    </script>
-
-    <script type="text/mjs-template" id="a+b">
-        <p>a + b = {{ this.$root.a + this.$root.b }}</p>
-    </script>
-
-    <script type="text/mjs-template" id="a*b">
-        <p>a * b = {{ this.$root.a * this.$root.b }}</p>
-    </script>
-    <script type="text/mjs-template" id="tagc">
-        <div class="component">
-            <p>This is a tag component</p>
-        </div>
-    </script>
-
-
     <div id="render" {init}="
         this.inline = 'inline4';
         this.text = 'New Text';
@@ -431,7 +407,7 @@
             </div>
 
             <div class="case double">
-                <tagc></tagc>
+                <tagc $as:="ctrl" $test:="Value from config"></tagc>
             </div>
         </div>
     </div>

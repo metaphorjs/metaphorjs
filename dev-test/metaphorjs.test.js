@@ -1,7 +1,7 @@
 (function(){
-/* BUNDLE START 003 */
+/* BUNDLE START 004 */
 "use strict";
-
+var MetaphorJsPrebuilt = {"templates":{"a*b":"<p>a * b = {{ this.$root.a * this.$root.b }}</p>","a+b":"<p>a + b = {{ this.$root.a + this.$root.b }}</p>","cmp1-template":"<h2>{{this.title}}</h2><div {transclude}></div>","tagc":"<div class=\"component\"><p>This is a tag component.</p><p>{{ this.ctrl.config.get('test') }}</p></div>","test-template":"<p>{{this.$root.text}}</p><div {transclude}></div>"}}
 
 var MetaphorJs = {
     plugin: {},
@@ -10,7 +10,8 @@ var MetaphorJs = {
     dom: {},
     regexp: {},
     browser: {},
-    app: {}
+    app: {},
+    prebuilt: typeof MetaphorJsPrebuilt !== "undefined" ? MetaphorJsPrebuilt : null
 };
 
 
@@ -11835,9 +11836,9 @@ var app_Template = MetaphorJs.app.Template = function() {
         },
 
         findInPrebuilt = function(tplId) {
-            if (__MetaphorJsPrebuilt['__tpls'][tplId]) {
-                tpl = __MetaphorJsPrebuilt['__tpls'][tplId];
-                delete __MetaphorJsPrebuilt['__tpls'][tplId];
+            var tpl;
+            if (tpl = MetaphorJs.prebuilt.templates[tplId]) {
+                delete MetaphorJs.prebuilt.templates[tplId];
                 return tpl;
             }
         },
@@ -11881,8 +11882,7 @@ var app_Template = MetaphorJs.app.Template = function() {
             return str.substr(0,5) === 'this.';
         };
 
-    if (typeof __MetaphorJsPrebuilt !== "undefined" &&
-                __MetaphorJsPrebuilt['__tpls']) {
+    if (MetaphorJs.prebuilt && MetaphorJs.prebuilt.templates) {
         cache.addFinder(findInPrebuilt);
     }
 
@@ -33102,4 +33102,4 @@ dom_onReady(function(){
 
 });
 
-}());/* BUNDLE END 003 */
+}());/* BUNDLE END 004 */

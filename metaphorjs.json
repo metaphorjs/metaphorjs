@@ -49,7 +49,12 @@
             ],
             "options": {
                 "wrap": true
-            }
+            },
+            "templates": [
+                ["dev-test/templates/**", {
+                    "base": "dev-test/templates"
+                }]
+            ]
         },
 
         "standalone": {
