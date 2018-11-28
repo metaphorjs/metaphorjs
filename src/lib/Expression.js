@@ -20,8 +20,16 @@ module.exports = MetaphorJs.lib.Expression = (function() {
         cache           = {},
         filterSources   = [],
 
+        prebuiltExpr    = MetaphorJs.prebuilt ?
+                            MetaphorJs.prebuilt.funcs : {} || 
+                            {},
+
+        prebuiltCache   = function(key) {
+            return prebuiltExpr[key] || null;
+        },
+
         isAtom          = function(expr) {
-            return !expr.trim().match(/[^a-zA-Z0-9_$\.]/)
+            return !expr.trim().match(/[^a-zA-Z0-9_$'"\(\)\[\]\.;]/);
         },
 
         isProperty      = function(expr) {
@@ -587,7 +595,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          * }
          */
         expression: function(expr, opt) {
-            return expressionFn(expr, opt);
+            return prebuiltCache(expr) || expressionFn(expr, opt);
         },
 
         /**
@@ -653,7 +661,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
             opt = opt || {};
             opt.noReturn = true;
             opt.getterOnly = true;
-            return parserFn(expr, opt);
+            return prebuiltCache(expr) || parserFn(expr, opt);
         },
 
         /**
@@ -671,7 +679,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
             opt = opt || {};
             opt.setter = true;
             opt.setterOnly = true;
-            return parserFn(expr, opt);
+            return prebuiltCache(expr) || parserFn(expr, opt);
         },
 
         /**
@@ -692,7 +700,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
             opt = opt || {};
             opt.setter = false;
             opt.getterOnly = true;
-            return parserFn(expr, opt);
+            return prebuiltCache(expr) || parserFn(expr, opt);
         },
 
         /**
@@ -769,6 +777,18 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          * }
          */
         isProperty: isProperty,
+
+        /**
+         * Does the expression has pipes
+         * @static
+         * @method
+         * @param {string} expr
+         * @returns {boolean}
+         */
+        expressionHasPipes: function(expr) {
+            return split(expr, '|').length > 1 || 
+                    split(expr, '>>').length > 1;
+        },
 
         /**
          * Clear expression cache

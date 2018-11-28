@@ -1,7 +1,17 @@
 (function(){
 /* BUNDLE START 004 */
 "use strict";
-var MetaphorJsPrebuilt = {"templates":{"a*b":"<p>a * b = {{ this.$root.a * this.$root.b }}</p>","a+b":"<p>a + b = {{ this.$root.a + this.$root.b }}</p>","cmp1-template":"<h2>{{this.title}}</h2><div {transclude}></div>","tagc":"<div class=\"component\"><p>This is a tag component.</p><p>{{ this.ctrl.config.get('test') }}</p></div>","test-template":"<p>{{this.$root.text}}</p><div {transclude}></div>"}}
+
+var MetaphorJsPrebuilt = {"templates":{"a*b":"<p>a * b = {{--80Z}}</p>","a+b":"<p>a + b = {{--810}}</p>","cmp1-template":"<h2>{{--812}}</h2><div mjs=\"811\"></div>","dirs":"<div class=\"form_select\" mjs=\"813\"><input type=\"hidden\" mjs=\"814\"><i mjs=\"815\"><!-- include icons/down.html --></i><a class=\"form_select__label\" mjs=\"816\" style=\"display: inline-block !important;\">{{--81K}}<i class=\"delete icon\" mjs=\"817\"></i></a><input type=\"text\" mjs=\"818\" class=\"search\"><span class=\"sizer\" mjs=\"819\"></span><div class=\"default text\" mjs=\"81A\"></div><div class=\"text\" mjs=\"81B\"></div><!-- replaces two previous text blocks with invisible placeholder --><div style=\"display: none\" class=\"default text\" mjs=\"81C\">&nbsp;</div><select class=\"form-select_hidden-select\" mjs=\"81D\"></select><div class=\"form-select-menu\" mjs=\"81E\"><div class=\"items\" mjs=\"81F\"><div class=\"disabled item\" mjs=\"81G\"></div><div class=\"empty item\" mjs=\"81H\" style=\"color: #999;\"></div><div class=\"item\" mjs=\"81I\"></div></div><div class=\"pagination_container\" mjs=\"81J\"></div></div></div>","tagc":"<div class=\"component\"><p>This is a tag component.</p><p>{{--81L}}</p></div>","test-template":"<p>{{--81N}}</p><div mjs=\"81M\"></div>"},"templateOptions":{"dirs":{"includes":true}},"configs":{"811":{"directive":{"transclude":{"config":{"value":{"expression":""}}}}},"813":{"directive":{"click":{"config":{"value":{"expression":"this.field.onSelfClick(this.$event)"}}},"class":{"config":{"value.loading":{"expression":"this.loading"},"value.disabled":{"expression":"this.field.disabled"},"value.search":{"expression":"this.field.searchable"},"value.multiple":{"expression":"this.field.multiple"},"value.black":{"expression":"this.field.black"}}}}},"814":{"attribute":{"name":{"value":"this.field.hiddenInputName","original":"[name]"},"value":{"value":"this.field.$$selection | join:','","original":"[value]"}},"reference":"el_hidden_field"},"815":{"directive":{"click":{"config":{"value":{"expression":"this.field.onDropdownIconClick(this.$event)"}}}},"reference":"el_icon_down"},"816":{"directive":{"each":{"config":{"value":{"expression":"item in this.field.getMultiSelection()"}}}}},"817":{"directive":{"click":{"config":{"value":{"expression":"this.$parent.field.onItemDeleteClick(this.item, this.$event)"}}}}},"818":{"directive":{"show":{"config":{"value":{"expression":"this.field.searchable"},"display":{"expression":"inline-block"}}},"focus":{"config":{"value":{"expression":"this.field.onSearchFocus(this.$event)"}}},"blur":{"config":{"value":{"expression":"this.field.onSearchBlur(this.$event)"}}},"key":{"config":{"value.backspace":{"expression":"this.field.onSearchBackspace(this.$event)"}}},"model":{"config":{"value":{"expression":"this.searchQuery"}}}},"attribute":{"disabled":{"value":"this.field.disabled","original":"[disabled]"}},"reference":"el_search"},"819":{"directive":{"if":{"config":{"value":{"expression":"this.field.multiple && this.field.searchable"}}},"bind":{"config":{"value":{"expression":"this.searchQuery"}}}},"reference":"el_sizer"},"81A":{"directive":{"click":{"config":{"value":{"expression":"this.field.onValueTextClick(this.$event)"}}},"show":{"config":{"value":{"expression":"!this.searchQuery && !this.field.hasSelection() &&\n                    !!this.field.emptyText"},"display":{"expression":"inline-block"},"saveState":{"expression":"this.emptyShown"}}},"bind":{"config":{"value":{"expression":"this.field.emptyText"}}}},"reference":"el_default_text"},"81B":{"directive":{"click":{"config":{"value":{"expression":"this.field.onValueTextClick(this.$event)"}}},"class":{"config":{"value.default":{"expression":"this.focused && this.searchQuery == ''"}}},"show":{"config":{"value":{"expression":"!this.searchQuery && !this.field.multiple && this.field.hasSelection()"},"saveState":{"expression":"this.selectedShown"},"display":{"expression":"inline-block"}}},"bind":{"config":{"value":{"expression":"this.field.getSelectedName()"}}}},"reference":"el_text"},"81C":{"directive":{"show":{"config":{"value":{"expression":"!this.emptyShown && !this.selectedShown && !this.field.searchable"},"display":{"expression":"inline-block"}}}}},"81D":{"directive":{"click":{"config":{"value":{"expression":"this.field.onHiddenSelectClick(this.$event)"}}},"change":{"config":{"value":{"expression":"this.field.onHiddenSelectChange(this.$event)"}}},"show":{"config":{"value":{"expression":"this.field.useHiddenSelect"},"display":{"expression":"block"}}},"options":{"config":{"value":{"expression":"this.field._getSelectOptions()"}}}},"reference":"el_hidden_select"},"81E":{"directive":{"class":{"config":{"value.black":{"expression":"this.field.black"}}}},"reference":"el_menu"},"81F":{"reference":"el_menu_items"},"81G":{"directive":{"if":{"config":{"value":{"expression":"this.field.showNotFound && this.field.store.isEmpty()"}}},"click":{"config":{"value":{"expression":"this.field.onNotFoundClick(null, this.$event)"}}},"bind-html":{"config":{"value":{"expression":"this.field.notFoundText"}}}},"reference":"el_menu_disabled"},"81H":{"directive":{"if":{"config":{"value":{"expression":"this.field.showEmptyItem && !this.field.store.isEmpty()"}}},"click":{"config":{"value":{"expression":"this.field.onItemClick(null, this.$event)"}}},"bind-html":{"config":{"value":{"expression":"this.field.emptyItemText"}}}},"reference":"el_menu_empty"},"81I":{"directive":{"each":{"config":{"value":{"expression":"item in this.field.store"}}},"click":{"config":{"value":{"expression":"this.$parent.field.onItemClick(this.item, this.$event)"}}},"bind":{"config":{"value":{"expression":"this.$parent.field.getItemName(this.item)"}}}}},"81J":{"directive":{"cmp":{"config":{"value":{"expression":"Pagination"},"autoscroll":{"expression":"false"}}},"show":{"config":{"value":{"expression":"this.pagination.hasPages()"}}},"click":{"config":{"value":{"expression":"this.$parent.field.onPaginationClick(this.$event)"}}}}},"81M":{"directive":{"transclude":{"config":{"value":{"expression":""}}}}}},"expressions":{"810":"this.$root.a + this.$root.b","812":"this.title","80Z":"this.$root.a * this.$root.b","81K":"this.$parent.field.getItemName(this.item)","81L":"this.ctrl.config.get('test')","81N":"this.$root.text"}}
+MetaphorJsPrebuilt['funcs'] = {
+"this.$root.a * this.$root.b": function(____, $$$$) {try {return ____.$root.a * ____.$root.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a * this.$root.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"this.$root.a + this.$root.b": function(____, $$$$) {try {return ____.$root.a + ____.$root.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a + this.$root.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"this.title": function(____, $$$$) {try {return ____.title;} catch (thrownError) { /*DEBUG-START*/console.log("this.title");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"this.$parent.field.getItemName(this.item)": function(____, $$$$) {try {return ____.$parent.field.getItemName(____.item);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.getItemName(this.item)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"this.ctrl.config.get('test')": function(____, $$$$) {try {return ____.ctrl.config.get('test');} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.config.get(\'test\')");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"this.$root.text": function(____, $$$$) {try {return ____.$root.text;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.text");console.log(thrownError);/*DEBUG-END*/return undefined; }}
+};
+
 
 var MetaphorJs = {
     plugin: {},
@@ -268,8 +278,16 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
         cache           = {},
         filterSources   = [],
 
+        prebuiltExpr    = MetaphorJs.prebuilt ?
+                            MetaphorJs.prebuilt.funcs : {} || 
+                            {},
+
+        prebuiltCache   = function(key) {
+            return prebuiltExpr[key] || null;
+        },
+
         isAtom          = function(expr) {
-            return !expr.trim().match(/[^a-zA-Z0-9_$\.]/)
+            return !expr.trim().match(/[^a-zA-Z0-9_$'"\(\)\[\]\.;]/);
         },
 
         isProperty      = function(expr) {
@@ -835,7 +853,7 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
          * }
          */
         expression: function(expr, opt) {
-            return expressionFn(expr, opt);
+            return prebuiltCache(expr) || expressionFn(expr, opt);
         },
 
         /**
@@ -901,7 +919,7 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
             opt = opt || {};
             opt.noReturn = true;
             opt.getterOnly = true;
-            return parserFn(expr, opt);
+            return prebuiltCache(expr) || parserFn(expr, opt);
         },
 
         /**
@@ -919,7 +937,7 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
             opt = opt || {};
             opt.setter = true;
             opt.setterOnly = true;
-            return parserFn(expr, opt);
+            return prebuiltCache(expr) || parserFn(expr, opt);
         },
 
         /**
@@ -940,7 +958,7 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
             opt = opt || {};
             opt.setter = false;
             opt.getterOnly = true;
-            return parserFn(expr, opt);
+            return prebuiltCache(expr) || parserFn(expr, opt);
         },
 
         /**
@@ -1017,6 +1035,18 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
          * }
          */
         isProperty: isProperty,
+
+        /**
+         * Does the expression has pipes
+         * @static
+         * @method
+         * @param {string} expr
+         * @returns {boolean}
+         */
+        expressionHasPipes: function(expr) {
+            return split(expr, '|').length > 1 || 
+                    split(expr, '>>').length > 1;
+        },
 
         /**
          * Clear expression cache
@@ -4575,6 +4605,9 @@ var lib_Text = MetaphorJs.lib.Text = (function(){
         events                  = new lib_Observable,
 
         _procExpr               = function(expr, scope, observers) {
+            if (expr.substring(0,2) === '--') {
+                expr = MetaphorJs.prebuilt.expressions[expr.substring(2)];
+            }
             if (observers) {
                 var w = lib_MutationObserver.get(scope, expr);
                 observers.push(w);
@@ -4585,7 +4618,7 @@ var lib_Text = MetaphorJs.lib.Text = (function(){
             }
         },
 
-        _process                = function(text, scope, observers, fullExpr) {
+        eachText                = function(text, fn) {
 
             var index       = 0,
                 textLength  = text.length,
@@ -4593,10 +4626,6 @@ var lib_Text = MetaphorJs.lib.Text = (function(){
                 endIndex,
                 expr,
                 result      = "";
-
-            if (fullExpr) {
-                return _procExpr(text, scope, observers);
-            }
 
             while (index < textLength) {
                 if (((startIndex = text.indexOf(startSymbol, index)) !== -1) &&
@@ -4608,10 +4637,7 @@ var lib_Text = MetaphorJs.lib.Text = (function(){
                     if (endIndex !== startIndex + startSymbolLength) {
                         expr = text.substring(startIndex + startSymbolLength, endIndex);
                         expr = expr.trim();
-
-
-
-                        result += _procExpr(expr, scope, observers);
+                        result += fn(expr);
                     }
 
                     index = endIndex + endSymbolLength;
@@ -4639,11 +4665,21 @@ var lib_Text = MetaphorJs.lib.Text = (function(){
                     throw new Error(
                         "Got more than 100 iterations on template: " + self.origin);
                 }
-                result = _process(prev, scope, observers, fullExpr);
+
+                if (fullExpr) {
+                    result = _procExpr(text, scope, observers);
+                    fullExpr = false;
+                }
+                else {
+                    result = eachText(prev, function(expr){
+                        return _procExpr(expr, scope, observers);
+                    });
+                }
+                
                 if (!recursive || result === prev) {
                     return result;
                 }
-                fullExpr = false; // only first iteration can be fullExpr
+
                 prev = result;
                 iter++;
             }
@@ -4803,6 +4839,18 @@ var lib_Text = MetaphorJs.lib.Text = (function(){
      * @returns {string}
      */
     Text.render = render;
+
+    /**
+     * @static
+     * @method
+     * @param {string} text Text template
+     * @param {function} fn {
+     *  @param {string} expression
+     *  @returns {string} replacement
+     * }
+     * @returns {string} processed template
+     */
+    Text.eachText = eachText;
 
     /**
      * Does the text have expressions
@@ -9525,7 +9573,7 @@ var dom_getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
         '': null
     };
 
-    return function dom_getAttrSet(node, tagMode) {
+    return function dom_getAttrSet(node) {
 
         var set = {
                 directive: {},
@@ -9543,6 +9591,13 @@ var dom_getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
             subname,
             prop, execMode,
             attrs = isArray(node) ? node : node.attributes;
+
+        if (node.nodeType && node.hasAttrbibute && node.hasAttrbibute("mjs")) {
+            set = MetaphorJs.prebuilt.configs[node.getAttribute("mjs")];
+            dom_removeAttr("mjs");
+            set.removeDirective = emptyFn;
+            return set;
+        }
 
         for (i = 0, l = attrs.length; i < l; i++) {
 
@@ -9602,7 +9657,7 @@ var dom_getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
 
                 if (!coll[name]) {
                     coll[name] = {
-                        name: name,
+                        //name: name,
                         original: null,
                         config: {}
                     };

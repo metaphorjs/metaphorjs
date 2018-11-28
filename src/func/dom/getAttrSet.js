@@ -5,6 +5,7 @@ require("../../lib/Config.js");
 
 var toCamelCase = require("metaphorjs-shared/src/func/toCamelCase.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
+    emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
@@ -40,7 +41,7 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
         '': null
     };
 
-    return function dom_getAttrSet(node, tagMode) {
+    return function dom_getAttrSet(node) {
 
         var set = {
                 directive: {},
@@ -58,6 +59,13 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
             subname,
             prop, execMode,
             attrs = isArray(node) ? node : node.attributes;
+
+        if (node.nodeType && node.hasAttrbibute && node.hasAttrbibute("mjs")) {
+            set = MetaphorJs.prebuilt.configs[node.getAttribute("mjs")];
+            MetaphorJs.dom.removeAttr("mjs");
+            set.removeDirective = emptyFn;
+            return set;
+        }
 
         for (i = 0, l = attrs.length; i < l; i++) {
 
@@ -117,7 +125,7 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
 
                 if (!coll[name]) {
                     coll[name] = {
-                        name: name,
+                        //name: name,
                         original: null,
                         config: {}
                     };

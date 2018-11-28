@@ -1,0 +1,105 @@
+<!--{includes: true}-->
+<div class="form_select"
+     (click)="this.field.onSelfClick(this.$event)"
+     {class.loading}="this.loading"
+     {class.disabled}="this.field.disabled"
+     {class.search}="this.field.searchable"
+     {class.multiple}="this.field.multiple"
+     {class.black}="this.field.black">
+
+    <input type="hidden"
+            #el_hidden_field
+            [name]="this.field.hiddenInputName"
+            [value]="this.field.$$selection | join:','">
+
+    <i #el_icon_down 
+       (click)="this.field.onDropdownIconClick(this.$event)">
+       <!-- include icons/down.html -->
+    </i>
+
+    <a class="form_select__label"
+       {each}="item in this.field.getMultiSelection()"
+       style="display: inline-block !important;">
+        {{ this.$parent.field.getItemName(this.item) }}
+        <i class="delete icon"
+           (click)="this.$parent.field.onItemDeleteClick(this.item, this.$event)"></i>
+    </a>
+
+    <input type="text"
+           #el_search
+           class="search"
+           [disabled]="this.field.disabled"
+           {show}="this.field.searchable"
+           {show.$display}="inline-block"
+           (focus)="this.field.onSearchFocus(this.$event)"
+           (blur)="this.field.onSearchBlur(this.$event)"
+           (key.backspace)="this.field.onSearchBackspace(this.$event)"
+           {model}="this.searchQuery">
+
+    <span class="sizer"
+          #el_sizer
+          {if}="this.field.multiple && this.field.searchable"
+          {bind}="this.searchQuery"></span>
+
+    <div class="default text"
+         #el_default_text
+         (click)="this.field.onValueTextClick(this.$event)"
+         {show}="!this.searchQuery && !this.field.hasSelection() &&
+                    !!this.field.emptyText"
+         {show.$display}="inline-block"
+         {show.$save-state}="this.emptyShown"
+         {bind}="this.field.emptyText"></div>
+
+    <div class="text"
+         #el_text
+         (click)="this.field.onValueTextClick(this.$event)"
+         {class.default}="this.focused && this.searchQuery == ''"
+         {show}="!this.searchQuery && !this.field.multiple && this.field.hasSelection()"
+         {show.$save-state}="this.selectedShown"
+         {show.$display}="inline-block"
+         {bind}="this.field.getSelectedName()"></div>
+
+    <!-- replaces two previous text blocks with invisible placeholder -->
+    <div style="display: none"
+         class="default text"
+         {show}="!this.emptyShown && !this.selectedShown && !this.field.searchable"
+         {show.$display}="inline-block">&nbsp;</div>
+
+    <select class="form-select_hidden-select"
+            #el_hidden_select
+            (click)="this.field.onHiddenSelectClick(this.$event)"
+            (change)="this.field.onHiddenSelectChange(this.$event)"
+            {show}="this.field.useHiddenSelect"
+            {show.$display}="block" 
+            {options}="this.field._getSelectOptions()"></select>
+
+    <div class="form-select-menu" 
+         #el_menu 
+         {class.black}="this.field.black">
+        <div class="items"
+             #el_menu_items>
+            <div class="disabled item"
+                 #el_menu_disabled
+                 {if}="this.field.showNotFound && this.field.store.isEmpty()"
+                 (click)="this.field.onNotFoundClick(null, this.$event)"
+                 {bind-html}="this.field.notFoundText"></div>
+            <div class="empty item"
+                 #el_menu_empty
+                 style="color: #999;"
+                 {if}="this.field.showEmptyItem && !this.field.store.isEmpty()"
+                 (click)="this.field.onItemClick(null, this.$event)"
+                 {bind-html}="this.field.emptyItemText"></div>
+            <div class="item"
+                 {each}="item in this.field.store"
+                 (click)="this.$parent.field.onItemClick(this.item, this.$event)"
+                 {bind}="this.$parent.field.getItemName(this.item)"></div>
+        </div>
+        <div class="pagination_container"
+             {cmp}="Pagination"
+             {cmp.$autoscroll}="false"
+             {show}="this.pagination.hasPages()"
+             (click)="this.$parent.field.onPaginationClick(this.$event)">
+        </div>
+    </div>
+
+</div>

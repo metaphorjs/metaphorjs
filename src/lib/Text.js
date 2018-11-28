@@ -23,6 +23,9 @@ module.exports = MetaphorJs.lib.Text = (function(){
         events                  = new MetaphorJs.lib.Observable,
 
         _procExpr               = function(expr, scope, observers) {
+            if (expr.substring(0,2) === '--') {
+                expr = MetaphorJs.prebuilt.expressions[expr.substring(2)];
+            }
             if (observers) {
                 var w = MetaphorJs.lib.MutationObserver.get(scope, expr);
                 observers.push(w);
@@ -33,7 +36,7 @@ module.exports = MetaphorJs.lib.Text = (function(){
             }
         },
 
-        _process                = function(text, scope, observers, fullExpr) {
+        eachText                = function(text, fn) {
 
             var index       = 0,
                 textLength  = text.length,
@@ -41,10 +44,6 @@ module.exports = MetaphorJs.lib.Text = (function(){
                 endIndex,
                 expr,
                 result      = "";
-
-            if (fullExpr) {
-                return _procExpr(text, scope, observers);
-            }
 
             while (index < textLength) {
                 if (((startIndex = text.indexOf(startSymbol, index)) !== -1) &&
@@ -56,10 +55,7 @@ module.exports = MetaphorJs.lib.Text = (function(){
                     if (endIndex !== startIndex + startSymbolLength) {
                         expr = text.substring(startIndex + startSymbolLength, endIndex);
                         expr = expr.trim();
-
-
-
-                        result += _procExpr(expr, scope, observers);
+                        result += fn(expr);
                     }
 
                     index = endIndex + endSymbolLength;
@@ -87,11 +83,21 @@ module.exports = MetaphorJs.lib.Text = (function(){
                     throw new Error(
                         "Got more than 100 iterations on template: " + self.origin);
                 }
-                result = _process(prev, scope, observers, fullExpr);
+
+                if (fullExpr) {
+                    result = _procExpr(text, scope, observers);
+                    fullExpr = false;
+                }
+                else {
+                    result = eachText(prev, function(expr){
+                        return _procExpr(expr, scope, observers);
+                    });
+                }
+                
                 if (!recursive || result === prev) {
                     return result;
                 }
-                fullExpr = false; // only first iteration can be fullExpr
+
                 prev = result;
                 iter++;
             }
@@ -251,6 +257,18 @@ module.exports = MetaphorJs.lib.Text = (function(){
      * @returns {string}
      */
     Text.render = render;
+
+    /**
+     * @static
+     * @method
+     * @param {string} text Text template
+     * @param {function} fn {
+     *  @param {string} expression
+     *  @returns {string} replacement
+     * }
+     * @returns {string} processed template
+     */
+    Text.eachText = eachText;
 
     /**
      * Does the text have expressions
