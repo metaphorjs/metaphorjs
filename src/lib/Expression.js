@@ -25,7 +25,15 @@ module.exports = MetaphorJs.lib.Expression = (function() {
                             {},
 
         prebuiltCache   = function(key) {
-            return prebuiltExpr[key] || null;
+            if (isPrebuiltKey(key)) {
+                key = key.substring(2);
+                return prebuiltExpr[key] || null;
+            }
+            return null;
+        },
+
+        isPrebuiltKey   = function(expr) {
+            return typeof expr === "string" && expr.substring(0,2) === '--';
         },
 
         isAtom          = function(expr) {
@@ -779,11 +787,20 @@ module.exports = MetaphorJs.lib.Expression = (function() {
         isProperty: isProperty,
 
         /**
+         * Is this a key in prebuilt cache
+         * @property {function} isPrebuiltKey {
+         *  @param {string} key
+         *  @returns {boolean}
+         * }
+         */
+        isPrebuiltKey: isPrebuiltKey,
+
+        /**
          * Does the expression has pipes
-         * @static
-         * @method
-         * @param {string} expr
-         * @returns {boolean}
+         * @property {function} expressionHasPipes {
+         *  @param {string} expr
+         *  @returns {boolean}
+         * }
          */
         expressionHasPipes: function(expr) {
             return split(expr, '|').length > 1 || 

@@ -49,6 +49,9 @@ var Directive = require("../../app/Directive.js"),
 
     eachDirective.$stopRenderer = true;
     eachDirective.$registerBy = "id";
+    eachDirective.$prebuild = {
+        skip: true
+    };
 
     eachDirective.registerType(Array, MetaphorJs.app.ListRenderer);
 

@@ -515,7 +515,7 @@ module.exports = MetaphorJs.app.Component = cls({
         else if (self.node) {
 
             if (!self.originalId) {
-                removeAttr(self.node, "id");
+                MetaphorJs.dom.removeAttr(self.node, "id");
             }
 
             self.releaseNode();

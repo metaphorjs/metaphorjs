@@ -6,6 +6,7 @@ require("../../lib/Config.js");
 var toCamelCase = require("metaphorjs-shared/src/func/toCamelCase.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
     emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
+    extend = require("metaphorjs-shared/src/func/extend.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
@@ -41,17 +42,25 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
         '': null
     };
 
+    var getEmpty = function() {
+        return {
+            directive: {},
+            attribute: {},
+            config: {},
+            rest: {},
+            reference: null,
+            names: {},
+            removeDirective: removeDirective
+        };
+    };
+
+    var inflate = function(set) {
+        extend(set, getEmpty(), false, false);
+    };
+
     return function dom_getAttrSet(node) {
 
-        var set = {
-                directive: {},
-                attribute: {},
-                config: {},
-                rest: {},
-                reference: null,
-                names: {},
-                removeDirective: removeDirective
-            },
+        var set = getEmpty(),
             i, l, tagName,
             name, value,
             match, parts,
@@ -63,7 +72,7 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
         if (node.nodeType && node.hasAttrbibute && node.hasAttrbibute("mjs")) {
             set = MetaphorJs.prebuilt.configs[node.getAttribute("mjs")];
             MetaphorJs.dom.removeAttr("mjs");
-            set.removeDirective = emptyFn;
+            inflate(set);
             return set;
         }
 

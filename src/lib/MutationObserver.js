@@ -76,23 +76,29 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
         self.exprStruct = null;
         self.sub = [];
 
-        if (isFunction(expr)) {
-            self.getterFn = expr;
+        // only plain getters
+        if (MetaphorJs.lib.Expression.isPrebuiltKey(expr)) {
+            self.getterFn = MetaphorJs.lib.Expression.getter(expr);
         }
-        else if (statc = MetaphorJs.lib.Expression.isStatic(expr)) {
-            type = "static";
-            self.staticValue = statc.value;
-            self.getterFn = bind(self._staticGetter, self);
-        }
-        else if (dataObj) {
-            propertyName = expr;
-            if (dataObj.hasOwnProperty(propertyName) || 
-                ((propertyName = MetaphorJs.lib.Expression.isProperty(expr)) &&
-                dataObj.hasOwnProperty(propertyName))) {
-                    type = "attr";
-                    self.propertyName = propertyName;
-                    self.getterFn = bind(self._propertyGetter, self);
-                }
+        else {
+            if (isFunction(expr)) {
+                self.getterFn = expr;
+            }
+            else if (statc = MetaphorJs.lib.Expression.isStatic(expr)) {
+                type = "static";
+                self.staticValue = statc.value;
+                self.getterFn = bind(self._staticGetter, self);
+            }
+            else if (dataObj) {
+                propertyName = expr;
+                if (dataObj.hasOwnProperty(propertyName) || 
+                    ((propertyName = MetaphorJs.lib.Expression.isProperty(expr)) &&
+                    dataObj.hasOwnProperty(propertyName))) {
+                        type = "attr";
+                        self.propertyName = propertyName;
+                        self.getterFn = bind(self._propertyGetter, self);
+                    }
+            }
         }
         
         if (!self.getterFn && type === "expr") {
@@ -182,6 +188,11 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
                 self.setterFn = bind(self._propertySetter, self);
             }
             else {
+
+                if (!struct) {
+                    throw new Error("Unable to make setter out of " + this.expr);
+                }
+
                 self.setterFn = MetaphorJs.lib.Expression.construct(
                     struct, {setterOnly: true}
                 );

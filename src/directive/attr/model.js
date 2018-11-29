@@ -167,4 +167,10 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     }
 
 
+}, {
+
+    $prebuild: {
+        skip: true
+    }
+
 }));

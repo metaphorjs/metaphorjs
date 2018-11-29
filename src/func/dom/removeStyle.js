@@ -12,7 +12,7 @@ module.exports = MetaphorJs.dom.removeStyle = (function() {
 
     var div = window.document.createElement("div");
 
-    if (div.style.removeProperty) {
+    if (div.style && div.style.removeProperty) {
         return function(node, name) {
             node.style.removeProperty(name);
         };

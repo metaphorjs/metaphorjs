@@ -2,14 +2,48 @@
 /* BUNDLE START 004 */
 "use strict";
 
-var MetaphorJsPrebuilt = {"templates":{"a*b":"<p>a * b = {{--80Z}}</p>","a+b":"<p>a + b = {{--810}}</p>","cmp1-template":"<h2>{{--812}}</h2><div mjs=\"811\"></div>","dirs":"<div class=\"form_select\" mjs=\"813\"><input type=\"hidden\" mjs=\"814\"><i mjs=\"815\"><!-- include icons/down.html --></i><a class=\"form_select__label\" mjs=\"816\" style=\"display: inline-block !important;\">{{--81K}}<i class=\"delete icon\" mjs=\"817\"></i></a><input type=\"text\" mjs=\"818\" class=\"search\"><span class=\"sizer\" mjs=\"819\"></span><div class=\"default text\" mjs=\"81A\"></div><div class=\"text\" mjs=\"81B\"></div><!-- replaces two previous text blocks with invisible placeholder --><div style=\"display: none\" class=\"default text\" mjs=\"81C\">&nbsp;</div><select class=\"form-select_hidden-select\" mjs=\"81D\"></select><div class=\"form-select-menu\" mjs=\"81E\"><div class=\"items\" mjs=\"81F\"><div class=\"disabled item\" mjs=\"81G\"></div><div class=\"empty item\" mjs=\"81H\" style=\"color: #999;\"></div><div class=\"item\" mjs=\"81I\"></div></div><div class=\"pagination_container\" mjs=\"81J\"></div></div></div>","tagc":"<div class=\"component\"><p>This is a tag component.</p><p>{{--81L}}</p></div>","test-template":"<p>{{--81N}}</p><div mjs=\"81M\"></div>"},"templateOptions":{"dirs":{"includes":true}},"configs":{"811":{"directive":{"transclude":{"config":{"value":{"expression":""}}}}},"813":{"directive":{"click":{"config":{"value":{"expression":"this.field.onSelfClick(this.$event)"}}},"class":{"config":{"value.loading":{"expression":"this.loading"},"value.disabled":{"expression":"this.field.disabled"},"value.search":{"expression":"this.field.searchable"},"value.multiple":{"expression":"this.field.multiple"},"value.black":{"expression":"this.field.black"}}}}},"814":{"attribute":{"name":{"value":"this.field.hiddenInputName","original":"[name]"},"value":{"value":"this.field.$$selection | join:','","original":"[value]"}},"reference":"el_hidden_field"},"815":{"directive":{"click":{"config":{"value":{"expression":"this.field.onDropdownIconClick(this.$event)"}}}},"reference":"el_icon_down"},"816":{"directive":{"each":{"config":{"value":{"expression":"item in this.field.getMultiSelection()"}}}}},"817":{"directive":{"click":{"config":{"value":{"expression":"this.$parent.field.onItemDeleteClick(this.item, this.$event)"}}}}},"818":{"directive":{"show":{"config":{"value":{"expression":"this.field.searchable"},"display":{"expression":"inline-block"}}},"focus":{"config":{"value":{"expression":"this.field.onSearchFocus(this.$event)"}}},"blur":{"config":{"value":{"expression":"this.field.onSearchBlur(this.$event)"}}},"key":{"config":{"value.backspace":{"expression":"this.field.onSearchBackspace(this.$event)"}}},"model":{"config":{"value":{"expression":"this.searchQuery"}}}},"attribute":{"disabled":{"value":"this.field.disabled","original":"[disabled]"}},"reference":"el_search"},"819":{"directive":{"if":{"config":{"value":{"expression":"this.field.multiple && this.field.searchable"}}},"bind":{"config":{"value":{"expression":"this.searchQuery"}}}},"reference":"el_sizer"},"81A":{"directive":{"click":{"config":{"value":{"expression":"this.field.onValueTextClick(this.$event)"}}},"show":{"config":{"value":{"expression":"!this.searchQuery && !this.field.hasSelection() &&\n                    !!this.field.emptyText"},"display":{"expression":"inline-block"},"saveState":{"expression":"this.emptyShown"}}},"bind":{"config":{"value":{"expression":"this.field.emptyText"}}}},"reference":"el_default_text"},"81B":{"directive":{"click":{"config":{"value":{"expression":"this.field.onValueTextClick(this.$event)"}}},"class":{"config":{"value.default":{"expression":"this.focused && this.searchQuery == ''"}}},"show":{"config":{"value":{"expression":"!this.searchQuery && !this.field.multiple && this.field.hasSelection()"},"saveState":{"expression":"this.selectedShown"},"display":{"expression":"inline-block"}}},"bind":{"config":{"value":{"expression":"this.field.getSelectedName()"}}}},"reference":"el_text"},"81C":{"directive":{"show":{"config":{"value":{"expression":"!this.emptyShown && !this.selectedShown && !this.field.searchable"},"display":{"expression":"inline-block"}}}}},"81D":{"directive":{"click":{"config":{"value":{"expression":"this.field.onHiddenSelectClick(this.$event)"}}},"change":{"config":{"value":{"expression":"this.field.onHiddenSelectChange(this.$event)"}}},"show":{"config":{"value":{"expression":"this.field.useHiddenSelect"},"display":{"expression":"block"}}},"options":{"config":{"value":{"expression":"this.field._getSelectOptions()"}}}},"reference":"el_hidden_select"},"81E":{"directive":{"class":{"config":{"value.black":{"expression":"this.field.black"}}}},"reference":"el_menu"},"81F":{"reference":"el_menu_items"},"81G":{"directive":{"if":{"config":{"value":{"expression":"this.field.showNotFound && this.field.store.isEmpty()"}}},"click":{"config":{"value":{"expression":"this.field.onNotFoundClick(null, this.$event)"}}},"bind-html":{"config":{"value":{"expression":"this.field.notFoundText"}}}},"reference":"el_menu_disabled"},"81H":{"directive":{"if":{"config":{"value":{"expression":"this.field.showEmptyItem && !this.field.store.isEmpty()"}}},"click":{"config":{"value":{"expression":"this.field.onItemClick(null, this.$event)"}}},"bind-html":{"config":{"value":{"expression":"this.field.emptyItemText"}}}},"reference":"el_menu_empty"},"81I":{"directive":{"each":{"config":{"value":{"expression":"item in this.field.store"}}},"click":{"config":{"value":{"expression":"this.$parent.field.onItemClick(this.item, this.$event)"}}},"bind":{"config":{"value":{"expression":"this.$parent.field.getItemName(this.item)"}}}}},"81J":{"directive":{"cmp":{"config":{"value":{"expression":"Pagination"},"autoscroll":{"expression":"false"}}},"show":{"config":{"value":{"expression":"this.pagination.hasPages()"}}},"click":{"config":{"value":{"expression":"this.$parent.field.onPaginationClick(this.$event)"}}}}},"81M":{"directive":{"transclude":{"config":{"value":{"expression":""}}}}}},"expressions":{"810":"this.$root.a + this.$root.b","812":"this.title","80Z":"this.$root.a * this.$root.b","81K":"this.$parent.field.getItemName(this.item)","81L":"this.ctrl.config.get('test')","81N":"this.$root.text"}}
+var MetaphorJsPrebuilt = {"templates":{"a*b":"<p>a * b = {{--813}}</p>","a+b":"<p>a + b = {{--814}}</p>","cmp1-template":"<h2>{{--816}}</h2><div mjs=\"815\"></div>","dirs":"<div class=\"form_select\" mjs=\"81D\"><input type=\"hidden\" mjs=\"81E\"><i mjs=\"81G\"><!-- include icons/down.html --></i><a class=\"form_select__label\" mjs=\"81H\" style=\"display: inline-block !important;\">{{--82I}}<i class=\"delete icon\" mjs=\"81J\"></i></a><input type=\"text\" mjs=\"81N\" class=\"search\"><span class=\"sizer\" mjs=\"81Q\"></span><div class=\"default text\" mjs=\"81V\"></div><div class=\"text\" mjs=\"820\"></div><!-- replaces two previous text blocks with invisible placeholder --><div style=\"display: none\" class=\"default text\" mjs=\"822\">&nbsp;</div><select class=\"form-select_hidden-select\" mjs=\"826\"></select><div class=\"form-select-menu\" mjs=\"827\"><div class=\"items\" mjs=\"828\"><div class=\"disabled item\" mjs=\"82C\"></div><div class=\"empty item\" mjs=\"82G\" style=\"color: #999;\"></div><div class=\"item\" mjs=\"82J\"></div></div><div class=\"pagination_container\" mjs=\"82M\"></div></div></div>","tagc":"<div class=\"component\"><p>This is a tag component.</p><p>{{--82N}}</p></div>","test-template":"<p>{{--82P}}</p><div mjs=\"82O\"></div>"},"templateOptions":{"dirs":{"includes":true}},"configs":{"815":{"directive":{"transclude":{"config":{"value":{"expression":""}}}}},"820":{"directive":{"click":{"config":{"value":{"expression":"--81R"}}},"class":{"config":{"value.default":{"expression":"--81W"}}},"show":{"config":{"value":{"expression":"--81X"},"saveState":{"expression":"--81Y"},"display":{"expression":"inline-block"}}},"bind":{"config":{"value":{"expression":"--81Z"}}}},"reference":"el_text"},"822":{"directive":{"show":{"config":{"value":{"expression":"--821"},"display":{"expression":"inline-block"}}}}},"826":{"directive":{"click":{"config":{"value":{"expression":"--823"}}},"change":{"config":{"value":{"expression":"--824"}}},"show":{"config":{"value":{"expression":"--825"},"display":{"expression":"block"}}},"options":{"config":{"value":{"expression":"this.field._getSelectOptions()"}}}},"reference":"el_hidden_select"},"827":{"directive":{"class":{"config":{"value.black":{"expression":"--81C"}}}},"reference":"el_menu"},"828":{"reference":"el_menu_items"},"81D":{"directive":{"click":{"config":{"value":{"expression":"--817"}}},"class":{"config":{"value.loading":{"expression":"--818"},"value.disabled":{"expression":"--819"},"value.search":{"expression":"--81A"},"value.multiple":{"expression":"--81B"},"value.black":{"expression":"--81C"}}}}},"81E":{"attribute":{"name":{"value":"this.field.hiddenInputName","original":"[name]"},"value":{"value":"this.field.$$selection | join:','","original":"[value]"}},"reference":"el_hidden_field"},"81G":{"directive":{"click":{"config":{"value":{"expression":"--81F"}}}},"reference":"el_icon_down"},"81H":{"directive":{"each":{"config":{"value":{"expression":"item in this.field.getMultiSelection()"}}}}},"81J":{"directive":{"click":{"config":{"value":{"expression":"--81I"}}}}},"81N":{"directive":{"show":{"config":{"value":{"expression":"--81A"},"display":{"expression":"inline-block"}}},"focus":{"config":{"value":{"expression":"--81K"}}},"blur":{"config":{"value":{"expression":"--81L"}}},"key":{"config":{"value.backspace":{"expression":"--81M"}}},"model":{"config":{"value":{"expression":"this.searchQuery"}}}},"attribute":{"disabled":{"value":"this.field.disabled","original":"[disabled]"}},"reference":"el_search"},"81Q":{"directive":{"if":{"config":{"value":{"expression":"--81O"}}},"bind":{"config":{"value":{"expression":"--81P"}}}},"reference":"el_sizer"},"81V":{"directive":{"click":{"config":{"value":{"expression":"--81R"}}},"show":{"config":{"value":{"expression":"--81S"},"display":{"expression":"inline-block"},"saveState":{"expression":"--81T"}}},"bind":{"config":{"value":{"expression":"--81U"}}}},"reference":"el_default_text"},"82C":{"directive":{"if":{"config":{"value":{"expression":"--829"}}},"click":{"config":{"value":{"expression":"--82A"}}},"bind-html":{"config":{"value":{"expression":"--82B"}}}},"reference":"el_menu_disabled"},"82G":{"directive":{"if":{"config":{"value":{"expression":"--82D"}}},"click":{"config":{"value":{"expression":"--82E"}}},"bind-html":{"config":{"value":{"expression":"--82F"}}}},"reference":"el_menu_empty"},"82J":{"directive":{"each":{"config":{"value":{"expression":"item in this.field.store"}}},"click":{"config":{"value":{"expression":"--82H"}}},"bind":{"config":{"value":{"expression":"--82I"}}}}},"82M":{"directive":{"cmp":{"config":{"value":{"expression":"Pagination"},"autoscroll":{"expression":"false"}}},"show":{"config":{"value":{"expression":"--82K"}}},"click":{"config":{"value":{"expression":"--82L"}}}}},"82O":{"directive":{"transclude":{"config":{"value":{"expression":""}}}}}}}
 MetaphorJsPrebuilt['funcs'] = {
-"this.$root.a * this.$root.b": function(____, $$$$) {try {return ____.$root.a * ____.$root.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a * this.$root.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"this.$root.a + this.$root.b": function(____, $$$$) {try {return ____.$root.a + ____.$root.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a + this.$root.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"this.title": function(____, $$$$) {try {return ____.title;} catch (thrownError) { /*DEBUG-START*/console.log("this.title");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"this.$parent.field.getItemName(this.item)": function(____, $$$$) {try {return ____.$parent.field.getItemName(____.item);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.getItemName(this.item)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"this.ctrl.config.get('test')": function(____, $$$$) {try {return ____.ctrl.config.get('test');} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.config.get(\'test\')");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"this.$root.text": function(____, $$$$) {try {return ____.$root.text;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.text");console.log(thrownError);/*DEBUG-END*/return undefined; }}
+"813": function(____, $$$$) {try {return ____.$root.a * ____.$root.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a * this.$root.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"814": function(____, $$$$) {try {return ____.$root.a + ____.$root.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a + this.$root.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"816": function(____, $$$$) {try {return ____.title;} catch (thrownError) { /*DEBUG-START*/console.log("this.title");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"817": function(____, $$$$) {try {return ____.field.onSelfClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSelfClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"818": function(____, $$$$) {try {return ____.loading;} catch (thrownError) { /*DEBUG-START*/console.log("this.loading");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"819": function(____, $$$$) {try {return ____.field.disabled;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.disabled");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"821": function(____, $$$$) {try {return !____.emptyShown && !____.selectedShown && !____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("!this.emptyShown && !this.selectedShown && !this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"823": function(____, $$$$) {try {return ____.field.onHiddenSelectClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onHiddenSelectClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"824": function(____, $$$$) {try {return ____.field.onHiddenSelectChange(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onHiddenSelectChange(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"825": function(____, $$$$) {try {return ____.field.useHiddenSelect;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.useHiddenSelect");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"829": function(____, $$$$) {try {return ____.field.showNotFound && ____.field.store.isEmpty();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.showNotFound && this.field.store.isEmpty()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81A": function(____, $$$$) {try {return ____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81B": function(____, $$$$) {try {return ____.field.multiple;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.multiple");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81C": function(____, $$$$) {try {return ____.field.black;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.black");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81F": function(____, $$$$) {try {return ____.field.onDropdownIconClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onDropdownIconClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81I": function(____, $$$$) {try {return ____.$parent.field.onItemDeleteClick(____.item, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onItemDeleteClick(this.item, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81K": function(____, $$$$) {try {return ____.field.onSearchFocus(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchFocus(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81L": function(____, $$$$) {try {return ____.field.onSearchBlur(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchBlur(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81M": function(____, $$$$) {try {return ____.field.onSearchBackspace(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchBackspace(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81O": function(____, $$$$) {try {return ____.field.multiple && ____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.multiple && this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81P": function(____, $$$$) {try {return ____.searchQuery;} catch (thrownError) { /*DEBUG-START*/console.log("this.searchQuery");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81R": function(____, $$$$) {try {return ____.field.onValueTextClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onValueTextClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81S": function(____, $$$$) {try {return !____.searchQuery && !____.field.hasSelection() && !!____.field.emptyText;} catch (thrownError) { /*DEBUG-START*/console.log("!this.searchQuery && !this.field.hasSelection() && !!this.field.emptyText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81T": function(____, $$$$) {try {return ____.emptyShown;} catch (thrownError) { /*DEBUG-START*/console.log("this.emptyShown");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81U": function(____, $$$$) {try {return ____.field.emptyText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.emptyText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81W": function(____, $$$$) {try {return ____.focused && ____.searchQuery == '';} catch (thrownError) { /*DEBUG-START*/console.log("this.focused && this.searchQuery == \'\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81X": function(____, $$$$) {try {return !____.searchQuery && !____.field.multiple && ____.field.hasSelection();} catch (thrownError) { /*DEBUG-START*/console.log("!this.searchQuery && !this.field.multiple && this.field.hasSelection()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81Y": function(____, $$$$) {try {return ____.selectedShown;} catch (thrownError) { /*DEBUG-START*/console.log("this.selectedShown");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81Z": function(____, $$$$) {try {return ____.field.getSelectedName();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.getSelectedName()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"82A": function(____, $$$$) {try {return ____.field.onNotFoundClick(null, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onNotFoundClick(null, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"82B": function(____, $$$$) {try {return ____.field.notFoundText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.notFoundText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"82D": function(____, $$$$) {try {return ____.field.showEmptyItem && !____.field.store.isEmpty();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.showEmptyItem && !this.field.store.isEmpty()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"82E": function(____, $$$$) {try {return ____.field.onItemClick(null, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onItemClick(null, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"82F": function(____, $$$$) {try {return ____.field.emptyItemText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.emptyItemText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"82H": function(____, $$$$) {try {return ____.$parent.field.onItemClick(____.item, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onItemClick(this.item, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"82I": function(____, $$$$) {try {return ____.$parent.field.getItemName(____.item);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.getItemName(this.item)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"82K": function(____, $$$$) {try {return ____.pagination.hasPages();} catch (thrownError) { /*DEBUG-START*/console.log("this.pagination.hasPages()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"82L": function(____, $$$$) {try {return ____.$parent.field.onPaginationClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onPaginationClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"82N": function(____, $$$$) {try {return ____.ctrl.config.get('test');} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.config.get(\'test\')");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"82P": function(____, $$$$) {try {return ____.$root.text;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.text");console.log(thrownError);/*DEBUG-END*/return undefined; }}
 };
 
 
@@ -283,7 +317,15 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
                             {},
 
         prebuiltCache   = function(key) {
-            return prebuiltExpr[key] || null;
+            if (isPrebuiltKey(key)) {
+                key = key.substring(2);
+                return prebuiltExpr[key] || null;
+            }
+            return null;
+        },
+
+        isPrebuiltKey   = function(expr) {
+            return typeof expr === "string" && expr.substring(0,2) === '--';
         },
 
         isAtom          = function(expr) {
@@ -1037,11 +1079,20 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
         isProperty: isProperty,
 
         /**
+         * Is this a key in prebuilt cache
+         * @property {function} isPrebuiltKey {
+         *  @param {string} key
+         *  @returns {boolean}
+         * }
+         */
+        isPrebuiltKey: isPrebuiltKey,
+
+        /**
          * Does the expression has pipes
-         * @static
-         * @method
-         * @param {string} expr
-         * @returns {boolean}
+         * @property {function} expressionHasPipes {
+         *  @param {string} expr
+         *  @returns {boolean}
+         * }
          */
         expressionHasPipes: function(expr) {
             return split(expr, '|').length > 1 || 
@@ -2412,23 +2463,29 @@ var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
         self.exprStruct = null;
         self.sub = [];
 
-        if (isFunction(expr)) {
-            self.getterFn = expr;
+        // only plain getters
+        if (lib_Expression.isPrebuiltKey(expr)) {
+            self.getterFn = lib_Expression.getter(expr);
         }
-        else if (statc = lib_Expression.isStatic(expr)) {
-            type = "static";
-            self.staticValue = statc.value;
-            self.getterFn = bind(self._staticGetter, self);
-        }
-        else if (dataObj) {
-            propertyName = expr;
-            if (dataObj.hasOwnProperty(propertyName) || 
-                ((propertyName = lib_Expression.isProperty(expr)) &&
-                dataObj.hasOwnProperty(propertyName))) {
-                    type = "attr";
-                    self.propertyName = propertyName;
-                    self.getterFn = bind(self._propertyGetter, self);
-                }
+        else {
+            if (isFunction(expr)) {
+                self.getterFn = expr;
+            }
+            else if (statc = lib_Expression.isStatic(expr)) {
+                type = "static";
+                self.staticValue = statc.value;
+                self.getterFn = bind(self._staticGetter, self);
+            }
+            else if (dataObj) {
+                propertyName = expr;
+                if (dataObj.hasOwnProperty(propertyName) || 
+                    ((propertyName = lib_Expression.isProperty(expr)) &&
+                    dataObj.hasOwnProperty(propertyName))) {
+                        type = "attr";
+                        self.propertyName = propertyName;
+                        self.getterFn = bind(self._propertyGetter, self);
+                    }
+            }
         }
         
         if (!self.getterFn && type === "expr") {
@@ -2518,6 +2575,11 @@ var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
                 self.setterFn = bind(self._propertySetter, self);
             }
             else {
+
+                if (!struct) {
+                    throw new Error("Unable to make setter out of " + this.expr);
+                }
+
                 self.setterFn = lib_Expression.construct(
                     struct, {setterOnly: true}
                 );
@@ -4189,19 +4251,644 @@ var Directive = MetaphorJs.app.Directive = (function() {
 
 
 /**
- * Function that returns false
- * @function returnFalse
+ * Converts given value to boolean. <br>
+ * false: "", 0, false, undefined, null, "false", "no", "0"<br>
+ * true: everything else
+ * @function toBool
+ * @param {*} val 
  * @returns {boolean}
  */
-function returnFalse() {
-    return false;
+function toBool(val) {
+    if (!val) { // real false, empty string, null, zero
+        return false;
+    }
+    if (typeof val === "string") {
+        val = val.toLowerCase();
+        if (val === "false" || val === "no" || val === '0') {
+            return false;
+        }
+    }
+    return true;
 };
 
 
 
 
 
-Directive.registerAttribute("app", 100, returnFalse);
+
+/**
+ * @class MetaphorJs.lib.Config
+ */
+var lib_Config = MetaphorJs.lib.Config = (function(){
+
+    var $$observable = new lib_Observable;
+
+    var MODE_STATIC = 1,
+        MODE_DYNAMIC = 2,
+        MODE_SINGLE = 3,
+        MODE_GETTER = 4,
+        MODE_SETTER = 5,
+        MODE_FUNC = 6,
+        MODE_FNSET = 7;
+
+    /**
+     * @constructor
+     * @method
+     * @param {object} properties Attribute expressions/properties map
+     * @param {object} cfg {
+     *  @type {object} scope Data object
+     *  @type {object} setTo set all values to this object
+     * }
+     */
+    var Config = function(properties, cfg) {
+
+        var self = this,
+            k;
+
+        self.id = nextUid();
+        self.values = {};
+        self.properties = {};
+        self.cfg = cfg || {};
+        self.keys = [];
+
+        if (properties) {
+            for (k in properties) {
+                self.setProperty(
+                    k, 
+                    typeof properties[k] === "string" ? 
+                        {expression: properties[k]}:
+                        properties[k]
+                );
+            }
+        }
+    };
+
+    extend(Config.prototype, {
+
+        id: null,
+        properties: null,
+        values: null,
+        keys: null,
+        cfg: null,
+
+        _initMo: function(name) {
+            var self = this,
+                prop = self.properties[name];
+            prop.mo = lib_MutationObserver.get(
+                self.cfg.scope, prop.expression
+            );
+            prop.mo.subscribe(self._onPropMutated, self, {
+                append: [name]
+            });
+        }, 
+
+        _unsetMo: function(name) {
+            var self = this, prop = self.properties[name];
+            if (prop.mo) {
+                prop.mo.unsubscribe(self._onPropMutated, self);
+                prop.mo.$destroy(true);
+                prop.mo = null;
+            }
+        },
+
+        _calcProperty: function(name) {
+
+            var self = this,
+                prop = self.getProperty(name),
+                value,
+                setTo;
+
+            if (!prop || prop.disabled) {
+                return null;
+            }
+
+            if (prop.expression) {
+
+                if (!prop.mode) {
+                    prop.mode = MODE_DYNAMIC;
+                }
+
+                if (prop.mode === MODE_STATIC) {
+                    value = prop.expression;
+                }
+                else if (prop.mode === MODE_SINGLE) {
+                    value = lib_Expression.get(
+                        prop.expression, 
+                        self.cfg.scope
+                    );
+                }
+                else if (prop.mode === MODE_DYNAMIC) {
+                    !prop.mo && self._initMo(name);
+                    value = prop.mo.getValue();
+                }
+                else if (prop.mode === MODE_GETTER || 
+                         prop.mode === MODE_SETTER) {
+                    value = lib_Expression.parse(
+                        prop.expression,
+                        {
+                            setter: prop.mode === MODE_SETTER,
+                            setterOnly: prop.mode === MODE_SETTER,
+                            getterOnly: prop.mode === MODE_GETTER
+                        }
+                    );
+                }
+                else if (prop.mode === MODE_FNSET) {
+                    value = {
+                        getter: lib_Expression.getter(prop.expression),
+                        setter: lib_Expression.setter(prop.expression)
+                    };
+                }
+                else if (prop.mode === MODE_FUNC) {
+                    value = lib_Expression.func(prop.expression);
+                }
+            }
+
+            if (value === undf) {
+                value = prop.defaultValue;
+            }
+
+            value = self._prepareValue(value, prop);
+            self.values[name] = value;
+
+            setTo = self.cfg.setTo || prop.setTo;
+            if (setTo) {
+                setTo[name] = value;
+            }
+
+            return value;
+        },
+
+
+        _prepareValue: function(value, prop) {
+
+            if (!prop.type) {
+                return value;
+            }
+
+            switch (prop.type) {
+                case 'int':
+                    return parseInt(value);
+                case 'float':
+                case 'number':
+                    return parseFloat(value);
+                case 'bool':
+                case 'boolean':
+                    return toBool(value);
+                case 'array':
+                case 'list':
+                    return !isArray(value) ? [value] : value;
+                case 'string':
+                case 'str':
+                    return "" + value;
+            }
+
+            return value;
+        },
+
+        _onPropMutated: function(val, prev, name) {
+
+            var self = this,
+                prop = self.properties[name],
+                setTo = prop.setTo || self.cfg.setTo,
+                value;
+
+            value = self._prepareValue(val, prop);
+
+            self.values[name] = value;
+            if (setTo) {
+                setTo[name] = value;
+            }
+
+            $$observable.trigger(this.id, name, value, prev);
+            $$observable.trigger(this.id +'-'+ name, value, prev);
+        },
+
+        /**
+         * Set or update property
+         * @method
+         * @param {string} name 
+         * @param {object} cfg {
+         *  @type {string} type int|float|array|bool|string
+         *  @type {object} setTo
+         *  @type {boolean} disabled
+         *  @type {*} defaultValue
+         *  @type {int} defaultMode
+         *  @type {int} mode 1: static, 2: dynamic, 3: single run
+         * }
+         */
+
+        /**
+         * Set or update property
+         * @param {string} name 
+         * @param {string} cfg 
+         * @param {*} val 
+         */
+        setProperty: function(name, cfg, val) {
+
+            var self = this,
+                props = self.properties,
+                prop,
+                changed = false;
+
+            if (!props[name]) {
+                props[name] = {};
+                self.keys.push(name);
+                changed = true;
+            }
+
+            prop = props[name];
+
+            if (val === undf) {
+                var k;
+                for (k in cfg) {
+                    if (cfg[k] !== prop[k]) {
+                        changed = true;
+                        prop[k] = cfg[k];
+                    }
+                }
+            }
+            else {
+                if (val !== prop[cfg]) {
+                    changed = true;
+                    prop[cfg] = val;
+                }
+            }
+
+            if (!prop.mode) {
+                if (prop.defaultMode) {
+                    prop.mode = prop.defaultMode;
+                    changed = true;
+                }
+                else if (prop.expression === true) {
+                    prop.mode = MODE_STATIC;
+                    changed = true;
+                }
+            }
+
+            if (prop.mode === MODE_DYNAMIC && 
+                prop.expression && 
+                !prop.mo && 
+                !prop.disabled) {
+                self._initMo(name);
+                changed = true;
+            }
+
+            if (changed && self.values[name] !== undf) {
+                delete self.values[name];
+            }
+        
+            return changed;
+        },
+
+        /**
+         * Get property config
+         * @param {string} name 
+         * @returns {object}
+         */
+        getProperty: function(name) {
+            return this.properties[name] || null;
+        },
+
+        /**
+         * Get property expression
+         * @param {string} name 
+         */
+        getExpression: function(name) {
+            var prop = this.getProperty(name);
+            return prop ? (prop.expression || null) : null;
+        },
+
+        /**
+         * Get all config values
+         * @method
+         * @returns {object}
+         */
+        getAll: function() {
+            var self = this, k, vs = {};
+            for (k in self.properties) {
+                if (self.values[k] === undf) {
+                    vs[k] = self._calcProperty(k);
+                }
+                else vs[k] = self.values[k];
+            }
+            return vs;
+        },
+
+        /**
+         * Iterate over properties
+         * @param {function} fn {
+         *  @param {string} key
+         *  @param {object} property
+         *  @param {MetaphorJs.lib.Config} self
+         * } 
+         * @param {object} context 
+         */
+        eachProperty: function(fn, context) {
+            var k, self = this;
+            for (k in self.properties) {
+                fn.call(context, k, self.properties[k], self);
+            }
+        },
+
+        /**
+         * Does this config has a property
+         * @param {string} name 
+         * @returns {bool}
+         */
+        hasProperty: function(name) {
+            return !!this.properties[name];
+        },
+
+        /**
+         * Does this config has a property with expression
+         * @param {string} name 
+         * @returns {bool}
+         */
+        hasExpression: function(name) {
+            return !!(this.properties[name] && this.properties[name].expression);
+        },
+
+        _toggleProperty: function(name, val) {
+            var self = this,
+                prop = self.properties[name],
+                prev = prop ? prop.disabled || false : false;
+
+            if (!prop) {
+                prop = self.setProperty(name, {
+                    disabled: val
+                });
+            }
+            else if (prev !== val) {
+                prop.mode === MODE_DYNAMIC && self[val ? "_initMo" : "_unsetMo"](name);
+                prop.disabled = val;
+            }
+        },
+
+        /**
+         * Disable MutationObserver on a property
+         * @param {string} name 
+         */
+        disableProperty: function(name) {
+            this._toggleProperty(name, true);
+        },
+
+        /**
+         * Enable MutationObserver on a property
+         * @param {string} name 
+         */
+        enableProperty: function(name) {
+            this._toggleProperty(name, false);
+        },
+
+        /**
+         * Set property mode
+         * @param {string} name 
+         * @param {int} mode 
+         */
+        setMode: function(name, mode) {
+            this.setProperty(name, "mode", mode);
+        },
+
+        /**
+         * Set property type
+         * @param {string} name 
+         * @param {string} type 
+         * @param {int} defaultMode {
+         *  @optional
+         * }
+         */
+        setType: function(name, type, defaultMode) {
+            this.setProperty(name, "type", type);
+            if (defaultMode) {
+                this.setProperty(name, "defaultMode", defaultMode);
+            }
+        },
+
+        /**
+         * Set default mode
+         * @param {string} name 
+         * @param {int} mode 
+         */
+        setDefaultMode: function(name, mode) {
+            this.setProperty(name, "defaultMode", mode);
+        },
+
+        /**
+         * Set default value
+         * @param {string} name 
+         * @param {*} val 
+         */
+        setDefaultValue: function(name, val) {
+            this.setProperty(name, "defaultValue", val);
+        },
+
+        /**
+         * Get property keys
+         * @returns {array}
+         */
+        getKeys: function() {
+            return this.keys;
+        },
+
+        /**
+         * Get all keys starting with "value"
+         */
+        getAllValues: function() {
+            var self = this,
+                i, l, k, name,
+                vs = {};
+
+            for (i = 0, l = self.keys.length; i < l; i++) {
+                k = self.keys[i];
+                if (k === "value") {
+                    name = "";
+                }
+                else if (k.indexOf("value.") === 0) {
+                    name = k.replace("value.", "");
+                }
+                else continue;
+                vs[name] = self.get(k);
+            }
+
+            return vs;
+        },
+
+        /**
+         * Get property value
+         * @method
+         * @param {string} name 
+         * @returns {*}
+         */
+        get: function(name) {
+            if (this.values[name] === undf) {
+                this._calcProperty(name);
+            }
+            return this.values[name];
+        },
+
+        /**
+         * @method on
+         * @param {string} name 
+         * @param {function} fn {
+         *  @param {*} currentValue
+         *  @param {*} prevValue
+         * }
+         * @param {object} context fn's context
+         * @param {object} opt lib_Observable.on() options
+         */
+
+         /**
+         * @method on
+         * @param {function} fn {
+         *  @param {string} name
+         *  @param {*} currentValue
+         *  @param {*} prevValue
+         * }
+         * @param {object} context fn's context
+         * @param {object} opt lib_Observable.on() options
+         */
+        on: function(name, fn, context, opt) {
+            if (typeof name === "string") {
+                $$observable.on(this.id +'-'+ name, fn, context, opt);
+            }
+            else {
+                $$observable.on(this.id, name, fn, context);
+            }
+        },
+
+        /**
+         * @method un
+         * @param {string} name 
+         * @param {function} fn
+         * @param {object} context 
+         */
+
+         /**
+         * @method un
+         * @param {function} fn 
+         * @param {object} context 
+         */
+        un: function(name, fn, context) {
+            if (typeof name === "string") {
+                $$observable.on(this.id +'-'+ name, fn, context);
+            }
+            else {
+                $$observable.on(this.id, name, fn);
+            }
+        },
+
+        /**
+         * Set property values to this object
+         * @method
+         * @param {object} obj 
+         */
+        setTo: function(obj) {
+            this.cfg.setTo = obj;
+        },
+
+        /**
+         * Check for changes of specific property
+         * @method
+         * @param {string} name 
+         * @returns {bool}
+         */
+
+        /**
+         * Check for changes
+         * @method
+         * @returns {int} number of changed properties
+         */
+        check: function(name) {
+            var self = this,
+                keys = name ? [name] : self.keys,
+                i, l, key, prop,
+                res = name ? 0 : false;
+            
+            for (i = 0, l = keys.length; i < l; i++) {
+                key = keys[i];
+                prop = self.properties[key];
+                if (prop.mo) {
+                    if (name) {
+                        return prop.mo.check();
+                    }
+                    res += prop.mo.check() ? 1 : 0;
+                }
+            }
+
+            return res;
+        },
+
+        /**
+         * Stop all observers, clear data, remove listeners.
+         * But keep values and properties
+         * @method
+         */
+        clear: function() {
+            var self = this,
+            id = self.id,
+            k;
+
+            if (self.properties === null) {
+                return;
+            }
+
+            for (k in self.properties) {
+                self._unsetMo(k);
+                $$observable.destroyEvent(id +'-'+ k);
+            }
+
+            $$observable.destroyEvent(id);
+
+            self.subscribe = emptyFn;
+            self.unsubscribe = emptyFn;
+        },
+
+        /**
+         * @method
+         */
+        $destroy: function() {
+            var self = this;
+
+            if (self.properties !== null) {
+                self.clear();
+            }
+
+            self.properties = null;
+            self.values = null;
+            self.cfg = null;
+        }
+    });
+
+    Config.MODE_STATIC = MODE_STATIC;
+    Config.MODE_DYNAMIC = MODE_DYNAMIC;
+    Config.MODE_SINGLE = MODE_SINGLE;
+    Config.MODE_GETTER = MODE_GETTER;
+    Config.MODE_SETTER = MODE_SETTER;
+    Config.MODE_FUNC = MODE_FUNC;
+    Config.MODE_FNSET = MODE_FNSET;
+
+    return Config;
+
+}());
+var app = (function(){
+
+
+
+
+
+
+
+var appDirective = function() {
+    return false;
+};
+
+appDirective.$prebuild = {
+    defaultMode: lib_Config.MODE_STATIC,
+    ignore: true
+};
+
+Directive.registerAttribute("app", 100, appDirective);
+}());
 
 
 
@@ -4605,9 +5292,6 @@ var lib_Text = MetaphorJs.lib.Text = (function(){
         events                  = new lib_Observable,
 
         _procExpr               = function(expr, scope, observers) {
-            if (expr.substring(0,2) === '--') {
-                expr = MetaphorJs.prebuilt.expressions[expr.substring(2)];
-            }
             if (observers) {
                 var w = lib_MutationObserver.get(scope, expr);
                 observers.push(w);
@@ -5122,6 +5806,15 @@ var dom_setInputValue = MetaphorJs.dom.setInputValue = function() {
         }
     };
 }();
+
+/**
+ * Function that returns false
+ * @function returnFalse
+ * @returns {boolean}
+ */
+function returnFalse() {
+    return false;
+};
 
 /**
  * Function that returns true
@@ -6677,627 +7370,6 @@ Input.setValue = dom_setInputValue;
 return Input;
 
 }();
-
-/**
- * Converts given value to boolean. <br>
- * false: "", 0, false, undefined, null, "false", "no", "0"<br>
- * true: everything else
- * @function toBool
- * @param {*} val 
- * @returns {boolean}
- */
-function toBool(val) {
-    if (!val) { // real false, empty string, null, zero
-        return false;
-    }
-    if (typeof val === "string") {
-        val = val.toLowerCase();
-        if (val === "false" || val === "no" || val === '0') {
-            return false;
-        }
-    }
-    return true;
-};
-
-
-
-
-
-
-/**
- * @class MetaphorJs.lib.Config
- */
-var lib_Config = MetaphorJs.lib.Config = (function(){
-
-    var $$observable = new lib_Observable;
-
-    var MODE_STATIC = 1,
-        MODE_DYNAMIC = 2,
-        MODE_SINGLE = 3,
-        MODE_GETTER = 4,
-        MODE_SETTER = 5,
-        MODE_FUNC = 6,
-        MODE_FNSET = 7;
-
-    /**
-     * @constructor
-     * @method
-     * @param {object} properties Attribute expressions/properties map
-     * @param {object} cfg {
-     *  @type {object} scope Data object
-     *  @type {object} setTo set all values to this object
-     * }
-     */
-    var Config = function(properties, cfg) {
-
-        var self = this,
-            k;
-
-        self.id = nextUid();
-        self.values = {};
-        self.properties = {};
-        self.cfg = cfg || {};
-        self.keys = [];
-
-        if (properties) {
-            for (k in properties) {
-                self.setProperty(
-                    k, 
-                    typeof properties[k] === "string" ? 
-                        {expression: properties[k]}:
-                        properties[k]
-                );
-            }
-        }
-    };
-
-    extend(Config.prototype, {
-
-        id: null,
-        properties: null,
-        values: null,
-        keys: null,
-        cfg: null,
-
-        _initMo: function(name) {
-            var self = this,
-                prop = self.properties[name];
-            prop.mo = lib_MutationObserver.get(
-                self.cfg.scope, prop.expression
-            );
-            prop.mo.subscribe(self._onPropMutated, self, {
-                append: [name]
-            });
-        }, 
-
-        _unsetMo: function(name) {
-            var self = this, prop = self.properties[name];
-            if (prop.mo) {
-                prop.mo.unsubscribe(self._onPropMutated, self);
-                prop.mo.$destroy(true);
-                prop.mo = null;
-            }
-        },
-
-        _calcProperty: function(name) {
-
-            var self = this,
-                prop = self.getProperty(name),
-                value,
-                setTo;
-
-            if (!prop || prop.disabled) {
-                return null;
-            }
-
-            if (prop.expression) {
-
-                if (!prop.mode) {
-                    prop.mode = MODE_DYNAMIC;
-                }
-
-                if (prop.mode === MODE_STATIC) {
-                    value = prop.expression;
-                }
-                else if (prop.mode === MODE_SINGLE) {
-                    value = lib_Expression.get(
-                        prop.expression, 
-                        self.cfg.scope
-                    );
-                }
-                else if (prop.mode === MODE_DYNAMIC) {
-                    !prop.mo && self._initMo(name);
-                    value = prop.mo.getValue();
-                }
-                else if (prop.mode === MODE_GETTER || 
-                         prop.mode === MODE_SETTER) {
-                    value = lib_Expression.parse(
-                        prop.expression,
-                        {
-                            setter: prop.mode === MODE_SETTER,
-                            setterOnly: prop.mode === MODE_SETTER,
-                            getterOnly: prop.mode === MODE_GETTER
-                        }
-                    );
-                }
-                else if (prop.mode === MODE_FNSET) {
-                    value = {
-                        getter: lib_Expression.getter(prop.expression),
-                        setter: lib_Expression.setter(prop.expression)
-                    };
-                }
-                else if (prop.mode === MODE_FUNC) {
-                    value = lib_Expression.func(prop.expression);
-                }
-            }
-
-            if (value === undf) {
-                value = prop.defaultValue;
-            }
-
-            value = self._prepareValue(value, prop);
-            self.values[name] = value;
-
-            setTo = self.cfg.setTo || prop.setTo;
-            if (setTo) {
-                setTo[name] = value;
-            }
-
-            return value;
-        },
-
-
-        _prepareValue: function(value, prop) {
-
-            if (!prop.type) {
-                return value;
-            }
-
-            switch (prop.type) {
-                case 'int':
-                    return parseInt(value);
-                case 'float':
-                case 'number':
-                    return parseFloat(value);
-                case 'bool':
-                case 'boolean':
-                    return toBool(value);
-                case 'array':
-                case 'list':
-                    return !isArray(value) ? [value] : value;
-                case 'string':
-                case 'str':
-                    return "" + value;
-            }
-
-            return value;
-        },
-
-        _onPropMutated: function(val, prev, name) {
-
-            var self = this,
-                prop = self.properties[name],
-                setTo = prop.setTo || self.cfg.setTo,
-                value;
-
-            value = self._prepareValue(val, prop);
-
-            self.values[name] = value;
-            if (setTo) {
-                setTo[name] = value;
-            }
-
-            $$observable.trigger(this.id, name, value, prev);
-            $$observable.trigger(this.id +'-'+ name, value, prev);
-        },
-
-        /**
-         * Set or update property
-         * @method
-         * @param {string} name 
-         * @param {object} cfg {
-         *  @type {string} type int|float|array|bool|string
-         *  @type {object} setTo
-         *  @type {boolean} disabled
-         *  @type {*} defaultValue
-         *  @type {int} defaultMode
-         *  @type {int} mode 1: static, 2: dynamic, 3: single run
-         * }
-         */
-
-        /**
-         * Set or update property
-         * @param {string} name 
-         * @param {string} cfg 
-         * @param {*} val 
-         */
-        setProperty: function(name, cfg, val) {
-
-            var self = this,
-                props = self.properties,
-                prop,
-                changed = false;
-
-            if (!props[name]) {
-                props[name] = {};
-                self.keys.push(name);
-                changed = true;
-            }
-
-            prop = props[name];
-
-            if (val === undf) {
-                var k;
-                for (k in cfg) {
-                    if (cfg[k] !== prop[k]) {
-                        changed = true;
-                        prop[k] = cfg[k];
-                    }
-                }
-            }
-            else {
-                if (val !== prop[cfg]) {
-                    changed = true;
-                    prop[cfg] = val;
-                }
-            }
-
-            if (!prop.mode) {
-                if (prop.defaultMode) {
-                    prop.mode = prop.defaultMode;
-                    changed = true;
-                }
-                else if (prop.expression === true) {
-                    prop.mode = MODE_STATIC;
-                    changed = true;
-                }
-            }
-
-            if (prop.mode === MODE_DYNAMIC && 
-                prop.expression && 
-                !prop.mo && 
-                !prop.disabled) {
-                self._initMo(name);
-                changed = true;
-            }
-
-            if (changed && self.values[name] !== undf) {
-                delete self.values[name];
-            }
-        
-            return changed;
-        },
-
-        /**
-         * Get property config
-         * @param {string} name 
-         * @returns {object}
-         */
-        getProperty: function(name) {
-            return this.properties[name] || null;
-        },
-
-        /**
-         * Get property expression
-         * @param {string} name 
-         */
-        getExpression: function(name) {
-            var prop = this.getProperty(name);
-            return prop ? (prop.expression || null) : null;
-        },
-
-        /**
-         * Get all config values
-         * @method
-         * @returns {object}
-         */
-        getAll: function() {
-            var self = this, k, vs = {};
-            for (k in self.properties) {
-                if (self.values[k] === undf) {
-                    vs[k] = self._calcProperty(k);
-                }
-                else vs[k] = self.values[k];
-            }
-            return vs;
-        },
-
-        /**
-         * Iterate over properties
-         * @param {function} fn {
-         *  @param {string} key
-         *  @param {object} property
-         *  @param {MetaphorJs.lib.Config} self
-         * } 
-         * @param {object} context 
-         */
-        eachProperty: function(fn, context) {
-            var k, self = this;
-            for (k in self.properties) {
-                fn.call(context, k, self.properties[k], self);
-            }
-        },
-
-        /**
-         * Does this config has a property
-         * @param {string} name 
-         * @returns {bool}
-         */
-        hasProperty: function(name) {
-            return !!this.properties[name];
-        },
-
-        /**
-         * Does this config has a property with expression
-         * @param {string} name 
-         * @returns {bool}
-         */
-        hasExpression: function(name) {
-            return !!(this.properties[name] && this.properties[name].expression);
-        },
-
-        _toggleProperty: function(name, val) {
-            var self = this,
-                prop = self.properties[name],
-                prev = prop ? prop.disabled || false : false;
-
-            if (!prop) {
-                prop = self.setProperty(name, {
-                    disabled: val
-                });
-            }
-            else if (prev !== val) {
-                prop.mode === MODE_DYNAMIC && self[val ? "_initMo" : "_unsetMo"](name);
-                prop.disabled = val;
-            }
-        },
-
-        /**
-         * Disable MutationObserver on a property
-         * @param {string} name 
-         */
-        disableProperty: function(name) {
-            this._toggleProperty(name, true);
-        },
-
-        /**
-         * Enable MutationObserver on a property
-         * @param {string} name 
-         */
-        enableProperty: function(name) {
-            this._toggleProperty(name, false);
-        },
-
-        /**
-         * Set property mode
-         * @param {string} name 
-         * @param {int} mode 
-         */
-        setMode: function(name, mode) {
-            this.setProperty(name, "mode", mode);
-        },
-
-        /**
-         * Set property type
-         * @param {string} name 
-         * @param {string} type 
-         * @param {int} defaultMode {
-         *  @optional
-         * }
-         */
-        setType: function(name, type, defaultMode) {
-            this.setProperty(name, "type", type);
-            if (defaultMode) {
-                this.setProperty(name, "defaultMode", defaultMode);
-            }
-        },
-
-        /**
-         * Set default mode
-         * @param {string} name 
-         * @param {int} mode 
-         */
-        setDefaultMode: function(name, mode) {
-            this.setProperty(name, "defaultMode", mode);
-        },
-
-        /**
-         * Set default value
-         * @param {string} name 
-         * @param {*} val 
-         */
-        setDefaultValue: function(name, val) {
-            this.setProperty(name, "defaultValue", val);
-        },
-
-        /**
-         * Get property keys
-         * @returns {array}
-         */
-        getKeys: function() {
-            return this.keys;
-        },
-
-        /**
-         * Get all keys starting with "value"
-         */
-        getAllValues: function() {
-            var self = this,
-                i, l, k, name,
-                vs = {};
-
-            for (i = 0, l = self.keys.length; i < l; i++) {
-                k = self.keys[i];
-                if (k === "value") {
-                    name = "";
-                }
-                else if (k.indexOf("value.") === 0) {
-                    name = k.replace("value.", "");
-                }
-                else continue;
-                vs[name] = self.get(k);
-            }
-
-            return vs;
-        },
-
-        /**
-         * Get property value
-         * @method
-         * @param {string} name 
-         * @returns {*}
-         */
-        get: function(name) {
-            if (this.values[name] === undf) {
-                this._calcProperty(name);
-            }
-            return this.values[name];
-        },
-
-        /**
-         * @method on
-         * @param {string} name 
-         * @param {function} fn {
-         *  @param {*} currentValue
-         *  @param {*} prevValue
-         * }
-         * @param {object} context fn's context
-         * @param {object} opt lib_Observable.on() options
-         */
-
-         /**
-         * @method on
-         * @param {function} fn {
-         *  @param {string} name
-         *  @param {*} currentValue
-         *  @param {*} prevValue
-         * }
-         * @param {object} context fn's context
-         * @param {object} opt lib_Observable.on() options
-         */
-        on: function(name, fn, context, opt) {
-            if (typeof name === "string") {
-                $$observable.on(this.id +'-'+ name, fn, context, opt);
-            }
-            else {
-                $$observable.on(this.id, name, fn, context);
-            }
-        },
-
-        /**
-         * @method un
-         * @param {string} name 
-         * @param {function} fn
-         * @param {object} context 
-         */
-
-         /**
-         * @method un
-         * @param {function} fn 
-         * @param {object} context 
-         */
-        un: function(name, fn, context) {
-            if (typeof name === "string") {
-                $$observable.on(this.id +'-'+ name, fn, context);
-            }
-            else {
-                $$observable.on(this.id, name, fn);
-            }
-        },
-
-        /**
-         * Set property values to this object
-         * @method
-         * @param {object} obj 
-         */
-        setTo: function(obj) {
-            this.cfg.setTo = obj;
-        },
-
-        /**
-         * Check for changes of specific property
-         * @method
-         * @param {string} name 
-         * @returns {bool}
-         */
-
-        /**
-         * Check for changes
-         * @method
-         * @returns {int} number of changed properties
-         */
-        check: function(name) {
-            var self = this,
-                keys = name ? [name] : self.keys,
-                i, l, key, prop,
-                res = name ? 0 : false;
-            
-            for (i = 0, l = keys.length; i < l; i++) {
-                key = keys[i];
-                prop = self.properties[key];
-                if (prop.mo) {
-                    if (name) {
-                        return prop.mo.check();
-                    }
-                    res += prop.mo.check() ? 1 : 0;
-                }
-            }
-
-            return res;
-        },
-
-        /**
-         * Stop all observers, clear data, remove listeners.
-         * But keep values and properties
-         * @method
-         */
-        clear: function() {
-            var self = this,
-            id = self.id,
-            k;
-
-            if (self.properties === null) {
-                return;
-            }
-
-            for (k in self.properties) {
-                self._unsetMo(k);
-                $$observable.destroyEvent(id +'-'+ k);
-            }
-
-            $$observable.destroyEvent(id);
-
-            self.subscribe = emptyFn;
-            self.unsubscribe = emptyFn;
-        },
-
-        /**
-         * @method
-         */
-        $destroy: function() {
-            var self = this;
-
-            if (self.properties !== null) {
-                self.clear();
-            }
-
-            self.properties = null;
-            self.values = null;
-            self.cfg = null;
-        }
-    });
-
-    Config.MODE_STATIC = MODE_STATIC;
-    Config.MODE_DYNAMIC = MODE_DYNAMIC;
-    Config.MODE_SINGLE = MODE_SINGLE;
-    Config.MODE_GETTER = MODE_GETTER;
-    Config.MODE_SETTER = MODE_SETTER;
-    Config.MODE_FUNC = MODE_FUNC;
-    Config.MODE_FNSET = MODE_FNSET;
-
-    return Config;
-
-}());
 
 
 
@@ -9573,17 +9645,25 @@ var dom_getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
         '': null
     };
 
+    var getEmpty = function() {
+        return {
+            directive: {},
+            attribute: {},
+            config: {},
+            rest: {},
+            reference: null,
+            names: {},
+            removeDirective: removeDirective
+        };
+    };
+
+    var inflate = function(set) {
+        extend(set, getEmpty(), false, false);
+    };
+
     return function dom_getAttrSet(node) {
 
-        var set = {
-                directive: {},
-                attribute: {},
-                config: {},
-                rest: {},
-                reference: null,
-                names: {},
-                removeDirective: removeDirective
-            },
+        var set = getEmpty(),
             i, l, tagName,
             name, value,
             match, parts,
@@ -9595,7 +9675,7 @@ var dom_getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
         if (node.nodeType && node.hasAttrbibute && node.hasAttrbibute("mjs")) {
             set = MetaphorJs.prebuilt.configs[node.getAttribute("mjs")];
             dom_removeAttr("mjs");
-            set.removeDirective = emptyFn;
+            inflate(set);
             return set;
         }
 
@@ -11863,29 +11943,30 @@ var app_Template = MetaphorJs.app.Template = function() {
         },
 
         processTextTemplate = function(tplId, tpl) {
+
+            var opt, inx;
+
             if (tpl.substr(0,5) === "<!--{") {
-                var inx = tpl.indexOf("-->"),
-                    opt = lib_Expression.get(tpl.substr(4, inx-4), {});
-
+                inx = tpl.indexOf("-->");
+                opt = lib_Expression.get(tpl.substr(4, inx-4), {});
                 options[tplId] = opt;
-                options[tplId].processed = true;
-
                 tpl = tpl.substr(inx + 3);
-
-                if (opt.includes) {
-                    tpl = resolveIncludes(tpl);
-                }
-
-                if (opt.text) {
-                    return tpl;
-                }
             }
             
             if (!options[tplId]) {
                 options[tplId] = {};
             }
+            
+            opt = options[tplId];           
+            opt.processed = true;
 
-            options[tplId].processed = true;
+            if (opt.includes) {
+                tpl = resolveIncludes(tpl);
+            }
+
+            if (opt.text) {
+                return tpl;
+            }
 
             return dom_toFragment(tpl);
         },
@@ -11894,6 +11975,10 @@ var app_Template = MetaphorJs.app.Template = function() {
             var tpl;
             if (tpl = MetaphorJs.prebuilt.templates[tplId]) {
                 delete MetaphorJs.prebuilt.templates[tplId];
+                if (MetaphorJs.prebuilt.templateOptions[tplId]) {
+                    options[tplId] = MetaphorJs.prebuilt.templateOptions[tplId];
+                    delete MetaphorJs.prebuilt.templateOptions[tplId];
+                }
                 return tpl;
             }
         },
@@ -12151,7 +12236,6 @@ var app_Template = MetaphorJs.app.Template = function() {
 
             return new lib_Promise(function(resolve, reject){
                 if (tpl || url) {
-
                     if (url) {
                         resolve(getTemplate(tpl) || loadTemplate(url));
                     }
@@ -12221,8 +12305,7 @@ var app_Template = MetaphorJs.app.Template = function() {
             var self    = this,
                 el      = self.node,
                 frg,
-                children,
-                i, l;
+                children;
 
             if (el) {
                 if (self.replace) {
@@ -13607,6 +13690,9 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
 
     eachDirective.$stopRenderer = true;
     eachDirective.$registerBy = "id";
+    eachDirective.$prebuild = {
+        skip: true
+    };
 
     eachDirective.registerType(Array, app_ListRenderer);
 
@@ -15028,6 +15114,12 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     }
 
 
+}, {
+
+    $prebuild: {
+        skip: true
+    }
+
 }));
 
 
@@ -15245,6 +15337,10 @@ Directive.registerAttribute("options", 100, Directive.$extend({
 
     }
 
+}, {
+    $prebuild: {
+        skip: true
+    }
 }));
 
 
@@ -15700,7 +15796,7 @@ var dom_removeStyle = MetaphorJs.dom.removeStyle = (function() {
 
     var div = window.document.createElement("div");
 
-    if (div.style.removeProperty) {
+    if (div.style && div.style.removeProperty) {
         return function(node, name) {
             node.style.removeProperty(name);
         };
@@ -28169,7 +28265,7 @@ var app_Component = MetaphorJs.app.Component = cls({
         else if (self.node) {
 
             if (!self.originalId) {
-                removeAttr(self.node, "id");
+                dom_removeAttr(self.node, "id");
             }
 
             self.releaseNode();

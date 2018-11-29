@@ -220,5 +220,9 @@ Directive.registerAttribute("options", 100, Directive.$extend({
 
     }
 
+}, {
+    $prebuild: {
+        skip: true
+    }
 }));
 

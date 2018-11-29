@@ -81,29 +81,30 @@ module.exports = MetaphorJs.app.Template = function() {
         },
 
         processTextTemplate = function(tplId, tpl) {
+
+            var opt, inx;
+
             if (tpl.substr(0,5) === "<!--{") {
-                var inx = tpl.indexOf("-->"),
-                    opt = MetaphorJs.lib.Expression.get(tpl.substr(4, inx-4), {});
-
+                inx = tpl.indexOf("-->");
+                opt = MetaphorJs.lib.Expression.get(tpl.substr(4, inx-4), {});
                 options[tplId] = opt;
-                options[tplId].processed = true;
-
                 tpl = tpl.substr(inx + 3);
-
-                if (opt.includes) {
-                    tpl = resolveIncludes(tpl);
-                }
-
-                if (opt.text) {
-                    return tpl;
-                }
             }
             
             if (!options[tplId]) {
                 options[tplId] = {};
             }
+            
+            opt = options[tplId];           
+            opt.processed = true;
 
-            options[tplId].processed = true;
+            if (opt.includes) {
+                tpl = resolveIncludes(tpl);
+            }
+
+            if (opt.text) {
+                return tpl;
+            }
 
             return MetaphorJs.dom.toFragment(tpl);
         },
@@ -112,6 +113,10 @@ module.exports = MetaphorJs.app.Template = function() {
             var tpl;
             if (tpl = MetaphorJs.prebuilt.templates[tplId]) {
                 delete MetaphorJs.prebuilt.templates[tplId];
+                if (MetaphorJs.prebuilt.templateOptions[tplId]) {
+                    options[tplId] = MetaphorJs.prebuilt.templateOptions[tplId];
+                    delete MetaphorJs.prebuilt.templateOptions[tplId];
+                }
                 return tpl;
             }
         },
@@ -369,7 +374,6 @@ module.exports = MetaphorJs.app.Template = function() {
 
             return new MetaphorJs.lib.Promise(function(resolve, reject){
                 if (tpl || url) {
-
                     if (url) {
                         resolve(getTemplate(tpl) || loadTemplate(url));
                     }
@@ -439,8 +443,7 @@ module.exports = MetaphorJs.app.Template = function() {
             var self    = this,
                 el      = self.node,
                 frg,
-                children,
-                i, l;
+                children;
 
             if (el) {
                 if (self.replace) {

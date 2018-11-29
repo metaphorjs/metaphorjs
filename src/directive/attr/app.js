@@ -1,7 +1,17 @@
 
 require("../../app/Directive.js");
+require("../../lib/Config.js");
 
-var returnFalse = require("metaphorjs-shared/src/func/returnFalse.js"), 
-    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-MetaphorJs.app.Directive.registerAttribute("app", 100, returnFalse);
+
+var appDirective = function() {
+    return false;
+};
+
+appDirective.$prebuild = {
+    defaultMode: MetaphorJs.lib.Config.MODE_STATIC,
+    ignore: true
+};
+
+MetaphorJs.app.Directive.registerAttribute("app", 100, appDirective);

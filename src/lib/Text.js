@@ -23,9 +23,6 @@ module.exports = MetaphorJs.lib.Text = (function(){
         events                  = new MetaphorJs.lib.Observable,
 
         _procExpr               = function(expr, scope, observers) {
-            if (expr.substring(0,2) === '--') {
-                expr = MetaphorJs.prebuilt.expressions[expr.substring(2)];
-            }
             if (observers) {
                 var w = MetaphorJs.lib.MutationObserver.get(scope, expr);
                 observers.push(w);
