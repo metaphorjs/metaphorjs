@@ -21,6 +21,10 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
     var reg = /^([\[({#$])([^)\]}"':\*]+)[\])}]?([:\*!]?)$/;
 
     var removeDirective = function removeDirective(node, directive) {
+        if (this.inflated) {
+            delete this.directive[directive];
+            return;
+        }
         if (this.directive[directive] && 
             this.directive[directive].original) {
             MetaphorJs.dom.removeAttr(node, this.directive[directive].original);
@@ -62,6 +66,7 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
 
     var inflate = function(set) {
         extend(set, getEmpty(), false, false);
+        set.inflated = true;
     };
 
     return function dom_getAttrSet(node) {
@@ -75,9 +80,17 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
             prop, execMode,
             attrs = isArray(node) ? node : node.attributes;
 
+        /**
+         * mjs="<id>" - attribute always present, even after cloning 
+         * data-mjscfg - copy of original config, id always present
+         * node._mjscfg - equals data-mjscfg. After cloning, this property
+         *  disappears and we must make a new copy of config
+         *  from data-mjscfg version
+         */
+
         if (node.nodeType && node.hasAttribute && node.hasAttribute("mjs")) {
             set = MetaphorJs.prebuilt.configs[node.getAttribute("mjs")];
-            MetaphorJs.dom.removeAttr(node, "mjs");
+            //MetaphorJs.dom.removeAttr(node, "mjs");
             inflate(set);
             return set;
         }
@@ -163,7 +176,8 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
                     prop = toCamelCase(subname.substr(1));
                     coll[name].config[prop] = {
                         mode: execMode,
-                        expression: value
+                        expression: value,
+                        original: attrs[i].name
                     };
                     set['names'][name].push(attrs[i].name);
                 }
@@ -175,14 +189,16 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
                         // ('class' directive needs originals)
                         coll[name].config[prop] = {
                             mode: execMode,
-                            expression: value
+                            expression: value,
+                            original: attrs[i].name
                         };
                         set['names'][name].push(attrs[i].name);
                     }
                     else {
                         coll[name].config['value'] = {
                             mode: execMode,
-                            expression: value
+                            expression: value,
+                            original: attrs[i].name
                         };
                     }
                 }

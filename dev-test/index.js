@@ -319,6 +319,7 @@ MetaphorJs.dom.onReady(function(){
                 app.value("test", "123");
                 app.run();
                 window.mainApp = app;
+                window.MetaphorJs = MetaphorJs;
             });
         //console.profileEnd();
 

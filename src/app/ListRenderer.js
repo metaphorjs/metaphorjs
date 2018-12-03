@@ -132,7 +132,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
             cfg         = self.cfg;
 
         self.watcher    = MetaphorJs.lib.MutationObserver.get(scope, self.model, self.onChange, self);
-        self.trackBy    = cfg.get("trackby"); // lowercase from attributes
+        self.trackBy    = cfg.get("trackBy"); // lowercase from attributes
         
         if (self.trackBy !== false) {
             if (self.trackBy && self.trackBy !== '$') {

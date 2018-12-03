@@ -63,6 +63,12 @@
             }
         },
 
+        "test-min": {
+            "extend": "test",
+            "target": "dev-test/metaphorjs.test.min.js",
+            "pipe": ["build", "compile", "write"]
+        },
+
         "standalone": {
             "target": "dist/metaphorjs.js",
             "files": [
