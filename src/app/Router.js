@@ -253,7 +253,7 @@ module.exports = MetaphorJs.app.Router = cls({
 
         if (self.currentComponent) {
 
-            MetaphorJs.animate.animate(node, self.animate ? "leave" : null).done(function(){
+            MetaphorJs.animate.animate(node, self.config.get("animate") ? "leave" : null).done(function(){
                 
                 if (!cview.keepAlive) {
 
@@ -360,7 +360,7 @@ module.exports = MetaphorJs.app.Router = cls({
 
         self.currentView = route;
 
-        MetaphorJs.animate.animate(node, self.animate ? "enter" : null, function(){
+        MetaphorJs.animate.animate(node, self.config.get("animate") ? "enter" : null, function(){
 
             var args    = matches || [],
                 cfg     = {
@@ -461,7 +461,7 @@ module.exports = MetaphorJs.app.Router = cls({
         self.clearComponent();
         self.currentView = null;
 
-        MetaphorJs.animate.animate(node, self.animate ? "enter" : null, function(){
+        MetaphorJs.animate.animate(node, self.config.get("animate") ? "enter" : null, function(){
 
             var cfg     = isObject(cmp) ? cmp : {},
                 cls     = (isString(cmp) ? cmp : null) || "MetaphorJs.app.Component",

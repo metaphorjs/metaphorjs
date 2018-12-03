@@ -5,7 +5,6 @@ require("../../lib/Config.js");
 
 var toCamelCase = require("metaphorjs-shared/src/func/toCamelCase.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
-    emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
@@ -42,6 +41,13 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
         '': null
     };
 
+    var dtypes = {
+        '{': "dir",
+        '(': "event",
+        '[': "attr",
+        '$': "cfg"
+    };
+
     var getEmpty = function() {
         return {
             directive: {},
@@ -69,9 +75,9 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
             prop, execMode,
             attrs = isArray(node) ? node : node.attributes;
 
-        if (node.nodeType && node.hasAttrbibute && node.hasAttrbibute("mjs")) {
+        if (node.nodeType && node.hasAttribute && node.hasAttribute("mjs")) {
             set = MetaphorJs.prebuilt.configs[node.getAttribute("mjs")];
-            MetaphorJs.dom.removeAttr("mjs");
+            MetaphorJs.dom.removeAttr(node, "mjs");
             inflate(set);
             return set;
         }
@@ -118,7 +124,8 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
 
                 set['config'][toCamelCase(name)] = {
                     expression: value,
-                    mode: execMode
+                    mode: execMode,
+                    dtype: dtypes[mode]
                 };
 
                 if (!set['names'][tagName]) {
@@ -136,7 +143,8 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
                     coll[name] = {
                         //name: name,
                         original: null,
-                        config: {}
+                        config: {},
+                        dtype: dtypes[mode]
                     };
                 }
 

@@ -250,7 +250,8 @@ module.exports = MetaphorJs.app.Template = function() {
                         MetaphorJs.dom.toFragment(node.childNodes));
                 }
 
-                if (isExpression(tpl)) {
+                if (isExpression(tpl) || 
+                    MetaphorJs.lib.Expression.isPrebuiltKey(tpl)) {
                     self._watcher = MetaphorJs.lib.MutationObserver.get(
                         self.scope,
                         tpl,
@@ -306,6 +307,7 @@ module.exports = MetaphorJs.app.Template = function() {
                 self._renderer.on("rendered", self.onRendered, self);
                 self._renderer.on("first-node", self.onFirstNodeReported, self);
                 self._renderer.process();
+                //self.on("destroy", self._renderer.$destroy, self._renderer);
             }
         },
 
@@ -588,6 +590,8 @@ module.exports = MetaphorJs.app.Template = function() {
                 }
                 self._watcher.$destroy(true);
             }
+
+            //observable.trigger("destroy-" + self.id, self);
         }
 
     }, {

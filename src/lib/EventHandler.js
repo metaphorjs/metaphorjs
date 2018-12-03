@@ -27,13 +27,11 @@ var undf = require("metaphorjs-shared/src/var/undf.js"),
  */
 MetaphorJs.lib.EventHandler = function(event, scope, node, cfg) {
 
-    var self = this,
-        expr = cfg.getProperty("value").expression;
+    var self = this;
 
     self.config     = cfg;
     self.event      = event;
     self.prevEvent  = {};
-    self.updateRoot = expr.indexOf('$root') + expr.indexOf('$parent') !== -2;
     self.scope      = scope;
     self.node       = node;
     self.handler    = null;
@@ -115,7 +113,7 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
 
             self.prevEvent[e.type] = e;
 
-            self.updateRoot ? scope.$root.$check() : scope.$check();
+            self.config.checkScope("value");
 
             if (returnValue !== undf) {
                 return returnValue;

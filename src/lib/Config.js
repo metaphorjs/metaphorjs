@@ -554,6 +554,30 @@ module.exports = MetaphorJs.lib.Config = (function(){
         },
 
         /**
+         * Check scope based on property opts 
+         * (does it require checking parent or root)
+         * @param {string} propName 
+         */
+        checkScope: function(propName) {
+            var scope = this.cfg.scope,
+                descr = MetaphorJs.lib.Expression.describeExpression(
+                    this.getExpression(propName)
+                );
+
+            if (descr.indexOf("r") !== -1) {
+                return scope.$root.$check();
+            }
+            else if (descr.indexOf("p") !== -1) {
+                return scope.$parent ? 
+                        scope.$parent.$check() : 
+                        scope.$root.$check();
+            }
+            else {
+                return scope.$check();
+            }
+        },
+
+        /**
          * Stop all observers, clear data, remove listeners.
          * But keep values and properties
          * @method

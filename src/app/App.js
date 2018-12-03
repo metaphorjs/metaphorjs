@@ -206,7 +206,7 @@ module.exports = MetaphorJs.app.App = cls({
         if (cmp.on) {
             cmp.on("destroy", deregister);
         }
-        scope.$on("$destroy", deregister);
+        scope.$on("destroy", deregister);
     },
 
     onDestroy: function() {

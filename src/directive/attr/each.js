@@ -37,6 +37,7 @@ var Directive = require("../../app/Directive.js"),
         else {
             expr = config.getExpression("value");
         }
+
         var handler = detectModelType(expr, scope) || MetaphorJs.app.ListRenderer;
 
         return new handler(scope, node, config, parentRenderer, attrSet);

@@ -2,48 +2,9 @@
 /* BUNDLE START 004 */
 "use strict";
 
-var MetaphorJsPrebuilt = {"templates":{"a*b":"<p>a * b = {{--813}}</p>","a+b":"<p>a + b = {{--814}}</p>","cmp1-template":"<h2>{{--816}}</h2><div mjs=\"815\"></div>","dirs":"<div class=\"form_select\" mjs=\"81D\"><input type=\"hidden\" mjs=\"81E\"><i mjs=\"81G\"><!-- include icons/down.html --></i><a class=\"form_select__label\" mjs=\"81H\" style=\"display: inline-block !important;\">{{--82I}}<i class=\"delete icon\" mjs=\"81J\"></i></a><input type=\"text\" mjs=\"81N\" class=\"search\"><span class=\"sizer\" mjs=\"81Q\"></span><div class=\"default text\" mjs=\"81V\"></div><div class=\"text\" mjs=\"820\"></div><!-- replaces two previous text blocks with invisible placeholder --><div style=\"display: none\" class=\"default text\" mjs=\"822\">&nbsp;</div><select class=\"form-select_hidden-select\" mjs=\"826\"></select><div class=\"form-select-menu\" mjs=\"827\"><div class=\"items\" mjs=\"828\"><div class=\"disabled item\" mjs=\"82C\"></div><div class=\"empty item\" mjs=\"82G\" style=\"color: #999;\"></div><div class=\"item\" mjs=\"82J\"></div></div><div class=\"pagination_container\" mjs=\"82M\"></div></div></div>","tagc":"<div class=\"component\"><p>This is a tag component.</p><p>{{--82N}}</p></div>","test-template":"<p>{{--82P}}</p><div mjs=\"82O\"></div>"},"templateOptions":{"dirs":{"includes":true}},"configs":{"815":{"directive":{"transclude":{"config":{"value":{"expression":""}}}}},"820":{"directive":{"click":{"config":{"value":{"expression":"--81R"}}},"class":{"config":{"value.default":{"expression":"--81W"}}},"show":{"config":{"value":{"expression":"--81X"},"saveState":{"expression":"--81Y"},"display":{"expression":"inline-block"}}},"bind":{"config":{"value":{"expression":"--81Z"}}}},"reference":"el_text"},"822":{"directive":{"show":{"config":{"value":{"expression":"--821"},"display":{"expression":"inline-block"}}}}},"826":{"directive":{"click":{"config":{"value":{"expression":"--823"}}},"change":{"config":{"value":{"expression":"--824"}}},"show":{"config":{"value":{"expression":"--825"},"display":{"expression":"block"}}},"options":{"config":{"value":{"expression":"this.field._getSelectOptions()"}}}},"reference":"el_hidden_select"},"827":{"directive":{"class":{"config":{"value.black":{"expression":"--81C"}}}},"reference":"el_menu"},"828":{"reference":"el_menu_items"},"81D":{"directive":{"click":{"config":{"value":{"expression":"--817"}}},"class":{"config":{"value.loading":{"expression":"--818"},"value.disabled":{"expression":"--819"},"value.search":{"expression":"--81A"},"value.multiple":{"expression":"--81B"},"value.black":{"expression":"--81C"}}}}},"81E":{"attribute":{"name":{"value":"this.field.hiddenInputName","original":"[name]"},"value":{"value":"this.field.$$selection | join:','","original":"[value]"}},"reference":"el_hidden_field"},"81G":{"directive":{"click":{"config":{"value":{"expression":"--81F"}}}},"reference":"el_icon_down"},"81H":{"directive":{"each":{"config":{"value":{"expression":"item in this.field.getMultiSelection()"}}}}},"81J":{"directive":{"click":{"config":{"value":{"expression":"--81I"}}}}},"81N":{"directive":{"show":{"config":{"value":{"expression":"--81A"},"display":{"expression":"inline-block"}}},"focus":{"config":{"value":{"expression":"--81K"}}},"blur":{"config":{"value":{"expression":"--81L"}}},"key":{"config":{"value.backspace":{"expression":"--81M"}}},"model":{"config":{"value":{"expression":"this.searchQuery"}}}},"attribute":{"disabled":{"value":"this.field.disabled","original":"[disabled]"}},"reference":"el_search"},"81Q":{"directive":{"if":{"config":{"value":{"expression":"--81O"}}},"bind":{"config":{"value":{"expression":"--81P"}}}},"reference":"el_sizer"},"81V":{"directive":{"click":{"config":{"value":{"expression":"--81R"}}},"show":{"config":{"value":{"expression":"--81S"},"display":{"expression":"inline-block"},"saveState":{"expression":"--81T"}}},"bind":{"config":{"value":{"expression":"--81U"}}}},"reference":"el_default_text"},"82C":{"directive":{"if":{"config":{"value":{"expression":"--829"}}},"click":{"config":{"value":{"expression":"--82A"}}},"bind-html":{"config":{"value":{"expression":"--82B"}}}},"reference":"el_menu_disabled"},"82G":{"directive":{"if":{"config":{"value":{"expression":"--82D"}}},"click":{"config":{"value":{"expression":"--82E"}}},"bind-html":{"config":{"value":{"expression":"--82F"}}}},"reference":"el_menu_empty"},"82J":{"directive":{"each":{"config":{"value":{"expression":"item in this.field.store"}}},"click":{"config":{"value":{"expression":"--82H"}}},"bind":{"config":{"value":{"expression":"--82I"}}}}},"82M":{"directive":{"cmp":{"config":{"value":{"expression":"Pagination"},"autoscroll":{"expression":"false"}}},"show":{"config":{"value":{"expression":"--82K"}}},"click":{"config":{"value":{"expression":"--82L"}}}}},"82O":{"directive":{"transclude":{"config":{"value":{"expression":""}}}}}}}
+var MetaphorJsPrebuilt = {"templates":{"a*b":"<p>a * b = {{ this.$root.a * this.$root.b }}</p>","a+b":"<p>a + b = {{ this.$root.a + this.$root.b }}</p>","app1":"<h1>MetaphorJs Feature test</h1><div class=\"cases\"><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Inline</label><div id=\"inline-binding\" class=\"test\">{{this.inline}}</div><label class=\"case-label\">mjs-bind</label><div id=\"binding\" {bind}=\"this.text\" class=\"test\"></div><label class=\"case-label\">mjs-bind-html</label><div id=\"html-binding\" {bind-html}=\"this.html\" class=\"test\"></div><label class=\"case-label\">Plain attribute (href)</label><p class=\"test\"><a id=\"attr-binding-href\" [href]=\"http://{{this.inline}}.com\">{{this.text}}</a></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Input field (value)</label><p class=\"test\"><input id=\"binding-input-value\" type=\"text\" [value]=\"this.a\"></p><label class=\"case-label\">Input field (mjs-bind) (locked)</label><p class=\"test\"><input id=\"binding-input-bind\" type=\"text\" {bind}=\"this.a\" {bind.$locked}></p><label class=\"case-label\">Checkbox (mjs-bind)</label><p class=\"test\"><input id=\"binding-checkbox\" type=\"checkbox\" {bind}=\"this.bool\"></p><label class=\"case-label\">Radio (mjs-bind) (locked)</label><p class=\"test\"><input id=\"radio-bind-1\" checked=\"checked\" type=\"radio\" value=\"inline1\" name=\"radio-bind\" {bind}=\"this.inline\" {bind.$locked}> <input id=\"radio-bind-2\" type=\"radio\" value=\"inline2\" name=\"radio-bind\"> <input id=\"radio-bind-3\" type=\"radio\" value=\"inline3\" name=\"radio-bind\"></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Select (mjs-bind)</label><p class=\"test\"><select id=\"select-bind\" {bind}=\"this.a\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p><label class=\"case-label\">Textarea (mjs-bind)</label><p class=\"test\"><textarea id=\"textarea-bind-attr\" {bind}=\"this.inline\"></textarea></p><label class=\"case-label\">Textarea (inline)</label><p class=\"test\"><textarea id=\"textarea-bind-inline\">{{this.inline}}</textarea></p></div><div class=\"case\"><h4>Muplitple inline binding</h4><div id=\"multiple-inline-binding\" class=\"test\">{{this.inline}}<b>{{this.text}}</b>{{this.html}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Uppercase (mjs-bind)</label><div id=\"filter-uppercase-binding\" class=\"test\" {bind}=\"this.text | uppercase\"></div><label class=\"case-label\">Uppercase (inline)</label><div id=\"filter-uppercase-inline\" class=\"test\">{{this.text | uppercase}}</div><label class=\"case-label\">Lowercase (inline)</label><div id=\"filter-lowercase-inline\" class=\"test\">{{this.text | lowercase}}</div><label class=\"case-label\">Limit to (string)</label><div id=\"filter-limit-string\" class=\"test\">{{this.text | limitTo:this.a}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Linkify</label><p id=\"filter-linkify\" class=\"test\" {bind-html}=\"this.linkified | linkify\"></p></div><div class=\"case\"><h4>Expressions</h4><label class=\"case-label\">.a + .b</label><div id=\"expr-a-plus-b\" class=\"test\">{{this.a + this.b}}</div><label class=\"case-label\">.bool ? \"true\" : \"false\"</label><div id=\"expr-bool\" class=\"test\">{{this.bool ? \"true\": \"false\"}}</div></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Input (number) (.a)</label><p class=\"test\"><input {model}=\"this.a\" type=\"number\" data-type=\"number\" id=\"model-input-a\"></p><label class=\"case-label\">Checkbox (.bool)</label><p class=\"test\"><input id=\"model-checkbox-bool\" type=\"checkbox\" {model}=\"this.bool\"></p><label class=\"case-label\">Radio (.inline)</label><p class=\"test\"><input id=\"model-radio-1\" checked=\"checked\" type=\"radio\" name=\"r\" value=\"inline1\" {model}=\"this.inline\">1<label><input id=\"model-radio-2\" type=\"radio\" name=\"r\" value=\"inline2\">2</label><input id=\"model-radio-3\" type=\"radio\" name=\"r\" value=\"inline3\">3</p><label class=\"case-label\">Select (.a)</label><p class=\"test\"><select id=\"model-select-a\" {model}=\"this.a\" data-type=\"number\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Textarea (.text)</label><p class=\"test\"><textarea id=\"model-textarea\" {model}=\"this.text\"></textarea></p><label class=\"case-label\">Input (string .text)</label><p class=\"test\"><input type=\"text\" id=\"model-input\" {model}=\"this.text\"></p></div><div class=\"case\"><h4>mjs-class</h4><label class=\"case-label\">Plain attribute</label><div class=\"test\"><p id=\"class-inline\" [class]=\"this.inline\">---</p></div><label class=\"case-label\">mjs-class (string)</label><div class=\"test\"><p id=\"class-string\" {class}=\"this.inline\">---</p></div><label class=\"case-label\">mjs-class ({bool: .bool, inline1: .a == 0})</label><div class=\"test\"><p id=\"class-object\" {class}=\"{bool: this.bool, inline1: this.a == 0}\">---</p></div></div><div class=\"case\"><h4>mjs-if, mjs-show, mjs-hide</h4><div id=\"if-bool\" {if}=\"this.bool\" class=\"test\" {if.$animate}>this should appear if .bool = true</div><div id=\"show-bool\" {show}=\"this.bool\" class=\"test\" {show.$animate}>this should show if .bool = true</div><div id=\"hide-bool\" {hide}=\"this.bool\" class=\"test\" {hide.$animate}>this should hide if .bool = true</div></div><div class=\"case\"><h4>mjs-include</h4><label class=\"case-label\">immediate</label><div {include}=\"test-template\" {include.$animate}><p>transcluded text</p></div><label class=\"case-label\">immediate (via tag)</label><mjs-include src=\"test-template\"><p>transcluded text</p></mjs-include><label class=\"case-label\">ajax</label><div {include}=\"template.html\"><p>Transcluded text</p></div></div><div class=\"case\"><h4>mjs-validate</h4><form name=\"myForm\" {validate} {class.error}=\"this.myForm.$invalid\" {class.$animate}><div><input name=\"field1\" data-validate-required {class}=\"{error: this.myForm.field1.$invalid}\"></div><div {class}=\"{error: this.myForm.radio1.$invalid}\"><label><input type=\"radio\" name=\"radio1\" value=\"1\" data-validate-required> -- 1</label><label><input type=\"radio\" name=\"radio1\" value=\"2\"> -- 2</label><label><input type=\"radio\" name=\"radio1\" value=\"3\"> -- 3</label></div><div><input type=\"submit\" value=\"Submit\"> <input type=\"reset\" value=\"Reset\"></div></form></div><div class=\"case\" {init}=\"this.dynamicList = []\"><h4>dynamic list</h4><label><input id=\"radio-sep-1\" type=\"radio\" name=\"sep\" value=\"/\\n|,/\" {model}=\"this.sep\"> /\\n|,/</label><label><input type=\"radio\" name=\"sep\" value=\"/\\n/\"> /\\n/</label><label><input type=\"radio\" name=\"sep\" value=\",\"> ,</label><br><br><textarea {model}=\"split:this.sep >> this.dynamicList\" {model.$binding}=\"input\"></textarea><ul><li {each}=\"item in this.dynamicList\" {bind}=\"this.item\" {bind.$recursive}></li></ul></div><div class=\"case\"><h4>mjs-options</h4><label class=\"case-label\">Generated from .alist</label><p class=\"test\"><select {bind}=\"this.a\" {options}=\"this.alist\"><option>not selected</option></select></p><label class=\"case-label\">Generated from .dynamicList</label><p class=\"test\"><select {options}=\"{\n                        name: this.item,\n                        value: this.$index,\n                        group: this.$index - (this.$index % 2),\n                        disabledGroup: this.$index == 0,\n                        disabled: this.$index == 4\n                        } in this.dynamicList\"><option>default value</option></select></p></div><div class=\"case\" {cmp}=\"Test.TplComponent\" id=\"tplComponentTest\"><h2>{{ this.title }}</h2>mjs-include change template:<br><a href=\"#\" (click)=\"this.tpl = 'a+b'\">a + b</a>|<a href=\"#\" (click)=\"this.tpl = 'a*b'\">a * b</a><div {include}=\"this.tpl\" {include.$animate} id=\"tplComponetInc\"></div></div><div class=\"case\" {cmp}=\"Test.StringTemplate\"></div><div class=\"case\" {cmp}=\"Test.ChangeTemplate\">mjs-cmp change template:<br><a href=\"#\" (click)=\"this.tpl = this.tpl1\">tpl1</a>|<a href=\"#\" (click)=\"this.tpl = this.tpl2\">tpl2</a></div><div class=\"case\"><h4>Router</h4><div {router}=\"Test.MyView\" {router.$animate}></div>pushUrl:<a href=\"/1\">/1</a>|<a href=\"/2\">/2</a>|<a href=\"/3\">/3</a>|<a href=\"http://www.kuindji.com\">outside</a><br><br></div><div class=\"case\" {ignore}>This element is ignored by renderer: {{ this.$root.a }}</div><div class=\"case\" {router} {router.$cmp}=\"this.viewCmp\" {router.$default-cmp}:=\"Test.ViewComponent1\"><p>change cmp:<a href=\"#\" (click)=\"this.$parent.viewCmp = 'Test.ViewComponent1'; console.log(1);\">Cmp1</a>|<a href=\"#\" (click)=\"this.$parent.viewCmp = 'Test.ViewComponent2'; console.log(2);\">Cmp2</a></p></div></div><div class=\"cases\"><div class=\"case double\" {init}=\"this.newItem = '';\n                            this.listFilter = '';\n                            this.sortBy = 'asc'\"><h4>mjs-each (attr)</h4><input {model}=\"this.newItem\" (key.enter)=\"if (this.newItem) {\n                                        this.list.push({bool: false, txt: this.newItem}); \n                                        this.newItem = '';\n                                    }\"> <input type=\"button\" {disabled}=\"!this.newItem\" (click)=\"this.list.push({bool: false, txt: this.newItem}); this.newItem = '';\" value=\"Add item\"><ul {show}=\"this.bool\" {show.$animate}><li {each}=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\" {each.$animate} {each.$animate-move}><label {class}=\"{cls3: this.item.bool}\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{ this.$index }} - {{ this.item.txt }} - {{ this.$first ? \"first\" : \"\" }} - {{ this.$last ? \"last\" : \"\" }} - {{ this.$even ? \"even\" : \"\" }} - {{ this.$odd ? \"odd\" : \"\" }}</label><a href=\"#\" (click)=\"this.$parent.list.splice(this.$getRawIndex(this.$trackId),1);\">x</a></li></ul><input {model}=\"this.listFilter\" placeholder=\"Search\"><a href=\"#\" (click)=\"this.sortBy='asc'\">asc</a><a href=\"#\" (click)=\"this.sortBy='desc'\">desc</a></div><div class=\"case double\"><h4>mjs-each (tag)</h4><mjs-each value=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\"><div><label {class}=\"{cls3: this.item.bool}\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{ this.$index }} - {{ this.item.txt }} - {{ this.$first ? \"first\" : \"\" }} - {{ this.$last ? \"last\" : \"\" }} - {{ this.$even ? \"even\" : \"\" }} - {{ this.$odd ? \"odd\" : \"\" }}</label><a href=\"#\" (click)=\"this.$parent.list.splice(this.$getRawIndex(this.$trackId),1);\">x</a></div></mjs-each></div><div class=\"case\" id=\"newComponent\">Dynamically created component on existing element will go here</div><div class=\"case\" id=\"renderToComponent\">Dynamically created component with renderTo will go here</div><div class=\"case double\" {cmp}=\"Test.MyComponent\" {cmp.$as}=\"ctrl\"><p {cmp-prop}=\"para\">Component's transcluded text + {{ this.$root.a}}</p><a href=\"#\" (click)=\"this.ctrl.reverse()\">reverse</a>|<a href=\"#\" (click)=\"this.ctrl.createNew()\">create new component on existing element</a>|<a href=\"#\" (click)=\"this.ctrl.createRender()\">create new component and render to</a>|<a href=\"#\" (click)=\"this.ctrl.createDialog()\">create new dialog</a><br><br><button (click)=\"this.store.load()\">Load store</button><button (click)=\"this.store.clear()\">Clear store</button><ul><li {each}=\"item in this.store\" {each.$animate}>{{ this.item.name }}</li></ul></div><div class=\"case double\" id=\"myComponent1\" {cmp}=\"Test.MyComponent\"><p>This is another instance with deferred value: {{ this.deferred }}</p></div><div class=\"case double\"><tagc $as:=\"ctrl\" $test:=\"Value from config\"></tagc></div></div>","cmp1-template":"<h2>{{this.title}}</h2><div {transclude}></div>","dirs":"<!--{includes: true}--><div class=\"form_select\" (click)=\"this.field.onSelfClick(this.$event)\" {class.loading}=\"this.loading\" {class.disabled}=\"this.field.disabled\" {class.search}=\"this.field.searchable\" {class.multiple}=\"this.field.multiple\" {class.black}=\"this.field.black\"><input type=\"hidden\" #el_hidden_field [name]=\"this.field.hiddenInputName\" [value]=\"this.field.$$selection | join:','\"><i #el_icon_down (click)=\"this.field.onDropdownIconClick(this.$event)\"><!-- include icons/down.html --></i><a class=\"form_select__label\" {each}=\"item in this.field.getMultiSelection()\" style=\"display: inline-block !important;\">{{ this.$parent.field.getItemName(this.item) }}<i class=\"delete icon\" (click)=\"this.$parent.field.onItemDeleteClick(this.item, this.$event)\"></i></a><input type=\"text\" #el_search class=\"search\" [disabled]=\"this.field.disabled\" {show}=\"this.field.searchable\" {show.$display}=\"inline-block\" (focus)=\"this.field.onSearchFocus(this.$event)\" (blur)=\"this.field.onSearchBlur(this.$event)\" (key.backspace)=\"this.field.onSearchBackspace(this.$event)\" {model}=\"this.searchQuery\"><span class=\"sizer\" #el_sizer {if}=\"this.field.multiple && this.field.searchable\" {bind}=\"this.searchQuery\"></span><div class=\"default text\" #el_default_text (click)=\"this.field.onValueTextClick(this.$event)\" {show}=\"!this.searchQuery && !this.field.hasSelection() &&\n                    !!this.field.emptyText\" {show.$display}=\"inline-block\" {show.$save-state}=\"this.emptyShown\" {bind}=\"this.field.emptyText\"></div><div class=\"text\" #el_text (click)=\"this.field.onValueTextClick(this.$event)\" {class.default}=\"this.focused && this.searchQuery == ''\" {show}=\"!this.searchQuery && !this.field.multiple && this.field.hasSelection()\" {show.$save-state}=\"this.selectedShown\" {show.$display}=\"inline-block\" {bind}=\"this.field.getSelectedName()\"></div><!-- replaces two previous text blocks with invisible placeholder --><div style=\"display: none\" class=\"default text\" {show}=\"!this.emptyShown && !this.selectedShown && !this.field.searchable\" {show.$display}=\"inline-block\">&nbsp;</div><select class=\"form-select_hidden-select\" #el_hidden_select (click)=\"this.field.onHiddenSelectClick(this.$event)\" (change)=\"this.field.onHiddenSelectChange(this.$event)\" {show}=\"this.field.useHiddenSelect\" {show.$display}=\"block\" {options}=\"this.field._getSelectOptions()\"></select><div class=\"form-select-menu\" #el_menu {class.black}=\"this.field.black\"><div class=\"items\" #el_menu_items><div class=\"disabled item\" #el_menu_disabled {if}=\"this.field.showNotFound && this.field.store.isEmpty()\" (click)=\"this.field.onNotFoundClick(null, this.$event)\" {bind-html}=\"this.field.notFoundText\"></div><div class=\"empty item\" #el_menu_empty style=\"color: #999;\" {if}=\"this.field.showEmptyItem && !this.field.store.isEmpty()\" (click)=\"this.field.onItemClick(null, this.$event)\" {bind-html}=\"this.field.emptyItemText\"></div><div class=\"item\" {each}=\"item in this.field.store\" (click)=\"this.$parent.field.onItemClick(this.item, this.$event)\" {bind}=\"this.$parent.field.getItemName(this.item)\"></div></div><div class=\"pagination_container\" {cmp}=\"Pagination\" {cmp.$autoscroll}=\"false\" {show}=\"this.pagination.hasPages()\" (click)=\"this.$parent.field.onPaginationClick(this.$event)\"></div></div></div>","tagc":"<div class=\"component\"><p>This is a tag component.</p><p>{{ this.ctrl.config.get('test') }}</p></div>","test-template":"<p>{{this.$root.text}}</p><div {transclude}></div>"},"templateOptions":{"dirs":{"includes":true}},"configs":{},"expressionOpts":{}}
 MetaphorJsPrebuilt['funcs'] = {
-"813": function(____, $$$$) {try {return ____.$root.a * ____.$root.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a * this.$root.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"814": function(____, $$$$) {try {return ____.$root.a + ____.$root.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a + this.$root.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"816": function(____, $$$$) {try {return ____.title;} catch (thrownError) { /*DEBUG-START*/console.log("this.title");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"817": function(____, $$$$) {try {return ____.field.onSelfClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSelfClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"818": function(____, $$$$) {try {return ____.loading;} catch (thrownError) { /*DEBUG-START*/console.log("this.loading");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"819": function(____, $$$$) {try {return ____.field.disabled;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.disabled");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"821": function(____, $$$$) {try {return !____.emptyShown && !____.selectedShown && !____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("!this.emptyShown && !this.selectedShown && !this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"823": function(____, $$$$) {try {return ____.field.onHiddenSelectClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onHiddenSelectClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"824": function(____, $$$$) {try {return ____.field.onHiddenSelectChange(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onHiddenSelectChange(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"825": function(____, $$$$) {try {return ____.field.useHiddenSelect;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.useHiddenSelect");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"829": function(____, $$$$) {try {return ____.field.showNotFound && ____.field.store.isEmpty();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.showNotFound && this.field.store.isEmpty()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81A": function(____, $$$$) {try {return ____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81B": function(____, $$$$) {try {return ____.field.multiple;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.multiple");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81C": function(____, $$$$) {try {return ____.field.black;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.black");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81F": function(____, $$$$) {try {return ____.field.onDropdownIconClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onDropdownIconClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81I": function(____, $$$$) {try {return ____.$parent.field.onItemDeleteClick(____.item, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onItemDeleteClick(this.item, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81K": function(____, $$$$) {try {return ____.field.onSearchFocus(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchFocus(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81L": function(____, $$$$) {try {return ____.field.onSearchBlur(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchBlur(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81M": function(____, $$$$) {try {return ____.field.onSearchBackspace(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchBackspace(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81O": function(____, $$$$) {try {return ____.field.multiple && ____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.multiple && this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81P": function(____, $$$$) {try {return ____.searchQuery;} catch (thrownError) { /*DEBUG-START*/console.log("this.searchQuery");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81R": function(____, $$$$) {try {return ____.field.onValueTextClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onValueTextClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81S": function(____, $$$$) {try {return !____.searchQuery && !____.field.hasSelection() && !!____.field.emptyText;} catch (thrownError) { /*DEBUG-START*/console.log("!this.searchQuery && !this.field.hasSelection() && !!this.field.emptyText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81T": function(____, $$$$) {try {return ____.emptyShown;} catch (thrownError) { /*DEBUG-START*/console.log("this.emptyShown");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81U": function(____, $$$$) {try {return ____.field.emptyText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.emptyText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81W": function(____, $$$$) {try {return ____.focused && ____.searchQuery == '';} catch (thrownError) { /*DEBUG-START*/console.log("this.focused && this.searchQuery == \'\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81X": function(____, $$$$) {try {return !____.searchQuery && !____.field.multiple && ____.field.hasSelection();} catch (thrownError) { /*DEBUG-START*/console.log("!this.searchQuery && !this.field.multiple && this.field.hasSelection()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81Y": function(____, $$$$) {try {return ____.selectedShown;} catch (thrownError) { /*DEBUG-START*/console.log("this.selectedShown");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81Z": function(____, $$$$) {try {return ____.field.getSelectedName();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.getSelectedName()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"82A": function(____, $$$$) {try {return ____.field.onNotFoundClick(null, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onNotFoundClick(null, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"82B": function(____, $$$$) {try {return ____.field.notFoundText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.notFoundText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"82D": function(____, $$$$) {try {return ____.field.showEmptyItem && !____.field.store.isEmpty();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.showEmptyItem && !this.field.store.isEmpty()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"82E": function(____, $$$$) {try {return ____.field.onItemClick(null, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onItemClick(null, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"82F": function(____, $$$$) {try {return ____.field.emptyItemText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.emptyItemText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"82H": function(____, $$$$) {try {return ____.$parent.field.onItemClick(____.item, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onItemClick(this.item, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"82I": function(____, $$$$) {try {return ____.$parent.field.getItemName(____.item);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.getItemName(this.item)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"82K": function(____, $$$$) {try {return ____.pagination.hasPages();} catch (thrownError) { /*DEBUG-START*/console.log("this.pagination.hasPages()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"82L": function(____, $$$$) {try {return ____.$parent.field.onPaginationClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onPaginationClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"82N": function(____, $$$$) {try {return ____.ctrl.config.get('test');} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.config.get(\'test\')");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"82P": function(____, $$$$) {try {return ____.$root.text;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.text");console.log(thrownError);/*DEBUG-END*/return undefined; }}
+
 };
 
 
@@ -310,6 +271,7 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
                             '/*DEBUG-START*/console.log("expr");console.log(thrownError);/*DEBUG-END*/'+
                             'return undefined; }',    
         cache           = {},
+        descrCache      = {},
         filterSources   = [],
 
         prebuiltExpr    = MetaphorJs.prebuilt ?
@@ -1012,9 +974,14 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
          * @param {object} opt See <code>parse</code>
          */
         run: function(expr, dataObj, inputValue, opt) {
-            opt = opt || {};
-            opt.noReturn = true;
-            parserFn(expr, opt)(dataObj, inputValue);
+            if (isPrebuiltKey(expr)) {
+                prebuiltCache(expr)(dataObj);
+            }
+            else {
+                opt = opt || {};
+                opt.noReturn = true;
+                parserFn(expr, opt)(dataObj, inputValue);
+            }
         },
 
         /**
@@ -1026,9 +993,14 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
          * @param {object} opt See <code>parse</code>
          */
         get: function(expr, dataObj, inputValue, opt) {
-            opt = opt || {};
-            opt.getterOnly = true;
-            return parserFn(expr, opt)(dataObj, inputValue);
+            if (isPrebuiltKey(expr)) {
+                return prebuiltCache(expr)(dataObj);
+            }
+            else {
+                opt = opt || {};
+                opt.getterOnly = true;
+                return parserFn(expr, opt)(dataObj, inputValue);
+            }
         },
 
         /**
@@ -1097,6 +1069,39 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
         expressionHasPipes: function(expr) {
             return split(expr, '|').length > 1 || 
                     split(expr, '>>').length > 1;
+        },
+
+        /**
+         * Get a small string containing expression features:
+         * p: updates parent, r: updates root, i: has input pipes,
+         * o: has output pipes
+         * @property {function} describeExpression {
+         *  @param {string} expr 
+         *  @returns {string}
+         * }
+         */
+        describeExpression: function(expr) {
+
+            if (!expr || typeof expr !== "string") 
+                return "";
+
+            if (isPrebuiltKey(expr)) {
+                expr = expr.substring(2);
+                return MetaphorJs.prebuilt.expressionOpts[expr] || "";
+            }
+            if (descrCache[expr]) {
+                return descrCache[expr];
+            }
+
+            var descr = "" +
+                (expr.indexOf("$parent") !== -1 ? "p":"") +
+                (expr.indexOf("$root") !== -1 ? "r":"") +
+                (split(expr, '|').length > 1 ? "o":"") +
+                (split(expr, '>>').length > 1 ? "i":"");
+
+            descrCache[expr] = descr;
+
+            return descr;
         },
 
         /**
@@ -4816,6 +4821,30 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
             }
 
             return res;
+        },
+
+        /**
+         * Check scope based on property opts 
+         * (does it require checking parent or root)
+         * @param {string} propName 
+         */
+        checkScope: function(propName) {
+            var scope = this.cfg.scope,
+                descr = lib_Expression.describeExpression(
+                    this.getExpression(propName)
+                );
+
+            if (descr.indexOf("r") !== -1) {
+                return scope.$root.$check();
+            }
+            else if (descr.indexOf("p") !== -1) {
+                return scope.$parent ? 
+                        scope.$parent.$check() : 
+                        scope.$root.$check();
+            }
+            else {
+                return scope.$check();
+            }
         },
 
         /**
@@ -9645,6 +9674,13 @@ var dom_getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
         '': null
     };
 
+    var dtypes = {
+        '{': "dir",
+        '(': "event",
+        '[': "attr",
+        '$': "cfg"
+    };
+
     var getEmpty = function() {
         return {
             directive: {},
@@ -9672,9 +9708,9 @@ var dom_getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
             prop, execMode,
             attrs = isArray(node) ? node : node.attributes;
 
-        if (node.nodeType && node.hasAttrbibute && node.hasAttrbibute("mjs")) {
+        if (node.nodeType && node.hasAttribute && node.hasAttribute("mjs")) {
             set = MetaphorJs.prebuilt.configs[node.getAttribute("mjs")];
-            dom_removeAttr("mjs");
+            dom_removeAttr(node, "mjs");
             inflate(set);
             return set;
         }
@@ -9721,7 +9757,8 @@ var dom_getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
 
                 set['config'][toCamelCase(name)] = {
                     expression: value,
-                    mode: execMode
+                    mode: execMode,
+                    dtype: dtypes[mode]
                 };
 
                 if (!set['names'][tagName]) {
@@ -9739,7 +9776,8 @@ var dom_getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
                     coll[name] = {
                         //name: name,
                         original: null,
-                        config: {}
+                        config: {},
+                        dtype: dtypes[mode]
                     };
                 }
 
@@ -10336,7 +10374,7 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
             var self    = this,
                 texts   = self.texts,
                 i, len;
-
+            
             for (i = -1, len = texts.length; ++i < len; texts[i].tr.$destroy()) {}
 
             if (self.parent) {
@@ -12112,7 +12150,8 @@ var app_Template = MetaphorJs.app.Template = function() {
                         dom_toFragment(node.childNodes));
                 }
 
-                if (isExpression(tpl)) {
+                if (isExpression(tpl) || 
+                    lib_Expression.isPrebuiltKey(tpl)) {
                     self._watcher = lib_MutationObserver.get(
                         self.scope,
                         tpl,
@@ -12168,6 +12207,7 @@ var app_Template = MetaphorJs.app.Template = function() {
                 self._renderer.on("rendered", self.onRendered, self);
                 self._renderer.on("first-node", self.onFirstNodeReported, self);
                 self._renderer.process();
+                //self.on("destroy", self._renderer.$destroy, self._renderer);
             }
         },
 
@@ -12450,6 +12490,8 @@ var app_Template = MetaphorJs.app.Template = function() {
                 }
                 self._watcher.$destroy(true);
             }
+
+            //observable.trigger("destroy-" + self.id, self);
         }
 
     }, {
@@ -13678,6 +13720,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
         else {
             expr = config.getExpression("value");
         }
+
         var handler = detectModelType(expr, scope) || app_ListRenderer;
 
         return new handler(scope, node, config, parentRenderer, attrSet);
@@ -14400,13 +14443,11 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
  */
 MetaphorJs.lib.EventHandler = function(event, scope, node, cfg) {
 
-    var self = this,
-        expr = cfg.getProperty("value").expression;
+    var self = this;
 
     self.config     = cfg;
     self.event      = event;
     self.prevEvent  = {};
-    self.updateRoot = expr.indexOf('$root') + expr.indexOf('$parent') !== -2;
     self.scope      = scope;
     self.node       = node;
     self.handler    = null;
@@ -14488,7 +14529,7 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
 
             self.prevEvent[e.type] = e;
 
-            self.updateRoot ? scope.$root.$check() : scope.$check();
+            self.config.checkScope("value");
 
             if (returnValue !== undf) {
                 return returnValue;
@@ -14615,11 +14656,9 @@ var lib_EventHandler = MetaphorJs.lib.EventHandler;
         prepareConfig(config);
 
         var fn = config.get("value"),
-            expr = config.getProperty("value").expression,
-            updateRoot = expr.indexOf('$root') + expr.indexOf('$parent') !== -2,
             handler = function(){
                 fn(scope);
-                updateRoot ? scope.$root.$check() : scope.$check();
+                config.checkScope("value")
             };
 
         lib_Input.get(node).onKey(13, handler);
@@ -14845,16 +14884,24 @@ Directive.registerAttribute("include", 1100,
 
 
 
-Directive.registerAttribute("init", 250, function(scope, node, config) {
-    config.eachProperty(function(k, prop) {
-        if (k === 'value' || k.indexOf('value.') === 0) {
-            lib_Expression.run(prop.expression, scope, null, {
-                noReturn: true
-            });
-        }
-    });
-    config.clear();
-});
+Directive.registerAttribute("init", 250, function(){
+    var initDir = function(scope, node, config) {
+        config.eachProperty(function(k, prop) {
+            if (k === 'value' || k.indexOf('value.') === 0) {
+                lib_Expression.run(prop.expression, scope, null, {
+                    noReturn: true
+                });
+            }
+        });
+        config.clear();
+    };
+
+    initDir.$prebuild = {
+        noReturn: true
+    };
+
+    return initDir;
+}());
 
 
 
@@ -14975,16 +15022,18 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     $init: function(scope, node, config, renderer, attrSet) {
         
         var self    = this,
-            expr    = config.getProperty("value").expression;
+            expr    = config.getExpression("value"),
+            descr   = lib_Expression.describeExpression(expr);
 
+        console.log(expr, descr)
         config.setMode("value", lib_Config.MODE_FNSET);
         config.setProperty("checkRoot", {
             type: 'bool',
-            defaultValue: expr.indexOf('$root') !== -1
+            defaultValue: descr.indexOf('r') !== -1
         });
         config.setProperty("checkParent", {
             type: 'bool',
-            defaultValue: expr.indexOf('$parent') !== -1
+            defaultValue: descr.indexOf('p') !== -1
         });
         config.setProperty("binding", {
             defaultValue: "both",
@@ -14992,7 +15041,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         });
 
         if (config.hasExpression("change")) {
-            self.changeFn   = lib_Expression.parse(config.get("change"));
+            self.changeFn   = lib_Expression.func(config.get("change"));
         }
 
         self.node           = node;
@@ -15049,12 +15098,17 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
             if (scope instanceof lib_Scope) {
                 if (self.config.get("checkRoot")) {
+                    console.log("check root")
                     scope.$root.$check();
                 }
                 else if (self.config.get("checkParent")) {
-                    scope.$parent.$check();
+                    console.log("check parent")
+                    scope.$parent ? 
+                        scope.$parent.$check() : 
+                        scope.$root.$check();
                 }
                 else {
+                    console.log("check regular")
                     scope.$check();
                 }
             }
@@ -26300,7 +26354,7 @@ var app_App = MetaphorJs.app.App = cls({
         if (cmp.on) {
             cmp.on("destroy", deregister);
         }
-        scope.$on("$destroy", deregister);
+        scope.$on("destroy", deregister);
     },
 
     onDestroy: function() {
@@ -27340,7 +27394,7 @@ var app_Router = MetaphorJs.app.Router = cls({
 
         if (self.currentComponent) {
 
-            animate_animate(node, self.animate ? "leave" : null).done(function(){
+            animate_animate(node, self.config.get("animate") ? "leave" : null).done(function(){
                 
                 if (!cview.keepAlive) {
 
@@ -27447,7 +27501,7 @@ var app_Router = MetaphorJs.app.Router = cls({
 
         self.currentView = route;
 
-        animate_animate(node, self.animate ? "enter" : null, function(){
+        animate_animate(node, self.config.get("animate") ? "enter" : null, function(){
 
             var args    = matches || [],
                 cfg     = {
@@ -27548,7 +27602,7 @@ var app_Router = MetaphorJs.app.Router = cls({
         self.clearComponent();
         self.currentView = null;
 
-        animate_animate(node, self.animate ? "enter" : null, function(){
+        animate_animate(node, self.config.get("animate") ? "enter" : null, function(){
 
             var cfg     = isObject(cmp) ? cmp : {},
                 cls     = (isString(cmp) ? cmp : null) || "MetaphorJs.app.Component",

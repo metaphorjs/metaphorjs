@@ -56,11 +56,9 @@ var Directive = require("../../app/Directive.js"),
         prepareConfig(config);
 
         var fn = config.get("value"),
-            expr = config.getProperty("value").expression,
-            updateRoot = expr.indexOf('$root') + expr.indexOf('$parent') !== -2,
             handler = function(){
                 fn(scope);
-                updateRoot ? scope.$root.$check() : scope.$check();
+                config.checkScope("value")
             };
 
         MetaphorJs.lib.Input.get(node).onKey(13, handler);

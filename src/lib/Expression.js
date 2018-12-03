@@ -18,6 +18,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
                             '/*DEBUG-START*/console.log("expr");console.log(thrownError);/*DEBUG-END*/'+
                             'return undefined; }',    
         cache           = {},
+        descrCache      = {},
         filterSources   = [],
 
         prebuiltExpr    = MetaphorJs.prebuilt ?
@@ -720,9 +721,14 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          * @param {object} opt See <code>parse</code>
          */
         run: function(expr, dataObj, inputValue, opt) {
-            opt = opt || {};
-            opt.noReturn = true;
-            parserFn(expr, opt)(dataObj, inputValue);
+            if (isPrebuiltKey(expr)) {
+                prebuiltCache(expr)(dataObj);
+            }
+            else {
+                opt = opt || {};
+                opt.noReturn = true;
+                parserFn(expr, opt)(dataObj, inputValue);
+            }
         },
 
         /**
@@ -734,9 +740,14 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          * @param {object} opt See <code>parse</code>
          */
         get: function(expr, dataObj, inputValue, opt) {
-            opt = opt || {};
-            opt.getterOnly = true;
-            return parserFn(expr, opt)(dataObj, inputValue);
+            if (isPrebuiltKey(expr)) {
+                return prebuiltCache(expr)(dataObj);
+            }
+            else {
+                opt = opt || {};
+                opt.getterOnly = true;
+                return parserFn(expr, opt)(dataObj, inputValue);
+            }
         },
 
         /**
@@ -805,6 +816,39 @@ module.exports = MetaphorJs.lib.Expression = (function() {
         expressionHasPipes: function(expr) {
             return split(expr, '|').length > 1 || 
                     split(expr, '>>').length > 1;
+        },
+
+        /**
+         * Get a small string containing expression features:
+         * p: updates parent, r: updates root, i: has input pipes,
+         * o: has output pipes
+         * @property {function} describeExpression {
+         *  @param {string} expr 
+         *  @returns {string}
+         * }
+         */
+        describeExpression: function(expr) {
+
+            if (!expr || typeof expr !== "string") 
+                return "";
+
+            if (isPrebuiltKey(expr)) {
+                expr = expr.substring(2);
+                return MetaphorJs.prebuilt.expressionOpts[expr] || "";
+            }
+            if (descrCache[expr]) {
+                return descrCache[expr];
+            }
+
+            var descr = "" +
+                (expr.indexOf("$parent") !== -1 ? "p":"") +
+                (expr.indexOf("$root") !== -1 ? "r":"") +
+                (split(expr, '|').length > 1 ? "o":"") +
+                (split(expr, '>>').length > 1 ? "i":"");
+
+            descrCache[expr] = descr;
+
+            return descr;
         },
 
         /**

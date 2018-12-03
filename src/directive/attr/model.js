@@ -28,16 +28,17 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     $init: function(scope, node, config, renderer, attrSet) {
         
         var self    = this,
-            expr    = config.getProperty("value").expression;
+            expr    = config.getExpression("value"),
+            descr   = MetaphorJs.lib.Expression.describeExpression(expr);
 
         config.setMode("value", MetaphorJs.lib.Config.MODE_FNSET);
         config.setProperty("checkRoot", {
             type: 'bool',
-            defaultValue: expr.indexOf('$root') !== -1
+            defaultValue: descr.indexOf('r') !== -1
         });
         config.setProperty("checkParent", {
             type: 'bool',
-            defaultValue: expr.indexOf('$parent') !== -1
+            defaultValue: descr.indexOf('p') !== -1
         });
         config.setProperty("binding", {
             defaultValue: "both",
@@ -45,7 +46,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         });
 
         if (config.hasExpression("change")) {
-            self.changeFn   = MetaphorJs.lib.Expression.parse(config.get("change"));
+            self.changeFn   = MetaphorJs.lib.Expression.func(config.get("change"));
         }
 
         self.node           = node;
@@ -105,7 +106,9 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
                     scope.$root.$check();
                 }
                 else if (self.config.get("checkParent")) {
-                    scope.$parent.$check();
+                    scope.$parent ? 
+                        scope.$parent.$check() : 
+                        scope.$root.$check();
                 }
                 else {
                     scope.$check();

@@ -546,7 +546,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
             var self    = this,
                 texts   = self.texts,
                 i, len;
-
+            
             for (i = -1, len = texts.length; ++i < len; texts[i].tr.$destroy()) {}
 
             if (self.parent) {
