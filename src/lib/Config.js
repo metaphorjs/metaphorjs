@@ -199,6 +199,16 @@ module.exports = MetaphorJs.lib.Config = (function(){
         },
 
         /**
+         * Set Config's option
+         * @method
+         * @param {string} name 
+         * @param {*} value 
+         */
+        setOption: function(name, value) {
+            this.cfg[name] = value;
+        },
+
+        /**
          * Set or update property
          * @method
          * @param {string} name 
@@ -256,6 +266,10 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 }
                 else if (prop.expression === true) {
                     prop.mode = MODE_STATIC;
+                    changed = true;
+                }
+                else if (self.cfg.defaultMode) {
+                    prop.mode = self.cfg.defaultMode;
                     changed = true;
                 }
             }
@@ -392,10 +406,13 @@ module.exports = MetaphorJs.lib.Config = (function(){
          *  @optional
          * }
          */
-        setType: function(name, type, defaultMode) {
+        setType: function(name, type, defaultMode, defaultValue) {
             this.setProperty(name, "type", type);
             if (defaultMode) {
                 this.setProperty(name, "defaultMode", defaultMode);
+            }
+            if (defaultValue !== undf) {
+                this.setProperty(name, "defaultValue", defaultValue);
             }
         },
 
