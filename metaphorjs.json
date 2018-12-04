@@ -48,7 +48,8 @@
                 "dev-test/index.js"
             ],
             "options": {
-                "wrap": true
+                "wrap": true,
+                "removeDebug": false
             },
             "templates": [
                 ["dev-test/templates/**", {
