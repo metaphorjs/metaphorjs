@@ -85,7 +85,7 @@ cls({
     $extends: "MetaphorJs.app.Router",
     route: [
         {
-            template: 'test-template',
+            template: 'test-template.html',
             "default": true
         },
         {
@@ -194,7 +194,7 @@ cls({
                 });
         }
     }, {
-        template: "cmp1-template",
+        template: "cmp1-template.html",
         resolve: {
             deferred: ['$node', '$scope', 'test', function(node, scope, test) {
                 return new MetaphorJs.lib.Promise(function(resolve, reject){
@@ -211,7 +211,7 @@ cls({
     $class: "Test.MyComponent2",
     $extends: "MetaphorJs.app.Component",
 
-    template: 'cmp1-template',
+    template: 'cmp1-template.html',
 
     initComponent: function(cfg, param) {
         var self    = this;
@@ -291,7 +291,7 @@ cls({
     $class: "Test.TagComponent",
     $extends: "MetaphorJs.app.Component",
     $alias: "MetaphorJs.directive.component.tagc",
-    template: "tagc"
+    template: "tagc.html"
 });
 
 
