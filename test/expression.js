@@ -26,9 +26,9 @@ describe("Expression tester", function(){
         },
         res;
 
-        res = MetaphorJs.lib.Expression.run("this.a", dataObj);
+        res = MetaphorJs.lib.Expression.get("this.a", dataObj);
         assert.equal(2, res, "Result value of atom expression");
-        res = MetaphorJs.lib.Expression.run("this.b() * this.a", dataObj);
+        res = MetaphorJs.lib.Expression.get("this.b() * this.a", dataObj);
         assert.equal(6, res, "Result value of complex expression");
     });
 
@@ -42,9 +42,9 @@ describe("Expression tester", function(){
         },
         res;
 
-        res = MetaphorJs.lib.Expression.run("this.a | f1:this.b()", dataObj);
+        res = MetaphorJs.lib.Expression.get("this.a | f1:this.b()", dataObj);
         assert.equal(6, res, "Result value of a filter");
-        res = MetaphorJs.lib.Expression.run("this.a | f2:'--'", dataObj);
+        res = MetaphorJs.lib.Expression.get("this.a | f2:'--'", dataObj);
         assert.equal('--2--', res, "Result value of a string filter");
     });
 
@@ -58,9 +58,11 @@ describe("Expression tester", function(){
         },
         res;
 
-        res = expression.run("f >> this.a", dataObj, 2, {
+        expression.run("f >> this.a", dataObj, 2, {
             filters: dataObj
         });
+        res = expression.get("this.a", dataObj);
+
         assert.equal(4, res, "Result value of a filter");
         assert.equal(4, dataObj.a, "dataObj property should change");
     });
@@ -78,9 +80,9 @@ describe("Expression tester", function(){
         },
         res;
 
-        res = expression.run("f:this.b:10 >> this.a | f1:this.b:10", dataObj, 2, {
+        res = expression.parse("f:this.b:10 >> this.a | f1:this.b:10", {
             filters: dataObj
-        });
+        })(dataObj, 2);
         assert.equal(-7, dataObj.a, "dataObj property changed"); // 2 + 1 - 10 = -7
         assert.equal(2, res, "result value of filters"); // -7 - 1 + 10 = 2
 

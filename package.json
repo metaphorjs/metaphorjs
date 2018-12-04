@@ -20,6 +20,6 @@
     },
     "homepage": "https://github.com/metaphorjs/metaphorjs",
     "devDependencies": {
-        "jsdom": "^9.12.0"
+        "jsdom": "^13.0.0"
     }
 }

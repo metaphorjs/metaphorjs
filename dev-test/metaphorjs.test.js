@@ -10342,7 +10342,7 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
 
                         handler = handlers[i].handler;
 
-                        if (!handler.$keepAttribute && !attrs.inflated) {
+                        if (!handler.$keepAttribute) {
                             dom_removeAttr(node, attrProps.original);
                         }
                         attrs.removeDirective(node, name);

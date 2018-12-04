@@ -54,6 +54,6 @@ describe("MetaphorJs.lib.Config", function(){
         assert.strictEqual(true, dynamicTriggered);
         assert.strictEqual(false, staticTriggered);
         assert.strictEqual(false, singleTriggered);
-        assert.strictEqual(2, config.getValue("dynamic"));
+        assert.strictEqual(2, config.get("dynamic"));
     });
 });

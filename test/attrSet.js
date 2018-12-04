@@ -16,14 +16,14 @@ describe("getAttrSet", function(){
 
     var getDom = function(name) {
         var html = getFile(name);
-        return jsdom.jsdom(html);
+        return new jsdom.JSDOM(html);
     };
 
     it("should work", function() {
 
         var dom = getDom("1.html"),
-            node1 = dom.defaultView.document.getElementById("test1"),
-            node2 = dom.defaultView.document.getElementById("test2");
+            node1 = dom.window.document.getElementById("test1"),
+            node2 = dom.window.document.getElementById("test2");
         //getAttrSet(node);
 
         getAttrSet(node1)

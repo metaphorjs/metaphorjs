@@ -33,19 +33,19 @@ describe("MetaphorJs.app.Renderer", function(){
 
     var getDom = function(name) {
         var html = getFile(name);
-        return jsdom.jsdom(html);
+        return new jsdom.JSDOM(html);
     };
 
     it("should work", function(){
 
         var dom = getDom("1.html"),
-            node = dom.defaultView.document.getElementsByTagName("body"),
+            node = dom.window.document.getElementsByTagName("body"),
             dataObj = {
                 a: "aaa",
                 b: "bbb"
             };
         
-        global.window = dom.defaultView;
+        global.window = dom.window;
 
         var renderer = new MetaphorJs.app.Renderer(node, dataObj);
         renderer.process();
