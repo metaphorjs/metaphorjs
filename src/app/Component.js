@@ -148,9 +148,12 @@ module.exports = MetaphorJs.app.Component = cls({
                 }
             );
         }
+
+        self.$cfg = {};
+        self.config.setTo(self.$cfg);
         self._initConfig();
 
-        if (self.config.hasExpression("as")) {
+        if (self.config.has("as")) {
             self.scope[self.config.get("as")] = self;
         }
 
@@ -227,8 +230,7 @@ module.exports = MetaphorJs.app.Component = cls({
     },
 
     _initConfig: function(){
-        var self = this;
-        self.config.setDefaultMode("as", MetaphorJs.lib.Config.MODE_STATIC);
+        this.config.setDefaultMode("as", MetaphorJs.lib.Config.MODE_STATIC);
     },
 
     _createNode: function() {
@@ -326,8 +328,13 @@ module.exports = MetaphorJs.app.Component = cls({
             self.replaceNodeWithTemplate();
         }
 
+        self.onBeforeRender();
         self.trigger('render', self);
         self.template.startRendering();
+    },
+
+    onBeforeRender: function() {
+        this.config.getAll(); // calc all props and put into scope.cfg
     },
 
     onRenderingFinished: function() {

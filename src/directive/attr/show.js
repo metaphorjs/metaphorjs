@@ -13,7 +13,10 @@ Directive.registerAttribute("show", 500, Directive.$extend({
     initial: true,
 
     initialSet: function() {
-        this.config.setType("animate", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+        this.config.setType("display", 
+            "string", MetaphorJs.lib.Config.MODE_STATIC, "");
+        this.config.setType("animate", 
+            "bool", MetaphorJs.lib.Config.MODE_STATIC, false);
         this.$super();
     },
 
@@ -26,7 +29,7 @@ Directive.registerAttribute("show", 500, Directive.$extend({
                     style.display = "none";
                 }
                 else {
-                    style.display = self.config.get("display") || "";
+                    style.display = self.config.get("display");
                 }
             };
 
@@ -37,7 +40,7 @@ Directive.registerAttribute("show", 500, Directive.$extend({
                 if (show) {
                     return new MetaphorJs.lib.Promise(function(resolve){
                         raf(function(){
-                            style.display = self.config.get("display") || "";
+                            style.display = self.config.get("display");
                             resolve();
                         });
                     });

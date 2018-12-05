@@ -224,6 +224,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
         /**
          * Set or update property
+         * @method
          * @param {string} name 
          * @param {string} cfg 
          * @param {*} val 
@@ -291,6 +292,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
         /**
          * Get property config
+         * @method
          * @param {string} name 
          * @returns {object}
          */
@@ -299,7 +301,19 @@ module.exports = MetaphorJs.lib.Config = (function(){
         },
 
         /**
+         * Get property mode (or null, if not defined)
+         * @method
+         * @param {string} name 
+         * @returns {int|null}
+         */
+        getMode: function(name) {
+            var prop = this.getProperty(name);
+            return prop ? prop.mode || null : null;
+        },
+
+        /**
          * Get property expression
+         * @method
          * @param {string} name 
          */
         getExpression: function(name) {
@@ -325,6 +339,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
         /**
          * Iterate over properties
+         * @method
          * @param {function} fn {
          *  @param {string} key
          *  @param {object} property
@@ -341,6 +356,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
         /**
          * Does this config has a property
+         * @method
          * @param {string} name 
          * @returns {bool}
          */
@@ -350,11 +366,28 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
         /**
          * Does this config has a property with expression
+         * @method
          * @param {string} name 
          * @returns {bool}
          */
         hasExpression: function(name) {
             return !!(this.properties[name] && this.properties[name].expression);
+        },
+
+        /**
+         * Does this config has an expression to calc value or 
+         * already calculated value or default value
+         * @method
+         * @param {string} name 
+         * @returns {boolean}
+         */
+        has: function(name) {
+            var self = this;
+            return self.values[name] !== undf || (
+                self.properties[name] && 
+                (self.properties[name].defaultValue !== undf ||
+                 self.properties[name].expression !== undf)
+            );
         },
 
         _toggleProperty: function(name, val) {
@@ -375,6 +408,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
         /**
          * Disable MutationObserver on a property
+         * @method
          * @param {string} name 
          */
         disableProperty: function(name) {
@@ -383,6 +417,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
         /**
          * Enable MutationObserver on a property
+         * @method
          * @param {string} name 
          */
         enableProperty: function(name) {
@@ -391,6 +426,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
         /**
          * Set property mode
+         * @method
          * @param {string} name 
          * @param {int} mode 
          */
@@ -400,14 +436,20 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
         /**
          * Set property type
+         * @method
          * @param {string} name 
          * @param {string} type 
          * @param {int} defaultMode {
          *  @optional
          * }
+         * @param {*} defaultValue {
+         *  @optional
+         * }
          */
         setType: function(name, type, defaultMode, defaultValue) {
-            this.setProperty(name, "type", type);
+            if (type) {
+                this.setProperty(name, "type", type);
+            }
             if (defaultMode) {
                 this.setProperty(name, "defaultMode", defaultMode);
             }
@@ -418,6 +460,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
         /**
          * Set default mode
+         * @method
          * @param {string} name 
          * @param {int} mode 
          */
@@ -427,6 +470,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
         /**
          * Set default value
+         * @method
          * @param {string} name 
          * @param {*} val 
          */
@@ -436,6 +480,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
         /**
          * Get property keys
+         * @method
          * @returns {array}
          */
         getKeys: function() {
@@ -444,6 +489,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
         /**
          * Get all keys starting with "value"
+         * @method
          */
         getAllValues: function() {
             var self = this,
@@ -573,6 +619,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
         /**
          * Check scope based on property opts 
          * (does it require checking parent or root)
+         * @method
          * @param {string} propName 
          */
         checkScope: function(propName) {

@@ -14,6 +14,7 @@ var Directive = require("../../app/Directive.js"),
         config.setType("sameScope", "bool", MetaphorJs.lib.Config.MODE_STATIC);
         config.setType("isolateScope", "bool", MetaphorJs.lib.Config.MODE_STATIC);
         config.setDefaultMode("as", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setDefaultMode("ref", MetaphorJs.lib.Config.MODE_STATIC);
 
         var cmpName = config.get("value"),
             constr  = typeof cmpName === "string" ?
@@ -30,14 +31,6 @@ var Directive = require("../../app/Directive.js"),
         var newScope = isolateScope ? scope.$newIsolated() : 
                                         (sameScope ? scope : scope.$new());
 
-        /*var cfg     = extend({
-            scope: newScope,
-            node: node,
-            config: config,
-            parentRenderer: parentRenderer,
-            destroyScope: !sameScope
-        }, nodecfg, false, false);*/
-
         var cfg = {
             scope: newScope,
             node: node,
@@ -46,13 +39,12 @@ var Directive = require("../../app/Directive.js"),
             destroyScope: !sameScope
         };
 
-        MetaphorJs.app.resolve(cmpName, cfg, newScope, node, [cfg]);
-            /*.done(function(cmp) {
-
-                if (attrSet.ref) {
-                    scope[attrSet.ref] = cmp;
+        MetaphorJs.app.resolve(cmpName, cfg, newScope, node, [cfg])
+            .done(function(cmp) {
+                if (config.hasExpression("ref")) {
+                    scope[config.get("ref")] = cmp;
                 }
-            });*/
+            });
 
         return constr.$resumeRenderer || !!constr.$shadow;
     };

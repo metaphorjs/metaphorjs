@@ -2,6 +2,7 @@
 require("../lib/Expression.js");
 require("../lib/MutationObserver.js");
 require("../func/dom/commentWrap.js");
+require("../lib/Config.js");
 
 var undf = require("metaphorjs-shared/src/var/undf.js"),
     isString = require("metaphorjs-shared/src/func/isString.js"),
@@ -42,16 +43,14 @@ module.exports = MetaphorJs.app.Directive = (function() {
 
             var self        = this;
 
+            config.setDefaultMode("saveState", MetaphorJs.lib.Config.MODE_SETTER);
+
             self.config     = config;
             self.node       = node;
             self.scope      = scope;
-            self.saveState  = config.saveState;
 
-            if (self.saveState) {
-                self.stateFn = MetaphorJs.lib.Expression.parse(self.saveState, {
-                    setter: true,
-                    setterOnly: true
-                });
+            if (config.hasExpression("saveState")) {
+                self.stateFn = config.get("saveSate");
             }
 
             scope.$on("destroy", self.onScopeDestroy, self);
