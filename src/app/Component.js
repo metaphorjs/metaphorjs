@@ -32,7 +32,7 @@ module.exports = MetaphorJs.app.Component = cls({
      */
     id:             null,
 
-    originalId:     false,
+    _originalId:     false,
 
     /**
      * @var Element
@@ -45,11 +45,6 @@ module.exports = MetaphorJs.app.Component = cls({
      * @access private
      */
     _nodeReplaced:  false,
-
-    /**
-     * @var string
-     */
-    cls:            null,
 
     /**
      * @var string|Element
@@ -66,20 +61,19 @@ module.exports = MetaphorJs.app.Component = cls({
      * @var bool
      * @access protected
      */
-    rendered:       false,
+    _rendered:       false,
 
-    /**
+    /*
      * @var bool
      * @access protected
      */
-    hidden:         false,
+    //hidden:         false,
 
     /**
      * @var bool
      * @access protected
      */
     destroyEl:      true,
-
 
     /**
      * @var {bool}
@@ -100,16 +94,6 @@ module.exports = MetaphorJs.app.Component = cls({
      * @var string
      */
     templateUrl:    null,
-
-    /**
-     * @var string
-     */
-    tag:            null,
-
-    /**
-     * @var string
-     */
-    as:             null,
 
 
     /**
@@ -160,7 +144,7 @@ module.exports = MetaphorJs.app.Component = cls({
         if (self.node) {
             var nodeId = MetaphorJs.dom.getAttr(self.node, "id");
             if (nodeId) {
-                self.originalId = true;
+                self._originalId = true;
                 if (!self.id) {
                     self.id = nodeId;
                 }
@@ -199,7 +183,7 @@ module.exports = MetaphorJs.app.Component = cls({
                 passAttrs: self.passAttrs
             });
 
-            self.template.on("first-node", self.onFirstNodeReported, self);
+            self.template.on("first-node", self._onFirstNodeReported, self);
         }
         else if (tpl instanceof MetaphorJs.app.Template) {
             // it may have just been created
@@ -208,10 +192,10 @@ module.exports = MetaphorJs.app.Component = cls({
 
         self.afterInitComponent.apply(self, arguments);
 
-        self.template.on("rendered", self.onRenderingFinished, self);
+        self.template.on("rendered", self._onRenderingFinished, self);
 
         if (self.parentRenderer) {
-            self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
+            self.parentRenderer.on("destroy", self._onParentRendererDestroy, self);
         }
 
         if (self.node) {
@@ -229,14 +213,32 @@ module.exports = MetaphorJs.app.Component = cls({
         }
     },
 
-    _initConfig: function(){
-        this.config.setDefaultMode("as", MetaphorJs.lib.Config.MODE_STATIC);
+    _initConfig: function() {
+        var self = this,
+            config = self.config,
+            ctx;
+
+        config.setDefaultMode("tag", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setDefaultValue("tag", "div");
+        config.setDefaultMode("as", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setDefaultMode("callbackContext", MetaphorJs.lib.Config.MODE_SINGLE);
+        config.eachProperty(function(name) {
+            if (name.substring(0,4) === 'on--') {
+                config.setMode(name, MetaphorJs.lib.Config.MODE_LISTENER);
+                if (!ctx) {
+                    ctx = config.get("callbackContext") ||
+                            self.scope.$app.getParentCmp(self.node) ||
+                            self.scope.$app ||
+                            self.scope;
+                    self.on(name.substring(4), config.get(name), ctx);
+                }
+            }
+        });
     },
 
     _createNode: function() {
-
         var self    = this;
-        self.node   = window.document.createElement(self.tag || 'div');
+        self.node   = window.document.createElement(self.config.get("tag"));
     },
 
     _initElement: function() {
@@ -244,26 +246,20 @@ module.exports = MetaphorJs.app.Component = cls({
         var self    = this,
             node    = self.node;
 
-        if (!self.originalId) {
+        if (!self._originalId) {
             MetaphorJs.dom.setAttr(node, "id", self.id);
         }
 
-        self.initNode();
+        self._initNode();
     },
 
-    releaseNode: function() {
-
+    _releaseNode: function() {
         var self = this,
             node = self.node;
-
         MetaphorJs.dom.removeAttr(node, "cmp-id");
-
-        if (self.cls) {
-            MetaphorJs.dom.removeClass(node, self.cls);
-        }
     },
 
-    onFirstNodeReported: function(node) {
+    _onFirstNodeReported: function(node) {
         var self = this;
         if (self._nodeReplaced) {
             MetaphorJs.dom.setAttr(node, "cmp-id", self.id);
@@ -271,24 +267,16 @@ module.exports = MetaphorJs.app.Component = cls({
         }
     },
 
-    initNode: function() {
+    _initNode: function() {
 
         var self = this,
             node = self.node;
 
         MetaphorJs.dom.setAttr(node, "cmp-id", self.id);
         node.$$cmpId = self.id;
-
-        if (self.cls) {
-            MetaphorJs.dom.addClass(node, self.cls);
-        }
-
-        if (self.hidden) {
-            node.style.display = "none";
-        }
     },
 
-    replaceNodeWithTemplate: function() {
+    _replaceNodeWithTemplate: function() {
         var self = this;
 
         if (self._nodeReplaced && self.node.parentNode) {
@@ -319,13 +307,13 @@ module.exports = MetaphorJs.app.Component = cls({
 
         var self        = this;
 
-        if (self.rendered) {
+        if (self._rendered) {
             return;
         }
 
         if ((self._nodeReplaced && self.node !== self.template.node) ||
             !self.node) {
-            self.replaceNodeWithTemplate();
+            self._replaceNodeWithTemplate();
         }
 
         self.onBeforeRender();
@@ -337,12 +325,12 @@ module.exports = MetaphorJs.app.Component = cls({
         this.config.getAll(); // calc all props and put into scope.cfg
     },
 
-    onRenderingFinished: function() {
+    _onRenderingFinished: function() {
         var self = this;
 
         if ((self._nodeReplaced && self.node !== self.template.node) ||
             !self.node) {
-            self.replaceNodeWithTemplate();
+            self._replaceNodeWithTemplate();
         }
 
         if (self.renderTo) {
@@ -352,17 +340,17 @@ module.exports = MetaphorJs.app.Component = cls({
             window.document.body.appendChild(self.node);
         }
 
-        self.rendered   = true;
+        self._rendered   = true;
         self.afterRender();
         self.trigger('after-render', self);
     },
 
 
-    /**
+    /*
      * @access public
      * @method
      */
-    show: function() {
+    /*show: function() {
         var self    = this;
         if (!self.hidden) {
             return;
@@ -388,13 +376,13 @@ module.exports = MetaphorJs.app.Component = cls({
         if (self.node) {
             self.node.style.display = "block";
         }
-    },
+    },*/
 
-    /**
+    /*
      * @access public
      * @method
      */
-    hide: function() {
+    /*hide: function() {
         var self    = this;
         if (self.hidden) {
             return;
@@ -416,11 +404,11 @@ module.exports = MetaphorJs.app.Component = cls({
         if (self.node) {
             self.node.style.display = "none";
         }
-    },
+    },*/
 
     freezeByView: function(view) {
         var self = this;
-        self.releaseNode();
+        self._releaseNode();
         self.scope.$freeze();
         self.trigger("view-freeze", self, view);
 
@@ -428,26 +416,26 @@ module.exports = MetaphorJs.app.Component = cls({
 
     unfreezeByView: function(view) {
         var self = this;
-        self.initNode();
+        self._initNode();
         self.scope.$unfreeze();
         self.trigger("view-unfreeze", self, view);
         self.scope.$check();
     },
 
-    /**
+    /*
      * @access public
      * @return bool
      */
-    isHidden: function() {
-        return this.hidden;
-    },
+    //isHidden: function() {
+    //    return this.hidden;
+    //},
 
     /**
      * @access public
      * @return bool
      */
     isRendered: function() {
-        return this.rendered;
+        return this._rendered;
     },
 
     /**
@@ -490,19 +478,19 @@ module.exports = MetaphorJs.app.Component = cls({
      */
     afterRender:    emptyFn,
 
-    /**
+    /*
      * @method
      * @access protected
      */
-    onShow:         emptyFn,
+    //onShow:         emptyFn,
 
-    /**
+    /*
      * @method
      * @access protected
      */
-    onHide:         emptyFn,
+    //onHide:         emptyFn,
 
-    onParentRendererDestroy: function() {
+    _onParentRendererDestroy: function() {
         this.$destroy();
     },
 
@@ -515,18 +503,20 @@ module.exports = MetaphorJs.app.Component = cls({
         }
 
         if (self.destroyEl) {
-            if (self.node && isAttached(self.node)) {
+            if (self.node && MetaphorJs.dom.isAttached(self.node)) {
                 self.node.parentNode.removeChild(self.node);
             }
         }
         else if (self.node) {
 
-            if (!self.originalId) {
+            if (!self._originalId) {
                 MetaphorJs.dom.removeAttr(self.node, "id");
             }
 
-            self.releaseNode();
+            self._releaseNode();
         }
+
+        self.config.$destroy();
 
         if (self.destroyScope && self.scope) {
             self.scope.$destroy();

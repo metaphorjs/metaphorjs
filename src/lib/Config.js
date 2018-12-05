@@ -24,7 +24,8 @@ module.exports = MetaphorJs.lib.Config = (function(){
         MODE_GETTER = 4,
         MODE_SETTER = 5,
         MODE_FUNC = 6,
-        MODE_FNSET = 7;
+        MODE_FNSET = 7,
+        MODE_LISTENER = 8;
 
     /**
      * @constructor
@@ -135,6 +136,18 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 }
                 else if (prop.mode === MODE_FUNC) {
                     value = MetaphorJs.lib.Expression.func(prop.expression);
+                }
+                else if (prop.mode === MODE_LISTENER) {
+                    if (prop.expression.indexOf('(') === -1 && 
+                        prop.expression.indexOf('=') === -1) {
+                        value = MetaphorJs.lib.Expression.get(
+                            prop.expression, 
+                            self.cfg.scope
+                        );
+                    }
+                    else {
+                        value = MetaphorJs.lib.Expression.func(prop.expression);
+                    }
                 }
             }
 
@@ -689,6 +702,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
     Config.MODE_SETTER = MODE_SETTER;
     Config.MODE_FUNC = MODE_FUNC;
     Config.MODE_FNSET = MODE_FNSET;
+    Config.MODE_LISTENER = MODE_LISTENER;
 
     return Config;
 

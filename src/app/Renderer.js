@@ -437,8 +437,9 @@ module.exports = MetaphorJs.app.Renderer = function() {
                     }
                 }
 
-                if (!someHandler && attrs.reference) {
+                if (attrs.reference) {
                     scope[attrs.reference] = node;
+                    MetaphorJs.dom.removeAttr(node, '#' + attrs.reference);
                 }
 
                 if (defers.length && !attrs.config.ignoreInside) {

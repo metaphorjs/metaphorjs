@@ -18,15 +18,14 @@ var Directive = require("../../app/Directive.js"),
 
         var cmpName = config.get("value"),
             constr  = typeof cmpName === "string" ?
-                        ns.get(cmpName, true) : cmpName,
-            nodecfg = config.getAll();
+                        ns.get(cmpName, true) : cmpName;
 
         if (!constr) {
             throw new Error("Component " + cmpName + " not found");
         }
 
-        var sameScope       = nodecfg.sameScope || constr.$sameScope,
-            isolateScope    = nodecfg.isolateScope || constr.$isolateScope;
+        var sameScope       = config.get("sameScope") || constr.$sameScope,
+            isolateScope    = config.get("isolateScope") || constr.$isolateScope;
 
         var newScope = isolateScope ? scope.$newIsolated() : 
                                         (sameScope ? scope : scope.$new());

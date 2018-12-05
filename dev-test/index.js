@@ -233,7 +233,7 @@ cls({
         var self    = this;
 
         self.scope.title= "Tpl Component";
-        self.scope.tpl  = "a+b";
+        self.scope.tpl  = "a+b.html";
 
         self.scope.$app.onAvailable("myComponent1").done(function(cmp){
             if (window.console && window.console.log) {

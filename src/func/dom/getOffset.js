@@ -15,7 +15,7 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
  *  @type {int} left
  * }
  */
-module.exports = MetaphorJs.dom.getOffet = function dom_getOffset(node) {
+module.exports = MetaphorJs.dom.getOffset = function dom_getOffset(node) {
 
     var box = {top: 0, left: 0},
         html = window.document.documentElement;

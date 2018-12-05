@@ -2,97 +2,97 @@
 /* BUNDLE START 004 */
 "use strict";
 
-var MetaphorJsPrebuilt = {"templates":{"a*b":"<p>a * b = {{--814}}</p>","a+b":"<p>a + b = {{--817}}</p>","app1":"<h1>MetaphorJs Feature test</h1><div class=\"cases\"><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Inline</label><div id=\"inline-binding\" class=\"test\">{{--823}}</div><label class=\"case-label\">mjs-bind</label><div id=\"binding\" {bind}=\"--81G\" class=\"test\"></div><label class=\"case-label\">mjs-bind-html</label><div id=\"html-binding\" {bind-html}=\"--81J\" class=\"test\"></div><label class=\"case-label\">Plain attribute (href)</label><p class=\"test\"><a id=\"attr-binding-href\" [href]=\"http://{{--823}}.com\">{{--81G}}</a></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Input field (value)</label><p class=\"test\"><input id=\"binding-input-value\" type=\"text\" [value]=\"this.a\"></p><label class=\"case-label\">Input field (mjs-bind) (locked)</label><p class=\"test\"><input id=\"binding-input-bind\" type=\"text\" {bind}=\"--81V\" {bind.$locked}></p><label class=\"case-label\">Checkbox (mjs-bind)</label><p class=\"test\"><input id=\"binding-checkbox\" type=\"checkbox\" {bind}=\"--81Z\"></p><label class=\"case-label\">Radio (mjs-bind) (locked)</label><p class=\"test\"><input id=\"radio-bind-1\" checked=\"checked\" type=\"radio\" value=\"inline1\" name=\"radio-bind\" {bind}=\"--823\" {bind.$locked}> <input id=\"radio-bind-2\" type=\"radio\" value=\"inline2\" name=\"radio-bind\"> <input id=\"radio-bind-3\" type=\"radio\" value=\"inline3\" name=\"radio-bind\"></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Select (mjs-bind)</label><p class=\"test\"><select id=\"select-bind\" {bind}=\"--81V\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p><label class=\"case-label\">Textarea (mjs-bind)</label><p class=\"test\"><textarea id=\"textarea-bind-attr\" {bind}=\"--823\"></textarea></p><label class=\"case-label\">Textarea (inline)</label><p class=\"test\"><textarea id=\"textarea-bind-inline\">{{--823}}</textarea></p></div><div class=\"case\"><h4>Muplitple inline binding</h4><div id=\"multiple-inline-binding\" class=\"test\">{{--823}}<b>{{--81G}}</b>{{--81J}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Uppercase (mjs-bind)</label><div id=\"filter-uppercase-binding\" class=\"test\" {bind}=\"this.text | uppercase\"></div><label class=\"case-label\">Uppercase (inline)</label><div id=\"filter-uppercase-inline\" class=\"test\">{{this.text | uppercase}}</div><label class=\"case-label\">Lowercase (inline)</label><div id=\"filter-lowercase-inline\" class=\"test\">{{this.text | lowercase}}</div><label class=\"case-label\">Limit to (string)</label><div id=\"filter-limit-string\" class=\"test\">{{this.text | limitTo:this.a}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Linkify</label><p id=\"filter-linkify\" class=\"test\" {bind-html}=\"this.linkified | linkify\"></p></div><div class=\"case\"><h4>Expressions</h4><label class=\"case-label\">.a + .b</label><div id=\"expr-a-plus-b\" class=\"test\">{{--88F}}</div><label class=\"case-label\">.bool ? \"true\" : \"false\"</label><div id=\"expr-bool\" class=\"test\">{{--88G}}</div></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Input (number) (.a)</label><p class=\"test\"><input {model}=\"this.a\" type=\"number\" data-type=\"number\" id=\"model-input-a\"></p><label class=\"case-label\">Checkbox (.bool)</label><p class=\"test\"><input id=\"model-checkbox-bool\" type=\"checkbox\" {model}=\"this.bool\"></p><label class=\"case-label\">Radio (.inline)</label><p class=\"test\"><input id=\"model-radio-1\" checked=\"checked\" type=\"radio\" name=\"r\" value=\"inline1\" {model}=\"this.inline\">1<label><input id=\"model-radio-2\" type=\"radio\" name=\"r\" value=\"inline2\">2</label><input id=\"model-radio-3\" type=\"radio\" name=\"r\" value=\"inline3\">3</p><label class=\"case-label\">Select (.a)</label><p class=\"test\"><select id=\"model-select-a\" {model}=\"this.a\" data-type=\"number\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Textarea (.text)</label><p class=\"test\"><textarea id=\"model-textarea\" {model}=\"this.text\"></textarea></p><label class=\"case-label\">Input (string .text)</label><p class=\"test\"><input type=\"text\" id=\"model-input\" {model}=\"this.text\"></p></div><div class=\"case\"><h4>mjs-class</h4><label class=\"case-label\">Plain attribute</label><div class=\"test\"><p id=\"class-inline\" [class]=\"this.inline\">---</p></div><label class=\"case-label\">mjs-class (string)</label><div class=\"test\"><p id=\"class-string\" {class}=\"--823\">---</p></div><label class=\"case-label\">mjs-class ({bool: .bool, inline1: .a == 0})</label><div class=\"test\"><p id=\"class-object\" {class}=\"--84D\">---</p></div></div><div class=\"case\"><h4>mjs-if, mjs-show, mjs-hide</h4><div id=\"if-bool\" {if}=\"--81Z\" class=\"test\" {if.$animate}>this should appear if .bool = true</div><div id=\"show-bool\" {show}=\"--81Z\" class=\"test\" {show.$animate}>this should show if .bool = true</div><div id=\"hide-bool\" {hide}=\"--81Z\" class=\"test\" {hide.$animate}>this should hide if .bool = true</div></div><div class=\"case\"><h4>mjs-include</h4><label class=\"case-label\">immediate</label><div {include}=\"test-template\" {include.$animate}><p>transcluded text</p></div><label class=\"case-label\">immediate (via tag)</label><mjs-include src=\"test-template\"><p>transcluded text</p></mjs-include><label class=\"case-label\">ajax</label><div {include}=\"template.html\"><p>Transcluded text</p></div></div><div class=\"case\"><h4>mjs-validate</h4><form name=\"myForm\" {validate} {class.error}=\"--84X\" {class.$animate}><div><input name=\"field1\" data-validate-required {class}=\"--850\"></div><div {class}=\"--852\"><label><input type=\"radio\" name=\"radio1\" value=\"1\" data-validate-required> -- 1</label><label><input type=\"radio\" name=\"radio1\" value=\"2\"> -- 2</label><label><input type=\"radio\" name=\"radio1\" value=\"3\"> -- 3</label></div><div><input type=\"submit\" value=\"Submit\"> <input type=\"reset\" value=\"Reset\"></div></form></div><div class=\"case\" {init}=\"--85D\"><h4>dynamic list</h4><label><input id=\"radio-sep-1\" type=\"radio\" name=\"sep\" value=\"/\\n|,/\" {model}=\"this.sep\"> /\\n|,/</label><label><input type=\"radio\" name=\"sep\" value=\"/\\n/\"> /\\n/</label><label><input type=\"radio\" name=\"sep\" value=\",\"> ,</label><br><br><textarea {model}=\"split:this.sep >> this.dynamicList\" {model.$binding}=\"input\"></textarea><ul><li {each}=\"item in this.dynamicList\" {bind}=\"--85Q\" {bind.$recursive}></li></ul></div><div class=\"case\"><h4>mjs-options</h4><label class=\"case-label\">Generated from .alist</label><p class=\"test\"><select {bind}=\"--81V\" {options}=\"this.alist\"><option>not selected</option></select></p><label class=\"case-label\">Generated from .dynamicList</label><p class=\"test\"><select {options}=\"{\n                        name: this.item,\n                        value: this.$index,\n                        group: this.$index - (this.$index % 2),\n                        disabledGroup: this.$index == 0,\n                        disabled: this.$index == 4\n                        } in this.dynamicList\"><option>default value</option></select></p></div><div class=\"case\" {cmp}=\"Test.TplComponent\" id=\"tplComponentTest\"><h2>{{--88H}}</h2>mjs-include change template:<br><a href=\"#\" (click)=\"--865\">a + b</a>|<a href=\"#\" (click)=\"--867\">a * b</a><div {include}=\"--869\" {include.$animate} id=\"tplComponetInc\"></div></div><div class=\"case\" {cmp}=\"Test.StringTemplate\"></div><div class=\"case\" {cmp}=\"Test.ChangeTemplate\">mjs-cmp change template:<br><a href=\"#\" (click)=\"--86E\">tpl1</a>|<a href=\"#\" (click)=\"--86G\">tpl2</a></div><div class=\"case\"><h4>Router</h4><div {router}=\"Test.MyView\" {router.$animate}></div>pushUrl:<a href=\"/1\">/1</a>|<a href=\"/2\">/2</a>|<a href=\"/3\">/3</a>|<a href=\"http://www.kuindji.com\">outside</a><br><br></div><div class=\"case\" {ignore}>This element is ignored by renderer: {{--88I}}</div><div class=\"case\" {router} {router.$cmp}=\"--86S\" {router.$default-cmp}:=\"Test.ViewComponent1\"><p>change cmp:<a href=\"#\" (click)=\"--86V\">Cmp1</a>|<a href=\"#\" (click)=\"--86X\">Cmp2</a></p></div></div><div class=\"cases\"><div class=\"case double\" {init}=\"--870\"><h4>mjs-each (attr)</h4><input {model}=\"this.newItem\" (key.enter)=\"--873\"> <input type=\"button\" {disabled}=\"--875\" (click)=\"--876\" value=\"Add item\"><ul {show}=\"--81Z\" {show.$animate}><li {each}=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\" {each.$animate} {each.$animate-move}><label {class}=\"--87A\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{--88J}} - {{--88K}} - {{--88L}} - {{--88M}} - {{--88N}} - {{--88O}}</label><a href=\"#\" (click)=\"--87D\">x</a></li></ul><input {model}=\"this.listFilter\" placeholder=\"Search\"><a href=\"#\" (click)=\"--87G\">asc</a><a href=\"#\" (click)=\"--87I\">desc</a></div><div class=\"case double\"><h4>mjs-each (tag)</h4><mjs-each value=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\"><div><label {class}=\"--87A\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{--88J}} - {{--88K}} - {{--88L}} - {{--88M}} - {{--88N}} - {{--88O}}</label><a href=\"#\" (click)=\"--87D\">x</a></div></mjs-each></div><div class=\"case\" id=\"newComponent\">Dynamically created component on existing element will go here</div><div class=\"case\" id=\"renderToComponent\">Dynamically created component with renderTo will go here</div><div class=\"case double\" {cmp}=\"Test.MyComponent\" {cmp.$as}=\"ctrl\"><p {cmp-prop}=\"para\">Component's transcluded text + {{--88I}}</p><a href=\"#\" (click)=\"--87V\">reverse</a>|<a href=\"#\" (click)=\"--87X\">create new component on existing element</a>|<a href=\"#\" (click)=\"--87Z\">create new component and render to</a>|<a href=\"#\" (click)=\"--881\">create new dialog</a><br><br><button (click)=\"--885\">Load store</button><button (click)=\"--887\">Clear store</button><ul><li {each}=\"item in this.store\" {each.$animate}>{{--88P}}</li></ul></div><div class=\"case double\" id=\"myComponent1\" {cmp}=\"Test.MyComponent\"><p>This is another instance with deferred value: {{--88Q}}</p></div><div class=\"case double\"><tagc $as:=\"ctrl\" $test:=\"Value from config\"></tagc></div></div>","app2":"<div class=\"case\"><h4>app's resolved value</h4><p class=\"test\">{{--89I}}</p></div><div class=\"case\"><h4>recursive rendering</h4><p><a href=\"#\" (click)=\"--88Y\">Change level 2</a></p><p class=\"test\">This is level 1:<span {bind}=\"--891\" {bind.$recursive}></span></p></div><div class=\"case\"><h4>lang substitution</h4><label class=\"case-label\">using normal expression with filter: 'key' | l</label><p class=\"test\">{{'key' | l}}</p><p class=\"test\" {bind}=\"'subkey1' | l\" {bind.$recursive}></p></div><div class=\"case\"><h4>pluralization</h4><p><a href=\"#\" (click)=\"--89B\">Increase B</a></p><label class=\"case-label\">using normal expression:</label><p class=\"test\">{{--89J}} {{'plr' | p:this.b}}</p><p><input type=\"number\" data-type=\"number\" {model}=\"this.people\"></p><p class=\"test\" {bind}=\"'viewing' | p:this.people\" {bind.$recursive}></p></div>","cmp1-template":"<h2>{{--88H}}</h2><div {transclude}></div>","dirs":"<div class=\"form_select\" (click)=\"--89O\" {class.loading}=\"--89P\" {class.disabled}=\"--89Q\" {class.search}=\"--89R\" {class.multiple}=\"--89S\" {class.black}=\"--89T\"><input type=\"hidden\" #el_hidden_field [name]=\"this.field.hiddenInputName\" [value]=\"this.field.$$selection | join:','\"><i #el_icon_down (click)=\"--89W\"><!-- include icons/down.html --></i><a class=\"form_select__label\" {each}=\"item in this.field.getMultiSelection()\" style=\"display: inline-block !important;\">{{--8AZ}}<i class=\"delete icon\" (click)=\"--89Z\"></i></a><input type=\"text\" #el_search class=\"search\" [disabled]=\"this.field.disabled\" {show}=\"--89R\" {show.$display}=\"inline-block\" (focus)=\"--8A1\" (blur)=\"--8A2\" (key.backspace)=\"--8A3\" {model}=\"this.searchQuery\"><span class=\"sizer\" #el_sizer {if}=\"--8A5\" {bind}=\"--8A6\"></span><div class=\"default text\" #el_default_text (click)=\"--8A8\" {show}=\"--8A9\" {show.$display}=\"inline-block\" {show.$save-state}=\"--8AA\" {bind}=\"--8AB\"></div><div class=\"text\" #el_text (click)=\"--8A8\" {class.default}=\"--8AD\" {show}=\"--8AE\" {show.$save-state}=\"--8AF\" {show.$display}=\"inline-block\" {bind}=\"--8AG\"></div><!-- replaces two previous text blocks with invisible placeholder --><div style=\"display: none\" class=\"default text\" {show}=\"--8AI\" {show.$display}=\"inline-block\">&nbsp;</div><select class=\"form-select_hidden-select\" #el_hidden_select (click)=\"--8AK\" (change)=\"--8AL\" {show}=\"--8AM\" {show.$display}=\"block\" {options}=\"this.field._getSelectOptions()\"></select><div class=\"form-select-menu\" #el_menu {class.black}=\"--89T\"><div class=\"items\" #el_menu_items><div class=\"disabled item\" #el_menu_disabled {if}=\"--8AQ\" (click)=\"--8AR\" {bind-html}=\"--8AS\"></div><div class=\"empty item\" #el_menu_empty style=\"color: #999;\" {if}=\"--8AU\" (click)=\"--8AV\" {bind-html}=\"--8AW\"></div><div class=\"item\" {each}=\"item in this.field.store\" (click)=\"--8AY\" {bind}=\"--8AZ\"></div></div><div class=\"pagination_container\" {cmp}=\"Pagination\" {cmp.$autoscroll}=\"false\" {show}=\"--8B1\" (click)=\"--8B2\"></div></div></div>","tagc":"<div class=\"component\"><p>This is a tag component.</p><p>{{--8B8}}</p></div>","test-template":"<p>{{--8BC}}</p><div {transclude}></div>"},"templateOptions":{"dirs":{"includes":true}},"expressionOpts":{"814":"r","817":"r","86V":"p","86X":"p","87D":"p","88I":"r","89Z":"p","8AY":"p","8AZ":"p","8B2":"p","8BC":"r"}}
+var MetaphorJsPrebuilt = {"templates":{"a*b.html":"<p>a * b = {{--818}}</p>","a+b.html":"<p>a + b = {{--81B}}</p>","app1.html":"<h1>MetaphorJs Feature test</h1><div class=\"cases\"><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Inline</label><div id=\"inline-binding\" class=\"test\">{{--827}}</div><label class=\"case-label\">mjs-bind</label><div id=\"binding\" {bind}=\"--81K\" class=\"test\"></div><label class=\"case-label\">mjs-bind-html</label><div id=\"html-binding\" {bind-html}=\"--81N\" class=\"test\"></div><label class=\"case-label\">Plain attribute (href)</label><p class=\"test\"><a id=\"attr-binding-href\" [href]=\"http://{{--827}}.com\">{{--81K}}</a></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Input field (value)</label><p class=\"test\"><input id=\"binding-input-value\" type=\"text\" [value]=\"this.a\"></p><label class=\"case-label\">Input field (mjs-bind) (locked)</label><p class=\"test\"><input id=\"binding-input-bind\" type=\"text\" {bind}=\"--81Z\" {bind.$locked}></p><label class=\"case-label\">Checkbox (mjs-bind)</label><p class=\"test\"><input id=\"binding-checkbox\" type=\"checkbox\" {bind}=\"--823\"></p><label class=\"case-label\">Radio (mjs-bind) (locked)</label><p class=\"test\"><input id=\"radio-bind-1\" checked=\"checked\" type=\"radio\" value=\"inline1\" name=\"radio-bind\" {bind}=\"--827\" {bind.$locked}> <input id=\"radio-bind-2\" type=\"radio\" value=\"inline2\" name=\"radio-bind\"> <input id=\"radio-bind-3\" type=\"radio\" value=\"inline3\" name=\"radio-bind\"></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Select (mjs-bind)</label><p class=\"test\"><select id=\"select-bind\" {bind}=\"--81Z\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p><label class=\"case-label\">Textarea (mjs-bind)</label><p class=\"test\"><textarea id=\"textarea-bind-attr\" {bind}=\"--827\"></textarea></p><label class=\"case-label\">Textarea (inline)</label><p class=\"test\"><textarea id=\"textarea-bind-inline\">{{--827}}</textarea></p></div><div class=\"case\"><h4>Muplitple inline binding</h4><div id=\"multiple-inline-binding\" class=\"test\">{{--827}}<b>{{--81K}}</b>{{--81N}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Uppercase (mjs-bind)</label><div id=\"filter-uppercase-binding\" class=\"test\" {bind}=\"this.text | uppercase\"></div><label class=\"case-label\">Uppercase (inline)</label><div id=\"filter-uppercase-inline\" class=\"test\">{{this.text | uppercase}}</div><label class=\"case-label\">Lowercase (inline)</label><div id=\"filter-lowercase-inline\" class=\"test\">{{this.text | lowercase}}</div><label class=\"case-label\">Limit to (string)</label><div id=\"filter-limit-string\" class=\"test\">{{this.text | limitTo:this.a}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Linkify</label><p id=\"filter-linkify\" class=\"test\" {bind-html}=\"this.linkified | linkify\"></p></div><div class=\"case\"><h4>Expressions</h4><label class=\"case-label\">.a + .b</label><div id=\"expr-a-plus-b\" class=\"test\">{{--88J}}</div><label class=\"case-label\">.bool ? \"true\" : \"false\"</label><div id=\"expr-bool\" class=\"test\">{{--88K}}</div></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Input (number) (.a)</label><p class=\"test\"><input {model}=\"this.a\" type=\"number\" data-type=\"number\" id=\"model-input-a\"></p><label class=\"case-label\">Checkbox (.bool)</label><p class=\"test\"><input id=\"model-checkbox-bool\" type=\"checkbox\" {model}=\"this.bool\"></p><label class=\"case-label\">Radio (.inline)</label><p class=\"test\"><input id=\"model-radio-1\" checked=\"checked\" type=\"radio\" name=\"r\" value=\"inline1\" {model}=\"this.inline\">1<label><input id=\"model-radio-2\" type=\"radio\" name=\"r\" value=\"inline2\">2</label><input id=\"model-radio-3\" type=\"radio\" name=\"r\" value=\"inline3\">3</p><label class=\"case-label\">Select (.a)</label><p class=\"test\"><select id=\"model-select-a\" {model}=\"this.a\" data-type=\"number\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Textarea (.text)</label><p class=\"test\"><textarea id=\"model-textarea\" {model}=\"this.text\"></textarea></p><label class=\"case-label\">Input (string .text)</label><p class=\"test\"><input type=\"text\" id=\"model-input\" {model}=\"this.text\"></p></div><div class=\"case\"><h4>mjs-class</h4><label class=\"case-label\">Plain attribute</label><div class=\"test\"><p id=\"class-inline\" [class]=\"this.inline\">---</p></div><label class=\"case-label\">mjs-class (string)</label><div class=\"test\"><p id=\"class-string\" {class}=\"--827\">---</p></div><label class=\"case-label\">mjs-class ({bool: .bool, inline1: .a == 0})</label><div class=\"test\"><p id=\"class-object\" {class}=\"--84H\">---</p></div></div><div class=\"case\"><h4>mjs-if, mjs-show, mjs-hide</h4><div id=\"if-bool\" {if}=\"--823\" class=\"test\" {if.$animate}>this should appear if .bool = true</div><div id=\"show-bool\" {show}=\"--823\" class=\"test\" {show.$animate}>this should show if .bool = true</div><div id=\"hide-bool\" {hide}=\"--823\" class=\"test\" {hide.$animate}>this should hide if .bool = true</div></div><div class=\"case\"><h4>mjs-include</h4><label class=\"case-label\">immediate</label><div {include}=\"test-template.html\" {include.$animate}><p>transcluded text</p></div><label class=\"case-label\">immediate (via tag)</label><mjs-include src=\"test-template.html\"><p>transcluded text</p></mjs-include><label class=\"case-label\">ajax</label><div {include}=\"template.html\"><p>Transcluded text</p></div></div><div class=\"case\"><h4>mjs-validate</h4><form name=\"myForm\" {validate} {class.error}=\"--851\" {class.$animate}><div><input name=\"field1\" data-validate-required {class}=\"--854\"></div><div {class}=\"--856\"><label><input type=\"radio\" name=\"radio1\" value=\"1\" data-validate-required> -- 1</label><label><input type=\"radio\" name=\"radio1\" value=\"2\"> -- 2</label><label><input type=\"radio\" name=\"radio1\" value=\"3\"> -- 3</label></div><div><input type=\"submit\" value=\"Submit\"> <input type=\"reset\" value=\"Reset\"></div></form></div><div class=\"case\" {init}=\"--85H\"><h4>dynamic list</h4><label><input id=\"radio-sep-1\" type=\"radio\" name=\"sep\" value=\"/\\n|,/\" {model}=\"this.sep\"> /\\n|,/</label><label><input type=\"radio\" name=\"sep\" value=\"/\\n/\"> /\\n/</label><label><input type=\"radio\" name=\"sep\" value=\",\"> ,</label><br><br><textarea {model}=\"split:this.sep >> this.dynamicList\" {model.$binding}=\"input\"></textarea><ul><li {each}=\"item in this.dynamicList\" {bind}=\"--85U\" {bind.$recursive}></li></ul></div><div class=\"case\"><h4>mjs-options</h4><label class=\"case-label\">Generated from .alist</label><p class=\"test\"><select {bind}=\"--81Z\" {options}=\"this.alist\"><option>not selected</option></select></p><label class=\"case-label\">Generated from .dynamicList</label><p class=\"test\"><select {options}=\"{\n                        name: this.item,\n                        value: this.$index,\n                        group: this.$index - (this.$index % 2),\n                        disabledGroup: this.$index == 0,\n                        disabled: this.$index == 4\n                        } in this.dynamicList\"><option>default value</option></select></p></div><div class=\"case\" {cmp}=\"Test.TplComponent\" id=\"tplComponentTest\"><h2>{{--88L}}</h2>mjs-include change template:<br><a href=\"#\" (click)=\"--869\">a + b</a>|<a href=\"#\" (click)=\"--86B\">a * b</a><div {include}=\"--86D\" {include.$animate} id=\"tplComponetInc\"></div></div><div class=\"case\" {cmp}=\"Test.StringTemplate\"></div><div class=\"case\" {cmp}=\"Test.ChangeTemplate\">mjs-cmp change template:<br><a href=\"#\" (click)=\"--86I\">tpl1</a>|<a href=\"#\" (click)=\"--86K\">tpl2</a></div><div class=\"case\"><h4>Router</h4><div {router}=\"Test.MyView\" {router.$animate}></div>pushUrl:<a href=\"/1\">/1</a>|<a href=\"/2\">/2</a>|<a href=\"/3\">/3</a>|<a href=\"http://www.kuindji.com\">outside</a><br><br></div><div class=\"case\" {ignore}>This element is ignored by renderer: {{--88M}}</div><div class=\"case\" {router} {router.$cmp}=\"--86W\" {router.$default-cmp}:=\"Test.ViewComponent1\"><p>change cmp:<a href=\"#\" (click)=\"--86Z\">Cmp1</a>|<a href=\"#\" (click)=\"--871\">Cmp2</a></p></div></div><div class=\"cases\"><div class=\"case double\" {init}=\"--874\"><h4>mjs-each (attr)</h4><input {model}=\"this.newItem\" (key.enter)=\"--877\"> <input type=\"button\" {disabled}=\"--879\" (click)=\"--87A\" value=\"Add item\"><ul {show}=\"--823\" {show.$animate}><li {each}=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\" {each.$animate} {each.$animate-move}><label {class}=\"--87E\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{--88N}} - {{--88O}} - {{--88P}} - {{--88Q}} - {{--88R}} - {{--88S}}</label><a href=\"#\" (click)=\"--87H\">x</a></li></ul><input {model}=\"this.listFilter\" placeholder=\"Search\"><a href=\"#\" (click)=\"--87K\">asc</a><a href=\"#\" (click)=\"--87M\">desc</a></div><div class=\"case double\"><h4>mjs-each (tag)</h4><mjs-each value=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\"><div><label {class}=\"--87E\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{--88N}} - {{--88O}} - {{--88P}} - {{--88Q}} - {{--88R}} - {{--88S}}</label><a href=\"#\" (click)=\"--87H\">x</a></div></mjs-each></div><div class=\"case\" id=\"newComponent\">Dynamically created component on existing element will go here</div><div class=\"case\" id=\"renderToComponent\">Dynamically created component with renderTo will go here</div><div class=\"case double\" {cmp}=\"Test.MyComponent\" {cmp.$as}=\"ctrl\"><p {cmp-prop}=\"para\">Component's transcluded text + {{--88M}}</p><a href=\"#\" (click)=\"--87Z\">reverse</a>|<a href=\"#\" (click)=\"--881\">create new component on existing element</a>|<a href=\"#\" (click)=\"--883\">create new component and render to</a>|<a href=\"#\" (click)=\"--885\">create new dialog</a><br><br><button (click)=\"--889\">Load store</button><button (click)=\"--88B\">Clear store</button><ul><li {each}=\"item in this.store\" {each.$animate}>{{--88T}}</li></ul></div><div class=\"case double\" id=\"myComponent1\" {cmp}=\"Test.MyComponent\"><p>This is another instance with deferred value: {{--88U}}</p></div><div class=\"case double\"><tagc $as:=\"ctrl\" $test:=\"Value from config\"></tagc></div></div>","app2.html":"<div class=\"case\"><h4>app's resolved value</h4><p class=\"test\">{{--89M}}</p></div><div class=\"case\"><h4>recursive rendering</h4><p><a href=\"#\" (click)=\"--892\">Change level 2</a></p><p class=\"test\">This is level 1:<span {bind}=\"--895\" {bind.$recursive}></span></p></div><div class=\"case\"><h4>lang substitution</h4><label class=\"case-label\">using normal expression with filter: 'key' | l</label><p class=\"test\">{{'key' | l}}</p><p class=\"test\" {bind}=\"'subkey1' | l\" {bind.$recursive}></p></div><div class=\"case\"><h4>pluralization</h4><p><a href=\"#\" (click)=\"--89F\">Increase B</a></p><label class=\"case-label\">using normal expression:</label><p class=\"test\">{{--89N}} {{'plr' | p:this.b}}</p><p><input type=\"number\" data-type=\"number\" {model}=\"this.people\"></p><p class=\"test\" {bind}=\"'viewing' | p:this.people\" {bind.$recursive}></p></div>","cmp1-template.html":"<h2>{{--88L}}</h2><div {transclude}></div>","dirs.html":"<div class=\"form_select\" (click)=\"--89S\" {class.loading}=\"--89T\" {class.disabled}=\"--89U\" {class.search}=\"--89V\" {class.multiple}=\"--89W\" {class.black}=\"--89X\"><input type=\"hidden\" #el_hidden_field [name]=\"this.field.hiddenInputName\" [value]=\"this.field.$$selection | join:','\"><i #el_icon_down (click)=\"--8A0\"><!-- include icons/down.html --></i><a class=\"form_select__label\" {each}=\"item in this.field.getMultiSelection()\" style=\"display: inline-block !important;\">{{--8B3}}<i class=\"delete icon\" (click)=\"--8A3\"></i></a><input type=\"text\" #el_search class=\"search\" [disabled]=\"this.field.disabled\" {show}=\"--89V\" {show.$display}=\"inline-block\" (focus)=\"--8A5\" (blur)=\"--8A6\" (key.backspace)=\"--8A7\" {model}=\"this.searchQuery\"><span class=\"sizer\" #el_sizer {if}=\"--8A9\" {bind}=\"--8AA\"></span><div class=\"default text\" #el_default_text (click)=\"--8AC\" {show}=\"--8AD\" {show.$display}=\"inline-block\" {show.$save-state}=\"--8AE\" {bind}=\"--8AF\"></div><div class=\"text\" #el_text (click)=\"--8AC\" {class.default}=\"--8AH\" {show}=\"--8AI\" {show.$save-state}=\"--8AJ\" {show.$display}=\"inline-block\" {bind}=\"--8AK\"></div><!-- replaces two previous text blocks with invisible placeholder --><div style=\"display: none\" class=\"default text\" {show}=\"--8AM\" {show.$display}=\"inline-block\">&nbsp;</div><select class=\"form-select_hidden-select\" #el_hidden_select (click)=\"--8AO\" (change)=\"--8AP\" {show}=\"--8AQ\" {show.$display}=\"block\" {options}=\"this.field._getSelectOptions()\"></select><div class=\"form-select-menu\" #el_menu {class.black}=\"--89X\"><div class=\"items\" #el_menu_items><div class=\"disabled item\" #el_menu_disabled {if}=\"--8AU\" (click)=\"--8AV\" {bind-html}=\"--8AW\"></div><div class=\"empty item\" #el_menu_empty style=\"color: #999;\" {if}=\"--8AY\" (click)=\"--8AZ\" {bind-html}=\"--8B0\"></div><div class=\"item\" {each}=\"item in this.field.store\" (click)=\"--8B2\" {bind}=\"--8B3\"></div></div><div class=\"pagination_container\" {cmp}=\"Pagination\" {cmp.$autoscroll}=\"false\" {show}=\"--8B5\" (click)=\"--8B6\"></div></div></div>","tagc.html":"<div class=\"component\"><p>This is a tag component.</p><p>{{--8BC}}</p></div>","test-template.html":"<p>{{--8BG}}</p><div {transclude}></div>"},"templateOptions":{"dirs.html":{"includes":true}},"expressionOpts":{"818":"r","871":"p","81B":"r","86Z":"p","87H":"p","88M":"r","8A3":"p","8B2":"p","8B3":"p","8B6":"p","8BG":"r"}}
 MetaphorJsPrebuilt['funcs'] = {
-"814": function(____, $$$$) {try {return ____.$root.a * ____.$root.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a * this.$root.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"817": function(____, $$$$) {try {return ____.$root.a + ____.$root.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a + this.$root.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"823": function(____, $$$$) {try {return ____.inline;} catch (thrownError) { /*DEBUG-START*/console.log("this.inline");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"850": function(____, $$$$) {try {return {error: ____.myForm.field1.$invalid};} catch (thrownError) { /*DEBUG-START*/console.log("{error: this.myForm.field1.$invalid}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"852": function(____, $$$$) {try {return {error: ____.myForm.radio1.$invalid};} catch (thrownError) { /*DEBUG-START*/console.log("{error: this.myForm.radio1.$invalid}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"865": function(____, $$$$) {try {____.tpl = 'a+b';} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = \'a+b\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"867": function(____, $$$$) {try {____.tpl = 'a*b';} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = \'a*b\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"869": function(____, $$$$) {try {return ____.tpl;} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"870": function(____, $$$$) {try {____.newItem = ''; ____.listFilter = ''; ____.sortBy = 'asc';} catch (thrownError) { /*DEBUG-START*/console.log("this.newItem = \'\'; this.listFilter = \'\'; this.sortBy = \'asc\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"873": function(____, $$$$) {try {if (____.newItem) { ____.list.push({bool: false, txt: ____.newItem}); ____.newItem = ''; };} catch (thrownError) { /*DEBUG-START*/console.log("if (this.newItem) { this.list.push({bool: false, txt: this.newItem}); this.newItem = \'\'; }");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"875": function(____, $$$$) {try {return !____.newItem;} catch (thrownError) { /*DEBUG-START*/console.log("!this.newItem");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"876": function(____, $$$$) {try {____.list.push({bool: false, txt: ____.newItem}); ____.newItem = '';;} catch (thrownError) { /*DEBUG-START*/console.log("this.list.push({bool: false, txt: this.newItem}); this.newItem = \'\';");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"881": function(____, $$$$) {try {____.ctrl.createDialog();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.createDialog()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"885": function(____, $$$$) {try {____.store.load();} catch (thrownError) { /*DEBUG-START*/console.log("this.store.load()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"887": function(____, $$$$) {try {____.store.clear();} catch (thrownError) { /*DEBUG-START*/console.log("this.store.clear()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"891": function(____, $$$$) {try {return ____.level1;} catch (thrownError) { /*DEBUG-START*/console.log("this.level1");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81G": function(____, $$$$) {try {return ____.text;} catch (thrownError) { /*DEBUG-START*/console.log("this.text");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81J": function(____, $$$$) {try {return ____.html;} catch (thrownError) { /*DEBUG-START*/console.log("this.html");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81V": function(____, $$$$) {try {return ____.a;} catch (thrownError) { /*DEBUG-START*/console.log("this.a");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81Z": function(____, $$$$) {try {return ____.bool;} catch (thrownError) { /*DEBUG-START*/console.log("this.bool");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"84D": function(____, $$$$) {try {return {bool: ____.bool, inline1: ____.a == 0};} catch (thrownError) { /*DEBUG-START*/console.log("{bool: this.bool, inline1: this.a == 0}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"84X": function(____, $$$$) {try {return ____.myForm.$invalid;} catch (thrownError) { /*DEBUG-START*/console.log("this.myForm.$invalid");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"85D": function(____, $$$$) {try {____.dynamicList = [];} catch (thrownError) { /*DEBUG-START*/console.log("this.dynamicList = []");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"85Q": function(____, $$$$) {try {return ____.item;} catch (thrownError) { /*DEBUG-START*/console.log("this.item");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"86E": function(____, $$$$) {try {____.tpl = ____.tpl1;} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = this.tpl1");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"86G": function(____, $$$$) {try {____.tpl = ____.tpl2;} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = this.tpl2");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"86S": function(____, $$$$) {try {return ____.viewCmp;} catch (thrownError) { /*DEBUG-START*/console.log("this.viewCmp");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"86V": function(____, $$$$) {try {____.$parent.viewCmp = 'Test.ViewComponent1';} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.viewCmp = \'Test.ViewComponent1\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"86X": function(____, $$$$) {try {____.$parent.viewCmp = 'Test.ViewComponent2';} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.viewCmp = \'Test.ViewComponent2\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"87A": function(____, $$$$) {try {return {cls3: ____.item.bool};} catch (thrownError) { /*DEBUG-START*/console.log("{cls3: this.item.bool}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"87D": function(____, $$$$) {try {____.$parent.list.splice(____.$getRawIndex(____.$trackId),1);;} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.list.splice(this.$getRawIndex(this.$trackId),1);");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"87G": function(____, $$$$) {try {____.sortBy='asc';} catch (thrownError) { /*DEBUG-START*/console.log("this.sortBy=\'asc\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"87I": function(____, $$$$) {try {____.sortBy='desc';} catch (thrownError) { /*DEBUG-START*/console.log("this.sortBy=\'desc\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"87V": function(____, $$$$) {try {____.ctrl.reverse();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.reverse()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"87X": function(____, $$$$) {try {____.ctrl.createNew();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.createNew()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"87Z": function(____, $$$$) {try {____.ctrl.createRender();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.createRender()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88F": function(____, $$$$) {try {return ____.a + ____.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.a + this.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88G": function(____, $$$$) {try {return ____.bool ? "true": "false";} catch (thrownError) { /*DEBUG-START*/console.log("this.bool ? \"true\": \"false\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88H": function(____, $$$$) {try {return ____.title;} catch (thrownError) { /*DEBUG-START*/console.log("this.title");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88I": function(____, $$$$) {try {return ____.$root.a;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88J": function(____, $$$$) {try {return ____.$index;} catch (thrownError) { /*DEBUG-START*/console.log("this.$index");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88K": function(____, $$$$) {try {return ____.item.txt;} catch (thrownError) { /*DEBUG-START*/console.log("this.item.txt");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88L": function(____, $$$$) {try {return ____.$first ? "first" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$first ? \"first\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88M": function(____, $$$$) {try {return ____.$last ? "last" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$last ? \"last\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88N": function(____, $$$$) {try {return ____.$even ? "even" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$even ? \"even\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88O": function(____, $$$$) {try {return ____.$odd ? "odd" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$odd ? \"odd\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88P": function(____, $$$$) {try {return ____.item.name;} catch (thrownError) { /*DEBUG-START*/console.log("this.item.name");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88Q": function(____, $$$$) {try {return ____.deferred;} catch (thrownError) { /*DEBUG-START*/console.log("this.deferred");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88Y": function(____, $$$$) {try {____.changeLevel2();} catch (thrownError) { /*DEBUG-START*/console.log("this.changeLevel2()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89B": function(____, $$$$) {try {____.increaseB();} catch (thrownError) { /*DEBUG-START*/console.log("this.increaseB()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89I": function(____, $$$$) {try {return ____.resolved;} catch (thrownError) { /*DEBUG-START*/console.log("this.resolved");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89J": function(____, $$$$) {try {return ____.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89O": function(____, $$$$) {try {____.field.onSelfClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSelfClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89P": function(____, $$$$) {try {return ____.loading;} catch (thrownError) { /*DEBUG-START*/console.log("this.loading");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89Q": function(____, $$$$) {try {return ____.field.disabled;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.disabled");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89R": function(____, $$$$) {try {return ____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89S": function(____, $$$$) {try {return ____.field.multiple;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.multiple");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89T": function(____, $$$$) {try {return ____.field.black;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.black");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89W": function(____, $$$$) {try {____.field.onDropdownIconClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onDropdownIconClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89Z": function(____, $$$$) {try {____.$parent.field.onItemDeleteClick(____.item, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onItemDeleteClick(this.item, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8A1": function(____, $$$$) {try {____.field.onSearchFocus(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchFocus(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8A2": function(____, $$$$) {try {____.field.onSearchBlur(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchBlur(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8A3": function(____, $$$$) {try {____.field.onSearchBackspace(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchBackspace(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8A5": function(____, $$$$) {try {return ____.field.multiple && ____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.multiple && this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8A6": function(____, $$$$) {try {return ____.searchQuery;} catch (thrownError) { /*DEBUG-START*/console.log("this.searchQuery");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8A8": function(____, $$$$) {try {____.field.onValueTextClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onValueTextClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8A9": function(____, $$$$) {try {return !____.searchQuery && !____.field.hasSelection() && !!____.field.emptyText;} catch (thrownError) { /*DEBUG-START*/console.log("!this.searchQuery && !this.field.hasSelection() && !!this.field.emptyText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AA": function(____, $$$$) {try {return ____.emptyShown;} catch (thrownError) { /*DEBUG-START*/console.log("this.emptyShown");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AB": function(____, $$$$) {try {return ____.field.emptyText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.emptyText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AD": function(____, $$$$) {try {return ____.focused && ____.searchQuery == '';} catch (thrownError) { /*DEBUG-START*/console.log("this.focused && this.searchQuery == \'\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AE": function(____, $$$$) {try {return !____.searchQuery && !____.field.multiple && ____.field.hasSelection();} catch (thrownError) { /*DEBUG-START*/console.log("!this.searchQuery && !this.field.multiple && this.field.hasSelection()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AF": function(____, $$$$) {try {return ____.selectedShown;} catch (thrownError) { /*DEBUG-START*/console.log("this.selectedShown");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AG": function(____, $$$$) {try {return ____.field.getSelectedName();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.getSelectedName()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AI": function(____, $$$$) {try {return !____.emptyShown && !____.selectedShown && !____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("!this.emptyShown && !this.selectedShown && !this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AK": function(____, $$$$) {try {____.field.onHiddenSelectClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onHiddenSelectClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AL": function(____, $$$$) {try {____.field.onHiddenSelectChange(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onHiddenSelectChange(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AM": function(____, $$$$) {try {return ____.field.useHiddenSelect;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.useHiddenSelect");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AQ": function(____, $$$$) {try {return ____.field.showNotFound && ____.field.store.isEmpty();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.showNotFound && this.field.store.isEmpty()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AR": function(____, $$$$) {try {____.field.onNotFoundClick(null, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onNotFoundClick(null, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AS": function(____, $$$$) {try {return ____.field.notFoundText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.notFoundText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AU": function(____, $$$$) {try {return ____.field.showEmptyItem && !____.field.store.isEmpty();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.showEmptyItem && !this.field.store.isEmpty()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AV": function(____, $$$$) {try {____.field.onItemClick(null, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onItemClick(null, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AW": function(____, $$$$) {try {return ____.field.emptyItemText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.emptyItemText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AY": function(____, $$$$) {try {____.$parent.field.onItemClick(____.item, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onItemClick(this.item, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AZ": function(____, $$$$) {try {return ____.$parent.field.getItemName(____.item);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.getItemName(this.item)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8B1": function(____, $$$$) {try {return ____.pagination.hasPages();} catch (thrownError) { /*DEBUG-START*/console.log("this.pagination.hasPages()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8B2": function(____, $$$$) {try {____.$parent.field.onPaginationClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onPaginationClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8B8": function(____, $$$$) {try {return ____.ctrl.config.get('test');} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.config.get(\'test\')");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8BC": function(____, $$$$) {try {return ____.$root.text;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.text");console.log(thrownError);/*DEBUG-END*/return undefined; }}
+"818": function(____, $$$$) {try {return ____.$root.a * ____.$root.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a * this.$root.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"823": function(____, $$$$) {try {return ____.bool;} catch (thrownError) { /*DEBUG-START*/console.log("this.bool");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"827": function(____, $$$$) {try {return ____.inline;} catch (thrownError) { /*DEBUG-START*/console.log("this.inline");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"851": function(____, $$$$) {try {return ____.myForm.$invalid;} catch (thrownError) { /*DEBUG-START*/console.log("this.myForm.$invalid");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"854": function(____, $$$$) {try {return {error: ____.myForm.field1.$invalid};} catch (thrownError) { /*DEBUG-START*/console.log("{error: this.myForm.field1.$invalid}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"856": function(____, $$$$) {try {return {error: ____.myForm.radio1.$invalid};} catch (thrownError) { /*DEBUG-START*/console.log("{error: this.myForm.radio1.$invalid}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"869": function(____, $$$$) {try {____.tpl = 'a+b.html';} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = \'a+b.html\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"871": function(____, $$$$) {try {____.$parent.viewCmp = 'Test.ViewComponent2';} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.viewCmp = \'Test.ViewComponent2\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"874": function(____, $$$$) {try {____.newItem = ''; ____.listFilter = ''; ____.sortBy = 'asc';} catch (thrownError) { /*DEBUG-START*/console.log("this.newItem = \'\'; this.listFilter = \'\'; this.sortBy = \'asc\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"877": function(____, $$$$) {try {if (____.newItem) { ____.list.push({bool: false, txt: ____.newItem}); ____.newItem = ''; };} catch (thrownError) { /*DEBUG-START*/console.log("if (this.newItem) { this.list.push({bool: false, txt: this.newItem}); this.newItem = \'\'; }");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"879": function(____, $$$$) {try {return !____.newItem;} catch (thrownError) { /*DEBUG-START*/console.log("!this.newItem");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"881": function(____, $$$$) {try {____.ctrl.createNew();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.createNew()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"883": function(____, $$$$) {try {____.ctrl.createRender();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.createRender()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"885": function(____, $$$$) {try {____.ctrl.createDialog();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.createDialog()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"889": function(____, $$$$) {try {____.store.load();} catch (thrownError) { /*DEBUG-START*/console.log("this.store.load()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"892": function(____, $$$$) {try {____.changeLevel2();} catch (thrownError) { /*DEBUG-START*/console.log("this.changeLevel2()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"895": function(____, $$$$) {try {return ____.level1;} catch (thrownError) { /*DEBUG-START*/console.log("this.level1");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81B": function(____, $$$$) {try {return ____.$root.a + ____.$root.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a + this.$root.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81K": function(____, $$$$) {try {return ____.text;} catch (thrownError) { /*DEBUG-START*/console.log("this.text");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81N": function(____, $$$$) {try {return ____.html;} catch (thrownError) { /*DEBUG-START*/console.log("this.html");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"81Z": function(____, $$$$) {try {return ____.a;} catch (thrownError) { /*DEBUG-START*/console.log("this.a");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"84H": function(____, $$$$) {try {return {bool: ____.bool, inline1: ____.a == 0};} catch (thrownError) { /*DEBUG-START*/console.log("{bool: this.bool, inline1: this.a == 0}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"85H": function(____, $$$$) {try {____.dynamicList = [];} catch (thrownError) { /*DEBUG-START*/console.log("this.dynamicList = []");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"85U": function(____, $$$$) {try {return ____.item;} catch (thrownError) { /*DEBUG-START*/console.log("this.item");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"86B": function(____, $$$$) {try {____.tpl = 'a*b.html';} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = \'a*b.html\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"86D": function(____, $$$$) {try {return ____.tpl;} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"86I": function(____, $$$$) {try {____.tpl = ____.tpl1;} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = this.tpl1");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"86K": function(____, $$$$) {try {____.tpl = ____.tpl2;} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = this.tpl2");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"86W": function(____, $$$$) {try {return ____.viewCmp;} catch (thrownError) { /*DEBUG-START*/console.log("this.viewCmp");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"86Z": function(____, $$$$) {try {____.$parent.viewCmp = 'Test.ViewComponent1';} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.viewCmp = \'Test.ViewComponent1\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"87A": function(____, $$$$) {try {____.list.push({bool: false, txt: ____.newItem}); ____.newItem = '';;} catch (thrownError) { /*DEBUG-START*/console.log("this.list.push({bool: false, txt: this.newItem}); this.newItem = \'\';");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"87E": function(____, $$$$) {try {return {cls3: ____.item.bool};} catch (thrownError) { /*DEBUG-START*/console.log("{cls3: this.item.bool}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"87H": function(____, $$$$) {try {____.$parent.list.splice(____.$getRawIndex(____.$trackId),1);;} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.list.splice(this.$getRawIndex(this.$trackId),1);");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"87K": function(____, $$$$) {try {____.sortBy='asc';} catch (thrownError) { /*DEBUG-START*/console.log("this.sortBy=\'asc\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"87M": function(____, $$$$) {try {____.sortBy='desc';} catch (thrownError) { /*DEBUG-START*/console.log("this.sortBy=\'desc\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"87Z": function(____, $$$$) {try {____.ctrl.reverse();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.reverse()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88B": function(____, $$$$) {try {____.store.clear();} catch (thrownError) { /*DEBUG-START*/console.log("this.store.clear()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88J": function(____, $$$$) {try {return ____.a + ____.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.a + this.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88K": function(____, $$$$) {try {return ____.bool ? "true": "false";} catch (thrownError) { /*DEBUG-START*/console.log("this.bool ? \"true\": \"false\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88L": function(____, $$$$) {try {return ____.title;} catch (thrownError) { /*DEBUG-START*/console.log("this.title");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88M": function(____, $$$$) {try {return ____.$root.a;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88N": function(____, $$$$) {try {return ____.$index;} catch (thrownError) { /*DEBUG-START*/console.log("this.$index");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88O": function(____, $$$$) {try {return ____.item.txt;} catch (thrownError) { /*DEBUG-START*/console.log("this.item.txt");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88P": function(____, $$$$) {try {return ____.$first ? "first" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$first ? \"first\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88Q": function(____, $$$$) {try {return ____.$last ? "last" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$last ? \"last\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88R": function(____, $$$$) {try {return ____.$even ? "even" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$even ? \"even\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88S": function(____, $$$$) {try {return ____.$odd ? "odd" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$odd ? \"odd\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88T": function(____, $$$$) {try {return ____.item.name;} catch (thrownError) { /*DEBUG-START*/console.log("this.item.name");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88U": function(____, $$$$) {try {return ____.deferred;} catch (thrownError) { /*DEBUG-START*/console.log("this.deferred");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"89F": function(____, $$$$) {try {____.increaseB();} catch (thrownError) { /*DEBUG-START*/console.log("this.increaseB()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"89M": function(____, $$$$) {try {return ____.resolved;} catch (thrownError) { /*DEBUG-START*/console.log("this.resolved");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"89N": function(____, $$$$) {try {return ____.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"89S": function(____, $$$$) {try {____.field.onSelfClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSelfClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"89T": function(____, $$$$) {try {return ____.loading;} catch (thrownError) { /*DEBUG-START*/console.log("this.loading");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"89U": function(____, $$$$) {try {return ____.field.disabled;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.disabled");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"89V": function(____, $$$$) {try {return ____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"89W": function(____, $$$$) {try {return ____.field.multiple;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.multiple");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"89X": function(____, $$$$) {try {return ____.field.black;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.black");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8A0": function(____, $$$$) {try {____.field.onDropdownIconClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onDropdownIconClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8A3": function(____, $$$$) {try {____.$parent.field.onItemDeleteClick(____.item, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onItemDeleteClick(this.item, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8A5": function(____, $$$$) {try {____.field.onSearchFocus(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchFocus(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8A6": function(____, $$$$) {try {____.field.onSearchBlur(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchBlur(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8A7": function(____, $$$$) {try {____.field.onSearchBackspace(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchBackspace(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8A9": function(____, $$$$) {try {return ____.field.multiple && ____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.multiple && this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AA": function(____, $$$$) {try {return ____.searchQuery;} catch (thrownError) { /*DEBUG-START*/console.log("this.searchQuery");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AC": function(____, $$$$) {try {____.field.onValueTextClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onValueTextClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AD": function(____, $$$$) {try {return !____.searchQuery && !____.field.hasSelection() && !!____.field.emptyText;} catch (thrownError) { /*DEBUG-START*/console.log("!this.searchQuery && !this.field.hasSelection() && !!this.field.emptyText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AE": function(____, $$$$) {try {return ____.emptyShown;} catch (thrownError) { /*DEBUG-START*/console.log("this.emptyShown");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AF": function(____, $$$$) {try {return ____.field.emptyText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.emptyText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AH": function(____, $$$$) {try {return ____.focused && ____.searchQuery == '';} catch (thrownError) { /*DEBUG-START*/console.log("this.focused && this.searchQuery == \'\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AI": function(____, $$$$) {try {return !____.searchQuery && !____.field.multiple && ____.field.hasSelection();} catch (thrownError) { /*DEBUG-START*/console.log("!this.searchQuery && !this.field.multiple && this.field.hasSelection()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AJ": function(____, $$$$) {try {return ____.selectedShown;} catch (thrownError) { /*DEBUG-START*/console.log("this.selectedShown");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AK": function(____, $$$$) {try {return ____.field.getSelectedName();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.getSelectedName()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AM": function(____, $$$$) {try {return !____.emptyShown && !____.selectedShown && !____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("!this.emptyShown && !this.selectedShown && !this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AO": function(____, $$$$) {try {____.field.onHiddenSelectClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onHiddenSelectClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AP": function(____, $$$$) {try {____.field.onHiddenSelectChange(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onHiddenSelectChange(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AQ": function(____, $$$$) {try {return ____.field.useHiddenSelect;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.useHiddenSelect");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AU": function(____, $$$$) {try {return ____.field.showNotFound && ____.field.store.isEmpty();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.showNotFound && this.field.store.isEmpty()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AV": function(____, $$$$) {try {____.field.onNotFoundClick(null, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onNotFoundClick(null, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AW": function(____, $$$$) {try {return ____.field.notFoundText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.notFoundText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AY": function(____, $$$$) {try {return ____.field.showEmptyItem && !____.field.store.isEmpty();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.showEmptyItem && !this.field.store.isEmpty()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AZ": function(____, $$$$) {try {____.field.onItemClick(null, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onItemClick(null, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8B0": function(____, $$$$) {try {return ____.field.emptyItemText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.emptyItemText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8B2": function(____, $$$$) {try {____.$parent.field.onItemClick(____.item, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onItemClick(this.item, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8B3": function(____, $$$$) {try {return ____.$parent.field.getItemName(____.item);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.getItemName(this.item)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8B5": function(____, $$$$) {try {return ____.pagination.hasPages();} catch (thrownError) { /*DEBUG-START*/console.log("this.pagination.hasPages()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8B6": function(____, $$$$) {try {____.$parent.field.onPaginationClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onPaginationClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8BC": function(____, $$$$) {try {return ____.ctrl.config.get('test');} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.config.get(\'test\')");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8BG": function(____, $$$$) {try {return ____.$root.text;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.text");console.log(thrownError);/*DEBUG-END*/return undefined; }}
 };
 
 
@@ -2940,6 +2940,729 @@ var dom_commentWrap = MetaphorJs.dom.commentWrap = function commentWrap(node, na
     return [before, after];
 };
 
+/**
+ * Converts given value to boolean. <br>
+ * false: "", 0, false, undefined, null, "false", "no", "0"<br>
+ * true: everything else
+ * @function toBool
+ * @param {*} val 
+ * @returns {boolean}
+ */
+function toBool(val) {
+    if (!val) { // real false, empty string, null, zero
+        return false;
+    }
+    if (typeof val === "string") {
+        val = val.toLowerCase();
+        if (val === "false" || val === "no" || val === '0') {
+            return false;
+        }
+    }
+    return true;
+};
+
+
+
+
+
+
+/**
+ * @class MetaphorJs.lib.Config
+ */
+var lib_Config = MetaphorJs.lib.Config = (function(){
+
+    var $$observable = new lib_Observable;
+
+    var MODE_STATIC = 1,
+        MODE_DYNAMIC = 2,
+        MODE_SINGLE = 3,
+        MODE_GETTER = 4,
+        MODE_SETTER = 5,
+        MODE_FUNC = 6,
+        MODE_FNSET = 7,
+        MODE_LISTENER = 8;
+
+    /**
+     * @constructor
+     * @method
+     * @param {object} properties Attribute expressions/properties map
+     * @param {object} cfg {
+     *  @type {object} scope Data object
+     *  @type {object} setTo set all values to this object
+     * }
+     */
+    var Config = function(properties, cfg) {
+
+        var self = this,
+            k;
+
+        self.id = nextUid();
+        self.values = {};
+        self.properties = {};
+        self.cfg = cfg || {};
+        self.keys = [];
+
+        if (properties) {
+            for (k in properties) {
+                self.setProperty(
+                    k, 
+                    typeof properties[k] === "string" ? 
+                        {expression: properties[k]}:
+                        properties[k]
+                );
+            }
+        }
+    };
+
+    extend(Config.prototype, {
+
+        id: null,
+        properties: null,
+        values: null,
+        keys: null,
+        cfg: null,
+
+        _initMo: function(name) {
+            var self = this,
+                prop = self.properties[name];
+            prop.mo = lib_MutationObserver.get(
+                self.cfg.scope, prop.expression
+            );
+            prop.mo.subscribe(self._onPropMutated, self, {
+                append: [name]
+            });
+        }, 
+
+        _unsetMo: function(name) {
+            var self = this, prop = self.properties[name];
+            if (prop.mo) {
+                prop.mo.unsubscribe(self._onPropMutated, self);
+                prop.mo.$destroy(true);
+                prop.mo = null;
+            }
+        },
+
+        _calcProperty: function(name) {
+
+            var self = this,
+                prop = self.getProperty(name),
+                value,
+                setTo;
+
+            if (!prop || prop.disabled) {
+                return null;
+            }
+
+            if (prop.expression) {
+
+                if (!prop.mode) {
+                    prop.mode = MODE_DYNAMIC;
+                }
+
+                if (prop.mode === MODE_STATIC) {
+                    value = prop.expression;
+                }
+                else if (prop.mode === MODE_SINGLE) {
+                    value = lib_Expression.get(
+                        prop.expression, 
+                        self.cfg.scope
+                    );
+                }
+                else if (prop.mode === MODE_DYNAMIC) {
+                    !prop.mo && self._initMo(name);
+                    value = prop.mo.getValue();
+                }
+                else if (prop.mode === MODE_GETTER || 
+                         prop.mode === MODE_SETTER) {
+                    value = lib_Expression.parse(
+                        prop.expression,
+                        {
+                            setter: prop.mode === MODE_SETTER,
+                            setterOnly: prop.mode === MODE_SETTER,
+                            getterOnly: prop.mode === MODE_GETTER
+                        }
+                    );
+                }
+                else if (prop.mode === MODE_FNSET) {
+                    value = {
+                        getter: lib_Expression.getter(prop.expression),
+                        setter: lib_Expression.setter(prop.expression)
+                    };
+                }
+                else if (prop.mode === MODE_FUNC) {
+                    value = lib_Expression.func(prop.expression);
+                }
+                else if (prop.mode === MODE_LISTENER) {
+                    if (prop.expression.indexOf('(') === -1 && 
+                        prop.expression.indexOf('=') === -1) {
+                        value = lib_Expression.get(
+                            prop.expression, 
+                            self.cfg.scope
+                        );
+                    }
+                    else {
+                        value = lib_Expression.func(prop.expression);
+                    }
+                }
+            }
+
+            if (value === undf) {
+                value = prop.defaultValue;
+            }
+
+            value = self._prepareValue(value, prop);
+            self.values[name] = value;
+
+            setTo = self.cfg.setTo || prop.setTo;
+            if (setTo) {
+                setTo[name] = value;
+            }
+
+            return value;
+        },
+
+
+        _prepareValue: function(value, prop) {
+
+            if (!prop.type) {
+                return value;
+            }
+
+            switch (prop.type) {
+                case 'int':
+                    return parseInt(value);
+                case 'float':
+                case 'number':
+                    return parseFloat(value);
+                case 'bool':
+                case 'boolean':
+                    return toBool(value);
+                case 'array':
+                case 'list':
+                    return !isArray(value) ? [value] : value;
+                case 'string':
+                case 'str':
+                    return "" + value;
+            }
+
+            return value;
+        },
+
+        _onPropMutated: function(val, prev, name) {
+
+            var self = this,
+                prop = self.properties[name],
+                setTo = prop.setTo || self.cfg.setTo,
+                value;
+
+            value = self._prepareValue(val, prop);
+
+            self.values[name] = value;
+            if (setTo) {
+                setTo[name] = value;
+            }
+
+            $$observable.trigger(this.id, name, value, prev);
+            $$observable.trigger(this.id +'-'+ name, value, prev);
+        },
+
+        /**
+         * Set Config's option
+         * @method
+         * @param {string} name 
+         * @param {*} value 
+         */
+        setOption: function(name, value) {
+            this.cfg[name] = value;
+        },
+
+        /**
+         * Set or update property
+         * @method
+         * @param {string} name 
+         * @param {object} cfg {
+         *  @type {string} type int|float|array|bool|string
+         *  @type {object} setTo
+         *  @type {boolean} disabled
+         *  @type {*} defaultValue
+         *  @type {int} defaultMode
+         *  @type {int} mode 1: static, 2: dynamic, 3: single run
+         * }
+         */
+
+        /**
+         * Set or update property
+         * @method
+         * @param {string} name 
+         * @param {string} cfg 
+         * @param {*} val 
+         */
+        setProperty: function(name, cfg, val) {
+
+            var self = this,
+                props = self.properties,
+                prop,
+                changed = false;
+
+            if (!props[name]) {
+                props[name] = {};
+                self.keys.push(name);
+                changed = true;
+            }
+
+            prop = props[name];
+
+            if (val === undf) {
+                var k;
+                for (k in cfg) {
+                    if (cfg[k] !== prop[k]) {
+                        changed = true;
+                        prop[k] = cfg[k];
+                    }
+                }
+            }
+            else {
+                if (val !== prop[cfg]) {
+                    changed = true;
+                    prop[cfg] = val;
+                }
+            }
+
+            if (!prop.mode) {
+                if (prop.defaultMode) {
+                    prop.mode = prop.defaultMode;
+                    changed = true;
+                }
+                else if (prop.expression === true) {
+                    prop.mode = MODE_STATIC;
+                    changed = true;
+                }
+                else if (self.cfg.defaultMode) {
+                    prop.mode = self.cfg.defaultMode;
+                    changed = true;
+                }
+            }
+
+            if (prop.mode === MODE_DYNAMIC && 
+                prop.expression && 
+                !prop.mo && 
+                !prop.disabled) {
+                self._initMo(name);
+                changed = true;
+            }
+
+            if (changed && self.values[name] !== undf) {
+                delete self.values[name];
+            }
+        
+            return changed;
+        },
+
+        /**
+         * Get property config
+         * @method
+         * @param {string} name 
+         * @returns {object}
+         */
+        getProperty: function(name) {
+            return this.properties[name] || null;
+        },
+
+        /**
+         * Get property mode (or null, if not defined)
+         * @method
+         * @param {string} name 
+         * @returns {int|null}
+         */
+        getMode: function(name) {
+            var prop = this.getProperty(name);
+            return prop ? prop.mode || null : null;
+        },
+
+        /**
+         * Get property expression
+         * @method
+         * @param {string} name 
+         */
+        getExpression: function(name) {
+            var prop = this.getProperty(name);
+            return prop ? (prop.expression || null) : null;
+        },
+
+        /**
+         * Get all config values
+         * @method
+         * @returns {object}
+         */
+        getAll: function() {
+            var self = this, k, vs = {};
+            for (k in self.properties) {
+                if (self.values[k] === undf) {
+                    vs[k] = self._calcProperty(k);
+                }
+                else vs[k] = self.values[k];
+            }
+            return vs;
+        },
+
+        /**
+         * Iterate over properties
+         * @method
+         * @param {function} fn {
+         *  @param {string} key
+         *  @param {object} property
+         *  @param {MetaphorJs.lib.Config} self
+         * } 
+         * @param {object} context 
+         */
+        eachProperty: function(fn, context) {
+            var k, self = this;
+            for (k in self.properties) {
+                fn.call(context, k, self.properties[k], self);
+            }
+        },
+
+        /**
+         * Does this config has a property
+         * @method
+         * @param {string} name 
+         * @returns {bool}
+         */
+        hasProperty: function(name) {
+            return !!this.properties[name];
+        },
+
+        /**
+         * Does this config has a property with expression
+         * @method
+         * @param {string} name 
+         * @returns {bool}
+         */
+        hasExpression: function(name) {
+            return !!(this.properties[name] && this.properties[name].expression);
+        },
+
+        /**
+         * Does this config has an expression to calc value or 
+         * already calculated value or default value
+         * @method
+         * @param {string} name 
+         * @returns {boolean}
+         */
+        has: function(name) {
+            var self = this;
+            return self.values[name] !== undf || (
+                self.properties[name] && 
+                (self.properties[name].defaultValue !== undf ||
+                 self.properties[name].expression !== undf)
+            );
+        },
+
+        _toggleProperty: function(name, val) {
+            var self = this,
+                prop = self.properties[name],
+                prev = prop ? prop.disabled || false : false;
+
+            if (!prop) {
+                prop = self.setProperty(name, {
+                    disabled: val
+                });
+            }
+            else if (prev !== val) {
+                prop.mode === MODE_DYNAMIC && self[val ? "_initMo" : "_unsetMo"](name);
+                prop.disabled = val;
+            }
+        },
+
+        /**
+         * Disable MutationObserver on a property
+         * @method
+         * @param {string} name 
+         */
+        disableProperty: function(name) {
+            this._toggleProperty(name, true);
+        },
+
+        /**
+         * Enable MutationObserver on a property
+         * @method
+         * @param {string} name 
+         */
+        enableProperty: function(name) {
+            this._toggleProperty(name, false);
+        },
+
+        /**
+         * Set property mode
+         * @method
+         * @param {string} name 
+         * @param {int} mode 
+         */
+        setMode: function(name, mode) {
+            this.setProperty(name, "mode", mode);
+        },
+
+        /**
+         * Set property type
+         * @method
+         * @param {string} name 
+         * @param {string} type 
+         * @param {int} defaultMode {
+         *  @optional
+         * }
+         * @param {*} defaultValue {
+         *  @optional
+         * }
+         */
+        setType: function(name, type, defaultMode, defaultValue) {
+            if (type) {
+                this.setProperty(name, "type", type);
+            }
+            if (defaultMode) {
+                this.setProperty(name, "defaultMode", defaultMode);
+            }
+            if (defaultValue !== undf) {
+                this.setProperty(name, "defaultValue", defaultValue);
+            }
+        },
+
+        /**
+         * Set default mode
+         * @method
+         * @param {string} name 
+         * @param {int} mode 
+         */
+        setDefaultMode: function(name, mode) {
+            this.setProperty(name, "defaultMode", mode);
+        },
+
+        /**
+         * Set default value
+         * @method
+         * @param {string} name 
+         * @param {*} val 
+         */
+        setDefaultValue: function(name, val) {
+            this.setProperty(name, "defaultValue", val);
+        },
+
+        /**
+         * Get property keys
+         * @method
+         * @returns {array}
+         */
+        getKeys: function() {
+            return this.keys;
+        },
+
+        /**
+         * Get all keys starting with "value"
+         * @method
+         */
+        getAllValues: function() {
+            var self = this,
+                i, l, k, name,
+                vs = {};
+
+            for (i = 0, l = self.keys.length; i < l; i++) {
+                k = self.keys[i];
+                if (k === "value") {
+                    name = "";
+                }
+                else if (k.indexOf("value.") === 0) {
+                    name = k.replace("value.", "");
+                }
+                else continue;
+                vs[name] = self.get(k);
+            }
+
+            return vs;
+        },
+
+        /**
+         * Get property value
+         * @method
+         * @param {string} name 
+         * @returns {*}
+         */
+        get: function(name) {
+            if (this.values[name] === undf) {
+                this._calcProperty(name);
+            }
+            return this.values[name];
+        },
+
+        /**
+         * @method on
+         * @param {string} name 
+         * @param {function} fn {
+         *  @param {*} currentValue
+         *  @param {*} prevValue
+         * }
+         * @param {object} context fn's context
+         * @param {object} opt lib_Observable.on() options
+         */
+
+         /**
+         * @method on
+         * @param {function} fn {
+         *  @param {string} name
+         *  @param {*} currentValue
+         *  @param {*} prevValue
+         * }
+         * @param {object} context fn's context
+         * @param {object} opt lib_Observable.on() options
+         */
+        on: function(name, fn, context, opt) {
+            if (typeof name === "string") {
+                $$observable.on(this.id +'-'+ name, fn, context, opt);
+            }
+            else {
+                $$observable.on(this.id, name, fn, context);
+            }
+        },
+
+        /**
+         * @method un
+         * @param {string} name 
+         * @param {function} fn
+         * @param {object} context 
+         */
+
+         /**
+         * @method un
+         * @param {function} fn 
+         * @param {object} context 
+         */
+        un: function(name, fn, context) {
+            if (typeof name === "string") {
+                $$observable.on(this.id +'-'+ name, fn, context);
+            }
+            else {
+                $$observable.on(this.id, name, fn);
+            }
+        },
+
+        /**
+         * Set property values to this object
+         * @method
+         * @param {object} obj 
+         */
+        setTo: function(obj) {
+            this.cfg.setTo = obj;
+        },
+
+        /**
+         * Check for changes of specific property
+         * @method
+         * @param {string} name 
+         * @returns {bool}
+         */
+
+        /**
+         * Check for changes
+         * @method
+         * @returns {int} number of changed properties
+         */
+        check: function(name) {
+            var self = this,
+                keys = name ? [name] : self.keys,
+                i, l, key, prop,
+                res = name ? 0 : false;
+            
+            for (i = 0, l = keys.length; i < l; i++) {
+                key = keys[i];
+                prop = self.properties[key];
+                if (prop.mo) {
+                    if (name) {
+                        return prop.mo.check();
+                    }
+                    res += prop.mo.check() ? 1 : 0;
+                }
+            }
+
+            return res;
+        },
+
+        /**
+         * Check scope based on property opts 
+         * (does it require checking parent or root)
+         * @method
+         * @param {string} propName 
+         */
+        checkScope: function(propName) {
+            var scope = this.cfg.scope,
+                descr = lib_Expression.describeExpression(
+                    this.getExpression(propName)
+                );
+
+            if (descr.indexOf("r") !== -1) {
+                return scope.$root.$check();
+            }
+            else if (descr.indexOf("p") !== -1) {
+                return scope.$parent ? 
+                        scope.$parent.$check() : 
+                        scope.$root.$check();
+            }
+            else {
+                return scope.$check();
+            }
+        },
+
+        /**
+         * Stop all observers, clear data, remove listeners.
+         * But keep values and properties
+         * @method
+         */
+        clear: function() {
+            var self = this,
+            id = self.id,
+            k;
+
+            if (self.properties === null) {
+                return;
+            }
+
+            for (k in self.properties) {
+                self._unsetMo(k);
+                $$observable.destroyEvent(id +'-'+ k);
+            }
+
+            $$observable.destroyEvent(id);
+
+            self.subscribe = emptyFn;
+            self.unsubscribe = emptyFn;
+        },
+
+        /**
+         * @method
+         */
+        $destroy: function() {
+            var self = this;
+
+            if (self.properties !== null) {
+                self.clear();
+            }
+
+            self.properties = null;
+            self.values = null;
+            self.cfg = null;
+        }
+    });
+
+    Config.MODE_STATIC = MODE_STATIC;
+    Config.MODE_DYNAMIC = MODE_DYNAMIC;
+    Config.MODE_SINGLE = MODE_SINGLE;
+    Config.MODE_GETTER = MODE_GETTER;
+    Config.MODE_SETTER = MODE_SETTER;
+    Config.MODE_FUNC = MODE_FUNC;
+    Config.MODE_FNSET = MODE_FNSET;
+    Config.MODE_LISTENER = MODE_LISTENER;
+
+    return Config;
+
+}());
+
 
 
 
@@ -4161,6 +4884,7 @@ var cls = classManagerFactory(ns);
 
 
 
+
 var Directive = MetaphorJs.app.Directive = (function() {
 
     var attr = {},
@@ -4193,16 +4917,14 @@ var Directive = MetaphorJs.app.Directive = (function() {
 
             var self        = this;
 
+            config.setDefaultMode("saveState", lib_Config.MODE_SETTER);
+
             self.config     = config;
             self.node       = node;
             self.scope      = scope;
-            self.saveState  = config.saveState;
 
-            if (self.saveState) {
-                self.stateFn = lib_Expression.parse(self.saveState, {
-                    setter: true,
-                    setterOnly: true
-                });
+            if (config.hasExpression("saveState")) {
+                self.stateFn = config.get("saveSate");
             }
 
             scope.$on("destroy", self.onScopeDestroy, self);
@@ -4345,651 +5067,6 @@ var Directive = MetaphorJs.app.Directive = (function() {
     });
 }());
 
-
-/**
- * Converts given value to boolean. <br>
- * false: "", 0, false, undefined, null, "false", "no", "0"<br>
- * true: everything else
- * @function toBool
- * @param {*} val 
- * @returns {boolean}
- */
-function toBool(val) {
-    if (!val) { // real false, empty string, null, zero
-        return false;
-    }
-    if (typeof val === "string") {
-        val = val.toLowerCase();
-        if (val === "false" || val === "no" || val === '0') {
-            return false;
-        }
-    }
-    return true;
-};
-
-
-
-
-
-
-/**
- * @class MetaphorJs.lib.Config
- */
-var lib_Config = MetaphorJs.lib.Config = (function(){
-
-    var $$observable = new lib_Observable;
-
-    var MODE_STATIC = 1,
-        MODE_DYNAMIC = 2,
-        MODE_SINGLE = 3,
-        MODE_GETTER = 4,
-        MODE_SETTER = 5,
-        MODE_FUNC = 6,
-        MODE_FNSET = 7;
-
-    /**
-     * @constructor
-     * @method
-     * @param {object} properties Attribute expressions/properties map
-     * @param {object} cfg {
-     *  @type {object} scope Data object
-     *  @type {object} setTo set all values to this object
-     * }
-     */
-    var Config = function(properties, cfg) {
-
-        var self = this,
-            k;
-
-        self.id = nextUid();
-        self.values = {};
-        self.properties = {};
-        self.cfg = cfg || {};
-        self.keys = [];
-
-        if (properties) {
-            for (k in properties) {
-                self.setProperty(
-                    k, 
-                    typeof properties[k] === "string" ? 
-                        {expression: properties[k]}:
-                        properties[k]
-                );
-            }
-        }
-    };
-
-    extend(Config.prototype, {
-
-        id: null,
-        properties: null,
-        values: null,
-        keys: null,
-        cfg: null,
-
-        _initMo: function(name) {
-            var self = this,
-                prop = self.properties[name];
-            prop.mo = lib_MutationObserver.get(
-                self.cfg.scope, prop.expression
-            );
-            prop.mo.subscribe(self._onPropMutated, self, {
-                append: [name]
-            });
-        }, 
-
-        _unsetMo: function(name) {
-            var self = this, prop = self.properties[name];
-            if (prop.mo) {
-                prop.mo.unsubscribe(self._onPropMutated, self);
-                prop.mo.$destroy(true);
-                prop.mo = null;
-            }
-        },
-
-        _calcProperty: function(name) {
-
-            var self = this,
-                prop = self.getProperty(name),
-                value,
-                setTo;
-
-            if (!prop || prop.disabled) {
-                return null;
-            }
-
-            if (prop.expression) {
-
-                if (!prop.mode) {
-                    prop.mode = MODE_DYNAMIC;
-                }
-
-                if (prop.mode === MODE_STATIC) {
-                    value = prop.expression;
-                }
-                else if (prop.mode === MODE_SINGLE) {
-                    value = lib_Expression.get(
-                        prop.expression, 
-                        self.cfg.scope
-                    );
-                }
-                else if (prop.mode === MODE_DYNAMIC) {
-                    !prop.mo && self._initMo(name);
-                    value = prop.mo.getValue();
-                }
-                else if (prop.mode === MODE_GETTER || 
-                         prop.mode === MODE_SETTER) {
-                    value = lib_Expression.parse(
-                        prop.expression,
-                        {
-                            setter: prop.mode === MODE_SETTER,
-                            setterOnly: prop.mode === MODE_SETTER,
-                            getterOnly: prop.mode === MODE_GETTER
-                        }
-                    );
-                }
-                else if (prop.mode === MODE_FNSET) {
-                    value = {
-                        getter: lib_Expression.getter(prop.expression),
-                        setter: lib_Expression.setter(prop.expression)
-                    };
-                }
-                else if (prop.mode === MODE_FUNC) {
-                    value = lib_Expression.func(prop.expression);
-                }
-            }
-
-            if (value === undf) {
-                value = prop.defaultValue;
-            }
-
-            value = self._prepareValue(value, prop);
-            self.values[name] = value;
-
-            setTo = self.cfg.setTo || prop.setTo;
-            if (setTo) {
-                setTo[name] = value;
-            }
-
-            return value;
-        },
-
-
-        _prepareValue: function(value, prop) {
-
-            if (!prop.type) {
-                return value;
-            }
-
-            switch (prop.type) {
-                case 'int':
-                    return parseInt(value);
-                case 'float':
-                case 'number':
-                    return parseFloat(value);
-                case 'bool':
-                case 'boolean':
-                    return toBool(value);
-                case 'array':
-                case 'list':
-                    return !isArray(value) ? [value] : value;
-                case 'string':
-                case 'str':
-                    return "" + value;
-            }
-
-            return value;
-        },
-
-        _onPropMutated: function(val, prev, name) {
-
-            var self = this,
-                prop = self.properties[name],
-                setTo = prop.setTo || self.cfg.setTo,
-                value;
-
-            value = self._prepareValue(val, prop);
-
-            self.values[name] = value;
-            if (setTo) {
-                setTo[name] = value;
-            }
-
-            $$observable.trigger(this.id, name, value, prev);
-            $$observable.trigger(this.id +'-'+ name, value, prev);
-        },
-
-        /**
-         * Set or update property
-         * @method
-         * @param {string} name 
-         * @param {object} cfg {
-         *  @type {string} type int|float|array|bool|string
-         *  @type {object} setTo
-         *  @type {boolean} disabled
-         *  @type {*} defaultValue
-         *  @type {int} defaultMode
-         *  @type {int} mode 1: static, 2: dynamic, 3: single run
-         * }
-         */
-
-        /**
-         * Set or update property
-         * @param {string} name 
-         * @param {string} cfg 
-         * @param {*} val 
-         */
-        setProperty: function(name, cfg, val) {
-
-            var self = this,
-                props = self.properties,
-                prop,
-                changed = false;
-
-            if (!props[name]) {
-                props[name] = {};
-                self.keys.push(name);
-                changed = true;
-            }
-
-            prop = props[name];
-
-            if (val === undf) {
-                var k;
-                for (k in cfg) {
-                    if (cfg[k] !== prop[k]) {
-                        changed = true;
-                        prop[k] = cfg[k];
-                    }
-                }
-            }
-            else {
-                if (val !== prop[cfg]) {
-                    changed = true;
-                    prop[cfg] = val;
-                }
-            }
-
-            if (!prop.mode) {
-                if (prop.defaultMode) {
-                    prop.mode = prop.defaultMode;
-                    changed = true;
-                }
-                else if (prop.expression === true) {
-                    prop.mode = MODE_STATIC;
-                    changed = true;
-                }
-            }
-
-            if (prop.mode === MODE_DYNAMIC && 
-                prop.expression && 
-                !prop.mo && 
-                !prop.disabled) {
-                self._initMo(name);
-                changed = true;
-            }
-
-            if (changed && self.values[name] !== undf) {
-                delete self.values[name];
-            }
-        
-            return changed;
-        },
-
-        /**
-         * Get property config
-         * @param {string} name 
-         * @returns {object}
-         */
-        getProperty: function(name) {
-            return this.properties[name] || null;
-        },
-
-        /**
-         * Get property expression
-         * @param {string} name 
-         */
-        getExpression: function(name) {
-            var prop = this.getProperty(name);
-            return prop ? (prop.expression || null) : null;
-        },
-
-        /**
-         * Get all config values
-         * @method
-         * @returns {object}
-         */
-        getAll: function() {
-            var self = this, k, vs = {};
-            for (k in self.properties) {
-                if (self.values[k] === undf) {
-                    vs[k] = self._calcProperty(k);
-                }
-                else vs[k] = self.values[k];
-            }
-            return vs;
-        },
-
-        /**
-         * Iterate over properties
-         * @param {function} fn {
-         *  @param {string} key
-         *  @param {object} property
-         *  @param {MetaphorJs.lib.Config} self
-         * } 
-         * @param {object} context 
-         */
-        eachProperty: function(fn, context) {
-            var k, self = this;
-            for (k in self.properties) {
-                fn.call(context, k, self.properties[k], self);
-            }
-        },
-
-        /**
-         * Does this config has a property
-         * @param {string} name 
-         * @returns {bool}
-         */
-        hasProperty: function(name) {
-            return !!this.properties[name];
-        },
-
-        /**
-         * Does this config has a property with expression
-         * @param {string} name 
-         * @returns {bool}
-         */
-        hasExpression: function(name) {
-            return !!(this.properties[name] && this.properties[name].expression);
-        },
-
-        _toggleProperty: function(name, val) {
-            var self = this,
-                prop = self.properties[name],
-                prev = prop ? prop.disabled || false : false;
-
-            if (!prop) {
-                prop = self.setProperty(name, {
-                    disabled: val
-                });
-            }
-            else if (prev !== val) {
-                prop.mode === MODE_DYNAMIC && self[val ? "_initMo" : "_unsetMo"](name);
-                prop.disabled = val;
-            }
-        },
-
-        /**
-         * Disable MutationObserver on a property
-         * @param {string} name 
-         */
-        disableProperty: function(name) {
-            this._toggleProperty(name, true);
-        },
-
-        /**
-         * Enable MutationObserver on a property
-         * @param {string} name 
-         */
-        enableProperty: function(name) {
-            this._toggleProperty(name, false);
-        },
-
-        /**
-         * Set property mode
-         * @param {string} name 
-         * @param {int} mode 
-         */
-        setMode: function(name, mode) {
-            this.setProperty(name, "mode", mode);
-        },
-
-        /**
-         * Set property type
-         * @param {string} name 
-         * @param {string} type 
-         * @param {int} defaultMode {
-         *  @optional
-         * }
-         */
-        setType: function(name, type, defaultMode) {
-            this.setProperty(name, "type", type);
-            if (defaultMode) {
-                this.setProperty(name, "defaultMode", defaultMode);
-            }
-        },
-
-        /**
-         * Set default mode
-         * @param {string} name 
-         * @param {int} mode 
-         */
-        setDefaultMode: function(name, mode) {
-            this.setProperty(name, "defaultMode", mode);
-        },
-
-        /**
-         * Set default value
-         * @param {string} name 
-         * @param {*} val 
-         */
-        setDefaultValue: function(name, val) {
-            this.setProperty(name, "defaultValue", val);
-        },
-
-        /**
-         * Get property keys
-         * @returns {array}
-         */
-        getKeys: function() {
-            return this.keys;
-        },
-
-        /**
-         * Get all keys starting with "value"
-         */
-        getAllValues: function() {
-            var self = this,
-                i, l, k, name,
-                vs = {};
-
-            for (i = 0, l = self.keys.length; i < l; i++) {
-                k = self.keys[i];
-                if (k === "value") {
-                    name = "";
-                }
-                else if (k.indexOf("value.") === 0) {
-                    name = k.replace("value.", "");
-                }
-                else continue;
-                vs[name] = self.get(k);
-            }
-
-            return vs;
-        },
-
-        /**
-         * Get property value
-         * @method
-         * @param {string} name 
-         * @returns {*}
-         */
-        get: function(name) {
-            if (this.values[name] === undf) {
-                this._calcProperty(name);
-            }
-            return this.values[name];
-        },
-
-        /**
-         * @method on
-         * @param {string} name 
-         * @param {function} fn {
-         *  @param {*} currentValue
-         *  @param {*} prevValue
-         * }
-         * @param {object} context fn's context
-         * @param {object} opt lib_Observable.on() options
-         */
-
-         /**
-         * @method on
-         * @param {function} fn {
-         *  @param {string} name
-         *  @param {*} currentValue
-         *  @param {*} prevValue
-         * }
-         * @param {object} context fn's context
-         * @param {object} opt lib_Observable.on() options
-         */
-        on: function(name, fn, context, opt) {
-            if (typeof name === "string") {
-                $$observable.on(this.id +'-'+ name, fn, context, opt);
-            }
-            else {
-                $$observable.on(this.id, name, fn, context);
-            }
-        },
-
-        /**
-         * @method un
-         * @param {string} name 
-         * @param {function} fn
-         * @param {object} context 
-         */
-
-         /**
-         * @method un
-         * @param {function} fn 
-         * @param {object} context 
-         */
-        un: function(name, fn, context) {
-            if (typeof name === "string") {
-                $$observable.on(this.id +'-'+ name, fn, context);
-            }
-            else {
-                $$observable.on(this.id, name, fn);
-            }
-        },
-
-        /**
-         * Set property values to this object
-         * @method
-         * @param {object} obj 
-         */
-        setTo: function(obj) {
-            this.cfg.setTo = obj;
-        },
-
-        /**
-         * Check for changes of specific property
-         * @method
-         * @param {string} name 
-         * @returns {bool}
-         */
-
-        /**
-         * Check for changes
-         * @method
-         * @returns {int} number of changed properties
-         */
-        check: function(name) {
-            var self = this,
-                keys = name ? [name] : self.keys,
-                i, l, key, prop,
-                res = name ? 0 : false;
-            
-            for (i = 0, l = keys.length; i < l; i++) {
-                key = keys[i];
-                prop = self.properties[key];
-                if (prop.mo) {
-                    if (name) {
-                        return prop.mo.check();
-                    }
-                    res += prop.mo.check() ? 1 : 0;
-                }
-            }
-
-            return res;
-        },
-
-        /**
-         * Check scope based on property opts 
-         * (does it require checking parent or root)
-         * @param {string} propName 
-         */
-        checkScope: function(propName) {
-            var scope = this.cfg.scope,
-                descr = lib_Expression.describeExpression(
-                    this.getExpression(propName)
-                );
-
-            if (descr.indexOf("r") !== -1) {
-                return scope.$root.$check();
-            }
-            else if (descr.indexOf("p") !== -1) {
-                return scope.$parent ? 
-                        scope.$parent.$check() : 
-                        scope.$root.$check();
-            }
-            else {
-                return scope.$check();
-            }
-        },
-
-        /**
-         * Stop all observers, clear data, remove listeners.
-         * But keep values and properties
-         * @method
-         */
-        clear: function() {
-            var self = this,
-            id = self.id,
-            k;
-
-            if (self.properties === null) {
-                return;
-            }
-
-            for (k in self.properties) {
-                self._unsetMo(k);
-                $$observable.destroyEvent(id +'-'+ k);
-            }
-
-            $$observable.destroyEvent(id);
-
-            self.subscribe = emptyFn;
-            self.unsubscribe = emptyFn;
-        },
-
-        /**
-         * @method
-         */
-        $destroy: function() {
-            var self = this;
-
-            if (self.properties !== null) {
-                self.clear();
-            }
-
-            self.properties = null;
-            self.values = null;
-            self.cfg = null;
-        }
-    });
-
-    Config.MODE_STATIC = MODE_STATIC;
-    Config.MODE_DYNAMIC = MODE_DYNAMIC;
-    Config.MODE_SINGLE = MODE_SINGLE;
-    Config.MODE_GETTER = MODE_GETTER;
-    Config.MODE_SETTER = MODE_SETTER;
-    Config.MODE_FUNC = MODE_FUNC;
-    Config.MODE_FNSET = MODE_FNSET;
-
-    return Config;
-
-}());
 var app = (function(){
 
 
@@ -9793,6 +9870,10 @@ var dom_getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
         set.inflated = true;
     };
 
+    var ccName = function(name) {
+        return name.indexOf('--') !== -1 ? name : toCamelCase(name);
+    };
+
     return function dom_getAttrSet(node) {
 
         var set = getEmpty(),
@@ -9859,7 +9940,7 @@ var dom_getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
 
                 tagName = node.tagName.toLowerCase();
 
-                set['config'][toCamelCase(name)] = {
+                set['config'][ccName(name)] = {
                     expression: value,
                     mode: execMode,
                     dtype: dtypes[mode]
@@ -9897,7 +9978,7 @@ var dom_getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
                     if (value === "") {
                         value = true;
                     }
-                    prop = toCamelCase(subname.substr(1));
+                    prop = ccName(subname.substr(1));
                     coll[name].config[prop] = {
                         mode: execMode,
                         expression: value,
@@ -10372,8 +10453,9 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                     }
                 }
 
-                if (!someHandler && attrs.reference) {
+                if (attrs.reference) {
                     scope[attrs.reference] = node;
+                    dom_removeAttr(node, '#' + attrs.reference);
                 }
 
                 if (defers.length && !attrs.config.ignoreInside) {
@@ -12780,29 +12862,21 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
         config.setType("sameScope", "bool", lib_Config.MODE_STATIC);
         config.setType("isolateScope", "bool", lib_Config.MODE_STATIC);
         config.setDefaultMode("as", lib_Config.MODE_STATIC);
+        config.setDefaultMode("ref", lib_Config.MODE_STATIC);
 
         var cmpName = config.get("value"),
             constr  = typeof cmpName === "string" ?
-                        ns.get(cmpName, true) : cmpName,
-            nodecfg = config.getAll();
+                        ns.get(cmpName, true) : cmpName;
 
         if (!constr) {
             throw new Error("Component " + cmpName + " not found");
         }
 
-        var sameScope       = nodecfg.sameScope || constr.$sameScope,
-            isolateScope    = nodecfg.isolateScope || constr.$isolateScope;
+        var sameScope       = config.get("sameScope") || constr.$sameScope,
+            isolateScope    = config.get("isolateScope") || constr.$isolateScope;
 
         var newScope = isolateScope ? scope.$newIsolated() : 
                                         (sameScope ? scope : scope.$new());
-
-        /*var cfg     = extend({
-            scope: newScope,
-            node: node,
-            config: config,
-            parentRenderer: parentRenderer,
-            destroyScope: !sameScope
-        }, nodecfg, false, false);*/
 
         var cfg = {
             scope: newScope,
@@ -12812,13 +12886,12 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
             destroyScope: !sameScope
         };
 
-        app_resolve(cmpName, cfg, newScope, node, [cfg]);
-            /*.done(function(cmp) {
-
-                if (attrSet.ref) {
-                    scope[attrSet.ref] = cmp;
+        app_resolve(cmpName, cfg, newScope, node, [cfg])
+            .done(function(cmp) {
+                if (config.hasExpression("ref")) {
+                    scope[config.get("ref")] = cmp;
                 }
-            });*/
+            });
 
         return constr.$resumeRenderer || !!constr.$shadow;
     };
@@ -14795,7 +14868,10 @@ Directive.registerAttribute("show", 500, Directive.$extend({
     initial: true,
 
     initialSet: function() {
-        this.config.setType("animate", "bool", lib_Config.MODE_STATIC);
+        this.config.setType("display", 
+            "string", lib_Config.MODE_STATIC, "");
+        this.config.setType("animate", 
+            "bool", lib_Config.MODE_STATIC, false);
         this.$super();
     },
 
@@ -14808,7 +14884,7 @@ Directive.registerAttribute("show", 500, Directive.$extend({
                     style.display = "none";
                 }
                 else {
-                    style.display = self.config.get("display") || "";
+                    style.display = self.config.get("display");
                 }
             };
 
@@ -14819,7 +14895,7 @@ Directive.registerAttribute("show", 500, Directive.$extend({
                 if (show) {
                     return new lib_Promise(function(resolve){
                         raf(function(){
-                            style.display = self.config.get("display") || "";
+                            style.display = self.config.get("display");
                             resolve();
                         });
                     });
@@ -24916,7 +24992,7 @@ var dom_getOffsetParent = MetaphorJs.dom.getOffsetParent = function dom_getOffse
  *  @type {int} left
  * }
  */
-MetaphorJs.dom.getOffet = function dom_getOffset(node) {
+var dom_getOffset = MetaphorJs.dom.getOffset = function dom_getOffset(node) {
 
     var box = {top: 0, left: 0},
         html = window.document.documentElement;
@@ -24972,8 +25048,8 @@ var dom_getPosition = MetaphorJs.dom.getPosition = function dom_getPosition(node
         offset = node.getBoundingClientRect();
     }
     else if (to) {
-        var thisOffset = MetaphorJs.dom.getOffset(node),
-            toOffset = MetaphorJs.dom.getOffset(to),
+        var thisOffset = dom_getOffset(node),
+            toOffset = dom_getOffset(to),
             position = {
                 left: thisOffset.left - toOffset.left,
                 top: thisOffset.top - toOffset.top
@@ -24992,10 +25068,10 @@ var dom_getPosition = MetaphorJs.dom.getPosition = function dom_getPosition(node
         offsetParent = dom_getOffsetParent(node);
 
         // Get correct offsets
-        offset = MetaphorJs.dom.getOffset(node);
+        offset = dom_getOffset(node);
 
         if (offsetParent !== html) {
-            parentOffset = MetaphorJs.dom.getOffset(offsetParent);
+            parentOffset = dom_getOffset(offsetParent);
         }
 
         // Add offsetParent borders
@@ -27939,7 +28015,7 @@ var app_Component = MetaphorJs.app.Component = cls({
      */
     id:             null,
 
-    originalId:     false,
+    _originalId:     false,
 
     /**
      * @var Element
@@ -27952,11 +28028,6 @@ var app_Component = MetaphorJs.app.Component = cls({
      * @access private
      */
     _nodeReplaced:  false,
-
-    /**
-     * @var string
-     */
-    cls:            null,
 
     /**
      * @var string|Element
@@ -27973,20 +28044,19 @@ var app_Component = MetaphorJs.app.Component = cls({
      * @var bool
      * @access protected
      */
-    rendered:       false,
+    _rendered:       false,
 
-    /**
+    /*
      * @var bool
      * @access protected
      */
-    hidden:         false,
+    //hidden:         false,
 
     /**
      * @var bool
      * @access protected
      */
     destroyEl:      true,
-
 
     /**
      * @var {bool}
@@ -28007,16 +28077,6 @@ var app_Component = MetaphorJs.app.Component = cls({
      * @var string
      */
     templateUrl:    null,
-
-    /**
-     * @var string
-     */
-    tag:            null,
-
-    /**
-     * @var string
-     */
-    as:             null,
 
 
     /**
@@ -28055,16 +28115,19 @@ var app_Component = MetaphorJs.app.Component = cls({
                 }
             );
         }
+
+        self.$cfg = {};
+        self.config.setTo(self.$cfg);
         self._initConfig();
 
-        if (self.config.hasExpression("as")) {
+        if (self.config.has("as")) {
             self.scope[self.config.get("as")] = self;
         }
 
         if (self.node) {
             var nodeId = dom_getAttr(self.node, "id");
             if (nodeId) {
-                self.originalId = true;
+                self._originalId = true;
                 if (!self.id) {
                     self.id = nodeId;
                 }
@@ -28103,7 +28166,7 @@ var app_Component = MetaphorJs.app.Component = cls({
                 passAttrs: self.passAttrs
             });
 
-            self.template.on("first-node", self.onFirstNodeReported, self);
+            self.template.on("first-node", self._onFirstNodeReported, self);
         }
         else if (tpl instanceof app_Template) {
             // it may have just been created
@@ -28112,10 +28175,10 @@ var app_Component = MetaphorJs.app.Component = cls({
 
         self.afterInitComponent.apply(self, arguments);
 
-        self.template.on("rendered", self.onRenderingFinished, self);
+        self.template.on("rendered", self._onRenderingFinished, self);
 
         if (self.parentRenderer) {
-            self.parentRenderer.on("destroy", self.onParentRendererDestroy, self);
+            self.parentRenderer.on("destroy", self._onParentRendererDestroy, self);
         }
 
         if (self.node) {
@@ -28133,15 +28196,32 @@ var app_Component = MetaphorJs.app.Component = cls({
         }
     },
 
-    _initConfig: function(){
-        var self = this;
-        self.config.setDefaultMode("as", lib_Config.MODE_STATIC);
+    _initConfig: function() {
+        var self = this,
+            config = self.config,
+            ctx;
+
+        config.setDefaultMode("tag", lib_Config.MODE_STATIC);
+        config.setDefaultValue("tag", "div");
+        config.setDefaultMode("as", lib_Config.MODE_STATIC);
+        config.setDefaultMode("callbackContext", lib_Config.MODE_SINGLE);
+        config.eachProperty(function(name) {
+            if (name.substring(0,4) === 'on--') {
+                config.setMode(name, lib_Config.MODE_LISTENER);
+                if (!ctx) {
+                    ctx = config.get("callbackContext") ||
+                            self.scope.$app.getParentCmp(self.node) ||
+                            self.scope.$app ||
+                            self.scope;
+                    self.on(name.substring(4), config.get(name), ctx);
+                }
+            }
+        });
     },
 
     _createNode: function() {
-
         var self    = this;
-        self.node   = window.document.createElement(self.tag || 'div');
+        self.node   = window.document.createElement(self.config.get("tag"));
     },
 
     _initElement: function() {
@@ -28149,26 +28229,20 @@ var app_Component = MetaphorJs.app.Component = cls({
         var self    = this,
             node    = self.node;
 
-        if (!self.originalId) {
+        if (!self._originalId) {
             dom_setAttr(node, "id", self.id);
         }
 
-        self.initNode();
+        self._initNode();
     },
 
-    releaseNode: function() {
-
+    _releaseNode: function() {
         var self = this,
             node = self.node;
-
         dom_removeAttr(node, "cmp-id");
-
-        if (self.cls) {
-            dom_removeClass(node, self.cls);
-        }
     },
 
-    onFirstNodeReported: function(node) {
+    _onFirstNodeReported: function(node) {
         var self = this;
         if (self._nodeReplaced) {
             dom_setAttr(node, "cmp-id", self.id);
@@ -28176,24 +28250,16 @@ var app_Component = MetaphorJs.app.Component = cls({
         }
     },
 
-    initNode: function() {
+    _initNode: function() {
 
         var self = this,
             node = self.node;
 
         dom_setAttr(node, "cmp-id", self.id);
         node.$$cmpId = self.id;
-
-        if (self.cls) {
-            dom_addClass(node, self.cls);
-        }
-
-        if (self.hidden) {
-            node.style.display = "none";
-        }
     },
 
-    replaceNodeWithTemplate: function() {
+    _replaceNodeWithTemplate: function() {
         var self = this;
 
         if (self._nodeReplaced && self.node.parentNode) {
@@ -28224,25 +28290,30 @@ var app_Component = MetaphorJs.app.Component = cls({
 
         var self        = this;
 
-        if (self.rendered) {
+        if (self._rendered) {
             return;
         }
 
         if ((self._nodeReplaced && self.node !== self.template.node) ||
             !self.node) {
-            self.replaceNodeWithTemplate();
+            self._replaceNodeWithTemplate();
         }
 
+        self.onBeforeRender();
         self.trigger('render', self);
         self.template.startRendering();
     },
 
-    onRenderingFinished: function() {
+    onBeforeRender: function() {
+        this.config.getAll(); // calc all props and put into scope.cfg
+    },
+
+    _onRenderingFinished: function() {
         var self = this;
 
         if ((self._nodeReplaced && self.node !== self.template.node) ||
             !self.node) {
-            self.replaceNodeWithTemplate();
+            self._replaceNodeWithTemplate();
         }
 
         if (self.renderTo) {
@@ -28252,17 +28323,17 @@ var app_Component = MetaphorJs.app.Component = cls({
             window.document.body.appendChild(self.node);
         }
 
-        self.rendered   = true;
+        self._rendered   = true;
         self.afterRender();
         self.trigger('after-render', self);
     },
 
 
-    /**
+    /*
      * @access public
      * @method
      */
-    show: function() {
+    /*show: function() {
         var self    = this;
         if (!self.hidden) {
             return;
@@ -28288,13 +28359,13 @@ var app_Component = MetaphorJs.app.Component = cls({
         if (self.node) {
             self.node.style.display = "block";
         }
-    },
+    },*/
 
-    /**
+    /*
      * @access public
      * @method
      */
-    hide: function() {
+    /*hide: function() {
         var self    = this;
         if (self.hidden) {
             return;
@@ -28316,11 +28387,11 @@ var app_Component = MetaphorJs.app.Component = cls({
         if (self.node) {
             self.node.style.display = "none";
         }
-    },
+    },*/
 
     freezeByView: function(view) {
         var self = this;
-        self.releaseNode();
+        self._releaseNode();
         self.scope.$freeze();
         self.trigger("view-freeze", self, view);
 
@@ -28328,26 +28399,26 @@ var app_Component = MetaphorJs.app.Component = cls({
 
     unfreezeByView: function(view) {
         var self = this;
-        self.initNode();
+        self._initNode();
         self.scope.$unfreeze();
         self.trigger("view-unfreeze", self, view);
         self.scope.$check();
     },
 
-    /**
+    /*
      * @access public
      * @return bool
      */
-    isHidden: function() {
-        return this.hidden;
-    },
+    //isHidden: function() {
+    //    return this.hidden;
+    //},
 
     /**
      * @access public
      * @return bool
      */
     isRendered: function() {
-        return this.rendered;
+        return this._rendered;
     },
 
     /**
@@ -28390,19 +28461,19 @@ var app_Component = MetaphorJs.app.Component = cls({
      */
     afterRender:    emptyFn,
 
-    /**
+    /*
      * @method
      * @access protected
      */
-    onShow:         emptyFn,
+    //onShow:         emptyFn,
 
-    /**
+    /*
      * @method
      * @access protected
      */
-    onHide:         emptyFn,
+    //onHide:         emptyFn,
 
-    onParentRendererDestroy: function() {
+    _onParentRendererDestroy: function() {
         this.$destroy();
     },
 
@@ -28421,12 +28492,14 @@ var app_Component = MetaphorJs.app.Component = cls({
         }
         else if (self.node) {
 
-            if (!self.originalId) {
+            if (!self._originalId) {
                 dom_removeAttr(self.node, "id");
             }
 
-            self.releaseNode();
+            self._releaseNode();
         }
+
+        self.config.$destroy();
 
         if (self.destroyScope && self.scope) {
             self.scope.$destroy();
@@ -28983,7 +29056,7 @@ var dialog_position_Target = MetaphorJs.dialog.position.Target =
             size    = dlg.getDialogSize(),
             offset  = pBase && !absolute ?
                         dom_getPosition(target, pBase) :
-                        MetaphorJs.dom.getOffset(target),
+                        dom_getOffset(target),
             tsize   = dlg.getTargetSize(),
             pos     = {},
             pri     = type.substr(0, 1),
@@ -29124,7 +29197,7 @@ var dialog_position_Mouse = MetaphorJs.dialog.position.Mouse = dialog_position_T
             absOfs  = {x: 0, y: 0};
 
         if (!absolute && base) {
-            var baseOfs = MetaphorJs.dom.getOffset(base);
+            var baseOfs = dom_getOffset(base);
             absOfs.x = baseOfs.left;
             absOfs.y = baseOfs.top;
         }
@@ -33164,7 +33237,7 @@ cls({
     $extends: "MetaphorJs.app.Router",
     route: [
         {
-            template: 'test-template',
+            template: 'test-template.html',
             "default": true
         },
         {
@@ -33273,7 +33346,7 @@ cls({
                 });
         }
     }, {
-        template: "cmp1-template",
+        template: "cmp1-template.html",
         resolve: {
             deferred: ['$node', '$scope', 'test', function(node, scope, test) {
                 return new lib_Promise(function(resolve, reject){
@@ -33290,7 +33363,7 @@ cls({
     $class: "Test.MyComponent2",
     $extends: "MetaphorJs.app.Component",
 
-    template: 'cmp1-template',
+    template: 'cmp1-template.html',
 
     initComponent: function(cfg, param) {
         var self    = this;
@@ -33312,7 +33385,7 @@ cls({
         var self    = this;
 
         self.scope.title= "Tpl Component";
-        self.scope.tpl  = "a+b";
+        self.scope.tpl  = "a+b.html";
 
         self.scope.$app.onAvailable("myComponent1").done(function(cmp){
             if (window.console && window.console.log) {
@@ -33370,7 +33443,7 @@ cls({
     $class: "Test.TagComponent",
     $extends: "MetaphorJs.app.Component",
     $alias: "MetaphorJs.directive.component.tagc",
-    template: "tagc"
+    template: "tagc.html"
 });
 
 

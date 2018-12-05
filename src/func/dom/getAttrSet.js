@@ -69,6 +69,10 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
         set.inflated = true;
     };
 
+    var ccName = function(name) {
+        return name.indexOf('--') !== -1 ? name : toCamelCase(name);
+    };
+
     return function dom_getAttrSet(node) {
 
         var set = getEmpty(),
@@ -135,7 +139,7 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
 
                 tagName = node.tagName.toLowerCase();
 
-                set['config'][toCamelCase(name)] = {
+                set['config'][ccName(name)] = {
                     expression: value,
                     mode: execMode,
                     dtype: dtypes[mode]
@@ -173,7 +177,7 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
                     if (value === "") {
                         value = true;
                     }
-                    prop = toCamelCase(subname.substr(1));
+                    prop = ccName(subname.substr(1));
                     coll[name].config[prop] = {
                         mode: execMode,
                         expression: value,

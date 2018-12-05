@@ -253,8 +253,8 @@
             <div class="case" {cmp}="Test.TplComponent" id="tplComponentTest">
                 <h2>{{ this.title }}</h2>
                 mjs-include change template:<br>
-                <a href="#" (click)="this.tpl = 'a+b'">a + b</a> |
-                <a href="#" (click)="this.tpl = 'a*b'">a * b</a>
+                <a href="#" (click)="this.tpl = 'a+b.html'">a + b</a> |
+                <a href="#" (click)="this.tpl = 'a*b.html'">a * b</a>
 
                 <div {include}="this.tpl" {include.$animate} id="tplComponetInc"></div>
             </div>
