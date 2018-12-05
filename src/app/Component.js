@@ -179,8 +179,8 @@ module.exports = MetaphorJs.app.Component = cls({
                 tpl: tpl,
                 url: url,
                 shadow: self.constructor.$shadow,
-                animate: !self.hidden && !!self.animate,
-                passAttrs: self.passAttrs
+                animate: !self.hidden && !!self.animate//,
+                //passAttrs: self.passAttrs
             });
 
             self.template.on("first-node", self._onFirstNodeReported, self);

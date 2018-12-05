@@ -279,13 +279,12 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 var tag     = node.tagName.toLowerCase(),
                     defers  = [],
                     nodes   = [],
-                    i, l, f, len, c,
+                    i, f, len, c,
                     attrs, as, config,
                     attrProps,
                     name,
                     res,
-                    handler,
-                    someHandler = false;
+                    handler;
 
                 if (tag.substr(0, 4) === "mjs-") {
                     tag = tag.substr(4);
@@ -316,8 +315,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 // by adding it to the attr map
                 if (c = dirs.component[tag]) {
 
-                    as = (attrs.config.as ? attrs.config.as.expression : null) || 
-                            c.tag;
+                    as = attrs.config.tag ? attrs.config.tag.expression : null;
 
                     if (as) {
 
@@ -345,10 +343,11 @@ module.exports = MetaphorJs.app.Renderer = function() {
                     else {
 
                         f = dirs.attr.cmp;
-                        var passAttrs = extend({}, attrs);
+                        delete attrs['directive']['cmp'];
+                        /*var passAttrs = extend({}, attrs);
                         delete passAttrs['directive']['cmp'];
 
-                        attrs.config.passAttrs = passAttrs;
+                        attrs.config.passAttrs = passAttrs;*/
 
                         config = new MetaphorJs.lib.Config(
                             extend({}, attrs.config, {
@@ -357,12 +356,11 @@ module.exports = MetaphorJs.app.Renderer = function() {
                                     expression: c
                                 }
                             }, true, false),
-                            {scope: self.scope, deferInit: true}
+                            {scope: self.scope}
                         );
                         self.on("destroy", config.$destroy, config);
 
                         res = self.runHandler(f, scope, node, config, attrs);
-                        someHandler = true;
 
                         if (res === false) {
                             return false;
@@ -385,7 +383,6 @@ module.exports = MetaphorJs.app.Renderer = function() {
                     );
                     self.on("destroy", config.$destroy, config);
                     res = self.runHandler(f, scope, node, config, attrs);
-                    someHandler = true;
 
                     attrs.removeDirective(node, tag);
 
@@ -422,7 +419,6 @@ module.exports = MetaphorJs.app.Renderer = function() {
                         self.on("destroy", config.$destroy, config);
                         res     = self.runHandler(handler, scope, node, config, attrs);
 
-                        someHandler = true;
                         attrProps.handled = true;
 
                         if (res === false) {

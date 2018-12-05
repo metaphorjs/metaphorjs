@@ -30,6 +30,8 @@ var Directive = require("../../app/Directive.js"),
         var newScope = isolateScope ? scope.$newIsolated() : 
                                         (sameScope ? scope : scope.$new());
 
+        config.removeProperty("value");
+
         var cfg = {
             scope: newScope,
             node: node,

@@ -303,11 +303,10 @@ module.exports = MetaphorJs.app.Template = function() {
         doRender: function() {
             var self = this;
             if (!self._renderer) {
-                self._renderer   = new MetaphorJs.app.Renderer(self.node, self.scope, null, self.passAttrs);
+                self._renderer   = new MetaphorJs.app.Renderer(self.node, self.scope, null/*, self.passAttrs*/);
                 self._renderer.on("rendered", self.onRendered, self);
                 self._renderer.on("first-node", self.onFirstNodeReported, self);
                 self._renderer.process();
-                //self.on("destroy", self._renderer.$destroy, self._renderer);
             }
         },
 

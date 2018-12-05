@@ -438,6 +438,18 @@ module.exports = MetaphorJs.lib.Config = (function(){
         },
 
         /**
+         * Remove config property and its value
+         * @param {string} name 
+         */
+        removeProperty: function(name) {
+            if (this.properties[name]) {
+                this._toggleProperty(name, true);
+                delete this.properties[name];
+                delete this.values[name];
+            }
+        },
+
+        /**
          * Set property mode
          * @method
          * @param {string} name 
