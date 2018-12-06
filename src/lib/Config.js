@@ -648,6 +648,11 @@ module.exports = MetaphorJs.lib.Config = (function(){
          * @param {string} propName 
          */
         checkScope: function(propName) {
+
+            if (!this.cfg) {
+                return;
+            }
+
             var scope = this.cfg.scope,
                 descr = MetaphorJs.lib.Expression.describeExpression(
                     this.getExpression(propName)
