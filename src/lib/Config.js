@@ -101,7 +101,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
             if (prop.expression) {
 
                 if (!prop.mode) {
-                    prop.mode = MODE_DYNAMIC;
+                    prop.mode = self.cfg.defaultMode || MODE_DYNAMIC;
                 }
 
                 if (prop.mode === MODE_STATIC) {
