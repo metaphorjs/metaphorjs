@@ -25,6 +25,7 @@ var cls = require("metaphorjs-class/src/cls.js"),
 module.exports = MetaphorJs.app.Component = cls({
 
     $mixins: [MetaphorJs.mixin.Observable],
+    $mixinEvents: ["$initConfig"],
 
     /**
      * @access protected
@@ -136,6 +137,7 @@ module.exports = MetaphorJs.app.Component = cls({
         self.$cfg = {};
         self.config.setTo(self.$cfg);
         self._initConfig();
+        self.$callMixins("$initConfig");
 
         if (self.config.has("as")) {
             self.scope[self.config.get("as")] = self;
