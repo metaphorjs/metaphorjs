@@ -155,7 +155,13 @@
                 </div>
                 <label class="case-label">mjs-class ({bool: .bool, inline1: .a == 0})</label>
                 <div class="test">
-                    <p id="class-object" {class}="{bool: this.bool, inline1: this.a == 0}">---</p>
+                    <p id="class-object" 
+                        {class}="{bool: this.bool, inline1: this.a == 0}">---</p>
+                </div>
+                <div class="test">
+                    <p id="class-object" 
+                        {class.bool}="this.bool"
+                        {class.inline1}="this.a == 0">---</p>
                 </div>
             </div>
 

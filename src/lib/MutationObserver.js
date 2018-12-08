@@ -21,6 +21,7 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
 
     var checkAll = function() {
         var k, changes = 0;
+
         for (k in this) {
             if (this.hasOwnProperty(k) && k !== "$checkAll") {
                 if (this[k].check()){
@@ -28,6 +29,7 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
                 }
             }
         }
+
         return changes;
     };
 

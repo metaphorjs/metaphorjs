@@ -2,97 +2,98 @@
 /* BUNDLE START 004 */
 "use strict";
 
-var MetaphorJsPrebuilt = {"templates":{"a*b.html":"<p>a * b = {{--818}}</p>","a+b.html":"<p>a + b = {{--81B}}</p>","app1.html":"<h1>MetaphorJs Feature test</h1><div class=\"cases\"><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Inline</label><div id=\"inline-binding\" class=\"test\">{{--827}}</div><label class=\"case-label\">mjs-bind</label><div id=\"binding\" {bind}=\"--81K\" class=\"test\"></div><label class=\"case-label\">mjs-bind-html</label><div id=\"html-binding\" {bind-html}=\"--81N\" class=\"test\"></div><label class=\"case-label\">Plain attribute (href)</label><p class=\"test\"><a id=\"attr-binding-href\" [href]=\"http://{{--827}}.com\">{{--81K}}</a></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Input field (value)</label><p class=\"test\"><input id=\"binding-input-value\" type=\"text\" [value]=\"this.a\"></p><label class=\"case-label\">Input field (mjs-bind) (locked)</label><p class=\"test\"><input id=\"binding-input-bind\" type=\"text\" {bind}=\"--81Z\" {bind.$locked}></p><label class=\"case-label\">Checkbox (mjs-bind)</label><p class=\"test\"><input id=\"binding-checkbox\" type=\"checkbox\" {bind}=\"--823\"></p><label class=\"case-label\">Radio (mjs-bind) (locked)</label><p class=\"test\"><input id=\"radio-bind-1\" checked=\"checked\" type=\"radio\" value=\"inline1\" name=\"radio-bind\" {bind}=\"--827\" {bind.$locked}> <input id=\"radio-bind-2\" type=\"radio\" value=\"inline2\" name=\"radio-bind\"> <input id=\"radio-bind-3\" type=\"radio\" value=\"inline3\" name=\"radio-bind\"></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Select (mjs-bind)</label><p class=\"test\"><select id=\"select-bind\" {bind}=\"--81Z\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p><label class=\"case-label\">Textarea (mjs-bind)</label><p class=\"test\"><textarea id=\"textarea-bind-attr\" {bind}=\"--827\"></textarea></p><label class=\"case-label\">Textarea (inline)</label><p class=\"test\"><textarea id=\"textarea-bind-inline\">{{--827}}</textarea></p></div><div class=\"case\"><h4>Muplitple inline binding</h4><div id=\"multiple-inline-binding\" class=\"test\">{{--827}}<b>{{--81K}}</b>{{--81N}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Uppercase (mjs-bind)</label><div id=\"filter-uppercase-binding\" class=\"test\" {bind}=\"this.text | uppercase\"></div><label class=\"case-label\">Uppercase (inline)</label><div id=\"filter-uppercase-inline\" class=\"test\">{{this.text | uppercase}}</div><label class=\"case-label\">Lowercase (inline)</label><div id=\"filter-lowercase-inline\" class=\"test\">{{this.text | lowercase}}</div><label class=\"case-label\">Limit to (string)</label><div id=\"filter-limit-string\" class=\"test\">{{this.text | limitTo:this.a}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Linkify</label><p id=\"filter-linkify\" class=\"test\" {bind-html}=\"this.linkified | linkify\"></p></div><div class=\"case\"><h4>Expressions</h4><label class=\"case-label\">.a + .b</label><div id=\"expr-a-plus-b\" class=\"test\">{{--88J}}</div><label class=\"case-label\">.bool ? \"true\" : \"false\"</label><div id=\"expr-bool\" class=\"test\">{{--88K}}</div></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Input (number) (.a)</label><p class=\"test\"><input {model}=\"this.a\" type=\"number\" data-type=\"number\" id=\"model-input-a\"></p><label class=\"case-label\">Checkbox (.bool)</label><p class=\"test\"><input id=\"model-checkbox-bool\" type=\"checkbox\" {model}=\"this.bool\"></p><label class=\"case-label\">Radio (.inline)</label><p class=\"test\"><input id=\"model-radio-1\" checked=\"checked\" type=\"radio\" name=\"r\" value=\"inline1\" {model}=\"this.inline\">1<label><input id=\"model-radio-2\" type=\"radio\" name=\"r\" value=\"inline2\">2</label><input id=\"model-radio-3\" type=\"radio\" name=\"r\" value=\"inline3\">3</p><label class=\"case-label\">Select (.a)</label><p class=\"test\"><select id=\"model-select-a\" {model}=\"this.a\" data-type=\"number\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Textarea (.text)</label><p class=\"test\"><textarea id=\"model-textarea\" {model}=\"this.text\"></textarea></p><label class=\"case-label\">Input (string .text)</label><p class=\"test\"><input type=\"text\" id=\"model-input\" {model}=\"this.text\"></p></div><div class=\"case\"><h4>mjs-class</h4><label class=\"case-label\">Plain attribute</label><div class=\"test\"><p id=\"class-inline\" [class]=\"this.inline\">---</p></div><label class=\"case-label\">mjs-class (string)</label><div class=\"test\"><p id=\"class-string\" {class}=\"--827\">---</p></div><label class=\"case-label\">mjs-class ({bool: .bool, inline1: .a == 0})</label><div class=\"test\"><p id=\"class-object\" {class}=\"--84H\">---</p></div></div><div class=\"case\"><h4>mjs-if, mjs-show, mjs-hide</h4><div id=\"if-bool\" {if}=\"--823\" class=\"test\" {if.$animate}>this should appear if .bool = true</div><div id=\"show-bool\" {show}=\"--823\" class=\"test\" {show.$animate}>this should show if .bool = true</div><div id=\"hide-bool\" {hide}=\"--823\" class=\"test\" {hide.$animate}>this should hide if .bool = true</div></div><div class=\"case\"><h4>mjs-include</h4><label class=\"case-label\">immediate</label><div {include}=\"test-template.html\" {include.$animate}><p>transcluded text</p></div><label class=\"case-label\">immediate (via tag)</label><mjs-include src=\"test-template.html\"><p>transcluded text</p></mjs-include><label class=\"case-label\">ajax</label><div {include}=\"template.html\"><p>Transcluded text</p></div></div><div class=\"case\"><h4>mjs-validate</h4><form name=\"myForm\" {validate} {class.error}=\"--851\" {class.$animate}><div><input name=\"field1\" data-validate-required {class}=\"--854\"></div><div {class}=\"--856\"><label><input type=\"radio\" name=\"radio1\" value=\"1\" data-validate-required> -- 1</label><label><input type=\"radio\" name=\"radio1\" value=\"2\"> -- 2</label><label><input type=\"radio\" name=\"radio1\" value=\"3\"> -- 3</label></div><div><input type=\"submit\" value=\"Submit\"> <input type=\"reset\" value=\"Reset\"></div></form></div><div class=\"case\" {init}=\"--85H\"><h4>dynamic list</h4><label><input id=\"radio-sep-1\" type=\"radio\" name=\"sep\" value=\"/\\n|,/\" {model}=\"this.sep\"> /\\n|,/</label><label><input type=\"radio\" name=\"sep\" value=\"/\\n/\"> /\\n/</label><label><input type=\"radio\" name=\"sep\" value=\",\"> ,</label><br><br><textarea {model}=\"split:this.sep >> this.dynamicList\" {model.$binding}=\"input\"></textarea><ul><li {each}=\"item in this.dynamicList\" {bind}=\"--85U\" {bind.$recursive}></li></ul></div><div class=\"case\"><h4>mjs-options</h4><label class=\"case-label\">Generated from .alist</label><p class=\"test\"><select {bind}=\"--81Z\" {options}=\"this.alist\"><option>not selected</option></select></p><label class=\"case-label\">Generated from .dynamicList</label><p class=\"test\"><select {options}=\"{\n                        name: this.item,\n                        value: this.$index,\n                        group: this.$index - (this.$index % 2),\n                        disabledGroup: this.$index == 0,\n                        disabled: this.$index == 4\n                        } in this.dynamicList\"><option>default value</option></select></p></div><div class=\"case\" {cmp}=\"Test.TplComponent\" id=\"tplComponentTest\"><h2>{{--88L}}</h2>mjs-include change template:<br><a href=\"#\" (click)=\"--869\">a + b</a>|<a href=\"#\" (click)=\"--86B\">a * b</a><div {include}=\"--86D\" {include.$animate} id=\"tplComponetInc\"></div></div><div class=\"case\" {cmp}=\"Test.StringTemplate\"></div><div class=\"case\" {cmp}=\"Test.ChangeTemplate\">mjs-cmp change template:<br><a href=\"#\" (click)=\"--86I\">tpl1</a>|<a href=\"#\" (click)=\"--86K\">tpl2</a></div><div class=\"case\"><h4>Router</h4><div {router}=\"Test.MyView\" {router.$animate}></div>pushUrl:<a href=\"/1\">/1</a>|<a href=\"/2\">/2</a>|<a href=\"/3\">/3</a>|<a href=\"http://www.kuindji.com\">outside</a><br><br></div><div class=\"case\" {ignore}>This element is ignored by renderer: {{--88M}}</div><div class=\"case\" {router} {router.$cmp}=\"--86W\" {router.$default-cmp}:=\"Test.ViewComponent1\"><p>change cmp:<a href=\"#\" (click)=\"--86Z\">Cmp1</a>|<a href=\"#\" (click)=\"--871\">Cmp2</a></p></div></div><div class=\"cases\"><div class=\"case double\" {init}=\"--874\"><h4>mjs-each (attr)</h4><input {model}=\"this.newItem\" (key.enter)=\"--877\"> <input type=\"button\" {disabled}=\"--879\" (click)=\"--87A\" value=\"Add item\"><ul {show}=\"--823\" {show.$animate}><li {each}=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\" {each.$animate} {each.$animate-move}><label {class}=\"--87E\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{--88N}} - {{--88O}} - {{--88P}} - {{--88Q}} - {{--88R}} - {{--88S}}</label><a href=\"#\" (click)=\"--87H\">x</a></li></ul><input {model}=\"this.listFilter\" placeholder=\"Search\"><a href=\"#\" (click)=\"--87K\">asc</a><a href=\"#\" (click)=\"--87M\">desc</a></div><div class=\"case double\"><h4>mjs-each (tag)</h4><mjs-each value=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\"><div><label {class}=\"--87E\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{--88N}} - {{--88O}} - {{--88P}} - {{--88Q}} - {{--88R}} - {{--88S}}</label><a href=\"#\" (click)=\"--87H\">x</a></div></mjs-each></div><div class=\"case\" id=\"newComponent\">Dynamically created component on existing element will go here</div><div class=\"case\" id=\"renderToComponent\">Dynamically created component with renderTo will go here</div><div class=\"case double\" {cmp}=\"Test.MyComponent\" {cmp.$as}=\"ctrl\"><p {cmp-prop}=\"para\">Component's transcluded text + {{--88M}}</p><a href=\"#\" (click)=\"--87Z\">reverse</a>|<a href=\"#\" (click)=\"--881\">create new component on existing element</a>|<a href=\"#\" (click)=\"--883\">create new component and render to</a>|<a href=\"#\" (click)=\"--885\">create new dialog</a><br><br><button (click)=\"--889\">Load store</button><button (click)=\"--88B\">Clear store</button><ul><li {each}=\"item in this.store\" {each.$animate}>{{--88T}}</li></ul></div><div class=\"case double\" id=\"myComponent1\" {cmp}=\"Test.MyComponent\"><p>This is another instance with deferred value: {{--88U}}</p></div><div class=\"case double\"><tagc $as:=\"ctrl\" $test:=\"Value from config\"></tagc></div></div>","app2.html":"<div class=\"case\"><h4>app's resolved value</h4><p class=\"test\">{{--89M}}</p></div><div class=\"case\"><h4>recursive rendering</h4><p><a href=\"#\" (click)=\"--892\">Change level 2</a></p><p class=\"test\">This is level 1:<span {bind}=\"--895\" {bind.$recursive}></span></p></div><div class=\"case\"><h4>lang substitution</h4><label class=\"case-label\">using normal expression with filter: 'key' | l</label><p class=\"test\">{{'key' | l}}</p><p class=\"test\" {bind}=\"'subkey1' | l\" {bind.$recursive}></p></div><div class=\"case\"><h4>pluralization</h4><p><a href=\"#\" (click)=\"--89F\">Increase B</a></p><label class=\"case-label\">using normal expression:</label><p class=\"test\">{{--89N}} {{'plr' | p:this.b}}</p><p><input type=\"number\" data-type=\"number\" {model}=\"this.people\"></p><p class=\"test\" {bind}=\"'viewing' | p:this.people\" {bind.$recursive}></p></div>","cmp1-template.html":"<h2>{{--88L}}</h2><div {transclude}></div>","dirs.html":"<div class=\"form_select\" (click)=\"--89S\" {class.loading}=\"--89T\" {class.disabled}=\"--89U\" {class.search}=\"--89V\" {class.multiple}=\"--89W\" {class.black}=\"--89X\"><input type=\"hidden\" #el_hidden_field [name]=\"this.field.hiddenInputName\" [value]=\"this.field.$$selection | join:','\"><i #el_icon_down (click)=\"--8A0\"><!-- include icons/down.html --></i><a class=\"form_select__label\" {each}=\"item in this.field.getMultiSelection()\" style=\"display: inline-block !important;\">{{--8B3}}<i class=\"delete icon\" (click)=\"--8A3\"></i></a><input type=\"text\" #el_search class=\"search\" [disabled]=\"this.field.disabled\" {show}=\"--89V\" {show.$display}=\"inline-block\" (focus)=\"--8A5\" (blur)=\"--8A6\" (key.backspace)=\"--8A7\" {model}=\"this.searchQuery\"><span class=\"sizer\" #el_sizer {if}=\"--8A9\" {bind}=\"--8AA\"></span><div class=\"default text\" #el_default_text (click)=\"--8AC\" {show}=\"--8AD\" {show.$display}=\"inline-block\" {show.$save-state}=\"--8AE\" {bind}=\"--8AF\"></div><div class=\"text\" #el_text (click)=\"--8AC\" {class.default}=\"--8AH\" {show}=\"--8AI\" {show.$save-state}=\"--8AJ\" {show.$display}=\"inline-block\" {bind}=\"--8AK\"></div><!-- replaces two previous text blocks with invisible placeholder --><div style=\"display: none\" class=\"default text\" {show}=\"--8AM\" {show.$display}=\"inline-block\">&nbsp;</div><select class=\"form-select_hidden-select\" #el_hidden_select (click)=\"--8AO\" (change)=\"--8AP\" {show}=\"--8AQ\" {show.$display}=\"block\" {options}=\"this.field._getSelectOptions()\"></select><div class=\"form-select-menu\" #el_menu {class.black}=\"--89X\"><div class=\"items\" #el_menu_items><div class=\"disabled item\" #el_menu_disabled {if}=\"--8AU\" (click)=\"--8AV\" {bind-html}=\"--8AW\"></div><div class=\"empty item\" #el_menu_empty style=\"color: #999;\" {if}=\"--8AY\" (click)=\"--8AZ\" {bind-html}=\"--8B0\"></div><div class=\"item\" {each}=\"item in this.field.store\" (click)=\"--8B2\" {bind}=\"--8B3\"></div></div><div class=\"pagination_container\" {cmp}=\"Pagination\" {cmp.$autoscroll}=\"false\" {show}=\"--8B5\" (click)=\"--8B6\"></div></div></div>","tagc.html":"<div class=\"component\"><p>This is a tag component.</p><p>{{--8BC}}</p></div>","test-template.html":"<p>{{--8BG}}</p><div {transclude}></div>"},"templateOptions":{"dirs.html":{"includes":true}},"expressionOpts":{"818":"r","871":"p","81B":"r","86Z":"p","87H":"p","88M":"r","8A3":"p","8B2":"p","8B3":"p","8B6":"p","8BG":"r"}}
+var MetaphorJsPrebuilt = {"templates":{"a*b.html":"<p>a * b = {{--818}}</p>","a+b.html":"<p>a + b = {{--81B}}</p>","app1.html":"<h1>MetaphorJs Feature test</h1><div class=\"cases\"><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Inline</label><div id=\"inline-binding\" class=\"test\">{{--827}}</div><label class=\"case-label\">mjs-bind</label><div id=\"binding\" {bind}=\"--81K\" class=\"test\"></div><label class=\"case-label\">mjs-bind-html</label><div id=\"html-binding\" {bind-html}=\"--81N\" class=\"test\"></div><label class=\"case-label\">Plain attribute (href)</label><p class=\"test\"><a id=\"attr-binding-href\" [href]=\"http://{{--827}}.com\">{{--81K}}</a></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Input field (value)</label><p class=\"test\"><input id=\"binding-input-value\" type=\"text\" [value]=\"this.a\"></p><label class=\"case-label\">Input field (mjs-bind) (locked)</label><p class=\"test\"><input id=\"binding-input-bind\" type=\"text\" {bind}=\"--81Z\" {bind.$locked}></p><label class=\"case-label\">Checkbox (mjs-bind)</label><p class=\"test\"><input id=\"binding-checkbox\" type=\"checkbox\" {bind}=\"--823\"></p><label class=\"case-label\">Radio (mjs-bind) (locked)</label><p class=\"test\"><input id=\"radio-bind-1\" checked=\"checked\" type=\"radio\" value=\"inline1\" name=\"radio-bind\" {bind}=\"--827\" {bind.$locked}> <input id=\"radio-bind-2\" type=\"radio\" value=\"inline2\" name=\"radio-bind\"> <input id=\"radio-bind-3\" type=\"radio\" value=\"inline3\" name=\"radio-bind\"></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Select (mjs-bind)</label><p class=\"test\"><select id=\"select-bind\" {bind}=\"--81Z\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p><label class=\"case-label\">Textarea (mjs-bind)</label><p class=\"test\"><textarea id=\"textarea-bind-attr\" {bind}=\"--827\"></textarea></p><label class=\"case-label\">Textarea (inline)</label><p class=\"test\"><textarea id=\"textarea-bind-inline\">{{--827}}</textarea></p></div><div class=\"case\"><h4>Muplitple inline binding</h4><div id=\"multiple-inline-binding\" class=\"test\">{{--827}}<b>{{--81K}}</b>{{--81N}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Uppercase (mjs-bind)</label><div id=\"filter-uppercase-binding\" class=\"test\" {bind}=\"this.text | uppercase\"></div><label class=\"case-label\">Uppercase (inline)</label><div id=\"filter-uppercase-inline\" class=\"test\">{{this.text | uppercase}}</div><label class=\"case-label\">Lowercase (inline)</label><div id=\"filter-lowercase-inline\" class=\"test\">{{this.text | lowercase}}</div><label class=\"case-label\">Limit to (string)</label><div id=\"filter-limit-string\" class=\"test\">{{this.text | limitTo:this.a}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Linkify</label><p id=\"filter-linkify\" class=\"test\" {bind-html}=\"this.linkified | linkify\"></p></div><div class=\"case\"><h4>Expressions</h4><label class=\"case-label\">.a + .b</label><div id=\"expr-a-plus-b\" class=\"test\">{{--88M}}</div><label class=\"case-label\">.bool ? \"true\" : \"false\"</label><div id=\"expr-bool\" class=\"test\">{{--88N}}</div></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Input (number) (.a)</label><p class=\"test\"><input {model}=\"this.a\" type=\"number\" data-type=\"number\" id=\"model-input-a\"></p><label class=\"case-label\">Checkbox (.bool)</label><p class=\"test\"><input id=\"model-checkbox-bool\" type=\"checkbox\" {model}=\"this.bool\"></p><label class=\"case-label\">Radio (.inline)</label><p class=\"test\"><input id=\"model-radio-1\" checked=\"checked\" type=\"radio\" name=\"r\" value=\"inline1\" {model}=\"this.inline\">1<label><input id=\"model-radio-2\" type=\"radio\" name=\"r\" value=\"inline2\">2</label><input id=\"model-radio-3\" type=\"radio\" name=\"r\" value=\"inline3\">3</p><label class=\"case-label\">Select (.a)</label><p class=\"test\"><select id=\"model-select-a\" {model}=\"this.a\" data-type=\"number\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Textarea (.text)</label><p class=\"test\"><textarea id=\"model-textarea\" {model}=\"this.text\"></textarea></p><label class=\"case-label\">Input (string .text)</label><p class=\"test\"><input type=\"text\" id=\"model-input\" {model}=\"this.text\"></p></div><div class=\"case\"><h4>mjs-class</h4><label class=\"case-label\">Plain attribute</label><div class=\"test\"><p id=\"class-inline\" [class]=\"this.inline\">---</p></div><label class=\"case-label\">mjs-class (string)</label><div class=\"test\"><p id=\"class-string\" {class}=\"--827\">---</p></div><label class=\"case-label\">mjs-class ({bool: .bool, inline1: .a == 0})</label><div class=\"test\"><p id=\"class-object\" {class}=\"--84H\">---</p></div><div class=\"test\"><p id=\"class-object\" {class.bool}=\"--823\" {class.inline1}=\"--84K\">---</p></div></div><div class=\"case\"><h4>mjs-if, mjs-show, mjs-hide</h4><div id=\"if-bool\" {if}=\"--823\" class=\"test\" {if.$animate}>this should appear if .bool = true</div><div id=\"show-bool\" {show}=\"--823\" class=\"test\" {show.$animate}>this should show if .bool = true</div><div id=\"hide-bool\" {hide}=\"--823\" class=\"test\" {hide.$animate}>this should hide if .bool = true</div></div><div class=\"case\"><h4>mjs-include</h4><label class=\"case-label\">immediate</label><div {include}=\"test-template.html\" {include.$animate}><p>transcluded text</p></div><label class=\"case-label\">immediate (via tag)</label><mjs-include src=\"test-template.html\"><p>transcluded text</p></mjs-include><label class=\"case-label\">ajax</label><div {include}=\"template.html\"><p>Transcluded text</p></div></div><div class=\"case\"><h4>mjs-validate</h4><form name=\"myForm\" {validate} {class.error}=\"--854\" {class.$animate}><div><input name=\"field1\" data-validate-required {class}=\"--857\"></div><div {class}=\"--859\"><label><input type=\"radio\" name=\"radio1\" value=\"1\" data-validate-required> -- 1</label><label><input type=\"radio\" name=\"radio1\" value=\"2\"> -- 2</label><label><input type=\"radio\" name=\"radio1\" value=\"3\"> -- 3</label></div><div><input type=\"submit\" value=\"Submit\"> <input type=\"reset\" value=\"Reset\"></div></form></div><div class=\"case\" {init}=\"--85K\"><h4>dynamic list</h4><label><input id=\"radio-sep-1\" type=\"radio\" name=\"sep\" value=\"/\\n|,/\" {model}=\"this.sep\"> /\\n|,/</label><label><input type=\"radio\" name=\"sep\" value=\"/\\n/\"> /\\n/</label><label><input type=\"radio\" name=\"sep\" value=\",\"> ,</label><br><br><textarea {model}=\"split:this.sep >> this.dynamicList\" {model.$binding}=\"input\"></textarea><ul><li {each}=\"item in this.dynamicList\" {bind}=\"--85X\" {bind.$recursive}></li></ul></div><div class=\"case\"><h4>mjs-options</h4><label class=\"case-label\">Generated from .alist</label><p class=\"test\"><select {bind}=\"--81Z\" {options}=\"this.alist\"><option>not selected</option></select></p><label class=\"case-label\">Generated from .dynamicList</label><p class=\"test\"><select {options}=\"{\n                        name: this.item,\n                        value: this.$index,\n                        group: this.$index - (this.$index % 2),\n                        disabledGroup: this.$index == 0,\n                        disabled: this.$index == 4\n                        } in this.dynamicList\"><option>default value</option></select></p></div><div class=\"case\" {cmp}=\"Test.TplComponent\" id=\"tplComponentTest\"><h2>{{--88O}}</h2>mjs-include change template:<br><a href=\"#\" (click)=\"--86C\">a + b</a>|<a href=\"#\" (click)=\"--86E\">a * b</a><div {include}=\"--86G\" {include.$animate} id=\"tplComponetInc\"></div></div><div class=\"case\" {cmp}=\"Test.StringTemplate\"></div><div class=\"case\" {cmp}=\"Test.ChangeTemplate\">mjs-cmp change template:<br><a href=\"#\" (click)=\"--86L\">tpl1</a>|<a href=\"#\" (click)=\"--86N\">tpl2</a></div><div class=\"case\"><h4>Router</h4><div {router}=\"Test.MyView\" {router.$animate}></div>pushUrl:<a href=\"/1\">/1</a>|<a href=\"/2\">/2</a>|<a href=\"/3\">/3</a>|<a href=\"http://www.kuindji.com\">outside</a><br><br></div><div class=\"case\" {ignore}>This element is ignored by renderer: {{--88P}}</div><div class=\"case\" {router} {router.$cmp}=\"--86Z\" {router.$default-cmp}:=\"Test.ViewComponent1\"><p>change cmp:<a href=\"#\" (click)=\"--872\">Cmp1</a>|<a href=\"#\" (click)=\"--874\">Cmp2</a></p></div></div><div class=\"cases\"><div class=\"case double\" {init}=\"--877\"><h4>mjs-each (attr)</h4><input {model}=\"this.newItem\" (key.enter)=\"--87A\"> <input type=\"button\" {disabled}=\"--87C\" (click)=\"--87D\" value=\"Add item\"><ul {show}=\"--823\" {show.$animate}><li {each}=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\" {each.$animate} {each.$animate-move}><label {class}=\"--87H\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{--88Q}} - {{--88R}} - {{--88S}} - {{--88T}} - {{--88U}} - {{--88V}}</label><a href=\"#\" (click)=\"--87K\">x</a></li></ul><input {model}=\"this.listFilter\" placeholder=\"Search\"><a href=\"#\" (click)=\"--87N\">asc</a><a href=\"#\" (click)=\"--87P\">desc</a></div><div class=\"case double\"><h4>mjs-each (tag)</h4><mjs-each value=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\"><div><label {class}=\"--87H\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{--88Q}} - {{--88R}} - {{--88S}} - {{--88T}} - {{--88U}} - {{--88V}}</label><a href=\"#\" (click)=\"--87K\">x</a></div></mjs-each></div><div class=\"case\" id=\"newComponent\">Dynamically created component on existing element will go here</div><div class=\"case\" id=\"renderToComponent\">Dynamically created component with renderTo will go here</div><div class=\"case double\" {cmp}=\"Test.MyComponent\" {cmp.$as}=\"ctrl\"><p {cmp-prop}=\"para\">Component's transcluded text + {{--88P}}</p><a href=\"#\" (click)=\"--882\">reverse</a>|<a href=\"#\" (click)=\"--884\">create new component on existing element</a>|<a href=\"#\" (click)=\"--886\">create new component and render to</a>|<a href=\"#\" (click)=\"--888\">create new dialog</a><br><br><button (click)=\"--88C\">Load store</button><button (click)=\"--88E\">Clear store</button><ul><li {each}=\"item in this.store\" {each.$animate}>{{--88W}}</li></ul></div><div class=\"case double\" id=\"myComponent1\" {cmp}=\"Test.MyComponent\"><p>This is another instance with deferred value: {{--88X}}</p></div><div class=\"case double\"><tagc $as:=\"ctrl\" $test:=\"Value from config\"></tagc></div></div>","app2.html":"<div class=\"case\"><h4>app's resolved value</h4><p class=\"test\">{{--89P}}</p></div><div class=\"case\"><h4>recursive rendering</h4><p><a href=\"#\" (click)=\"--895\">Change level 2</a></p><p class=\"test\">This is level 1:<span {bind}=\"--898\" {bind.$recursive}></span></p></div><div class=\"case\"><h4>lang substitution</h4><label class=\"case-label\">using normal expression with filter: 'key' | l</label><p class=\"test\">{{'key' | l}}</p><p class=\"test\" {bind}=\"'subkey1' | l\" {bind.$recursive}></p></div><div class=\"case\"><h4>pluralization</h4><p><a href=\"#\" (click)=\"--89I\">Increase B</a></p><label class=\"case-label\">using normal expression:</label><p class=\"test\">{{--89Q}} {{'plr' | p:this.b}}</p><p><input type=\"number\" data-type=\"number\" {model}=\"this.people\"></p><p class=\"test\" {bind}=\"'viewing' | p:this.people\" {bind.$recursive}></p></div>","cmp1-template.html":"<h2>{{--88O}}</h2><div {transclude}></div>","dirs.html":"<div class=\"form_select\" (click)=\"--89V\" {class.loading}=\"--89W\" {class.disabled}=\"--89X\" {class.search}=\"--89Y\" {class.multiple}=\"--89Z\" {class.black}=\"--8A0\"><input type=\"hidden\" #el_hidden_field [name]=\"this.field.hiddenInputName\" [value]=\"this.field.$$selection | join:','\"><i #el_icon_down (click)=\"--8A3\"><!-- include icons/down.html --></i><a class=\"form_select__label\" {each}=\"item in this.field.getMultiSelection()\" style=\"display: inline-block !important;\">{{--8B6}}<i class=\"delete icon\" (click)=\"--8A6\"></i></a><input type=\"text\" #el_search class=\"search\" [disabled]=\"this.field.disabled\" {show}=\"--89Y\" {show.$display}=\"inline-block\" (focus)=\"--8A8\" (blur)=\"--8A9\" (key.backspace)=\"--8AA\" {model}=\"this.searchQuery\"><span class=\"sizer\" #el_sizer {if}=\"--8AC\" {bind}=\"--8AD\"></span><div class=\"default text\" #el_default_text (click)=\"--8AF\" {show}=\"--8AG\" {show.$display}=\"inline-block\" {show.$save-state}=\"--8AH\" {bind}=\"--8AI\"></div><div class=\"text\" #el_text (click)=\"--8AF\" {class.default}=\"--8AK\" {show}=\"--8AL\" {show.$save-state}=\"--8AM\" {show.$display}=\"inline-block\" {bind}=\"--8AN\"></div><!-- replaces two previous text blocks with invisible placeholder --><div style=\"display: none\" class=\"default text\" {show}=\"--8AP\" {show.$display}=\"inline-block\">&nbsp;</div><select class=\"form-select_hidden-select\" #el_hidden_select (click)=\"--8AR\" (change)=\"--8AS\" {show}=\"--8AT\" {show.$display}=\"block\" {options}=\"this.field._getSelectOptions()\"></select><div class=\"form-select-menu\" #el_menu {class.black}=\"--8A0\"><div class=\"items\" #el_menu_items><div class=\"disabled item\" #el_menu_disabled {if}=\"--8AX\" (click)=\"--8AY\" {bind-html}=\"--8AZ\"></div><div class=\"empty item\" #el_menu_empty style=\"color: #999;\" {if}=\"--8B1\" (click)=\"--8B2\" {bind-html}=\"--8B3\"></div><div class=\"item\" {each}=\"item in this.field.store\" (click)=\"--8B5\" {bind}=\"--8B6\"></div></div><div class=\"pagination_container\" {cmp}=\"Pagination\" {cmp.$autoscroll}=\"false\" {show}=\"--8B8\" (click)=\"--8B9\"></div></div></div>","tagc.html":"<div class=\"component\"><p>This is a tag component.</p><p>{{--8BF}}</p></div>","test-template.html":"<p>{{--8BJ}}</p><div {transclude}></div>"},"templateOptions":{"dirs.html":{"includes":true}},"expressionOpts":{"818":"r","872":"p","874":"p","81B":"r","87K":"p","88P":"r","8A6":"p","8B5":"p","8B6":"p","8B9":"p","8BJ":"r"}}
 MetaphorJsPrebuilt['funcs'] = {
 "818": function(____, $$$$) {try {return ____.$root.a * ____.$root.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a * this.$root.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
 "823": function(____, $$$$) {try {return ____.bool;} catch (thrownError) { /*DEBUG-START*/console.log("this.bool");console.log(thrownError);/*DEBUG-END*/return undefined; }},
 "827": function(____, $$$$) {try {return ____.inline;} catch (thrownError) { /*DEBUG-START*/console.log("this.inline");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"851": function(____, $$$$) {try {return ____.myForm.$invalid;} catch (thrownError) { /*DEBUG-START*/console.log("this.myForm.$invalid");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"854": function(____, $$$$) {try {return {error: ____.myForm.field1.$invalid};} catch (thrownError) { /*DEBUG-START*/console.log("{error: this.myForm.field1.$invalid}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"856": function(____, $$$$) {try {return {error: ____.myForm.radio1.$invalid};} catch (thrownError) { /*DEBUG-START*/console.log("{error: this.myForm.radio1.$invalid}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"869": function(____, $$$$) {try {____.tpl = 'a+b.html';} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = \'a+b.html\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"871": function(____, $$$$) {try {____.$parent.viewCmp = 'Test.ViewComponent2';} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.viewCmp = \'Test.ViewComponent2\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"874": function(____, $$$$) {try {____.newItem = ''; ____.listFilter = ''; ____.sortBy = 'asc';} catch (thrownError) { /*DEBUG-START*/console.log("this.newItem = \'\'; this.listFilter = \'\'; this.sortBy = \'asc\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"877": function(____, $$$$) {try {if (____.newItem) { ____.list.push({bool: false, txt: ____.newItem}); ____.newItem = ''; };} catch (thrownError) { /*DEBUG-START*/console.log("if (this.newItem) { this.list.push({bool: false, txt: this.newItem}); this.newItem = \'\'; }");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"879": function(____, $$$$) {try {return !____.newItem;} catch (thrownError) { /*DEBUG-START*/console.log("!this.newItem");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"881": function(____, $$$$) {try {____.ctrl.createNew();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.createNew()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"883": function(____, $$$$) {try {____.ctrl.createRender();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.createRender()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"885": function(____, $$$$) {try {____.ctrl.createDialog();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.createDialog()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"889": function(____, $$$$) {try {____.store.load();} catch (thrownError) { /*DEBUG-START*/console.log("this.store.load()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"892": function(____, $$$$) {try {____.changeLevel2();} catch (thrownError) { /*DEBUG-START*/console.log("this.changeLevel2()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"895": function(____, $$$$) {try {return ____.level1;} catch (thrownError) { /*DEBUG-START*/console.log("this.level1");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"854": function(____, $$$$) {try {return ____.myForm.$invalid;} catch (thrownError) { /*DEBUG-START*/console.log("this.myForm.$invalid");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"857": function(____, $$$$) {try {return {error: ____.myForm.field1.$invalid};} catch (thrownError) { /*DEBUG-START*/console.log("{error: this.myForm.field1.$invalid}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"859": function(____, $$$$) {try {return {error: ____.myForm.radio1.$invalid};} catch (thrownError) { /*DEBUG-START*/console.log("{error: this.myForm.radio1.$invalid}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"872": function(____, $$$$) {try {____.$parent.viewCmp = 'Test.ViewComponent1';} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.viewCmp = \'Test.ViewComponent1\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"874": function(____, $$$$) {try {____.$parent.viewCmp = 'Test.ViewComponent2';} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.viewCmp = \'Test.ViewComponent2\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"877": function(____, $$$$) {try {____.newItem = ''; ____.listFilter = ''; ____.sortBy = 'asc';} catch (thrownError) { /*DEBUG-START*/console.log("this.newItem = \'\'; this.listFilter = \'\'; this.sortBy = \'asc\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"882": function(____, $$$$) {try {____.ctrl.reverse();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.reverse()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"884": function(____, $$$$) {try {____.ctrl.createNew();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.createNew()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"886": function(____, $$$$) {try {____.ctrl.createRender();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.createRender()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"888": function(____, $$$$) {try {____.ctrl.createDialog();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.createDialog()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"895": function(____, $$$$) {try {____.changeLevel2();} catch (thrownError) { /*DEBUG-START*/console.log("this.changeLevel2()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"898": function(____, $$$$) {try {return ____.level1;} catch (thrownError) { /*DEBUG-START*/console.log("this.level1");console.log(thrownError);/*DEBUG-END*/return undefined; }},
 "81B": function(____, $$$$) {try {return ____.$root.a + ____.$root.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a + this.$root.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
 "81K": function(____, $$$$) {try {return ____.text;} catch (thrownError) { /*DEBUG-START*/console.log("this.text");console.log(thrownError);/*DEBUG-END*/return undefined; }},
 "81N": function(____, $$$$) {try {return ____.html;} catch (thrownError) { /*DEBUG-START*/console.log("this.html");console.log(thrownError);/*DEBUG-END*/return undefined; }},
 "81Z": function(____, $$$$) {try {return ____.a;} catch (thrownError) { /*DEBUG-START*/console.log("this.a");console.log(thrownError);/*DEBUG-END*/return undefined; }},
 "84H": function(____, $$$$) {try {return {bool: ____.bool, inline1: ____.a == 0};} catch (thrownError) { /*DEBUG-START*/console.log("{bool: this.bool, inline1: this.a == 0}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"85H": function(____, $$$$) {try {____.dynamicList = [];} catch (thrownError) { /*DEBUG-START*/console.log("this.dynamicList = []");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"85U": function(____, $$$$) {try {return ____.item;} catch (thrownError) { /*DEBUG-START*/console.log("this.item");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"86B": function(____, $$$$) {try {____.tpl = 'a*b.html';} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = \'a*b.html\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"86D": function(____, $$$$) {try {return ____.tpl;} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"86I": function(____, $$$$) {try {____.tpl = ____.tpl1;} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = this.tpl1");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"86K": function(____, $$$$) {try {____.tpl = ____.tpl2;} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = this.tpl2");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"86W": function(____, $$$$) {try {return ____.viewCmp;} catch (thrownError) { /*DEBUG-START*/console.log("this.viewCmp");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"86Z": function(____, $$$$) {try {____.$parent.viewCmp = 'Test.ViewComponent1';} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.viewCmp = \'Test.ViewComponent1\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"87A": function(____, $$$$) {try {____.list.push({bool: false, txt: ____.newItem}); ____.newItem = '';;} catch (thrownError) { /*DEBUG-START*/console.log("this.list.push({bool: false, txt: this.newItem}); this.newItem = \'\';");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"87E": function(____, $$$$) {try {return {cls3: ____.item.bool};} catch (thrownError) { /*DEBUG-START*/console.log("{cls3: this.item.bool}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"87H": function(____, $$$$) {try {____.$parent.list.splice(____.$getRawIndex(____.$trackId),1);;} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.list.splice(this.$getRawIndex(this.$trackId),1);");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"87K": function(____, $$$$) {try {____.sortBy='asc';} catch (thrownError) { /*DEBUG-START*/console.log("this.sortBy=\'asc\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"87M": function(____, $$$$) {try {____.sortBy='desc';} catch (thrownError) { /*DEBUG-START*/console.log("this.sortBy=\'desc\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"87Z": function(____, $$$$) {try {____.ctrl.reverse();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.reverse()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88B": function(____, $$$$) {try {____.store.clear();} catch (thrownError) { /*DEBUG-START*/console.log("this.store.clear()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88J": function(____, $$$$) {try {return ____.a + ____.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.a + this.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88K": function(____, $$$$) {try {return ____.bool ? "true": "false";} catch (thrownError) { /*DEBUG-START*/console.log("this.bool ? \"true\": \"false\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88L": function(____, $$$$) {try {return ____.title;} catch (thrownError) { /*DEBUG-START*/console.log("this.title");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88M": function(____, $$$$) {try {return ____.$root.a;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88N": function(____, $$$$) {try {return ____.$index;} catch (thrownError) { /*DEBUG-START*/console.log("this.$index");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88O": function(____, $$$$) {try {return ____.item.txt;} catch (thrownError) { /*DEBUG-START*/console.log("this.item.txt");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88P": function(____, $$$$) {try {return ____.$first ? "first" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$first ? \"first\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88Q": function(____, $$$$) {try {return ____.$last ? "last" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$last ? \"last\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88R": function(____, $$$$) {try {return ____.$even ? "even" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$even ? \"even\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88S": function(____, $$$$) {try {return ____.$odd ? "odd" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$odd ? \"odd\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88T": function(____, $$$$) {try {return ____.item.name;} catch (thrownError) { /*DEBUG-START*/console.log("this.item.name");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88U": function(____, $$$$) {try {return ____.deferred;} catch (thrownError) { /*DEBUG-START*/console.log("this.deferred");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89F": function(____, $$$$) {try {____.increaseB();} catch (thrownError) { /*DEBUG-START*/console.log("this.increaseB()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89M": function(____, $$$$) {try {return ____.resolved;} catch (thrownError) { /*DEBUG-START*/console.log("this.resolved");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89N": function(____, $$$$) {try {return ____.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89S": function(____, $$$$) {try {____.field.onSelfClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSelfClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89T": function(____, $$$$) {try {return ____.loading;} catch (thrownError) { /*DEBUG-START*/console.log("this.loading");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89U": function(____, $$$$) {try {return ____.field.disabled;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.disabled");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89V": function(____, $$$$) {try {return ____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89W": function(____, $$$$) {try {return ____.field.multiple;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.multiple");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89X": function(____, $$$$) {try {return ____.field.black;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.black");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8A0": function(____, $$$$) {try {____.field.onDropdownIconClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onDropdownIconClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8A3": function(____, $$$$) {try {____.$parent.field.onItemDeleteClick(____.item, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onItemDeleteClick(this.item, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8A5": function(____, $$$$) {try {____.field.onSearchFocus(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchFocus(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8A6": function(____, $$$$) {try {____.field.onSearchBlur(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchBlur(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8A7": function(____, $$$$) {try {____.field.onSearchBackspace(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchBackspace(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8A9": function(____, $$$$) {try {return ____.field.multiple && ____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.multiple && this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AA": function(____, $$$$) {try {return ____.searchQuery;} catch (thrownError) { /*DEBUG-START*/console.log("this.searchQuery");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AC": function(____, $$$$) {try {____.field.onValueTextClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onValueTextClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AD": function(____, $$$$) {try {return !____.searchQuery && !____.field.hasSelection() && !!____.field.emptyText;} catch (thrownError) { /*DEBUG-START*/console.log("!this.searchQuery && !this.field.hasSelection() && !!this.field.emptyText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AE": function(____, $$$$) {try {return ____.emptyShown;} catch (thrownError) { /*DEBUG-START*/console.log("this.emptyShown");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AF": function(____, $$$$) {try {return ____.field.emptyText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.emptyText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AH": function(____, $$$$) {try {return ____.focused && ____.searchQuery == '';} catch (thrownError) { /*DEBUG-START*/console.log("this.focused && this.searchQuery == \'\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AI": function(____, $$$$) {try {return !____.searchQuery && !____.field.multiple && ____.field.hasSelection();} catch (thrownError) { /*DEBUG-START*/console.log("!this.searchQuery && !this.field.multiple && this.field.hasSelection()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AJ": function(____, $$$$) {try {return ____.selectedShown;} catch (thrownError) { /*DEBUG-START*/console.log("this.selectedShown");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AK": function(____, $$$$) {try {return ____.field.getSelectedName();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.getSelectedName()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AM": function(____, $$$$) {try {return !____.emptyShown && !____.selectedShown && !____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("!this.emptyShown && !this.selectedShown && !this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AO": function(____, $$$$) {try {____.field.onHiddenSelectClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onHiddenSelectClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AP": function(____, $$$$) {try {____.field.onHiddenSelectChange(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onHiddenSelectChange(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AQ": function(____, $$$$) {try {return ____.field.useHiddenSelect;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.useHiddenSelect");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AU": function(____, $$$$) {try {return ____.field.showNotFound && ____.field.store.isEmpty();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.showNotFound && this.field.store.isEmpty()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AV": function(____, $$$$) {try {____.field.onNotFoundClick(null, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onNotFoundClick(null, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AW": function(____, $$$$) {try {return ____.field.notFoundText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.notFoundText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AY": function(____, $$$$) {try {return ____.field.showEmptyItem && !____.field.store.isEmpty();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.showEmptyItem && !this.field.store.isEmpty()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AZ": function(____, $$$$) {try {____.field.onItemClick(null, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onItemClick(null, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8B0": function(____, $$$$) {try {return ____.field.emptyItemText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.emptyItemText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8B2": function(____, $$$$) {try {____.$parent.field.onItemClick(____.item, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onItemClick(this.item, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8B3": function(____, $$$$) {try {return ____.$parent.field.getItemName(____.item);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.getItemName(this.item)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8B5": function(____, $$$$) {try {return ____.pagination.hasPages();} catch (thrownError) { /*DEBUG-START*/console.log("this.pagination.hasPages()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8B6": function(____, $$$$) {try {____.$parent.field.onPaginationClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onPaginationClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8BC": function(____, $$$$) {try {return ____.ctrl.config.get('test');} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.config.get(\'test\')");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8BG": function(____, $$$$) {try {return ____.$root.text;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.text");console.log(thrownError);/*DEBUG-END*/return undefined; }}
+"84K": function(____, $$$$) {try {return ____.a == 0;} catch (thrownError) { /*DEBUG-START*/console.log("this.a == 0");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"85K": function(____, $$$$) {try {____.dynamicList = [];} catch (thrownError) { /*DEBUG-START*/console.log("this.dynamicList = []");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"85X": function(____, $$$$) {try {return ____.item;} catch (thrownError) { /*DEBUG-START*/console.log("this.item");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"86C": function(____, $$$$) {try {____.tpl = 'a+b.html';} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = \'a+b.html\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"86E": function(____, $$$$) {try {____.tpl = 'a*b.html';} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = \'a*b.html\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"86G": function(____, $$$$) {try {return ____.tpl;} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"86L": function(____, $$$$) {try {____.tpl = ____.tpl1;} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = this.tpl1");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"86N": function(____, $$$$) {try {____.tpl = ____.tpl2;} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = this.tpl2");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"86Z": function(____, $$$$) {try {return ____.viewCmp;} catch (thrownError) { /*DEBUG-START*/console.log("this.viewCmp");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"87A": function(____, $$$$) {try {if (____.newItem) { ____.list.push({bool: false, txt: ____.newItem}); ____.newItem = ''; };} catch (thrownError) { /*DEBUG-START*/console.log("if (this.newItem) { this.list.push({bool: false, txt: this.newItem}); this.newItem = \'\'; }");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"87C": function(____, $$$$) {try {return !____.newItem;} catch (thrownError) { /*DEBUG-START*/console.log("!this.newItem");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"87D": function(____, $$$$) {try {____.list.push({bool: false, txt: ____.newItem}); ____.newItem = '';;} catch (thrownError) { /*DEBUG-START*/console.log("this.list.push({bool: false, txt: this.newItem}); this.newItem = \'\';");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"87H": function(____, $$$$) {try {return {cls3: ____.item.bool};} catch (thrownError) { /*DEBUG-START*/console.log("{cls3: this.item.bool}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"87K": function(____, $$$$) {try {____.$parent.list.splice(____.$getRawIndex(____.$trackId),1);;} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.list.splice(this.$getRawIndex(this.$trackId),1);");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"87N": function(____, $$$$) {try {____.sortBy='asc';} catch (thrownError) { /*DEBUG-START*/console.log("this.sortBy=\'asc\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"87P": function(____, $$$$) {try {____.sortBy='desc';} catch (thrownError) { /*DEBUG-START*/console.log("this.sortBy=\'desc\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88C": function(____, $$$$) {try {____.store.load();} catch (thrownError) { /*DEBUG-START*/console.log("this.store.load()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88E": function(____, $$$$) {try {____.store.clear();} catch (thrownError) { /*DEBUG-START*/console.log("this.store.clear()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88M": function(____, $$$$) {try {return ____.a + ____.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.a + this.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88N": function(____, $$$$) {try {return ____.bool ? "true": "false";} catch (thrownError) { /*DEBUG-START*/console.log("this.bool ? \"true\": \"false\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88O": function(____, $$$$) {try {return ____.title;} catch (thrownError) { /*DEBUG-START*/console.log("this.title");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88P": function(____, $$$$) {try {return ____.$root.a;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88Q": function(____, $$$$) {try {return ____.$index;} catch (thrownError) { /*DEBUG-START*/console.log("this.$index");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88R": function(____, $$$$) {try {return ____.item.txt;} catch (thrownError) { /*DEBUG-START*/console.log("this.item.txt");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88S": function(____, $$$$) {try {return ____.$first ? "first" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$first ? \"first\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88T": function(____, $$$$) {try {return ____.$last ? "last" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$last ? \"last\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88U": function(____, $$$$) {try {return ____.$even ? "even" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$even ? \"even\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88V": function(____, $$$$) {try {return ____.$odd ? "odd" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$odd ? \"odd\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88W": function(____, $$$$) {try {return ____.item.name;} catch (thrownError) { /*DEBUG-START*/console.log("this.item.name");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"88X": function(____, $$$$) {try {return ____.deferred;} catch (thrownError) { /*DEBUG-START*/console.log("this.deferred");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"89I": function(____, $$$$) {try {____.increaseB();} catch (thrownError) { /*DEBUG-START*/console.log("this.increaseB()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"89P": function(____, $$$$) {try {return ____.resolved;} catch (thrownError) { /*DEBUG-START*/console.log("this.resolved");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"89Q": function(____, $$$$) {try {return ____.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"89V": function(____, $$$$) {try {____.field.onSelfClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSelfClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"89W": function(____, $$$$) {try {return ____.loading;} catch (thrownError) { /*DEBUG-START*/console.log("this.loading");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"89X": function(____, $$$$) {try {return ____.field.disabled;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.disabled");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"89Y": function(____, $$$$) {try {return ____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"89Z": function(____, $$$$) {try {return ____.field.multiple;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.multiple");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8A0": function(____, $$$$) {try {return ____.field.black;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.black");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8A3": function(____, $$$$) {try {____.field.onDropdownIconClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onDropdownIconClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8A6": function(____, $$$$) {try {____.$parent.field.onItemDeleteClick(____.item, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onItemDeleteClick(this.item, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8A8": function(____, $$$$) {try {____.field.onSearchFocus(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchFocus(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8A9": function(____, $$$$) {try {____.field.onSearchBlur(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchBlur(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AA": function(____, $$$$) {try {____.field.onSearchBackspace(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchBackspace(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AC": function(____, $$$$) {try {return ____.field.multiple && ____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.multiple && this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AD": function(____, $$$$) {try {return ____.searchQuery;} catch (thrownError) { /*DEBUG-START*/console.log("this.searchQuery");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AF": function(____, $$$$) {try {____.field.onValueTextClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onValueTextClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AG": function(____, $$$$) {try {return !____.searchQuery && !____.field.hasSelection() && !!____.field.emptyText;} catch (thrownError) { /*DEBUG-START*/console.log("!this.searchQuery && !this.field.hasSelection() && !!this.field.emptyText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AH": function(____, $$$$) {try {return ____.emptyShown;} catch (thrownError) { /*DEBUG-START*/console.log("this.emptyShown");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AI": function(____, $$$$) {try {return ____.field.emptyText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.emptyText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AK": function(____, $$$$) {try {return ____.focused && ____.searchQuery == '';} catch (thrownError) { /*DEBUG-START*/console.log("this.focused && this.searchQuery == \'\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AL": function(____, $$$$) {try {return !____.searchQuery && !____.field.multiple && ____.field.hasSelection();} catch (thrownError) { /*DEBUG-START*/console.log("!this.searchQuery && !this.field.multiple && this.field.hasSelection()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AM": function(____, $$$$) {try {return ____.selectedShown;} catch (thrownError) { /*DEBUG-START*/console.log("this.selectedShown");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AN": function(____, $$$$) {try {return ____.field.getSelectedName();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.getSelectedName()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AP": function(____, $$$$) {try {return !____.emptyShown && !____.selectedShown && !____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("!this.emptyShown && !this.selectedShown && !this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AR": function(____, $$$$) {try {____.field.onHiddenSelectClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onHiddenSelectClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AS": function(____, $$$$) {try {____.field.onHiddenSelectChange(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onHiddenSelectChange(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AT": function(____, $$$$) {try {return ____.field.useHiddenSelect;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.useHiddenSelect");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AX": function(____, $$$$) {try {return ____.field.showNotFound && ____.field.store.isEmpty();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.showNotFound && this.field.store.isEmpty()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AY": function(____, $$$$) {try {____.field.onNotFoundClick(null, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onNotFoundClick(null, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AZ": function(____, $$$$) {try {return ____.field.notFoundText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.notFoundText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8B1": function(____, $$$$) {try {return ____.field.showEmptyItem && !____.field.store.isEmpty();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.showEmptyItem && !this.field.store.isEmpty()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8B2": function(____, $$$$) {try {____.field.onItemClick(null, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onItemClick(null, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8B3": function(____, $$$$) {try {return ____.field.emptyItemText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.emptyItemText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8B5": function(____, $$$$) {try {____.$parent.field.onItemClick(____.item, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onItemClick(this.item, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8B6": function(____, $$$$) {try {return ____.$parent.field.getItemName(____.item);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.getItemName(this.item)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8B8": function(____, $$$$) {try {return ____.pagination.hasPages();} catch (thrownError) { /*DEBUG-START*/console.log("this.pagination.hasPages()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8B9": function(____, $$$$) {try {____.$parent.field.onPaginationClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onPaginationClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8BF": function(____, $$$$) {try {return ____.ctrl.config.get('test');} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.config.get(\'test\')");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8BJ": function(____, $$$$) {try {return ____.$root.text;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.text");console.log(thrownError);/*DEBUG-END*/return undefined; }}
 };
 
 
@@ -2504,6 +2505,7 @@ var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
 
     var checkAll = function() {
         var k, changes = 0;
+
         for (k in this) {
             if (this.hasOwnProperty(k) && k !== "$checkAll") {
                 if (this[k].check()){
@@ -2511,6 +2513,7 @@ var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
                 }
             }
         }
+
         return changes;
     };
 
@@ -3056,7 +3059,7 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
             if (prop.expression) {
 
                 if (!prop.mode) {
-                    prop.mode = MODE_DYNAMIC;
+                    prop.mode = self.cfg.defaultMode || MODE_DYNAMIC;
                 }
 
                 if (prop.mode === MODE_STATIC) {
@@ -3393,6 +3396,18 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
         },
 
         /**
+         * Remove config property and its value
+         * @param {string} name 
+         */
+        removeProperty: function(name) {
+            if (this.properties[name]) {
+                this._toggleProperty(name, true);
+                delete this.properties[name];
+                delete this.values[name];
+            }
+        },
+
+        /**
          * Set property mode
          * @method
          * @param {string} name 
@@ -3591,6 +3606,11 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
          * @param {string} propName 
          */
         checkScope: function(propName) {
+
+            if (!this.cfg) {
+                return;
+            }
+
             var scope = this.cfg.scope,
                 descr = lib_Expression.describeExpression(
                     this.getExpression(propName)
@@ -4162,6 +4182,18 @@ var classManagerFactory = function(){
             }
         },
 
+        collectMixinEvents = function(events, pConstr) {
+            var pp;
+            while (pConstr) {
+                pp = pConstr[proto];
+                if (pp.$mixinEvents) {
+                    events = events.concat(pp.$mixinEvents);
+                }
+                pConstr = pConstr.$parent;
+            }
+            return events;
+        },
+
         wrapPrototypeMethod = function wrapPrototypeMethod(parent, k, fn) {
 
             var $super = parent[proto][k] ||
@@ -4186,8 +4218,9 @@ var classManagerFactory = function(){
             };
         },
 
-        preparePrototype = function preparePrototype(prototype, cls, parent, onlyWrap) {
-            var k, ck, pk, pp = parent[proto];
+        preparePrototype = function preparePrototype(prototype, cls, parent, onlyWrap, mixEvents) {
+            var k, ck, pk, pp = parent[proto],
+                i, l, name;
 
             for (k in cls) {
                 if (cls.hasOwnProperty(k)) {
@@ -4208,36 +4241,32 @@ var classManagerFactory = function(){
             prototype.$plugins      = null;
             prototype.$pluginMap    = null;
 
-            if (pp.$beforeInit) {
-                prototype.$beforeInit = pp.$beforeInit.slice();
-                prototype.$afterInit = pp.$afterInit.slice();
-                prototype.$beforeDestroy = pp.$beforeDestroy.slice();
-                prototype.$afterDestroy = pp.$afterDestroy.slice();
-            }
-            else {
-                prototype.$beforeInit = [];
-                prototype.$afterInit = [];
-                prototype.$beforeDestroy = [];
-                prototype.$afterDestroy = [];
+            if (mixEvents) {
+                for (i = 0, l = mixEvents.length; i < l; i++) {
+                    name = mixEvents[i];
+                    if (pp[name]) {
+                        if (typeof pp[name] === 'function') {
+                            throw new Error("Cannot override method " + 
+                                            name + 
+                                            " with mixin event");
+                        }
+                        prototype[name] = pp[name].slice();
+                    }
+                    else {
+                        prototype[name] = [];
+                    }
+                }
             }
         },
         
-        mixinToPrototype = function(prototype, mixin) {
+        mixinToPrototype = function(prototype, mixin, events) {
             
             var k;
+
             for (k in mixin) {
                 if (mixin.hasOwnProperty(k)) {
-                    if (k === "$beforeInit") {
-                        prototype.$beforeInit.push(mixin[k]);
-                    }
-                    else if (k === "$afterInit") {
-                        prototype.$afterInit.push(mixin[k]);
-                    }
-                    else if (k === "$beforeDestroy") {
-                        prototype.$beforeDestroy.push(mixin[k]);
-                    }
-                    else if (k === "$afterDestroy") {
-                        prototype.$afterDestroy.push(mixin[k]);
+                    if (events.indexOf(k) !== -1) {
+                        prototype[k].push(mixin[k]);
                     }
                     else if (!prototype[k]) {
                         prototype[k] = mixin[k];
@@ -4293,11 +4322,13 @@ var classManagerFactory = function(){
                 plugins = self.$plugins;
                 pmap    = self.$pluginMap = {};
 
-                for (i = -1, l = self.$beforeInit.length; ++i < l;
-                     before.push([self.$beforeInit[i], self])) {}
+                if (self.$beforeInit) 
+                    for (i = -1, l = self.$beforeInit.length; ++i < l;
+                         before.push([self.$beforeInit[i], self])) {}
 
-                for (i = -1, l = self.$afterInit.length; ++i < l;
-                     after.push([self.$afterInit[i], self])) {}
+                if (self.$afterInit)
+                    for (i = -1, l = self.$afterInit.length; ++i < l;
+                         after.push([self.$afterInit[i], self])) {}
 
                 if (plugins && plugins.length) {
 
@@ -4369,6 +4400,8 @@ var classManagerFactory = function(){
             $plugins: null,
             $pluginMap: null,
             $mixins: null,
+            $mixinEvents: ["$beforeInit", "$afterInit",
+                            "$beforeDestroy", "$afterDestroy"],
 
             $destroyed: false,
             $destroying: false,
@@ -4379,6 +4412,23 @@ var classManagerFactory = function(){
             $afterInit: [],
             $beforeDestroy: [],
             $afterDestroy: [],
+
+            /**
+             * Call mixins for a specified mixin event
+             * @param {string} eventName 
+             */
+            $callMixins: function(eventName) {
+                var self = this,
+                    fns = self[eventName],
+                    i, l,
+                    args = toArray(arguments);
+
+                args.shift();
+
+                for (i = 0, l = fns.length; i < l; i++) {
+                    fns[i].apply(self, args);
+                }
+            },
 
             /**
              * Get this instance's class name
@@ -4648,8 +4698,10 @@ var classManagerFactory = function(){
             var name            = definition.$class,
                 parentClass     = $extends || definition.$extends,
                 mixins          = definition.$mixins,
+                mixEvents       = definition.$mixinEvents || [],
                 alias           = definition.$alias,
                 pConstructor,
+                allMixEvents,
                 i, l, k, prototype, c, mixin;
 
             if (parentClass) {
@@ -4672,12 +4724,14 @@ var classManagerFactory = function(){
 
             definition.$class   = name;
             definition.$extends = parentClass;
-            definition.$mixins  = null;
+            delete definition.$mixins;
+            delete definition.$mixinEvents;
 
+            allMixEvents        = collectMixinEvents(mixEvents, pConstructor);
             prototype           = Object.create(pConstructor[proto]);
             definition[constr]  = definition[constr] || $constr;
 
-            preparePrototype(prototype, definition, pConstructor);
+            preparePrototype(prototype, definition, pConstructor, false, allMixEvents);
 
             if (mixins) {
                 for (i = 0, l = mixins.length; i < l; i++) {
@@ -4688,13 +4742,14 @@ var classManagerFactory = function(){
                         }
                         mixin = ns.get(mixin, true);
                     }
-                    mixinToPrototype(prototype, mixin);
+                    mixinToPrototype(prototype, mixin, allMixEvents);
                 }
             }
 
             c = createConstructor(name);
             prototype.constructor = c;
             prototype.$self = c;
+            prototype.$mixinEvents = mixEvents;
             c[proto] = prototype;
 
             for (k in BaseClass) {
@@ -9436,13 +9491,21 @@ DO NOT put class="{}" when using class.name="{}"
 
         $init: function(scope, node, config, renderer, attrSet) {
 
+            var self = this;
             config.setType("animate", "bool");
             config.eachProperty(function(k) {
                 if (k === 'value' || k.indexOf("value.") === 0) {
                     config.on(k, self.onChange, self);
                 }
             });
-            this.$super(scope, node, config, renderer, attrSet);
+            self.$super(scope, node, config, renderer, attrSet);
+        },
+
+        initialSet: function() {
+            var self = this;
+            if (self.autoOnChange) {
+                self.onChange();
+            }
         },
 
         getCurrentValue: function() {
@@ -10295,13 +10358,12 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                 var tag     = node.tagName.toLowerCase(),
                     defers  = [],
                     nodes   = [],
-                    i, l, f, len, c,
+                    i, f, len, c,
                     attrs, as, config,
                     attrProps,
                     name,
                     res,
-                    handler,
-                    someHandler = false;
+                    handler;
 
                 if (tag.substr(0, 4) === "mjs-") {
                     tag = tag.substr(4);
@@ -10332,8 +10394,7 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                 // by adding it to the attr map
                 if (c = dirs.component[tag]) {
 
-                    as = (attrs.config.as ? attrs.config.as.expression : null) || 
-                            c.tag;
+                    as = attrs.config.tag ? attrs.config.tag.expression : null;
 
                     if (as) {
 
@@ -10361,10 +10422,11 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                     else {
 
                         f = dirs.attr.cmp;
-                        var passAttrs = extend({}, attrs);
+                        delete attrs['directive']['cmp'];
+                        /*var passAttrs = extend({}, attrs);
                         delete passAttrs['directive']['cmp'];
 
-                        attrs.config.passAttrs = passAttrs;
+                        attrs.config.passAttrs = passAttrs;*/
 
                         config = new lib_Config(
                             extend({}, attrs.config, {
@@ -10373,12 +10435,11 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                                     expression: c
                                 }
                             }, true, false),
-                            {scope: self.scope, deferInit: true}
+                            {scope: self.scope}
                         );
                         self.on("destroy", config.$destroy, config);
 
                         res = self.runHandler(f, scope, node, config, attrs);
-                        someHandler = true;
 
                         if (res === false) {
                             return false;
@@ -10401,7 +10462,6 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                     );
                     self.on("destroy", config.$destroy, config);
                     res = self.runHandler(f, scope, node, config, attrs);
-                    someHandler = true;
 
                     attrs.removeDirective(node, tag);
 
@@ -10438,7 +10498,6 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                         self.on("destroy", config.$destroy, config);
                         res     = self.runHandler(handler, scope, node, config, attrs);
 
-                        someHandler = true;
                         attrProps.handled = true;
 
                         if (res === false) {
@@ -12392,11 +12451,10 @@ var app_Template = MetaphorJs.app.Template = function() {
         doRender: function() {
             var self = this;
             if (!self._renderer) {
-                self._renderer   = new app_Renderer(self.node, self.scope, null, self.passAttrs);
+                self._renderer   = new app_Renderer(self.node, self.scope, null/*, self.passAttrs*/);
                 self._renderer.on("rendered", self.onRendered, self);
                 self._renderer.on("first-node", self.onFirstNodeReported, self);
                 self._renderer.process();
-                //self.on("destroy", self._renderer.$destroy, self._renderer);
             }
         },
 
@@ -12877,6 +12935,8 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
 
         var newScope = isolateScope ? scope.$newIsolated() : 
                                         (sameScope ? scope : scope.$new());
+
+        config.removeProperty("value");
 
         var cfg = {
             scope: newScope,
@@ -28008,6 +28068,7 @@ var htmlTags = MetaphorJs.dom.htmlTags = [
 var app_Component = MetaphorJs.app.Component = cls({
 
     $mixins: [mixin_Observable],
+    $mixinEvents: ["$initConfig"],
 
     /**
      * @access protected
@@ -28119,6 +28180,7 @@ var app_Component = MetaphorJs.app.Component = cls({
         self.$cfg = {};
         self.config.setTo(self.$cfg);
         self._initConfig();
+        self.$callMixins("$initConfig");
 
         if (self.config.has("as")) {
             self.scope[self.config.get("as")] = self;
@@ -28162,8 +28224,8 @@ var app_Component = MetaphorJs.app.Component = cls({
                 tpl: tpl,
                 url: url,
                 shadow: self.constructor.$shadow,
-                animate: !self.hidden && !!self.animate,
-                passAttrs: self.passAttrs
+                animate: !self.hidden && !!self.animate//,
+                //passAttrs: self.passAttrs
             });
 
             self.template.on("first-node", self._onFirstNodeReported, self);
@@ -33073,7 +33135,7 @@ var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
     },
 
     // skips the append part
-    onRenderingFinished: function() {
+    _onRenderingFinished: function() {
         var self = this;
         self.rendered   = true;
         self.afterRender();
@@ -33110,20 +33172,18 @@ var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
 
     onDialogShow: function() {
         var self = this;
-        self.onShow();
+        //self.onShow();
         self.trigger("show", self);
     },
 
-    onBeforeDialogHide: function() {
-
-    },
+    onBeforeDialogHide: function() {},
 
     onDialogHide: function() {
         var self = this;
         if (!self.$destroyed) {
             self.template.setAnimation(false);
             self.hidden = true;
-            self.onHide();
+            //self.onHide();
             self.trigger("hide", self);
         }
     },

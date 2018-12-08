@@ -97,13 +97,21 @@ DO NOT put class="{}" when using class.name="{}"
 
         $init: function(scope, node, config, renderer, attrSet) {
 
+            var self = this;
             config.setType("animate", "bool");
             config.eachProperty(function(k) {
                 if (k === 'value' || k.indexOf("value.") === 0) {
                     config.on(k, self.onChange, self);
                 }
             });
-            this.$super(scope, node, config, renderer, attrSet);
+            self.$super(scope, node, config, renderer, attrSet);
+        },
+
+        initialSet: function() {
+            var self = this;
+            if (self.autoOnChange) {
+                self.onChange();
+            }
         },
 
         getCurrentValue: function() {
