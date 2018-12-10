@@ -22,7 +22,7 @@
         "core": {
             "files": [
                 ["metaphorjs-shared/src/MetaphorJs.js", {"as": "*"}],
-                "src/app/*",
+                "src/app/**",
                 "src/directive/**",
                 "src/filter/**",
                 "src/bootstrap/apps.js"
