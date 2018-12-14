@@ -17,7 +17,23 @@ MetaphorJs.app.Directive.registerAttribute("router", 200,
     });
     config.setDefaultMode("defaultCmp", MetaphorJs.lib.Config.MODE_STATIC);
 
-    var cfg = {scope: scope, node: node, config: config};
+    var routes = [],
+        r;
+
+    config.eachProperty(function(k){
+        if (k.indexOf("value.") === 0) {
+            config.setDefaultMode(k, MetaphorJs.lib.Config.MODE_SINGLE);
+            r = config.get(k);
+            r['id'] = k.replace('value.', '');
+            routes.push(r);
+        }
+    });
+
+    if (routes.length === 0) {
+        routes = null;
+    }
+
+    var cfg = {scope: scope, node: node, config: config, route: routes};
 
     MetaphorJs.app.resolve(
         config.get("value"),
