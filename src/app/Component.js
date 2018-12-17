@@ -338,7 +338,7 @@ module.exports = MetaphorJs.app.Component = cls({
         if (self.renderTo) {
             self.renderTo.appendChild(self.node);
         }
-        else if (!isAttached(self.node)) {
+        else if (!MetaphorJs.dom.isAttached(self.node)) {
             window.document.body.appendChild(self.node);
         }
 
