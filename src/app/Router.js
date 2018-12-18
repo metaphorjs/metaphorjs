@@ -372,8 +372,8 @@ module.exports = MetaphorJs.app.Router = cls({
                            self.scope.$new()
                 };
 
-            if (route.as) {
-                cfg.as = route.as;
+            if (route.config) {
+                cfg.config = route.config;
             }
             if (route.template) {
                 cfg.template = route.template;

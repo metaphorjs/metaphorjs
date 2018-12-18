@@ -13,6 +13,7 @@ var extend = require("metaphorjs-shared/src/func/extend.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js"),
     isString = require("metaphorjs-shared/src/func/isString.js"),
     isFunction = require("metaphorjs-shared/src/func/isFunction.js"),
+    isPlainObject = require("metaphorjs-shared/src/func/isPlainObject.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, node, args) {
@@ -33,6 +34,13 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
     }
 
     if (config) {
+
+        if (isPlainObject(config)) {
+            config = new MetaphorJs.lib.Config(config, {
+                scope: scope
+            });
+        }
+
         config.setType("cloak", "bool", MetaphorJs.lib.Config.MODE_STATIC);
         config.setType("animate", "bool", MetaphorJs.lib.Config.MODE_STATIC);
     }

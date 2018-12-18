@@ -6,6 +6,7 @@ var extend = require("metaphorjs-shared/src/func/extend.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     toBool = require("metaphorjs-shared/src/func/toBool.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
+    isPrimitive = require("metaphorjs-shared/src/func/isPrimitive.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     undf = require("metaphorjs-shared/src/var/undf.js"),
     emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
@@ -51,7 +52,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
             for (k in properties) {
                 self.setProperty(
                     k, 
-                    typeof properties[k] === "string" ? 
+                    isPrimitive(properties[k]) ? 
                         {expression: properties[k]}:
                         properties[k]
                 );
