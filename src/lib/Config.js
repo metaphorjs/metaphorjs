@@ -611,6 +611,27 @@ module.exports = MetaphorJs.lib.Config = (function(){
         },
 
         /**
+         * Import properties and values from another config
+         * @param {MetaphorJs.lib.Config} config 
+         */
+        importConfig: function(config, overwrite) {
+            var name,
+                ps = this.properties,
+                vs = this.values;
+
+            for (name in config.properties) {
+                if (config.properties.hasOwnProperty(name)) {
+
+                    if (ps[name] && !overwrite) {
+                        continue;
+                    }
+                    ps[name] = extend({}, config.properties[name]);
+                    vs[name] = config.values[name];
+                }
+            }
+        },
+
+        /**
          * Check for changes of specific property
          * @method
          * @param {string} name 
