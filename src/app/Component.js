@@ -223,6 +223,11 @@ module.exports = MetaphorJs.app.Component = cls({
         config.setDefaultMode("tag", MetaphorJs.lib.Config.MODE_STATIC);
         config.setDefaultValue("tag", "div");
         config.setDefaultMode("as", MetaphorJs.lib.Config.MODE_STATIC);
+
+        if (self.as) {
+            config.setDefaultValue("as", self.as);
+        }
+
         config.setDefaultMode("callbackContext", MetaphorJs.lib.Config.MODE_SINGLE);
         config.eachProperty(function(name) {
             if (name.substring(0,4) === 'on--') {
