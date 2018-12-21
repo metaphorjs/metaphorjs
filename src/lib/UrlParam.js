@@ -83,7 +83,7 @@ module.exports = MetaphorJs.lib.UrlParam = (function(){
             if (!self.enabled) {
                 self.enabled = true;
                 MetaphorJs.lib.History.on("location-change", self.onLocationChange, self);
-                var url = currentUrl(),
+                var url = MetaphorJs.lib.History.current(),
                     loc = MetaphorJs.browser.parseLocation(url);
                 self.onLocationChange(loc.pathname + loc.search + loc.hash);
             }
