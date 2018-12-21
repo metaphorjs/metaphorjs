@@ -154,7 +154,7 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
             else if (mode === '(' || mode === '{') { 
 
                 coll = set['directive'];
-                subname = parts.length ? parts[0] : null;
+                subname = parts.length ? parts.join(".") : null;
 
                 if (!coll[name]) {
                     coll[name] = {
