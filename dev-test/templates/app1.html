@@ -289,9 +289,8 @@
             </div>
 
             <div class="case" 
-                    {router} 
-                    {router.$cmp}="this.viewCmp" 
-                    {router.$default-cmp}:="Test.ViewComponent1">
+                    {view}="this.viewCmp"
+                    {view.$default-cmp}:="Test.ViewComponent1">
                 <p>
                     change cmp:
                     <a href="#" (click)="this.$parent.viewCmp = 'Test.ViewComponent1'">Cmp1</a> |

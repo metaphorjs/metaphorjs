@@ -162,7 +162,7 @@ module.exports = MetaphorJs.app.Component = cls({
         self.beforeInitComponent.apply(self, arguments);
         self.initComponent.apply(self, arguments);
 
-        if (self.scope.$app){
+        if (self.scope.$app) {
             self.scope.$app.registerCmp(self, self.scope, "id");
         }
 
@@ -201,7 +201,7 @@ module.exports = MetaphorJs.app.Component = cls({
         }
 
         if (self.node) {
-            self._initElement();
+            self._claimNode();
         }
 
         if (self.autoRender) {
@@ -248,40 +248,32 @@ module.exports = MetaphorJs.app.Component = cls({
         self.node   = window.document.createElement(self.config.get("tag"));
     },
 
-    _initElement: function() {
-
-        var self    = this,
-            node    = self.node;
-
-        if (!self._originalId) {
-            MetaphorJs.dom.setAttr(node, "id", self.id);
-        }
-
-        self._initNode();
-    },
-
-    _releaseNode: function() {
-        var self = this,
-            node = self.node;
-        MetaphorJs.dom.removeAttr(node, "cmp-id");
-    },
-
     _onFirstNodeReported: function(node) {
         var self = this;
         if (self._nodeReplaced) {
-            MetaphorJs.dom.setAttr(node, "cmp-id", self.id);
-            node.$$cmpId = self.id;
+            self._claimNode(node);
         }
     },
 
-    _initNode: function() {
-
-        var self = this,
-            node = self.node;
-
+    _claimNode: function(node) {
+        var self = this;
+        node = node || self.node;
         MetaphorJs.dom.setAttr(node, "cmp-id", self.id);
+        if (!self._originalId) {
+            MetaphorJs.dom.setAttr(node, "id", self.id);
+        }
         node.$$cmpId = self.id;
     },
+
+    _releaseNode: function(node) {
+        node = node || this.node;
+        MetaphorJs.dom.removeAttr(node, "cmp-id");
+        if (!self._originalId) {
+            MetaphorJs.dom.removeAttr(node, "id");
+        }
+        node.$$cmpId = null;
+    },
+
 
     _replaceNodeWithTemplate: function() {
         var self = this;
@@ -296,8 +288,8 @@ module.exports = MetaphorJs.app.Component = cls({
         // document fragment
         if (self.node.nodeType === 11 || isArray(self.node)) {
             var ch = self.node.nodeType === 11 ?
-                self.node.childNodes :
-                self.node,
+                    self.node.childNodes :
+                    self.node,
                 i, l;
             for (i = 0, l = ch.length; i < l; i++) {
                 if (ch[i].nodeType === 1) {
@@ -307,8 +299,15 @@ module.exports = MetaphorJs.app.Component = cls({
             }
         }
 
-        self._initElement();
+        self._claimNode();
     },
+
+
+
+
+
+
+
 
     render: function() {
 
@@ -316,11 +315,6 @@ module.exports = MetaphorJs.app.Component = cls({
 
         if (self._rendered) {
             return;
-        }
-
-        if ((self._nodeReplaced && self.node !== self.template.node) ||
-            !self.node) {
-            self._replaceNodeWithTemplate();
         }
 
         self.onBeforeRender();
@@ -353,89 +347,29 @@ module.exports = MetaphorJs.app.Component = cls({
     },
 
 
-    /*
-     * @access public
-     * @method
-     */
-    /*show: function() {
-        var self    = this;
-        if (!self.hidden) {
-            return;
-        }
-        if (self.trigger('before-show', self) === false) {
-            return false;
-        }
 
-        if (!self.rendered) {
-            self.render();
-        }
 
-        self.template.setAnimation(true);
-        self.showApply();
 
-        self.hidden = false;
-        self.onShow();
-        self.trigger("show", self);
-    },
 
-    showApply: function() {
-        var self = this;
-        if (self.node) {
-            self.node.style.display = "block";
-        }
-    },*/
-
-    /*
-     * @access public
-     * @method
-     */
-    /*hide: function() {
-        var self    = this;
-        if (self.hidden) {
-            return;
-        }
-        if (self.trigger('before-hide', self) === false) {
-            return false;
-        }
-
-        self.template.setAnimation(false);
-        self.hideApply();
-
-        self.hidden = true;
-        self.onHide();
-        self.trigger("hide", self);
-    },
-
-    hideApply: function() {
-        var self = this;
-        if (self.node) {
-            self.node.style.display = "none";
-        }
-    },*/
-
-    freezeByView: function(view) {
+    freeze: function() {
         var self = this;
         self._releaseNode();
         self.scope.$freeze();
-        self.trigger("view-freeze", self, view);
-
+        self.trigger("freeze", self);
     },
 
-    unfreezeByView: function(view) {
+    unfreeze: function() {
         var self = this;
-        self._initNode();
+        self._claimNode();
         self.scope.$unfreeze();
-        self.trigger("view-unfreeze", self, view);
+        self.trigger("unfreeze", self);
         self.scope.$check();
     },
 
-    /*
-     * @access public
-     * @return bool
-     */
-    //isHidden: function() {
-    //    return this.hidden;
-    //},
+
+
+
+
 
     /**
      * @access public
@@ -485,18 +419,8 @@ module.exports = MetaphorJs.app.Component = cls({
      */
     afterRender:    emptyFn,
 
-    /*
-     * @method
-     * @access protected
-     */
-    //onShow:         emptyFn,
 
-    /*
-     * @method
-     * @access protected
-     */
-    //onHide:         emptyFn,
-
+    
     _onParentRendererDestroy: function() {
         this.$destroy();
     },

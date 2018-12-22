@@ -1,6 +1,6 @@
 
 require("../src/app/App.js");
-require("../src/app/Router.js");
+require("../src/app/view/Router.js");
 require("../src/app/Component.js");
 require("../src/func/app/resolve.js");
 require("../src/func/app/init.js");
@@ -82,7 +82,7 @@ cls({
 cls({
 
     $class: "Test.MyView",
-    $extends: "MetaphorJs.app.Router",
+    $extends: "MetaphorJs.app.view.Router",
     route: [
         {
             template: 'test-template.html',

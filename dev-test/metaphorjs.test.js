@@ -2,98 +2,98 @@
 /* BUNDLE START 004 */
 "use strict";
 
-var MetaphorJsPrebuilt = {"templates":{"a*b.html":"<p>a * b = {{--818}}</p>","a+b.html":"<p>a + b = {{--81B}}</p>","app1.html":"<h1>MetaphorJs Feature test</h1><div class=\"cases\"><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Inline</label><div id=\"inline-binding\" class=\"test\">{{--827}}</div><label class=\"case-label\">mjs-bind</label><div id=\"binding\" {bind}=\"--81K\" class=\"test\"></div><label class=\"case-label\">mjs-bind-html</label><div id=\"html-binding\" {bind-html}=\"--81N\" class=\"test\"></div><label class=\"case-label\">Plain attribute (href)</label><p class=\"test\"><a id=\"attr-binding-href\" [href]=\"http://{{--827}}.com\">{{--81K}}</a></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Input field (value)</label><p class=\"test\"><input id=\"binding-input-value\" type=\"text\" [value]=\"this.a\"></p><label class=\"case-label\">Input field (mjs-bind) (locked)</label><p class=\"test\"><input id=\"binding-input-bind\" type=\"text\" {bind}=\"--81Z\" {bind.$locked}></p><label class=\"case-label\">Checkbox (mjs-bind)</label><p class=\"test\"><input id=\"binding-checkbox\" type=\"checkbox\" {bind}=\"--823\"></p><label class=\"case-label\">Radio (mjs-bind) (locked)</label><p class=\"test\"><input id=\"radio-bind-1\" checked=\"checked\" type=\"radio\" value=\"inline1\" name=\"radio-bind\" {bind}=\"--827\" {bind.$locked}> <input id=\"radio-bind-2\" type=\"radio\" value=\"inline2\" name=\"radio-bind\"> <input id=\"radio-bind-3\" type=\"radio\" value=\"inline3\" name=\"radio-bind\"></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Select (mjs-bind)</label><p class=\"test\"><select id=\"select-bind\" {bind}=\"--81Z\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p><label class=\"case-label\">Textarea (mjs-bind)</label><p class=\"test\"><textarea id=\"textarea-bind-attr\" {bind}=\"--827\"></textarea></p><label class=\"case-label\">Textarea (inline)</label><p class=\"test\"><textarea id=\"textarea-bind-inline\">{{--827}}</textarea></p></div><div class=\"case\"><h4>Muplitple inline binding</h4><div id=\"multiple-inline-binding\" class=\"test\">{{--827}}<b>{{--81K}}</b>{{--81N}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Uppercase (mjs-bind)</label><div id=\"filter-uppercase-binding\" class=\"test\" {bind}=\"this.text | uppercase\"></div><label class=\"case-label\">Uppercase (inline)</label><div id=\"filter-uppercase-inline\" class=\"test\">{{this.text | uppercase}}</div><label class=\"case-label\">Lowercase (inline)</label><div id=\"filter-lowercase-inline\" class=\"test\">{{this.text | lowercase}}</div><label class=\"case-label\">Limit to (string)</label><div id=\"filter-limit-string\" class=\"test\">{{this.text | limitTo:this.a}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Linkify</label><p id=\"filter-linkify\" class=\"test\" {bind-html}=\"this.linkified | linkify\"></p></div><div class=\"case\"><h4>Expressions</h4><label class=\"case-label\">.a + .b</label><div id=\"expr-a-plus-b\" class=\"test\">{{--88M}}</div><label class=\"case-label\">.bool ? \"true\" : \"false\"</label><div id=\"expr-bool\" class=\"test\">{{--88N}}</div></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Input (number) (.a)</label><p class=\"test\"><input {model}=\"this.a\" type=\"number\" data-type=\"number\" id=\"model-input-a\"></p><label class=\"case-label\">Checkbox (.bool)</label><p class=\"test\"><input id=\"model-checkbox-bool\" type=\"checkbox\" {model}=\"this.bool\"></p><label class=\"case-label\">Radio (.inline)</label><p class=\"test\"><input id=\"model-radio-1\" checked=\"checked\" type=\"radio\" name=\"r\" value=\"inline1\" {model}=\"this.inline\">1<label><input id=\"model-radio-2\" type=\"radio\" name=\"r\" value=\"inline2\">2</label><input id=\"model-radio-3\" type=\"radio\" name=\"r\" value=\"inline3\">3</p><label class=\"case-label\">Select (.a)</label><p class=\"test\"><select id=\"model-select-a\" {model}=\"this.a\" data-type=\"number\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Textarea (.text)</label><p class=\"test\"><textarea id=\"model-textarea\" {model}=\"this.text\"></textarea></p><label class=\"case-label\">Input (string .text)</label><p class=\"test\"><input type=\"text\" id=\"model-input\" {model}=\"this.text\"></p></div><div class=\"case\"><h4>mjs-class</h4><label class=\"case-label\">Plain attribute</label><div class=\"test\"><p id=\"class-inline\" [class]=\"this.inline\">---</p></div><label class=\"case-label\">mjs-class (string)</label><div class=\"test\"><p id=\"class-string\" {class}=\"--827\">---</p></div><label class=\"case-label\">mjs-class ({bool: .bool, inline1: .a == 0})</label><div class=\"test\"><p id=\"class-object\" {class}=\"--84H\">---</p></div><div class=\"test\"><p id=\"class-object\" {class.bool}=\"--823\" {class.inline1}=\"--84K\">---</p></div></div><div class=\"case\"><h4>mjs-if, mjs-show, mjs-hide</h4><div id=\"if-bool\" {if}=\"--823\" class=\"test\" {if.$animate}>this should appear if .bool = true</div><div id=\"show-bool\" {show}=\"--823\" class=\"test\" {show.$animate}>this should show if .bool = true</div><div id=\"hide-bool\" {hide}=\"--823\" class=\"test\" {hide.$animate}>this should hide if .bool = true</div></div><div class=\"case\"><h4>mjs-include</h4><label class=\"case-label\">immediate</label><div {include}=\"test-template.html\" {include.$animate}><p>transcluded text</p></div><label class=\"case-label\">immediate (via tag)</label><mjs-include src=\"test-template.html\"><p>transcluded text</p></mjs-include><label class=\"case-label\">ajax</label><div {include}=\"template.html\"><p>Transcluded text</p></div></div><div class=\"case\"><h4>mjs-validate</h4><form name=\"myForm\" {validate} {class.error}=\"--854\" {class.$animate}><div><input name=\"field1\" data-validate-required {class}=\"--857\"></div><div {class}=\"--859\"><label><input type=\"radio\" name=\"radio1\" value=\"1\" data-validate-required> -- 1</label><label><input type=\"radio\" name=\"radio1\" value=\"2\"> -- 2</label><label><input type=\"radio\" name=\"radio1\" value=\"3\"> -- 3</label></div><div><input type=\"submit\" value=\"Submit\"> <input type=\"reset\" value=\"Reset\"></div></form></div><div class=\"case\" {init}=\"--85K\"><h4>dynamic list</h4><label><input id=\"radio-sep-1\" type=\"radio\" name=\"sep\" value=\"/\\n|,/\" {model}=\"this.sep\"> /\\n|,/</label><label><input type=\"radio\" name=\"sep\" value=\"/\\n/\"> /\\n/</label><label><input type=\"radio\" name=\"sep\" value=\",\"> ,</label><br><br><textarea {model}=\"split:this.sep >> this.dynamicList\" {model.$binding}=\"input\"></textarea><ul><li {each}=\"item in this.dynamicList\" {bind}=\"--85X\" {bind.$recursive}></li></ul></div><div class=\"case\"><h4>mjs-options</h4><label class=\"case-label\">Generated from .alist</label><p class=\"test\"><select {bind}=\"--81Z\" {options}=\"this.alist\"><option>not selected</option></select></p><label class=\"case-label\">Generated from .dynamicList</label><p class=\"test\"><select {options}=\"{\n                        name: this.item,\n                        value: this.$index,\n                        group: this.$index - (this.$index % 2),\n                        disabledGroup: this.$index == 0,\n                        disabled: this.$index == 4\n                        } in this.dynamicList\"><option>default value</option></select></p></div><div class=\"case\" {cmp}=\"Test.TplComponent\" id=\"tplComponentTest\"><h2>{{--88O}}</h2>mjs-include change template:<br><a href=\"#\" (click)=\"--86C\">a + b</a>|<a href=\"#\" (click)=\"--86E\">a * b</a><div {include}=\"--86G\" {include.$animate} id=\"tplComponetInc\"></div></div><div class=\"case\" {cmp}=\"Test.StringTemplate\"></div><div class=\"case\" {cmp}=\"Test.ChangeTemplate\">mjs-cmp change template:<br><a href=\"#\" (click)=\"--86L\">tpl1</a>|<a href=\"#\" (click)=\"--86N\">tpl2</a></div><div class=\"case\"><h4>Router</h4><div {router}=\"Test.MyView\" {router.$animate}></div>pushUrl:<a href=\"/1\">/1</a>|<a href=\"/2\">/2</a>|<a href=\"/3\">/3</a>|<a href=\"http://www.kuindji.com\">outside</a><br><br></div><div class=\"case\" {ignore}>This element is ignored by renderer: {{--88P}}</div><div class=\"case\" {router} {router.$cmp}=\"--86Z\" {router.$default-cmp}:=\"Test.ViewComponent1\"><p>change cmp:<a href=\"#\" (click)=\"--872\">Cmp1</a>|<a href=\"#\" (click)=\"--874\">Cmp2</a></p></div></div><div class=\"cases\"><div class=\"case double\" {init}=\"--877\"><h4>mjs-each (attr)</h4><input {model}=\"this.newItem\" (key.enter)=\"--87A\"> <input type=\"button\" {disabled}=\"--87C\" (click)=\"--87D\" value=\"Add item\"><ul {show}=\"--823\" {show.$animate}><li {each}=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\" {each.$animate} {each.$animate-move}><label {class}=\"--87H\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{--88Q}} - {{--88R}} - {{--88S}} - {{--88T}} - {{--88U}} - {{--88V}}</label><a href=\"#\" (click)=\"--87K\">x</a></li></ul><input {model}=\"this.listFilter\" placeholder=\"Search\"><a href=\"#\" (click)=\"--87N\">asc</a><a href=\"#\" (click)=\"--87P\">desc</a></div><div class=\"case double\"><h4>mjs-each (tag)</h4><mjs-each value=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\"><div><label {class}=\"--87H\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{--88Q}} - {{--88R}} - {{--88S}} - {{--88T}} - {{--88U}} - {{--88V}}</label><a href=\"#\" (click)=\"--87K\">x</a></div></mjs-each></div><div class=\"case\" id=\"newComponent\">Dynamically created component on existing element will go here</div><div class=\"case\" id=\"renderToComponent\">Dynamically created component with renderTo will go here</div><div class=\"case double\" {cmp}=\"Test.MyComponent\" {cmp.$as}=\"ctrl\"><p {cmp-prop}=\"para\">Component's transcluded text + {{--88P}}</p><a href=\"#\" (click)=\"--882\">reverse</a>|<a href=\"#\" (click)=\"--884\">create new component on existing element</a>|<a href=\"#\" (click)=\"--886\">create new component and render to</a>|<a href=\"#\" (click)=\"--888\">create new dialog</a><br><br><button (click)=\"--88C\">Load store</button><button (click)=\"--88E\">Clear store</button><ul><li {each}=\"item in this.store\" {each.$animate}>{{--88W}}</li></ul></div><div class=\"case double\" id=\"myComponent1\" {cmp}=\"Test.MyComponent\"><p>This is another instance with deferred value: {{--88X}}</p></div><div class=\"case double\"><tagc $as:=\"ctrl\" $test:=\"Value from config\"></tagc></div></div>","app2.html":"<div class=\"case\"><h4>app's resolved value</h4><p class=\"test\">{{--89P}}</p></div><div class=\"case\"><h4>recursive rendering</h4><p><a href=\"#\" (click)=\"--895\">Change level 2</a></p><p class=\"test\">This is level 1:<span {bind}=\"--898\" {bind.$recursive}></span></p></div><div class=\"case\"><h4>lang substitution</h4><label class=\"case-label\">using normal expression with filter: 'key' | l</label><p class=\"test\">{{'key' | l}}</p><p class=\"test\" {bind}=\"'subkey1' | l\" {bind.$recursive}></p></div><div class=\"case\"><h4>pluralization</h4><p><a href=\"#\" (click)=\"--89I\">Increase B</a></p><label class=\"case-label\">using normal expression:</label><p class=\"test\">{{--89Q}} {{'plr' | p:this.b}}</p><p><input type=\"number\" data-type=\"number\" {model}=\"this.people\"></p><p class=\"test\" {bind}=\"'viewing' | p:this.people\" {bind.$recursive}></p></div>","cmp1-template.html":"<h2>{{--88O}}</h2><div {transclude}></div>","dirs.html":"<div class=\"form_select\" (click)=\"--89V\" {class.loading}=\"--89W\" {class.disabled}=\"--89X\" {class.search}=\"--89Y\" {class.multiple}=\"--89Z\" {class.black}=\"--8A0\"><input type=\"hidden\" #el_hidden_field [name]=\"this.field.hiddenInputName\" [value]=\"this.field.$$selection | join:','\"><i #el_icon_down (click)=\"--8A3\"><!-- include icons/down.html --></i><a class=\"form_select__label\" {each}=\"item in this.field.getMultiSelection()\" style=\"display: inline-block !important;\">{{--8B6}}<i class=\"delete icon\" (click)=\"--8A6\"></i></a><input type=\"text\" #el_search class=\"search\" [disabled]=\"this.field.disabled\" {show}=\"--89Y\" {show.$display}=\"inline-block\" (focus)=\"--8A8\" (blur)=\"--8A9\" (key.backspace)=\"--8AA\" {model}=\"this.searchQuery\"><span class=\"sizer\" #el_sizer {if}=\"--8AC\" {bind}=\"--8AD\"></span><div class=\"default text\" #el_default_text (click)=\"--8AF\" {show}=\"--8AG\" {show.$display}=\"inline-block\" {show.$save-state}=\"--8AH\" {bind}=\"--8AI\"></div><div class=\"text\" #el_text (click)=\"--8AF\" {class.default}=\"--8AK\" {show}=\"--8AL\" {show.$save-state}=\"--8AM\" {show.$display}=\"inline-block\" {bind}=\"--8AN\"></div><!-- replaces two previous text blocks with invisible placeholder --><div style=\"display: none\" class=\"default text\" {show}=\"--8AP\" {show.$display}=\"inline-block\">&nbsp;</div><select class=\"form-select_hidden-select\" #el_hidden_select (click)=\"--8AR\" (change)=\"--8AS\" {show}=\"--8AT\" {show.$display}=\"block\" {options}=\"this.field._getSelectOptions()\"></select><div class=\"form-select-menu\" #el_menu {class.black}=\"--8A0\"><div class=\"items\" #el_menu_items><div class=\"disabled item\" #el_menu_disabled {if}=\"--8AX\" (click)=\"--8AY\" {bind-html}=\"--8AZ\"></div><div class=\"empty item\" #el_menu_empty style=\"color: #999;\" {if}=\"--8B1\" (click)=\"--8B2\" {bind-html}=\"--8B3\"></div><div class=\"item\" {each}=\"item in this.field.store\" (click)=\"--8B5\" {bind}=\"--8B6\"></div></div><div class=\"pagination_container\" {cmp}=\"Pagination\" {cmp.$autoscroll}=\"false\" {show}=\"--8B8\" (click)=\"--8B9\"></div></div></div>","tagc.html":"<div class=\"component\"><p>This is a tag component.</p><p>{{--8BF}}</p></div>","test-template.html":"<p>{{--8BJ}}</p><div {transclude}></div>"},"templateOptions":{"dirs.html":{"includes":true}},"expressionOpts":{"818":"r","872":"p","874":"p","81B":"r","87K":"p","88P":"r","8A6":"p","8B5":"p","8B6":"p","8B9":"p","8BJ":"r"}}
+var MetaphorJsPrebuilt = {"templates":{"a*b.html":"<p>a * b = {{--89W}}</p>","a+b.html":"<p>a + b = {{--89Z}}</p>","app1.html":"<h1>MetaphorJs Feature test</h1><div class=\"cases\"><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Inline</label><div id=\"inline-binding\" class=\"test\">{{--8AV}}</div><label class=\"case-label\">mjs-bind</label><div id=\"binding\" {bind}=\"--8A8\" class=\"test\"></div><label class=\"case-label\">mjs-bind-html</label><div id=\"html-binding\" {bind-html}=\"--8AB\" class=\"test\"></div><label class=\"case-label\">Plain attribute (href)</label><p class=\"test\"><a id=\"attr-binding-href\" [href]=\"http://{{--8AV}}.com\">{{--8A8}}</a></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Input field (value)</label><p class=\"test\"><input id=\"binding-input-value\" type=\"text\" [value]=\"this.a\"></p><label class=\"case-label\">Input field (mjs-bind) (locked)</label><p class=\"test\"><input id=\"binding-input-bind\" type=\"text\" {bind}=\"--8AN\" {bind.$locked}></p><label class=\"case-label\">Checkbox (mjs-bind)</label><p class=\"test\"><input id=\"binding-checkbox\" type=\"checkbox\" {bind}=\"--8AR\"></p><label class=\"case-label\">Radio (mjs-bind) (locked)</label><p class=\"test\"><input id=\"radio-bind-1\" checked=\"checked\" type=\"radio\" value=\"inline1\" name=\"radio-bind\" {bind}=\"--8AV\" {bind.$locked}> <input id=\"radio-bind-2\" type=\"radio\" value=\"inline2\" name=\"radio-bind\"> <input id=\"radio-bind-3\" type=\"radio\" value=\"inline3\" name=\"radio-bind\"></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Select (mjs-bind)</label><p class=\"test\"><select id=\"select-bind\" {bind}=\"--8AN\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p><label class=\"case-label\">Textarea (mjs-bind)</label><p class=\"test\"><textarea id=\"textarea-bind-attr\" {bind}=\"--8AV\"></textarea></p><label class=\"case-label\">Textarea (inline)</label><p class=\"test\"><textarea id=\"textarea-bind-inline\">{{--8AV}}</textarea></p></div><div class=\"case\"><h4>Muplitple inline binding</h4><div id=\"multiple-inline-binding\" class=\"test\">{{--8AV}}<b>{{--8A8}}</b>{{--8AB}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Uppercase (mjs-bind)</label><div id=\"filter-uppercase-binding\" class=\"test\" {bind}=\"this.text | uppercase\"></div><label class=\"case-label\">Uppercase (inline)</label><div id=\"filter-uppercase-inline\" class=\"test\">{{this.text | uppercase}}</div><label class=\"case-label\">Lowercase (inline)</label><div id=\"filter-lowercase-inline\" class=\"test\">{{this.text | lowercase}}</div><label class=\"case-label\">Limit to (string)</label><div id=\"filter-limit-string\" class=\"test\">{{this.text | limitTo:this.a}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Linkify</label><p id=\"filter-linkify\" class=\"test\" {bind-html}=\"this.linkified | linkify\"></p></div><div class=\"case\"><h4>Expressions</h4><label class=\"case-label\">.a + .b</label><div id=\"expr-a-plus-b\" class=\"test\">{{--8HA}}</div><label class=\"case-label\">.bool ? \"true\" : \"false\"</label><div id=\"expr-bool\" class=\"test\">{{--8HB}}</div></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Input (number) (.a)</label><p class=\"test\"><input {model}=\"this.a\" type=\"number\" data-type=\"number\" id=\"model-input-a\"></p><label class=\"case-label\">Checkbox (.bool)</label><p class=\"test\"><input id=\"model-checkbox-bool\" type=\"checkbox\" {model}=\"this.bool\"></p><label class=\"case-label\">Radio (.inline)</label><p class=\"test\"><input id=\"model-radio-1\" checked=\"checked\" type=\"radio\" name=\"r\" value=\"inline1\" {model}=\"this.inline\">1<label><input id=\"model-radio-2\" type=\"radio\" name=\"r\" value=\"inline2\">2</label><input id=\"model-radio-3\" type=\"radio\" name=\"r\" value=\"inline3\">3</p><label class=\"case-label\">Select (.a)</label><p class=\"test\"><select id=\"model-select-a\" {model}=\"this.a\" data-type=\"number\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Textarea (.text)</label><p class=\"test\"><textarea id=\"model-textarea\" {model}=\"this.text\"></textarea></p><label class=\"case-label\">Input (string .text)</label><p class=\"test\"><input type=\"text\" id=\"model-input\" {model}=\"this.text\"></p></div><div class=\"case\"><h4>mjs-class</h4><label class=\"case-label\">Plain attribute</label><div class=\"test\"><p id=\"class-inline\" [class]=\"this.inline\">---</p></div><label class=\"case-label\">mjs-class (string)</label><div class=\"test\"><p id=\"class-string\" {class}=\"--8AV\">---</p></div><label class=\"case-label\">mjs-class ({bool: .bool, inline1: .a == 0})</label><div class=\"test\"><p id=\"class-object\" {class}=\"--8D5\">---</p></div><div class=\"test\"><p id=\"class-object\" {class.bool}=\"--8AR\" {class.inline1}=\"--8D8\">---</p></div></div><div class=\"case\"><h4>mjs-if, mjs-show, mjs-hide</h4><div id=\"if-bool\" {if}=\"--8AR\" class=\"test\" {if.$animate}>this should appear if .bool = true</div><div id=\"show-bool\" {show}=\"--8AR\" class=\"test\" {show.$animate}>this should show if .bool = true</div><div id=\"hide-bool\" {hide}=\"--8AR\" class=\"test\" {hide.$animate}>this should hide if .bool = true</div></div><div class=\"case\"><h4>mjs-include</h4><label class=\"case-label\">immediate</label><div {include}=\"test-template.html\" {include.$animate}><p>transcluded text</p></div><label class=\"case-label\">immediate (via tag)</label><mjs-include src=\"test-template.html\"><p>transcluded text</p></mjs-include><label class=\"case-label\">ajax</label><div {include}=\"template.html\"><p>Transcluded text</p></div></div><div class=\"case\"><h4>mjs-validate</h4><form name=\"myForm\" {validate} {class.error}=\"--8DS\" {class.$animate}><div><input name=\"field1\" data-validate-required {class}=\"--8DV\"></div><div {class}=\"--8DX\"><label><input type=\"radio\" name=\"radio1\" value=\"1\" data-validate-required> -- 1</label><label><input type=\"radio\" name=\"radio1\" value=\"2\"> -- 2</label><label><input type=\"radio\" name=\"radio1\" value=\"3\"> -- 3</label></div><div><input type=\"submit\" value=\"Submit\"> <input type=\"reset\" value=\"Reset\"></div></form></div><div class=\"case\" {init}=\"--8E8\"><h4>dynamic list</h4><label><input id=\"radio-sep-1\" type=\"radio\" name=\"sep\" value=\"/\\n|,/\" {model}=\"this.sep\"> /\\n|,/</label><label><input type=\"radio\" name=\"sep\" value=\"/\\n/\"> /\\n/</label><label><input type=\"radio\" name=\"sep\" value=\",\"> ,</label><br><br><textarea {model}=\"split:this.sep >> this.dynamicList\" {model.$binding}=\"input\"></textarea><ul><li {each}=\"item in this.dynamicList\" {bind}=\"--8EL\" {bind.$recursive}></li></ul></div><div class=\"case\"><h4>mjs-options</h4><label class=\"case-label\">Generated from .alist</label><p class=\"test\"><select {bind}=\"--8AN\" {options}=\"this.alist\"><option>not selected</option></select></p><label class=\"case-label\">Generated from .dynamicList</label><p class=\"test\"><select {options}=\"{\n                        name: this.item,\n                        value: this.$index,\n                        group: this.$index - (this.$index % 2),\n                        disabledGroup: this.$index == 0,\n                        disabled: this.$index == 4\n                        } in this.dynamicList\"><option>default value</option></select></p></div><div class=\"case\" {cmp}=\"Test.TplComponent\" id=\"tplComponentTest\"><h2>{{--8HC}}</h2>mjs-include change template:<br><a href=\"#\" (click)=\"--8F0\">a + b</a>|<a href=\"#\" (click)=\"--8F2\">a * b</a><div {include}=\"--8F4\" {include.$animate} id=\"tplComponetInc\"></div></div><div class=\"case\" {cmp}=\"Test.StringTemplate\"></div><div class=\"case\" {cmp}=\"Test.ChangeTemplate\">mjs-cmp change template:<br><a href=\"#\" (click)=\"--8F9\">tpl1</a>|<a href=\"#\" (click)=\"--8FB\">tpl2</a></div><div class=\"case\"><h4>Router</h4><div {router}=\"Test.MyView\" {router.$animate}></div>pushUrl:<a href=\"/1\">/1</a>|<a href=\"/2\">/2</a>|<a href=\"/3\">/3</a>|<a href=\"http://www.kuindji.com\">outside</a><br><br></div><div class=\"case\" {ignore}>This element is ignored by renderer: {{--8HD}}</div><div class=\"case\" {view}=\"--8FN\" {view.$default-cmp}:=\"Test.ViewComponent1\"><p>change cmp:<a href=\"#\" (click)=\"--8FQ\">Cmp1</a>|<a href=\"#\" (click)=\"--8FS\">Cmp2</a></p></div></div><div class=\"cases\"><div class=\"case double\" {init}=\"--8FV\"><h4>mjs-each (attr)</h4><input {model}=\"this.newItem\" (key.enter)=\"--8FY\"> <input type=\"button\" {disabled}=\"--8G0\" (click)=\"--8G1\" value=\"Add item\"><ul {show}=\"--8AR\" {show.$animate}><li {each}=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\" {each.$animate} {each.$animate-move}><label {class}=\"--8G5\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{--8HE}} - {{--8HF}} - {{--8HG}} - {{--8HH}} - {{--8HI}} - {{--8HJ}}</label><a href=\"#\" (click)=\"--8G8\">x</a></li></ul><input {model}=\"this.listFilter\" placeholder=\"Search\"><a href=\"#\" (click)=\"--8GB\">asc</a><a href=\"#\" (click)=\"--8GD\">desc</a></div><div class=\"case double\"><h4>mjs-each (tag)</h4><mjs-each value=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\"><div><label {class}=\"--8G5\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{--8HE}} - {{--8HF}} - {{--8HG}} - {{--8HH}} - {{--8HI}} - {{--8HJ}}</label><a href=\"#\" (click)=\"--8G8\">x</a></div></mjs-each></div><div class=\"case\" id=\"newComponent\">Dynamically created component on existing element will go here</div><div class=\"case\" id=\"renderToComponent\">Dynamically created component with renderTo will go here</div><div class=\"case double\" {cmp}=\"Test.MyComponent\" {cmp.$as}=\"ctrl\"><p {cmp-prop}=\"para\">Component's transcluded text + {{--8HD}}</p><a href=\"#\" (click)=\"--8GQ\">reverse</a>|<a href=\"#\" (click)=\"--8GS\">create new component on existing element</a>|<a href=\"#\" (click)=\"--8GU\">create new component and render to</a>|<a href=\"#\" (click)=\"--8GW\">create new dialog</a><br><br><button (click)=\"--8H0\">Load store</button><button (click)=\"--8H2\">Clear store</button><ul><li {each}=\"item in this.store\" {each.$animate}>{{--8HK}}</li></ul></div><div class=\"case double\" id=\"myComponent1\" {cmp}=\"Test.MyComponent\"><p>This is another instance with deferred value: {{--8HL}}</p></div><div class=\"case double\"><tagc $as:=\"ctrl\" $test:=\"Value from config\"></tagc></div></div>","app2.html":"<div class=\"case\"><h4>app's resolved value</h4><p class=\"test\">{{--8ID}}</p></div><div class=\"case\"><h4>recursive rendering</h4><p><a href=\"#\" (click)=\"--8HT\">Change level 2</a></p><p class=\"test\">This is level 1:<span {bind}=\"--8HW\" {bind.$recursive}></span></p></div><div class=\"case\"><h4>lang substitution</h4><label class=\"case-label\">using normal expression with filter: 'key' | l</label><p class=\"test\">{{'key' | l}}</p><p class=\"test\" {bind}=\"'subkey1' | l\" {bind.$recursive}></p></div><div class=\"case\"><h4>pluralization</h4><p><a href=\"#\" (click)=\"--8I6\">Increase B</a></p><label class=\"case-label\">using normal expression:</label><p class=\"test\">{{--8IE}} {{'plr' | p:this.b}}</p><p><input type=\"number\" data-type=\"number\" {model}=\"this.people\"></p><p class=\"test\" {bind}=\"'viewing' | p:this.people\" {bind.$recursive}></p></div>","cmp1-template.html":"<h2>{{--8HC}}</h2><div {transclude}></div>","dirs.html":"<div class=\"form_select\" (click)=\"--8IJ\" {class.loading}=\"--8IK\" {class.disabled}=\"--8IL\" {class.search}=\"--8IM\" {class.multiple}=\"--8IN\" {class.black}=\"--8IO\"><input type=\"hidden\" #el_hidden_field [name]=\"this.field.hiddenInputName\" [value]=\"this.field.$$selection | join:','\"><i #el_icon_down (click)=\"--8IR\"><!-- include icons/down.html --></i><a class=\"form_select__label\" {each}=\"item in this.field.getMultiSelection()\" style=\"display: inline-block !important;\">{{--8JU}}<i class=\"delete icon\" (click)=\"--8IU\"></i></a><input type=\"text\" #el_search class=\"search\" [disabled]=\"this.field.disabled\" {show}=\"--8IM\" {show.$display}=\"inline-block\" (focus)=\"--8IW\" (blur)=\"--8IX\" (key.backspace)=\"--8IY\" {model}=\"this.searchQuery\"><span class=\"sizer\" #el_sizer {if}=\"--8J0\" {bind}=\"--8J1\"></span><div class=\"default text\" #el_default_text (click)=\"--8J3\" {show}=\"--8J4\" {show.$display}=\"inline-block\" {show.$save-state}=\"--8J5\" {bind}=\"--8J6\"></div><div class=\"text\" #el_text (click)=\"--8J3\" {class.default}=\"--8J8\" {show}=\"--8J9\" {show.$save-state}=\"--8JA\" {show.$display}=\"inline-block\" {bind}=\"--8JB\"></div><!-- replaces two previous text blocks with invisible placeholder --><div style=\"display: none\" class=\"default text\" {show}=\"--8JD\" {show.$display}=\"inline-block\">&nbsp;</div><select class=\"form-select_hidden-select\" #el_hidden_select (click)=\"--8JF\" (change)=\"--8JG\" {show}=\"--8JH\" {show.$display}=\"block\" {options}=\"this.field._getSelectOptions()\"></select><div class=\"form-select-menu\" #el_menu {class.black}=\"--8IO\"><div class=\"items\" #el_menu_items><div class=\"disabled item\" #el_menu_disabled {if}=\"--8JL\" (click)=\"--8JM\" {bind-html}=\"--8JN\"></div><div class=\"empty item\" #el_menu_empty style=\"color: #999;\" {if}=\"--8JP\" (click)=\"--8JQ\" {bind-html}=\"--8JR\"></div><div class=\"item\" {each}=\"item in this.field.store\" (click)=\"--8JT\" {bind}=\"--8JU\"></div></div><div class=\"pagination_container\" {cmp}=\"Pagination\" {cmp.$autoscroll}=\"false\" {show}=\"--8JW\" (click)=\"--8JX\"></div></div></div>","tagc.html":"<div class=\"component\"><p>This is a tag component.</p><p>{{--8K3}}</p></div>","test-template.html":"<p>{{--8K7}}</p><div {transclude}></div>"},"templateOptions":{"dirs.html":{"includes":true}},"expressionOpts":{"89W":"r","89Z":"r","8FQ":"p","8FS":"p","8G8":"p","8HD":"r","8IU":"p","8JT":"p","8JU":"p","8JX":"p","8K7":"r"}}
 MetaphorJsPrebuilt['funcs'] = {
-"818": function(____, $$$$) {try {return ____.$root.a * ____.$root.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a * this.$root.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"823": function(____, $$$$) {try {return ____.bool;} catch (thrownError) { /*DEBUG-START*/console.log("this.bool");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"827": function(____, $$$$) {try {return ____.inline;} catch (thrownError) { /*DEBUG-START*/console.log("this.inline");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"854": function(____, $$$$) {try {return ____.myForm.$invalid;} catch (thrownError) { /*DEBUG-START*/console.log("this.myForm.$invalid");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"857": function(____, $$$$) {try {return {error: ____.myForm.field1.$invalid};} catch (thrownError) { /*DEBUG-START*/console.log("{error: this.myForm.field1.$invalid}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"859": function(____, $$$$) {try {return {error: ____.myForm.radio1.$invalid};} catch (thrownError) { /*DEBUG-START*/console.log("{error: this.myForm.radio1.$invalid}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"872": function(____, $$$$) {try {____.$parent.viewCmp = 'Test.ViewComponent1';} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.viewCmp = \'Test.ViewComponent1\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"874": function(____, $$$$) {try {____.$parent.viewCmp = 'Test.ViewComponent2';} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.viewCmp = \'Test.ViewComponent2\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"877": function(____, $$$$) {try {____.newItem = ''; ____.listFilter = ''; ____.sortBy = 'asc';} catch (thrownError) { /*DEBUG-START*/console.log("this.newItem = \'\'; this.listFilter = \'\'; this.sortBy = \'asc\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"882": function(____, $$$$) {try {____.ctrl.reverse();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.reverse()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"884": function(____, $$$$) {try {____.ctrl.createNew();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.createNew()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"886": function(____, $$$$) {try {____.ctrl.createRender();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.createRender()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"888": function(____, $$$$) {try {____.ctrl.createDialog();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.createDialog()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"895": function(____, $$$$) {try {____.changeLevel2();} catch (thrownError) { /*DEBUG-START*/console.log("this.changeLevel2()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"898": function(____, $$$$) {try {return ____.level1;} catch (thrownError) { /*DEBUG-START*/console.log("this.level1");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81B": function(____, $$$$) {try {return ____.$root.a + ____.$root.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a + this.$root.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81K": function(____, $$$$) {try {return ____.text;} catch (thrownError) { /*DEBUG-START*/console.log("this.text");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81N": function(____, $$$$) {try {return ____.html;} catch (thrownError) { /*DEBUG-START*/console.log("this.html");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"81Z": function(____, $$$$) {try {return ____.a;} catch (thrownError) { /*DEBUG-START*/console.log("this.a");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"84H": function(____, $$$$) {try {return {bool: ____.bool, inline1: ____.a == 0};} catch (thrownError) { /*DEBUG-START*/console.log("{bool: this.bool, inline1: this.a == 0}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"84K": function(____, $$$$) {try {return ____.a == 0;} catch (thrownError) { /*DEBUG-START*/console.log("this.a == 0");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"85K": function(____, $$$$) {try {____.dynamicList = [];} catch (thrownError) { /*DEBUG-START*/console.log("this.dynamicList = []");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"85X": function(____, $$$$) {try {return ____.item;} catch (thrownError) { /*DEBUG-START*/console.log("this.item");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"86C": function(____, $$$$) {try {____.tpl = 'a+b.html';} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = \'a+b.html\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"86E": function(____, $$$$) {try {____.tpl = 'a*b.html';} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = \'a*b.html\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"86G": function(____, $$$$) {try {return ____.tpl;} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"86L": function(____, $$$$) {try {____.tpl = ____.tpl1;} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = this.tpl1");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"86N": function(____, $$$$) {try {____.tpl = ____.tpl2;} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = this.tpl2");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"86Z": function(____, $$$$) {try {return ____.viewCmp;} catch (thrownError) { /*DEBUG-START*/console.log("this.viewCmp");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"87A": function(____, $$$$) {try {if (____.newItem) { ____.list.push({bool: false, txt: ____.newItem}); ____.newItem = ''; };} catch (thrownError) { /*DEBUG-START*/console.log("if (this.newItem) { this.list.push({bool: false, txt: this.newItem}); this.newItem = \'\'; }");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"87C": function(____, $$$$) {try {return !____.newItem;} catch (thrownError) { /*DEBUG-START*/console.log("!this.newItem");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"87D": function(____, $$$$) {try {____.list.push({bool: false, txt: ____.newItem}); ____.newItem = '';;} catch (thrownError) { /*DEBUG-START*/console.log("this.list.push({bool: false, txt: this.newItem}); this.newItem = \'\';");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"87H": function(____, $$$$) {try {return {cls3: ____.item.bool};} catch (thrownError) { /*DEBUG-START*/console.log("{cls3: this.item.bool}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"87K": function(____, $$$$) {try {____.$parent.list.splice(____.$getRawIndex(____.$trackId),1);;} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.list.splice(this.$getRawIndex(this.$trackId),1);");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"87N": function(____, $$$$) {try {____.sortBy='asc';} catch (thrownError) { /*DEBUG-START*/console.log("this.sortBy=\'asc\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"87P": function(____, $$$$) {try {____.sortBy='desc';} catch (thrownError) { /*DEBUG-START*/console.log("this.sortBy=\'desc\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88C": function(____, $$$$) {try {____.store.load();} catch (thrownError) { /*DEBUG-START*/console.log("this.store.load()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88E": function(____, $$$$) {try {____.store.clear();} catch (thrownError) { /*DEBUG-START*/console.log("this.store.clear()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88M": function(____, $$$$) {try {return ____.a + ____.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.a + this.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88N": function(____, $$$$) {try {return ____.bool ? "true": "false";} catch (thrownError) { /*DEBUG-START*/console.log("this.bool ? \"true\": \"false\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88O": function(____, $$$$) {try {return ____.title;} catch (thrownError) { /*DEBUG-START*/console.log("this.title");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88P": function(____, $$$$) {try {return ____.$root.a;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88Q": function(____, $$$$) {try {return ____.$index;} catch (thrownError) { /*DEBUG-START*/console.log("this.$index");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88R": function(____, $$$$) {try {return ____.item.txt;} catch (thrownError) { /*DEBUG-START*/console.log("this.item.txt");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88S": function(____, $$$$) {try {return ____.$first ? "first" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$first ? \"first\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88T": function(____, $$$$) {try {return ____.$last ? "last" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$last ? \"last\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88U": function(____, $$$$) {try {return ____.$even ? "even" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$even ? \"even\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88V": function(____, $$$$) {try {return ____.$odd ? "odd" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$odd ? \"odd\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88W": function(____, $$$$) {try {return ____.item.name;} catch (thrownError) { /*DEBUG-START*/console.log("this.item.name");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"88X": function(____, $$$$) {try {return ____.deferred;} catch (thrownError) { /*DEBUG-START*/console.log("this.deferred");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89I": function(____, $$$$) {try {____.increaseB();} catch (thrownError) { /*DEBUG-START*/console.log("this.increaseB()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89P": function(____, $$$$) {try {return ____.resolved;} catch (thrownError) { /*DEBUG-START*/console.log("this.resolved");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89Q": function(____, $$$$) {try {return ____.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89V": function(____, $$$$) {try {____.field.onSelfClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSelfClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89W": function(____, $$$$) {try {return ____.loading;} catch (thrownError) { /*DEBUG-START*/console.log("this.loading");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89X": function(____, $$$$) {try {return ____.field.disabled;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.disabled");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89Y": function(____, $$$$) {try {return ____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"89Z": function(____, $$$$) {try {return ____.field.multiple;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.multiple");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8A0": function(____, $$$$) {try {return ____.field.black;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.black");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8A3": function(____, $$$$) {try {____.field.onDropdownIconClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onDropdownIconClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8A6": function(____, $$$$) {try {____.$parent.field.onItemDeleteClick(____.item, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onItemDeleteClick(this.item, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8A8": function(____, $$$$) {try {____.field.onSearchFocus(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchFocus(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8A9": function(____, $$$$) {try {____.field.onSearchBlur(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchBlur(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AA": function(____, $$$$) {try {____.field.onSearchBackspace(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchBackspace(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AC": function(____, $$$$) {try {return ____.field.multiple && ____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.multiple && this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AD": function(____, $$$$) {try {return ____.searchQuery;} catch (thrownError) { /*DEBUG-START*/console.log("this.searchQuery");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AF": function(____, $$$$) {try {____.field.onValueTextClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onValueTextClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AG": function(____, $$$$) {try {return !____.searchQuery && !____.field.hasSelection() && !!____.field.emptyText;} catch (thrownError) { /*DEBUG-START*/console.log("!this.searchQuery && !this.field.hasSelection() && !!this.field.emptyText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AH": function(____, $$$$) {try {return ____.emptyShown;} catch (thrownError) { /*DEBUG-START*/console.log("this.emptyShown");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AI": function(____, $$$$) {try {return ____.field.emptyText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.emptyText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AK": function(____, $$$$) {try {return ____.focused && ____.searchQuery == '';} catch (thrownError) { /*DEBUG-START*/console.log("this.focused && this.searchQuery == \'\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AL": function(____, $$$$) {try {return !____.searchQuery && !____.field.multiple && ____.field.hasSelection();} catch (thrownError) { /*DEBUG-START*/console.log("!this.searchQuery && !this.field.multiple && this.field.hasSelection()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AM": function(____, $$$$) {try {return ____.selectedShown;} catch (thrownError) { /*DEBUG-START*/console.log("this.selectedShown");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AN": function(____, $$$$) {try {return ____.field.getSelectedName();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.getSelectedName()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AP": function(____, $$$$) {try {return !____.emptyShown && !____.selectedShown && !____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("!this.emptyShown && !this.selectedShown && !this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AR": function(____, $$$$) {try {____.field.onHiddenSelectClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onHiddenSelectClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AS": function(____, $$$$) {try {____.field.onHiddenSelectChange(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onHiddenSelectChange(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AT": function(____, $$$$) {try {return ____.field.useHiddenSelect;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.useHiddenSelect");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AX": function(____, $$$$) {try {return ____.field.showNotFound && ____.field.store.isEmpty();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.showNotFound && this.field.store.isEmpty()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AY": function(____, $$$$) {try {____.field.onNotFoundClick(null, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onNotFoundClick(null, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8AZ": function(____, $$$$) {try {return ____.field.notFoundText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.notFoundText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8B1": function(____, $$$$) {try {return ____.field.showEmptyItem && !____.field.store.isEmpty();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.showEmptyItem && !this.field.store.isEmpty()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8B2": function(____, $$$$) {try {____.field.onItemClick(null, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onItemClick(null, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8B3": function(____, $$$$) {try {return ____.field.emptyItemText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.emptyItemText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8B5": function(____, $$$$) {try {____.$parent.field.onItemClick(____.item, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onItemClick(this.item, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8B6": function(____, $$$$) {try {return ____.$parent.field.getItemName(____.item);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.getItemName(this.item)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8B8": function(____, $$$$) {try {return ____.pagination.hasPages();} catch (thrownError) { /*DEBUG-START*/console.log("this.pagination.hasPages()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8B9": function(____, $$$$) {try {____.$parent.field.onPaginationClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onPaginationClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8BF": function(____, $$$$) {try {return ____.ctrl.config.get('test');} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.config.get(\'test\')");console.log(thrownError);/*DEBUG-END*/return undefined; }},
-"8BJ": function(____, $$$$) {try {return ____.$root.text;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.text");console.log(thrownError);/*DEBUG-END*/return undefined; }}
+"89W": function(____, $$$$) {try {return ____.$root.a * ____.$root.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a * this.$root.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"89Z": function(____, $$$$) {try {return ____.$root.a + ____.$root.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a + this.$root.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8A8": function(____, $$$$) {try {return ____.text;} catch (thrownError) { /*DEBUG-START*/console.log("this.text");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AB": function(____, $$$$) {try {return ____.html;} catch (thrownError) { /*DEBUG-START*/console.log("this.html");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AN": function(____, $$$$) {try {return ____.a;} catch (thrownError) { /*DEBUG-START*/console.log("this.a");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AR": function(____, $$$$) {try {return ____.bool;} catch (thrownError) { /*DEBUG-START*/console.log("this.bool");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8AV": function(____, $$$$) {try {return ____.inline;} catch (thrownError) { /*DEBUG-START*/console.log("this.inline");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8D5": function(____, $$$$) {try {return {bool: ____.bool, inline1: ____.a == 0};} catch (thrownError) { /*DEBUG-START*/console.log("{bool: this.bool, inline1: this.a == 0}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8D8": function(____, $$$$) {try {return ____.a == 0;} catch (thrownError) { /*DEBUG-START*/console.log("this.a == 0");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8DS": function(____, $$$$) {try {return ____.myForm.$invalid;} catch (thrownError) { /*DEBUG-START*/console.log("this.myForm.$invalid");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8DV": function(____, $$$$) {try {return {error: ____.myForm.field1.$invalid};} catch (thrownError) { /*DEBUG-START*/console.log("{error: this.myForm.field1.$invalid}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8DX": function(____, $$$$) {try {return {error: ____.myForm.radio1.$invalid};} catch (thrownError) { /*DEBUG-START*/console.log("{error: this.myForm.radio1.$invalid}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8E8": function(____, $$$$) {try {____.dynamicList = [];} catch (thrownError) { /*DEBUG-START*/console.log("this.dynamicList = []");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8EL": function(____, $$$$) {try {return ____.item;} catch (thrownError) { /*DEBUG-START*/console.log("this.item");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8F0": function(____, $$$$) {try {____.tpl = 'a+b.html';} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = \'a+b.html\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8F2": function(____, $$$$) {try {____.tpl = 'a*b.html';} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = \'a*b.html\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8F4": function(____, $$$$) {try {return ____.tpl;} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8F9": function(____, $$$$) {try {____.tpl = ____.tpl1;} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = this.tpl1");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8FB": function(____, $$$$) {try {____.tpl = ____.tpl2;} catch (thrownError) { /*DEBUG-START*/console.log("this.tpl = this.tpl2");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8FN": function(____, $$$$) {try {return ____.viewCmp;} catch (thrownError) { /*DEBUG-START*/console.log("this.viewCmp");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8FQ": function(____, $$$$) {try {____.$parent.viewCmp = 'Test.ViewComponent1';} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.viewCmp = \'Test.ViewComponent1\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8FS": function(____, $$$$) {try {____.$parent.viewCmp = 'Test.ViewComponent2';} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.viewCmp = \'Test.ViewComponent2\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8FV": function(____, $$$$) {try {____.newItem = ''; ____.listFilter = ''; ____.sortBy = 'asc';} catch (thrownError) { /*DEBUG-START*/console.log("this.newItem = \'\'; this.listFilter = \'\'; this.sortBy = \'asc\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8FY": function(____, $$$$) {try {if (____.newItem) { ____.list.push({bool: false, txt: ____.newItem}); ____.newItem = ''; };} catch (thrownError) { /*DEBUG-START*/console.log("if (this.newItem) { this.list.push({bool: false, txt: this.newItem}); this.newItem = \'\'; }");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8G0": function(____, $$$$) {try {return !____.newItem;} catch (thrownError) { /*DEBUG-START*/console.log("!this.newItem");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8G1": function(____, $$$$) {try {____.list.push({bool: false, txt: ____.newItem}); ____.newItem = '';;} catch (thrownError) { /*DEBUG-START*/console.log("this.list.push({bool: false, txt: this.newItem}); this.newItem = \'\';");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8G5": function(____, $$$$) {try {return {cls3: ____.item.bool};} catch (thrownError) { /*DEBUG-START*/console.log("{cls3: this.item.bool}");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8G8": function(____, $$$$) {try {____.$parent.list.splice(____.$getRawIndex(____.$trackId),1);;} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.list.splice(this.$getRawIndex(this.$trackId),1);");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8GB": function(____, $$$$) {try {____.sortBy='asc';} catch (thrownError) { /*DEBUG-START*/console.log("this.sortBy=\'asc\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8GD": function(____, $$$$) {try {____.sortBy='desc';} catch (thrownError) { /*DEBUG-START*/console.log("this.sortBy=\'desc\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8GQ": function(____, $$$$) {try {____.ctrl.reverse();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.reverse()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8GS": function(____, $$$$) {try {____.ctrl.createNew();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.createNew()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8GU": function(____, $$$$) {try {____.ctrl.createRender();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.createRender()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8GW": function(____, $$$$) {try {____.ctrl.createDialog();} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.createDialog()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8H0": function(____, $$$$) {try {____.store.load();} catch (thrownError) { /*DEBUG-START*/console.log("this.store.load()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8H2": function(____, $$$$) {try {____.store.clear();} catch (thrownError) { /*DEBUG-START*/console.log("this.store.clear()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8HA": function(____, $$$$) {try {return ____.a + ____.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.a + this.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8HB": function(____, $$$$) {try {return ____.bool ? "true": "false";} catch (thrownError) { /*DEBUG-START*/console.log("this.bool ? \"true\": \"false\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8HC": function(____, $$$$) {try {return ____.title;} catch (thrownError) { /*DEBUG-START*/console.log("this.title");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8HD": function(____, $$$$) {try {return ____.$root.a;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8HE": function(____, $$$$) {try {return ____.$index;} catch (thrownError) { /*DEBUG-START*/console.log("this.$index");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8HF": function(____, $$$$) {try {return ____.item.txt;} catch (thrownError) { /*DEBUG-START*/console.log("this.item.txt");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8HG": function(____, $$$$) {try {return ____.$first ? "first" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$first ? \"first\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8HH": function(____, $$$$) {try {return ____.$last ? "last" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$last ? \"last\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8HI": function(____, $$$$) {try {return ____.$even ? "even" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$even ? \"even\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8HJ": function(____, $$$$) {try {return ____.$odd ? "odd" : "";} catch (thrownError) { /*DEBUG-START*/console.log("this.$odd ? \"odd\" : \"\"");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8HK": function(____, $$$$) {try {return ____.item.name;} catch (thrownError) { /*DEBUG-START*/console.log("this.item.name");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8HL": function(____, $$$$) {try {return ____.deferred;} catch (thrownError) { /*DEBUG-START*/console.log("this.deferred");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8HT": function(____, $$$$) {try {____.changeLevel2();} catch (thrownError) { /*DEBUG-START*/console.log("this.changeLevel2()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8HW": function(____, $$$$) {try {return ____.level1;} catch (thrownError) { /*DEBUG-START*/console.log("this.level1");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8I6": function(____, $$$$) {try {____.increaseB();} catch (thrownError) { /*DEBUG-START*/console.log("this.increaseB()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8ID": function(____, $$$$) {try {return ____.resolved;} catch (thrownError) { /*DEBUG-START*/console.log("this.resolved");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8IE": function(____, $$$$) {try {return ____.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8IJ": function(____, $$$$) {try {____.field.onSelfClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSelfClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8IK": function(____, $$$$) {try {return ____.loading;} catch (thrownError) { /*DEBUG-START*/console.log("this.loading");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8IL": function(____, $$$$) {try {return ____.field.disabled;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.disabled");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8IM": function(____, $$$$) {try {return ____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8IN": function(____, $$$$) {try {return ____.field.multiple;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.multiple");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8IO": function(____, $$$$) {try {return ____.field.black;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.black");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8IR": function(____, $$$$) {try {____.field.onDropdownIconClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onDropdownIconClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8IU": function(____, $$$$) {try {____.$parent.field.onItemDeleteClick(____.item, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onItemDeleteClick(this.item, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8IW": function(____, $$$$) {try {____.field.onSearchFocus(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchFocus(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8IX": function(____, $$$$) {try {____.field.onSearchBlur(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchBlur(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8IY": function(____, $$$$) {try {____.field.onSearchBackspace(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onSearchBackspace(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8J0": function(____, $$$$) {try {return ____.field.multiple && ____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.multiple && this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8J1": function(____, $$$$) {try {return ____.searchQuery;} catch (thrownError) { /*DEBUG-START*/console.log("this.searchQuery");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8J3": function(____, $$$$) {try {____.field.onValueTextClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onValueTextClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8J4": function(____, $$$$) {try {return !____.searchQuery && !____.field.hasSelection() && !!____.field.emptyText;} catch (thrownError) { /*DEBUG-START*/console.log("!this.searchQuery && !this.field.hasSelection() && !!this.field.emptyText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8J5": function(____, $$$$) {try {return ____.emptyShown;} catch (thrownError) { /*DEBUG-START*/console.log("this.emptyShown");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8J6": function(____, $$$$) {try {return ____.field.emptyText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.emptyText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8J8": function(____, $$$$) {try {return ____.focused && ____.searchQuery == '';} catch (thrownError) { /*DEBUG-START*/console.log("this.focused && this.searchQuery == \'\'");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8J9": function(____, $$$$) {try {return !____.searchQuery && !____.field.multiple && ____.field.hasSelection();} catch (thrownError) { /*DEBUG-START*/console.log("!this.searchQuery && !this.field.multiple && this.field.hasSelection()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8JA": function(____, $$$$) {try {return ____.selectedShown;} catch (thrownError) { /*DEBUG-START*/console.log("this.selectedShown");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8JB": function(____, $$$$) {try {return ____.field.getSelectedName();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.getSelectedName()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8JD": function(____, $$$$) {try {return !____.emptyShown && !____.selectedShown && !____.field.searchable;} catch (thrownError) { /*DEBUG-START*/console.log("!this.emptyShown && !this.selectedShown && !this.field.searchable");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8JF": function(____, $$$$) {try {____.field.onHiddenSelectClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onHiddenSelectClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8JG": function(____, $$$$) {try {____.field.onHiddenSelectChange(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onHiddenSelectChange(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8JH": function(____, $$$$) {try {return ____.field.useHiddenSelect;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.useHiddenSelect");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8JL": function(____, $$$$) {try {return ____.field.showNotFound && ____.field.store.isEmpty();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.showNotFound && this.field.store.isEmpty()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8JM": function(____, $$$$) {try {____.field.onNotFoundClick(null, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onNotFoundClick(null, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8JN": function(____, $$$$) {try {return ____.field.notFoundText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.notFoundText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8JP": function(____, $$$$) {try {return ____.field.showEmptyItem && !____.field.store.isEmpty();} catch (thrownError) { /*DEBUG-START*/console.log("this.field.showEmptyItem && !this.field.store.isEmpty()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8JQ": function(____, $$$$) {try {____.field.onItemClick(null, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.field.onItemClick(null, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8JR": function(____, $$$$) {try {return ____.field.emptyItemText;} catch (thrownError) { /*DEBUG-START*/console.log("this.field.emptyItemText");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8JT": function(____, $$$$) {try {____.$parent.field.onItemClick(____.item, ____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onItemClick(this.item, this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8JU": function(____, $$$$) {try {return ____.$parent.field.getItemName(____.item);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.getItemName(this.item)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8JW": function(____, $$$$) {try {return ____.pagination.hasPages();} catch (thrownError) { /*DEBUG-START*/console.log("this.pagination.hasPages()");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8JX": function(____, $$$$) {try {____.$parent.field.onPaginationClick(____.$event);} catch (thrownError) { /*DEBUG-START*/console.log("this.$parent.field.onPaginationClick(this.$event)");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8K3": function(____, $$$$) {try {return ____.ctrl.config.get('test');} catch (thrownError) { /*DEBUG-START*/console.log("this.ctrl.config.get(\'test\')");console.log(thrownError);/*DEBUG-END*/return undefined; }},
+"8K7": function(____, $$$$) {try {return ____.$root.text;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.text");console.log(thrownError);/*DEBUG-END*/return undefined; }}
 };
 
 
@@ -109,85 +109,40 @@ var MetaphorJs = {
 };
 
 
-var strUndef = "undefined";
 
-
-
-/**
- * Log thrown error to console (in debug mode) and 
- * call all error listeners
- * @function error
- * @param {Error} e 
- */
-var error = (function(){
-
-    var listeners = [];
-
-    var error = function error(e) {
-
-        var i, l;
-
-        for (i = 0, l = listeners.length; i < l; i++) {
-            listeners[i][0].call(listeners[i][1], e)
-        }
-
-        /*DEBUG-START*/
-        if (typeof console != strUndef && console.error) {
-            console.error(e);
-        }
-        /*DEBUG-END*/
-    };
-
-    /**
-     * Subscribe to all errors
-     * @method on
-     * @param {function} fn 
-     * @param {object} context 
-     */
-    error.on = function(fn, context) {
-        error.un(fn, context);
-        listeners.push([fn, context]);
-    };
-
-    /**
-     * Unsubscribe from all errors
-     * @method un
-     * @param {function} fn 
-     * @param {object} context 
-     */
-    error.un = function(fn, context) {
-        var i, l;
-        for (i = 0, l = listeners.length; i < l; i++) {
-            if (listeners[i][0] === fn && listeners[i][1] === context) {
-                listeners.splice(i, 1);
-                break;
-            }
-        }
-    };
-
-    return error;
-}());
-
-
+MetaphorJs.app.view = MetaphorJs.app.view || {};
 
 /**
- * Check if given value is a function
- * @function isFunction
- * @param {*} value 
- * @returns {boolean}
+ * Bind function to context (Function.bind wrapper)
+ * @function bind
+ * @param {Function} fn
+ * @param {*} context
  */
-function isFunction(value) {
-    return typeof value == 'function';
+function bind(fn, context){
+    return fn.bind(context);
 };
 
+var undf = undefined;
+
+
+
 /**
- * Check if given value is a string
- * @function isString
- * @param {*} value 
- * @returns {boolean}
+ * Transform anything into array
+ * @function toArray
+ * @param {*} list
+ * @returns {array}
  */
-function isString(value) {
-    return typeof value === "string" || value === ""+value;
+function toArray(list) {
+    if (list && !list.length != undf && list !== ""+list) {
+        for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]){}
+        return a;
+    }
+    else if (list) {
+        return [list];
+    }
+    else {
+        return [];
+    }
 };
 
 /**
@@ -197,8 +152,6 @@ function isString(value) {
  * @returns {string}
  */
 var toString = Object.prototype.toString;
-
-var undf = undefined;
 
 
 
@@ -261,969 +214,6 @@ var _varType = function(){
     };
 
 }();
-
-
-
-/**
- * Check if given value is array (not just array-like)
- * @function isArray
- * @param {*} value
- * @returns {boolean}
- */
-function isArray(value) {
-    return typeof value === "object" && _varType(value) === 5;
-};
-
-
-function emptyFn(){};
-
-/**
- * Intellegently splits string into parts using a separator, 
- * leaving untouched parts where separator is inside quotes.
- * @param {string} str
- * @param {string} separator
- * @param {bool} allowEmpty
- * @returns {array}
- */
-var split = function(str, separator, allowEmpty) {
-
-    var l       = str.length,
-        sl      = separator.length,
-        i       = 0,
-        prev    = 0,
-        inQDbl  = false,
-        inQSng  = false,
-        parts   = [],
-        esc     = "\\",
-        char;
-
-    if (!sl) {
-        return [str];
-    }
-
-    for (; i < l; i++) {
-
-        char = str.charAt(i);
-
-        if (char == esc) {
-            i++;
-            continue;
-        }
-
-        if (char == '"') {
-            inQDbl = !inQDbl;
-            continue;
-        }
-        if (char == "'") {
-            inQSng = !inQSng;
-            continue;
-        }
-
-        if (!inQDbl && !inQSng) {
-            if ((sl == 1 && char == separator) ||
-                (sl > 1 && str.substring(i, i + sl) == separator)) {
-
-                if (str.substr(i - 1, sl) == separator ||
-                    str.substr(i + 1, sl) == separator) {
-
-                    if (!allowEmpty) {
-                        i += (sl - 1);
-                        continue;
-                    }
-                }
-
-                parts.push(str.substring(prev, i).replace(esc + separator, separator));
-                prev = i + sl;
-                i += (sl - 1);
-            }
-        }
-    }
-
-    parts.push(str.substring(prev).replace(esc + separator, separator));
-
-    return parts;
-};
-
-
-MetaphorJs.filter = MetaphorJs.filter || {};
-
-
-
-
-
-var lib_Expression = MetaphorJs.lib.Expression = (function() {
-
-    var REG_REPLACE_EXPR    = /((^|[^a-z0-9_$\]\)'"])|(this))(\.)([^0-9])/ig,
-        REG_REPLACER        = "$2____.$5",
-        fnBodyStart     = 'try {',
-        fnBodyEnd       = ';} catch (thrownError) { '+
-                            '/*DEBUG-START*/console.log("expr");console.log(thrownError);/*DEBUG-END*/'+
-                            'return undefined; }',    
-        cache           = {},
-        descrCache      = {},
-        filterSources   = [],
-
-        prebuiltExpr    = MetaphorJs.prebuilt ?
-                            MetaphorJs.prebuilt.funcs : {} || 
-                            {},
-
-        prebuiltCache   = function(key) {
-            if (isPrebuiltKey(key)) {
-                key = key.substring(2);
-                return prebuiltExpr[key] || null;
-            }
-            return null;
-        },
-
-        isPrebuiltKey   = function(expr) {
-            return typeof expr === "string" && expr.substring(0,2) === '--';
-        },
-
-        isAtom          = function(expr) {
-            return !expr.trim().match(/[^a-zA-Z0-9_$'"\(\)\[\]\.;]/);
-        },
-
-        isProperty      = function(expr) {
-            var match = expr.match(/^this\.([a-zA-Z0-9_$]+)$/);
-            return match ? match[1] : false;
-        },
-
-        isStatic        = function(val) {
-
-            if (!isString(val)) {
-                return {
-                    value: val
-                };
-            }
-
-            var first   = val.substr(0, 1),
-                last    = val.length - 1,
-                num;
-
-            if (first === '"' || first === "'") {
-                if (val.indexOf(first, 1) === last) {
-                    return {value: val.substring(1, last)};
-                }
-            }
-            else if (val === 'true' || val === 'false') {
-                return {value: val === 'true'};
-            }
-            else if ((num = parseFloat(val)) == val) {
-                return {value: num};
-            }
-
-            return false;
-        },
-
-        getFilter       = function(name, filters) {
-            if (filters) {
-                if (isArray(filters)) {
-                    filters = filters.concat(filterSources);
-                }
-                else if (filters.hasOwnProperty(name)) {
-                    return filters[name];
-                }
-            }
-            else {
-                filters = filterSources;
-            }
-            var i, l = filterSources.length;
-            for (i = 0; i < l; i++) {
-                if (filterSources[i] && filterSources[i].hasOwnProperty(name)) {
-                    return filterSources[i][name];
-                }
-            }
-
-            return null;
-        },
-
-
-        expression      = function(expr, opt) {
-            opt = opt || {};
-
-            if (typeof opt === "string" && opt === "setter") {
-                opt = {
-                    setter: true
-                };
-            }
-
-            var asCode = opt.asCode === true,
-                isSetter = opt.setter === true,
-                noReturn = opt.noReturn === true,
-                statc,
-                cacheKey;
-
-            if (statc = isStatic(expr)) {
-
-                cacheKey = expr + "_static";
-
-                if (cache[cacheKey]) {
-                    return cache[cacheKey];
-                }
-
-                if (isSetter) {
-                    throw new Error("Static value cannot work as setter");
-                }
-
-                if (opt.asCode) {
-                    return "".concat(
-                        "function() {",
-                            "return ", 
-                            expr, 
-                        "}"
-                    );
-                }
-
-                return cache[cacheKey] = function() {
-                    return statc.value;
-                };
-            }
-            try {
-
-                var atom = isAtom(expr);
-                cacheKey = expr + "_" + (
-                            isSetter ? "setter" : 
-                                (noReturn ? "func" : "getter")
-                            );
-
-                if (!atom && isSetter) {
-                    throw new Error("Complex expression cannot work as setter");
-                }
-
-                if (!cache[cacheKey] || asCode) {
-
-                    var code = expr.replace(REG_REPLACE_EXPR, REG_REPLACER),
-                        body = 
-                            !atom || !isSetter ? 
-                                "".concat(
-                                    fnBodyStart, 
-                                    noReturn ? '' : 'return ', 
-                                    code,
-                                    fnBodyEnd
-                                ) : 
-                                "".concat(
-                                    fnBodyStart, 
-                                    //noReturn ? '' : 'return ', 
-                                    code, ' = $$$$', 
-                                    fnBodyEnd
-                                );
-
-                    /*DEBUG-START*/
-                    var esc = expr.replace(/\n/g, '\\n');
-                    esc = esc.replace(/\r/g, '\\r');
-                    esc = esc.replace(/'/g, "\\'");
-                    esc = esc.replace(/"/g, '\\"');
-                    body = body.replace('"expr"', '"' +esc+ '"');
-                    /*DEBUG-END*/
-
-                    if (asCode) {
-                        return "function(____, $$$$) {" + body + "}";
-                    }
-                    else {
-                        cache[cacheKey] = new Function(
-                            '____',
-                            '$$$$',
-                            body
-                        );
-                    }
-                }
-                return cache[cacheKey];
-            }
-            catch (thrownError) {
-                error(new Error("Error parsing expression: " + expr + "; \n\n\n" + body));
-                error(thrownError);
-                return emptyFn;
-            }
-        },
-
-        preparePipe     = function(pipe, filters) {
-
-            var name    = pipe.shift(),
-                fn      = isFunction(name) ? name : null,
-                params  = [],
-                exprs   = [],
-                fchar   = fn ? null : name.substr(0,1),
-                opt     = {
-                    neg: false,
-                    dblneg: false,
-                    undeterm: false,
-                    name: name
-                },
-                i, l;
-
-            if (!fn) {
-                if (name.substr(0, 2) === "!!") {
-                    name = name.substr(2);
-                    opt.dblneg = true;
-                }
-                else {
-                    if (fchar === "!") {
-                        name = name.substr(1);
-                        opt.neg = true;
-                    }
-                    else if (fchar === "?") {
-                        name = name.substr(1);
-                        opt.undeterm = true;
-                    }
-                }
-
-                opt.name = name;
-            }
-            else {
-                opt.name = fn.name;
-            }
-
-            !fn && (fn = getFilter(name, filters));
-
-            if (isFunction(fn)) {
-
-                for (i = -1, l = pipe.length; ++i < l;
-                    params.push(expressionFn(pipe[i]))) {
-                        if (!isStatic(pipe[i])) {
-                            exprs.push(pipe[i]);
-                        }
-                    }
-
-                if (fn.$undeterministic) {
-                    opt.undeterm = true;
-                }
-
-                return {
-                    fn: fn, 
-                    origArgs: pipe, 
-                    params: params, 
-                    expressions: exprs,
-                    opt: opt
-                };
-            }
-
-            return null;
-        },
-
-        parsePipes      = function(expr, isInput, filters) {
-
-            var separator   = isInput ? ">>" : "|";
-
-            if (expr.indexOf(separator) === -1) {
-                return expr;
-            }
-
-            var parts   = split(expr, separator),
-                ret     = isInput ? parts.pop() : parts.shift(),
-                pipes   = [],
-                pipe,
-                i, l;
-
-            for(i = 0, l = parts.length; i < l; i++) {
-                pipe = split(parts[i].trim(), ':');
-                pipe = preparePipe(pipe, filters);
-                pipe && pipes.push(pipe);
-            }
-
-            return {
-                expr: ret.trim(),
-                pipes: pipes
-            }
-        },
-
-
-        _initSetter         = function(struct) {
-            struct.setterFn = expressionFn(struct.expr, {
-                setter: true
-            });
-        },
-
-        deconstructor       = function(expr, opt) {
-
-            opt = opt || {};
-
-            var isNormalPipe = expr.indexOf("|") !== -1,
-                isInputPipe = expr.indexOf(">>") !== -1,
-                res,
-                struct = {
-                    fn: null,
-                    getterFn: null,
-                    setterFn: null,
-                    expr: expr,
-                    pipes: [],
-                    inputPipes: []
-                };
-
-            if (!isNormalPipe && !isInputPipe) {
-                struct.fn = expressionFn(struct.expr, opt);
-                return struct;
-            }
-
-            if (isNormalPipe) {
-                res = parsePipes(struct.expr, false, opt.filters);
-                struct.expr = res.expr;
-                struct.pipes = res.pipes;
-            }
-
-            if (isInputPipe) {
-                res = parsePipes(struct.expr, true, opt.filters);
-                struct.expr = res.expr;
-                struct.inputPipes = res.pipes;
-                opt.setter = true;
-            }
-
-            struct.fn = expressionFn(struct.expr, opt);
-
-            if (isInputPipe) {
-                opt.setter = false;
-                struct.getterFn = expressionFn(struct.expr, opt);
-                struct.setterFn = struct.fn;
-            }
-            else {
-                struct.getterFn = struct.fn;
-            }
-
-            return struct;
-        },
-
-        runThroughPipes     = function(val, pipes, dataObj) {
-
-            var j,
-                args,
-                pipe,
-
-                jlen    = pipes.length,
-                z, zl;
-
-            for (j = 0; j < jlen; j++) {
-                pipe    = pipes[j];
-                args    = [];
-                for (z = -1, zl = pipe.params.length; ++z < zl;
-                        args.push(pipe.params[z](dataObj))){}
-
-                args.unshift(dataObj);
-                args.unshift(val);
-
-                val     = pipe.fn.apply(dataObj, args);
-                
-                if (pipe.opt.neg) {
-                    val = !val;
-                }
-                else if (pipe.opt.dblneg) {
-                    val = !!val;
-                }
-            }
-        
-            return val;
-        },
-
-
-        constructor         = function(struct, opt) {
-            
-            opt = opt || {};
-
-            if (struct.pipes.length === 0 && 
-                struct.inputPipes.length === 0) {
-                if (opt.setterOnly) {
-                    !struct.setterFn && _initSetter(struct);
-                    return struct.setterFn;
-                }
-                return struct.fn;
-            }
-
-            return function(dataObj, inputVal) {
-
-                var val;
-
-                if (struct.inputPipes.length && !opt.getterOnly) {
-                    val = inputVal;
-                    val = runThroughPipes(val, struct.inputPipes, dataObj);
-                    !struct.setterFn && _initSetter(struct);
-                    struct.setterFn(dataObj, val);
-                }
-
-                if (struct.pipes && !opt.setterOnly) {
-                    if (opt.getterOnly) {
-                        val = struct.getterFn(dataObj);
-                    }
-                    else if (!struct.inputPipes.length) {
-                        val = struct.fn(dataObj);
-                    }
-                    val = runThroughPipes(val, struct.pipes, dataObj);
-                }
-
-                return val;
-            };
-        },
-
-        expressionFn,
-        parserFn,
-        deconstructorFn,
-        constructorFn,
-
-        parser      = function(expr, opt) {
-            return constructorFn(deconstructorFn(expr, opt), opt);
-        },
-
-        reset       = function() {
-            parserFn = parser;
-            deconstructorFn = deconstructor;
-            constructorFn = constructor;
-            expressionFn = expression;
-        };
-
-
-    if (typeof window !== "undefined") {
-        filterSources.push(window);
-    }
-    if (MetaphorJs.filter) {
-        filterSources.push(MetaphorJs.filter)
-    }
-
-    reset();
-
-    /**
-     * @object MetaphorJs.expression
-     */
-    return {
-
-        /**
-         * Set your code parser
-         * @property {function} setExpressionFn {
-         *  @param {function} expression {
-         *      @param {string} expression A single piece of code that 
-         *              gets or sets data and doesn't contain pipes
-         *      @param {object} options {
-         *          @type {boolean} asCode return code as string
-         *      }
-         *      @returns {function} {
-         *          @param {object} dataObj Data object to execute expression against
-         *          @param {*} value Optional value which makes function a setter
-         *          @returns {*} value of expression on data object
-         *      }
-         *  }
-         * }
-         */
-        setExpressionFn: function(expression) {
-            expressionFn = expression;
-        },
-
-        /**
-         * Get expression parser
-         * @property {function} getExpressionFn {
-         *  @returns {function} See setExpressionFn
-         * }
-         */
-        getExpressionFn: function() {
-            return expressionFn;
-        },
-
-        /**
-         * Set deconstructor function that returns set of prepared pipes
-         * @property {function} setDeconstructorFn {
-         *  @param {function} deconstructor {
-         *      @param {string} expression
-         *      @param {object} filters {
-         *          Optional set of filters (pipes)
-         *      }
-         *      @returns {object} {
-         *          @type {function} expr {
-         *              @param {object} dataObj Data object to execute expression against
-         *              @param {*} value Optional value which makes function a setter
-         *              @returns {*} value of expression on data object
-         *          }
-         *          @type {array} pipes {
-         *              @type {function} fn {
-         *                  Filter function
-         *                  @param {*} inputValue
-         *                  @param {object} dataObj 
-         *                  @param {...} argN pipe arguments
-         *                  @returns {*} processed input value
-         *              }
-         *              @type {array} origArgs List of strings describing the pipe
-         *              @type {array} params {
-         *                  @param {object} dataObj
-         *                  @returns {*} pipe argument value
-         *              }
-         *              @type {object} opt {
-         *                  Pipe options
-         *                  @type {boolean} neg Return !value
-         *                  @type {boolean} dblneg Return !!value
-         *                  @type {boolean} undeterm This pipe's result is undetermined
-         *                  @type {string} name Filter name
-         *              }
-         *          }
-         *          @type {array} inputPipes same as pipes
-         *      }
-         *  }
-         * }
-         */
-        setDeconstructorFn: function(deconstructor) {
-            deconstructorFn = deconstructor;
-        },
-
-        /**
-         * @property {function} getDeconstructorFn {
-         *  @returns {function} See setDeconstructorFn
-         * }
-         */
-        getDeconstructorFn: function() {
-            return deconstructorFn;
-        },
-
-        /**
-         * @property {function} setConstructorFn {
-         *  Takes result of <code>deconstructor</code> and 
-         *  returns function with the same api as <code>expression</code>
-         *  @param {function} constructor {
-         *      @param {object} struct As returned from deconstructorFn
-         *      @param {object} opt {
-         *          @type {boolean} getterOnly
-         *          @type {boolean} setterOnly
-         *      }
-         *      @returns {function} Same that expressionFn and parserFn returns
-         *  }
-         * }
-         */
-        setConstructorFn: function(constructor) {
-            constructorFn = constructor;
-        },
-
-        /**
-         * @property {function} getConstructorFn {
-         *  @returns {function}
-         * }
-         */
-        getConstructorFn: function() {
-            return constructorFn;
-        },
-
-        /**
-         * @property {function} setParserFn {
-         *  @param {function} parser {
-         *      @param {string} expression Code expression with or without pipes
-         *      @returns {function} {
-         *          @param {object} dataObj Data object to execute expression against
-         *          @param {*} value Optional value which makes function a setter
-         *          @returns {*} value of expression on data object
-         *      }
-         *  }
-         * }
-         */        
-        setParserFn: function(parser) {
-            parserFn = parser;
-        },
-
-        /**
-         * @property {function} getParserFn {
-         *  @returns {function} See setParserFn
-         * }
-         */
-        getParserFn: function() {
-            return parserFn;
-        },
-
-        /**
-         * Add filters collection
-         * @param {object} filters {
-         *  name:function collection of filters (pipes)
-         * }
-         */
-        addFilterSource: function(filters) {
-            filterSources.push(filters);
-        },
-
-        /**
-         * Reset to default parser
-         * @property {function} reset
-         */
-        reset: reset,
-
-        /**
-         * Get executable function out of code string (no pipes)
-         * @property {function} expression
-         * @param {string} expr 
-         * @param {object|string} opt See <code>parse</code>
-         * @returns {function} {
-         *  @param {object} dataObj Data object to execute expression against
-         *  @param {*} value Optional value which makes function a setter
-         *  @returns {*} value of expression on data object
-         * }
-         */
-        expression: function(expr, opt) {
-            return prebuiltCache(expr) || expressionFn(expr, opt);
-        },
-
-        /**
-         * @property {function} deconstruct {
-         *  See setDeconstructorFn
-         *  @param {string} expr 
-         *  @param {object|string} opt See <code>parse</code>
-         *  @returns {function} 
-         * }
-         */
-        deconstruct: function(expr, opt) {
-            return deconstructorFn(expr, opt);
-        },
-
-        /**
-         * Get a expression function out of deconstructed parts
-         * @property {function} construct {
-         *  @param {object} struct Result of <code>deconstruct(expr)</code>
-         *  @param {object} opt {
-         *      @type {boolean} setterOnly
-         *      @type {boolean} getterOnly
-         *  }
-         *  @returns {function} {
-         *      @param {object} dataObj Data object to execute expression against
-         *      @param {*} value Optional value which makes function a setter
-         *      @returns {*} value of expression on data object
-         * }
-         * }
-         */
-        construct: function(struct, opt) {
-            return constructorFn(struct, opt);
-        },
-
-        /**
-         * @property {function} parse {
-         *  See setParserFn
-         *  @param {string} expr 
-         *  @param {object|string} opt {
-         *      @type {object} filters
-         *      @type {boolean} setter {    
-         *          @default false
-         *      }
-         *  }
-         *  @returns {function}
-         * }
-         */
-        parse: function(expr, opt) {
-            return parserFn(expr, opt);
-        },
-
-        /**
-         * @property {function} func {
-         *  @param {string} expr 
-         *  @param {object} opt {
-         *      @type {boolean} noReturn {    
-         *          @default true
-         *      }
-         *  }
-         *  @returns {function}
-         * }
-         */
-        func: function(expr, opt) {
-            opt = opt || {};
-            opt.noReturn = true;
-            opt.getterOnly = true;
-            return prebuiltCache(expr) || parserFn(expr, opt);
-        },
-
-        /**
-         * @property {function} setter {
-         *  @param {string} expr 
-         *  @param {object} opt {
-         *      @type {boolean} setter {    
-         *          @default true
-         *      }
-         *  }
-         *  @returns {function}
-         * }
-         */
-        setter: function(expr, opt) {
-            opt = opt || {};
-            opt.setter = true;
-            opt.setterOnly = true;
-            return prebuiltCache(expr) || parserFn(expr, opt);
-        },
-
-        /**
-         * @property {function} getter {
-         *  @param {string} expr 
-         *  @param {object} opt {
-         *      @type {boolean} setter {    
-         *          @default false
-         *      }
-         *      @type {boolean} getterOnly {
-         *          @default true
-         *      }
-         *  }
-         *  @returns {function}
-         * }
-         */
-        getter: function(expr, opt) {
-            opt = opt || {};
-            opt.setter = false;
-            opt.getterOnly = true;
-            return prebuiltCache(expr) || parserFn(expr, opt);
-        },
-
-        /**
-         * Execute code on given data object
-         * @property {function} run
-         * @param {string} expr 
-         * @param {object} dataObj 
-         * @param {*} inputValue
-         * @param {object} opt See <code>parse</code>
-         */
-        run: function(expr, dataObj, inputValue, opt) {
-            if (isPrebuiltKey(expr)) {
-                prebuiltCache(expr)(dataObj);
-            }
-            else {
-                opt = opt || {};
-                opt.noReturn = true;
-                parserFn(expr, opt)(dataObj, inputValue);
-            }
-        },
-
-        /**
-         * Execute code on given data object
-         * @property {function} run
-         * @param {string} expr 
-         * @param {object} dataObj 
-         * @param {*} inputValue
-         * @param {object} opt See <code>parse</code>
-         */
-        get: function(expr, dataObj, inputValue, opt) {
-            if (isPrebuiltKey(expr)) {
-                return prebuiltCache(expr)(dataObj);
-            }
-            else {
-                opt = opt || {};
-                opt.getterOnly = true;
-                return parserFn(expr, opt)(dataObj, inputValue);
-            }
-        },
-
-        /**
-         * Execute code on given data object as a setter
-         * @property {function} run
-         * @param {string} expr 
-         * @param {object} dataObj 
-         * @param {*} inputValue
-         * @param {object} opt See <code>parse</code>
-         */
-        set: function(expr, dataObj, inputValue, opt) {
-            opt = opt || {};
-            opt.setter = true;
-            opt.setterOnly = true;
-            return parserFn(expr, opt)(dataObj, inputValue);
-        },
-
-        
-
-        /**
-         * Check if given expression is a static string or number
-         * @property {function} isStatic
-         * @param {string} expr
-         * @returns {boolean|object} {  
-         *  Static value can be 0 or false, so it must be returned contained.<br>
-         *  So it is either false or ret.value
-         *  @type {*} value 
-         * }
-         */
-        isStatic: isStatic,
-
-        /**
-         * Checks if given expression is simple getter (no function or operations)
-         * @property {function} isAtom {
-         *  @param {string} expr
-         *  @returns {boolean}
-         * }
-         */
-        isAtom: isAtom,
-
-        /**
-         * Checks if given expression is a property getter
-         * @property {function} isProperty {
-         *  @param {string} expr 
-         *  @returns {string|boolean} property name or false
-         * }
-         */
-        isProperty: isProperty,
-
-        /**
-         * Is this a key in prebuilt cache
-         * @property {function} isPrebuiltKey {
-         *  @param {string} key
-         *  @returns {boolean}
-         * }
-         */
-        isPrebuiltKey: isPrebuiltKey,
-
-        /**
-         * Does the expression has pipes
-         * @property {function} expressionHasPipes {
-         *  @param {string} expr
-         *  @returns {boolean}
-         * }
-         */
-        expressionHasPipes: function(expr) {
-            return split(expr, '|').length > 1 || 
-                    split(expr, '>>').length > 1;
-        },
-
-        /**
-         * Get a small string containing expression features:
-         * p: updates parent, r: updates root, i: has input pipes,
-         * o: has output pipes
-         * @property {function} describeExpression {
-         *  @param {string} expr 
-         *  @returns {string}
-         * }
-         */
-        describeExpression: function(expr) {
-
-            if (!expr || typeof expr !== "string") 
-                return "";
-
-            if (isPrebuiltKey(expr)) {
-                expr = expr.substring(2);
-                return MetaphorJs.prebuilt.expressionOpts[expr] || "";
-            }
-            if (descrCache[expr]) {
-                return descrCache[expr];
-            }
-
-            var descr = "" +
-                (expr.indexOf("$parent") !== -1 ? "p":"") +
-                (expr.indexOf("$root") !== -1 ? "r":"") +
-                (split(expr, '|').length > 1 ? "o":"") +
-                (split(expr, '>>').length > 1 ? "i":"");
-
-            descrCache[expr] = descr;
-
-            return descr;
-        },
-
-        /**
-         * Clear expression cache
-         * @property {function} clearCache
-         */
-        clearCache: function() {
-            cache = {};
-        }
-    }
-}());
-
-
-
-
-/**
- * Transform anything into array
- * @function toArray
- * @param {*} list
- * @returns {array}
- */
-function toArray(list) {
-    if (list && !list.length != undf && list !== ""+list) {
-        for(var a = [], i =- 1, l = list.length>>>0; ++i !== l; a[i] = list[i]){}
-        return a;
-    }
-    else if (list) {
-        return [list];
-    }
-    else {
-        return [];
-    }
-};
 
 
 
@@ -1362,170 +352,6 @@ function nextUid() {
 
 return nextUid;
 }());
-
-/**
- * Bind function to context (Function.bind wrapper)
- * @function bind
- * @param {Function} fn
- * @param {*} context
- */
-function bind(fn, context){
-    return fn.bind(context);
-};
-
-
-
-/**
- * Check if given value is a Date object
- * @function isDate
- * @param {*} value
- * @returns {boolean} 
- */
-function isDate(value) {
-    return _varType(value) === 10;
-};
-
-
-
-/**
- * Check if given value is regular expression
- * @function isRegExp
- * @param {*} value 
- * @returns {boolean}
- */
-function isRegExp(value) {
-    return _varType(value) === 9;
-};
-
-/**
- * Check if given object is a window object
- * @function isWindow
- * @param {*} obj 
- * @returns {boolean}
- */
-function isWindow(obj) {
-    if (typeof window === "undefined") {
-        return false;
-    }
-    return obj === window ||
-           (obj && obj.document && obj.location && 
-            obj.alert && obj.setInterval);
-};
-
-
-
-// from Angular
-
-/**
- * Performs various checks comparing two arguments. 
- * Compared items can be of any type including
- * objects and arrays.
- * @function equals
- * @param {*} o1 
- * @param {*} o2 
- * @returns {boolean}
- */
-function equals(o1, o2) {
-    if (o1 === o2) return true;
-    if (o1 === null || o2 === null) return false;
-    if (o1 !== o1 && o2 !== o2) return true; // NaN === NaN
-    var t1 = typeof o1, t2 = typeof o2, length, key, keySet;
-    if (t1 === t2) {
-        if (t1 === 'object') {
-            if (isArray(o1)) {
-                if (!isArray(o2)) return false;
-                if ((length = o1.length) === o2.length) {
-                    for(key=0; key<length; key++) {
-                        if (!equals(o1[key], o2[key])) return false;
-                    }
-                    return true;
-                }
-            } else if (isDate(o1)) {
-                return isDate(o2) && o1.getTime() === o2.getTime();
-            } else if (isRegExp(o1) && isRegExp(o2)) {
-                return o1.toString() === o2.toString();
-            } else {
-                if (isWindow(o1) || isWindow(o2) || isArray(o2)) return false;
-                keySet = {};
-                for(key in o1) {
-                    if (key.charAt(0) === '$' || isFunction(o1[key])) {//&& typeof o1[key] == "object") {
-                        continue;
-                    }
-                    //if (isFunction(o1[key])) {
-                    //    continue;
-                    //}
-                    if (!equals(o1[key], o2[key])) {
-                        return false;
-                    }
-                    keySet[key] = true;
-                }
-                for(key in o2) {
-                    if (!keySet.hasOwnProperty(key) &&
-                        key.charAt(0) !== '$' &&
-                        o2[key] !== undf &&
-                        !isFunction(o2[key])) return false;
-                }
-                return true;
-            }
-        }
-    }
-    return false;
-};
-
-
-
-
-function copy(source, dest){
-
-    if (typeof window != strUndef && source === window) {
-        throw new Error("Cannot copy window object");
-    }
-    else if (typeof global != strUndef && source === global) {
-        throw new Error("Cannot copy global object");
-    }
-
-    if (!dest) {
-        dest = source;
-        if (source) {
-            if (isArray(source)) {
-                dest = copy(source, []);
-            } else if (isDate(source)) {
-                dest = new Date(source.getTime());
-            } else if (isRegExp(source)) {
-                dest = new RegExp(source.source);
-            } else if (isPlainObject(source)) {
-                dest = copy(source, {});
-            }
-        }
-    } else {
-        if (source === dest) {
-            throw new Error("Objects are identical");
-        }
-        if (isArray(source)) {
-            dest.length = 0;
-            for ( var i = 0, l = source.length; i < l; i++) {
-                dest.push(copy(source[i]));
-            }
-        } else {
-            var key;
-            for (key in dest) {
-                delete dest[key];
-            }
-            for (key in source) {
-                if (source.hasOwnProperty(key)) {
-                    if (key.charAt(0) == '$' || isFunction(source[key])) {
-                        dest[key] = source[key];
-                    }
-                    else {
-                        dest[key] = copy(source[key]);
-                    }
-                }
-            }
-        }
-    }
-    return dest;
-};
-
 /**
  * Execute <code>fn</code> asynchronously
  * @function async
@@ -1538,6 +364,77 @@ function async(fn, context, args, timeout) {
     return setTimeout(function(){
         fn.apply(context, args || []);
     }, timeout || 0);
+};
+
+var strUndef = "undefined";
+
+
+
+/**
+ * Log thrown error to console (in debug mode) and 
+ * call all error listeners
+ * @function error
+ * @param {Error} e 
+ */
+var error = (function(){
+
+    var listeners = [];
+
+    var error = function error(e) {
+
+        var i, l;
+
+        for (i = 0, l = listeners.length; i < l; i++) {
+            listeners[i][0].call(listeners[i][1], e)
+        }
+
+        /*DEBUG-START*/
+        if (typeof console != strUndef && console.error) {
+            console.error(e);
+        }
+        /*DEBUG-END*/
+    };
+
+    /**
+     * Subscribe to all errors
+     * @method on
+     * @param {function} fn 
+     * @param {object} context 
+     */
+    error.on = function(fn, context) {
+        error.un(fn, context);
+        listeners.push([fn, context]);
+    };
+
+    /**
+     * Unsubscribe from all errors
+     * @method un
+     * @param {function} fn 
+     * @param {object} context 
+     */
+    error.un = function(fn, context) {
+        var i, l;
+        for (i = 0, l = listeners.length; i < l; i++) {
+            if (listeners[i][0] === fn && listeners[i][1] === context) {
+                listeners.splice(i, 1);
+                break;
+            }
+        }
+    };
+
+    return error;
+}());
+
+
+
+/**
+ * Check if given value is a function
+ * @function isFunction
+ * @param {*} value 
+ * @returns {boolean}
+ */
+function isFunction(value) {
+    return typeof value == 'function';
 };
 
 
@@ -2490,6 +1387,1112 @@ extend(Observable.prototype, {
 return Observable;
 }());
 
+/**
+ * Check if given value is a string
+ * @function isString
+ * @param {*} value 
+ * @returns {boolean}
+ */
+function isString(value) {
+    return typeof value === "string" || value === ""+value;
+};
+
+
+
+/**
+ * Check if given value is array (not just array-like)
+ * @function isArray
+ * @param {*} value
+ * @returns {boolean}
+ */
+function isArray(value) {
+    return typeof value === "object" && _varType(value) === 5;
+};
+
+
+function emptyFn(){};
+
+/**
+ * Intellegently splits string into parts using a separator, 
+ * leaving untouched parts where separator is inside quotes.
+ * @param {string} str
+ * @param {string} separator
+ * @param {bool} allowEmpty
+ * @returns {array}
+ */
+var split = function(str, separator, allowEmpty) {
+
+    var l       = str.length,
+        sl      = separator.length,
+        i       = 0,
+        prev    = 0,
+        inQDbl  = false,
+        inQSng  = false,
+        parts   = [],
+        esc     = "\\",
+        char;
+
+    if (!sl) {
+        return [str];
+    }
+
+    for (; i < l; i++) {
+
+        char = str.charAt(i);
+
+        if (char == esc) {
+            i++;
+            continue;
+        }
+
+        if (char == '"') {
+            inQDbl = !inQDbl;
+            continue;
+        }
+        if (char == "'") {
+            inQSng = !inQSng;
+            continue;
+        }
+
+        if (!inQDbl && !inQSng) {
+            if ((sl == 1 && char == separator) ||
+                (sl > 1 && str.substring(i, i + sl) == separator)) {
+
+                if (str.substr(i - 1, sl) == separator ||
+                    str.substr(i + 1, sl) == separator) {
+
+                    if (!allowEmpty) {
+                        i += (sl - 1);
+                        continue;
+                    }
+                }
+
+                parts.push(str.substring(prev, i).replace(esc + separator, separator));
+                prev = i + sl;
+                i += (sl - 1);
+            }
+        }
+    }
+
+    parts.push(str.substring(prev).replace(esc + separator, separator));
+
+    return parts;
+};
+
+
+MetaphorJs.filter = MetaphorJs.filter || {};
+
+
+
+
+
+var lib_Expression = MetaphorJs.lib.Expression = (function() {
+
+    var REG_REPLACE_EXPR    = /((^|[^a-z0-9_$\]\)'"])|(this))(\.)([^0-9])/ig,
+        REG_REPLACER        = "$2____.$5",
+        fnBodyStart     = 'try {',
+        fnBodyEnd       = ';} catch (thrownError) { '+
+                            '/*DEBUG-START*/console.log("expr");console.log(thrownError);/*DEBUG-END*/'+
+                            'return undefined; }',    
+        cache           = {},
+        descrCache      = {},
+        filterSources   = [],
+
+        prebuiltExpr    = MetaphorJs.prebuilt ?
+                            MetaphorJs.prebuilt.funcs : {} || 
+                            {},
+
+        prebuiltCache   = function(key) {
+            if (isPrebuiltKey(key)) {
+                key = key.substring(2);
+                return prebuiltExpr[key] || null;
+            }
+            return null;
+        },
+
+        isPrebuiltKey   = function(expr) {
+            return typeof expr === "string" && expr.substring(0,2) === '--';
+        },
+
+        isAtom          = function(expr) {
+            return !expr.trim().match(/[^a-zA-Z0-9_$'"\(\)\[\]\.;]/);
+        },
+
+        isProperty      = function(expr) {
+            var match = expr.match(/^this\.([a-zA-Z0-9_$]+)$/);
+            return match ? match[1] : false;
+        },
+
+        isStatic        = function(val) {
+
+            if (!isString(val)) {
+                return {
+                    value: val
+                };
+            }
+
+            var first   = val.substr(0, 1),
+                last    = val.length - 1,
+                num;
+
+            if (first === '"' || first === "'") {
+                if (val.indexOf(first, 1) === last) {
+                    return {value: val.substring(1, last)};
+                }
+            }
+            else if (val === 'true' || val === 'false') {
+                return {value: val === 'true'};
+            }
+            else if ((num = parseFloat(val)) == val) {
+                return {value: num};
+            }
+
+            return false;
+        },
+
+        getFilter       = function(name, filters) {
+            if (filters) {
+                if (isArray(filters)) {
+                    filters = filters.concat(filterSources);
+                }
+                else if (filters.hasOwnProperty(name)) {
+                    return filters[name];
+                }
+            }
+            else {
+                filters = filterSources;
+            }
+            var i, l = filterSources.length;
+            for (i = 0; i < l; i++) {
+                if (filterSources[i] && filterSources[i].hasOwnProperty(name)) {
+                    return filterSources[i][name];
+                }
+            }
+
+            return null;
+        },
+
+
+        expression      = function(expr, opt) {
+            opt = opt || {};
+
+            if (typeof opt === "string" && opt === "setter") {
+                opt = {
+                    setter: true
+                };
+            }
+
+            var asCode = opt.asCode === true,
+                isSetter = opt.setter === true,
+                noReturn = opt.noReturn === true,
+                statc,
+                cacheKey;
+
+            if (statc = isStatic(expr)) {
+
+                cacheKey = expr + "_static";
+
+                if (cache[cacheKey]) {
+                    return cache[cacheKey];
+                }
+
+                if (isSetter) {
+                    throw new Error("Static value cannot work as setter");
+                }
+
+                if (opt.asCode) {
+                    return "".concat(
+                        "function() {",
+                            "return ", 
+                            expr, 
+                        "}"
+                    );
+                }
+
+                return cache[cacheKey] = function() {
+                    return statc.value;
+                };
+            }
+            try {
+
+                var atom = isAtom(expr);
+                cacheKey = expr + "_" + (
+                            isSetter ? "setter" : 
+                                (noReturn ? "func" : "getter")
+                            );
+
+                if (!atom && isSetter) {
+                    throw new Error("Complex expression cannot work as setter");
+                }
+
+                if (!cache[cacheKey] || asCode) {
+
+                    var code = expr.replace(REG_REPLACE_EXPR, REG_REPLACER),
+                        body = 
+                            !atom || !isSetter ? 
+                                "".concat(
+                                    fnBodyStart, 
+                                    noReturn ? '' : 'return ', 
+                                    code,
+                                    fnBodyEnd
+                                ) : 
+                                "".concat(
+                                    fnBodyStart, 
+                                    //noReturn ? '' : 'return ', 
+                                    code, ' = $$$$', 
+                                    fnBodyEnd
+                                );
+
+                    /*DEBUG-START*/
+                    var esc = expr.replace(/\n/g, '\\n');
+                    esc = esc.replace(/\r/g, '\\r');
+                    esc = esc.replace(/'/g, "\\'");
+                    esc = esc.replace(/"/g, '\\"');
+                    body = body.replace('"expr"', '"' +esc+ '"');
+                    /*DEBUG-END*/
+
+                    if (asCode) {
+                        return "function(____, $$$$) {" + body + "}";
+                    }
+                    else {
+                        cache[cacheKey] = new Function(
+                            '____',
+                            '$$$$',
+                            body
+                        );
+                    }
+                }
+                return cache[cacheKey];
+            }
+            catch (thrownError) {
+                error(new Error("Error parsing expression: " + expr + "; \n\n\n" + body));
+                error(thrownError);
+                return emptyFn;
+            }
+        },
+
+        preparePipe     = function(pipe, filters) {
+
+            var name    = pipe.shift(),
+                fn      = isFunction(name) ? name : null,
+                params  = [],
+                exprs   = [],
+                fchar   = fn ? null : name.substr(0,1),
+                opt     = {
+                    neg: false,
+                    dblneg: false,
+                    undeterm: false,
+                    name: name
+                },
+                i, l;
+
+            if (!fn) {
+                if (name.substr(0, 2) === "!!") {
+                    name = name.substr(2);
+                    opt.dblneg = true;
+                }
+                else {
+                    if (fchar === "!") {
+                        name = name.substr(1);
+                        opt.neg = true;
+                    }
+                    else if (fchar === "?") {
+                        name = name.substr(1);
+                        opt.undeterm = true;
+                    }
+                }
+
+                opt.name = name;
+            }
+            else {
+                opt.name = fn.name;
+            }
+
+            !fn && (fn = getFilter(name, filters));
+
+            if (isFunction(fn)) {
+
+                for (i = -1, l = pipe.length; ++i < l;
+                    params.push(expressionFn(pipe[i]))) {
+                        if (!isStatic(pipe[i])) {
+                            exprs.push(pipe[i]);
+                        }
+                    }
+
+                if (fn.$undeterministic) {
+                    opt.undeterm = true;
+                }
+
+                return {
+                    fn: fn, 
+                    origArgs: pipe, 
+                    params: params, 
+                    expressions: exprs,
+                    opt: opt
+                };
+            }
+
+            return null;
+        },
+
+        parsePipes      = function(expr, isInput, filters) {
+
+            var separator   = isInput ? ">>" : "|";
+
+            if (expr.indexOf(separator) === -1) {
+                return expr;
+            }
+
+            var parts   = split(expr, separator),
+                ret     = isInput ? parts.pop() : parts.shift(),
+                pipes   = [],
+                pipe,
+                i, l;
+
+            for(i = 0, l = parts.length; i < l; i++) {
+                pipe = split(parts[i].trim(), ':');
+                pipe = preparePipe(pipe, filters);
+                pipe && pipes.push(pipe);
+            }
+
+            return {
+                expr: ret.trim(),
+                pipes: pipes
+            }
+        },
+
+
+        _initSetter         = function(struct) {
+            struct.setterFn = expressionFn(struct.expr, {
+                setter: true
+            });
+        },
+
+        deconstructor       = function(expr, opt) {
+
+            opt = opt || {};
+
+            var isNormalPipe = expr.indexOf("|") !== -1,
+                isInputPipe = expr.indexOf(">>") !== -1,
+                res,
+                struct = {
+                    fn: null,
+                    getterFn: null,
+                    setterFn: null,
+                    expr: expr,
+                    pipes: [],
+                    inputPipes: []
+                };
+
+            if (!isNormalPipe && !isInputPipe) {
+                struct.fn = expressionFn(struct.expr, opt);
+                return struct;
+            }
+
+            if (isNormalPipe) {
+                res = parsePipes(struct.expr, false, opt.filters);
+                struct.expr = res.expr;
+                struct.pipes = res.pipes;
+            }
+
+            if (isInputPipe) {
+                res = parsePipes(struct.expr, true, opt.filters);
+                struct.expr = res.expr;
+                struct.inputPipes = res.pipes;
+                opt.setter = true;
+            }
+
+            struct.fn = expressionFn(struct.expr, opt);
+
+            if (isInputPipe) {
+                opt.setter = false;
+                struct.getterFn = expressionFn(struct.expr, opt);
+                struct.setterFn = struct.fn;
+            }
+            else {
+                struct.getterFn = struct.fn;
+            }
+
+            return struct;
+        },
+
+        runThroughPipes     = function(val, pipes, dataObj) {
+
+            var j,
+                args,
+                pipe,
+
+                jlen    = pipes.length,
+                z, zl;
+
+            for (j = 0; j < jlen; j++) {
+                pipe    = pipes[j];
+                args    = [];
+                for (z = -1, zl = pipe.params.length; ++z < zl;
+                        args.push(pipe.params[z](dataObj))){}
+
+                args.unshift(dataObj);
+                args.unshift(val);
+
+                val     = pipe.fn.apply(dataObj, args);
+                
+                if (pipe.opt.neg) {
+                    val = !val;
+                }
+                else if (pipe.opt.dblneg) {
+                    val = !!val;
+                }
+            }
+        
+            return val;
+        },
+
+
+        constructor         = function(struct, opt) {
+            
+            opt = opt || {};
+
+            if (struct.pipes.length === 0 && 
+                struct.inputPipes.length === 0) {
+                if (opt.setterOnly) {
+                    !struct.setterFn && _initSetter(struct);
+                    return struct.setterFn;
+                }
+                return struct.fn;
+            }
+
+            return function(dataObj, inputVal) {
+
+                var val;
+
+                if (struct.inputPipes.length && !opt.getterOnly) {
+                    val = inputVal;
+                    val = runThroughPipes(val, struct.inputPipes, dataObj);
+                    !struct.setterFn && _initSetter(struct);
+                    struct.setterFn(dataObj, val);
+                }
+
+                if (struct.pipes && !opt.setterOnly) {
+                    if (opt.getterOnly) {
+                        val = struct.getterFn(dataObj);
+                    }
+                    else if (!struct.inputPipes.length) {
+                        val = struct.fn(dataObj);
+                    }
+                    val = runThroughPipes(val, struct.pipes, dataObj);
+                }
+
+                return val;
+            };
+        },
+
+        expressionFn,
+        parserFn,
+        deconstructorFn,
+        constructorFn,
+
+        parser      = function(expr, opt) {
+            return constructorFn(deconstructorFn(expr, opt), opt);
+        },
+
+        reset       = function() {
+            parserFn = parser;
+            deconstructorFn = deconstructor;
+            constructorFn = constructor;
+            expressionFn = expression;
+        };
+
+
+    if (typeof window !== "undefined") {
+        filterSources.push(window);
+    }
+    if (MetaphorJs.filter) {
+        filterSources.push(MetaphorJs.filter)
+    }
+
+    reset();
+
+    /**
+     * @object MetaphorJs.expression
+     */
+    return {
+
+        /**
+         * Set your code parser
+         * @property {function} setExpressionFn {
+         *  @param {function} expression {
+         *      @param {string} expression A single piece of code that 
+         *              gets or sets data and doesn't contain pipes
+         *      @param {object} options {
+         *          @type {boolean} asCode return code as string
+         *      }
+         *      @returns {function} {
+         *          @param {object} dataObj Data object to execute expression against
+         *          @param {*} value Optional value which makes function a setter
+         *          @returns {*} value of expression on data object
+         *      }
+         *  }
+         * }
+         */
+        setExpressionFn: function(expression) {
+            expressionFn = expression;
+        },
+
+        /**
+         * Get expression parser
+         * @property {function} getExpressionFn {
+         *  @returns {function} See setExpressionFn
+         * }
+         */
+        getExpressionFn: function() {
+            return expressionFn;
+        },
+
+        /**
+         * Set deconstructor function that returns set of prepared pipes
+         * @property {function} setDeconstructorFn {
+         *  @param {function} deconstructor {
+         *      @param {string} expression
+         *      @param {object} filters {
+         *          Optional set of filters (pipes)
+         *      }
+         *      @returns {object} {
+         *          @type {function} expr {
+         *              @param {object} dataObj Data object to execute expression against
+         *              @param {*} value Optional value which makes function a setter
+         *              @returns {*} value of expression on data object
+         *          }
+         *          @type {array} pipes {
+         *              @type {function} fn {
+         *                  Filter function
+         *                  @param {*} inputValue
+         *                  @param {object} dataObj 
+         *                  @param {...} argN pipe arguments
+         *                  @returns {*} processed input value
+         *              }
+         *              @type {array} origArgs List of strings describing the pipe
+         *              @type {array} params {
+         *                  @param {object} dataObj
+         *                  @returns {*} pipe argument value
+         *              }
+         *              @type {object} opt {
+         *                  Pipe options
+         *                  @type {boolean} neg Return !value
+         *                  @type {boolean} dblneg Return !!value
+         *                  @type {boolean} undeterm This pipe's result is undetermined
+         *                  @type {string} name Filter name
+         *              }
+         *          }
+         *          @type {array} inputPipes same as pipes
+         *      }
+         *  }
+         * }
+         */
+        setDeconstructorFn: function(deconstructor) {
+            deconstructorFn = deconstructor;
+        },
+
+        /**
+         * @property {function} getDeconstructorFn {
+         *  @returns {function} See setDeconstructorFn
+         * }
+         */
+        getDeconstructorFn: function() {
+            return deconstructorFn;
+        },
+
+        /**
+         * @property {function} setConstructorFn {
+         *  Takes result of <code>deconstructor</code> and 
+         *  returns function with the same api as <code>expression</code>
+         *  @param {function} constructor {
+         *      @param {object} struct As returned from deconstructorFn
+         *      @param {object} opt {
+         *          @type {boolean} getterOnly
+         *          @type {boolean} setterOnly
+         *      }
+         *      @returns {function} Same that expressionFn and parserFn returns
+         *  }
+         * }
+         */
+        setConstructorFn: function(constructor) {
+            constructorFn = constructor;
+        },
+
+        /**
+         * @property {function} getConstructorFn {
+         *  @returns {function}
+         * }
+         */
+        getConstructorFn: function() {
+            return constructorFn;
+        },
+
+        /**
+         * @property {function} setParserFn {
+         *  @param {function} parser {
+         *      @param {string} expression Code expression with or without pipes
+         *      @returns {function} {
+         *          @param {object} dataObj Data object to execute expression against
+         *          @param {*} value Optional value which makes function a setter
+         *          @returns {*} value of expression on data object
+         *      }
+         *  }
+         * }
+         */        
+        setParserFn: function(parser) {
+            parserFn = parser;
+        },
+
+        /**
+         * @property {function} getParserFn {
+         *  @returns {function} See setParserFn
+         * }
+         */
+        getParserFn: function() {
+            return parserFn;
+        },
+
+        /**
+         * Add filters collection
+         * @param {object} filters {
+         *  name:function collection of filters (pipes)
+         * }
+         */
+        addFilterSource: function(filters) {
+            filterSources.push(filters);
+        },
+
+        /**
+         * Reset to default parser
+         * @property {function} reset
+         */
+        reset: reset,
+
+        /**
+         * Get executable function out of code string (no pipes)
+         * @property {function} expression
+         * @param {string} expr 
+         * @param {object|string} opt See <code>parse</code>
+         * @returns {function} {
+         *  @param {object} dataObj Data object to execute expression against
+         *  @param {*} value Optional value which makes function a setter
+         *  @returns {*} value of expression on data object
+         * }
+         */
+        expression: function(expr, opt) {
+            return prebuiltCache(expr) || expressionFn(expr, opt);
+        },
+
+        /**
+         * @property {function} deconstruct {
+         *  See setDeconstructorFn
+         *  @param {string} expr 
+         *  @param {object|string} opt See <code>parse</code>
+         *  @returns {function} 
+         * }
+         */
+        deconstruct: function(expr, opt) {
+            return deconstructorFn(expr, opt);
+        },
+
+        /**
+         * Get a expression function out of deconstructed parts
+         * @property {function} construct {
+         *  @param {object} struct Result of <code>deconstruct(expr)</code>
+         *  @param {object} opt {
+         *      @type {boolean} setterOnly
+         *      @type {boolean} getterOnly
+         *  }
+         *  @returns {function} {
+         *      @param {object} dataObj Data object to execute expression against
+         *      @param {*} value Optional value which makes function a setter
+         *      @returns {*} value of expression on data object
+         * }
+         * }
+         */
+        construct: function(struct, opt) {
+            return constructorFn(struct, opt);
+        },
+
+        /**
+         * @property {function} parse {
+         *  See setParserFn
+         *  @param {string} expr 
+         *  @param {object|string} opt {
+         *      @type {object} filters
+         *      @type {boolean} setter {    
+         *          @default false
+         *      }
+         *  }
+         *  @returns {function}
+         * }
+         */
+        parse: function(expr, opt) {
+            return parserFn(expr, opt);
+        },
+
+        /**
+         * @property {function} func {
+         *  @param {string} expr 
+         *  @param {object} opt {
+         *      @type {boolean} noReturn {    
+         *          @default true
+         *      }
+         *  }
+         *  @returns {function}
+         * }
+         */
+        func: function(expr, opt) {
+            opt = opt || {};
+            opt.noReturn = true;
+            opt.getterOnly = true;
+            return prebuiltCache(expr) || parserFn(expr, opt);
+        },
+
+        /**
+         * @property {function} setter {
+         *  @param {string} expr 
+         *  @param {object} opt {
+         *      @type {boolean} setter {    
+         *          @default true
+         *      }
+         *  }
+         *  @returns {function}
+         * }
+         */
+        setter: function(expr, opt) {
+            opt = opt || {};
+            opt.setter = true;
+            opt.setterOnly = true;
+            return prebuiltCache(expr) || parserFn(expr, opt);
+        },
+
+        /**
+         * @property {function} getter {
+         *  @param {string} expr 
+         *  @param {object} opt {
+         *      @type {boolean} setter {    
+         *          @default false
+         *      }
+         *      @type {boolean} getterOnly {
+         *          @default true
+         *      }
+         *  }
+         *  @returns {function}
+         * }
+         */
+        getter: function(expr, opt) {
+            opt = opt || {};
+            opt.setter = false;
+            opt.getterOnly = true;
+            return prebuiltCache(expr) || parserFn(expr, opt);
+        },
+
+        /**
+         * Execute code on given data object
+         * @property {function} run
+         * @param {string} expr 
+         * @param {object} dataObj 
+         * @param {*} inputValue
+         * @param {object} opt See <code>parse</code>
+         */
+        run: function(expr, dataObj, inputValue, opt) {
+            if (isPrebuiltKey(expr)) {
+                prebuiltCache(expr)(dataObj);
+            }
+            else {
+                opt = opt || {};
+                opt.noReturn = true;
+                parserFn(expr, opt)(dataObj, inputValue);
+            }
+        },
+
+        /**
+         * Execute code on given data object
+         * @property {function} run
+         * @param {string} expr 
+         * @param {object} dataObj 
+         * @param {*} inputValue
+         * @param {object} opt See <code>parse</code>
+         */
+        get: function(expr, dataObj, inputValue, opt) {
+            if (isPrebuiltKey(expr)) {
+                return prebuiltCache(expr)(dataObj);
+            }
+            else {
+                opt = opt || {};
+                opt.getterOnly = true;
+                return parserFn(expr, opt)(dataObj, inputValue);
+            }
+        },
+
+        /**
+         * Execute code on given data object as a setter
+         * @property {function} run
+         * @param {string} expr 
+         * @param {object} dataObj 
+         * @param {*} inputValue
+         * @param {object} opt See <code>parse</code>
+         */
+        set: function(expr, dataObj, inputValue, opt) {
+            opt = opt || {};
+            opt.setter = true;
+            opt.setterOnly = true;
+            return parserFn(expr, opt)(dataObj, inputValue);
+        },
+
+        
+
+        /**
+         * Check if given expression is a static string or number
+         * @property {function} isStatic
+         * @param {string} expr
+         * @returns {boolean|object} {  
+         *  Static value can be 0 or false, so it must be returned contained.<br>
+         *  So it is either false or ret.value
+         *  @type {*} value 
+         * }
+         */
+        isStatic: isStatic,
+
+        /**
+         * Checks if given expression is simple getter (no function or operations)
+         * @property {function} isAtom {
+         *  @param {string} expr
+         *  @returns {boolean}
+         * }
+         */
+        isAtom: isAtom,
+
+        /**
+         * Checks if given expression is a property getter
+         * @property {function} isProperty {
+         *  @param {string} expr 
+         *  @returns {string|boolean} property name or false
+         * }
+         */
+        isProperty: isProperty,
+
+        /**
+         * Is this a key in prebuilt cache
+         * @property {function} isPrebuiltKey {
+         *  @param {string} key
+         *  @returns {boolean}
+         * }
+         */
+        isPrebuiltKey: isPrebuiltKey,
+
+        /**
+         * Does the expression has pipes
+         * @property {function} expressionHasPipes {
+         *  @param {string} expr
+         *  @returns {boolean}
+         * }
+         */
+        expressionHasPipes: function(expr) {
+            return split(expr, '|').length > 1 || 
+                    split(expr, '>>').length > 1;
+        },
+
+        /**
+         * Get a small string containing expression features:
+         * p: updates parent, r: updates root, i: has input pipes,
+         * o: has output pipes
+         * @property {function} describeExpression {
+         *  @param {string} expr 
+         *  @returns {string}
+         * }
+         */
+        describeExpression: function(expr) {
+
+            if (!expr || typeof expr !== "string") 
+                return "";
+
+            if (isPrebuiltKey(expr)) {
+                expr = expr.substring(2);
+                return MetaphorJs.prebuilt.expressionOpts[expr] || "";
+            }
+            if (descrCache[expr]) {
+                return descrCache[expr];
+            }
+
+            var descr = "" +
+                (expr.indexOf("$parent") !== -1 ? "p":"") +
+                (expr.indexOf("$root") !== -1 ? "r":"") +
+                (split(expr, '|').length > 1 ? "o":"") +
+                (split(expr, '>>').length > 1 ? "i":"");
+
+            descrCache[expr] = descr;
+
+            return descr;
+        },
+
+        /**
+         * Clear expression cache
+         * @property {function} clearCache
+         */
+        clearCache: function() {
+            cache = {};
+        }
+    }
+}());
+
+
+
+
+/**
+ * Check if given value is a Date object
+ * @function isDate
+ * @param {*} value
+ * @returns {boolean} 
+ */
+function isDate(value) {
+    return _varType(value) === 10;
+};
+
+
+
+/**
+ * Check if given value is regular expression
+ * @function isRegExp
+ * @param {*} value 
+ * @returns {boolean}
+ */
+function isRegExp(value) {
+    return _varType(value) === 9;
+};
+
+/**
+ * Check if given object is a window object
+ * @function isWindow
+ * @param {*} obj 
+ * @returns {boolean}
+ */
+function isWindow(obj) {
+    if (typeof window === "undefined") {
+        return false;
+    }
+    return obj === window ||
+           (obj && obj.document && obj.location && 
+            obj.alert && obj.setInterval);
+};
+
+
+
+// from Angular
+
+/**
+ * Performs various checks comparing two arguments. 
+ * Compared items can be of any type including
+ * objects and arrays.
+ * @function equals
+ * @param {*} o1 
+ * @param {*} o2 
+ * @returns {boolean}
+ */
+function equals(o1, o2) {
+    if (o1 === o2) return true;
+    if (o1 === null || o2 === null) return false;
+    if (o1 !== o1 && o2 !== o2) return true; // NaN === NaN
+    var t1 = typeof o1, t2 = typeof o2, length, key, keySet;
+    if (t1 === t2) {
+        if (t1 === 'object') {
+            if (isArray(o1)) {
+                if (!isArray(o2)) return false;
+                if ((length = o1.length) === o2.length) {
+                    for(key=0; key<length; key++) {
+                        if (!equals(o1[key], o2[key])) return false;
+                    }
+                    return true;
+                }
+            } else if (isDate(o1)) {
+                return isDate(o2) && o1.getTime() === o2.getTime();
+            } else if (isRegExp(o1) && isRegExp(o2)) {
+                return o1.toString() === o2.toString();
+            } else {
+                if (isWindow(o1) || isWindow(o2) || isArray(o2)) return false;
+                keySet = {};
+                for(key in o1) {
+                    if (key.charAt(0) === '$' || isFunction(o1[key])) {//&& typeof o1[key] == "object") {
+                        continue;
+                    }
+                    //if (isFunction(o1[key])) {
+                    //    continue;
+                    //}
+                    if (!equals(o1[key], o2[key])) {
+                        return false;
+                    }
+                    keySet[key] = true;
+                }
+                for(key in o2) {
+                    if (!keySet.hasOwnProperty(key) &&
+                        key.charAt(0) !== '$' &&
+                        o2[key] !== undf &&
+                        !isFunction(o2[key])) return false;
+                }
+                return true;
+            }
+        }
+    }
+    return false;
+};
+
+
+
+
+function copy(source, dest){
+
+    if (typeof window != strUndef && source === window) {
+        throw new Error("Cannot copy window object");
+    }
+    else if (typeof global != strUndef && source === global) {
+        throw new Error("Cannot copy global object");
+    }
+
+    if (!dest) {
+        dest = source;
+        if (source) {
+            if (isArray(source)) {
+                dest = copy(source, []);
+            } else if (isDate(source)) {
+                dest = new Date(source.getTime());
+            } else if (isRegExp(source)) {
+                dest = new RegExp(source.source);
+            } else if (isPlainObject(source)) {
+                dest = copy(source, {});
+            }
+        }
+    } else {
+        if (source === dest) {
+            throw new Error("Objects are identical");
+        }
+        if (isArray(source)) {
+            dest.length = 0;
+            for ( var i = 0, l = source.length; i < l; i++) {
+                dest.push(copy(source[i]));
+            }
+        } else {
+            var key;
+            for (key in dest) {
+                delete dest[key];
+            }
+            for (key in source) {
+                if (source.hasOwnProperty(key)) {
+                    if (key.charAt(0) == '$' || isFunction(source[key])) {
+                        dest[key] = source[key];
+                    }
+                    else {
+                        dest[key] = copy(source[key]);
+                    }
+                }
+            }
+        }
+    }
+    return dest;
+};
+
+
 
 
 
@@ -2924,6 +2927,1650 @@ var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
 
 
 
+
+
+
+/**
+ * The scope object is what templates see while rendering
+ * @class MetaphorJs.lib.Scope
+ */
+/**
+ * @method Scope
+ * @constructor
+ * @param {object} cfg Whatever data should be visible in template
+ */
+MetaphorJs.lib.Scope = function(cfg) {
+    var self    = this;
+
+    self.$$observable    = new lib_Observable;
+    self.$$historyWatchers  = {};
+    extend(self, cfg, true, false);
+
+    if (self.$parent) {
+        /**
+         * @event check
+         * @param {array} changes 
+         */
+        self.$parent.$on("check", self.$$onParentCheck, self);
+        /**
+         * @event changed
+         */
+        /**
+         * @event destroy
+         */
+        self.$parent.$on("destroy", self.$$onParentDestroy, self);
+        /**
+         * @event freeze
+         * @param {MetaphorJs.lib.Scope}
+         */
+        self.$parent.$on("freeze", self.$freeze, self);
+        /**
+         * @event unfreeze
+         * @param {MetaphorJs.lib.Scope}
+         */
+        self.$parent.$on("unfreeze", self.$unfreeze, self);
+    }
+    else {
+        self.$root  = self;
+        self.$isRoot= true;
+    }
+};
+
+extend(MetaphorJs.lib.Scope.prototype, {
+
+    /**
+     * @property {MetaphorJs.app.App}
+     */
+    $app: null,
+
+    /**
+     * @property {MetaphorJs.lib.Scope}
+     */
+    $parent: null,
+
+    /**
+     * @property {MetaphorJs.lib.Scope}
+     */
+    $root: null,
+
+    /**
+     * @property {boolean}
+     */
+    $isRoot: false,
+
+    /**
+     * @property {int}
+     */
+    $level: 0,
+
+    $static: false,
+    $$frozen: false,
+    $$observable: null,
+    $$watchers: null,
+    $$historyWatchers: null,
+    $$checking: false,
+    $$destroyed: false,
+    $$changing: false,
+
+    $$tmt: null,
+
+    /**
+     * Create child scope
+     * @method
+     * @param {object} data Child scope data
+     * @returns {MetaphorJs.lib.Scope}
+     */
+    $new: function(data) {
+        var self = this;
+        return new MetaphorJs.lib.Scope(extend({}, data, {
+            $parent: self,
+            $root: self.$root,
+            $app: self.$app,
+            $level: self.$level + 1,
+            $static: self.$static
+        }, true, false));
+    },
+
+    /**
+     * Create child scope with no relation to this scope (no $parent)
+     * but with $app propery set.
+     * @method
+     * @param {object} data Child scope data
+     * @returns {MetaphorJs.lib.Scope}
+     */
+    $newIsolated: function(data) {
+        return new MetaphorJs.lib.Scope(extend({}, data, {
+            $app: this.$app,
+            $level: self.$level + 1,
+            $static: this.$static
+        }, true, false));
+    },
+
+    /**
+     * Freeze the scope. It will not perfom checks and trigger change events
+     * @method
+     */
+    $freeze: function() {
+        var self = this;
+        if (!self.$$frozen) {
+            self.$$frozen = true;
+            self.$$observable.trigger("freeze", self);
+        }
+    },
+
+    /**
+     * Unfreeze scope. Resume checking for changes
+     * @method
+     */
+    $unfreeze: function() {
+        var self = this;
+        if (self.$$frozen) {
+            self.$$frozen = false;
+            self.$$observable.trigger("unfreeze", self);
+        }
+    },
+
+    /**
+     * Subsrcibe to scope events
+     * @method 
+     * @param {string} event
+     * @param {function} fn
+     * @param {object} fnScope 
+     */
+    $on: function(event, fn, fnScope) {
+        return this.$$observable.on(event, fn, fnScope);
+    },
+
+    /**
+     * Unsubsrcibe from scope events
+     * @method 
+     * @param {string} event
+     * @param {function} fn
+     * @param {object} fnScope 
+     */
+    $un: function(event, fn, fnScope) {
+        return this.$$observable.un(event, fn, fnScope);
+    },
+
+    /**
+     * Create a function out of an expression and bind it to the scope
+     * @method
+     * @param {string} expr 
+     * @param {object} opt See lib_Expression.parse
+     * @returns {function}
+     */
+    $parseExpression: function(expr, opt) {
+        var self = this,
+            func = lib_Expression.parse(expr, opt);
+        return function(inputVal) {
+            return func(self, inputVal);
+        }
+    },
+
+    /**
+     * Create a watcher on js expression
+     * @method
+     * @param {string} expr js expression
+     * @param {function} fn {
+     *  @param {*} value
+     * }
+     * @param {object} fnScope
+     * @returns {lib_MutationObserver}
+     */
+    $watch: function(expr, fn, fnScope) {
+        return lib_MutationObserver.get(this, expr, fn, fnScope);
+    },
+
+    /**
+     * Stop watching js expression
+     * @method
+     * @param {string} expr js expression
+     * @param {function} fn 
+     * @param {object} fnScope
+     */
+    $unwatch: function(expr, fn, fnScope) {
+        var mo = lib_MutationObserver.exists(this, expr);
+        if (mo) {
+            mo.unsubscribe(fn, fnScope);
+            mo.$destroy(true);
+        }
+    },
+
+    /**
+     * Watch changes in page url. Triggers regular change event
+     * @method
+     * @param {string} prop Scope property name
+     * @param {string} param Url param name
+     */
+    $watchHistory: function(prop, param) {
+        var self = this;
+        if (!self.$$historyWatchers[param]) {
+            self.$$historyWatchers[param] = prop;
+            MetaphorJs.lib.History.on("change-" + param, self.$$onHistoryChange, self);
+        }
+    },
+
+    /**
+     * Stop watching changes in page url.
+     * @method
+     * @param {string} param Url param name
+     */
+    $unwatchHistory: function(param) {
+        var self = this;
+        if (!self.$$historyWatchers[param]) {
+            delete self.$$historyWatchers[param];
+            MetaphorJs.lib.History.un("change-" + param, self.$$onHistoryChange, self);
+        }
+    },
+
+
+    /**
+     * Set scope value and check for changes.
+     * @method
+     * @param {string} key
+     * @param {*} value
+     */
+     /**
+     * Set scope value and check for changes.
+     * @method
+     * @param {object} obj Key:value pairs
+     */
+    $set: function(key, value) {
+        var self = this;
+        if (typeof key === "string") {
+            this[key] = value;
+        }
+        else {
+            for (var k in key) {
+                self[k] = key[k];
+            }
+        }
+        this.$check();
+    },
+
+    $$onParentDestroy: function() {
+        this.$destroy();
+    },
+
+    $$onParentCheck: function() {
+        this.$check();
+    },
+
+    $$onHistoryChange: function(val, prev, name) {
+        var self = this,
+            prop;
+        if (self.$$historyWatchers[name]) {
+            prop = self.$$historyWatchers[name];
+            self[prop] = val;
+            self.$check();
+        }
+    },
+
+    /**
+     * Schedule a delayed check
+     * @method
+     * @param {int} timeout
+     */
+    $scheduleCheck: function(timeout) {
+        var self = this;
+        if (!self.$$tmt) {
+            self.$tmt = async(self.$check, self, null, timeout);
+        }
+    },
+
+    /**
+     * Check for changes and trigger change events.<br>
+     * If changes are found, the check will run again
+     * until no changes is found.
+     * @method
+     */
+    $check: function() {
+        var self = this,
+            changes;
+
+        if (self.$$checking || self.$static || self.$$frozen) {
+            return;
+        }
+        self.$$checking = true;
+
+        if (self.$$tmt) {
+            clearTimeout(self.$$tmt);
+            self.$$tmt = null;
+        }
+
+        if (self.$$mo) {
+            changes = self.$$mo.$checkAll();
+        }
+
+        self.$$checking = false;
+
+        if (!self.$$destroyed) {
+            self.$$observable.trigger("check", changes);
+        }
+
+        if (changes > 0) {
+            self.$$changing = true;
+            self.$check();
+        }
+        else {
+            // finished changing after all iterations
+            if (self.$$changing) {
+                self.$$changing = false;
+                self.$$observable.trigger("changed");
+            }
+        }
+    },
+
+    /**
+     * Destroy scope
+     * @method
+     */
+    $destroy: function() {
+
+        var self    = this,
+            param, i;
+
+        if (self.$$destroyed) {
+            return;
+        }
+
+        self.$$destroyed = true;
+        self.$$observable.trigger("destroy");
+        self.$$observable.$destroy();
+
+        if (self.$parent && self.$parent.$un) {
+            self.$parent.$un("check", self.$$onParentCheck, self);
+            self.$parent.$un("destroy", self.$$onParentDestroy, self);
+            self.$parent.$un("freeze", self.$freeze, self);
+            self.$parent.$un("unfreeze", self.$unfreeze, self);
+        }
+
+        if (self.$$mo) {
+            lib_MutationObserver.$destroy(self);
+        }
+
+        for (param in self.$$historyWatchers) {
+            self.$unwatchHistory(param);
+        }
+
+        for (i in self) {
+            if (self.hasOwnProperty(i)) {
+                self[i] = null;
+            }
+        }
+
+        self.$$destroyed = true;
+    }
+
+}, true, false);
+
+
+var lib_Scope = MetaphorJs.lib.Scope;
+
+
+
+/**
+ * Checks if given value is a thenable (a Promise)
+ * @function isThenable
+ * @param {*} any
+ * @returns {boolean|function}
+ */
+function isThenable(any) {
+
+    // any.then must only be accessed once
+    // this is a promise/a+ requirement
+
+    if (!any) { //  || !any.then
+        return false;
+    }
+    
+    var t;
+
+    //if (!any || (!isObject(any) && !isFunction(any))) {
+    if (((t = typeof any) != "object" && t != "function")) {
+        return false;
+    }
+
+    var then = any.then;
+
+    return isFunction(then) ? then : false;
+};
+
+
+
+
+var lib_Promise = MetaphorJs.lib.Promise = function(){
+
+    var PENDING     = 0,
+        FULFILLED   = 1,
+        REJECTED    = 2,
+
+        queue       = [],
+        qRunning    = false,
+
+        nextTick    = typeof process !== strUndef ?
+                        process.nextTick :
+                        function(fn) {
+                            setTimeout(fn, 0);
+                        },
+
+        // synchronous queue of asynchronous functions:
+        // callbacks must be called in "platform stack"
+        // which means setTimeout/nextTick;
+        // also, they must be called in a strict order.
+        nextInQueue = function() {
+            qRunning    = true;
+            var next    = queue.shift();
+            nextTick(function(){
+                next[0].apply(next[1], next[2]);
+                if (queue.length) {
+                    nextInQueue();
+                }
+                else {
+                    qRunning = false;
+                }
+            }, 0);
+        },
+
+        /**
+         * add to execution queue
+         * @function
+         * @param {Function} fn
+         * @param {Object} scope
+         * @param {[]} args
+         * @ignore
+         */
+        next        = function(fn, scope, args) {
+            args = args || [];
+            queue.push([fn, scope, args]);
+            if (!qRunning) {
+                nextInQueue();
+            }
+        },
+
+        /**
+         * returns function which receives value from previous promise
+         * and tries to resolve next promise with new value returned from given function(prev value)
+         * or reject on error.
+         * promise1.then(success, failure) -> promise2
+         * wrapper(success, promise2) -> fn
+         * fn(promise1 resolve value) -> new value
+         * promise2.resolve(new value)
+         *
+         * @function
+         * @param {Function} fn
+         * @param {Promise} promise
+         * @returns {Function}
+         * @ignore
+         */
+        resolveWrapper     = function(fn, promise) {
+            return function(value) {
+                try {
+                    promise.resolve(fn(value));
+                }
+                catch (thrownError) {
+                    promise.reject(thrownError);
+                }
+            };
+        };
+
+
+    /**
+     * @class MetaphorJs.lib.Promise
+     */
+
+    /**
+     * @constructor 
+     * @method Promise
+     * @param {Function} fn {
+     *  @description Constructor accepts two parameters: resolve and reject functions.
+     *  @param {function} resolve {
+     *      @param {*} value
+     *  }
+     *  @param {function} reject {
+     *      @param {*} reason
+     *  }
+     * }
+     * @param {Object} context
+     * @returns {Promise}
+     */
+
+    /**
+     * @constructor 
+     * @method Promise 
+     * @param {Thenable} thenable
+     * @returns {Promise}
+     */
+
+    /**
+     * @constructor 
+     * @method Promise 
+     * @param {*} value Value to resolve promise with
+     * @returns {Promise}
+     */
+
+    /**
+     * @constructor 
+     * @method Promise 
+     * @returns {Promise}
+     */
+    var Promise = function(fn, context) {
+
+        if (fn instanceof Promise) {
+            return fn;
+        }
+
+        if (!(this instanceof Promise)) {
+            return new Promise(fn, context);
+        }
+
+        var self = this,
+            then;
+
+        self._fulfills   = [];
+        self._rejects    = [];
+        self._dones      = [];
+        self._fails      = [];
+
+        if (arguments.length > 0) {
+
+            if (then = isThenable(fn)) {
+                if (fn instanceof Promise) {
+                    fn.then(
+                        bind(self.resolve, self),
+                        bind(self.reject, self));
+                }
+                else {
+                    (new Promise(then, fn)).then(
+                        bind(self.resolve, self),
+                        bind(self.reject, self));
+                }
+            }
+            else if (isFunction(fn)) {
+                try {
+                    fn.call(context,
+                            bind(self.resolve, self),
+                            bind(self.reject, self));
+                }
+                catch (thrownError) {
+                    self.reject(thrownError);
+                }
+            }
+            else {
+                self.resolve(fn);
+            }
+        }
+    };
+
+    extend(Promise.prototype, {
+
+        _state: PENDING,
+
+        _fulfills: null,
+        _rejects: null,
+        _dones: null,
+        _fails: null,
+
+        _wait: 0,
+
+        _value: null,
+        _reason: null,
+
+        _triggered: false,
+
+        /**
+         * Is promise still pending (as opposed to resolved or rejected)
+         * @method
+         * @returns {boolean}
+         */
+        isPending: function() {
+            return this._state === PENDING;
+        },
+
+        /**
+         * Is the promise fulfilled. Same as isResolved()
+         * @method
+         * @returns {boolean}
+         */
+        isFulfilled: function() {
+            return this._state === FULFILLED;
+        },
+
+        /**
+         * Is the promise resolved. Same as isFulfilled()
+         * @method
+         * @returns {boolean}
+         */
+        isResolved: function() {
+            return this._state === FULFILLED;
+        },
+
+        /**
+         * Is the promise rejected
+         * @method
+         * @returns {boolean}
+         */
+        isRejected: function() {
+            return this._state === REJECTED;
+        },
+
+        /**
+         * Did someone subscribed to this promise
+         * @method
+         * @returns {boolean}
+         */
+        hasListeners: function() {
+            var self = this,
+                ls  = [self._fulfills, self._rejects, self._dones, self._fails],
+                i, l;
+
+            for (i = 0, l = ls.length; i < l; i++) {
+                if (ls[i] && ls[i].length) {
+                    return true;
+                }
+            }
+
+            return false;
+        },
+
+        _cleanup: function() {
+            var self    = this;
+
+            self._fulfills = null;
+            self._rejects = null;
+            self._dones = null;
+            self._fails = null;
+        },
+
+        _processValue: function(value, cb, allowThenanle) {
+
+            var self    = this,
+                then;
+
+            if (self._state !== PENDING) {
+                return;
+            }
+
+            if (value === self) {
+                self._doReject(new TypeError("cannot resolve promise with itself"));
+                return;
+            }
+
+            if (allowThenanle) {
+                try {
+                    if (then = isThenable(value)) {
+                        if (value instanceof Promise) {
+                            value.then(
+                                bind(self._processResolveValue, self),
+                                bind(self._processRejectReason, self)
+                            );
+                        }
+                        else {
+                            (new Promise(then, value)).then(
+                                bind(self._processResolveValue, self),
+                                bind(self._processRejectReason, self)
+                            );
+                        }
+                        return;
+                    }
+                }
+                catch (thrownError) {
+                    if (self._state === PENDING) {
+                        self._doReject(thrownError);
+                    }
+                    return;
+                }
+            }
+
+            cb.call(self, value);
+        },
+
+
+        _callResolveHandlers: function() {
+
+            var self    = this;
+
+            self._done();
+
+            var cbs  = self._fulfills,
+                cb;
+
+            while (cb = cbs.shift()) {
+                next(cb[0], cb[1], [self._value]);
+            }
+
+            self._cleanup();
+        },
+
+
+        _doResolve: function(value) {
+            var self    = this;
+
+            self._value = value;
+            self._state = FULFILLED;
+
+            if (self._wait === 0) {
+                self._callResolveHandlers();
+            }
+        },
+
+        _processResolveValue: function(value) {
+            this._processValue(value, this._doResolve, true);
+        },
+
+        /**
+         * Resolve the promise
+         * @method
+         * @param {*} value
+         */
+        resolve: function(value) {
+
+            var self    = this;
+
+            if (self._triggered) {
+                return self;
+            }
+
+            self._triggered = true;
+            self._processResolveValue(value);
+
+            return self;
+        },
+
+
+        _callRejectHandlers: function() {
+
+            var self    = this;
+
+            self._fail();
+
+            var cbs  = self._rejects,
+                cb;
+
+            while (cb = cbs.shift()) {
+                next(cb[0], cb[1], [self._reason]);
+            }
+
+            self._cleanup();
+        },
+
+        _doReject: function(reason) {
+
+            var self        = this;
+
+            self._state     = REJECTED;
+            self._reason    = reason;
+
+            if (self._wait === 0) {
+                self._callRejectHandlers();
+            }
+        },
+
+
+        _processRejectReason: function(reason) {
+            this._processValue(reason, this._doReject, false);
+        },
+
+        /**
+         * Reject the promise
+         * @method
+         * @param {*} reason
+         */
+        reject: function(reason) {
+
+            var self    = this;
+
+            if (self._triggered) {
+                return self;
+            }
+
+            self._triggered = true;
+
+            self._processRejectReason(reason);
+
+            return self;
+        },
+
+        /**
+         * @method
+         * @async
+         * @param {Function} resolve -- called when this promise is resolved; 
+         *  returns new resolve value or promise
+         * @param {Function} reject -- called when this promise is rejected; 
+         *  returns new reject reason
+         * @param {object} context -- resolve's and reject's functions "this" object
+         * @returns {Promise} new promise
+         */
+        then: function(resolve, reject, context) {
+
+            var self            = this,
+                promise         = new Promise,
+                state           = self._state;
+
+            if (context) {
+                if (resolve) {
+                    resolve = bind(resolve, context);
+                }
+                if (reject) {
+                    reject = bind(reject, context);
+                }
+            }
+
+            if (state === PENDING || self._wait !== 0) {
+
+                if (resolve && isFunction(resolve)) {
+                    self._fulfills.push([resolveWrapper(resolve, promise), null]);
+                }
+                else {
+                    self._fulfills.push([promise.resolve, promise])
+                }
+
+                if (reject && isFunction(reject)) {
+                    self._rejects.push([resolveWrapper(reject, promise), null]);
+                }
+                else {
+                    self._rejects.push([promise.reject, promise]);
+                }
+            }
+            else if (state === FULFILLED) {
+
+                if (resolve && isFunction(resolve)) {
+                    next(resolveWrapper(resolve, promise), null, [self._value]);
+                }
+                else {
+                    promise.resolve(self._value);
+                }
+            }
+            else if (state === REJECTED) {
+                if (reject && isFunction(reject)) {
+                    next(resolveWrapper(reject, promise), null, [self._reason]);
+                }
+                else {
+                    promise.reject(self._reason);
+                }
+            }
+
+            return promise;
+        },
+
+        /**
+         * Add reject listener.
+         * @method
+         * @async
+         * @param {Function} reject -- same as then(null, reject)
+         * @returns {Promise} new promise
+         */
+        "catch": function(reject) {
+            return this.then(null, reject);
+        },
+
+        _done: function() {
+
+            var self    = this,
+                cbs     = self._dones,
+                cb;
+
+            while (cb = cbs.shift()) {
+                try {
+                    cb[0].call(cb[1] || null, self._value);
+                }
+                catch (thrown) {
+                    error(thrown);
+                }
+            }
+        },
+
+        /**
+         * Add resolve listener
+         * @method
+         * @sync
+         * @param {Function} fn -- function to call when promise is resolved
+         * @param {Object} context -- function's "this" object
+         * @returns {Promise} same promise
+         */
+        done: function(fn, context) {
+            var self    = this,
+                state   = self._state;
+
+            if (state === FULFILLED && self._wait === 0) {
+                try {
+                    fn.call(context || null, self._value);
+                }
+                catch (thrown) {
+                    error(thrown);
+                }
+            }
+            else if (state === PENDING) {
+                self._dones.push([fn, context]);
+            }
+
+            return self;
+        },
+
+        _fail: function() {
+
+            var self    = this,
+                cbs     = self._fails,
+                cb;
+
+            while (cb = cbs.shift()) {
+                try {
+                    cb[0].call(cb[1] || null, self._reason);
+                }
+                catch (thrown) {
+                    error(thrown);
+                }
+            }
+        },
+
+        /**
+         * Add reject listener
+         * @method
+         * @sync
+         * @param {Function} fn -- function to call when promise is rejected.
+         * @param {Object} context -- function's "this" object
+         * @returns {Promise} same promise
+         */
+        fail: function(fn, context) {
+
+            var self    = this,
+                state   = self._state;
+
+            if (state === REJECTED && self._wait === 0) {
+                try {
+                    fn.call(context || null, self._reason);
+                }
+                catch (thrown) {
+                    error(thrown);
+                }
+            }
+            else if (state === PENDING) {
+                self._fails.push([fn, context]);
+            }
+
+            return self;
+        },
+
+        /**
+         * Add both resolve and reject listener
+         * @method
+         * @sync
+         * @param {Function} fn -- function to call when promise resolved or rejected
+         * @param {Object} context -- function's "this" object
+         * @return {Promise} same promise
+         */
+        always: function(fn, context) {
+            this.done(fn, context);
+            this.fail(fn, context);
+            return this;
+        },
+
+        /**
+         * Get a thenable object
+         * @method
+         * @returns {object} then: function, done: function, fail: function, always: function
+         */
+        promise: function() {
+            var self = this;
+            return {
+                then: bind(self.then, self),
+                done: bind(self.done, self),
+                fail: bind(self.fail, self),
+                always: bind(self.always, self),
+                "catch": bind(self['catch'], self)
+            };
+        },
+
+        /**
+         * Resolve this promise after <code>value</code> promise is resolved.
+         * @method
+         * @param {*|Promise} value
+         * @returns {Promise} self
+         */
+        after: function(value) {
+
+            var self = this;
+
+            if (isThenable(value)) {
+
+                self._wait++;
+
+                var done = function() {
+                    self._wait--;
+                    if (self._wait === 0 && self._state !== PENDING) {
+                        self._state === FULFILLED ?
+                            self._callResolveHandlers() :
+                            self._callRejectHandlers();
+                    }
+                };
+
+                if (isFunction(value.done)) {
+                    value.done(done);
+                }
+                else {
+                    value.then(done);
+                }
+            }
+
+            return self;
+        }
+    }, true, false);
+
+
+    /**
+     * Call function <code>fn</code> with given args in given context
+     * and use its return value as resolve value for a new promise.
+     * Then return this promise.
+     * @static
+     * @method
+     * @param {function} fn
+     * @param {object} context
+     * @param {[]} args
+     * @returns {Promise}
+     */
+    Promise.fcall = function(fn, context, args) {
+        return Promise.resolve(fn.apply(context, args || []));
+    };
+
+    /**
+     * Create new promise and resolve it with given value
+     * @static
+     * @method
+     * @param {*} value
+     * @returns {Promise}
+     */
+    Promise.resolve = function(value) {
+        var p = new Promise;
+        p.resolve(value);
+        return p;
+    };
+
+
+    /**
+     * Create new promise and reject it with given reason
+     * @static
+     * @method
+     * @param {*} reason
+     * @returns {Promise}
+     */
+    Promise.reject = function(reason) {
+        var p = new Promise;
+        p.reject(reason);
+        return p;
+    };
+
+
+    /**
+     * Take a list of promises or values and once all promises are resolved,
+     * create a new promise and resolve it with a list of final values.<br>
+     * If one of the promises is rejected, it will reject the returned promise.
+     * @static
+     * @method
+     * @param {[]} promises -- array of promises or resolve values
+     * @returns {Promise}
+     */
+    Promise.all = function(promises) {
+
+        if (!promises.length) {
+            return Promise.resolve(null);
+        }
+
+        var p       = new Promise,
+            len     = promises.length,
+            values  = new Array(len),
+            cnt     = len,
+            i,
+            item,
+            done    = function(value, inx) {
+                values[inx] = value;
+                cnt--;
+
+                if (cnt === 0) {
+                    p.resolve(values);
+                }
+            };
+
+        for (i = 0; i < len; i++) {
+
+            (function(inx){
+                item = promises[i];
+
+                if (item instanceof Promise) {
+                    item.done(function(value){
+                        done(value, inx);
+                    })
+                        .fail(p.reject, p);
+                }
+                else if (isThenable(item) || isFunction(item)) {
+                    (new Promise(item))
+                        .done(function(value){
+                            done(value, inx);
+                        })
+                        .fail(p.reject, p);
+                }
+                else {
+                    done(item, inx);
+                }
+            })(i);
+        }
+
+        return p;
+    };
+
+    /**
+     * Same as <code>all()</code> but it treats arguments as list of values.
+     * @static
+     * @method
+     * @param {Promise|*} promise1
+     * @param {Promise|*} promise2
+     * @param {Promise|*} promiseN
+     * @returns {Promise}
+     */
+    Promise.when = function() {
+        return Promise.all(arguments);
+    };
+
+    /**
+     * Same as <code>all()</code> but the resulting promise
+     * will not be rejected if ones of the passed promises is rejected.
+     * @static
+     * @method
+     * @param {[]} promises -- array of promises or resolve values
+     * @returns {Promise}
+     */
+    Promise.allResolved = function(promises) {
+
+        if (!promises.length) {
+            return Promise.resolve(null);
+        }
+
+        var p       = new Promise,
+            len     = promises.length,
+            values  = [],
+            cnt     = len,
+            i,
+            item,
+            settle  = function(value) {
+                values.push(value);
+                proceed();
+            },
+            proceed = function() {
+                cnt--;
+                if (cnt === 0) {
+                    p.resolve(values);
+                }
+            };
+
+        for (i = 0; i < len; i++) {
+            item = promises[i];
+
+            if (item instanceof Promise) {
+                item.done(settle).fail(proceed);
+            }
+            else if (isThenable(item) || isFunction(item)) {
+                (new Promise(item)).done(settle).fail(proceed);
+            }
+            else {
+                settle(item);
+            }
+        }
+
+        return p;
+    };
+
+    /**
+     * Given the list of promises or values it will return a new promise
+     * and resolve it with the first resolved value.
+     * @static
+     * @method
+     * @param {[]} promises -- array of promises or resolve values
+     * @returns {Promise}
+     */
+    Promise.race = function(promises) {
+
+        if (!promises.length) {
+            return Promise.resolve(null);
+        }
+
+        var p   = new Promise,
+            len = promises.length,
+            i,
+            item;
+
+        for (i = 0; i < len; i++) {
+            item = promises[i];
+
+            if (item instanceof Promise) {
+                item.done(p.resolve, p).fail(p.reject, p);
+            }
+            else if (isThenable(item) || isFunction(item)) {
+                (new Promise(item)).done(p.resolve, p).fail(p.reject, p);
+            }
+            else {
+                p.resolve(item);
+            }
+
+            if (!p.isPending()) {
+                break;
+            }
+        }
+
+        return p;
+    };
+
+    /**
+     * Takes a list of async functions and executes 
+     * them in given order consequentially
+     * @static
+     * @method
+     * @param {[]} functions -- array of promises or resolve values or functions
+     * @returns {Promise}
+     */
+    Promise.waterfall = function(functions) {
+
+        if (!functions.length) {
+            return Promise.resolve(null);
+        }
+
+        var first   = functions.shift(),
+            promise = isFunction(first) ? Promise.fcall(first) : Promise.resolve(fn),
+            fn;
+
+        while (fn = functions.shift()) {
+            if (isThenable(fn)) {
+                promise = promise.then(function(fn){
+                    return function(){
+                        return fn;
+                    };
+                }(fn));
+            }
+            else if (isFunction(fn)) {
+                promise = promise.then(fn);
+            }
+            else {
+                promise.resolve(fn);
+            }
+        }
+
+        return promise;
+    };
+
+    /**
+     * Works like Array.forEach but it expects passed function to 
+     * return a Promise.
+     * @static
+     * @method 
+     * @param {array} items 
+     * @param {function} fn {
+     *  @param {*} value
+     *  @param {int} index
+     *  @returns {Promise|*}
+     * }
+     * @param {object} context 
+     * @param {boolean} allResolved if true, the resulting promise
+     * will fail if one of the returned promises fails.
+     */
+    Promise.forEach = function(items, fn, context, allResolved) {
+
+        var left = items.slice(),
+            p = new Promise,
+            values = [],
+            i = 0;
+
+        var next = function() {
+
+            if (!left.length) {
+                p.resolve(values);
+                return;
+            }
+
+            var item = left.shift(),
+                index = i;
+
+            i++;
+
+            Promise.fcall(fn, context, [item, index])
+                .done(function(result){
+                    values.push(result);
+                    next();
+                })
+                .fail(function(reason){
+                    if (allResolved) {
+                        p.reject(reason);
+                    }
+                    else {
+                        values.push(null);
+                        next();
+                    }
+                });
+        };
+
+        next();
+
+        return p;
+    };
+
+    /**
+     * Returns a promise with additional <code>countdown</code>
+     * method. Call this method <code>cnt</code> times and
+     * the promise will get resolved.
+     * @static
+     * @method
+     * @param {int} cnt 
+     * @returns {Promise}
+     */
+    Promise.counter = function(cnt) {
+
+        var promise     = new Promise;
+
+        promise.countdown = function() {
+            cnt--;
+            if (cnt === 0) {
+                promise.resolve();
+            }
+        };
+
+        return promise;
+    };
+
+    return Promise;
+}();
+
+
+
+
+
+
+
+
+
+/**
+ * Text renderer
+ * @class MetaphorJs.lib.Text
+ */
+var lib_Text = MetaphorJs.lib.Text = (function(){
+
+    var startSymbol             = '{{',
+        endSymbol               = '}}',
+        startSymbolLength       = 2,
+        endSymbolLength         = 2,
+
+        events                  = new lib_Observable,
+
+        _procExpr               = function(expr, scope, observers) {
+            if (observers) {
+                var w = lib_MutationObserver.get(scope, expr);
+                observers.push(w);
+                return w.getValue();
+            }
+            else {
+                return lib_Expression.get(expr, scope);
+            }
+        },
+
+        eachText                = function(text, fn) {
+
+            var index       = 0,
+                textLength  = text.length,
+                startIndex,
+                endIndex,
+                expr,
+                result      = "";
+
+            while (index < textLength) {
+                if (((startIndex = text.indexOf(startSymbol, index)) !== -1) &&
+                    ((endIndex = text.indexOf(endSymbol, startIndex + startSymbolLength)) !== -1) &&
+                    text.substr(startIndex - 1, 1) !== '\\') {
+
+                    result += text.substring(index, startIndex);
+
+                    if (endIndex !== startIndex + startSymbolLength) {
+                        expr = text.substring(startIndex + startSymbolLength, endIndex);
+                        expr = expr.trim();
+                        result += fn(expr);
+                    }
+
+                    index = endIndex + endSymbolLength;
+
+                } else {
+                    // we did not find an interpolation
+                    if (index !== textLength) {
+                        result += text.substring(index);
+                    }
+                    break;
+                }
+            }
+
+            return result;
+        },
+
+        render = function(text, scope, observers, recursive, fullExpr) {
+
+            var result,
+                prev = text,
+                iter = 0;
+
+            while (true) {
+                if (iter > 100) {
+                    throw new Error(
+                        "Got more than 100 iterations on template: " + self.origin);
+                }
+
+                if (fullExpr) {
+                    result = _procExpr(text, scope, observers);
+                    fullExpr = false;
+                }
+                else {
+                    result = eachText(prev, function(expr){
+                        return _procExpr(expr, scope, observers);
+                    });
+                }
+                
+                if (!recursive || result === prev) {
+                    return result;
+                }
+
+                prev = result;
+                iter++;
+            }
+        };
+
+
+    /**
+     * @constructor
+     * @method
+     * @param {object} dataObj
+     * @param {string} text 
+     * @param {object} opt {
+     *  @type {bool} recursive
+     * }
+     */
+    var Text = function(scope, text, opt) {
+        opt = opt || {};
+
+        var self        = this;
+
+        self.id         = nextUid();
+        self.origin     = text;
+        self.text       = "";
+        self.scope      = scope;
+        self.destroyed  = false;
+        self.fullExpr   = false;
+        self.recursive  = false;
+        self.once       = false;
+
+        if (opt.recursive === true || opt.recursive === false) {
+            self.recursive = opt.recursive;
+        }
+        if (opt.fullExpr === true || opt.fullExpr === false) {
+            self.fullExpr = opt.fullExpr;
+        }
+        if (opt.once === true || opt.once === false) {
+            self.once = opt.once;
+        }
+
+        self._processDelegate = bind(self._process, self);
+        self.observers  = [];
+
+        self._process(true);
+    };
+
+    extend(Text.prototype, {
+
+        _process: function(initial) {
+
+            if (this.destroyed) {
+                return;
+            }
+
+            var self = this,
+                obs = self.observers.slice();
+
+            self._observeData(obs, "unsubscribe");
+            self.observers = [];
+
+            self.text = render(self.origin, self.scope, 
+                                self.observers, 
+                                self.recursive, 
+                                self.fullExpr);
+
+            self._observeData(self.observers, "subscribe");
+            self._destroyObservers(obs);
+
+            if (!initial) {
+                events.trigger(self.id, self);
+            }
+        },
+
+        _onDataChange: function() {
+            async(this._processDelegate);
+        },
+
+        _observeData: function(obs, mode) {
+            var i, l,
+                self = this;
+            for (i = 0, l = obs.length; i < l; i++) {
+                // subscribe/unsubscribe
+                obs[i][mode](self._onDataChange, self);
+            }
+        },
+
+        _destroyObservers: function(obs) {
+            var i, l;
+            for (i = 0, l = obs.length; i < l; i++) {
+                obs[i].$destroy(true);
+            }
+        },
+
+        /**
+         * Get processed text
+         * @method
+         * @returns {string}
+         */
+        getString: function() {
+            return this.text;
+        },
+
+        /**
+         * Subscribe to changes in text
+         * @param {function} fn 
+         * @param {object} context 
+         * @param {object} opt {
+         *  lib_Observable.on() options
+         * }
+         */
+        subscribe: function(fn, context, opt) {
+            return events.on(this.id, fn, context, opt);
+        },
+
+        /**
+         * Unsubscribe from changes in text
+         * @param {function} fn 
+         * @param {object} context 
+         */
+        unsubscribe: function(fn, context) {
+            return events.un(this.id, fn, context);
+        },
+
+        /**
+         * Used only in standalone mode. When part of an app, 
+         * use scope.$check()
+         * @method
+         * @returns {int}
+         */
+        check: function() {
+            return lib_MutationObserver.check(this.scope);
+        },
+
+        /**
+         * Destroy text container
+         * @method
+         */
+        $destroy: function() {
+            var self = this;
+            self.destroyed  = true;
+            events.destroyEvent(self.id);
+            self._observeData(self.observers, "unsubscribe");
+            self._destroyObservers(self.observers);
+        }
+    });
+
+    /**
+     * Statically process text without subscribing to changes
+     * @static
+     * @method
+     * @param {string} text Text template
+     * @param {object} dataObj Data object (app.Scope) to read variables from
+     * @param {array|null} observers {
+     *  Pass empty array 
+     *  @type {lib_MutationObserver} observer
+     * }
+     * @param {bool} recursive Recursively process text template
+     * @returns {string}
+     */
+    Text.render = render;
+
+    /**
+     * @static
+     * @method
+     * @param {string} text Text template
+     * @param {function} fn {
+     *  @param {string} expression
+     *  @returns {string} replacement
+     * }
+     * @returns {string} processed template
+     */
+    Text.eachText = eachText;
+
+    /**
+     * Does the text have expressions
+     * @static
+     * @method
+     * @param {string} text
+     * @returns {boolean}
+     */
+    Text.applicable = function(text) {
+        return !text || !text.indexOf ||
+                text.indexOf(startSymbol) === -1 ? false : true;
+    };
+
+    return Text;
+}());
+
+
+
+MetaphorJs.dom = MetaphorJs.dom || {};
+
+
+
+
+
+var dom_setAttr = MetaphorJs.dom.setAttr = function(el, name, value) {
+    return el.setAttribute(name, value);
+};
+
+
+
 var dom_commentWrap = MetaphorJs.dom.commentWrap = function commentWrap(node, name) {
     name = name || "";
 
@@ -2962,6 +4609,19 @@ function toBool(val) {
         }
     }
     return true;
+};
+
+
+
+/**
+ * Check if given value is a primitive (string, number, boolean)
+ * @function isPrimitive
+ * @param {*} value 
+ * @returns {boolean}
+ */
+function isPrimitive(value) {
+    var vt = _varType(value);
+    return vt < 3 && vt > -1;
 };
 
 
@@ -3009,7 +4669,7 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
             for (k in properties) {
                 self.setProperty(
                     k, 
-                    typeof properties[k] === "string" ? 
+                    isPrimitive(properties[k]) ? 
                         {expression: properties[k]}:
                         properties[k]
                 );
@@ -3565,6 +5225,27 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
          */
         setTo: function(obj) {
             this.cfg.setTo = obj;
+        },
+
+        /**
+         * Import properties and values from another config
+         * @param {MetaphorJs.lib.Config} config 
+         */
+        importConfig: function(config, overwrite) {
+            var name,
+                ps = this.properties,
+                vs = this.values;
+
+            for (name in config.properties) {
+                if (config.properties.hasOwnProperty(name)) {
+
+                    if (ps[name] && !overwrite) {
+                        continue;
+                    }
+                    ps[name] = extend({}, config.properties[name]);
+                    vs[name] = config.values[name];
+                }
+            }
         },
 
         /**
@@ -5122,832 +6803,6 @@ var Directive = MetaphorJs.app.Directive = (function() {
     });
 }());
 
-var app = (function(){
-
-
-
-
-
-
-
-var appDirective = function() {
-    return false;
-};
-
-appDirective.$prebuild = {
-    defaultMode: lib_Config.MODE_STATIC,
-    ignore: true
-};
-
-Directive.registerAttribute("app", 100, appDirective);
-}());
-
-
-
-
-
-
-/**
- * The scope object is what templates see while rendering
- * @class MetaphorJs.lib.Scope
- */
-/**
- * @method Scope
- * @constructor
- * @param {object} cfg Whatever data should be visible in template
- */
-MetaphorJs.lib.Scope = function(cfg) {
-    var self    = this;
-
-    self.$$observable    = new lib_Observable;
-    self.$$historyWatchers  = {};
-    extend(self, cfg, true, false);
-
-    if (self.$parent) {
-        /**
-         * @event check
-         * @param {array} changes 
-         */
-        self.$parent.$on("check", self.$$onParentCheck, self);
-        /**
-         * @event changed
-         */
-        /**
-         * @event destroy
-         */
-        self.$parent.$on("destroy", self.$$onParentDestroy, self);
-        /**
-         * @event freeze
-         * @param {MetaphorJs.lib.Scope}
-         */
-        self.$parent.$on("freeze", self.$freeze, self);
-        /**
-         * @event unfreeze
-         * @param {MetaphorJs.lib.Scope}
-         */
-        self.$parent.$on("unfreeze", self.$unfreeze, self);
-    }
-    else {
-        self.$root  = self;
-        self.$isRoot= true;
-    }
-};
-
-extend(MetaphorJs.lib.Scope.prototype, {
-
-    /**
-     * @property {MetaphorJs.app.App}
-     */
-    $app: null,
-
-    /**
-     * @property {MetaphorJs.lib.Scope}
-     */
-    $parent: null,
-
-    /**
-     * @property {MetaphorJs.lib.Scope}
-     */
-    $root: null,
-
-    /**
-     * @property {boolean}
-     */
-    $isRoot: false,
-
-    /**
-     * @property {int}
-     */
-    $level: 0,
-
-    $static: false,
-    $$frozen: false,
-    $$observable: null,
-    $$watchers: null,
-    $$historyWatchers: null,
-    $$checking: false,
-    $$destroyed: false,
-    $$changing: false,
-
-    $$tmt: null,
-
-    /**
-     * Create child scope
-     * @method
-     * @param {object} data Child scope data
-     * @returns {MetaphorJs.lib.Scope}
-     */
-    $new: function(data) {
-        var self = this;
-        return new MetaphorJs.lib.Scope(extend({}, data, {
-            $parent: self,
-            $root: self.$root,
-            $app: self.$app,
-            $level: self.$level + 1,
-            $static: self.$static
-        }, true, false));
-    },
-
-    /**
-     * Create child scope with no relation to this scope (no $parent)
-     * but with $app propery set.
-     * @method
-     * @param {object} data Child scope data
-     * @returns {MetaphorJs.lib.Scope}
-     */
-    $newIsolated: function(data) {
-        return new MetaphorJs.lib.Scope(extend({}, data, {
-            $app: this.$app,
-            $level: self.$level + 1,
-            $static: this.$static
-        }, true, false));
-    },
-
-    /**
-     * Freeze the scope. It will not perfom checks and trigger change events
-     * @method
-     */
-    $freeze: function() {
-        var self = this;
-        if (!self.$$frozen) {
-            self.$$frozen = true;
-            self.$$observable.trigger("freeze", self);
-        }
-    },
-
-    /**
-     * Unfreeze scope. Resume checking for changes
-     * @method
-     */
-    $unfreeze: function() {
-        var self = this;
-        if (self.$$frozen) {
-            self.$$frozen = false;
-            self.$$observable.trigger("unfreeze", self);
-        }
-    },
-
-    /**
-     * Subsrcibe to scope events
-     * @method 
-     * @param {string} event
-     * @param {function} fn
-     * @param {object} fnScope 
-     */
-    $on: function(event, fn, fnScope) {
-        return this.$$observable.on(event, fn, fnScope);
-    },
-
-    /**
-     * Unsubsrcibe from scope events
-     * @method 
-     * @param {string} event
-     * @param {function} fn
-     * @param {object} fnScope 
-     */
-    $un: function(event, fn, fnScope) {
-        return this.$$observable.un(event, fn, fnScope);
-    },
-
-    /**
-     * Create a function out of an expression and bind it to the scope
-     * @method
-     * @param {string} expr 
-     * @param {object} opt See lib_Expression.parse
-     * @returns {function}
-     */
-    $parseExpression: function(expr, opt) {
-        var self = this,
-            func = lib_Expression.parse(expr, opt);
-        return function(inputVal) {
-            return func(self, inputVal);
-        }
-    },
-
-    /**
-     * Create a watcher on js expression
-     * @method
-     * @param {string} expr js expression
-     * @param {function} fn {
-     *  @param {*} value
-     * }
-     * @param {object} fnScope
-     * @returns {lib_MutationObserver}
-     */
-    $watch: function(expr, fn, fnScope) {
-        return lib_MutationObserver.get(this, expr, fn, fnScope);
-    },
-
-    /**
-     * Stop watching js expression
-     * @method
-     * @param {string} expr js expression
-     * @param {function} fn 
-     * @param {object} fnScope
-     */
-    $unwatch: function(expr, fn, fnScope) {
-        var mo = lib_MutationObserver.exists(this, expr);
-        if (mo) {
-            mo.unsubscribe(fn, fnScope);
-            mo.$destroy(true);
-        }
-    },
-
-    /**
-     * Watch changes in page url. Triggers regular change event
-     * @method
-     * @param {string} prop Scope property name
-     * @param {string} param Url param name
-     */
-    $watchHistory: function(prop, param) {
-        var self = this;
-        if (!self.$$historyWatchers[param]) {
-            self.$$historyWatchers[param] = prop;
-            MetaphorJs.lib.History.on("change-" + param, self.$$onHistoryChange, self);
-        }
-    },
-
-    /**
-     * Stop watching changes in page url.
-     * @method
-     * @param {string} param Url param name
-     */
-    $unwatchHistory: function(param) {
-        var self = this;
-        if (!self.$$historyWatchers[param]) {
-            delete self.$$historyWatchers[param];
-            MetaphorJs.lib.History.un("change-" + param, self.$$onHistoryChange, self);
-        }
-    },
-
-
-    /**
-     * Set scope value and check for changes.
-     * @method
-     * @param {string} key
-     * @param {*} value
-     */
-     /**
-     * Set scope value and check for changes.
-     * @method
-     * @param {object} obj Key:value pairs
-     */
-    $set: function(key, value) {
-        var self = this;
-        if (typeof key === "string") {
-            this[key] = value;
-        }
-        else {
-            for (var k in key) {
-                self[k] = key[k];
-            }
-        }
-        this.$check();
-    },
-
-    $$onParentDestroy: function() {
-        this.$destroy();
-    },
-
-    $$onParentCheck: function() {
-        this.$check();
-    },
-
-    $$onHistoryChange: function(val, prev, name) {
-        var self = this,
-            prop;
-        if (self.$$historyWatchers[name]) {
-            prop = self.$$historyWatchers[name];
-            self[prop] = val;
-            self.$check();
-        }
-    },
-
-    /**
-     * Schedule a delayed check
-     * @method
-     * @param {int} timeout
-     */
-    $scheduleCheck: function(timeout) {
-        var self = this;
-        if (!self.$$tmt) {
-            self.$tmt = async(self.$check, self, null, timeout);
-        }
-    },
-
-    /**
-     * Check for changes and trigger change events.<br>
-     * If changes are found, the check will run again
-     * until no changes is found.
-     * @method
-     */
-    $check: function() {
-        var self = this,
-            changes;
-
-        if (self.$$checking || self.$static || self.$$frozen) {
-            return;
-        }
-        self.$$checking = true;
-
-        if (self.$$tmt) {
-            clearTimeout(self.$$tmt);
-            self.$$tmt = null;
-        }
-
-        if (self.$$mo) {
-            changes = self.$$mo.$checkAll();
-        }
-
-        self.$$checking = false;
-
-        if (!self.$$destroyed) {
-            self.$$observable.trigger("check", changes);
-        }
-
-        if (changes > 0) {
-            self.$$changing = true;
-            self.$check();
-        }
-        else {
-            // finished changing after all iterations
-            if (self.$$changing) {
-                self.$$changing = false;
-                self.$$observable.trigger("changed");
-            }
-        }
-    },
-
-    /**
-     * Destroy scope
-     * @method
-     */
-    $destroy: function() {
-
-        var self    = this,
-            param, i;
-
-        if (self.$$destroyed) {
-            return;
-        }
-
-        self.$$destroyed = true;
-        self.$$observable.trigger("destroy");
-        self.$$observable.$destroy();
-
-        if (self.$parent && self.$parent.$un) {
-            self.$parent.$un("check", self.$$onParentCheck, self);
-            self.$parent.$un("destroy", self.$$onParentDestroy, self);
-            self.$parent.$un("freeze", self.$freeze, self);
-            self.$parent.$un("unfreeze", self.$unfreeze, self);
-        }
-
-        if (self.$$mo) {
-            lib_MutationObserver.$destroy(self);
-        }
-
-        for (param in self.$$historyWatchers) {
-            self.$unwatchHistory(param);
-        }
-
-        for (i in self) {
-            if (self.hasOwnProperty(i)) {
-                self[i] = null;
-            }
-        }
-
-        self.$$destroyed = true;
-    }
-
-}, true, false);
-
-
-var lib_Scope = MetaphorJs.lib.Scope;
-
-
-
-
-
-
-
-/**
- * Text renderer
- * @class MetaphorJs.lib.Text
- */
-var lib_Text = MetaphorJs.lib.Text = (function(){
-
-    var startSymbol             = '{{',
-        endSymbol               = '}}',
-        startSymbolLength       = 2,
-        endSymbolLength         = 2,
-
-        events                  = new lib_Observable,
-
-        _procExpr               = function(expr, scope, observers) {
-            if (observers) {
-                var w = lib_MutationObserver.get(scope, expr);
-                observers.push(w);
-                return w.getValue();
-            }
-            else {
-                return lib_Expression.get(expr, scope);
-            }
-        },
-
-        eachText                = function(text, fn) {
-
-            var index       = 0,
-                textLength  = text.length,
-                startIndex,
-                endIndex,
-                expr,
-                result      = "";
-
-            while (index < textLength) {
-                if (((startIndex = text.indexOf(startSymbol, index)) !== -1) &&
-                    ((endIndex = text.indexOf(endSymbol, startIndex + startSymbolLength)) !== -1) &&
-                    text.substr(startIndex - 1, 1) !== '\\') {
-
-                    result += text.substring(index, startIndex);
-
-                    if (endIndex !== startIndex + startSymbolLength) {
-                        expr = text.substring(startIndex + startSymbolLength, endIndex);
-                        expr = expr.trim();
-                        result += fn(expr);
-                    }
-
-                    index = endIndex + endSymbolLength;
-
-                } else {
-                    // we did not find an interpolation
-                    if (index !== textLength) {
-                        result += text.substring(index);
-                    }
-                    break;
-                }
-            }
-
-            return result;
-        },
-
-        render = function(text, scope, observers, recursive, fullExpr) {
-
-            var result,
-                prev = text,
-                iter = 0;
-
-            while (true) {
-                if (iter > 100) {
-                    throw new Error(
-                        "Got more than 100 iterations on template: " + self.origin);
-                }
-
-                if (fullExpr) {
-                    result = _procExpr(text, scope, observers);
-                    fullExpr = false;
-                }
-                else {
-                    result = eachText(prev, function(expr){
-                        return _procExpr(expr, scope, observers);
-                    });
-                }
-                
-                if (!recursive || result === prev) {
-                    return result;
-                }
-
-                prev = result;
-                iter++;
-            }
-        };
-
-
-    /**
-     * @constructor
-     * @method
-     * @param {object} dataObj
-     * @param {string} text 
-     * @param {object} opt {
-     *  @type {bool} recursive
-     * }
-     */
-    var Text = function(scope, text, opt) {
-        opt = opt || {};
-
-        var self        = this;
-
-        self.id         = nextUid();
-        self.origin     = text;
-        self.text       = "";
-        self.scope      = scope;
-        self.destroyed  = false;
-        self.fullExpr   = false;
-        self.recursive  = false;
-        self.once       = false;
-
-        if (opt.recursive === true || opt.recursive === false) {
-            self.recursive = opt.recursive;
-        }
-        if (opt.fullExpr === true || opt.fullExpr === false) {
-            self.fullExpr = opt.fullExpr;
-        }
-        if (opt.once === true || opt.once === false) {
-            self.once = opt.once;
-        }
-
-        self._processDelegate = bind(self._process, self);
-        self.observers  = [];
-
-        self._process(true);
-    };
-
-    extend(Text.prototype, {
-
-        _process: function(initial) {
-
-            if (this.destroyed) {
-                return;
-            }
-
-            var self = this,
-                obs = self.observers.slice();
-
-            self._observeData(obs, "unsubscribe");
-            self.observers = [];
-
-            self.text = render(self.origin, self.scope, 
-                                self.observers, 
-                                self.recursive, 
-                                self.fullExpr);
-
-            self._observeData(self.observers, "subscribe");
-            self._destroyObservers(obs);
-
-            if (!initial) {
-                events.trigger(self.id, self);
-            }
-        },
-
-        _onDataChange: function() {
-            async(this._processDelegate);
-        },
-
-        _observeData: function(obs, mode) {
-            var i, l,
-                self = this;
-            for (i = 0, l = obs.length; i < l; i++) {
-                // subscribe/unsubscribe
-                obs[i][mode](self._onDataChange, self);
-            }
-        },
-
-        _destroyObservers: function(obs) {
-            var i, l;
-            for (i = 0, l = obs.length; i < l; i++) {
-                obs[i].$destroy(true);
-            }
-        },
-
-        /**
-         * Get processed text
-         * @method
-         * @returns {string}
-         */
-        getString: function() {
-            return this.text;
-        },
-
-        /**
-         * Subscribe to changes in text
-         * @param {function} fn 
-         * @param {object} context 
-         * @param {object} opt {
-         *  lib_Observable.on() options
-         * }
-         */
-        subscribe: function(fn, context, opt) {
-            return events.on(this.id, fn, context, opt);
-        },
-
-        /**
-         * Unsubscribe from changes in text
-         * @param {function} fn 
-         * @param {object} context 
-         */
-        unsubscribe: function(fn, context) {
-            return events.un(this.id, fn, context);
-        },
-
-        /**
-         * Used only in standalone mode. When part of an app, 
-         * use scope.$check()
-         * @method
-         * @returns {int}
-         */
-        check: function() {
-            return lib_MutationObserver.check(this.scope);
-        },
-
-        /**
-         * Destroy text container
-         * @method
-         */
-        $destroy: function() {
-            var self = this;
-            self.destroyed  = true;
-            events.destroyEvent(self.id);
-            self._observeData(self.observers, "unsubscribe");
-            self._destroyObservers(self.observers);
-        }
-    });
-
-    /**
-     * Statically process text without subscribing to changes
-     * @static
-     * @method
-     * @param {string} text Text template
-     * @param {object} dataObj Data object (app.Scope) to read variables from
-     * @param {array|null} observers {
-     *  Pass empty array 
-     *  @type {lib_MutationObserver} observer
-     * }
-     * @param {bool} recursive Recursively process text template
-     * @returns {string}
-     */
-    Text.render = render;
-
-    /**
-     * @static
-     * @method
-     * @param {string} text Text template
-     * @param {function} fn {
-     *  @param {string} expression
-     *  @returns {string} replacement
-     * }
-     * @returns {string} processed template
-     */
-    Text.eachText = eachText;
-
-    /**
-     * Does the text have expressions
-     * @static
-     * @method
-     * @param {string} text
-     * @returns {boolean}
-     */
-    Text.applicable = function(text) {
-        return !text || !text.indexOf ||
-                text.indexOf(startSymbol) === -1 ? false : true;
-    };
-
-    return Text;
-}());
-
-
-
-MetaphorJs.dom = MetaphorJs.dom || {};
-
-
-
-/**
- * Is given element a field
- * @function MetaphorJs.dom.isField
- * @param {DomNode} node
- * @returns {boolean}
- */
-var dom_isField = MetaphorJs.dom.isField = function dom_isField(el) {
-    var tag	= el.nodeName.toLowerCase(),
-        type = el.type;
-    if (tag == 'input' || tag == 'textarea' || tag == 'select') {
-        if (type != "submit" && type != "reset" && type != "button") {
-            return true;
-        }
-    }
-    return false;
-};
-
-/**
- * Check if given value is a null value
- * @function isNull
- * @param {*} value 
- * @returns {boolean}
- */
-function isNull(value) {
-    return value === null;
-};
-
-
-
-
-
-/**
- * @function MetaphorJs.dom.getInputValue
- * @param {Element} elem
- * @returns {string}
- */
-var dom_getInputValue = MetaphorJs.dom.getInputValue = function(){
-
-
-    var rreturn = /\r/,
-
-        hooks = {
-
-        option: function(elem) {
-            var val = elem.getAttribute("value") || elem.value;
-
-            return val !== undf ?
-                   val :
-                   ( elem.innerText || elem.textContent ).trim();
-        },
-
-        select: function(elem) {
-
-            var value, option,
-                options = elem.options,
-                index = elem.selectedIndex,
-                one = elem.type === "select-one" || index < 0,
-                values = one ? null : [],
-                max = one ? index + 1 : options.length,
-                disabled,
-                i = index < 0 ?
-                    max :
-                    one ? index : 0;
-
-            // Loop through all the selected options
-            for ( ; i < max; i++ ) {
-                option = options[ i ];
-
-                disabled = option.disabled ||
-                           option.parentNode.disabled;
-
-                // IE6-9 doesn't update selected after form reset (#2551)
-                if ((option.selected || i === index) && !disabled ) {
-                    // Get the specific value for the option
-                    value = MetaphorJs.dom.getInputValue(option);
-
-                    // We don't need an array for one selects
-                    if ( one ) {
-                        return value;
-                    }
-
-                    // Multi-Selects return an array
-                    values.push( value );
-                }
-            }
-
-            return values;
-        },
-
-        radio: function( elem ) {
-            return isNull(elem.getAttribute("value")) ? "on" : elem.value;
-        },
-
-        checkbox: function( elem ) {
-            return isNull(elem.getAttribute("value")) ? "on" : elem.value;
-        }
-    };
-
-    return function dom_getInputValue(elem) {
-
-        var hook, ret;
-
-        hook = hooks[elem.type] || hooks[elem.nodeName.toLowerCase()];
-
-        if (hook && (ret = hook(elem, "value")) !== undf) {
-            return ret;
-        }
-
-        ret = elem.value;
-
-        return isString(ret) ?
-            // Handle most common string cases
-               ret.replace(rreturn, "") :
-            // Handle cases where value is null/undef or number
-               ret == null ? "" : ret;
-
-    };
-}();
-
-
-
-
-/**
- * Get node attribute value
- * @function MetaphorJs.dom.getAttr
- * @param {DomNode} node
- * @returns {string}
- */
-var dom_getAttr = MetaphorJs.dom.getAttr = function dom_getAttr(el, name) {
-    return el.getAttribute ? el.getAttribute(name) : null;
-};
-
-
-
-
-
-var dom_setAttr = MetaphorJs.dom.setAttr = function(el, name, value) {
-    return el.setAttribute(name, value);
-};
 
 
 
@@ -5962,3894 +6817,6 @@ var dom_setAttr = MetaphorJs.dom.setAttr = function(el, name, value) {
 var dom_removeAttr = MetaphorJs.dom.removeAttr = function dom_removeAttr(el, name) {
     return el.removeAttribute(name);
 };
-
-
-
-/**
- * Check if given value is a number (not number-like)
- * @function isNumber
- * @param {*} value 
- * @returns {boolean}
- */
-function isNumber(value) {
-    return _varType(value) === 1;
-};
-
-
-
-
-
-
-
-
-
-/**
- * @function MetaphorJs.dom.setInputValue
- * @param {Element} el
- * @param {*} val
- */
-var dom_setInputValue = MetaphorJs.dom.setInputValue = function() {
-
-    var hooks = {
-        select:  function(elem, value) {
-
-            var optionSet, option,
-                options     = elem.options,
-                values      = toArray(value),
-                i           = options.length,
-                selected,
-                setIndex    = -1;
-
-            while ( i-- ) {
-                option      = options[i];
-                selected    = values.indexOf(option.value) !== -1;
-
-                if (selected) {
-                    dom_setAttr(option, "selected", "selected");
-                    option.selected = true;
-                    optionSet = true;
-                }
-                else {
-                    dom_removeAttr(option, "selected");
-                }
-
-                if (!selected && !isNull(dom_getAttr(option, "default-option"))) {
-                    setIndex = i;
-                }
-            }
-
-            // Force browsers to behave consistently when non-matching value is set
-            if (!optionSet) {
-                elem.selectedIndex = setIndex;
-            }
-
-            return values;
-        }
-    };
-
-    hooks["radio"] = hooks["checkbox"] = function(elem, value) {
-        if (isArray(value) ) {
-            return (elem.checked = value.indexOf(
-                dom_getInputValue(elem)
-                ) !== -1);
-        }
-    };
-
-
-    return function(el, val) {
-
-        if (el.nodeType !== 1) {
-            return;
-        }
-
-        // Treat null/undefined as ""; convert numbers to string
-        if (isNull(val)) {
-            val = "";
-        }
-        else if (isNumber(val)) {
-            val += "";
-        }
-
-        var hook = hooks[el.type] || hooks[el.nodeName.toLowerCase()];
-
-        // If set returns undefined, fall back to normal setting
-        if (!hook || hook(el, val, "value") === undf) {
-            el.value = val;
-        }
-    };
-}();
-
-/**
- * Function that returns false
- * @function returnFalse
- * @returns {boolean}
- */
-function returnFalse() {
-    return false;
-};
-
-/**
- * Function that returns true
- * @function returnTrue
- * @returns {boolean}
- */
-function returnTrue() {
-    return true;
-};
-
-
-
-// from jQuery
-
-/**
- * Dom event wrapper.
- * @class MetaphorJs.lib.DomEvent
- */
-
-/**
- * @method DomEvent
- * @constructor
- * @param {Event} src Native event
- */
-var lib_DomEvent = MetaphorJs.lib.DomEvent = function(){
-
-var DomEvent = function DomEvent(src) {
-
-    if (src instanceof DomEvent) {
-        return src;
-    }
-
-    // Allow instantiation without the 'new' keyword
-    if (!(this instanceof DomEvent)) {
-        return new DomEvent(src);
-    }
-
-
-    var self    = this;
-
-    for (var i in src) {
-        if (!self[i]) {
-            try {
-                self[i] = src[i];
-            }
-            catch (thrownError){}
-        }
-    }
-
-
-    // Event object
-    self.originalEvent = src;
-    self.type = src.type;
-
-    if (!self.target && src.srcElement) {
-        self.target = src.srcElement;
-    }
-
-
-    var eventDoc, doc, body,
-        button = src.button;
-
-    // Calculate pageX/Y if missing and clientX/Y available
-    if (self.pageX === undf && !isNull(src.clientX)) {
-        eventDoc = self.target ? self.target.ownerDocument || window.document : window.document;
-        doc = eventDoc.documentElement;
-        body = eventDoc.body;
-
-        self.pageX = src.clientX +
-                      ( doc && doc.scrollLeft || body && body.scrollLeft || 0 ) -
-                      ( doc && doc.clientLeft || body && body.clientLeft || 0 );
-        self.pageY = src.clientY +
-                      ( doc && doc.scrollTop  || body && body.scrollTop  || 0 ) -
-                      ( doc && doc.clientTop  || body && body.clientTop  || 0 );
-    }
-
-    // Add which for click: 1 === left; 2 === middle; 3 === right
-    // Note: button is not normalized, so don't use it
-    if ( !self.which && button !== undf ) {
-        self.which = ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
-    }
-
-    // Events bubbling up the document may have been marked as prevented
-    // by a handler lower down the tree; reflect the correct value.
-    self.isDefaultPrevented = src.defaultPrevented ||
-                              src.defaultPrevented === undf &&
-                                  // Support: Android<4.0
-                              src.returnValue === false ?
-                              returnTrue :
-                              returnFalse;
-
-
-    // Create a timestamp if incoming event doesn't have one
-    self.timeStamp = src && src.timeStamp || (new Date).getTime();
-};
-
-// Event is based on DOM3 Events as specified by the ECMAScript Language Binding
-// http://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
-extend(DomEvent.prototype, {
-
-    /**
-     * @method isDefaultPrevented
-     * @returns {boolean}
-     */
-    isDefaultPrevented: returnFalse,
-
-    /**
-     * @method isPropagationStopped
-     * @returns {boolean}
-     */
-    isPropagationStopped: returnFalse,
-
-    /**
-     * @method isImmediatePropagationStopped
-     * @returns {boolean}
-     */
-    isImmediatePropagationStopped: returnFalse,
-
-    /**
-     * @method
-     */
-    preventDefault: function() {
-        var e = this.originalEvent;
-
-        this.isDefaultPrevented = returnTrue;
-        e.returnValue = false;
-
-        if ( e && e.preventDefault ) {
-            e.preventDefault();
-        }
-    },
-
-    /**
-     * @method
-     */
-    stopPropagation: function() {
-        var e = this.originalEvent;
-
-        this.isPropagationStopped = returnTrue;
-        e.cancelBubble = true;
-
-        if ( e && e.stopPropagation ) {
-            e.stopPropagation();
-        }
-    },
-
-    /**
-     * @method
-     */
-    stopImmediatePropagation: function() {
-        var e = this.originalEvent;
-
-        this.isImmediatePropagationStopped = returnTrue;
-
-        if ( e && e.stopImmediatePropagation ) {
-            e.stopImmediatePropagation();
-        }
-
-        this.stopPropagation();
-    }
-}, true, false);
-
-return DomEvent;
-
-}();
-
-
-
-
-
-var dom_normalizeEvent = MetaphorJs.dom.normalizeEvent = function(originalEvent) {
-    return new lib_DomEvent(originalEvent);
-};
-
-
-// from jquery.mousewheel plugin
-
-
-
-
-
-var _mousewheelHandler = function(e) {
-
-    function shouldAdjustOldDeltas(orgEvent, absDelta) {
-        // If this is an older event and the delta is divisable by 120,
-        // then we are assuming that the browser is treating this as an
-        // older mouse wheel event and that we should divide the deltas
-        // by 40 to try and get a more usable deltaFactor.
-        // Side note, this actually impacts the reported scroll distance
-        // in older browsers and can cause scrolling to be slower than native.
-        // Turn this off by setting $.event.special.mousewheel.settings.adjustOldDeltas to false.
-        return orgEvent.type === 'mousewheel' && absDelta % 120 === 0;
-    }
-
-    function nullLowestDelta() {
-        lowestDelta = null;
-    }
-
-    var nullLowestDeltaTimeout, lowestDelta;
-
-    var mousewheelHandler = function(fn) {
-
-        return function mousewheelHandler(e) {
-
-            var event = dom_normalizeEvent(e || window.event),
-                args = slice.call(arguments, 1),
-                delta = 0,
-                deltaX = 0,
-                deltaY = 0,
-                absDelta = 0,
-                offsetX = 0,
-                offsetY = 0;
-
-
-            event.type = 'mousewheel';
-
-            // Old school scrollwheel delta
-            if ('detail'      in event) { deltaY = event.detail * -1; }
-            if ('wheelDelta'  in event) { deltaY = event.wheelDelta; }
-            if ('wheelDeltaY' in event) { deltaY = event.wheelDeltaY; }
-            if ('wheelDeltaX' in event) { deltaX = event.wheelDeltaX * -1; }
-
-            // Firefox < 17 horizontal scrolling related to DOMMouseScroll event
-            if ('axis' in event && event.axis === event.HORIZONTAL_AXIS) {
-                deltaX = deltaY * -1;
-                deltaY = 0;
-            }
-
-            // Set delta to be deltaY or deltaX if deltaY is 0 for backwards compatabilitiy
-            delta = deltaY === 0 ? deltaX : deltaY;
-
-            // New school wheel delta (wheel event)
-            if ('deltaY' in event) {
-                deltaY = event.deltaY * -1;
-                delta = deltaY;
-            }
-            if ('deltaX' in event) {
-                deltaX = event.deltaX;
-                if (deltaY === 0) { delta = deltaX * -1; }
-            }
-
-            // No change actually happened, no reason to go any further
-            if (deltaY === 0 && deltaX === 0) { return; }
-
-            // Store lowest absolute delta to normalize the delta values
-            absDelta = Math.max(Math.abs(deltaY), Math.abs(deltaX));
-
-            if (!lowestDelta || absDelta < lowestDelta) {
-                lowestDelta = absDelta;
-
-                // Adjust older deltas if necessary
-                if (shouldAdjustOldDeltas(event, absDelta)) {
-                    lowestDelta /= 40;
-                }
-            }
-
-            // Adjust older deltas if necessary
-            if (shouldAdjustOldDeltas(event, absDelta)) {
-                // Divide all the things by 40!
-                delta /= 40;
-                deltaX /= 40;
-                deltaY /= 40;
-            }
-
-            // Get a whole, normalized value for the deltas
-            delta = Math[delta >= 1 ? 'floor' : 'ceil'](delta / lowestDelta);
-            deltaX = Math[deltaX >= 1 ? 'floor' : 'ceil'](deltaX / lowestDelta);
-            deltaY = Math[deltaY >= 1 ? 'floor' : 'ceil'](deltaY / lowestDelta);
-
-            // Normalise offsetX and offsetY properties
-            if (this.getBoundingClientRect) {
-                var boundingRect = this.getBoundingClientRect();
-                offsetX = event.clientX - boundingRect.left;
-                offsetY = event.clientY - boundingRect.top;
-            }
-
-            // Add information to the event object
-            event.deltaX = deltaX;
-            event.deltaY = deltaY;
-            event.deltaFactor = lowestDelta;
-            event.offsetX = offsetX;
-            event.offsetY = offsetY;
-            // Go ahead and set deltaMode to 0 since we converted to pixels
-            // Although this is a little odd since we overwrite the deltaX/Y
-            // properties with normalized deltas.
-            event.deltaMode = 0;
-
-            // Add event and delta to the front of the arguments
-            args.unshift(event, delta, deltaX, deltaY);
-
-            // Clearout lowestDelta after sometime to better
-            // handle multiple device types that give different
-            // a different lowestDelta
-            // Ex: trackpad = 3 and mouse wheel = 120
-            if (nullLowestDeltaTimeout) { clearTimeout(nullLowestDeltaTimeout); }
-            nullLowestDeltaTimeout = setTimeout(nullLowestDelta, 200);
-
-
-
-            return fn.apply(this, args);
-        }
-    };
-
-    mousewheelHandler.events = function() {
-        var doc = window.document;
-        return ( 'onwheel' in doc || doc.documentMode >= 9 ) ?
-               ['wheel'] : ['mousewheel', 'DomMouseScroll', 'MozMousePixelScroll'];
-    };
-
-    return mousewheelHandler;
-
-}();
-
-
-
-
-/**
- * @function MetaphorJs.dom.addListener
- * @param {Element} el
- * @param {string} eventName
- * @param {function} func {
- *  @param {object} event
- * }
- */
-var dom_addListener = MetaphorJs.dom.addListener = function(){
-
-    var fn = null,
-        prefix = null;
-
-    return function dom_addListener(el, event, func) {
-
-        if (fn === null) {
-            if (el.addEventListener) {
-                fn = "addEventListener";
-                prefix = "";
-            }
-            else {
-                fn = "attachEvent";
-                prefix = "on";
-            }
-            //fn = el.attachEvent ? "attachEvent" : "addEventListener";
-            //prefix = el.attachEvent ? "on" : "";
-        }
-
-
-        if (event == "mousewheel") {
-            func = _mousewheelHandler(func);
-            var events = _mousewheelHandler.events(),
-                i, l;
-            for (i = 0, l = events.length; i < l; i++) {
-                el[fn](prefix + events[i], func, false);
-            }
-        }
-        else {
-            el[fn](prefix + event, func, false);
-        }
-
-        return func;
-    }
-
-}();
-
-
-
-
-/**
- * Remove listeners from element's events
- * @function MetaphorJs.dom.removeListener
- * @param {DomNode} el 
- * @param {string} eventName
- * @param {function} fn
- */
-var dom_removeListener = MetaphorJs.dom.removeListener = function(){
-
-    var fn = null,
-        prefix = null;
-
-    return function dom_removeListener(el, event, func) {
-
-        if (fn === null) {
-            if (el.removeEventListener) {
-                fn = "removeEventListener";
-                prefix = "";
-            }
-            else {
-                fn = "detachEvent";
-                prefix = "on";
-            }
-            //fn = el.detachEvent ? "detachEvent" : "removeEventListener";
-            //prefix = el.detachEvent ? "on" : "";
-        }
-
-        el[fn](prefix + event, func);
-    }
-}();
-
-
-
-/**
- * Is node attached to DOM
- * @function MetaphorJs.dom.isAttached
- * @param {DomNode} node
- * @returns {boolean}
- */
-var isAttached = MetaphorJs.dom.isAttached = function dom_isAttached(node) {
-
-    if (node === window) {
-        return true;
-    }
-    if (node.nodeType == 3) {
-        if (node.parentElement) {
-            return dom_isAttached(node.parentElement);
-        }
-        else {
-            return true;
-        }
-    }
-
-    var html = window.document.documentElement;
-
-    return node === html ? true : html.contains(node);
-};
-
-
-
-
-MetaphorJs.browser = MetaphorJs.browser || {};
-
-
-
-
-
-var browser_isAndroid = MetaphorJs.browser.isAndroid = function(){
-
-    var android = null;
-
-    return function browser_isAndroid() {
-
-        if (android === null) {
-            android = parseInt((/android (\d+)/i.exec(navigator.userAgent) || [])[1], 10) || false;
-        }
-
-        return android;
-    };
-
-}();
-
-
-
-
-var isIE = MetaphorJs.browser.isIE = function(){
-
-    var msie;
-
-    return function browser_isIE() {
-
-        if (msie === null) {
-            var ua = navigator.userAgent;
-            msie = parseInt((/msie (\d+)/i.exec(ua) || [])[1], 10);
-            if (isNaN(msie)) {
-                msie = parseInt((/trident\/.*; rv:(\d+)/i.exec(ua) || [])[1], 10) || false;
-            }
-        }
-
-        return msie;
-    };
-}();
-
-
-
-
-
-
-/**
- * Check if current browser supports event
- * @function MetaphorJs.browser.hasEvent
- * @param {string} event
- * @return {boolean}
- */
-var browser_hasEvent = MetaphorJs.browser.hasEvent = function(){
-
-    var eventSupport = {},
-        divElm;
-
-    return function browser_hasEvent(event) {
-        // IE9 implements 'input' event it's so fubared that we rather pretend that it doesn't have
-        // it. In particular the event is not fired when backspace or delete key are pressed or
-        // when cut operation is performed.
-
-        if (eventSupport[event] === undf) {
-
-            if (event === 'input' && isIE() == 9) {
-                return eventSupport[event] = false;
-            }
-            if (!divElm) {
-                divElm = window.document.createElement('div');
-            }
-
-            eventSupport[event] = !!('on' + event in divElm);
-        }
-
-        return eventSupport[event];
-    };
-}();
-
-
-
-
-
-
-/**
- * Modified version of YASS (http://yass.webo.in)
- */
-
-/**
- * Returns array of nodes or an empty array
- * @function MetaphorJs.dom.select
- * @param {string} selector
- * @param {Element} root to look into
- */
-var select = MetaphorJs.dom.select = function() {
-
-    var rGeneric    = /^[\w[:#.][\w\]*^|=!]*$/,
-        rQuote      = /=([^\]]+)/,
-        rGrpSplit   = / *, */,
-        rRepPlus    = /(\([^)]*)\+/,
-        rRepTild    = /(\[[^\]]+)~/,
-        rRepAll     = /(~|>|\+)/,
-        rSplitPlus  = / +/,
-        rSingleMatch= /([^[:.#]+)?(?:#([^[:.#]+))?(?:\.([^[:.]+))?(?:\[([^!&^*|$[:=]+)([!$^*|&]?=)?([^:\]]+)?\])?(?::([^(]+)(?:\(([^)]+)\))?)?/,
-        rNthNum     = /(?:(-?\d*)n)?(?:(%|-)(\d*))?/,
-        rNonDig     = /\D/,
-        rRepPrnth   = /[^(]*\(([^)]*)\)/,
-        rRepAftPrn  = /\(.*/,
-        rGetSquare  = /\[([^!~^*|$ [:=]+)([$^*|]?=)?([^ :\]]+)?\]/,
-
-        doc         = window.document,
-        bcn         = !!doc.getElementsByClassName,
-        qsa         = !!doc.querySelectorAll,
-
-        /*
-         function calls for CSS2/3 modificatos. Specification taken from
-         http://www.w3.org/TR/2005/WD-css3-selectors-20051215/
-         on success return negative result.
-         */
-        mods        = {
-            /* W3C: "an E element, first child of its parent" */
-            'first-child': function (child) {
-                /* implementation was taken from jQuery.1.2.6, line 1394 */
-                return child.parentNode.getElementsByTagName('*')[0] !== child;
-            },
-            /* W3C: "an E element, last child of its parent" */
-            'last-child': function (child) {
-                var brother = child;
-                /* loop in lastChilds while nodeType isn't element */
-                while ((brother = brother.nextSibling) && brother.nodeType !== 1) {}
-                /* Check for node's existence */
-                return !!brother;
-            },
-            /* W3C: "an E element, root of the document" */
-            root: function (child) {
-                return child.nodeName.toLowerCase() !== 'html';
-            },
-            /* W3C: "an E element, the n-th child of its parent" */
-            'nth-child': function (child, ind) {
-                var i = child.nodeIndex || 0,
-                    a = ind[3] = ind[3] ? (ind[2] === '%' ? -1 : 1) * ind[3] : 0,
-                    b = ind[1];
-                /* check if we have already looked into siblings, using exando - very bad */
-                if (i) {
-                    return !( (i + a) % b);
-                } else {
-                    /* in the other case just reverse logic for n and loop siblings */
-                    var brother = child.parentNode.firstChild;
-                    i++;
-                    /* looping in child to find if nth expression is correct */
-                    do {
-                        /* nodeIndex expando used from Peppy / Sizzle/ jQuery */
-                        if (brother.nodeType === 1 && (brother.nodeIndex = ++i) && child === brother && ((i + a) % b)) {
-                            return 0;
-                        }
-                    } while (brother = brother.nextSibling);
-                    return 1;
-                }
-            },
-            /*
-             W3C: "an E element, the n-th child of its parent,
-             counting from the last one"
-             */
-            'nth-last-child': function (child, ind) {
-                /* almost the same as the previous one */
-                var i = child.nodeIndexLast || 0,
-                    a = ind[3] ? (ind[2] === '%' ? -1 : 1) * ind[3] : 0,
-                    b = ind[1];
-                if (i) {
-                    return !( (i + a) % b);
-                } else {
-                    var brother = child.parentNode.lastChild;
-                    i++;
-                    do {
-                        if (brother.nodeType === 1 && (brother.nodeLastIndex = i++) && child === brother && ((i + a) % b)) {
-                            return 0;
-                        }
-                    } while (brother = brother.previousSibling);
-                    return 1;
-                }
-            },
-            /*
-             Rrom w3.org: "an E element that has no children (including text nodes)".
-             Thx to John, from Sizzle, 2008-12-05, line 416
-             */
-            empty: function (child) {
-                return !!child.firstChild;
-            },
-            /* thx to John, stolen from Sizzle, 2008-12-05, line 413 */
-            parent: function (child) {
-                return !child.firstChild;
-            },
-            /* W3C: "an E element, only child of its parent" */
-            'only-child': function (child) {
-                return child.parentNode.getElementsByTagName('*').length !== 1;
-            },
-            /*
-             W3C: "a user interface element E which is checked
-             (for instance a radio-button or checkbox)"
-             */
-            checked: function (child) {
-                return !child.checked;
-            },
-            /*
-             W3C: "an element of type E in language "fr"
-             (the document language specifies how language is determined)"
-             */
-            lang: function (child, ind) {
-                return child.lang !== ind && doc.documentElement.lang !== ind;
-            },
-            /* thx to John, from Sizzle, 2008-12-05, line 398 */
-            enabled: function (child) {
-                return child.disabled || child.type === 'hidden';
-            },
-            /* thx to John, from Sizzle, 2008-12-05, line 401 */
-            disabled: function (child) {
-                return !child.disabled;
-            },
-            /* thx to John, from Sizzle, 2008-12-05, line 407 */
-            selected: function(elem){
-                /*
-                 Accessing this property makes selected-by-default
-                 options in Safari work properly.
-                 */
-                var tmp = elem.parentNode.selectedIndex;
-                return !elem.selected;
-            }
-        },
-
-        attrRegCache = {},
-
-        getAttrReg  = function(value) {
-            return attrRegCache[value] || (attrRegCache[value] = new RegExp('(^| +)' + value + '($| +)'));
-        },
-
-        attrMods    = {
-            /* W3C "an E element with a "attr" attribute" */
-            '': function (child, name) {
-                return dom_getAttr(child, name) !== null;
-            },
-            /*
-             W3C "an E element whose "attr" attribute value is
-             exactly equal to "value"
-             */
-            '=': function (child, name, value) {
-                var attrValue;
-                return (attrValue = dom_getAttr(child, name)) && attrValue === value;
-            },
-            /*
-             from w3.prg "an E element whose "attr" attribute value is
-             a list of space-separated values, one of which is exactly
-             equal to "value"
-             */
-            '&=': function (child, name, value) {
-                var attrValue;
-                return (attrValue = dom_getAttr(child, name)) && getAttrReg(value).test(attrValue);
-            },
-            /*
-             from w3.prg "an E element whose "attr" attribute value
-             begins exactly with the string "value"
-             */
-            '^=': function (child, name, value) {
-                var attrValue;
-                return (attrValue = dom_getAttr(child, name) + '') && !attrValue.indexOf(value);
-            },
-            /*
-             W3C "an E element whose "attr" attribute value
-             ends exactly with the string "value"
-             */
-            '$=': function (child, name, value) {
-                var attrValue;
-                return (attrValue = dom_getAttr(child, name) + '') &&
-                       attrValue.indexOf(value) === attrValue.length - value.length;
-            },
-            /*
-             W3C "an E element whose "attr" attribute value
-             contains the substring "value"
-             */
-            '*=': function (child, name, value) {
-                var attrValue;
-                return (attrValue = dom_getAttr(child, name) + '') && attrValue.indexOf(value) !== -1;
-            },
-            /*
-             W3C "an E element whose "attr" attribute has
-             a hyphen-separated list of values beginning (from the
-             left) with "value"
-             */
-            '|=': function (child, name, value) {
-                var attrValue;
-                return (attrValue = dom_getAttr(child, name) + '') &&
-                       (attrValue === value || !!attrValue.indexOf(value + '-'));
-            },
-            /* attr doesn't contain given value */
-            '!=': function (child, name, value) {
-                var attrValue;
-                return !(attrValue = dom_getAttr(child, name)) || !getAttrReg(value).test(attrValue);
-            }
-        };
-
-
-    return function(selector, root, noNative) {
-
-        /* clean root with document */
-        root = root || doc;
-
-        /* sets of nodes, to handle comma-separated selectors */
-        var sets    = [],
-            qsaErr  = null,
-            idx, cls, nodes,
-            i, node, ind, mod,
-            attrs, attrName, eql, value;
-
-        if (qsa && root.querySelectorAll && !noNative) {
-            /* replace not quoted args with quoted one -- Safari doesn't understand either */
-            try {
-                sets = toArray(root.querySelectorAll(selector.replace(rQuote, '="$1"')));
-            }
-            catch (thrownError) {
-                error(thrownError);
-                qsaErr = true;
-            }
-        }
-
-        if (!qsa || qsaErr || noNative) {
-
-            /* quick return or generic call, missed ~ in attributes selector */
-            if (rGeneric.test(selector)) {
-
-                /*
-                 some simple cases - only ID or only CLASS for the very first occurence
-                 - don't need additional checks. Switch works as a hash.
-                 */
-                idx = 0;
-
-                /* the only call -- no cache, thx to GreLI */
-                switch (selector.charAt(0)) {
-
-                    case '#':
-                        idx = selector.slice(1);
-                        sets = doc.getElementById(idx);
-
-                        /*
-                         workaround with IE bug about returning element by name not by ID.
-                         Solution completely changed, thx to deerua.
-                         Get all matching elements with this id
-                         */
-                        if (sets.id !== idx) {
-                            sets = doc.all[idx];
-                        }
-
-                        sets = sets ? [sets] : [];
-                        break;
-
-                    case '.':
-
-                        cls = selector.slice(1);
-
-                        if (bcn) {
-
-                            sets = toArray((idx = (sets = root.getElementsByClassName(cls)).length) ? sets : []);
-
-                        } else {
-
-                            /* no RegExp, thx to DenVdmj */
-                            cls = ' ' + cls + ' ';
-
-                            nodes = root.getElementsByTagName('*');
-                            i = 0;
-
-                            while (node = nodes[i++]) {
-                                if ((' ' + node.className + ' ').indexOf(cls) !== -1) {
-                                    sets[idx++] = node;
-                                }
-
-                            }
-                            sets = idx ? sets : [];
-                        }
-                        break;
-
-                    case ':':
-
-                        nodes   = root.getElementsByTagName('*');
-                        i       = 0;
-                        ind     = selector.replace(rRepPrnth,"$1");
-                        mod     = selector.replace(rRepAftPrn,'');
-
-                        while (node = nodes[i++]) {
-                            if (mods[mod] && !mods[mod](node, ind)) {
-                                sets[idx++] = node;
-                            }
-                        }
-                        sets = idx ? sets : [];
-                        break;
-
-                    case '[':
-
-                        nodes   = root.getElementsByTagName('*');
-                        i       = 0;
-                        attrs   = rGetSquare.exec(selector);
-                        attrName    = attrs[1];
-                        eql     = attrs[2] || '';
-                        value   = attrs[3];
-
-                        while (node = nodes[i++]) {
-                            /* check either attr is defined for given node or it's equal to given value */
-                            if (attrMods[eql] && (attrMods[eql](node, attrName, value) ||
-                                                  (attrName === 'class' && attrMods[eql](node, 'className', value)))) {
-                                sets[idx++] = node;
-                            }
-                        }
-                        sets = idx ? sets : [];
-                        break;
-
-                    default:
-                        sets = toArray((idx = (sets = root.getElementsByTagName(selector)).length) ? sets : []);
-                        break;
-                }
-
-            } else {
-
-                /* number of groups to merge or not result arrays */
-                /*
-                 groups of selectors separated by commas.
-                 Split by RegExp, thx to tenshi.
-                 */
-                var groups  = selector.split(rGrpSplit),
-                    gl      = groups.length - 1, /* group counter */
-                    concat  = !!gl, /* if we need to concat several groups */
-                    group,
-                    singles,
-                    singles_length,
-                    single, /* to handle RegExp for single selector */
-                    ancestor, /* to remember ancestor call for next childs, default is " " */
-                /* for inner looping */
-                    tag, id, klass, newNodes, J, child, last, childs, item, h;
-
-                /* loop in groups, maybe the fastest way */
-                while (group = groups[gl--]) {
-
-                    /*
-                     Split selectors by space - to form single group tag-id-class,
-                     or to get heredity operator. Replace + in child modificators
-                     to % to avoid collisions. Additional replace is required for IE.
-                     Replace ~ in attributes to & to avoid collisions.
-                     */
-                    singles_length = (singles = group
-                        .replace(rRepPlus,"$1%")
-                        .replace(rRepTild,"$1&")
-                        .replace(rRepAll," $1 ").split(rSplitPlus)).length;
-
-                    i = 0;
-                    ancestor = ' ';
-                    /* is cleanded up with DOM root */
-                    if (root instanceof DocumentFragment) {
-                        nodes = root.children;
-                    }
-                    else {
-                        nodes = [root];
-                    }
-
-                    /*
-                     John's Resig fast replace works a bit slower than
-                     simple exec. Thx to GreLI for 'greed' RegExp
-                     */
-                    while (single = singles[i++]) {
-
-                        /* simple comparison is faster than hash */
-                        if (single !== ' ' && single !== '>' &&
-                            single !== '~' && single !== '+' && nodes) {
-
-                            single = single.match(rSingleMatch);
-
-                            /*
-                             Get all required matches from exec:
-                             tag, id, class, attribute, value, modificator, index.
-                             */
-                            tag     = single[1] || '*';
-                            id      = single[2];
-                            klass   = single[3] ? ' ' + single[3] + ' ' : '';
-                            attrName    = single[4];
-                            eql     = single[5] || '';
-                            mod     = single[7];
-
-                            /*
-                             for nth-childs modificator already transformed into array.
-                             Example used from Sizzle, rev. 2008-12-05, line 362.
-                             */
-                            ind = mod === 'nth-child' ||
-                                    mod === 'nth-last-child' ?
-                                  rNthNum.exec(
-                                      single[8] === 'even' && '2n' ||
-                                      single[8] === 'odd' && '2n%1' ||
-                                      !rNonDig.test(single[8]) && '0n%' + single[8] ||
-                                      single[8]
-                                  ) :
-                                  single[8];
-
-                            /* new nodes array */
-                            newNodes = [];
-
-                            /*
-                             cached length of new nodes array
-                             and length of root nodes
-                             */
-                            idx = J = 0;
-
-                            /* if we need to mark node with expando yeasss */
-                            last = i === singles_length;
-
-                            /* loop in all root nodes */
-                            while (child = nodes[J++]) {
-                                /*
-                                 find all TAGs or just return all possible neibours.
-                                 Find correct 'children' for given node. They can be
-                                 direct childs, neighbours or something else.
-                                 */
-                                switch (ancestor) {
-                                    case ' ':
-                                        if (child.getElementsByTagName) {
-                                            childs = child.getElementsByTagName(tag);
-                                            h = 0;
-                                            while (item = childs[h++]) {
-                                                /*
-                                                check them for ID or Class. Also check for expando 'yeasss'
-                                                to filter non-selected elements. Typeof 'string' not added -
-                                                if we get element with name="id" it won't be equal to given ID string.
-                                                Also check for given attributes selector.
-                                                Modificator is either not set in the selector, or just has been nulled
-                                                by modificator functions hash.
-                                                */
-                                                if ((!id || item.id === id) &&
-                                                    (!klass || (' ' + item.className + ' ').indexOf(klass) != -1) &&
-                                                    (!attrName || (attrMods[eql] &&
-                                                            (attrMods[eql](item, attrName, single[6]) ||
-                                                                (attrName === 'class' &&
-                                                                attrMods[eql](item, 'className', single[6]))))) &&
-                                                    !item.yeasss && !(mods[mod] ? mods[mod](item, ind) : mod)) {
-
-                                                    /*
-                                                    Need to define expando property to true for the last step.
-                                                    Then mark selected element with expando
-                                                    */
-                                                    if (last) {
-                                                        item.yeasss = 1;
-                                                    }
-                                                    newNodes[idx++] = item;
-                                                }
-                                            }
-                                        }
-                                        break;
-                                    /* W3C: "an F element preceded by an E element" */
-                                    case '~':
-
-                                        tag = tag.toLowerCase();
-
-                                        /* don't touch already selected elements */
-                                        while ((child = child.nextSibling) && !child.yeasss) {
-                                            if (child.nodeType === 1 &&
-                                                (tag === '*' || child.nodeName.toLowerCase() === tag) &&
-                                                (!id || child.id === id) &&
-                                                (!klass || (' ' + child.className + ' ').indexOf(klass) !== -1) &&
-                                                (!attrName || (attrMods[eql] &&
-                                                           (attrMods[eql](item, attrName, single[6]) ||
-                                                            (attrName === 'class' &&
-                                                             attrMods[eql](item, 'className', single[6]))))) &&
-                                                !child.yeasss &&
-                                                !(mods[mod] ? mods[mod](child, ind) : mod)) {
-
-                                                if (last) {
-                                                    child.yeasss = 1;
-                                                }
-                                                newNodes[idx++] = child;
-                                            }
-                                        }
-                                        break;
-
-                                    /* W3C: "an F element immediately preceded by an E element" */
-                                    case '+':
-                                        while ((child = child.nextSibling) && child.nodeType !== 1) {}
-                                        if (child &&
-                                            (child.nodeName.toLowerCase() === tag.toLowerCase() || tag === '*') &&
-                                            (!id || child.id === id) &&
-                                            (!klass || (' ' + item.className + ' ').indexOf(klass) !== -1) &&
-                                            (!attrName ||
-                                             (attrMods[eql] && (attrMods[eql](item, attrName, single[6]) ||
-                                                                (attrName === 'class' &&
-                                                                 attrMods[eql](item, 'className', single[6]))))) &&
-                                            !child.yeasss && !(mods[mod] ? mods[mod](child, ind) : mod)) {
-
-                                            if (last) {
-                                                child.yeasss = 1;
-                                            }
-                                            newNodes[idx++] = child;
-                                        }
-                                        break;
-
-                                    /* W3C: "an F element child of an E element" */
-                                    case '>':
-                                        if (child.getElementsByTagName) {
-                                            childs = child.getElementsByTagName(tag);
-                                            i = 0;
-                                            while (item = childs[i++]) {
-                                                if (item.parentNode === child &&
-                                                    (!id || item.id === id) &&
-                                                    (!klass || (' ' + item.className + ' ').indexOf(klass) != -1) &&
-                                                    (!attrName || (attrMods[eql] &&
-                                                            (attrMods[eql](item, attrName, single[6]) ||
-                                                                (attrName === 'class' &&
-                                                                attrMods[eql](item, 'className', single[6]))))) &&
-                                                    !item.yeasss &&
-                                                    !(mods[mod] ? mods[mod](item, ind) : mod)) {
-
-                                                    if (last) {
-                                                        item.yeasss = 1;
-                                                    }
-                                                    newNodes[idx++] = item;
-                                                }
-                                            }
-                                        }
-                                        break;
-                                }
-                            }
-
-                            /* put selected nodes in local nodes' set */
-                            nodes = newNodes;
-
-                        } else {
-
-                            /* switch ancestor ( , > , ~ , +) */
-                            ancestor = single;
-                        }
-                    }
-
-                    if (concat) {
-                        /* if sets isn't an array - create new one */
-                        if (!nodes.concat) {
-                            newNodes = [];
-                            h = 0;
-                            while (item = nodes[h]) {
-                                newNodes[h++] = item;
-                            }
-                            nodes = newNodes;
-                            /* concat is faster than simple looping */
-                        }
-                        sets = nodes.concat(sets.length === 1 ? sets[0] : sets);
-
-                    } else {
-
-                        /* inialize sets with nodes */
-                        sets = nodes;
-                    }
-                }
-
-                /* define sets length to clean up expando */
-                idx = sets.length;
-
-                /*
-                 Need this looping as far as we also have expando 'yeasss'
-                 that must be nulled. Need this only to generic case
-                 */
-                while (idx--) {
-                    sets[idx].yeasss = sets[idx].nodeIndex = sets[idx].nodeIndexLast = null;
-                }
-            }
-        }
-
-        /* return and cache results */
-        return sets;
-    };
-}();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-var lib_Input = MetaphorJs.lib.Input = function(){
-
-var Input = function(el, changeFn, changeFnContext, cfg) {
-
-    if (el.$$input) {
-        if (changeFn) {
-            el.$$input.on("change", changeFn, changeFnContext);
-        }
-        return el.$$input;
-    }
-
-    var self    = this;
-
-    cfg = cfg || {};
-
-    self.observable     = new lib_Observable;
-    self.el             = el;
-    self.inputType      = el.type.toLowerCase();
-    self.dataType       = cfg.type || dom_getAttr(el, "data-type") || self.inputType;
-    self.listeners      = [];
-
-    if (changeFn) {
-        self.onChange(changeFn, changeFnContext);
-    }
-};
-
-extend(Input.prototype, {
-
-    el: null,
-    inputType: null,
-    dataType: null,
-    listeners: null,
-    radio: null,
-    keydownDelegate: null,
-    changeInitialized: false,
-
-    $destroy: function() {
-
-        var self        = this,
-            i;
-
-        self.observable.$destroy();
-        self._addOrRemoveListeners(dom_removeListener, true);
-
-        self.el.$$input = null;
-
-        for (i in self) {
-            if (self.hasOwnProperty(i)) {
-                self[i] = null;
-            }
-        }
-    },
-
-    _addOrRemoveListeners: function(fn, onlyUsed) {
-
-        var self        = this,
-            type        = self.inputType,
-            listeners   = self.listeners,
-            radio       = self.radio,
-            el          = self.el,
-            used,
-            i, ilen,
-            j, jlen;
-
-        for (i = 0, ilen = listeners.length; i < ilen; i++) {
-
-            used = !!listeners[i][2];
-
-            if (used === onlyUsed) {
-                if (type === "radio") {
-                    for (j = 0, jlen = radio.length; j < jlen; j++) {
-                        fn(radio[j], listeners[i][0], listeners[i][1]);
-                    }
-                }
-                else {
-                    fn(el, listeners[i][0], listeners[i][1]);
-                }
-                listeners[i][2] = !onlyUsed;
-            }
-        }
-    },
-
-    initInputChange: function() {
-
-        var self = this,
-            type = self.inputType;
-
-        if (type === "radio") {
-            self.initRadioInput();
-        }
-        else if (type === "checkbox") {
-            self.initCheckboxInput();
-        }
-        else {
-            self.initTextInput();
-        }
-
-        self._addOrRemoveListeners(dom_addListener, false);
-
-        self.changeInitialized = true;
-    },
-
-    initRadioInput: function() {
-
-        var self    = this,
-            el      = self.el,
-            name    = el.name,
-            parent;
-
-        if (isAttached(el)) {
-            parent  = el.ownerDocument;
-        }
-        else {
-            parent = el;
-            while (parent.parentNode) {
-                parent = parent.parentNode;
-            }
-        }
-
-        self.radio  = select("input[name="+name+"]", parent);
-
-        self.onRadioInputChangeDelegate = bind(self.onRadioInputChange, self);
-        self.listeners.push(["click", self.onRadioInputChangeDelegate, false]);
-    },
-
-    initCheckboxInput: function() {
-
-        var self    = this;
-
-        self.clicked = false;
-
-        self.onCheckboxInputChangeDelegate = bind(self.onCheckboxInputChange, self);
-        self.onCheckboxInputClickDelegate = bind(self.onCheckboxInputClick, self);
-        self.listeners.push(["click", self.onCheckboxInputClickDelegate, false]);
-        self.listeners.push(["change", self.onCheckboxInputChangeDelegate, false]);
-    },
-
-    initTextInput: function() {
-
-        var composing   = false,
-            self        = this,
-            listeners   = self.listeners,
-            timeout;
-
-        // In composition mode, users are still inputing intermediate text buffer,
-        // hold the listener until composition is done.
-        // More about composition events:
-        // https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent
-        if (!browser_isAndroid()) {
-
-            var compositionStart    = function() {
-                composing = true;
-            };
-
-            var compositionEnd  = function() {
-                composing = false;
-                listener();
-            };
-
-            listeners.push(["compositionstart", compositionStart, false]);
-            listeners.push(["compositionend", compositionEnd, false]);
-        }
-
-        var listener = self.onTextInputChangeDelegate = function(ev) {
-            if (composing) {
-                return;
-            }
-            self.onTextInputChange(ev);
-        };
-
-        var deferListener = function(ev) {
-            if (!timeout) {
-                timeout = setTimeout(function() {
-                    listener(ev);
-                    timeout = null;
-                }, 0);
-            }
-        };
-
-        var keydown = function(event) {
-            event = event || window.event;
-            var key = event.keyCode;
-
-            // ignore
-            //    command            modifiers                   arrows
-            if (key === 91 || (15 < key && key < 19) || (37 <= key && key <= 40)) {
-                return;
-            }
-
-            deferListener(event);
-        };
-
-        // if the browser does support "input" event, we are fine - except on
-        // IE9 which doesn't fire the
-        // input event on backspace, delete or cut
-        if (browser_hasEvent('input')) {
-
-            listeners.push(["input", listener, false]);
-
-        } else {
-
-            listeners.push(["keydown", keydown, false]);
-
-            // if user modifies input value using context menu in IE,
-            // we need "paste" and "cut" events to catch it
-            if (browser_hasEvent('paste')) {
-                listeners.push(["paste", deferListener, false]);
-                listeners.push(["cut", deferListener, false]);
-            }
-        }
-
-
-        // if user paste into input using mouse on older browser
-        // or form autocomplete on newer browser, we need "change" event to catch it
-
-        listeners.push(["change", listener, false]);
-    },
-
-    processValue: function(val) {
-
-        switch (this.dataType) {
-            case "number":
-            case "float":
-            case "double":
-                if (val === "" || isNaN(val = parseFloat(val))) {
-                    val = undf;
-                }
-                break;
-            case "int":
-            case "integer":
-                if (val === "" || isNaN(val = parseInt(val, 10))) {
-                    val = undf;
-                }
-                break;
-            case "bool":
-            case "boolean":
-                return !(val === "false" || val === "0" || val === 0 ||
-                        val === "off" || val === false || val === "");
-
-        }
-
-        return val;
-    },
-
-    onTextInputChange: function(ev) {
-
-        var self    = this,
-            val     = self.getValue();
-
-        self.observable.trigger("change", self.processValue(val));
-    },
-
-
-    _checkboxChange: function() {
-        var self    = this,
-            node    = self.el;
-
-        self.observable.trigger("change", self.processValue(
-            node.checked ? (dom_getAttr(node, "value") || true) : false)
-        );
-    },
-
-    onCheckboxInputChange: function() {
-        if (!this.clicked) {
-            this._checkboxChange();
-        }
-        this.clicked = false;
-    },
-
-    onCheckboxInputClick: function() {
-        this._checkboxChange();
-        this.clicked = true;
-    },
-
-    onRadioInputChange: function(e) {
-
-        e = e || window.event;
-
-        var self    = this,
-            trg     = e.target || e.srcElement;
-
-        self.observable.trigger("change", self.processValue(trg.value));
-    },
-
-    setValue: function(val) {
-
-        var self    = this,
-            type    = self.inputType,
-            radio,
-            i, len;
-
-        val = self.processValue(val);
-
-        if (type === "radio") {
-
-            radio = self.radio;
-
-            for (i = 0, len = radio.length; i < len; i++) {
-                radio[i].checked = self.processValue(radio[i].value) == val;
-            }
-        }
-        else if (type === "checkbox") {
-            var node        = self.el;
-            node.checked    = val === true || val == self.processValue(node.value);
-        }
-        else {
-
-            if (val === undf) {
-                val = "";
-            }
-
-            dom_setInputValue(self.el, val);
-        }
-
-        self.triggerChange();
-    },
-
-    getValue: function() {
-
-        var self    = this,
-            type    = self.inputType,
-            radio,
-            i, l;
-
-        if (type === "radio") {
-            radio = self.radio;
-            for (i = 0, l = radio.length; i < l; i++) {
-                if (radio[i].checked) {
-                    return self.processValue(radio[i].value);
-                }
-            }
-            return null;
-        }
-        else if (type === "checkbox") {
-            return self.processValue(self.el.checked ? (dom_getAttr(self.el, "value") || true) : false);
-        }
-        else {
-            return self.processValue(dom_getInputValue(self.el));
-        }
-    },
-
-
-    onChange: function(fn, context) {
-        var self = this;
-        if (!self.changeInitialized) {
-            self.initInputChange();
-        }
-        this.observable.on("change", fn, context);
-    },
-
-    unChange: function(fn, context) {
-        this.observable.un("change", fn, context);
-    },
-
-
-    onKey: function(key, fn, context, args) {
-
-        var self = this;
-
-        if (!self.keydownDelegate) {
-            self.keydownDelegate = bind(self.keyHandler, self);
-            self.listeners.push(["keydown", self.keydownDelegate, false]);
-            dom_addListener(self.el, "keydown", self.keydownDelegate);
-            self.observable.createEvent("key", {
-                returnResult: false,
-                triggerFilter: self.keyEventFilter
-            });
-        }
-
-        self.observable.on("key", fn, context, {
-            key: key,
-            prepend: args
-        });
-    },
-
-    unKey: function(key, fn, context) {
-
-        var self    = this;
-        self.observable.un("key", fn, context);
-    },
-
-    keyEventFilter: function(l, args) {
-
-        var key = l.key,
-            e = args[0];
-
-        if (typeof key !== "object") {
-            return key === e.keyCode;
-        }
-        else {
-            if (key.ctrlKey !== undf && key.ctrlKey !== e.ctrlKey) {
-                return false;
-            }
-            if (key.shiftKey !== undf && key.shiftKey !== e.shiftKey) {
-                return false;
-            }
-            return !(key.keyCode !== undf && key.keyCode !== e.keyCode);
-        }
-    },
-
-    keyHandler: function(event) {
-
-        var e       = dom_normalizeEvent(event || window.event),
-            self    = this;
-
-        self.observable.trigger("key", e);
-    },
-
-    triggerChange: function() {
-        if ("createEvent" in document) {
-            var evt = document.createEvent("HTMLEvents");
-            evt.initEvent("change", false, true);
-            this.el.dispatchEvent(evt);
-        }
-        else {
-            this.el.fireEvent("onchange");
-        }
-    }
-
-
-}, true, false);
-
-
-Input.get = function(node, scope) {
-    if (node.$$input) {
-        return node.$$input;
-    }
-    if (scope && !node.type) {
-        var cmp = scope.$app.getParentCmp(node, true);
-        if (cmp && cmp.getInputInterface) {
-            return cmp.getInputInterface();
-        }
-    }
-    return new Input(node);
-};
-
-Input.getValue = dom_getInputValue;
-Input.setValue = dom_setInputValue;
-
-
-
-return Input;
-
-}();
-
-
-
-
-
-
-
-
-Directive.registerAttribute("bind", 1000, 
-    Directive.$extend({
-        $class: "MetaphorJs.app.Directive.attr.Bind",
-        isInput: false,
-        input: null,
-        textRenderer: null,
-        observers: null,
-
-        $init: function(scope, node, config, renderer) {
-
-            var self    = this;
-
-            config.setType("recursive", "bool");
-            config.setType("once", "bool", lib_Config.MODE_STATIC);
-
-            self.scope      = scope;
-            self.node       = node;
-            self.config     = config;
-            self.isInput    = dom_isField(node);
-
-            if (self.isInput) {
-                self.input = lib_Input.get(node);
-                self.input.onChange(self.onInputChange, self);
-            }
-
-            config.setType("locked", "bool");
-
-            if (config.get("recursive")) {
-                config.disableProperty("value");
-                config.disableProperty("recursive");
-                self.textRenderer = new lib_Text(
-                    scope, 
-                    config.getExpression("value"), 
-                    {
-                        recursive: true, 
-                        fullExpr: true,
-                        once: config.get("once")
-                    }
-                );
-                self.textRenderer.subscribe(self.onTextRendererChange, self);
-                self.onTextRendererChange();
-
-                if (scope instanceof lib_Scope) {
-                    scope.$on("destroy", self.onScopeDestroy, self);
-                }
-            }
-            else {
-                self.$super(scope, node, config);
-            }
-        },
-
-        onInputChange: function(val) {
-            var self = this,
-                cfgVal = self.config.get("value");
-            if (self.config.get("locked") && val != cfgVal) {
-                self.onChange(cfgVal);
-            }
-        },
-
-        onTextRendererChange: function() {
-            this.onChange(this.textRenderer.getString());
-        },
-
-        onChange: function(text) {
-            this.updateElement(text);
-        },
-
-        updateElement: function(val) {
-
-            var self = this;
-
-            if (self.isInput) {
-                self.input.setValue(val);
-            }
-            else {
-                self.node[typeof self.node.textContent === "string" ? "textContent" : "innerText"] = val;
-            }
-        },
-
-        onDestroy: function() {
-
-            var self    = this;
-
-            if (self.textRenderer) {
-                self.textRenderer.$destroy();
-                self.textRenderer = null;
-            }
-
-            if (self.input) {
-                self.input.$destroy();
-                self.input = null;
-            }
-
-            self.$super();
-        }
-    }));
-
-
-
-
-Directive.registerAttribute("bind-html", 1000, 
-    Directive.attr.Bind.$extend({
-        $class: "MetaphorJs.app.Directive.attr.BindHtml",
-        updateElement: function(val) {
-            this.node.innerHTML = val;
-        }
-    }));
-
-
-
-MetaphorJs.animate = MetaphorJs.animate || {};
-
-
-
-
-
-var animate_getPrefixes = MetaphorJs.animate.getPrefixes = function(){
-
-    var domPrefixes         = ['Moz', 'Webkit', 'ms', 'O', 'Khtml'],
-        animationDelay      = "animationDelay",
-        animationDuration   = "animationDuration",
-        transitionDelay     = "transitionDelay",
-        transitionDuration  = "transitionDuration",
-        transform           = "transform",
-        transitionend       = null,
-        prefixes            = null,
-
-        probed              = false,
-
-        detectCssPrefixes   = function() {
-
-            var el = window.document.createElement("div"),
-                animation = false,
-                pfx,
-                i, len;
-
-            if (el.style['animationName'] !== undf) {
-                animation = true;
-            }
-            else {
-                for(i = 0, len = domPrefixes.length; i < len; i++) {
-                    pfx = domPrefixes[i];
-                    if (el.style[ pfx + 'AnimationName' ] !== undf) {
-                        animation           = true;
-                        animationDelay      = pfx + "AnimationDelay";
-                        animationDuration   = pfx + "AnimationDuration";
-                        transitionDelay     = pfx + "TransitionDelay";
-                        transitionDuration  = pfx + "TransitionDuration";
-                        transform           = pfx + "Transform";
-                        break;
-                    }
-                }
-            }
-
-            if (animation) {
-                if('ontransitionend' in window) {
-                    // Chrome/Saf (+ Mobile Saf)/Android
-                    transitionend = 'transitionend';
-                }
-                else if('onwebkittransitionend' in window) {
-                    // Chrome/Saf (+ Mobile Saf)/Android
-                    transitionend = 'webkitTransitionEnd';
-                }
-            }
-
-            return animation;
-        };
-
-
-    /**
-     * Get css prefixes used in current browser
-     * @function MetaphorJs.animate.getPrefixes
-     * @returns {object} {
-     *  @type {string} animationDelay
-     *  @type {string} animationDuration
-     *  @type {string} transitionDelay
-     *  @type {string} transitionDuration
-     *  @type {string} transform
-     *  @type {string} transitionend
-     * }
-     */
-    return function() {
-
-        if (!probed) {
-            if (detectCssPrefixes()) {
-                prefixes = {
-                    animationDelay: animationDelay,
-                    animationDuration: animationDuration,
-                    transitionDelay: transitionDelay,
-                    transitionDuration: transitionDuration,
-                    transform: transform,
-                    transitionend: transitionend
-                };
-            }
-            else {
-                prefixes = {};
-            }
-
-            probed = true;
-        }
-
-
-        return prefixes;
-    };
-}();
-
-
-
-
-
-
-var animate_getDuration = MetaphorJs.animate.getDuration = function(){
-
-    var parseTime       = function(str) {
-            if (!str) {
-                return 0;
-            }
-            var time = parseFloat(str);
-            if (str.indexOf("ms") === -1) {
-                time *= 1000;
-            }
-            return time;
-        },
-
-        getMaxTimeFromPair = function(max, dur, delay) {
-
-            var i, sum, len = dur.length;
-
-            for (i = 0; i < len; i++) {
-                sum = parseTime(dur[i]) + parseTime(delay[i]);
-                max = Math.max(sum, max);
-            }
-
-            return max;
-        },
-
-        pfx                 = false,
-        animationDuration   = null,
-        animationDelay      = null,
-        transitionDuration  = null,
-        transitionDelay     = null;
-
-
-    /**
-     * Get duration in milliseconds from html 
-     * element based on current computed style
-     * @function MetaphorJs.animate.getDuration
-     * @param {Element} el
-     * @returns {number}
-     */
-    return function(el) {
-
-        if (pfx === false) {
-            pfx = animate_getPrefixes();
-            animationDuration = pfx ? pfx.animationDuration : null;
-            animationDelay = pfx ? pfx.animationDelay : null;
-            transitionDuration = pfx ? pfx.transitionDuration : null;
-            transitionDelay = pfx ? pfx.transitionDelay : null;
-        }
-
-        if (!pfx) {
-            return 0;
-        }
-
-        var style       = window.getComputedStyle ? window.getComputedStyle(el, null) : el.style,
-            duration    = 0,
-            animDur     = (style[animationDuration] || '').split(','),
-            animDelay   = (style[animationDelay] || '').split(','),
-            transDur    = (style[transitionDuration] || '').split(','),
-            transDelay  = (style[transitionDelay] || '').split(',');
-
-        duration    = Math.max(duration, getMaxTimeFromPair(duration, animDur, animDelay));
-        duration    = Math.max(duration, getMaxTimeFromPair(duration, transDur, transDelay));
-
-        return duration;
-    };
-
-}();
-
-
-
-
-
-
-
-
-/**
- * Is css animation supported in current browser
- * @function MetaphorJs.animate.isCssSupported
- * @returns {bool}
- */
-var animate_isCssSupported = MetaphorJs.animate.isCssSupported = (function(){
-
-    var cssAnimations = null;
-
-    return function() {
-        if (cssAnimations === null) {
-            cssAnimations   = !!animate_getPrefixes();
-        }
-        return cssAnimations;
-    };
-}());
-
-
-
-/**
- * Checks if given value is a thenable (a Promise)
- * @function isThenable
- * @param {*} any
- * @returns {boolean|function}
- */
-function isThenable(any) {
-
-    // any.then must only be accessed once
-    // this is a promise/a+ requirement
-
-    if (!any) { //  || !any.then
-        return false;
-    }
-    
-    var t;
-
-    //if (!any || (!isObject(any) && !isFunction(any))) {
-    if (((t = typeof any) != "object" && t != "function")) {
-        return false;
-    }
-
-    var then = any.then;
-
-    return isFunction(then) ? then : false;
-};
-
-
-
-
-var lib_Promise = MetaphorJs.lib.Promise = function(){
-
-    var PENDING     = 0,
-        FULFILLED   = 1,
-        REJECTED    = 2,
-
-        queue       = [],
-        qRunning    = false,
-
-        nextTick    = typeof process !== strUndef ?
-                        process.nextTick :
-                        function(fn) {
-                            setTimeout(fn, 0);
-                        },
-
-        // synchronous queue of asynchronous functions:
-        // callbacks must be called in "platform stack"
-        // which means setTimeout/nextTick;
-        // also, they must be called in a strict order.
-        nextInQueue = function() {
-            qRunning    = true;
-            var next    = queue.shift();
-            nextTick(function(){
-                next[0].apply(next[1], next[2]);
-                if (queue.length) {
-                    nextInQueue();
-                }
-                else {
-                    qRunning = false;
-                }
-            }, 0);
-        },
-
-        /**
-         * add to execution queue
-         * @function
-         * @param {Function} fn
-         * @param {Object} scope
-         * @param {[]} args
-         * @ignore
-         */
-        next        = function(fn, scope, args) {
-            args = args || [];
-            queue.push([fn, scope, args]);
-            if (!qRunning) {
-                nextInQueue();
-            }
-        },
-
-        /**
-         * returns function which receives value from previous promise
-         * and tries to resolve next promise with new value returned from given function(prev value)
-         * or reject on error.
-         * promise1.then(success, failure) -> promise2
-         * wrapper(success, promise2) -> fn
-         * fn(promise1 resolve value) -> new value
-         * promise2.resolve(new value)
-         *
-         * @function
-         * @param {Function} fn
-         * @param {Promise} promise
-         * @returns {Function}
-         * @ignore
-         */
-        resolveWrapper     = function(fn, promise) {
-            return function(value) {
-                try {
-                    promise.resolve(fn(value));
-                }
-                catch (thrownError) {
-                    promise.reject(thrownError);
-                }
-            };
-        };
-
-
-    /**
-     * @class MetaphorJs.lib.Promise
-     */
-
-    /**
-     * @constructor 
-     * @method Promise
-     * @param {Function} fn {
-     *  @description Constructor accepts two parameters: resolve and reject functions.
-     *  @param {function} resolve {
-     *      @param {*} value
-     *  }
-     *  @param {function} reject {
-     *      @param {*} reason
-     *  }
-     * }
-     * @param {Object} context
-     * @returns {Promise}
-     */
-
-    /**
-     * @constructor 
-     * @method Promise 
-     * @param {Thenable} thenable
-     * @returns {Promise}
-     */
-
-    /**
-     * @constructor 
-     * @method Promise 
-     * @param {*} value Value to resolve promise with
-     * @returns {Promise}
-     */
-
-    /**
-     * @constructor 
-     * @method Promise 
-     * @returns {Promise}
-     */
-    var Promise = function(fn, context) {
-
-        if (fn instanceof Promise) {
-            return fn;
-        }
-
-        if (!(this instanceof Promise)) {
-            return new Promise(fn, context);
-        }
-
-        var self = this,
-            then;
-
-        self._fulfills   = [];
-        self._rejects    = [];
-        self._dones      = [];
-        self._fails      = [];
-
-        if (arguments.length > 0) {
-
-            if (then = isThenable(fn)) {
-                if (fn instanceof Promise) {
-                    fn.then(
-                        bind(self.resolve, self),
-                        bind(self.reject, self));
-                }
-                else {
-                    (new Promise(then, fn)).then(
-                        bind(self.resolve, self),
-                        bind(self.reject, self));
-                }
-            }
-            else if (isFunction(fn)) {
-                try {
-                    fn.call(context,
-                            bind(self.resolve, self),
-                            bind(self.reject, self));
-                }
-                catch (thrownError) {
-                    self.reject(thrownError);
-                }
-            }
-            else {
-                self.resolve(fn);
-            }
-        }
-    };
-
-    extend(Promise.prototype, {
-
-        _state: PENDING,
-
-        _fulfills: null,
-        _rejects: null,
-        _dones: null,
-        _fails: null,
-
-        _wait: 0,
-
-        _value: null,
-        _reason: null,
-
-        _triggered: false,
-
-        /**
-         * Is promise still pending (as opposed to resolved or rejected)
-         * @method
-         * @returns {boolean}
-         */
-        isPending: function() {
-            return this._state === PENDING;
-        },
-
-        /**
-         * Is the promise fulfilled. Same as isResolved()
-         * @method
-         * @returns {boolean}
-         */
-        isFulfilled: function() {
-            return this._state === FULFILLED;
-        },
-
-        /**
-         * Is the promise resolved. Same as isFulfilled()
-         * @method
-         * @returns {boolean}
-         */
-        isResolved: function() {
-            return this._state === FULFILLED;
-        },
-
-        /**
-         * Is the promise rejected
-         * @method
-         * @returns {boolean}
-         */
-        isRejected: function() {
-            return this._state === REJECTED;
-        },
-
-        /**
-         * Did someone subscribed to this promise
-         * @method
-         * @returns {boolean}
-         */
-        hasListeners: function() {
-            var self = this,
-                ls  = [self._fulfills, self._rejects, self._dones, self._fails],
-                i, l;
-
-            for (i = 0, l = ls.length; i < l; i++) {
-                if (ls[i] && ls[i].length) {
-                    return true;
-                }
-            }
-
-            return false;
-        },
-
-        _cleanup: function() {
-            var self    = this;
-
-            self._fulfills = null;
-            self._rejects = null;
-            self._dones = null;
-            self._fails = null;
-        },
-
-        _processValue: function(value, cb, allowThenanle) {
-
-            var self    = this,
-                then;
-
-            if (self._state !== PENDING) {
-                return;
-            }
-
-            if (value === self) {
-                self._doReject(new TypeError("cannot resolve promise with itself"));
-                return;
-            }
-
-            if (allowThenanle) {
-                try {
-                    if (then = isThenable(value)) {
-                        if (value instanceof Promise) {
-                            value.then(
-                                bind(self._processResolveValue, self),
-                                bind(self._processRejectReason, self)
-                            );
-                        }
-                        else {
-                            (new Promise(then, value)).then(
-                                bind(self._processResolveValue, self),
-                                bind(self._processRejectReason, self)
-                            );
-                        }
-                        return;
-                    }
-                }
-                catch (thrownError) {
-                    if (self._state === PENDING) {
-                        self._doReject(thrownError);
-                    }
-                    return;
-                }
-            }
-
-            cb.call(self, value);
-        },
-
-
-        _callResolveHandlers: function() {
-
-            var self    = this;
-
-            self._done();
-
-            var cbs  = self._fulfills,
-                cb;
-
-            while (cb = cbs.shift()) {
-                next(cb[0], cb[1], [self._value]);
-            }
-
-            self._cleanup();
-        },
-
-
-        _doResolve: function(value) {
-            var self    = this;
-
-            self._value = value;
-            self._state = FULFILLED;
-
-            if (self._wait === 0) {
-                self._callResolveHandlers();
-            }
-        },
-
-        _processResolveValue: function(value) {
-            this._processValue(value, this._doResolve, true);
-        },
-
-        /**
-         * Resolve the promise
-         * @method
-         * @param {*} value
-         */
-        resolve: function(value) {
-
-            var self    = this;
-
-            if (self._triggered) {
-                return self;
-            }
-
-            self._triggered = true;
-            self._processResolveValue(value);
-
-            return self;
-        },
-
-
-        _callRejectHandlers: function() {
-
-            var self    = this;
-
-            self._fail();
-
-            var cbs  = self._rejects,
-                cb;
-
-            while (cb = cbs.shift()) {
-                next(cb[0], cb[1], [self._reason]);
-            }
-
-            self._cleanup();
-        },
-
-        _doReject: function(reason) {
-
-            var self        = this;
-
-            self._state     = REJECTED;
-            self._reason    = reason;
-
-            if (self._wait === 0) {
-                self._callRejectHandlers();
-            }
-        },
-
-
-        _processRejectReason: function(reason) {
-            this._processValue(reason, this._doReject, false);
-        },
-
-        /**
-         * Reject the promise
-         * @method
-         * @param {*} reason
-         */
-        reject: function(reason) {
-
-            var self    = this;
-
-            if (self._triggered) {
-                return self;
-            }
-
-            self._triggered = true;
-
-            self._processRejectReason(reason);
-
-            return self;
-        },
-
-        /**
-         * @method
-         * @async
-         * @param {Function} resolve -- called when this promise is resolved; 
-         *  returns new resolve value or promise
-         * @param {Function} reject -- called when this promise is rejected; 
-         *  returns new reject reason
-         * @param {object} context -- resolve's and reject's functions "this" object
-         * @returns {Promise} new promise
-         */
-        then: function(resolve, reject, context) {
-
-            var self            = this,
-                promise         = new Promise,
-                state           = self._state;
-
-            if (context) {
-                if (resolve) {
-                    resolve = bind(resolve, context);
-                }
-                if (reject) {
-                    reject = bind(reject, context);
-                }
-            }
-
-            if (state === PENDING || self._wait !== 0) {
-
-                if (resolve && isFunction(resolve)) {
-                    self._fulfills.push([resolveWrapper(resolve, promise), null]);
-                }
-                else {
-                    self._fulfills.push([promise.resolve, promise])
-                }
-
-                if (reject && isFunction(reject)) {
-                    self._rejects.push([resolveWrapper(reject, promise), null]);
-                }
-                else {
-                    self._rejects.push([promise.reject, promise]);
-                }
-            }
-            else if (state === FULFILLED) {
-
-                if (resolve && isFunction(resolve)) {
-                    next(resolveWrapper(resolve, promise), null, [self._value]);
-                }
-                else {
-                    promise.resolve(self._value);
-                }
-            }
-            else if (state === REJECTED) {
-                if (reject && isFunction(reject)) {
-                    next(resolveWrapper(reject, promise), null, [self._reason]);
-                }
-                else {
-                    promise.reject(self._reason);
-                }
-            }
-
-            return promise;
-        },
-
-        /**
-         * Add reject listener.
-         * @method
-         * @async
-         * @param {Function} reject -- same as then(null, reject)
-         * @returns {Promise} new promise
-         */
-        "catch": function(reject) {
-            return this.then(null, reject);
-        },
-
-        _done: function() {
-
-            var self    = this,
-                cbs     = self._dones,
-                cb;
-
-            while (cb = cbs.shift()) {
-                try {
-                    cb[0].call(cb[1] || null, self._value);
-                }
-                catch (thrown) {
-                    error(thrown);
-                }
-            }
-        },
-
-        /**
-         * Add resolve listener
-         * @method
-         * @sync
-         * @param {Function} fn -- function to call when promise is resolved
-         * @param {Object} context -- function's "this" object
-         * @returns {Promise} same promise
-         */
-        done: function(fn, context) {
-            var self    = this,
-                state   = self._state;
-
-            if (state === FULFILLED && self._wait === 0) {
-                try {
-                    fn.call(context || null, self._value);
-                }
-                catch (thrown) {
-                    error(thrown);
-                }
-            }
-            else if (state === PENDING) {
-                self._dones.push([fn, context]);
-            }
-
-            return self;
-        },
-
-        _fail: function() {
-
-            var self    = this,
-                cbs     = self._fails,
-                cb;
-
-            while (cb = cbs.shift()) {
-                try {
-                    cb[0].call(cb[1] || null, self._reason);
-                }
-                catch (thrown) {
-                    error(thrown);
-                }
-            }
-        },
-
-        /**
-         * Add reject listener
-         * @method
-         * @sync
-         * @param {Function} fn -- function to call when promise is rejected.
-         * @param {Object} context -- function's "this" object
-         * @returns {Promise} same promise
-         */
-        fail: function(fn, context) {
-
-            var self    = this,
-                state   = self._state;
-
-            if (state === REJECTED && self._wait === 0) {
-                try {
-                    fn.call(context || null, self._reason);
-                }
-                catch (thrown) {
-                    error(thrown);
-                }
-            }
-            else if (state === PENDING) {
-                self._fails.push([fn, context]);
-            }
-
-            return self;
-        },
-
-        /**
-         * Add both resolve and reject listener
-         * @method
-         * @sync
-         * @param {Function} fn -- function to call when promise resolved or rejected
-         * @param {Object} context -- function's "this" object
-         * @return {Promise} same promise
-         */
-        always: function(fn, context) {
-            this.done(fn, context);
-            this.fail(fn, context);
-            return this;
-        },
-
-        /**
-         * Get a thenable object
-         * @method
-         * @returns {object} then: function, done: function, fail: function, always: function
-         */
-        promise: function() {
-            var self = this;
-            return {
-                then: bind(self.then, self),
-                done: bind(self.done, self),
-                fail: bind(self.fail, self),
-                always: bind(self.always, self),
-                "catch": bind(self['catch'], self)
-            };
-        },
-
-        /**
-         * Resolve this promise after <code>value</code> promise is resolved.
-         * @method
-         * @param {*|Promise} value
-         * @returns {Promise} self
-         */
-        after: function(value) {
-
-            var self = this;
-
-            if (isThenable(value)) {
-
-                self._wait++;
-
-                var done = function() {
-                    self._wait--;
-                    if (self._wait === 0 && self._state !== PENDING) {
-                        self._state === FULFILLED ?
-                            self._callResolveHandlers() :
-                            self._callRejectHandlers();
-                    }
-                };
-
-                if (isFunction(value.done)) {
-                    value.done(done);
-                }
-                else {
-                    value.then(done);
-                }
-            }
-
-            return self;
-        }
-    }, true, false);
-
-
-    /**
-     * Call function <code>fn</code> with given args in given context
-     * and use its return value as resolve value for a new promise.
-     * Then return this promise.
-     * @static
-     * @method
-     * @param {function} fn
-     * @param {object} context
-     * @param {[]} args
-     * @returns {Promise}
-     */
-    Promise.fcall = function(fn, context, args) {
-        return Promise.resolve(fn.apply(context, args || []));
-    };
-
-    /**
-     * Create new promise and resolve it with given value
-     * @static
-     * @method
-     * @param {*} value
-     * @returns {Promise}
-     */
-    Promise.resolve = function(value) {
-        var p = new Promise;
-        p.resolve(value);
-        return p;
-    };
-
-
-    /**
-     * Create new promise and reject it with given reason
-     * @static
-     * @method
-     * @param {*} reason
-     * @returns {Promise}
-     */
-    Promise.reject = function(reason) {
-        var p = new Promise;
-        p.reject(reason);
-        return p;
-    };
-
-
-    /**
-     * Take a list of promises or values and once all promises are resolved,
-     * create a new promise and resolve it with a list of final values.<br>
-     * If one of the promises is rejected, it will reject the returned promise.
-     * @static
-     * @method
-     * @param {[]} promises -- array of promises or resolve values
-     * @returns {Promise}
-     */
-    Promise.all = function(promises) {
-
-        if (!promises.length) {
-            return Promise.resolve(null);
-        }
-
-        var p       = new Promise,
-            len     = promises.length,
-            values  = new Array(len),
-            cnt     = len,
-            i,
-            item,
-            done    = function(value, inx) {
-                values[inx] = value;
-                cnt--;
-
-                if (cnt === 0) {
-                    p.resolve(values);
-                }
-            };
-
-        for (i = 0; i < len; i++) {
-
-            (function(inx){
-                item = promises[i];
-
-                if (item instanceof Promise) {
-                    item.done(function(value){
-                        done(value, inx);
-                    })
-                        .fail(p.reject, p);
-                }
-                else if (isThenable(item) || isFunction(item)) {
-                    (new Promise(item))
-                        .done(function(value){
-                            done(value, inx);
-                        })
-                        .fail(p.reject, p);
-                }
-                else {
-                    done(item, inx);
-                }
-            })(i);
-        }
-
-        return p;
-    };
-
-    /**
-     * Same as <code>all()</code> but it treats arguments as list of values.
-     * @static
-     * @method
-     * @param {Promise|*} promise1
-     * @param {Promise|*} promise2
-     * @param {Promise|*} promiseN
-     * @returns {Promise}
-     */
-    Promise.when = function() {
-        return Promise.all(arguments);
-    };
-
-    /**
-     * Same as <code>all()</code> but the resulting promise
-     * will not be rejected if ones of the passed promises is rejected.
-     * @static
-     * @method
-     * @param {[]} promises -- array of promises or resolve values
-     * @returns {Promise}
-     */
-    Promise.allResolved = function(promises) {
-
-        if (!promises.length) {
-            return Promise.resolve(null);
-        }
-
-        var p       = new Promise,
-            len     = promises.length,
-            values  = [],
-            cnt     = len,
-            i,
-            item,
-            settle  = function(value) {
-                values.push(value);
-                proceed();
-            },
-            proceed = function() {
-                cnt--;
-                if (cnt === 0) {
-                    p.resolve(values);
-                }
-            };
-
-        for (i = 0; i < len; i++) {
-            item = promises[i];
-
-            if (item instanceof Promise) {
-                item.done(settle).fail(proceed);
-            }
-            else if (isThenable(item) || isFunction(item)) {
-                (new Promise(item)).done(settle).fail(proceed);
-            }
-            else {
-                settle(item);
-            }
-        }
-
-        return p;
-    };
-
-    /**
-     * Given the list of promises or values it will return a new promise
-     * and resolve it with the first resolved value.
-     * @static
-     * @method
-     * @param {[]} promises -- array of promises or resolve values
-     * @returns {Promise}
-     */
-    Promise.race = function(promises) {
-
-        if (!promises.length) {
-            return Promise.resolve(null);
-        }
-
-        var p   = new Promise,
-            len = promises.length,
-            i,
-            item;
-
-        for (i = 0; i < len; i++) {
-            item = promises[i];
-
-            if (item instanceof Promise) {
-                item.done(p.resolve, p).fail(p.reject, p);
-            }
-            else if (isThenable(item) || isFunction(item)) {
-                (new Promise(item)).done(p.resolve, p).fail(p.reject, p);
-            }
-            else {
-                p.resolve(item);
-            }
-
-            if (!p.isPending()) {
-                break;
-            }
-        }
-
-        return p;
-    };
-
-    /**
-     * Takes a list of async functions and executes 
-     * them in given order consequentially
-     * @static
-     * @method
-     * @param {[]} functions -- array of promises or resolve values or functions
-     * @returns {Promise}
-     */
-    Promise.waterfall = function(functions) {
-
-        if (!functions.length) {
-            return Promise.resolve(null);
-        }
-
-        var first   = functions.shift(),
-            promise = isFunction(first) ? Promise.fcall(first) : Promise.resolve(fn),
-            fn;
-
-        while (fn = functions.shift()) {
-            if (isThenable(fn)) {
-                promise = promise.then(function(fn){
-                    return function(){
-                        return fn;
-                    };
-                }(fn));
-            }
-            else if (isFunction(fn)) {
-                promise = promise.then(fn);
-            }
-            else {
-                promise.resolve(fn);
-            }
-        }
-
-        return promise;
-    };
-
-    /**
-     * Works like Array.forEach but it expects passed function to 
-     * return a Promise.
-     * @static
-     * @method 
-     * @param {array} items 
-     * @param {function} fn {
-     *  @param {*} value
-     *  @param {int} index
-     *  @returns {Promise|*}
-     * }
-     * @param {object} context 
-     * @param {boolean} allResolved if true, the resulting promise
-     * will fail if one of the returned promises fails.
-     */
-    Promise.forEach = function(items, fn, context, allResolved) {
-
-        var left = items.slice(),
-            p = new Promise,
-            values = [],
-            i = 0;
-
-        var next = function() {
-
-            if (!left.length) {
-                p.resolve(values);
-                return;
-            }
-
-            var item = left.shift(),
-                index = i;
-
-            i++;
-
-            Promise.fcall(fn, context, [item, index])
-                .done(function(result){
-                    values.push(result);
-                    next();
-                })
-                .fail(function(reason){
-                    if (allResolved) {
-                        p.reject(reason);
-                    }
-                    else {
-                        values.push(null);
-                        next();
-                    }
-                });
-        };
-
-        next();
-
-        return p;
-    };
-
-    /**
-     * Returns a promise with additional <code>countdown</code>
-     * method. Call this method <code>cnt</code> times and
-     * the promise will get resolved.
-     * @static
-     * @method
-     * @param {int} cnt 
-     * @returns {Promise}
-     */
-    Promise.counter = function(cnt) {
-
-        var promise     = new Promise;
-
-        promise.countdown = function() {
-            cnt--;
-            if (cnt === 0) {
-                promise.resolve();
-            }
-        };
-
-        return promise;
-    };
-
-    return Promise;
-}();
-
-
-
-
-
-
-
-/**
- * Get dom data value
- * @function MetaphorJs.dom.data
- * @param {Element} el
- * @param {string} key
- */
-
-/**
- * Set dom data value
- * @function MetaphorJs.dom.data
- * @param {Element} el
- * @param {string} key
- * @param {*} value
- * @param {string|null} action Pass "remove" to delete one data key or all keys
- * @returns {*}
- */
-var dom_data = MetaphorJs.dom.data = function(){
-
-    var dataCache   = {},
-
-        getNodeId   = function(el) {
-            return el._mjsid || (el._mjsid = nextUid());
-        };
-
-
-    return function dom_data(el, key, value, action) {
-        var id  = getNodeId(el),
-            obj = dataCache[id];
-
-        if (action === 'remove') {
-            if (key) {
-                obj && (delete obj[key]);
-            }
-            else {
-                delete dataCache[id];
-            }
-            return;
-        }
-
-        if (value !== undf) {
-            if (!obj) {
-                obj = dataCache[id] = {};
-            }
-            obj[key] = value;
-            return value;
-        }
-        else {
-            return obj ? obj[key] : undf;
-        }
-    };
-
-}();
-
-
-
-/**
- * Get cached regular expression
- * @function getRegExp
- * @param {string} expr
- * @returns {RegExp}
- */
-function getRegExp(expr) {
-    var g = lib_Cache.global(),
-        k = "regex_"+expr;
-    return g.get(k) || g.add(k, new RegExp(expr));
-};
-
-
-
-
-
-
-/**
- * @param {String} cls
- * @returns {RegExp}
- */
-var dom_getClsReg = MetaphorJs.dom.getClsReg = function(cls) {
-    return getRegExp('(?:^|\\s)'+cls+'(?!\\S)');
-};
-
-
-
-
-
-/**
- * @function MetaphorJs.dom.hasClass
- * @param {Element} el
- * @param {String} cls
- * @returns {boolean}
- */
-var dom_hasClass = MetaphorJs.dom.hasClass = function(el, cls) {
-    return cls ? dom_getClsReg(cls).test(el.className) : false;
-};
-
-
-
-
-
-/**
- * @function MetaphorJs.dom.addClass
- * @param {Element} el
- * @param {string} cls
- */
-var dom_addClass = MetaphorJs.dom.addClass = function dom_addClass(el, cls) {
-    if (cls && !dom_hasClass(el, cls)) {
-        el.className += " " + cls;
-    }
-};
-
-
-
-
-
-
-
-
-/**
- * Remove element's class
- * @function MetaphorJs.dom.removeClass
- * @param {DomNode} el
- * @param {string} cls
- */
-var dom_removeClass = MetaphorJs.dom.removeClass = function(el, cls) {
-    if (cls) {
-        el.className = el.className.replace(dom_getClsReg(cls), '');
-    }
-};
-
-
-
-var raf = function() {
-
-    var raf,
-        cancel;
-
-    if (typeof window !== strUndef) {
-        var w   = window;
-        raf     = w.requestAnimationFrame ||
-                    w.webkitRequestAnimationFrame ||
-                    w.mozRequestAnimationFrame;
-        cancel  = w.cancelAnimationFrame ||
-                    w.webkitCancelAnimationFrame ||
-                    w.mozCancelAnimationFrame ||
-                    w.webkitCancelRequestAnimationFrame;
-
-        if (raf) {
-            return function(fn, context, args) {
-                var id = raf(context || args ? function(){
-                    fn.apply(context, args || []);
-                } : fn);
-                return function() {
-                    cancel(id);
-                };
-            };
-        }
-    }
-
-    return function(fn, context, args){
-        var id = async(fn, context, args, 0);
-        return function(){
-            clearTimeout(id);
-        };
-    };
-
-}();
-
-
-
-
-
-
-
-
-
-
-
-var animate_animate = MetaphorJs.animate.animate = function(){
-
-    var types           = {
-            "show":     ["mjs-show"],
-            "hide":     ["mjs-hide"],
-            "enter":    ["mjs-enter"],
-            "leave":    ["mjs-leave"],
-            "move":     ["mjs-move"]
-        },
-
-        animId          = 0,
-        dataParam       = "mjsAnimationQueue",
-
-        callTimeout     = function(fn, startTime, duration) {
-            var tick = function(){
-                var time = (new Date).getTime();
-                if (time - startTime >= duration) {
-                    fn();
-                }
-                else {
-                    raf(tick);
-                }
-            };
-            raf(tick);
-        },
-
-
-        nextInQueue     = function(el) {
-            var queue = dom_data(el, dataParam),
-                next;
-            if (queue.length) {
-                next = queue[0];
-                animationStage(next.el, next.stages, 0, next.start, next.deferred, false, next.id, next.step);
-            }
-            else {
-                dom_data(el, dataParam, null);
-            }
-        },
-
-        animationStage  = function animationStage(el, stages, position, startCallback,
-                                                  deferred, first, id, stepCallback) {
-
-            var stopped   = function() {
-                var q = dom_data(el, dataParam);
-                if (!q || !q.length || q[0].id != id) {
-                    deferred.reject(el);
-                    return true;
-                }
-                return false;
-            };
-
-            var finishStage = function() {
-
-                if (stopped()) {
-                    return;
-                }
-
-                var thisPosition = position;
-
-                position++;
-
-                if (position === stages.length) {
-                    deferred.resolve(el);
-                    dom_data(el, dataParam).shift();
-                    nextInQueue(el);
-                }
-                else {
-                    dom_data(el, dataParam)[0].position = position;
-                    animationStage(el, stages, position, null, deferred, false, id, stepCallback);
-                }
-
-                dom_removeClass(el, stages[thisPosition]);
-                dom_removeClass(el, stages[thisPosition] + "-active");
-            };
-
-            var setStage = function() {
-
-                if (!stopped()) {
-
-                    dom_addClass(el, stages[position] + "-active");
-
-                    lib_Promise.resolve(stepCallback && stepCallback(el, position, "active"))
-                        .done(function(){
-                            if (!stopped()) {
-
-                                var duration = animate_getDuration(el);
-
-                                if (duration) {
-                                    callTimeout(finishStage, (new Date).getTime(), duration);
-                                }
-                                else {
-                                    raf(finishStage);
-                                }
-                            }
-                        });
-                }
-
-            };
-
-            var start = function(){
-
-                if (!stopped()) {
-                    dom_addClass(el, stages[position]);
-
-                    lib_Promise.waterfall([
-                            stepCallback && stepCallback(el, position, "start"),
-                            function(){
-                                return startCallback ? startCallback(el) : null;
-                            }
-                        ])
-                        .done(function(){
-                            !stopped() && raf(setStage);
-                        });
-                }
-            };
-
-            first ? raf(start) : start();
-        };
-
-
-    /**
-     * @function MetaphorJs.animate.animate
-     * @param {Element} el Element being animated
-     * @param {string|function|[]|object} animation {
-     *  'string' - registered animation name,<br>
-     *  'function' - fn(el, callback) - your own animation<br>
-     *  'array' - array or stages (class names)<br>
-     *  'array' - [{before}, {after}] - jquery animation<br>
-     *  'object' - {stages, fn, before, after, options, context, duration, start}
-     * }
-     * @param {function} startCallback call this function before animation begins
-     * @param {function} stepCallback call this function between stages
-     * @returns {lib_Promise}
-     */
-    var animate = function animate(el, animation, startCallback, stepCallback) {
-
-        var deferred    = new lib_Promise,
-            queue       = dom_data(el, dataParam) || [],
-            id          = ++animId,
-            stages,
-            jsFn,
-            before, after,
-            options, context,
-            duration;
-
-        if (animation) {
-
-            if (isString(animation)) {
-                stages = types[animation];
-            }
-            else if (isFunction(animation)) {
-                jsFn = animation;
-            }
-            else if (isArray(animation)) {
-                if (isString(animation[0])) {
-                    stages = animation;
-                }
-                else {
-                    before = animation[0];
-                    after = animation[1];
-                }
-            }
-
-            if (isPlainObject(animation)) {
-                stages      = animation.stages;
-                jsFn        = animation.fn;
-                before      = animation.before;
-                after       = animation.after;
-                options     = animation.options ? extend({}, animation.options) : {};
-                context     = animation.context || null;
-                duration    = animation.duration || null;
-                startCallback   = startCallback || options.start;
-            }
-
-
-            if (animate_isCssSupported() && stages) {
-
-                queue.push({
-                    el: el,
-                    stages: stages,
-                    start: startCallback,
-                    step: stepCallback,
-                    deferred: deferred,
-                    position: 0,
-                    id: id
-                });
-                dom_data(el, dataParam, queue);
-
-                if (queue.length === 1) {
-                    animationStage(el, stages, 0, startCallback, deferred, true, id, stepCallback);
-                }
-
-                return deferred;
-            }
-            else {
-
-                options = options || {};
-
-                startCallback && (options.start = function(){
-                    startCallback(el);
-                });
-
-                options.complete = function() {
-                    deferred.resolve(el);
-                };
-
-                duration && (options.duration = duration);
-
-                if (jsFn && isFunction(jsFn)) {
-                    if (before) {
-                        extend(el.style, before, true, false);
-                    }
-                    startCallback && startCallback(el);
-                    dom_data(el, dataParam, jsFn.call(context, el, function(){
-                        deferred.resolve(el);
-                    }));
-                    return deferred;
-                }
-                else if (window.jQuery) {
-
-                    var j = $(el);
-                    before && j.css(before);
-                    dom_data(el, dataParam, "stop");
-
-                    if (jsFn && isString(jsFn)) {
-                        j[jsFn](options);
-                        return deferred;
-                    }
-                    else if (after) {
-                        j.animate(after, options);
-                        return deferred;
-                    }
-                }
-            }
-        }
-
-        // no animation happened
-
-        if (startCallback) {
-            var promise = startCallback(el);
-            if (isThenable(promise)) {
-                promise.done(function(){
-                    deferred.resolve(el);
-                });
-            }
-            else {
-                deferred.resolve(el);
-            }
-        }
-        else {
-            deferred.resolve(el);
-        }
-
-        return deferred;
-    };
-
-    /**
-     * @function MetaphorJs.animate.animate.addAnimationType
-     * @param {string} name 
-     * @param {array} stages 
-     */
-    animate.addAnimationType     = function(name, stages) {
-        types[name] = stages;
-    };
-
-    return animate;
-}();
-
-
-
-
-
-
-
-/**
- * Stop ongoing animation for given element
- * @function MetaphorJs.animate.stop
- * @param {Element} el
- */
-var animate_stop = MetaphorJs.animate.stop = function(el) {
-
-    var queue = dom_data(el, "mjsAnimationQueue"),
-        current,
-        position,
-        stages;
-
-    if (isArray(queue) && queue.length) {
-        current = queue[0];
-
-        if (current) {
-            if (current.stages) {
-                position = current.position;
-                stages = current.stages;
-                dom_removeClass(el, stages[position]);
-                dom_removeClass(el, stages[position] + "-active");
-            }
-            if (current.deferred) {
-                current.deferred.reject(current.el);
-            }
-        }
-    }
-    else if (isFunction(queue)) {
-        queue(el);
-    }
-    else if (queue === "stop") {
-        $(el).stop(true, true);
-    }
-
-    dom_data(el, "mjsAnimationQueue", null);
-};
-
-
-
-
-
-
-
-
-
-
-/*
-value is always an object in the end
-{class: "condition", class: "condition"}
-
-array turns into _: []
-{_: [class, class]}
-(which is then turned into {class: true, class: true}
-DO NOT put class="{}" when using class.name="{}"
- */
-
-
-(function(){
-
-    var toggleClass = function(node, cls, toggle, doAnim) {
-
-        var has;
-
-        if (toggle !== null) {
-            if (toggle === dom_hasClass(node, cls)) {
-                return;
-            }
-            has = !toggle;
-        }
-        else {
-            has = dom_hasClass(node, cls);
-        }
-
-        if (has) {
-            if (doAnim) {
-                animate_animate(node, [cls + "-remove"]).done(function(){
-                    dom_removeClass(node, cls);
-                });
-            }
-            else {
-                dom_removeClass(node, cls);
-            }
-        }
-        else {
-            if (doAnim) {
-                animate_animate(node, [cls + "-add"]).done(function(){
-                    dom_addClass(node, cls);
-                });
-            }
-            else {
-                dom_addClass(node, cls);
-            }
-        }
-    };
-
-
-    var flatten = function(values) {
-        var clss = {},
-            i, l, val,
-            j, jl;
-
-        for (i = 0, l = values.length; i < l; i++) {
-            val = values[i];
-
-            if (typeof val === 'string') {
-                clss[val] = true;
-                continue;
-            }
-            else if (isArray(val)) {
-                for (j = -1, jl = val.length; ++j < jl; clss[val[j]] = true){}
-            }
-            for (j in val) {
-                if (j === '_') {
-                    for (j = -1, jl = val._.length; ++j < jl;
-                         clss[val._[j]] = true){}
-                }
-                else {
-                    clss[j] = val[j];
-                }
-            }
-        }
-
-        return clss;
-    };
-
-    Directive.registerAttribute("class", 1000, Directive.$extend({
-
-        $class: "MetaphorJs.app.Directive.attr.Class",
-        initial: true,
-        prev: null,
-
-        $init: function(scope, node, config, renderer, attrSet) {
-
-            var self = this;
-            config.setType("animate", "bool");
-            config.eachProperty(function(k) {
-                if (k === 'value' || k.indexOf("value.") === 0) {
-                    config.on(k, self.onChange, self);
-                }
-            });
-            self.$super(scope, node, config, renderer, attrSet);
-        },
-
-        initialSet: function() {
-            var self = this;
-            if (self.autoOnChange) {
-                self.onChange();
-            }
-        },
-
-        getCurrentValue: function() {
-            var all = this.config.getAllValues(),
-                values = [];
-
-            if (all[""]) {
-                values.push(all['']);
-                delete all[''];
-            }
-            values.push(all);
-            
-            return flatten(values);
-        },
-
-        onChange: function() {
-
-            var self    = this,
-                node    = self.node,
-                clss    = self.getCurrentValue(),
-                prev    = self.prev,
-                i;
-
-            animate_stop(node);
-
-            if (prev) {
-                for (i in prev) {
-                    if (prev.hasOwnProperty(i)) {
-                        if (clss[i] === undf) {
-                            toggleClass(node, i, false, false);
-                        }
-                    }
-                }
-            }
-
-            for (i in clss) {
-                if (clss.hasOwnProperty(i)) {
-                    toggleClass(node, i, !!clss[i], 
-                        !self.initial && 
-                        self.config.get("animate"));
-                }
-            }
-
-            self.prev = clss;
-            self.initial = false;
-        }
-    }));
-
-}());
-
-
-
-MetaphorJs.app = MetaphorJs.app || {};
-
-
-
-    
-
-
-var lib_Provider = MetaphorJs.lib.Provider = (function(){
-
-var VALUE       = 1,
-    CONSTANT    = 2,
-    FACTORY     = 3,
-    SERVICE     = 4,
-    PROVIDER    = 5,
-    globalProvider;
-
-var Provider = function() {
-    this.store  = {};
-};
-
-extend(Provider.prototype, {
-
-    store: null,
-
-    instantiate: function(fn, context, args, isClass) {
-        if (fn.$instantiate) {
-            return fn.$instantiate.apply(fn, args);
-        }
-        else if (isClass) {
-            return instantiate(fn, args);
-        }
-        else {
-            return fn.apply(context, args);
-        }
-    },
-
-    inject: function(injectable, context, currentValues, callArgs, isClass) {
-
-        currentValues   = currentValues || {};
-        callArgs        = callArgs || [];
-
-        var self = this;
-
-        if (isFunction(injectable)) {
-
-            if (injectable.inject) {
-                var tmp = injectable.inject.slice();
-                tmp.push(injectable);
-                injectable = tmp;
-            }
-            else {
-                return self.instantiate(injectable, context, callArgs, isClass);
-            }
-        }
-        else if (isString(injectable)) {
-            return self.resolve(injectable, currentValues);
-        }
-        else {
-            injectable = injectable.slice();
-        }
-
-        var values  = [],
-            fn      = injectable.pop(),
-            i, l;
-
-        for (i = -1, l = injectable.length; ++i < l;
-                values.push(self.resolve(injectable[i], currentValues))) {}
-
-        return lib_Promise.all(values).then(function(values){
-            return self.instantiate(fn, context, values, isClass);
-        });
-    },
-
-    value: function(name, value) {
-        this.store[name] = {
-            type: VALUE,
-            value: value
-        };
-    },
-
-    constant: function(name, value) {
-        var store = this.store;
-        if (!store[name]) {
-            store[name] = {
-                type: CONSTANT,
-                value: value
-            };
-        }
-    },
-
-    factory: function(name, fn, context, singleton) {
-
-        if (isBool(context)) {
-            singleton = context;
-            context = null;
-        }
-
-        this.store[name] = {
-            type: FACTORY,
-            singleton: singleton,
-            fn: fn,
-            context: context
-        };
-    },
-
-    service: function(name, constr, singleton) {
-        this.store[name] = {
-            type: SERVICE,
-            singleton: singleton,
-            fn: constr
-        };
-    },
-
-    provider: function(name, constr) {
-
-        this.store[name + "Provider"] = {
-            name: name,
-            type: PROVIDER,
-            fn: constr,
-            instance: null
-        };
-    },
-
-    resolve: function(name, currentValues, callArgs) {
-
-        var self    = this,
-            store   = self.store,
-            type,
-            item,
-            res;
-
-        currentValues = currentValues || {};
-        callArgs = callArgs || [];
-
-        if (currentValues[name] !== undf) {
-            return currentValues[name];
-        }
-
-        if (item = store[name]) {
-
-            type    = item.type;
-
-            if (type === VALUE || type === CONSTANT) {
-                return item.value;
-            }
-            else if (type === FACTORY) {
-                res = self.inject(item.fn, item.context, currentValues, callArgs);
-            }
-            else if (type === SERVICE) {
-                res = self.inject(item.fn, null, currentValues, callArgs, true);
-            }
-            else if (type === PROVIDER) {
-
-                if (!item.instance) {
-
-                    item.instance = lib_Promise.resolve(
-                            self.inject(item.fn, null, currentValues)
-                        )
-                        .done(function(instance){
-                            item.instance = instance;
-                            store[item.name] = {
-                                type: FACTORY,
-                                fn: instance.$get,
-                                context: instance
-                            };
-                        });
-                }
-
-                return item.instance;
-            }
-
-            if (item.singleton) {
-                item.type = VALUE;
-                item.value = res;
-
-                if (type === FACTORY && isThenable(res)) {
-                    res.done(function(value){
-                        item.value = value;
-                    });
-                }
-            }
-
-            return currentValues[name] = res;
-        }
-        else {
-
-            if (store[name + "Provider"]) {
-                self.resolve(name + "Provider", currentValues);
-                return self.resolve(name, currentValues);
-            }
-
-            if (self === globalProvider) {
-                throw new Error("Could not provide value for " + name);
-            }
-            else {
-                return globalProvider.resolve(name);
-            }
-        }
-    },
-
-    $destroy: function() {
-        this.store = null;
-    }
-
-}, true, false);
-
-Provider.global = function() {
-    return globalProvider;
-};
-
-globalProvider = new Provider;
-
-return Provider;
-}());
-
-
-
-
-
-var dom_toFragment = MetaphorJs.dom.toFragment = function dom_toFragment(nodes, doc) {
-
-    var fragment = (doc || window.document).createDocumentFragment(),
-        i, l;
-
-    if (isString(nodes)) {
-        var tmp = window.document.createElement('div');
-        tmp.innerHTML = nodes;
-        nodes = tmp.childNodes;
-    }
-
-    if (!nodes) {
-        return fragment;
-    }
-
-    if (nodes.nodeType) {
-        fragment.appendChild(nodes);
-    }
-    else {
-        // due to a bug in jsdom, we turn NodeList into array first
-        if (nodes.item) {
-            var tmpNodes = nodes;
-            nodes = [];
-            for (i = -1, l = tmpNodes.length >>> 0; ++i !== l; nodes.push(tmpNodes[i])) {}
-        }
-
-        for (i = -1, l = nodes.length; ++i !== l; fragment.appendChild(nodes[i])) {}
-    }
-
-    return fragment;
-};
-
-
-
-
-
-/**
- * Clone dom node (or array of nodes)
- * @function MetaphorJs.dom.clone
- * @param {[]|Element} node
- * @returns {[]|Element}
- */
-var dom_clone = MetaphorJs.dom.clone = function dom_clone(node) {
-
-    var i, len, cloned;
-
-    if (isArray(node)) {
-        cloned = [];
-        for (i = 0, len = node.length; i < len; i++) {
-            cloned.push(dom_clone(node[i]));
-        }
-        return cloned;
-    }
-    else if (node) {
-        switch (node.nodeType) {
-            // element
-            case 1:
-                return node.cloneNode(true);
-            // text node
-            case 3:
-                return window.document.createTextNode(node.innerText || node.textContent);
-            // document fragment
-            case 11:
-                return node.cloneNode(true);
-
-            default:
-                return null;
-        }
-    }
-
-    return null;
-};
-
 
 
 /**
@@ -10018,7 +6985,7 @@ var dom_getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
             else if (mode === '(' || mode === '{') { 
 
                 coll = set['directive'];
-                subname = parts.length ? parts[0] : null;
+                subname = parts.length ? parts.join(".") : null;
 
                 if (!coll[name]) {
                     coll[name] = {
@@ -10646,6 +7613,2418 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
 
 
 
+
+/**
+ * Get node attribute value
+ * @function MetaphorJs.dom.getAttr
+ * @param {DomNode} node
+ * @returns {string}
+ */
+var dom_getAttr = MetaphorJs.dom.getAttr = function dom_getAttr(el, name) {
+    return el.getAttribute ? el.getAttribute(name) : null;
+};
+
+
+
+
+/**
+ * A storage of plural definitions
+ * @class MetaphorJs.lib.LocalText
+ */
+var lib_LocalText = MetaphorJs.lib.LocalText = function(){
+
+    var pluralDef       = function($number, $locale) {
+
+            if ($locale === "pt_BR") {
+                // temporary set a locale for brasilian
+                $locale = "xbr";
+            }
+
+            if ($locale.length > 3) {
+                $locale = $locale.substr(0, -$locale.lastIndexOf('_'));
+            }
+
+            switch($locale) {
+                case 'bo':
+                case 'dz':
+                case 'id':
+                case 'ja':
+                case 'jv':
+                case 'ka':
+                case 'km':
+                case 'kn':
+                case 'ko':
+                case 'ms':
+                case 'th':
+                case 'tr':
+                case 'vi':
+                case 'zh':
+                    return 0;
+
+                case 'af':
+                case 'az':
+                case 'bn':
+                case 'bg':
+                case 'ca':
+                case 'da':
+                case 'de':
+                case 'el':
+                case 'en':
+                case 'eo':
+                case 'es':
+                case 'et':
+                case 'eu':
+                case 'fa':
+                case 'fi':
+                case 'fo':
+                case 'fur':
+                case 'fy':
+                case 'gl':
+                case 'gu':
+                case 'ha':
+                case 'he':
+                case 'hu':
+                case 'is':
+                case 'it':
+                case 'ku':
+                case 'lb':
+                case 'ml':
+                case 'mn':
+                case 'mr':
+                case 'nah':
+                case 'nb':
+                case 'ne':
+                case 'nl':
+                case 'nn':
+                case 'no':
+                case 'om':
+                case 'or':
+                case 'pa':
+                case 'pap':
+                case 'ps':
+                case 'pt':
+                case 'so':
+                case 'sq':
+                case 'sv':
+                case 'sw':
+                case 'ta':
+                case 'te':
+                case 'tk':
+                case 'ur':
+                case 'zu':
+                    return ($number === 1) ? 0 : 1;
+
+                case 'am':
+                case 'bh':
+                case 'fil':
+                case 'fr':
+                case 'gun':
+                case 'hi':
+                case 'ln':
+                case 'mg':
+                case 'nso':
+                case 'xbr':
+                case 'ti':
+                case 'wa':
+                    return (($number === 0) || ($number === 1)) ? 0 : 1;
+
+                case 'be':
+                case 'bs':
+                case 'hr':
+                case 'ru':
+                case 'sr':
+                case 'uk':
+                    return (($number % 10 === 1) && ($number % 100 !== 11)) ?
+                           0 :
+                           ((($number % 10 >= 2) && ($number % 10 <= 4) &&
+                             (($number % 100 < 10) || ($number % 100 >= 20))) ? 1 : 2);
+
+                case 'cs':
+                case 'sk':
+                    return ($number === 1) ? 0 : ((($number >= 2) && ($number <= 4)) ? 1 : 2);
+
+                case 'ga':
+                    return ($number === 1) ? 0 : (($number === 2) ? 1 : 2);
+
+                case 'lt':
+                    return (($number % 10 === 1) && ($number % 100 !== 11)) ?
+                           0 :
+                           ((($number % 10 >= 2) &&
+                             (($number % 100 < 10) || ($number % 100 >= 20))) ? 1 : 2);
+
+                case 'sl':
+                    return ($number % 100 === 1) ?
+                           0 :
+                           (($number % 100 === 2) ?
+                                1 :
+                                ((($number % 100 === 3) || ($number % 100 === 4)) ? 2 : 3));
+
+                case 'mk':
+                    return ($number % 10 === 1) ? 0 : 1;
+
+                case 'mt':
+                    return ($number === 1) ?
+                           0 :
+                           ((($number === 0) || (($number % 100 > 1) && ($number % 100 < 11))) ?
+                                1 :
+                                ((($number % 100 > 10) && ($number % 100 < 20)) ? 2 : 3));
+
+                case 'lv':
+                    return ($number === 0) ? 0 : ((($number % 10 === 1) && ($number % 100 !== 11)) ? 1 : 2);
+
+                case 'pl':
+                    return ($number === 1) ?
+                           0 :
+                           ((($number % 10 >= 2) && ($number % 10 <= 4) &&
+                             (($number % 100 < 12) || ($number % 100 > 14))) ? 1 : 2);
+
+                case 'cy':
+                    return ($number === 1) ? 0 : (($number === 2) ? 1 : ((($number === 8) || ($number === 11)) ? 2 : 3));
+
+                case 'ro':
+                    return ($number === 1) ?
+                           0 :
+                           ((($number === 0) || (($number % 100 > 0) && ($number % 100 < 20))) ? 1 : 2);
+
+                case 'ar':
+                    return ($number === 0) ?
+                           0 :
+                           (($number === 1) ?
+                                1 :
+                                (($number === 2) ?
+                                    2 :
+                                    ((($number >= 3) && ($number <= 10)) ?
+                                        3 :
+                                        ((($number >= 11) && ($number <= 99)) ? 4 : 5))));
+
+                default:
+                    return 0;
+            }
+        };
+
+
+    /**
+     * @method LocalText
+     * @constructor
+     * @param {string} locale 2char locale id
+     */
+    var LocalText = function(locale) {
+
+        var self    = this;
+        self.store  = {};
+        if (locale) {
+            self.locale = locale;
+        }
+    };
+
+    extend(LocalText.prototype, {
+
+        store: null,
+        locale: "en",
+
+        /**
+         * @method
+         * @param {string} locale 2char locale id
+         */
+        setLocale: function(locale) {
+            this.locale = locale;
+        },
+
+        /**
+         * Set plural definition
+         * @method
+         * @param {string} key
+         * @param {array|object} value {
+         *  Array:<br>
+         *  0: Singular form<br>
+         *  1: LocalText form<br>
+         *  2: Second plural form<br>
+         *  3: Third plural form<br>
+         *  Object:<br>
+         *  <int>: Respective number<br>
+         *  "one": Singular form for 1<br>
+         *  "negative": Negative values form<br>
+         *  "other": All other
+         * }
+         */
+        set: function(key, value) {
+            var store = this.store;
+            if (store[key] === undf) {
+                store[key] = value;
+            }
+        },
+
+        /**
+         * Load plural definitions
+         * @method
+         * @param {object} keys {
+         *  key: definition pairs; see set()
+         * }
+         */
+        load: function(keys) {
+            extend(this.store, keys, false, false);
+        },
+
+        /**
+         * Get definition. If key is not found, will return -- key --
+         * @method
+         * @param {string} key
+         * @returns {array|object|string}
+         */
+        get: function(key) {
+            var self = this;
+            return self.store[key] ||
+                   (self === globalText ? '-- ' + key + ' --' : globalText.get(key));
+        },
+
+        /**
+         * Get variant best suited for the number
+         * @method
+         * @param {string} key
+         * @param {int} number
+         * @returns {string}
+         */
+        plural: function(key, number) {
+            var self    = this,
+                strings = typeof key === "string" ? self.get(key): key,
+                def     = pluralDef(number, self.locale);
+
+            if (!isArray(strings)) {
+                if (isPlainObject(strings)) {
+                    if (strings[number]) {
+                        return strings[number];
+                    }
+                    if (number === 1 && strings.one !== undf) {
+                        return strings.one;
+                    }
+                    else if (number < 0 && strings.negative !== undf) {
+                        return strings.negative;
+                    }
+                    else {
+                        return strings.other;
+                    }
+                }
+                return strings;
+            }
+            else {
+                return strings[def];
+            }
+        },
+
+        /**
+         * Destroy definitions store
+         * @method
+         */
+        $destroy: function() {
+            this.store = null;
+        }
+
+    }, true, false);
+
+
+    var globalText  = new LocalText;
+
+    LocalText.global     = function() {
+        return globalText;
+    };
+
+    return LocalText;
+}();
+
+
+
+
+    
+
+
+var lib_Provider = MetaphorJs.lib.Provider = (function(){
+
+var VALUE       = 1,
+    CONSTANT    = 2,
+    FACTORY     = 3,
+    SERVICE     = 4,
+    PROVIDER    = 5,
+    globalProvider;
+
+var Provider = function() {
+    this.store  = {};
+};
+
+extend(Provider.prototype, {
+
+    store: null,
+
+    instantiate: function(fn, context, args, isClass) {
+        if (fn.$instantiate) {
+            return fn.$instantiate.apply(fn, args);
+        }
+        else if (isClass) {
+            return instantiate(fn, args);
+        }
+        else {
+            return fn.apply(context, args);
+        }
+    },
+
+    inject: function(injectable, context, currentValues, callArgs, isClass) {
+
+        currentValues   = currentValues || {};
+        callArgs        = callArgs || [];
+
+        var self = this;
+
+        if (isFunction(injectable)) {
+
+            if (injectable.inject) {
+                var tmp = injectable.inject.slice();
+                tmp.push(injectable);
+                injectable = tmp;
+            }
+            else {
+                return self.instantiate(injectable, context, callArgs, isClass);
+            }
+        }
+        else if (isString(injectable)) {
+            return self.resolve(injectable, currentValues);
+        }
+        else {
+            injectable = injectable.slice();
+        }
+
+        var values  = [],
+            fn      = injectable.pop(),
+            i, l;
+
+        for (i = -1, l = injectable.length; ++i < l;
+                values.push(self.resolve(injectable[i], currentValues))) {}
+
+        return lib_Promise.all(values).then(function(values){
+            return self.instantiate(fn, context, values, isClass);
+        });
+    },
+
+    value: function(name, value) {
+        this.store[name] = {
+            type: VALUE,
+            value: value
+        };
+    },
+
+    constant: function(name, value) {
+        var store = this.store;
+        if (!store[name]) {
+            store[name] = {
+                type: CONSTANT,
+                value: value
+            };
+        }
+    },
+
+    factory: function(name, fn, context, singleton) {
+
+        if (isBool(context)) {
+            singleton = context;
+            context = null;
+        }
+
+        this.store[name] = {
+            type: FACTORY,
+            singleton: singleton,
+            fn: fn,
+            context: context
+        };
+    },
+
+    service: function(name, constr, singleton) {
+        this.store[name] = {
+            type: SERVICE,
+            singleton: singleton,
+            fn: constr
+        };
+    },
+
+    provider: function(name, constr) {
+
+        this.store[name + "Provider"] = {
+            name: name,
+            type: PROVIDER,
+            fn: constr,
+            instance: null
+        };
+    },
+
+    resolve: function(name, currentValues, callArgs) {
+
+        var self    = this,
+            store   = self.store,
+            type,
+            item,
+            res;
+
+        currentValues = currentValues || {};
+        callArgs = callArgs || [];
+
+        if (currentValues[name] !== undf) {
+            return currentValues[name];
+        }
+
+        if (item = store[name]) {
+
+            type    = item.type;
+
+            if (type === VALUE || type === CONSTANT) {
+                return item.value;
+            }
+            else if (type === FACTORY) {
+                res = self.inject(item.fn, item.context, currentValues, callArgs);
+            }
+            else if (type === SERVICE) {
+                res = self.inject(item.fn, null, currentValues, callArgs, true);
+            }
+            else if (type === PROVIDER) {
+
+                if (!item.instance) {
+
+                    item.instance = lib_Promise.resolve(
+                            self.inject(item.fn, null, currentValues)
+                        )
+                        .done(function(instance){
+                            item.instance = instance;
+                            store[item.name] = {
+                                type: FACTORY,
+                                fn: instance.$get,
+                                context: instance
+                            };
+                        });
+                }
+
+                return item.instance;
+            }
+
+            if (item.singleton) {
+                item.type = VALUE;
+                item.value = res;
+
+                if (type === FACTORY && isThenable(res)) {
+                    res.done(function(value){
+                        item.value = value;
+                    });
+                }
+            }
+
+            return currentValues[name] = res;
+        }
+        else {
+
+            if (store[name + "Provider"]) {
+                self.resolve(name + "Provider", currentValues);
+                return self.resolve(name, currentValues);
+            }
+
+            if (self === globalProvider) {
+                throw new Error("Could not provide value for " + name);
+            }
+            else {
+                return globalProvider.resolve(name);
+            }
+        }
+    },
+
+    $destroy: function() {
+        this.store = null;
+    }
+
+}, true, false);
+
+Provider.global = function() {
+    return globalProvider;
+};
+
+globalProvider = new Provider;
+
+return Provider;
+}());
+
+
+
+
+var mixin_Provider = MetaphorJs.mixin.Provider = {
+
+    /**
+     * @type {Provider}
+     */
+    $$provider: null,
+
+    $beforeInit: function() {
+        this.$$provider = new lib_Provider;
+    },
+
+    value: function() {
+        var p = this.$$provider;
+        return p.value.apply(p, arguments);
+    },
+
+    constant: function() {
+        var p = this.$$provider;
+        return p.constant.apply(p, arguments);
+    },
+
+    factory: function() {
+        var p = this.$$provider;
+        return p.factory.apply(p, arguments);
+    },
+
+    service: function() {
+        var p = this.$$provider;
+        return p.service.apply(p, arguments);
+    },
+
+    provider: function() {
+        var p = this.$$provider;
+        return p.provider.apply(p, arguments);
+    },
+
+    resolve: function() {
+        var p = this.$$provider;
+        return p.resolve.apply(p, arguments);
+    },
+
+    inject: function() {
+        var p = this.$$provider;
+        return p.inject.apply(p, arguments);
+    },
+
+    $afterDestroy: function() {
+
+        this.$$provider.$destroy();
+        this.$$provider = null;
+
+    }
+};
+
+
+
+
+/**
+ * @mixin MetaphorJs.mixin.Observable
+ * @description Mixin adds observable features to the host object.
+ *              It adds 'callback' option to the host config. See $beforeInit.
+ *              Mixin is designed for MetaphorJs class system.
+ * @code src-docs/examples/mixin.js
+ */
+var mixin_Observable = MetaphorJs.mixin.Observable = {
+
+    /**
+     * @private
+     * @type {Observable}
+     * @description You can use this instance in your $init function
+     */
+    $$observable: null,
+
+    /**
+     * @private
+     * @type {object}
+     */
+    $$callbackContext: null,
+
+    /**
+     * @protected
+     * @type {object} {
+     *      Override this to define event properties. 
+     *      Object's key is event name, value - either returnResult or 
+     *      options object. See {@link class:lib_Observable.createEvent}
+     * }
+     */
+    $$events: null,
+
+    /**
+     * @method
+     * @private
+     * @param {object} cfg {
+     *      This is a config that was passed to the host object's constructor.
+     *      It is being passed to mixin's $beforeInit automatically.
+     *      @type {object} callback {
+     *          Here, except for 'context', '$context' and 'scope', 
+     *          keys are event names and values are listeners. 
+     *          @type {object} context All given listeners context
+     *          @type {object} scope The same
+     *      }
+     * }
+     */
+    $beforeInit: function(cfg) {
+        var self = this;
+        self.$$observable = new lib_Observable;
+        self.$initObservable(cfg);
+    },
+
+    /**
+     * @method
+     * @private
+     * @ignore
+     * @param {object} cfg
+     */
+    $initObservable: function(cfg) {
+
+        var self    = this,
+            obs     = self.$$observable,
+            i;
+
+        if (cfg && cfg.callback) {
+            var ls = cfg.callback,
+                context = ls.context || ls.scope || ls.$context,
+                events = extend({}, self.$$events, ls.$events, true, false);
+
+            for (i in events) {
+                obs.createEvent(i, events[i]);
+            }
+
+            ls.context = null;
+            ls.scope = null;
+
+            for (i in ls) {
+                if (ls[i]) {
+                    obs.on(i, ls[i], context || self);
+                }
+            }
+
+            cfg.callback = null;
+
+            if (context) {
+                self.$$callbackContext = context;
+            }
+        }
+        else if (self.$$events) {
+            for (i in self.$$events) {
+                obs.createEvent(i, self.$$events[i]);
+            }
+        }
+    },
+
+    /**
+     * @method
+     * @see {@link class:Observable.on}
+     */
+    on: function() {
+        var o = this.$$observable;
+        return o ? o.on.apply(o, arguments) : null;
+    },
+
+    /**
+     * @method
+     * @see {@link class:Observable.un}
+     */
+    un: function() {
+        var o = this.$$observable;
+        return o ? o.un.apply(o, arguments) : null;
+    },
+
+    /**
+     * @method
+     * @see {@link class:Observable.once}
+     */
+    once: function() {
+        var o = this.$$observable;
+        return o ? o.once.apply(o, arguments) : null;
+    },
+
+    /**
+     * @method
+     * @see {@link class:Observable.trigger}
+     */
+    trigger: function() {
+        var o = this.$$observable;
+        return o ? o.trigger.apply(o, arguments) : null;
+    },
+
+    /**
+     * @method
+     * @private
+     * @ignore
+     */
+    $beforeDestroy: function() {
+        this.$$observable.trigger("before-destroy", this);
+    },
+
+    /**
+     * @method
+     * @private
+     * @ignore
+     */
+    $afterDestroy: function() {
+        var self = this;
+        self.$$observable.trigger("destroy", self);
+        self.$$observable.$destroy();
+        self.$$observable = null;
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * @class MetaphorJs.app.App
+ */
+var app_App = MetaphorJs.app.App = cls({
+
+    $mixins: [mixin_Observable, 
+                mixin_Provider],
+
+    lang: null,
+    scope: null,
+    renderer: null,
+    cmpListeners: null,
+    components: null,
+    sourceObs: null,
+
+    /**
+     * @constructor
+     * @method
+     * @param {Node} node 
+     * @param {object} data 
+     */
+    $init: function(node, data) {
+
+        var self        = this,
+            scope       = data instanceof lib_Scope ? 
+                                data : 
+                                new lib_Scope(data),
+            args;
+
+        dom_removeAttr(node, "mjs-app");
+
+        scope.$app      = self;
+        self.$super();
+
+        self.lang       = new lib_LocalText;
+
+        self.scope          = scope;
+        self.cmpListeners   = {};
+        self.components     = {};
+
+        self.factory('$parentCmp', ['$node', self.getParentCmp], self);
+        self.value('$app', self);
+        self.value('$rootScope', scope.$root);
+        self.value('$lang', self.lang);
+        self.value('$locale', self.lang);
+
+        self.renderer       = new app_Renderer(node, scope);
+        self.renderer.on("rendered", self.afterRender, self);
+
+        args = toArray(arguments);
+        args[1] = scope;
+        self.initApp.apply(self, args);
+    },
+
+    initApp: emptyFn,
+
+    afterRender: function() {
+
+    },
+
+    /**
+     * Start processing the DOM
+     * @method
+     */
+    run: function() {
+        this.renderer.process();
+    },
+
+    /**
+     * Create data source gate
+     * @param {string} name Source name
+     * @param {string|bool} returnResult See MetaphorJs.lib.Observable.createEvent()
+     */
+    createSource: function(name, returnResult) {
+        var key = "source-" + name,
+            self = this;
+
+        if (!self.$$observable.getEvent(key)) {
+            self.$$observable.createEvent(key, returnResult || "nonempty");
+        }
+    },
+
+    /**
+     * Register data source
+     * @param {string} name Source name
+     * @param {function} fn Function yielding the data
+     * @param {object} context fn's context
+     */
+    registerSource: function(name, fn, context) {
+        this.on("source-" + name, fn, context);
+    },
+
+    /**
+     * Unregister data source
+     * @param {string} name Source name
+     * @param {function} fn Data function
+     * @param {object} context fn's context
+     */
+    unregisterSource: function(name, fn, context) {
+        this.un("source-" + name, fn, context);
+    },
+
+    /**
+     * Collect data from data source
+     * @param {string} name Source name
+     * @returns {object|array}
+     */
+    collect: function(name) {
+        arguments[0] = "source-" + arguments[0];
+        return this.trigger.apply(this, arguments);
+    },
+
+    /**
+     * Get parent component for given node
+     * @param {Node} node 
+     * @param {bool} includeSelf 
+     * @returns {MetaphorJs.app.Component}
+     */
+    getParentCmp: function(node, includeSelf) {
+
+        var self    = this,
+            parent  = includeSelf ? node : node.parentNode,
+            id;
+
+        while (parent) {
+            if (id = (dom_getAttr(parent, "cmp-id") || parent.$$cmpId)) {
+                return self.getCmp(id);
+            }
+            parent = parent.parentNode;
+        }
+
+        return null;
+    },
+
+    /**
+     * Register callback for when component becomes available
+     * @param {string} cmpId 
+     * @param {function} fn 
+     * @param {object} context 
+     * @returns {lib_Promise}
+     */
+    onAvailable: function(cmpId, fn, context) {
+
+        var self = this,
+            cmpListeners = self.cmpListeners,
+            components = self.components;
+
+        if (!cmpListeners[cmpId]) {
+            cmpListeners[cmpId] = new lib_Promise;
+        }
+
+        if (fn) {
+            cmpListeners[cmpId].done(fn, context);
+        }
+
+        if (components[cmpId]) {
+            cmpListeners[cmpId].resolve(components[cmpId])
+        }
+
+        return cmpListeners[cmpId];
+    },
+
+    /**
+     * Get component
+     * @param {string} id 
+     * @returns {MetaphorJs.app.Component}
+     */
+    getCmp: function(id) {
+        return this.components[id] || null;
+    },
+
+    /**
+     * Register component
+     * @param {MetaphorJs.app.Component} cmp 
+     * @param {lib_Scope} scope 
+     * @param {string} byKey 
+     */
+    registerCmp: function(cmp, scope, byKey) {
+        var self = this,
+            id = cmp[byKey],
+            deregister = function() {
+                delete self.cmpListeners[id];
+                delete self.components[id];
+            };
+
+        self.components[id] = cmp;
+
+        if (self.cmpListeners[id]) {
+            self.cmpListeners[id].resolve(cmp);
+        }
+
+        if (cmp.on) {
+            cmp.on("destroy", deregister);
+        }
+        scope.$on("destroy", deregister);
+    },
+
+    onDestroy: function() {
+
+        var self    = this;
+
+        self.renderer.$destroy();
+        self.scope.$destroy();
+        self.lang.$destroy();
+
+        self.$super();
+    }
+
+});
+
+
+
+
+
+/**
+ * Is node attached to DOM
+ * @function MetaphorJs.dom.isAttached
+ * @param {DomNode} node
+ * @returns {boolean}
+ */
+var isAttached = MetaphorJs.dom.isAttached = function dom_isAttached(node) {
+
+    if (node === window) {
+        return true;
+    }
+    if (node.nodeType == 3) {
+        if (node.parentElement) {
+            return dom_isAttached(node.parentElement);
+        }
+        else {
+            return true;
+        }
+    }
+
+    var html = window.document.documentElement;
+
+    return node === html ? true : html.contains(node);
+};
+
+
+
+
+
+
+/**
+ * Get dom data value
+ * @function MetaphorJs.dom.data
+ * @param {Element} el
+ * @param {string} key
+ */
+
+/**
+ * Set dom data value
+ * @function MetaphorJs.dom.data
+ * @param {Element} el
+ * @param {string} key
+ * @param {*} value
+ * @param {string|null} action Pass "remove" to delete one data key or all keys
+ * @returns {*}
+ */
+var dom_data = MetaphorJs.dom.data = function(){
+
+    var dataCache   = {},
+
+        getNodeId   = function(el) {
+            return el._mjsid || (el._mjsid = nextUid());
+        };
+
+
+    return function dom_data(el, key, value, action) {
+        var id  = getNodeId(el),
+            obj = dataCache[id];
+
+        if (action === 'remove') {
+            if (key) {
+                obj && (delete obj[key]);
+            }
+            else {
+                delete dataCache[id];
+            }
+            return;
+        }
+
+        if (value !== undf) {
+            if (!obj) {
+                obj = dataCache[id] = {};
+            }
+            obj[key] = value;
+            return value;
+        }
+        else {
+            return obj ? obj[key] : undf;
+        }
+    };
+
+}();
+
+
+
+
+var dom_toFragment = MetaphorJs.dom.toFragment = function dom_toFragment(nodes, doc) {
+
+    var fragment = (doc || window.document).createDocumentFragment(),
+        i, l;
+
+    if (isString(nodes)) {
+        var tmp = window.document.createElement('div');
+        tmp.innerHTML = nodes;
+        nodes = tmp.childNodes;
+    }
+
+    if (!nodes) {
+        return fragment;
+    }
+
+    if (nodes.nodeType) {
+        fragment.appendChild(nodes);
+    }
+    else {
+        // due to a bug in jsdom, we turn NodeList into array first
+        if (nodes.item) {
+            var tmpNodes = nodes;
+            nodes = [];
+            for (i = -1, l = tmpNodes.length >>> 0; ++i !== l; nodes.push(tmpNodes[i])) {}
+        }
+
+        for (i = -1, l = nodes.length; ++i !== l; fragment.appendChild(nodes[i])) {}
+    }
+
+    return fragment;
+};
+
+
+
+
+
+/**
+ * Clone dom node (or array of nodes)
+ * @function MetaphorJs.dom.clone
+ * @param {[]|Element} node
+ * @returns {[]|Element}
+ */
+var dom_clone = MetaphorJs.dom.clone = function dom_clone(node) {
+
+    var i, len, cloned;
+
+    if (isArray(node)) {
+        cloned = [];
+        for (i = 0, len = node.length; i < len; i++) {
+            cloned.push(dom_clone(node[i]));
+        }
+        return cloned;
+    }
+    else if (node) {
+        switch (node.nodeType) {
+            // element
+            case 1:
+                return node.cloneNode(true);
+            // text node
+            case 3:
+                return window.document.createTextNode(node.innerText || node.textContent);
+            // document fragment
+            case 11:
+                return node.cloneNode(true);
+
+            default:
+                return null;
+        }
+    }
+
+    return null;
+};
+
+
+
+
+MetaphorJs.animate = MetaphorJs.animate || {};
+
+
+
+
+
+var animate_getPrefixes = MetaphorJs.animate.getPrefixes = function(){
+
+    var domPrefixes         = ['Moz', 'Webkit', 'ms', 'O', 'Khtml'],
+        animationDelay      = "animationDelay",
+        animationDuration   = "animationDuration",
+        transitionDelay     = "transitionDelay",
+        transitionDuration  = "transitionDuration",
+        transform           = "transform",
+        transitionend       = null,
+        prefixes            = null,
+
+        probed              = false,
+
+        detectCssPrefixes   = function() {
+
+            var el = window.document.createElement("div"),
+                animation = false,
+                pfx,
+                i, len;
+
+            if (el.style['animationName'] !== undf) {
+                animation = true;
+            }
+            else {
+                for(i = 0, len = domPrefixes.length; i < len; i++) {
+                    pfx = domPrefixes[i];
+                    if (el.style[ pfx + 'AnimationName' ] !== undf) {
+                        animation           = true;
+                        animationDelay      = pfx + "AnimationDelay";
+                        animationDuration   = pfx + "AnimationDuration";
+                        transitionDelay     = pfx + "TransitionDelay";
+                        transitionDuration  = pfx + "TransitionDuration";
+                        transform           = pfx + "Transform";
+                        break;
+                    }
+                }
+            }
+
+            if (animation) {
+                if('ontransitionend' in window) {
+                    // Chrome/Saf (+ Mobile Saf)/Android
+                    transitionend = 'transitionend';
+                }
+                else if('onwebkittransitionend' in window) {
+                    // Chrome/Saf (+ Mobile Saf)/Android
+                    transitionend = 'webkitTransitionEnd';
+                }
+            }
+
+            return animation;
+        };
+
+
+    /**
+     * Get css prefixes used in current browser
+     * @function MetaphorJs.animate.getPrefixes
+     * @returns {object} {
+     *  @type {string} animationDelay
+     *  @type {string} animationDuration
+     *  @type {string} transitionDelay
+     *  @type {string} transitionDuration
+     *  @type {string} transform
+     *  @type {string} transitionend
+     * }
+     */
+    return function() {
+
+        if (!probed) {
+            if (detectCssPrefixes()) {
+                prefixes = {
+                    animationDelay: animationDelay,
+                    animationDuration: animationDuration,
+                    transitionDelay: transitionDelay,
+                    transitionDuration: transitionDuration,
+                    transform: transform,
+                    transitionend: transitionend
+                };
+            }
+            else {
+                prefixes = {};
+            }
+
+            probed = true;
+        }
+
+
+        return prefixes;
+    };
+}();
+
+
+
+
+
+
+var animate_getDuration = MetaphorJs.animate.getDuration = function(){
+
+    var parseTime       = function(str) {
+            if (!str) {
+                return 0;
+            }
+            var time = parseFloat(str);
+            if (str.indexOf("ms") === -1) {
+                time *= 1000;
+            }
+            return time;
+        },
+
+        getMaxTimeFromPair = function(max, dur, delay) {
+
+            var i, sum, len = dur.length;
+
+            for (i = 0; i < len; i++) {
+                sum = parseTime(dur[i]) + parseTime(delay[i]);
+                max = Math.max(sum, max);
+            }
+
+            return max;
+        },
+
+        pfx                 = false,
+        animationDuration   = null,
+        animationDelay      = null,
+        transitionDuration  = null,
+        transitionDelay     = null;
+
+
+    /**
+     * Get duration in milliseconds from html 
+     * element based on current computed style
+     * @function MetaphorJs.animate.getDuration
+     * @param {Element} el
+     * @returns {number}
+     */
+    return function(el) {
+
+        if (pfx === false) {
+            pfx = animate_getPrefixes();
+            animationDuration = pfx ? pfx.animationDuration : null;
+            animationDelay = pfx ? pfx.animationDelay : null;
+            transitionDuration = pfx ? pfx.transitionDuration : null;
+            transitionDelay = pfx ? pfx.transitionDelay : null;
+        }
+
+        if (!pfx) {
+            return 0;
+        }
+
+        var style       = window.getComputedStyle ? window.getComputedStyle(el, null) : el.style,
+            duration    = 0,
+            animDur     = (style[animationDuration] || '').split(','),
+            animDelay   = (style[animationDelay] || '').split(','),
+            transDur    = (style[transitionDuration] || '').split(','),
+            transDelay  = (style[transitionDelay] || '').split(',');
+
+        duration    = Math.max(duration, getMaxTimeFromPair(duration, animDur, animDelay));
+        duration    = Math.max(duration, getMaxTimeFromPair(duration, transDur, transDelay));
+
+        return duration;
+    };
+
+}();
+
+
+
+
+
+
+
+
+/**
+ * Is css animation supported in current browser
+ * @function MetaphorJs.animate.isCssSupported
+ * @returns {bool}
+ */
+var animate_isCssSupported = MetaphorJs.animate.isCssSupported = (function(){
+
+    var cssAnimations = null;
+
+    return function() {
+        if (cssAnimations === null) {
+            cssAnimations   = !!animate_getPrefixes();
+        }
+        return cssAnimations;
+    };
+}());
+
+
+
+
+//https://gist.github.com/gre/1650294
+var animate_easing = MetaphorJs.animate.easing = {
+    // no easing, no acceleration
+    linear: function (t) { return t },
+    // accelerating from zero velocity
+    easeInQuad: function (t) { return t*t },
+    // decelerating to zero velocity
+    easeOutQuad: function (t) { return t*(2-t) },
+    // acceleration until halfway, then deceleration
+    easeInOutQuad: function (t) { return t<.5 ? 2*t*t : -1+(4-2*t)*t },
+    // accelerating from zero velocity 
+    easeInCubic: function (t) { return t*t*t },
+    // decelerating to zero velocity 
+    easeOutCubic: function (t) { return (--t)*t*t+1 },
+    // acceleration until halfway, then deceleration 
+    easeInOutCubic: function (t) { return t<.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1 },
+    // accelerating from zero velocity 
+    easeInQuart: function (t) { return t*t*t*t },
+    // decelerating to zero velocity 
+    easeOutQuart: function (t) { return 1-(--t)*t*t*t },
+    // acceleration until halfway, then deceleration
+    easeInOutQuart: function (t) { return t<.5 ? 8*t*t*t*t : 1-8*(--t)*t*t*t },
+    // accelerating from zero velocity
+    easeInQuint: function (t) { return t*t*t*t*t },
+    // decelerating to zero velocity
+    easeOutQuint: function (t) { return 1+(--t)*t*t*t*t },
+    // acceleration until halfway, then deceleration 
+    easeInOutQuint: function (t) { return t<.5 ? 16*t*t*t*t*t : 1+16*(--t)*t*t*t*t }
+}
+
+
+
+/**
+ * Get cached regular expression
+ * @function getRegExp
+ * @param {string} expr
+ * @returns {RegExp}
+ */
+function getRegExp(expr) {
+    var g = lib_Cache.global(),
+        k = "regex_"+expr;
+    return g.get(k) || g.add(k, new RegExp(expr));
+};
+
+
+
+
+
+
+/**
+ * @param {String} cls
+ * @returns {RegExp}
+ */
+var dom_getClsReg = MetaphorJs.dom.getClsReg = function(cls) {
+    return getRegExp('(?:^|\\s)'+cls+'(?!\\S)');
+};
+
+
+
+
+
+/**
+ * @function MetaphorJs.dom.hasClass
+ * @param {Element} el
+ * @param {String} cls
+ * @returns {boolean}
+ */
+var dom_hasClass = MetaphorJs.dom.hasClass = function(el, cls) {
+    return cls ? dom_getClsReg(cls).test(el.className) : false;
+};
+
+
+
+
+
+/**
+ * @function MetaphorJs.dom.addClass
+ * @param {Element} el
+ * @param {string} cls
+ */
+var dom_addClass = MetaphorJs.dom.addClass = function dom_addClass(el, cls) {
+    if (cls && !dom_hasClass(el, cls)) {
+        el.className += " " + cls;
+    }
+};
+
+
+
+
+
+
+
+
+/**
+ * Remove element's class
+ * @function MetaphorJs.dom.removeClass
+ * @param {DomNode} el
+ * @param {string} cls
+ */
+var dom_removeClass = MetaphorJs.dom.removeClass = function(el, cls) {
+    if (cls) {
+        el.className = el.className.replace(dom_getClsReg(cls), '');
+    }
+};
+
+
+
+var raf = function() {
+
+    var raf,
+        cancel;
+
+    if (typeof window !== strUndef) {
+        var w   = window;
+        raf     = w.requestAnimationFrame ||
+                    w.webkitRequestAnimationFrame ||
+                    w.mozRequestAnimationFrame;
+        cancel  = w.cancelAnimationFrame ||
+                    w.webkitCancelAnimationFrame ||
+                    w.mozCancelAnimationFrame ||
+                    w.webkitCancelRequestAnimationFrame;
+
+        if (raf) {
+            return function(fn, context, args) {
+                var id = raf(context || args ? function(){
+                    fn.apply(context, args || []);
+                } : fn);
+                return function() {
+                    cancel(id);
+                };
+            };
+        }
+    }
+
+    return function(fn, context, args){
+        var id = async(fn, context, args, 0);
+        return function(){
+            clearTimeout(id);
+        };
+    };
+
+}();
+
+
+
+
+
+
+
+
+
+
+
+
+var animate_animate = MetaphorJs.animate.animate = function(){
+
+    var types           = {
+            "show":     ["mjs-show"],
+            "hide":     ["mjs-hide"],
+            "enter":    ["mjs-enter"],
+            "leave":    ["mjs-leave"],
+            "move":     ["mjs-move"]
+        },
+
+        animId          = 0,
+        dataParam       = "mjsAnimationQueue",
+
+        callTimeout     = function(fn, startTime, duration) {
+            var tick = function(){
+                var time = (new Date).getTime();
+                if (time - startTime >= duration) {
+                    fn();
+                }
+                else {
+                    raf(tick);
+                }
+            };
+            raf(tick);
+        },
+
+
+        nextInQueue     = function(el) {
+            var queue = dom_data(el, dataParam),
+                next;
+            if (queue.length) {
+                next = queue[0];
+                animationStage(next.el, next.stages, 0, next.start, next.deferred, false, next.id, next.step);
+            }
+            else {
+                dom_data(el, dataParam, null);
+            }
+        },
+
+        animationStage  = function animationStage(el, stages, position, startCallback,
+                                                  deferred, first, id, stepCallback) {
+
+            var stopped   = function() {
+                var q = dom_data(el, dataParam);
+                if (!q || !q.length || q[0].id != id) {
+                    deferred.reject(el);
+                    return true;
+                }
+                return false;
+            };
+
+            var finishStage = function() {
+
+                if (stopped()) {
+                    return;
+                }
+
+                var thisPosition = position;
+
+                position++;
+
+                if (position === stages.length) {
+                    deferred.resolve(el);
+                    dom_data(el, dataParam).shift();
+                    nextInQueue(el);
+                }
+                else {
+                    dom_data(el, dataParam)[0].position = position;
+                    animationStage(el, stages, position, null, deferred, false, id, stepCallback);
+                }
+
+                dom_removeClass(el, stages[thisPosition]);
+                dom_removeClass(el, stages[thisPosition] + "-active");
+            };
+
+            var setStage = function() {
+
+                if (!stopped()) {
+
+                    dom_addClass(el, stages[position] + "-active");
+
+                    lib_Promise.resolve(stepCallback && stepCallback(el, position, "active"))
+                        .done(function(){
+                            if (!stopped()) {
+
+                                var duration = animate_getDuration(el);
+
+                                if (duration) {
+                                    callTimeout(finishStage, (new Date).getTime(), duration);
+                                }
+                                else {
+                                    raf(finishStage);
+                                }
+                            }
+                        });
+                }
+
+            };
+
+            var start = function(){
+
+                if (!stopped()) {
+                    dom_addClass(el, stages[position]);
+
+                    lib_Promise.waterfall([
+                            stepCallback && stepCallback(el, position, "start"),
+                            function(){
+                                return startCallback ? startCallback(el) : null;
+                            }
+                        ])
+                        .done(function(){
+                            !stopped() && raf(setStage);
+                        });
+                }
+            };
+
+            first ? raf(start) : start();
+        },
+
+
+        jsAnimation = function(el, animation, deferred, startCallback, stepCallback) {
+
+            var duration    = animation.duration || 500,
+                timingFn    = animation.timing || "linear",
+                from        = animation.from,
+                to          = animation.to,
+                draw        = animation.draw;
+                
+            timingFn = typeof timingFn === "string" ? 
+                            animate_easing[timingFn] :
+                            timingFn;
+
+            if (!timingFn) {
+                throw new Error("Missing easing function " + animation.timing);
+            }
+
+            typeof from === "function" && (from = from(el));
+            typeof to === "function" && (to = to(el));
+
+            var calc = animation.calc || function(from, to, frac) {
+                return from + ((to - from) * frac);
+            };
+            
+            var apply = function(progress) {
+
+                var res;
+
+                if (isPlainObject(to)) {
+                    res = {};
+                    for (var k in to) {
+                        res[k] = calc(from[k], to[k], progress, k);
+                    }
+                }
+                else {
+                    res = calc(from, to, progress);
+                }
+
+                draw(el, res);
+                stepCallback && stepCallback(el, res);
+            };
+
+            var step = function() {
+                // timeFraction goes from 0 to 1
+                var time = (new Date).getTime();
+                var timeFraction = (time - start) / duration;
+                if (timeFraction > 1) timeFraction = 1;
+    
+                // calculate the current animation state
+                var progress = timingFn(timeFraction);
+    
+                apply(progress); // draw it
+    
+                if (timeFraction < 1) {
+                    raf(step);
+                }
+                else {
+                    deferred.resolve(el);
+                }
+            };
+            
+            var start = (new Date).getTime();
+            startCallback && startCallback(el);
+            step(start);
+        };
+
+
+    /**
+     * @function MetaphorJs.animate.animate
+     * @param {Element} el Element being animated
+     * @param {string|function|[]|object} animation {
+     *  'string' - registered animation name,<br>
+     *  'function' - fn(el, callback) - your own animation<br>
+     *  'array' - array or stages (class names)<br>
+     *  'array' - [{before}, {after}] - jquery animation<br>
+     *  'object' - {stages, fn, before, after, options, context, duration, start}
+     * }
+     * @param {function} startCallback call this function before animation begins
+     * @param {function} stepCallback call this function between stages
+     * @returns {lib_Promise}
+     */
+    var animate = function animate(el, animation, startCallback, stepCallback) {
+
+        var deferred    = new lib_Promise,
+            queue       = dom_data(el, dataParam) || [],
+            id          = ++animId,
+            stages,
+            jsFn,
+            before, after,
+            options, context,
+            duration;
+
+        if (animation) {
+
+            if (isString(animation)) {
+                stages = types[animation];
+            }
+            else if (isFunction(animation)) {
+                jsFn = animation;
+            }
+            else if (isArray(animation)) {
+                if (isString(animation[0])) {
+                    stages = animation;
+                }
+                else {
+                    before = animation[0];
+                    after = animation[1];
+                }
+            }
+            else if (isPlainObject(animation)) {
+                stages      = animation.stages;
+                jsFn        = animation.fn;
+                before      = animation.before;
+                after       = animation.after;
+                options     = animation.options ? extend({}, animation.options) : {};
+                context     = animation.context || null;
+                duration    = animation.duration || null;
+                startCallback   = startCallback || options.start;
+            }
+
+            if (animate_isCssSupported() && stages) {
+
+                queue.push({
+                    el: el,
+                    stages: stages,
+                    start: startCallback,
+                    step: stepCallback,
+                    deferred: deferred,
+                    position: 0,
+                    id: id
+                });
+                dom_data(el, dataParam, queue);
+
+                if (queue.length === 1) {
+                    animationStage(el, stages, 0, startCallback, deferred, true, id, stepCallback);
+                }
+
+                return deferred;
+            }
+            else if (animation.draw) {
+                jsAnimation(el, animation, deferred, startCallback, stepCallback);
+                return deferred;
+            }
+            else {
+
+                options = options || {};
+
+                startCallback && (options.start = function(){
+                    startCallback(el);
+                });
+
+                options.complete = function() {
+                    deferred.resolve(el);
+                };
+
+                duration && (options.duration = duration);
+
+                if (jsFn && isFunction(jsFn)) {
+                    if (before) {
+                        extend(el.style, before, true, false);
+                    }
+                    startCallback && startCallback(el);
+                    dom_data(el, dataParam, jsFn.call(context, el, function(){
+                        deferred.resolve(el);
+                    }));
+                    return deferred;
+                }
+                else if (window.jQuery) {
+
+                    var j = $(el);
+                    before && j.css(before);
+                    dom_data(el, dataParam, "stop");
+
+                    if (jsFn && isString(jsFn)) {
+                        j[jsFn](options);
+                        return deferred;
+                    }
+                    else if (after) {
+                        j.animate(after, options);
+                        return deferred;
+                    }
+                }
+            }
+        }
+
+        // no animation happened
+
+        if (startCallback) {
+            var promise = startCallback(el);
+            if (isThenable(promise)) {
+                promise.done(function(){
+                    deferred.resolve(el);
+                });
+            }
+            else {
+                deferred.resolve(el);
+            }
+        }
+        else {
+            deferred.resolve(el);
+        }
+
+        return deferred;
+    };
+
+    /**
+     * @function MetaphorJs.animate.animate.addAnimationType
+     * @param {string} name 
+     * @param {array} stages 
+     */
+    animate.addAnimationType     = function(name, stages) {
+        types[name] = stages;
+    };
+
+    return animate;
+}();
+
+
+
+
+
+
+/**
+ * Modified version of YASS (http://yass.webo.in)
+ */
+
+/**
+ * Returns array of nodes or an empty array
+ * @function MetaphorJs.dom.select
+ * @param {string} selector
+ * @param {Element} root to look into
+ */
+var select = MetaphorJs.dom.select = function() {
+
+    var rGeneric    = /^[\w[:#.][\w\]*^|=!]*$/,
+        rQuote      = /=([^\]]+)/,
+        rGrpSplit   = / *, */,
+        rRepPlus    = /(\([^)]*)\+/,
+        rRepTild    = /(\[[^\]]+)~/,
+        rRepAll     = /(~|>|\+)/,
+        rSplitPlus  = / +/,
+        rSingleMatch= /([^[:.#]+)?(?:#([^[:.#]+))?(?:\.([^[:.]+))?(?:\[([^!&^*|$[:=]+)([!$^*|&]?=)?([^:\]]+)?\])?(?::([^(]+)(?:\(([^)]+)\))?)?/,
+        rNthNum     = /(?:(-?\d*)n)?(?:(%|-)(\d*))?/,
+        rNonDig     = /\D/,
+        rRepPrnth   = /[^(]*\(([^)]*)\)/,
+        rRepAftPrn  = /\(.*/,
+        rGetSquare  = /\[([^!~^*|$ [:=]+)([$^*|]?=)?([^ :\]]+)?\]/,
+
+        doc         = window.document,
+        bcn         = !!doc.getElementsByClassName,
+        qsa         = !!doc.querySelectorAll,
+
+        /*
+         function calls for CSS2/3 modificatos. Specification taken from
+         http://www.w3.org/TR/2005/WD-css3-selectors-20051215/
+         on success return negative result.
+         */
+        mods        = {
+            /* W3C: "an E element, first child of its parent" */
+            'first-child': function (child) {
+                /* implementation was taken from jQuery.1.2.6, line 1394 */
+                return child.parentNode.getElementsByTagName('*')[0] !== child;
+            },
+            /* W3C: "an E element, last child of its parent" */
+            'last-child': function (child) {
+                var brother = child;
+                /* loop in lastChilds while nodeType isn't element */
+                while ((brother = brother.nextSibling) && brother.nodeType !== 1) {}
+                /* Check for node's existence */
+                return !!brother;
+            },
+            /* W3C: "an E element, root of the document" */
+            root: function (child) {
+                return child.nodeName.toLowerCase() !== 'html';
+            },
+            /* W3C: "an E element, the n-th child of its parent" */
+            'nth-child': function (child, ind) {
+                var i = child.nodeIndex || 0,
+                    a = ind[3] = ind[3] ? (ind[2] === '%' ? -1 : 1) * ind[3] : 0,
+                    b = ind[1];
+                /* check if we have already looked into siblings, using exando - very bad */
+                if (i) {
+                    return !( (i + a) % b);
+                } else {
+                    /* in the other case just reverse logic for n and loop siblings */
+                    var brother = child.parentNode.firstChild;
+                    i++;
+                    /* looping in child to find if nth expression is correct */
+                    do {
+                        /* nodeIndex expando used from Peppy / Sizzle/ jQuery */
+                        if (brother.nodeType === 1 && (brother.nodeIndex = ++i) && child === brother && ((i + a) % b)) {
+                            return 0;
+                        }
+                    } while (brother = brother.nextSibling);
+                    return 1;
+                }
+            },
+            /*
+             W3C: "an E element, the n-th child of its parent,
+             counting from the last one"
+             */
+            'nth-last-child': function (child, ind) {
+                /* almost the same as the previous one */
+                var i = child.nodeIndexLast || 0,
+                    a = ind[3] ? (ind[2] === '%' ? -1 : 1) * ind[3] : 0,
+                    b = ind[1];
+                if (i) {
+                    return !( (i + a) % b);
+                } else {
+                    var brother = child.parentNode.lastChild;
+                    i++;
+                    do {
+                        if (brother.nodeType === 1 && (brother.nodeLastIndex = i++) && child === brother && ((i + a) % b)) {
+                            return 0;
+                        }
+                    } while (brother = brother.previousSibling);
+                    return 1;
+                }
+            },
+            /*
+             Rrom w3.org: "an E element that has no children (including text nodes)".
+             Thx to John, from Sizzle, 2008-12-05, line 416
+             */
+            empty: function (child) {
+                return !!child.firstChild;
+            },
+            /* thx to John, stolen from Sizzle, 2008-12-05, line 413 */
+            parent: function (child) {
+                return !child.firstChild;
+            },
+            /* W3C: "an E element, only child of its parent" */
+            'only-child': function (child) {
+                return child.parentNode.getElementsByTagName('*').length !== 1;
+            },
+            /*
+             W3C: "a user interface element E which is checked
+             (for instance a radio-button or checkbox)"
+             */
+            checked: function (child) {
+                return !child.checked;
+            },
+            /*
+             W3C: "an element of type E in language "fr"
+             (the document language specifies how language is determined)"
+             */
+            lang: function (child, ind) {
+                return child.lang !== ind && doc.documentElement.lang !== ind;
+            },
+            /* thx to John, from Sizzle, 2008-12-05, line 398 */
+            enabled: function (child) {
+                return child.disabled || child.type === 'hidden';
+            },
+            /* thx to John, from Sizzle, 2008-12-05, line 401 */
+            disabled: function (child) {
+                return !child.disabled;
+            },
+            /* thx to John, from Sizzle, 2008-12-05, line 407 */
+            selected: function(elem){
+                /*
+                 Accessing this property makes selected-by-default
+                 options in Safari work properly.
+                 */
+                var tmp = elem.parentNode.selectedIndex;
+                return !elem.selected;
+            }
+        },
+
+        attrRegCache = {},
+
+        getAttrReg  = function(value) {
+            return attrRegCache[value] || (attrRegCache[value] = new RegExp('(^| +)' + value + '($| +)'));
+        },
+
+        attrMods    = {
+            /* W3C "an E element with a "attr" attribute" */
+            '': function (child, name) {
+                return dom_getAttr(child, name) !== null;
+            },
+            /*
+             W3C "an E element whose "attr" attribute value is
+             exactly equal to "value"
+             */
+            '=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = dom_getAttr(child, name)) && attrValue === value;
+            },
+            /*
+             from w3.prg "an E element whose "attr" attribute value is
+             a list of space-separated values, one of which is exactly
+             equal to "value"
+             */
+            '&=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = dom_getAttr(child, name)) && getAttrReg(value).test(attrValue);
+            },
+            /*
+             from w3.prg "an E element whose "attr" attribute value
+             begins exactly with the string "value"
+             */
+            '^=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = dom_getAttr(child, name) + '') && !attrValue.indexOf(value);
+            },
+            /*
+             W3C "an E element whose "attr" attribute value
+             ends exactly with the string "value"
+             */
+            '$=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = dom_getAttr(child, name) + '') &&
+                       attrValue.indexOf(value) === attrValue.length - value.length;
+            },
+            /*
+             W3C "an E element whose "attr" attribute value
+             contains the substring "value"
+             */
+            '*=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = dom_getAttr(child, name) + '') && attrValue.indexOf(value) !== -1;
+            },
+            /*
+             W3C "an E element whose "attr" attribute has
+             a hyphen-separated list of values beginning (from the
+             left) with "value"
+             */
+            '|=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = dom_getAttr(child, name) + '') &&
+                       (attrValue === value || !!attrValue.indexOf(value + '-'));
+            },
+            /* attr doesn't contain given value */
+            '!=': function (child, name, value) {
+                var attrValue;
+                return !(attrValue = dom_getAttr(child, name)) || !getAttrReg(value).test(attrValue);
+            }
+        };
+
+
+    return function(selector, root, noNative) {
+
+        /* clean root with document */
+        root = root || doc;
+
+        /* sets of nodes, to handle comma-separated selectors */
+        var sets    = [],
+            qsaErr  = null,
+            idx, cls, nodes,
+            i, node, ind, mod,
+            attrs, attrName, eql, value;
+
+        if (qsa && root.querySelectorAll && !noNative) {
+            /* replace not quoted args with quoted one -- Safari doesn't understand either */
+            try {
+                sets = toArray(root.querySelectorAll(selector.replace(rQuote, '="$1"')));
+            }
+            catch (thrownError) {
+                error(thrownError);
+                qsaErr = true;
+            }
+        }
+
+        if (!qsa || qsaErr || noNative) {
+
+            /* quick return or generic call, missed ~ in attributes selector */
+            if (rGeneric.test(selector)) {
+
+                /*
+                 some simple cases - only ID or only CLASS for the very first occurence
+                 - don't need additional checks. Switch works as a hash.
+                 */
+                idx = 0;
+
+                /* the only call -- no cache, thx to GreLI */
+                switch (selector.charAt(0)) {
+
+                    case '#':
+                        idx = selector.slice(1);
+                        sets = doc.getElementById(idx);
+
+                        /*
+                         workaround with IE bug about returning element by name not by ID.
+                         Solution completely changed, thx to deerua.
+                         Get all matching elements with this id
+                         */
+                        if (sets.id !== idx) {
+                            sets = doc.all[idx];
+                        }
+
+                        sets = sets ? [sets] : [];
+                        break;
+
+                    case '.':
+
+                        cls = selector.slice(1);
+
+                        if (bcn) {
+
+                            sets = toArray((idx = (sets = root.getElementsByClassName(cls)).length) ? sets : []);
+
+                        } else {
+
+                            /* no RegExp, thx to DenVdmj */
+                            cls = ' ' + cls + ' ';
+
+                            nodes = root.getElementsByTagName('*');
+                            i = 0;
+
+                            while (node = nodes[i++]) {
+                                if ((' ' + node.className + ' ').indexOf(cls) !== -1) {
+                                    sets[idx++] = node;
+                                }
+
+                            }
+                            sets = idx ? sets : [];
+                        }
+                        break;
+
+                    case ':':
+
+                        nodes   = root.getElementsByTagName('*');
+                        i       = 0;
+                        ind     = selector.replace(rRepPrnth,"$1");
+                        mod     = selector.replace(rRepAftPrn,'');
+
+                        while (node = nodes[i++]) {
+                            if (mods[mod] && !mods[mod](node, ind)) {
+                                sets[idx++] = node;
+                            }
+                        }
+                        sets = idx ? sets : [];
+                        break;
+
+                    case '[':
+
+                        nodes   = root.getElementsByTagName('*');
+                        i       = 0;
+                        attrs   = rGetSquare.exec(selector);
+                        attrName    = attrs[1];
+                        eql     = attrs[2] || '';
+                        value   = attrs[3];
+
+                        while (node = nodes[i++]) {
+                            /* check either attr is defined for given node or it's equal to given value */
+                            if (attrMods[eql] && (attrMods[eql](node, attrName, value) ||
+                                                  (attrName === 'class' && attrMods[eql](node, 'className', value)))) {
+                                sets[idx++] = node;
+                            }
+                        }
+                        sets = idx ? sets : [];
+                        break;
+
+                    default:
+                        sets = toArray((idx = (sets = root.getElementsByTagName(selector)).length) ? sets : []);
+                        break;
+                }
+
+            } else {
+
+                /* number of groups to merge or not result arrays */
+                /*
+                 groups of selectors separated by commas.
+                 Split by RegExp, thx to tenshi.
+                 */
+                var groups  = selector.split(rGrpSplit),
+                    gl      = groups.length - 1, /* group counter */
+                    concat  = !!gl, /* if we need to concat several groups */
+                    group,
+                    singles,
+                    singles_length,
+                    single, /* to handle RegExp for single selector */
+                    ancestor, /* to remember ancestor call for next childs, default is " " */
+                /* for inner looping */
+                    tag, id, klass, newNodes, J, child, last, childs, item, h;
+
+                /* loop in groups, maybe the fastest way */
+                while (group = groups[gl--]) {
+
+                    /*
+                     Split selectors by space - to form single group tag-id-class,
+                     or to get heredity operator. Replace + in child modificators
+                     to % to avoid collisions. Additional replace is required for IE.
+                     Replace ~ in attributes to & to avoid collisions.
+                     */
+                    singles_length = (singles = group
+                        .replace(rRepPlus,"$1%")
+                        .replace(rRepTild,"$1&")
+                        .replace(rRepAll," $1 ").split(rSplitPlus)).length;
+
+                    i = 0;
+                    ancestor = ' ';
+                    /* is cleanded up with DOM root */
+                    if (root instanceof DocumentFragment) {
+                        nodes = root.children;
+                    }
+                    else {
+                        nodes = [root];
+                    }
+
+                    /*
+                     John's Resig fast replace works a bit slower than
+                     simple exec. Thx to GreLI for 'greed' RegExp
+                     */
+                    while (single = singles[i++]) {
+
+                        /* simple comparison is faster than hash */
+                        if (single !== ' ' && single !== '>' &&
+                            single !== '~' && single !== '+' && nodes) {
+
+                            single = single.match(rSingleMatch);
+
+                            /*
+                             Get all required matches from exec:
+                             tag, id, class, attribute, value, modificator, index.
+                             */
+                            tag     = single[1] || '*';
+                            id      = single[2];
+                            klass   = single[3] ? ' ' + single[3] + ' ' : '';
+                            attrName    = single[4];
+                            eql     = single[5] || '';
+                            mod     = single[7];
+
+                            /*
+                             for nth-childs modificator already transformed into array.
+                             Example used from Sizzle, rev. 2008-12-05, line 362.
+                             */
+                            ind = mod === 'nth-child' ||
+                                    mod === 'nth-last-child' ?
+                                  rNthNum.exec(
+                                      single[8] === 'even' && '2n' ||
+                                      single[8] === 'odd' && '2n%1' ||
+                                      !rNonDig.test(single[8]) && '0n%' + single[8] ||
+                                      single[8]
+                                  ) :
+                                  single[8];
+
+                            /* new nodes array */
+                            newNodes = [];
+
+                            /*
+                             cached length of new nodes array
+                             and length of root nodes
+                             */
+                            idx = J = 0;
+
+                            /* if we need to mark node with expando yeasss */
+                            last = i === singles_length;
+
+                            /* loop in all root nodes */
+                            while (child = nodes[J++]) {
+                                /*
+                                 find all TAGs or just return all possible neibours.
+                                 Find correct 'children' for given node. They can be
+                                 direct childs, neighbours or something else.
+                                 */
+                                switch (ancestor) {
+                                    case ' ':
+                                        if (child.getElementsByTagName) {
+                                            childs = child.getElementsByTagName(tag);
+                                            h = 0;
+                                            while (item = childs[h++]) {
+                                                /*
+                                                check them for ID or Class. Also check for expando 'yeasss'
+                                                to filter non-selected elements. Typeof 'string' not added -
+                                                if we get element with name="id" it won't be equal to given ID string.
+                                                Also check for given attributes selector.
+                                                Modificator is either not set in the selector, or just has been nulled
+                                                by modificator functions hash.
+                                                */
+                                                if ((!id || item.id === id) &&
+                                                    (!klass || (' ' + item.className + ' ').indexOf(klass) != -1) &&
+                                                    (!attrName || (attrMods[eql] &&
+                                                            (attrMods[eql](item, attrName, single[6]) ||
+                                                                (attrName === 'class' &&
+                                                                attrMods[eql](item, 'className', single[6]))))) &&
+                                                    !item.yeasss && !(mods[mod] ? mods[mod](item, ind) : mod)) {
+
+                                                    /*
+                                                    Need to define expando property to true for the last step.
+                                                    Then mark selected element with expando
+                                                    */
+                                                    if (last) {
+                                                        item.yeasss = 1;
+                                                    }
+                                                    newNodes[idx++] = item;
+                                                }
+                                            }
+                                        }
+                                        break;
+                                    /* W3C: "an F element preceded by an E element" */
+                                    case '~':
+
+                                        tag = tag.toLowerCase();
+
+                                        /* don't touch already selected elements */
+                                        while ((child = child.nextSibling) && !child.yeasss) {
+                                            if (child.nodeType === 1 &&
+                                                (tag === '*' || child.nodeName.toLowerCase() === tag) &&
+                                                (!id || child.id === id) &&
+                                                (!klass || (' ' + child.className + ' ').indexOf(klass) !== -1) &&
+                                                (!attrName || (attrMods[eql] &&
+                                                           (attrMods[eql](item, attrName, single[6]) ||
+                                                            (attrName === 'class' &&
+                                                             attrMods[eql](item, 'className', single[6]))))) &&
+                                                !child.yeasss &&
+                                                !(mods[mod] ? mods[mod](child, ind) : mod)) {
+
+                                                if (last) {
+                                                    child.yeasss = 1;
+                                                }
+                                                newNodes[idx++] = child;
+                                            }
+                                        }
+                                        break;
+
+                                    /* W3C: "an F element immediately preceded by an E element" */
+                                    case '+':
+                                        while ((child = child.nextSibling) && child.nodeType !== 1) {}
+                                        if (child &&
+                                            (child.nodeName.toLowerCase() === tag.toLowerCase() || tag === '*') &&
+                                            (!id || child.id === id) &&
+                                            (!klass || (' ' + item.className + ' ').indexOf(klass) !== -1) &&
+                                            (!attrName ||
+                                             (attrMods[eql] && (attrMods[eql](item, attrName, single[6]) ||
+                                                                (attrName === 'class' &&
+                                                                 attrMods[eql](item, 'className', single[6]))))) &&
+                                            !child.yeasss && !(mods[mod] ? mods[mod](child, ind) : mod)) {
+
+                                            if (last) {
+                                                child.yeasss = 1;
+                                            }
+                                            newNodes[idx++] = child;
+                                        }
+                                        break;
+
+                                    /* W3C: "an F element child of an E element" */
+                                    case '>':
+                                        if (child.getElementsByTagName) {
+                                            childs = child.getElementsByTagName(tag);
+                                            i = 0;
+                                            while (item = childs[i++]) {
+                                                if (item.parentNode === child &&
+                                                    (!id || item.id === id) &&
+                                                    (!klass || (' ' + item.className + ' ').indexOf(klass) != -1) &&
+                                                    (!attrName || (attrMods[eql] &&
+                                                            (attrMods[eql](item, attrName, single[6]) ||
+                                                                (attrName === 'class' &&
+                                                                attrMods[eql](item, 'className', single[6]))))) &&
+                                                    !item.yeasss &&
+                                                    !(mods[mod] ? mods[mod](item, ind) : mod)) {
+
+                                                    if (last) {
+                                                        item.yeasss = 1;
+                                                    }
+                                                    newNodes[idx++] = item;
+                                                }
+                                            }
+                                        }
+                                        break;
+                                }
+                            }
+
+                            /* put selected nodes in local nodes' set */
+                            nodes = newNodes;
+
+                        } else {
+
+                            /* switch ancestor ( , > , ~ , +) */
+                            ancestor = single;
+                        }
+                    }
+
+                    if (concat) {
+                        /* if sets isn't an array - create new one */
+                        if (!nodes.concat) {
+                            newNodes = [];
+                            h = 0;
+                            while (item = nodes[h]) {
+                                newNodes[h++] = item;
+                            }
+                            nodes = newNodes;
+                            /* concat is faster than simple looping */
+                        }
+                        sets = nodes.concat(sets.length === 1 ? sets[0] : sets);
+
+                    } else {
+
+                        /* inialize sets with nodes */
+                        sets = nodes;
+                    }
+                }
+
+                /* define sets length to clean up expando */
+                idx = sets.length;
+
+                /*
+                 Need this looping as far as we also have expando 'yeasss'
+                 that must be nulled. Need this only to generic case
+                 */
+                while (idx--) {
+                    sets[idx].yeasss = sets[idx].nodeIndex = sets[idx].nodeIndexLast = null;
+                }
+            }
+        }
+
+        /* return and cache results */
+        return sets;
+    };
+}();
+
+
+
 /**
  * Transform xml into a document
  * @function parseXML
@@ -10821,6 +10200,8 @@ var ajax_serializeParam = MetaphorJs.ajax.serializeParam = function(){
 
 
 
+
+
 var ajax_transport_XHR = MetaphorJs.ajax.transport.XHR = (function(){
 
     var accepts     = {
@@ -10849,7 +10230,8 @@ var ajax_transport_XHR = MetaphorJs.ajax.transport.XHR = (function(){
 
         httpSuccess     = function(r) {
             try {
-                return (!r.status && location && location.protocol === "file:")
+                return (!r.status && window.location && 
+                        window.location.protocol === "file:")
                        || (r.status >= 200 && r.status < 300)
                        || r.status === 304 || r.status === 1223; // || r.status === 0;
             } 
@@ -10931,7 +10313,6 @@ var ajax_transport_XHR = MetaphorJs.ajax.transport.XHR = (function(){
                 xhr.onreadystatechange = emptyFn;
 
                 if (httpSuccess(xhr)) {
-
                     self._ajax.processResponse(
                         isString(xhr.responseText) ? xhr.responseText : undf,
                         xhr.getResponseHeader("content-type") || ''
@@ -10942,10 +10323,16 @@ var ajax_transport_XHR = MetaphorJs.ajax.transport.XHR = (function(){
                     xhr.responseData = null;
 
                     try {
+                        // dirty hack. Prevent response processing tools
+                        // from resolving the promise.
+                        // they are needed to process the response though
+                        // even it failed. 
+                        self._ajax.$$promise = new lib_Promise;
                         xhr.responseData = self._ajax.returnResponse(
                             isString(xhr.responseText) ? xhr.responseText : undf,
                             xhr.getResponseHeader("content-type") || ''
                         );
+                        self._ajax.$$promise = deferred;
                     }
                     catch (thrownErr) {
                         error(thrownError);
@@ -10985,6 +10372,386 @@ var ajax_transport_XHR = MetaphorJs.ajax.transport.XHR = (function(){
 
 
 
+
+/**
+ * Function that returns false
+ * @function returnFalse
+ * @returns {boolean}
+ */
+function returnFalse() {
+    return false;
+};
+
+/**
+ * Function that returns true
+ * @function returnTrue
+ * @returns {boolean}
+ */
+function returnTrue() {
+    return true;
+};
+
+/**
+ * Check if given value is a null value
+ * @function isNull
+ * @param {*} value 
+ * @returns {boolean}
+ */
+function isNull(value) {
+    return value === null;
+};
+
+
+
+// from jQuery
+
+/**
+ * Dom event wrapper.
+ * @class MetaphorJs.lib.DomEvent
+ */
+
+/**
+ * @method DomEvent
+ * @constructor
+ * @param {Event} src Native event
+ */
+var lib_DomEvent = MetaphorJs.lib.DomEvent = function(){
+
+var DomEvent = function DomEvent(src) {
+
+    if (src instanceof DomEvent) {
+        return src;
+    }
+
+    // Allow instantiation without the 'new' keyword
+    if (!(this instanceof DomEvent)) {
+        return new DomEvent(src);
+    }
+
+
+    var self    = this;
+
+    for (var i in src) {
+        if (!self[i]) {
+            try {
+                self[i] = src[i];
+            }
+            catch (thrownError){}
+        }
+    }
+
+
+    // Event object
+    self.originalEvent = src;
+    self.type = src.type;
+
+    if (!self.target && src.srcElement) {
+        self.target = src.srcElement;
+    }
+
+
+    var eventDoc, doc, body,
+        button = src.button;
+
+    // Calculate pageX/Y if missing and clientX/Y available
+    if (self.pageX === undf && !isNull(src.clientX)) {
+        eventDoc = self.target ? self.target.ownerDocument || window.document : window.document;
+        doc = eventDoc.documentElement;
+        body = eventDoc.body;
+
+        self.pageX = src.clientX +
+                      ( doc && doc.scrollLeft || body && body.scrollLeft || 0 ) -
+                      ( doc && doc.clientLeft || body && body.clientLeft || 0 );
+        self.pageY = src.clientY +
+                      ( doc && doc.scrollTop  || body && body.scrollTop  || 0 ) -
+                      ( doc && doc.clientTop  || body && body.clientTop  || 0 );
+    }
+
+    // Add which for click: 1 === left; 2 === middle; 3 === right
+    // Note: button is not normalized, so don't use it
+    if ( !self.which && button !== undf ) {
+        self.which = ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
+    }
+
+    // Events bubbling up the document may have been marked as prevented
+    // by a handler lower down the tree; reflect the correct value.
+    self.isDefaultPrevented = src.defaultPrevented ||
+                              src.defaultPrevented === undf &&
+                                  // Support: Android<4.0
+                              src.returnValue === false ?
+                              returnTrue :
+                              returnFalse;
+
+
+    // Create a timestamp if incoming event doesn't have one
+    self.timeStamp = src && src.timeStamp || (new Date).getTime();
+};
+
+// Event is based on DOM3 Events as specified by the ECMAScript Language Binding
+// http://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
+extend(DomEvent.prototype, {
+
+    /**
+     * @method isDefaultPrevented
+     * @returns {boolean}
+     */
+    isDefaultPrevented: returnFalse,
+
+    /**
+     * @method isPropagationStopped
+     * @returns {boolean}
+     */
+    isPropagationStopped: returnFalse,
+
+    /**
+     * @method isImmediatePropagationStopped
+     * @returns {boolean}
+     */
+    isImmediatePropagationStopped: returnFalse,
+
+    /**
+     * @method
+     */
+    preventDefault: function() {
+        var e = this.originalEvent;
+
+        this.isDefaultPrevented = returnTrue;
+        e.returnValue = false;
+
+        if ( e && e.preventDefault ) {
+            e.preventDefault();
+        }
+    },
+
+    /**
+     * @method
+     */
+    stopPropagation: function() {
+        var e = this.originalEvent;
+
+        this.isPropagationStopped = returnTrue;
+        e.cancelBubble = true;
+
+        if ( e && e.stopPropagation ) {
+            e.stopPropagation();
+        }
+    },
+
+    /**
+     * @method
+     */
+    stopImmediatePropagation: function() {
+        var e = this.originalEvent;
+
+        this.isImmediatePropagationStopped = returnTrue;
+
+        if ( e && e.stopImmediatePropagation ) {
+            e.stopImmediatePropagation();
+        }
+
+        this.stopPropagation();
+    }
+}, true, false);
+
+return DomEvent;
+
+}();
+
+
+
+
+
+var dom_normalizeEvent = MetaphorJs.dom.normalizeEvent = function(originalEvent) {
+    return new lib_DomEvent(originalEvent);
+};
+
+
+// from jquery.mousewheel plugin
+
+
+
+
+
+var _mousewheelHandler = function(e) {
+
+    function shouldAdjustOldDeltas(orgEvent, absDelta) {
+        // If this is an older event and the delta is divisable by 120,
+        // then we are assuming that the browser is treating this as an
+        // older mouse wheel event and that we should divide the deltas
+        // by 40 to try and get a more usable deltaFactor.
+        // Side note, this actually impacts the reported scroll distance
+        // in older browsers and can cause scrolling to be slower than native.
+        // Turn this off by setting $.event.special.mousewheel.settings.adjustOldDeltas to false.
+        return orgEvent.type === 'mousewheel' && absDelta % 120 === 0;
+    }
+
+    function nullLowestDelta() {
+        lowestDelta = null;
+    }
+
+    var nullLowestDeltaTimeout, lowestDelta;
+
+    var mousewheelHandler = function(fn) {
+
+        return function mousewheelHandler(e) {
+
+            var event = dom_normalizeEvent(e || window.event),
+                args = slice.call(arguments, 1),
+                delta = 0,
+                deltaX = 0,
+                deltaY = 0,
+                absDelta = 0,
+                offsetX = 0,
+                offsetY = 0;
+
+
+            event.type = 'mousewheel';
+
+            // Old school scrollwheel delta
+            if ('detail'      in event) { deltaY = event.detail * -1; }
+            if ('wheelDelta'  in event) { deltaY = event.wheelDelta; }
+            if ('wheelDeltaY' in event) { deltaY = event.wheelDeltaY; }
+            if ('wheelDeltaX' in event) { deltaX = event.wheelDeltaX * -1; }
+
+            // Firefox < 17 horizontal scrolling related to DOMMouseScroll event
+            if ('axis' in event && event.axis === event.HORIZONTAL_AXIS) {
+                deltaX = deltaY * -1;
+                deltaY = 0;
+            }
+
+            // Set delta to be deltaY or deltaX if deltaY is 0 for backwards compatabilitiy
+            delta = deltaY === 0 ? deltaX : deltaY;
+
+            // New school wheel delta (wheel event)
+            if ('deltaY' in event) {
+                deltaY = event.deltaY * -1;
+                delta = deltaY;
+            }
+            if ('deltaX' in event) {
+                deltaX = event.deltaX;
+                if (deltaY === 0) { delta = deltaX * -1; }
+            }
+
+            // No change actually happened, no reason to go any further
+            if (deltaY === 0 && deltaX === 0) { return; }
+
+            // Store lowest absolute delta to normalize the delta values
+            absDelta = Math.max(Math.abs(deltaY), Math.abs(deltaX));
+
+            if (!lowestDelta || absDelta < lowestDelta) {
+                lowestDelta = absDelta;
+
+                // Adjust older deltas if necessary
+                if (shouldAdjustOldDeltas(event, absDelta)) {
+                    lowestDelta /= 40;
+                }
+            }
+
+            // Adjust older deltas if necessary
+            if (shouldAdjustOldDeltas(event, absDelta)) {
+                // Divide all the things by 40!
+                delta /= 40;
+                deltaX /= 40;
+                deltaY /= 40;
+            }
+
+            // Get a whole, normalized value for the deltas
+            delta = Math[delta >= 1 ? 'floor' : 'ceil'](delta / lowestDelta);
+            deltaX = Math[deltaX >= 1 ? 'floor' : 'ceil'](deltaX / lowestDelta);
+            deltaY = Math[deltaY >= 1 ? 'floor' : 'ceil'](deltaY / lowestDelta);
+
+            // Normalise offsetX and offsetY properties
+            if (this.getBoundingClientRect) {
+                var boundingRect = this.getBoundingClientRect();
+                offsetX = event.clientX - boundingRect.left;
+                offsetY = event.clientY - boundingRect.top;
+            }
+
+            // Add information to the event object
+            event.deltaX = deltaX;
+            event.deltaY = deltaY;
+            event.deltaFactor = lowestDelta;
+            event.offsetX = offsetX;
+            event.offsetY = offsetY;
+            // Go ahead and set deltaMode to 0 since we converted to pixels
+            // Although this is a little odd since we overwrite the deltaX/Y
+            // properties with normalized deltas.
+            event.deltaMode = 0;
+
+            // Add event and delta to the front of the arguments
+            args.unshift(event, delta, deltaX, deltaY);
+
+            // Clearout lowestDelta after sometime to better
+            // handle multiple device types that give different
+            // a different lowestDelta
+            // Ex: trackpad = 3 and mouse wheel = 120
+            if (nullLowestDeltaTimeout) { clearTimeout(nullLowestDeltaTimeout); }
+            nullLowestDeltaTimeout = setTimeout(nullLowestDelta, 200);
+
+
+
+            return fn.apply(this, args);
+        }
+    };
+
+    mousewheelHandler.events = function() {
+        var doc = window.document;
+        return ( 'onwheel' in doc || doc.documentMode >= 9 ) ?
+               ['wheel'] : ['mousewheel', 'DomMouseScroll', 'MozMousePixelScroll'];
+    };
+
+    return mousewheelHandler;
+
+}();
+
+
+
+
+/**
+ * @function MetaphorJs.dom.addListener
+ * @param {Element} el
+ * @param {string} eventName
+ * @param {function} func {
+ *  @param {object} event
+ * }
+ */
+var dom_addListener = MetaphorJs.dom.addListener = function(){
+
+    var fn = null,
+        prefix = null;
+
+    return function dom_addListener(el, event, func) {
+
+        if (fn === null) {
+            if (el.addEventListener) {
+                fn = "addEventListener";
+                prefix = "";
+            }
+            else {
+                fn = "attachEvent";
+                prefix = "on";
+            }
+            //fn = el.attachEvent ? "attachEvent" : "addEventListener";
+            //prefix = el.attachEvent ? "on" : "";
+        }
+
+
+        if (event == "mousewheel") {
+            func = _mousewheelHandler(func);
+            var events = _mousewheelHandler.events(),
+                i, l;
+            for (i = 0, l = events.length; i < l; i++) {
+                el[fn](prefix + events[i], func, false);
+            }
+        }
+        else {
+            el[fn](prefix + event, func, false);
+        }
+
+        return func;
+    }
+
+}();
 
 
 
@@ -11421,7 +11188,7 @@ var ajax_Ajax = MetaphorJs.ajax.Ajax = (function(){
                 }
             }
             else if (opt.contentType === "json") {
-                opt.contentType = opt.contentTypeHeader || "text/plain";
+                opt.contentType = opt.contentTypeHeader || "application/json";
                 opt.data = isString(opt.data) ? opt.data : JSON.stringify(opt.data);
             }
             else if (isPlainObject(opt.data) && opt.method == "POST" && formDataSupport) {
@@ -12751,6 +12518,126 @@ var app_Template = MetaphorJs.app.Template = function() {
 
 
 
+var htmlTags = MetaphorJs.dom.htmlTags = [
+    "a",
+    "abbr",
+    "address",
+    "area",
+    "article",
+    "aside",
+    "audio",
+    "b",
+    "base",
+    "bdi",
+    "bdo",
+    "blockquote",
+    "body",
+    "br",
+    "button",
+    "canvas",
+    "caption",
+    "cite",
+    "code",
+    "col",
+    "colgroup",
+    "data",
+    "datalist",
+    "dd",
+    "del",
+    "details",
+    "dfn",
+    "dialog",
+    "div",
+    "dl",
+    "dt",
+    "em",
+    "embed",
+    "fieldset",
+    "figcaption",
+    "figure",
+    "footer",
+    "form",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "head",
+    "header",
+    "hgroup",
+    "hr",
+    "html",
+    "i",
+    "iframe",
+    "img",
+    "input",
+    "ins",
+    "kbd",
+    "keygen",
+    "label",
+    "legend",
+    "li",
+    "link",
+    "main",
+    "map",
+    "mark",
+    "math",
+    "menu",
+    "menuitem",
+    "meta",
+    "meter",
+    "nav",
+    "noscript",
+    "object",
+    "ol",
+    "optgroup",
+    "option",
+    "output",
+    "p",
+    "param",
+    "picture",
+    "pre",
+    "progress",
+    "q",
+    "rb",
+    "rp",
+    "rt",
+    "rtc",
+    "ruby",
+    "s",
+    "samp",
+    "script",
+    "section",
+    "select",
+    "slot",
+    "small",
+    "source",
+    "span",
+    "strong",
+    "style",
+    "sub",
+    "summary",
+    "sup",
+    "svg",
+    "table",
+    "tbody",
+    "td",
+    "template",
+    "textarea",
+    "tfoot",
+    "th",
+    "thead",
+    "time",
+    "title",
+    "tr",
+    "track",
+    "u",
+    "ul",
+    "var",
+    "video",
+    "wbr"
+];
 
 
 
@@ -12759,208 +12646,473 @@ var app_Template = MetaphorJs.app.Template = function() {
 
 
 
-var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, node, args) {
 
-    cfg         = cfg || {};
-    args        = args || [];
 
-    scope       = scope || cfg.scope; // || new Scope;
-    node        = node || cfg.node;
-    var config  = cfg.config || null;
 
-    cfg.config  = config;
-    cfg.scope   = cfg.scope || scope;
-    cfg.node    = cfg.node || node;
 
-    if (args.length === 0) {
-        args.push(cfg);
-    }
 
-    if (config) {
-        config.setType("cloak", "bool", lib_Config.MODE_STATIC);
-        config.setType("animate", "bool", lib_Config.MODE_STATIC);
-    }
 
-    var constr      = isString(cmp) ? ns.get(cmp) : cmp;
-    if (!constr) {
-        throw new Error("Component " + cmp + " not found");
-    }
 
-    if (scope && constr.$isolateScope) {
-        cfg.scope   = scope = scope.$newIsolated();
-    }
+/**
+ * @class MetaphorJs.app.Component
+ */
+var app_Component = MetaphorJs.app.Component = cls({
 
-    var i,
-        defers      = [],
-        tpl         = constr.template || cfg.template || null,
-        tplUrl      = constr.templateUrl || cfg.templateUrl || null,
-        app         = scope ? scope.$app : null,
-        gProvider   = lib_Provider.global(),
-        injectFn    = app ? app.inject : gProvider.inject,
-        injectCt    = app ? app : gProvider,
-        cloak       = config ? config.get("cloak") : null,
-        inject      = {
-            $node: node || null,
-            $scope: scope || null,
-            $config: config || null,
-            $args: args || null
-        };
+    $mixins: [mixin_Observable],
+    $mixinEvents: ["$initConfig"],
 
-    if (constr.resolve) {
+    /**
+     * @access protected
+     * @var string
+     */
+    id:             null,
 
-        for (i in constr.resolve) {
-            (function(name){
-                var d = new lib_Promise,
-                    fn;
+    _originalId:     false,
 
-                defers.push(d.done(function(value){
-                    inject[name] = value;
-                    cfg[name] = value;
-                    args.push(value);
-                }));
+    /**
+     * @var Element
+     * @access protected
+     */
+    node:           null,
 
-                fn = constr.resolve[i];
+    /**
+     * @var boolean
+     * @access private
+     */
+    _nodeReplaced:  false,
 
-                if (isFunction(fn)) {
-                    d.resolve(fn(scope, node, config));
-                }
-                /*else if (isString(fn)) {
-                    d.resolve(injectFn(fn));
-                }*/
-                else {
-                    d.resolve(
-                        injectFn.call(
-                            injectCt, fn, null, extend({}, inject, cfg, false, false)
-                        )
-                    );
-                }
+    /**
+     * @var string|Element
+     * @access protected
+     */
+    renderTo:       null,
 
-                d.fail(function(reason){
-                    if (reason instanceof Error) {
-                        error(reason);
-                    }
-                });
+    /**
+     * @var {boolean}
+     */
+    autoRender:     true,
 
-            }(i));
+    /**
+     * @var bool
+     * @access protected
+     */
+    _rendered:       false,
+
+    /*
+     * @var bool
+     * @access protected
+     */
+    //hidden:         false,
+
+    /**
+     * @var bool
+     * @access protected
+     */
+    destroyEl:      true,
+
+    /**
+     * @var {bool}
+     */
+    destroyScope:   false,
+
+    /**
+     * @var {Scope}
+     */
+    scope:          null,
+
+    /**
+     * @var {Template}
+     */
+    template:       null,
+
+    /**
+     * @var string
+     */
+    templateUrl:    null,
+
+
+    /**
+     * @constructor
+     * @param {object} cfg {
+     *      @type string id Element id
+     *      @type string|Element el
+     *      @type string|Element renderTo
+     *      @type bool hidden
+     *      @type bool destroyEl
+     * }
+     */
+    $init: function(cfg) {
+
+        var self    = this;
+
+        cfg = cfg || {};
+
+        self.$super(cfg);
+
+        extend(self, cfg, true, false);
+
+        if (!self.scope) {
+            self.scope = new lib_Scope;
         }
-    }
-
-    if (tpl || tplUrl) {
-
-        cfg.template = new app_Template({
-            scope: scope,
-            node: node,
-            deferRendering: true,
-            ownRenderer: true,
-            shadow: constr.$shadow,
-            tpl: tpl,
-            url: tplUrl,
-            animate: config ? config.get("animate") : false
-        });
-
-        defers.push(cfg.template.initPromise);
-
-        if (node && node.firstChild) {
-            dom_data(
-                node, "mjs-transclude", 
-                dom_toFragment(node.childNodes));
+        if (!self.config) {
+            self.config = new lib_Config(null, {
+                scope: self.scope
+            });
         }
-    }
-
-    var p;
-
-    if (defers.length) {
-        p = new lib_Promise;
-        lib_Promise.all(defers)
-            .done(function(values){
-                p.resolve(
-                    injectFn.call(
-                        injectCt, constr, null, extend({}, inject, cfg, false, false), args
-                    )
-                );
-            })
-            .fail(p.reject, p);
-    }
-    else {
-        p = lib_Promise.resolve(
-            injectFn.call(
-                injectCt, constr, null, extend({}, inject, cfg, false, false), args
-            )
-        );
-    }
-
-    if (node && p.isPending() && cloak !== null) {
-        cloak !== true ? dom_addClass(node, cloak) : node.style.visibility = "hidden";
-        p.then(function() {
-            cloak !== true ? dom_removeClass(node, cloak) : node.style.visibility = "";
-        });
-    }
-
-    if (node) {
-        p.then(function(){
-            dom_removeClass(node, "mjs-cloak");
-        });
-    }
-
-    return p;
-};
-
-
-
-
-
-
-
-
-(function(){
-
-    var cmpAttr = function(scope, node, config, parentRenderer, attrSet) { 
-
-        config.setDefaultMode("value", lib_Config.MODE_STATIC);
-        config.setType("sameScope", "bool", lib_Config.MODE_STATIC);
-        config.setType("isolateScope", "bool", lib_Config.MODE_STATIC);
-        config.setDefaultMode("as", lib_Config.MODE_STATIC);
-        config.setDefaultMode("ref", lib_Config.MODE_STATIC);
-
-        var cmpName = config.get("value"),
-            constr  = typeof cmpName === "string" ?
-                        ns.get(cmpName, true) : cmpName;
-
-        if (!constr) {
-            throw new Error("Component " + cmpName + " not found");
-        }
-
-        var sameScope       = config.get("sameScope") || constr.$sameScope,
-            isolateScope    = config.get("isolateScope") || constr.$isolateScope;
-
-        var newScope = isolateScope ? scope.$newIsolated() : 
-                                        (sameScope ? scope : scope.$new());
-
-        config.removeProperty("value");
-
-        var cfg = {
-            scope: newScope,
-            node: node,
-            config: config,
-            parentRenderer: parentRenderer,
-            destroyScope: !sameScope
-        };
-
-        app_resolve(cmpName, cfg, newScope, node, [cfg])
-            .done(function(cmp) {
-                if (config.hasExpression("ref")) {
-                    scope[config.get("ref")] = cmp;
+        else if (!(self.config instanceof lib_Config)) {
+            self.config = new lib_Config(
+                self.config, 
+                {
+                    scope: self.scope
                 }
+            );
+        }
+
+        self.$cfg = {};
+        self.config.setTo(self.$cfg);
+        self._initConfig();
+        self.$callMixins("$initConfig");
+
+        if (self.config.has("as")) {
+            self.scope[self.config.get("as")] = self;
+        }
+
+        if (self.node) {
+            var nodeId = dom_getAttr(self.node, "id");
+            if (nodeId) {
+                self._originalId = true;
+                if (!self.id) {
+                    self.id = nodeId;
+                }
+            }
+        }
+
+        self.id = self.id || "cmp-" + nextUid();
+
+        if (!self.node && self.node !== false) {
+            self._createNode();
+        }
+
+        self.beforeInitComponent.apply(self, arguments);
+        self.initComponent.apply(self, arguments);
+
+        if (self.scope.$app) {
+            self.scope.$app.registerCmp(self, self.scope, "id");
+        }
+
+        var tpl = self.template,
+            url = self.templateUrl;
+
+        self._nodeReplaced = htmlTags.indexOf(self.node.tagName.toLowerCase()) === -1;
+
+        if (!tpl || !(tpl instanceof app_Template)) {
+            self.template = tpl = new app_Template({
+                scope: self.scope,
+                node: self.node,
+                deferRendering: !tpl || self._nodeReplaced,
+                ownRenderer: true,
+                replace: self._nodeReplaced,
+                tpl: tpl,
+                url: url,
+                shadow: self.constructor.$shadow,
+                animate: !self.hidden && !!self.animate//,
+                //passAttrs: self.passAttrs
             });
 
-        return constr.$resumeRenderer || !!constr.$shadow;
-    };
+            self.template.on("first-node", self._onFirstNodeReported, self);
+        }
+        else if (tpl instanceof app_Template) {
+            // it may have just been created
+            self.template.node = self.node;
+        }
 
-    cmpAttr.$breakScope = false;
+        self.afterInitComponent.apply(self, arguments);
 
-    Directive.registerAttribute("cmp", 200, cmpAttr);
+        self.template.on("rendered", self._onRenderingFinished, self);
 
-}());
+        if (self.parentRenderer) {
+            self.parentRenderer.on("destroy", self._onParentRendererDestroy, self);
+        }
+
+        if (self.node) {
+            self._claimNode();
+        }
+
+        if (self.autoRender) {
+
+            if (tpl.initPromise) {
+                tpl.initPromise.done(self.render, self);
+            }
+            else {
+                self.render();
+            }
+        }
+    },
+
+    _initConfig: function() {
+        var self = this,
+            config = self.config,
+            ctx;
+
+        config.setDefaultMode("tag", lib_Config.MODE_STATIC);
+        config.setDefaultValue("tag", "div");
+        config.setDefaultMode("as", lib_Config.MODE_STATIC);
+
+        if (self.as) {
+            config.setDefaultValue("as", self.as);
+        }
+
+        config.setDefaultMode("callbackContext", lib_Config.MODE_SINGLE);
+        config.eachProperty(function(name) {
+            if (name.substring(0,4) === 'on--') {
+                config.setMode(name, lib_Config.MODE_LISTENER);
+                if (!ctx) {
+                    ctx = config.get("callbackContext") ||
+                            self.scope.$app.getParentCmp(self.node) ||
+                            self.scope.$app ||
+                            self.scope;
+                    self.on(name.substring(4), config.get(name), ctx);
+                }
+            }
+        });
+    },
+
+    _createNode: function() {
+        var self    = this;
+        self.node   = window.document.createElement(self.config.get("tag"));
+    },
+
+    _onFirstNodeReported: function(node) {
+        var self = this;
+        if (self._nodeReplaced) {
+            self._claimNode(node);
+        }
+    },
+
+    _claimNode: function(node) {
+        var self = this;
+        node = node || self.node;
+        dom_setAttr(node, "cmp-id", self.id);
+        if (!self._originalId) {
+            dom_setAttr(node, "id", self.id);
+        }
+        node.$$cmpId = self.id;
+    },
+
+    _releaseNode: function(node) {
+        node = node || this.node;
+        dom_removeAttr(node, "cmp-id");
+        if (!self._originalId) {
+            dom_removeAttr(node, "id");
+        }
+        node.$$cmpId = null;
+    },
+
+
+    _replaceNodeWithTemplate: function() {
+        var self = this;
+
+        if (self._nodeReplaced && self.node.parentNode) {
+            dom_removeAttr(self.node, "id");
+            //self.node.parentNode.removeChild(self.node);
+        }
+
+        self.node = self.template.node;
+
+        // document fragment
+        if (self.node.nodeType === 11 || isArray(self.node)) {
+            var ch = self.node.nodeType === 11 ?
+                    self.node.childNodes :
+                    self.node,
+                i, l;
+            for (i = 0, l = ch.length; i < l; i++) {
+                if (ch[i].nodeType === 1) {
+                    self.node = ch[i];
+                    break;
+                }
+            }
+        }
+
+        self._claimNode();
+    },
+
+
+
+
+
+
+
+
+    render: function() {
+
+        var self        = this;
+
+        if (self._rendered) {
+            return;
+        }
+
+        self.onBeforeRender();
+        self.trigger('render', self);
+        self.template.startRendering();
+    },
+
+    onBeforeRender: function() {
+        this.config.getAll(); // calc all props and put into scope.cfg
+    },
+
+    _onRenderingFinished: function() {
+        var self = this;
+
+        if ((self._nodeReplaced && self.node !== self.template.node) ||
+            !self.node) {
+            self._replaceNodeWithTemplate();
+        }
+
+        if (self.renderTo) {
+            self.renderTo.appendChild(self.node);
+        }
+        else if (!isAttached(self.node)) {
+            window.document.body.appendChild(self.node);
+        }
+
+        self._rendered   = true;
+        self.afterRender();
+        self.trigger('after-render', self);
+    },
+
+
+
+
+
+
+    freeze: function() {
+        var self = this;
+        self._releaseNode();
+        self.scope.$freeze();
+        self.trigger("freeze", self);
+    },
+
+    unfreeze: function() {
+        var self = this;
+        self._claimNode();
+        self.scope.$unfreeze();
+        self.trigger("unfreeze", self);
+        self.scope.$check();
+    },
+
+
+
+
+
+
+    /**
+     * @access public
+     * @return bool
+     */
+    isRendered: function() {
+        return this._rendered;
+    },
+
+    /**
+     * @access public
+     * @return bool
+     */
+    isDestroyed: function() {
+        return this.destroyed;
+    },
+
+    /**
+     * @access public
+     * @return Element
+     */
+    getEl: function() {
+        return this.node;
+    },
+
+    /**
+     * @method
+     * @access protected
+     */
+    beforeInitComponent:  emptyFn,
+
+    /**
+     * @method
+     * @access protected
+     */
+    initComponent:  emptyFn,
+
+    /**
+     * @method
+     * @access protected
+     */
+    afterInitComponent:  emptyFn,
+
+    /**
+     * @method
+     * @access protected
+     */
+    afterRender:    emptyFn,
+
+
+    
+    _onParentRendererDestroy: function() {
+        this.$destroy();
+    },
+
+    onDestroy:      function() {
+
+        var self    = this;
+
+        if (self.template) {
+            self.template.$destroy();
+        }
+
+        if (self.destroyEl) {
+            if (self.node && isAttached(self.node)) {
+                self.node.parentNode.removeChild(self.node);
+            }
+        }
+        else if (self.node) {
+
+            if (!self._originalId) {
+                dom_removeAttr(self.node, "id");
+            }
+
+            self._releaseNode();
+        }
+
+        self.config.$destroy();
+
+        if (self.destroyScope && self.scope) {
+            self.scope.$destroy();
+        }
+
+        self.$super();
+    }
+
+}, {
+    registerDirective: function(cmp) {
+        if (typeof(cmp) === "string") {
+            Directive.registerComponent(cmp);
+        }
+        else {
+            Directive.registerComponent(cmp.prototype.$class, cmp);
+        }
+    }
+});
+
+
+
+
+/**
+ * Check if given value is a number (not number-like)
+ * @function isNumber
+ * @param {*} value 
+ * @returns {boolean}
+ */
+function isNumber(value) {
+    return _varType(value) === 1;
+};
 
 
 
@@ -13156,19 +13308,6 @@ return Queue;
 
 
 
-
-
-
-/**
- * Check if given value is a primitive (string, number, boolean)
- * @function isPrimitive
- * @param {*} value 
- * @returns {boolean}
- */
-function isPrimitive(value) {
-    var vt = _varType(value);
-    return vt < 3 && vt > -1;
-};
 
 
 
@@ -13922,6 +14061,2745 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
     $registerBy: "id"
 });
 
+
+
+
+
+
+
+
+var app_StoreRenderer = MetaphorJs.app.StoreRenderer = app_ListRenderer.$extend({
+
+    store: null,
+
+    $constructor: function(scope, node, config, parentRenderer, attrSet) {
+
+        var cfg = config.getAll();
+
+        if (cfg.pullNext) {
+            if (cfg.buffered) {
+                cfg.bufferedPullNext = true;
+                cfg.buffered = false;
+            }
+
+            this.$plugins.push(
+                typeof cfg.pullNext === "string" ?
+                    cfg.pullNext : "MetaphorJs.plugin.ListPullNext");
+        }
+
+        this.$super(scope, node, config, parentRenderer, attrSet);
+    },
+
+    afterInit: function(scope, node, config, parentRenderer, attrSet) {
+
+        var self            = this,
+            store;
+
+        self.store          = store = lib_Expression.get(self.model, scope);
+        self.watcher        = lib_MutationObserver.get(store, "this.current", self.onChange, self);
+        
+        if (self.trackByFn !== false) {
+            self.trackByFn      = bind(store.getRecordId, store);
+        }
+        
+        self.griDelegate    = bind(store.indexOfId, store);
+        self.bindStore(store, "on");
+    },
+
+    bindStore: function(store, fn) {
+
+        var self    = this;
+
+        store[fn]("update", self.onStoreUpdate, self);
+        store[fn]("clear", self.onStoreUpdate, self);
+        store[fn]("destroy", self.onStoreDestroy, self);
+    },
+
+    onStoreUpdate: function() {
+        this.watcher.check();
+    },
+
+    getListItem: function(list, index) {
+        return this.store.getRecordData(list[index]);
+    },
+
+    onStoreDestroy: function() {
+        var self = this;
+        if (self.watcher) {
+            self.onStoreUpdate();
+            self.watcher.unsubscribe(self.onChange, self);
+            self.watcher.$destroy(true);
+            self.watcher = null;
+        }
+    },
+
+    onDestroy: function() {
+        var self = this;
+        if (!self.store.$destroyed) {
+            self.bindStore(self.store, "un");
+        }
+        self.$super();
+    }
+
+},
+{
+    $stopRenderer: true,
+    $registerBy: "id"
+}
+);
+
+
+
+
+
+
+MetaphorJs.app = MetaphorJs.app || {};
+
+
+
+
+
+
+
+
+
+
+
+
+var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, node, args) {
+
+    cfg         = cfg || {};
+    args        = args || [];
+
+    scope       = scope || cfg.scope; // || new Scope;
+    node        = node || cfg.node;
+    var config  = cfg.config || null;
+
+    cfg.config  = config;
+    cfg.scope   = cfg.scope || scope;
+    cfg.node    = cfg.node || node;
+
+    if (args.length === 0) {
+        args.push(cfg);
+    }
+
+    if (config) {
+
+        if (isPlainObject(config)) {
+            config = new lib_Config(config, {
+                scope: scope
+            });
+        }
+
+        config.setType("cloak", "bool", lib_Config.MODE_STATIC);
+        config.setType("animate", "bool", lib_Config.MODE_STATIC);
+    }
+
+    var constr      = isString(cmp) ? ns.get(cmp) : cmp;
+    if (!constr) {
+        throw new Error("Component " + cmp + " not found");
+    }
+
+    if (scope && constr.$isolateScope) {
+        cfg.scope   = scope = scope.$newIsolated();
+    }
+
+    var i,
+        defers      = [],
+        tpl         = constr.template || cfg.template || null,
+        tplUrl      = constr.templateUrl || cfg.templateUrl || null,
+        app         = scope ? scope.$app : null,
+        gProvider   = lib_Provider.global(),
+        injectFn    = app ? app.inject : gProvider.inject,
+        injectCt    = app ? app : gProvider,
+        cloak       = config ? config.get("cloak") : null,
+        inject      = {
+            $node: node || null,
+            $scope: scope || null,
+            $config: config || null,
+            $args: args || null
+        };
+
+    if (constr.resolve) {
+
+        for (i in constr.resolve) {
+            (function(name){
+                var d = new lib_Promise,
+                    fn;
+
+                defers.push(d.done(function(value){
+                    inject[name] = value;
+                    cfg[name] = value;
+                    args.push(value);
+                }));
+
+                fn = constr.resolve[i];
+
+                if (isFunction(fn)) {
+                    d.resolve(fn(scope, node, config));
+                }
+                /*else if (isString(fn)) {
+                    d.resolve(injectFn(fn));
+                }*/
+                else {
+                    d.resolve(
+                        injectFn.call(
+                            injectCt, fn, null, extend({}, inject, cfg, false, false)
+                        )
+                    );
+                }
+
+                d.fail(function(reason){
+                    if (reason instanceof Error) {
+                        error(reason);
+                    }
+                });
+
+            }(i));
+        }
+    }
+
+    if (tpl || tplUrl) {
+
+        cfg.template = new app_Template({
+            scope: scope,
+            node: node,
+            deferRendering: true,
+            ownRenderer: true,
+            shadow: constr.$shadow,
+            tpl: tpl,
+            url: tplUrl,
+            animate: config ? config.get("animate") : false
+        });
+
+        defers.push(cfg.template.initPromise);
+
+        if (node && node.firstChild) {
+            dom_data(
+                node, "mjs-transclude", 
+                dom_toFragment(node.childNodes));
+        }
+    }
+
+    var p;
+
+    if (defers.length) {
+        p = new lib_Promise;
+        lib_Promise.all(defers)
+            .done(function(values){
+                p.resolve(
+                    injectFn.call(
+                        injectCt, constr, null, extend({}, inject, cfg, false, false), args
+                    )
+                );
+            })
+            .fail(p.reject, p);
+    }
+    else {
+        p = lib_Promise.resolve(
+            injectFn.call(
+                injectCt, constr, null, extend({}, inject, cfg, false, false), args
+            )
+        );
+    }
+
+    if (node && p.isPending() && cloak !== null) {
+        cloak !== true ? dom_addClass(node, cloak) : node.style.visibility = "hidden";
+        p.then(function() {
+            cloak !== true ? dom_removeClass(node, cloak) : node.style.visibility = "";
+        });
+    }
+
+    if (node) {
+        p.then(function(){
+            dom_removeClass(node, "mjs-cloak");
+        });
+    }
+
+    return p;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var app_view_Base = MetaphorJs.app.view.Base = cls({
+
+    $init: function(cfg)  {
+
+        var self    = this;
+
+        extend(self, cfg, true, false);
+
+        if (!self.config) {
+            self.config = new lib_Config(null, {
+                scope: self.scope
+            });
+        }
+
+        self.initConfig();
+
+        var node = self.node;
+
+        if (node && node.firstChild) {
+            dom_data(node, "mjs-transclude", 
+                dom_toFragment(node.childNodes));
+        }
+
+        if (!self.id) {
+            self.id = nextUid();
+        }
+
+        self.scope.$app.registerCmp(self, self.scope, "id");        
+        self.initView();
+    },
+
+    initView: function() {},
+
+    initConfig: function() {
+        var config = this.config;
+        config.setType("scrollOnChange", "bool", lib_Config.MODE_STATIC);
+        config.setDefaultMode("defaultCmp", lib_Config.MODE_STATIC);
+    },
+
+
+    clearComponent: function() {
+        var self    = this,
+            node    = self.node;
+
+        if (self.currentComponent) {
+
+            animate_animate(node, self.config.get("animate") ? "leave" : null).done(function(){
+
+                if (self.currentComponent &&
+                    !self.currentComponent.$destroyed &&
+                    !self.currentComponent.$destroying) {
+                    self.currentComponent.$destroy();
+                }
+
+                while (node.firstChild) {
+                    node.removeChild(node.firstChild);
+                }
+
+                self.currentComponent = null;
+            });
+        }
+    },
+
+    onCmpDestroy: function(cmp) {},
+
+    setComponent: function(cmp) {
+
+        var self    = this,
+            node    = self.node;
+
+        self.beforeCmpChange(cmp);
+        MetaphorJs.animate.stop(self.node);
+        self.clearComponent();
+
+        animate_animate(node, self.config.get("animate") ? "enter" : null, function(){
+
+            var cfg     = isObject(cmp) ? cmp : {},
+                cls     = (isString(cmp) ? cmp : null) || "MetaphorJs.app.Component",
+                scope   = cfg.scope || self.scope.$new();
+
+            cfg.destroyEl = false;
+
+            return app_resolve(cls, cfg, scope, node, [cfg]).done(function(newCmp){
+                newCmp.on("destroy", self.onCmpDestroy, self);
+                self.currentComponent = newCmp;
+                self.afterCmpChange();
+            });
+        });
+    },
+
+    beforeCmpChange: function(cmpCls) {},
+
+    afterCmpChange: function() {
+        var self = this;
+        if (self.config.get("scrollOnChange")) {
+            raf(function () {
+                self.node.scrollTop = 0;
+            });
+        }
+    },
+
+    onDestroy: function() {
+
+        var self = this;
+
+        self.clearComponent();
+
+        if (self.node) {
+            dom_data(self.node, "mjs-transclude", null, "remove");
+        }
+
+        self.scope = null;
+        self.currentComponent = null;
+        self.currentView = null;
+
+        self.$super();
+    }
+});
+
+
+
+
+
+MetaphorJs.app.view.Component = app_view_Base.$extend({
+
+    initConfig: function() {
+        this.config.setDefaultMode("value", lib_Config.MODE_DYNAMIC);
+        this.$super();
+    },
+
+    initView: function() {
+        var self = this;
+        self.config.on("value", self.onCmpChange, self);
+        self.onCmpChange();
+    },
+
+    onCmpChange: function() {
+
+        var self    = this,
+            cmp     = self.config.get("value") || 
+                        self.config.get("defaultCmp");
+
+        cmp && self.setComponent(cmp);
+    }
+
+});
+
+
+
+
+var regexp_location = MetaphorJs.regexp.location = /^(((([^:\/#\?]+:)?(?:(\/\/)((?:(([^:@\/#\?]+)(?:\:([^:@\/#\?]+))?)@)?(([^:\/#\?\]\[]+|\[[^\/\]@#?]+\])(?:\:([0-9]+))?))?)?)?((\/?(?:[^\/\?#]+\/+)*)([^\?#]*)))?(\?[^#]+)?)(#.*)?/;
+
+
+
+
+
+var browser_parseLocation = MetaphorJs.browser.parseLocation = function(url) {
+
+    var matches = url.match(regexp_location) || [],
+        wl = (typeof window != "undefined" ? window.location : null) || {};
+
+    return {
+        protocol: matches[4] || wl.protocol || "http:",
+        hostname: matches[11] || wl.hostname || "",
+        host: ((matches[11] || "") + (matches[12] ? ":" + matches[12] : "")) || wl.host || "",
+        username: matches[8] || wl.username || "",
+        password: matches[9] || wl.password || "",
+        port: parseInt(matches[12], 10) || wl.port || "",
+        href: url,
+        path: (matches[13] || "/") + (matches[16] || ""),
+        pathname: matches[13] || "/",
+        search: matches[16] || "",
+        hash: matches[17] && matches[17] != "#" ? matches[17] : ""
+    };
+};
+
+
+
+var browser_joinLocation = MetaphorJs.browser.joinLocation = function(location, opt) {
+
+    var url = "";
+    opt = opt || {};
+
+    if (!opt.onlyPath) {
+        url += location.protocol + "//";
+
+        if (location.username && location.password) {
+            url += location.username + ":" + location.password + "@";
+        }
+
+        url += location.hostname;
+
+        if (location.hostname && location.port) {
+            url += ":" + location.port;
+        }
+    }
+
+    if (!opt.onlyHost) {
+        url += (location.pathname || "/");
+
+        if (location.search && location.search != "?") {
+            url += location.search;
+        }
+
+        if (location.hash && location.hash != "#") {
+            url += location.hash;
+        }
+    }
+
+    return url;
+};
+
+
+
+
+
+
+
+
+
+
+
+var lib_History = MetaphorJs.lib.History = function() {
+
+    var win,
+        history,
+        location,
+        observable      = new lib_Observable,
+        api             = {},
+        programId       = nextUid(),
+        stateKeyId      = "$$" + programId,
+        currentId       = nextUid(),
+
+        hashIdReg       = new RegExp("#" + programId + "=([A-Z0-9]+)"),
+
+        pushState,
+        replaceState,
+
+        windowLoaded    = typeof window == "undefined",
+
+        prevLocation    = null,
+
+        pushStateSupported,
+        hashChangeSupported,
+        useHash;
+
+
+    observable.createEvent("before-location-change", false);
+    observable.createEvent("void-click", false);
+
+    var initWindow = function() {
+        win                 = window;
+        history             = win.history;
+        location            = win.location;
+        pushStateSupported  = !!history.pushState;
+        hashChangeSupported = "onhashchange" in win;
+        useHash             = false; //pushStateSupported && (navigator.vendor || "").match(/Opera/);
+        prevLocation        = extend({}, location, true, false);
+    };
+
+    var preparePushState = function(state) {
+        state = state || {};
+        if (!state[stateKeyId]) {
+            state[stateKeyId] = nextUid();
+        }
+        currentId = state[stateKeyId];
+
+        return state;
+    };
+
+    var prepareReplaceState = function(state) {
+        state = state || {};
+        if (!state[stateKeyId]) {
+            state[stateKeyId] = currentId;
+        }
+        return state;
+    };
+
+
+    var hostsDiffer = function(prev, next) {
+
+        if (typeof prev == "string") {
+            prev = browser_parseLocation(prev);
+        }
+        if (typeof next == "string") {
+            next = browser_parseLocation(next);
+        }
+
+        var canBeEmpty = ["protocol", "host", "port"],
+            i, l,
+            k;
+
+        for (i = 0, l = canBeEmpty.length; i < l; i++) {
+            k = canBeEmpty[i];
+            if (prev[k] && next[k] && prev[k] != next[k]) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    var pathsDiffer = function(prev, next) {
+
+        if (typeof prev == "string") {
+            prev = browser_parseLocation(prev);
+        }
+        if (typeof next == "string") {
+            next = browser_parseLocation(next);
+        }
+
+        return hostsDiffer(prev, next) || prev.pathname != next.pathname ||
+            prev.search != next.search || prev.hash != next.hash;
+    };
+
+
+
+
+
+
+
+
+
+    var preparePath = function(url) {
+
+        var loc = browser_parseLocation(url);
+
+        if (!pushStateSupported || useHash) {
+            return loc.path;
+        }
+
+        return browser_joinLocation(loc, {onlyPath: true});
+    };
+
+
+
+
+
+
+    var getCurrentStateId = function() {
+
+
+        if (pushStateSupported) {
+            return history.state ? history.state[stateKeyId] : null;
+        }
+        else {
+            return parseOutHashStateId(location.hash).id;
+        }
+
+    };
+
+    var parseOutHashStateId = function(hash) {
+
+        var id = null;
+
+        hash = hash.replace(hashIdReg, function(match, idMatch){
+            id = idMatch;
+            return "";
+        });
+
+        return {
+            hash: hash,
+            id: id
+        };
+    };
+
+    var setHash = function(hash, state) {
+
+        if (hash) {
+            if (hash.substr(0,1) != '#') {
+                hash = parseOutHashStateId(hash).hash;
+                hash = "!" + hash + "#" + programId + "=" + currentId;
+            }
+            location.hash = hash;
+        }
+        else {
+            location.hash = "";
+        }
+    };
+
+    var getCurrentUrl = function() {
+        var loc,
+            tmp;
+
+        if (pushStateSupported) {
+            //loc = location.pathname + location.search + location.hash;
+            loc = browser_joinLocation(location);
+        }
+        else {
+            loc = location.hash.substr(1);
+            tmp = extend({}, location, true, false);
+
+            if (loc) {
+
+                loc = parseOutHashStateId(loc).hash;
+
+                if (loc.substr(0, 1) == "!") {
+                    loc = loc.substr(1);
+                }
+                var p = decodeURIComponent(loc).split("?");
+                tmp.pathname = p[0];
+                tmp.search = p[1] ? "?" + p[1] : "";
+            }
+
+            loc = browser_joinLocation(tmp);
+        }
+
+        return loc;
+    };
+
+
+    var onLocationPush = function(url) {
+        prevLocation = extend({}, location, true, false);
+        triggerEvent("location-change", url);
+    };
+
+    var onLocationPop = function() {
+        if (pathsDiffer(prevLocation, location)) {
+
+            var url     = getCurrentUrl(),
+                state   = history.state || {};
+
+            triggerEvent("before-location-pop", url);
+
+            currentId       = getCurrentStateId();
+            prevLocation    = extend({}, location, true, false);
+
+            triggerEvent("location-change", url);
+        }
+    };
+
+    var triggerEvent = function triggerEvent(event, data, anchor) {
+        var url     = data || getCurrentUrl(),
+            loc     = browser_parseLocation(url),
+            path    = loc.pathname + loc.search + loc.hash;
+        return observable.trigger(event, path, anchor, url);
+    };
+
+    var init = function() {
+
+        initWindow();
+
+        // normal pushState
+        if (pushStateSupported) {
+
+            //history.origPushState       = history.pushState;
+            //history.origReplaceState    = history.replaceState;
+
+            dom_addListener(win, "popstate", onLocationPop);
+
+            pushState = function(url, anchor, state) {
+                if (triggerEvent("before-location-change", url, anchor) === false) {
+                    return false;
+                }
+                history.pushState(preparePushState(state), null, preparePath(url));
+                onLocationPush(url);
+            };
+
+
+            replaceState = function(url, anchor, state) {
+                history.replaceState(prepareReplaceState(state), null, preparePath(url));
+                onLocationPush(url);
+            };
+
+            replaceState(getCurrentUrl());
+        }
+        else {
+
+            // onhashchange
+            if (hashChangeSupported) {
+
+                pushState = function(url, anchor, state) {
+                    if (triggerEvent("before-location-change", url, anchor) === false) {
+                        return false;
+                    }
+                    async(setHash, null, [preparePath(url), preparePushState(state)]);
+                };
+
+                replaceState = function(url, anchor, state) {
+                    async(setHash, null, [preparePath(url), prepareReplaceState(state)]);
+                };
+
+                dom_addListener(win, "hashchange", onLocationPop);
+            }
+            // iframe
+            else {
+
+                var frame   = null,
+                    initialUpdate = false;
+
+                var createFrame = function() {
+                    frame   = window.document.createElement("iframe");
+                    frame.src = 'about:blank';
+                    frame.style.display = 'none';
+                    window.document.body.appendChild(frame);
+                };
+
+                win.onIframeHistoryChange = function(val) {
+                    if (!initialUpdate) {
+                        async(function(){
+                            setHash(val);
+                            onLocationPop();
+                        });
+                    }
+                };
+
+                var pushFrame = function(value) {
+                    var frameDoc;
+                    if (frame.contentDocument) {
+                        frameDoc = frame.contentDocument;
+                    }
+                    else {
+                        frameDoc = frame.contentWindow.document;
+                    }
+                    frameDoc.open();
+                    //update iframe content to force new history record.
+                    frameDoc.write('<html><head><title>' + document.title +
+                                   '</title><script type="text/javascript">' +
+                                   'var hashValue = "'+value+'";'+
+                                   'window.top.onIframeHistoryChange(hashValue);' +
+                                   '</script>' +
+                                   '</head><body>&nbsp;</body></html>'
+                    );
+                    frameDoc.close();
+                };
+
+                var replaceFrame = function(value) {
+                    frame.contentWindow.hashValue = value;
+                };
+
+
+                pushState = function(url, anchor, state) {
+                    if (triggerEvent("before-location-change", url, anchor) === false) {
+                        return false;
+                    }
+                    pushFrame(preparePath(url));
+                };
+
+                replaceState = function(url, anchor, state) {
+                    if (triggerEvent("before-location-change", url, anchor) === false) {
+                        return false;
+                    }
+                    replaceFrame(preparePath(url));
+                };
+
+                var initFrame = function(){
+                    createFrame();
+                    initialUpdate = true;
+                    pushFrame(preparePath(location.hash.substr(1)));
+                    initialUpdate = false;
+                };
+
+                if (windowLoaded) {
+                    initFrame();
+                }
+                else {
+                    dom_addListener(win, "load", initFrame);
+                }
+            }
+        }
+
+        dom_addListener(window.document.documentElement, "click", function(e) {
+
+            e = dom_normalizeEvent(e || win.event);
+
+            var a = e.target,
+                href;
+
+            while (a && a.nodeName.toLowerCase() != "a") {
+                a = a.parentNode;
+            }
+
+            if (a && !e.isDefaultPrevented()) {
+
+                href = dom_getAttr(a, "href");
+
+                if (href == "#") {
+
+                    var res = observable.trigger("void-click", a);
+
+                    if (!res) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+                }
+
+                if (href && href.substr(0,1) != "#" && !dom_getAttr(a, "target")) {
+
+                    var prev = extend({}, location, true, false),
+                        next = browser_parseLocation(href);
+
+                    if (hostsDiffer(prev, next)) {
+                        return null;
+                    }
+
+                    if (pathsDiffer(prev, next)) {
+                        pushState(href, a);
+                    }
+                    else {
+                        triggerEvent("same-location", null, a);
+                    }
+
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            }
+
+            return null;
+        });
+
+        init = emptyFn;
+    };
+
+
+    dom_addListener(window, "load", function() {
+        windowLoaded = true;
+    });
+
+
+    /**
+     * Browser pushState wrapper and polyfill. 
+     * @object MetaphorJs.lib.History
+     */
+    return extend(api, observable.getApi(), {
+
+        /**
+         * @property {function} push {
+         *  Push new url
+         *  @param {string} url
+         *  @param {object} state
+         * }
+         */
+        push: function(url, state) {
+            init();
+
+            var prev = extend({}, location, true, false),
+                next = browser_parseLocation(url);
+
+            if (hostsDiffer(prev, next)) {
+                return null;
+            }
+
+            if (pathsDiffer(prev, next)) {
+                pushState(url, null, state);
+            }
+        },
+
+        /**
+         * @property {function} replace {
+         *  Replace current url with another url
+         *  @param {string} url
+         *  @param {object} state
+         * }
+         */
+        replace: function(url, state) {
+            init();
+            replaceState(url, null, state);
+        },
+
+        /**
+         * Update state of current url
+         * @property {function} saveState {
+         *  @param {object} state
+         * }
+         */
+        saveState: function(state) {
+            init();
+            replaceState(getCurrentUrl(), null, state);
+        },
+
+        /**
+         * Merge new state into current state 
+         * @property {function} mergeState {
+         *  @param {object} state
+         * }
+         */
+        mergeState: function(state) {
+            this.saveState(extend({}, history.state, state, true, false));
+        },
+
+        /**
+         * Get current state
+         * @property {function} getState {
+         *  @returns {object}
+         * }
+         */
+        getState: function() {
+            return history.state;
+        },
+
+        /**
+         * Get current instance id
+         * @property {functrion} getCurrentStateId {
+         *  @returns {string}
+         * }
+         */
+        getCurrentStateId: function() {
+            return currentId;
+        },
+
+        /**
+         * Get current url
+         * @property {function} current {
+         *  @returns {string} url
+         * }
+         */
+        current: function() {
+            init();
+            return getCurrentUrl();
+        },
+
+        /**
+         * Initialize instance 
+         * @property {function} init
+         */
+        init: function() {
+            return init();
+        },
+
+        /**
+         * Polyfill window.pushState and replaceState
+         * @property {function} polyfill
+         */
+        polyfill: function() {
+            init();
+            window.history.pushState = function(state, title, url) {
+                pushState(url, null, state);
+            };
+            window.history.replaceState = function(state, title, url) {
+                replaceState(url, null, state);
+            };
+        }
+    });
+
+}();
+
+
+
+
+
+
+    
+
+
+var lib_UrlParam = MetaphorJs.lib.UrlParam = (function(){
+
+    var cache = {};
+
+    /**
+     * Url param watcher
+     * @class MetaphorJs.lib.UrlParam
+     */
+    var UrlParam = cls({
+
+        $mixins: [mixin_Observable],
+
+        id: null,
+        name: null,
+        extractor: null,
+        context: null,
+        regexp: null,
+        valueIndex: 1,
+        prev: null,
+        value: null,
+        enabled: true,
+
+        /**
+         * @method
+         * @constructor
+         * @param {object} cfg {
+         *  @type {string} id unique param id
+         *  @type {string|RegExp} regexp
+         *  @type {string} name
+         *  @type {function} extractor {
+         *      @param {string} url     
+         *      @returns {*} value
+         *  }
+         *  @type {object} context extractor's context
+         *  @type {int} valueIndex {
+         *      Index in regexp match array
+         *      @default 1
+         *  }
+         * }
+         */
+        $init: function(cfg) {
+
+            var self = this;
+
+            extend(self, cfg, true, false);
+
+            if (self.regexp && isString(self.regexp)) {
+                self.regexp = getRegExp(self.regexp);
+            }
+
+            if (self.name && !self.regexp && !self.extractor) {
+                self.regexp = getRegExp(self.name + "=([^&]+)");
+            }
+
+            if (!self.regexp && !self.extractor) {
+                throw new Error("Invalid UrlParam config, missing regexp or extractor");
+            }
+
+            if (self.enabled) {
+                self.enabled = false;
+                self.enable();
+            }
+        },
+
+        /**
+         * Enable watcher (enabled by default)
+         * @method 
+         */
+        enable: function() {
+            var self = this;
+            if (!self.enabled) {
+                self.enabled = true;
+                lib_History.on("location-change", self.onLocationChange, self);
+                var url = lib_History.current(),
+                    loc = browser_parseLocation(url);
+                self.onLocationChange(loc.pathname + loc.search + loc.hash);
+            }
+        },
+
+        /**
+         * Disable watcher
+         * @method
+         */
+        disable: function() {
+            var self = this;
+            if (self.enabled) {
+                self.enabled = false;
+                lib_History.un("location-change", self.onLocationChange, self);
+            }
+        },
+
+        onLocationChange: function(url) {
+
+            var self = this,
+                value = self.extractValue(url);
+
+            if (self.value != value) {
+                self.prev = self.value;
+                self.value = value;
+                self.trigger("change", value, self.prev);
+            }
+        },
+
+        /**
+         * Extract param value from url
+         * @method
+         * @param {string} url
+         * @returns {string}
+         */
+        extractValue: function(url) {
+            var self = this;
+            if (self.regexp) {
+                var match = url.match(self.regexp);
+                return match ? match[self.valueIndex] : null;
+            }
+            else if (self.extractor) {
+                return self.extractor.call(self.context, url);
+            }
+        },
+
+        /**
+         * Get current param value
+         * @method
+         * @returns {string|null}
+         */
+        getValue: function() {
+            return this.value;
+        },
+
+        /**
+         * Get previous value
+         * @method
+         * @returns {string|null}
+         */
+        getPrev: function() {
+            return this.prev;
+        },
+
+        /**
+         * Destroy param watcher if there are no listeners
+         * @method
+         */
+        destroyIfIdle: function() {
+            var self = this;
+            if (!self.$$observable.hasListener()) {
+                self.$destroy();
+            }
+        },
+
+        onDestroy: function() {
+            var self = this;
+            self.disable();
+        }
+
+    }, {
+
+        /**
+         * Get already initialized instance based on cfg.id
+         * @static
+         * @method
+         * @param {object} cfg See constructor
+         * @returns {MetaphorJs.lib.UrlParam}
+         */
+        get: function(cfg) {
+            if (cfg.id && cache[cfg.id]) {
+                return cache[cfg.id];
+            }
+            else {
+                return new UrlParam(cfg);
+            }
+        }
+
+    });
+
+    return UrlParam;
+}());
+
+
+
+
+
+
+
+/**
+ * Stop ongoing animation for given element
+ * @function MetaphorJs.animate.stop
+ * @param {Element} el
+ */
+var animate_stop = MetaphorJs.animate.stop = function(el) {
+
+    var queue = dom_data(el, "mjsAnimationQueue"),
+        current,
+        position,
+        stages;
+
+    if (isArray(queue) && queue.length) {
+        current = queue[0];
+
+        if (current) {
+            if (current.stages) {
+                position = current.position;
+                stages = current.stages;
+                dom_removeClass(el, stages[position]);
+                dom_removeClass(el, stages[position] + "-active");
+            }
+            if (current.deferred) {
+                current.deferred.reject(current.el);
+            }
+        }
+    }
+    else if (isFunction(queue)) {
+        queue(el);
+    }
+    else if (queue === "stop") {
+        $(el).stop(true, true);
+    }
+
+    dom_data(el, "mjsAnimationQueue", null);
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var app_view_Router = MetaphorJs.app.view.Router = app_view_Base.$extend({
+
+    initView: function() {
+
+        var self = this;
+
+        self.routeMap = {};
+        self.cmpCache = {};
+        self.domCache = {};
+        self.route = self.route || [];
+
+        lib_History.init();
+        lib_History.on("location-change", self.onLocationChange, self);
+        self.initRoutes();
+        self.onLocationChange();
+    },
+
+    initRoutes: function() {
+
+        var self = this,
+            routes = self.route,
+            params,
+            param,
+            route,
+            i, l,
+            j, z;
+
+        for (i = 0, l = routes.length; i < l; i++) {
+            route = routes[i];
+            route.id = route.id || nextUid();
+
+            if (route.params) {
+                params = {};
+                for (j = 0, z = route.params.length; j < z; j++) {
+                    param = route.params[j];
+                    if (param.name) {
+                        params[param.name] = new lib_UrlParam(
+                            extend({}, param, {enabled: false}, true, false)
+                        );
+                    }
+                }
+                route.params = params;
+            }
+
+            self.routeMap[route.id] = route;
+        }
+    },
+
+
+    onLocationChange: function() {
+
+        var self        = this,
+            url         = lib_History.current(),
+            loc         = browser_parseLocation(url),
+            path        = loc.pathname + loc.search + loc.hash,
+            routes      = self.route,
+            def,
+            i, len,
+            r, matches;
+
+        for (i = 0, len = routes.length; i < len; i++) {
+            r = routes[i];
+
+            if (r.regexp && (matches = loc.pathname.match(r.regexp))) {
+                self.resolveRoute(r, matches);
+                return;
+            }
+            else if (r.regexpFull && (matches = path.match(r.regexp))) {
+                self.resolveRoute(r, matches);
+                return;
+            }
+            if (r['default'] && !def) {
+                def = r;
+            }
+        }
+    
+        var tmp = self.onNoMatchFound(loc);
+
+        if (tmp) {
+            if (isThenable(tmp)) {
+                tmp.done(self.resolveRoute, self);
+                tmp.fail(function(){
+                    self.finishOnLocationChange(def);
+                });
+            }
+            else {
+                self.resolveRoute(tmp);
+            }
+        }
+        else {
+            self.finishOnLocationChange(def);
+        }
+    },
+
+    finishOnLocationChange: function(def) {
+        var self = this;
+        if (def) {
+            self.resolveRoute(def);
+        }
+        else if (self.config.hasExpression("defaultCmp")) {
+            self.setComponent(self.config.get("defaultCmp"));
+        }
+    },
+
+    resolveRoute: function(route, matches) {
+
+        var self = this;
+
+        matches = matches || [];
+
+        if (route.resolve) {
+            var promise = route.resolve.call(self, route, matches);
+            if (isThenable(promise)) {
+                promise.done(function(){
+                    self.setRouteComponent(route, matches);
+                });
+            }
+            else if (promise) {
+                self.setRouteComponent(route, matches);
+            }
+        }
+        else {
+            self.setRouteComponent(route, matches);
+        }
+
+    },
+
+
+    onNoMatchFound: function() {},
+
+    toggleRouteParams: function(route, fn) {
+        if (route.params) {
+            for (var i in route.params) {
+                route.params[i][fn]();
+            }
+        }
+    },
+
+    setRouteClasses: function(route) {
+        var self    = this;
+
+        if (route.cls) {
+            self.currentCls = route.cls;
+            dom_addClass(self.node, route.cls);
+        }
+        if (route.htmlCls) {
+            self.currentHtmlCls = route.htmlCls;
+            dom_addClass(window.document.documentElement, route.htmlCls);
+        }
+    },
+
+    onRouteFail: function(route) {},
+
+    setRouteComponent: function(route, matches) {
+
+        var self    = this,
+            node    = self.node,
+            params  = route.params,
+            cview   = self.currentView || {};
+
+        if (route.id === cview.id) {
+            if (self.currentComponent && self.currentComponent.onViewRepeat) {
+                self.currentComponent.onViewRepeat();
+            }
+            return;
+        }
+
+        if (route.ttlTmt) {
+            clearTimeout(route.ttlTmt);
+        }
+
+        self.beforeRouteCmpChange(route);
+
+        self.toggleRouteParams(cview, "disable");
+        self.toggleRouteParams(route, "enable");
+        animate_stop(self.node);
+        self.clearComponent();
+
+        if (cview.teardown) {
+            cview.teardown(cview, route, matches);
+        }
+
+        self.setRouteClasses(route);
+
+        self.currentView = route;
+
+        animate_animate(node, self.config.get("animate") ? "enter" : null, function(){
+
+            var args    = matches || [],
+                cfg     = {
+                    destroyEl: false,
+                    node: node,
+                    destroyScope: true,
+                    scope: route.$isolateScope ?
+                           self.scope.$newIsolated() :
+                           self.scope.$new()
+                };
+
+            if (route.config) {
+                cfg.config = route.config;
+            }
+            if (route.template) {
+                cfg.template = route.template;
+            }
+
+            args.shift();
+
+            if (params) {
+                extend(cfg, params, false, false);
+            }
+
+            args.unshift(cfg);
+
+            if (self.cmpCache[route.id]) {
+                self.currentComponent = self.cmpCache[route.id];
+                node.appendChild(self.domCache[route.id]);
+                self.currentComponent.unfreeze(self);
+                self.afterRouteCmpChange();
+                self.afterCmpChange();
+            }
+            else {
+
+                if (route.setup) {
+                    route.setup(route, matches);
+                }
+                else {
+
+                    return app_resolve(
+                        route.cmp || "MetaphorJs.app.Component",
+                        cfg,
+                        cfg.scope,
+                        node,
+                        args
+                    )
+                    .done(function (newCmp) {
+
+                        self.currentComponent = newCmp;
+
+                        if (route.keepAlive) {
+                            newCmp[self.id] = route.id;
+                            self.cmpCache[route.id] = newCmp;
+                            self.domCache[route.id] = window.document.createDocumentFragment();
+                            newCmp.on("destroy", self.onCmpDestroy, self);
+                        }
+
+                        self.afterRouteCmpChange();
+                        self.afterCmpChange();
+                    })
+                    .fail(function(){
+                        self.onRouteFail(route);
+                    });
+                }
+            }
+        });
+    },
+
+
+
+    clearComponent: function() {
+        var self    = this,
+            node    = self.node,
+            cview   = self.currentView || {};
+
+        if (self.currentCls) {
+            dom_removeClass(self.node, self.currentCls);
+        }
+
+        self.currentView = null;
+
+        if (self.currentHtmlCls) {
+            dom_removeClass(window.document.documentElement, self.currentHtmlCls);
+        }
+
+        if (self.currentComponent) {
+
+            animate_animate(node, self.config.get("animate") ? "leave" : null).done(function(){
+                
+                if (!cview.keepAlive) {
+
+                    if (self.currentComponent &&
+                        !self.currentComponent.$destroyed &&
+                        !self.currentComponent.$destroying) {
+                        self.currentComponent.$destroy();
+                    }
+
+                    while (node.firstChild) {
+                        node.removeChild(node.firstChild);
+                    }
+                }
+                else {
+                    self.currentComponent.freeze(self);
+                    var frg = self.domCache[cview.id];
+                    while (node.firstChild) {
+                        frg.appendChild(node.firstChild);
+                    }
+                    if (cview.ttl) {
+                        cview.ttlTmt = async(self.onCmpTtl, self, [cview], cview.ttl);
+                    }
+                }
+
+                self.currentComponent = null;
+            });
+        }
+    },
+
+
+    onCmpTtl: function(currentView) {
+
+        var self = this,
+            id = currentView.id;
+        route.ttlTmt = null;
+
+        if (self.cmpCache[id]) {
+            self.cmpCache[id].$destroy();
+            delete self.cmpCache[id];
+            delete self.domCache[id];
+        }
+    },
+
+    onCmpDestroy: function(cmp) {
+
+        var self = this,
+            id = cmp[self.id];
+
+        if (id && self.cmpCache[id]) {
+            delete self.cmpCache[id];
+            delete self.domCache[id];
+        }
+    },
+
+
+    beforeRouteCmpChange: function(route) {},
+    afterRouteCmpChange: function() {},
+
+
+
+    onDestroy: function() {
+
+        var self    = this,
+            i, l, j
+
+        lib_History.un("location-change", self.onLocationChange, self);
+
+        for (i = 0, l = self.route.length; i < l; i++) {
+            if (self.route[i].params) {
+                for (j in self.route[i].params) {
+                    self.route[i].params[j].$destroy();
+                }
+            }
+        }
+
+        self.route = null;
+        self.$super();
+    }
+});
+
+
+
+var app = (function(){
+
+
+
+
+
+
+
+var appDirective = function() {
+    return false;
+};
+
+appDirective.$prebuild = {
+    defaultMode: lib_Config.MODE_STATIC,
+    ignore: true
+};
+
+Directive.registerAttribute("app", 100, appDirective);
+}());
+
+
+
+/**
+ * Is given element a field
+ * @function MetaphorJs.dom.isField
+ * @param {DomNode} node
+ * @returns {boolean}
+ */
+var dom_isField = MetaphorJs.dom.isField = function dom_isField(el) {
+    var tag	= el.nodeName.toLowerCase(),
+        type = el.type;
+    if (tag == 'input' || tag == 'textarea' || tag == 'select') {
+        if (type != "submit" && type != "reset" && type != "button") {
+            return true;
+        }
+    }
+    return false;
+};
+
+
+
+
+
+/**
+ * @function MetaphorJs.dom.getInputValue
+ * @param {Element} elem
+ * @returns {string}
+ */
+var dom_getInputValue = MetaphorJs.dom.getInputValue = function(){
+
+
+    var rreturn = /\r/,
+
+        hooks = {
+
+        option: function(elem) {
+            var val = elem.getAttribute("value") || elem.value;
+
+            return val !== undf ?
+                   val :
+                   ( elem.innerText || elem.textContent ).trim();
+        },
+
+        select: function(elem) {
+
+            var value, option,
+                options = elem.options,
+                index = elem.selectedIndex,
+                one = elem.type === "select-one" || index < 0,
+                values = one ? null : [],
+                max = one ? index + 1 : options.length,
+                disabled,
+                i = index < 0 ?
+                    max :
+                    one ? index : 0;
+
+            // Loop through all the selected options
+            for ( ; i < max; i++ ) {
+                option = options[ i ];
+
+                disabled = option.disabled ||
+                           option.parentNode.disabled;
+
+                // IE6-9 doesn't update selected after form reset (#2551)
+                if ((option.selected || i === index) && !disabled ) {
+                    // Get the specific value for the option
+                    value = MetaphorJs.dom.getInputValue(option);
+
+                    // We don't need an array for one selects
+                    if ( one ) {
+                        return value;
+                    }
+
+                    // Multi-Selects return an array
+                    values.push( value );
+                }
+            }
+
+            return values;
+        },
+
+        radio: function( elem ) {
+            return isNull(elem.getAttribute("value")) ? "on" : elem.value;
+        },
+
+        checkbox: function( elem ) {
+            return isNull(elem.getAttribute("value")) ? "on" : elem.value;
+        }
+    };
+
+    return function dom_getInputValue(elem) {
+
+        var hook, ret;
+
+        hook = hooks[elem.type] || hooks[elem.nodeName.toLowerCase()];
+
+        if (hook && (ret = hook(elem, "value")) !== undf) {
+            return ret;
+        }
+
+        ret = elem.value;
+
+        return isString(ret) ?
+            // Handle most common string cases
+               ret.replace(rreturn, "") :
+            // Handle cases where value is null/undef or number
+               ret == null ? "" : ret;
+
+    };
+}();
+
+
+
+
+
+
+
+
+
+/**
+ * @function MetaphorJs.dom.setInputValue
+ * @param {Element} el
+ * @param {*} val
+ */
+var dom_setInputValue = MetaphorJs.dom.setInputValue = function() {
+
+    var hooks = {
+        select:  function(elem, value) {
+
+            var optionSet, option,
+                options     = elem.options,
+                values      = toArray(value),
+                i           = options.length,
+                selected,
+                setIndex    = -1;
+
+            while ( i-- ) {
+                option      = options[i];
+                selected    = values.indexOf(option.value) !== -1;
+
+                if (selected) {
+                    dom_setAttr(option, "selected", "selected");
+                    option.selected = true;
+                    optionSet = true;
+                }
+                else {
+                    dom_removeAttr(option, "selected");
+                }
+
+                if (!selected && !isNull(dom_getAttr(option, "default-option"))) {
+                    setIndex = i;
+                }
+            }
+
+            // Force browsers to behave consistently when non-matching value is set
+            if (!optionSet) {
+                elem.selectedIndex = setIndex;
+            }
+
+            return values;
+        }
+    };
+
+    hooks["radio"] = hooks["checkbox"] = function(elem, value) {
+        if (isArray(value) ) {
+            return (elem.checked = value.indexOf(
+                dom_getInputValue(elem)
+                ) !== -1);
+        }
+    };
+
+
+    return function(el, val) {
+
+        if (el.nodeType !== 1) {
+            return;
+        }
+
+        // Treat null/undefined as ""; convert numbers to string
+        if (isNull(val)) {
+            val = "";
+        }
+        else if (isNumber(val)) {
+            val += "";
+        }
+
+        var hook = hooks[el.type] || hooks[el.nodeName.toLowerCase()];
+
+        // If set returns undefined, fall back to normal setting
+        if (!hook || hook(el, val, "value") === undf) {
+            el.value = val;
+        }
+    };
+}();
+
+
+
+
+/**
+ * Remove listeners from element's events
+ * @function MetaphorJs.dom.removeListener
+ * @param {DomNode} el 
+ * @param {string} eventName
+ * @param {function} fn
+ */
+var dom_removeListener = MetaphorJs.dom.removeListener = function(){
+
+    var fn = null,
+        prefix = null;
+
+    return function dom_removeListener(el, event, func) {
+
+        if (fn === null) {
+            if (el.removeEventListener) {
+                fn = "removeEventListener";
+                prefix = "";
+            }
+            else {
+                fn = "detachEvent";
+                prefix = "on";
+            }
+            //fn = el.detachEvent ? "detachEvent" : "removeEventListener";
+            //prefix = el.detachEvent ? "on" : "";
+        }
+
+        el[fn](prefix + event, func);
+    }
+}();
+
+
+
+MetaphorJs.browser = MetaphorJs.browser || {};
+
+
+
+
+
+var browser_isAndroid = MetaphorJs.browser.isAndroid = function(){
+
+    var android = null;
+
+    return function browser_isAndroid() {
+
+        if (android === null) {
+            android = parseInt((/android (\d+)/i.exec(navigator.userAgent) || [])[1], 10) || false;
+        }
+
+        return android;
+    };
+
+}();
+
+
+
+
+var isIE = MetaphorJs.browser.isIE = function(){
+
+    var msie;
+
+    return function browser_isIE() {
+
+        if (msie === null) {
+            var ua = navigator.userAgent;
+            msie = parseInt((/msie (\d+)/i.exec(ua) || [])[1], 10);
+            if (isNaN(msie)) {
+                msie = parseInt((/trident\/.*; rv:(\d+)/i.exec(ua) || [])[1], 10) || false;
+            }
+        }
+
+        return msie;
+    };
+}();
+
+
+
+
+
+
+/**
+ * Check if current browser supports event
+ * @function MetaphorJs.browser.hasEvent
+ * @param {string} event
+ * @return {boolean}
+ */
+var browser_hasEvent = MetaphorJs.browser.hasEvent = function(){
+
+    var eventSupport = {},
+        divElm;
+
+    return function browser_hasEvent(event) {
+        // IE9 implements 'input' event it's so fubared that we rather pretend that it doesn't have
+        // it. In particular the event is not fired when backspace or delete key are pressed or
+        // when cut operation is performed.
+
+        if (eventSupport[event] === undf) {
+
+            if (event === 'input' && isIE() == 9) {
+                return eventSupport[event] = false;
+            }
+            if (!divElm) {
+                divElm = window.document.createElement('div');
+            }
+
+            eventSupport[event] = !!('on' + event in divElm);
+        }
+
+        return eventSupport[event];
+    };
+}();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var lib_Input = MetaphorJs.lib.Input = function(){
+
+var Input = function(el, changeFn, changeFnContext, cfg) {
+
+    if (el.$$input) {
+        if (changeFn) {
+            el.$$input.on("change", changeFn, changeFnContext);
+        }
+        return el.$$input;
+    }
+
+    var self    = this;
+
+    cfg = cfg || {};
+
+    self.observable     = new lib_Observable;
+    self.el             = el;
+    self.inputType      = el.type.toLowerCase();
+    self.dataType       = cfg.type || dom_getAttr(el, "data-type") || self.inputType;
+    self.listeners      = [];
+
+    if (changeFn) {
+        self.onChange(changeFn, changeFnContext);
+    }
+};
+
+extend(Input.prototype, {
+
+    el: null,
+    inputType: null,
+    dataType: null,
+    listeners: null,
+    radio: null,
+    keydownDelegate: null,
+    changeInitialized: false,
+
+    $destroy: function() {
+
+        var self        = this,
+            i;
+
+        self.observable.$destroy();
+        self._addOrRemoveListeners(dom_removeListener, true);
+
+        self.el.$$input = null;
+
+        for (i in self) {
+            if (self.hasOwnProperty(i)) {
+                self[i] = null;
+            }
+        }
+    },
+
+    _addOrRemoveListeners: function(fn, onlyUsed) {
+
+        var self        = this,
+            type        = self.inputType,
+            listeners   = self.listeners,
+            radio       = self.radio,
+            el          = self.el,
+            used,
+            i, ilen,
+            j, jlen;
+
+        for (i = 0, ilen = listeners.length; i < ilen; i++) {
+
+            used = !!listeners[i][2];
+
+            if (used === onlyUsed) {
+                if (type === "radio") {
+                    for (j = 0, jlen = radio.length; j < jlen; j++) {
+                        fn(radio[j], listeners[i][0], listeners[i][1]);
+                    }
+                }
+                else {
+                    fn(el, listeners[i][0], listeners[i][1]);
+                }
+                listeners[i][2] = !onlyUsed;
+            }
+        }
+    },
+
+    initInputChange: function() {
+
+        var self = this,
+            type = self.inputType;
+
+        if (type === "radio") {
+            self.initRadioInput();
+        }
+        else if (type === "checkbox") {
+            self.initCheckboxInput();
+        }
+        else {
+            self.initTextInput();
+        }
+
+        self._addOrRemoveListeners(dom_addListener, false);
+
+        self.changeInitialized = true;
+    },
+
+    initRadioInput: function() {
+
+        var self    = this,
+            el      = self.el,
+            name    = el.name,
+            parent;
+
+        if (isAttached(el)) {
+            parent  = el.ownerDocument;
+        }
+        else {
+            parent = el;
+            while (parent.parentNode) {
+                parent = parent.parentNode;
+            }
+        }
+
+        self.radio  = select("input[name="+name+"]", parent);
+
+        self.onRadioInputChangeDelegate = bind(self.onRadioInputChange, self);
+        self.listeners.push(["click", self.onRadioInputChangeDelegate, false]);
+    },
+
+    initCheckboxInput: function() {
+
+        var self    = this;
+
+        self.clicked = false;
+
+        self.onCheckboxInputChangeDelegate = bind(self.onCheckboxInputChange, self);
+        self.onCheckboxInputClickDelegate = bind(self.onCheckboxInputClick, self);
+        self.listeners.push(["click", self.onCheckboxInputClickDelegate, false]);
+        self.listeners.push(["change", self.onCheckboxInputChangeDelegate, false]);
+    },
+
+    initTextInput: function() {
+
+        var composing   = false,
+            self        = this,
+            listeners   = self.listeners,
+            timeout;
+
+        // In composition mode, users are still inputing intermediate text buffer,
+        // hold the listener until composition is done.
+        // More about composition events:
+        // https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent
+        if (!browser_isAndroid()) {
+
+            var compositionStart    = function() {
+                composing = true;
+            };
+
+            var compositionEnd  = function() {
+                composing = false;
+                listener();
+            };
+
+            listeners.push(["compositionstart", compositionStart, false]);
+            listeners.push(["compositionend", compositionEnd, false]);
+        }
+
+        var listener = self.onTextInputChangeDelegate = function(ev) {
+            if (composing) {
+                return;
+            }
+            self.onTextInputChange(ev);
+        };
+
+        var deferListener = function(ev) {
+            if (!timeout) {
+                timeout = setTimeout(function() {
+                    listener(ev);
+                    timeout = null;
+                }, 0);
+            }
+        };
+
+        var keydown = function(event) {
+            event = event || window.event;
+            var key = event.keyCode;
+
+            // ignore
+            //    command            modifiers                   arrows
+            if (key === 91 || (15 < key && key < 19) || (37 <= key && key <= 40)) {
+                return;
+            }
+
+            deferListener(event);
+        };
+
+        // if the browser does support "input" event, we are fine - except on
+        // IE9 which doesn't fire the
+        // input event on backspace, delete or cut
+        if (browser_hasEvent('input')) {
+
+            listeners.push(["input", listener, false]);
+
+        } else {
+
+            listeners.push(["keydown", keydown, false]);
+
+            // if user modifies input value using context menu in IE,
+            // we need "paste" and "cut" events to catch it
+            if (browser_hasEvent('paste')) {
+                listeners.push(["paste", deferListener, false]);
+                listeners.push(["cut", deferListener, false]);
+            }
+        }
+
+
+        // if user paste into input using mouse on older browser
+        // or form autocomplete on newer browser, we need "change" event to catch it
+
+        listeners.push(["change", listener, false]);
+    },
+
+    processValue: function(val) {
+
+        switch (this.dataType) {
+            case "number":
+            case "float":
+            case "double":
+                if (val === "" || isNaN(val = parseFloat(val))) {
+                    val = undf;
+                }
+                break;
+            case "int":
+            case "integer":
+                if (val === "" || isNaN(val = parseInt(val, 10))) {
+                    val = undf;
+                }
+                break;
+            case "bool":
+            case "boolean":
+                return !(val === "false" || val === "0" || val === 0 ||
+                        val === "off" || val === false || val === "");
+
+        }
+
+        return val;
+    },
+
+    onTextInputChange: function(ev) {
+
+        var self    = this,
+            val     = self.getValue();
+
+        self.observable.trigger("change", self.processValue(val));
+    },
+
+
+    _checkboxChange: function() {
+        var self    = this,
+            node    = self.el;
+
+        self.observable.trigger("change", self.processValue(
+            node.checked ? (dom_getAttr(node, "value") || true) : false)
+        );
+    },
+
+    onCheckboxInputChange: function() {
+        if (!this.clicked) {
+            this._checkboxChange();
+        }
+        this.clicked = false;
+    },
+
+    onCheckboxInputClick: function() {
+        this._checkboxChange();
+        this.clicked = true;
+    },
+
+    onRadioInputChange: function(e) {
+
+        e = e || window.event;
+
+        var self    = this,
+            trg     = e.target || e.srcElement;
+
+        self.observable.trigger("change", self.processValue(trg.value));
+    },
+
+    setValue: function(val) {
+
+        var self    = this,
+            type    = self.inputType,
+            radio,
+            i, len;
+
+        val = self.processValue(val);
+
+        if (type === "radio") {
+
+            radio = self.radio;
+
+            for (i = 0, len = radio.length; i < len; i++) {
+                radio[i].checked = self.processValue(radio[i].value) == val;
+            }
+        }
+        else if (type === "checkbox") {
+            var node        = self.el;
+            node.checked    = val === true || val == self.processValue(node.value);
+        }
+        else {
+
+            if (val === undf) {
+                val = "";
+            }
+
+            dom_setInputValue(self.el, val);
+        }
+
+        self.triggerChange();
+    },
+
+    getValue: function() {
+
+        var self    = this,
+            type    = self.inputType,
+            radio,
+            i, l;
+
+        if (type === "radio") {
+            radio = self.radio;
+            for (i = 0, l = radio.length; i < l; i++) {
+                if (radio[i].checked) {
+                    return self.processValue(radio[i].value);
+                }
+            }
+            return null;
+        }
+        else if (type === "checkbox") {
+            return self.processValue(self.el.checked ? (dom_getAttr(self.el, "value") || true) : false);
+        }
+        else {
+            return self.processValue(dom_getInputValue(self.el));
+        }
+    },
+
+
+    onChange: function(fn, context) {
+        var self = this;
+        if (!self.changeInitialized) {
+            self.initInputChange();
+        }
+        this.observable.on("change", fn, context);
+    },
+
+    unChange: function(fn, context) {
+        this.observable.un("change", fn, context);
+    },
+
+
+    onKey: function(key, fn, context, args) {
+
+        var self = this;
+
+        if (!self.keydownDelegate) {
+            self.keydownDelegate = bind(self.keyHandler, self);
+            self.listeners.push(["keydown", self.keydownDelegate, false]);
+            dom_addListener(self.el, "keydown", self.keydownDelegate);
+            self.observable.createEvent("key", {
+                returnResult: false,
+                triggerFilter: self.keyEventFilter
+            });
+        }
+
+        self.observable.on("key", fn, context, {
+            key: key,
+            prepend: args
+        });
+    },
+
+    unKey: function(key, fn, context) {
+
+        var self    = this;
+        self.observable.un("key", fn, context);
+    },
+
+    keyEventFilter: function(l, args) {
+
+        var key = l.key,
+            e = args[0];
+
+        if (typeof key !== "object") {
+            return key === e.keyCode;
+        }
+        else {
+            if (key.ctrlKey !== undf && key.ctrlKey !== e.ctrlKey) {
+                return false;
+            }
+            if (key.shiftKey !== undf && key.shiftKey !== e.shiftKey) {
+                return false;
+            }
+            return !(key.keyCode !== undf && key.keyCode !== e.keyCode);
+        }
+    },
+
+    keyHandler: function(event) {
+
+        var e       = dom_normalizeEvent(event || window.event),
+            self    = this;
+
+        self.observable.trigger("key", e);
+    },
+
+    triggerChange: function() {
+        if ("createEvent" in document) {
+            var evt = document.createEvent("HTMLEvents");
+            evt.initEvent("change", false, true);
+            this.el.dispatchEvent(evt);
+        }
+        else {
+            this.el.fireEvent("onchange");
+        }
+    }
+
+
+}, true, false);
+
+
+Input.get = function(node, scope) {
+    if (node.$$input) {
+        return node.$$input;
+    }
+    if (scope && !node.type) {
+        var cmp = scope.$app.getParentCmp(node, true);
+        if (cmp && cmp.getInputInterface) {
+            return cmp.getInputInterface();
+        }
+    }
+    return new Input(node);
+};
+
+Input.getValue = dom_getInputValue;
+Input.setValue = dom_setInputValue;
+
+
+
+return Input;
+
+}();
+
+
+
+
+
+
+
+
+Directive.registerAttribute("bind", 1000, 
+    Directive.$extend({
+        $class: "MetaphorJs.app.Directive.attr.Bind",
+        isInput: false,
+        input: null,
+        textRenderer: null,
+        observers: null,
+
+        $init: function(scope, node, config, renderer) {
+
+            var self    = this;
+
+            config.setType("recursive", "bool");
+            config.setType("once", "bool", lib_Config.MODE_STATIC);
+
+            self.scope      = scope;
+            self.node       = node;
+            self.config     = config;
+            self.isInput    = dom_isField(node);
+
+            if (self.isInput) {
+                self.input = lib_Input.get(node);
+                self.input.onChange(self.onInputChange, self);
+            }
+
+            config.setType("locked", "bool");
+
+            if (config.get("recursive")) {
+                config.disableProperty("value");
+                config.disableProperty("recursive");
+                self.textRenderer = new lib_Text(
+                    scope, 
+                    config.getExpression("value"), 
+                    {
+                        recursive: true, 
+                        fullExpr: true,
+                        once: config.get("once")
+                    }
+                );
+                self.textRenderer.subscribe(self.onTextRendererChange, self);
+                self.onTextRendererChange();
+
+                if (scope instanceof lib_Scope) {
+                    scope.$on("destroy", self.onScopeDestroy, self);
+                }
+            }
+            else {
+                self.$super(scope, node, config);
+            }
+        },
+
+        onInputChange: function(val) {
+            var self = this,
+                cfgVal = self.config.get("value");
+            if (self.config.get("locked") && val != cfgVal) {
+                self.onChange(cfgVal);
+            }
+        },
+
+        onTextRendererChange: function() {
+            this.onChange(this.textRenderer.getString());
+        },
+
+        onChange: function(text) {
+            this.updateElement(text);
+        },
+
+        updateElement: function(val) {
+
+            var self = this;
+
+            if (self.isInput) {
+                self.input.setValue(val);
+            }
+            else {
+                self.node[typeof self.node.textContent === "string" ? "textContent" : "innerText"] = val;
+            }
+        },
+
+        onDestroy: function() {
+
+            var self    = this;
+
+            if (self.textRenderer) {
+                self.textRenderer.$destroy();
+                self.textRenderer = null;
+            }
+
+            if (self.input) {
+                self.input.$destroy();
+                self.input = null;
+            }
+
+            self.$super();
+        }
+    }));
+
+
+
+
+Directive.registerAttribute("bind-html", 1000, 
+    Directive.attr.Bind.$extend({
+        $class: "MetaphorJs.app.Directive.attr.BindHtml",
+        updateElement: function(val) {
+            this.node.innerHTML = val;
+        }
+    }));
+
+
+
+
+
+Directive.registerAttribute("cfg", 200, function(scope, node, config) { 
+    dom_data(node, "config", config);
+});
+
+
+
+
+
+
+
+
+
+
+/*
+value is always an object in the end
+{class: "condition", class: "condition"}
+
+array turns into _: []
+{_: [class, class]}
+(which is then turned into {class: true, class: true}
+DO NOT put class="{}" when using class.name="{}"
+ */
+
+
+(function(){
+
+    var toggleClass = function(node, cls, toggle, doAnim) {
+
+        var has;
+
+        if (toggle !== null) {
+            if (toggle === dom_hasClass(node, cls)) {
+                return;
+            }
+            has = !toggle;
+        }
+        else {
+            has = dom_hasClass(node, cls);
+        }
+
+        if (has) {
+            if (doAnim) {
+                animate_animate(node, [cls + "-remove"]).done(function(){
+                    dom_removeClass(node, cls);
+                });
+            }
+            else {
+                dom_removeClass(node, cls);
+            }
+        }
+        else {
+            if (doAnim) {
+                animate_animate(node, [cls + "-add"]).done(function(){
+                    dom_addClass(node, cls);
+                });
+            }
+            else {
+                dom_addClass(node, cls);
+            }
+        }
+    };
+
+
+    var flatten = function(values) {
+        var clss = {},
+            i, l, val,
+            j, jl;
+
+        for (i = 0, l = values.length; i < l; i++) {
+            val = values[i];
+
+            if (typeof val === 'string') {
+                clss[val] = true;
+                continue;
+            }
+            else if (isArray(val)) {
+                for (j = -1, jl = val.length; ++j < jl; clss[val[j]] = true){}
+            }
+            for (j in val) {
+                if (j === '_') {
+                    for (j = -1, jl = val._.length; ++j < jl;
+                         clss[val._[j]] = true){}
+                }
+                else {
+                    clss[j] = val[j];
+                }
+            }
+        }
+
+        return clss;
+    };
+
+    Directive.registerAttribute("class", 1000, Directive.$extend({
+
+        $class: "MetaphorJs.app.Directive.attr.Class",
+        initial: true,
+        prev: null,
+
+        $init: function(scope, node, config, renderer, attrSet) {
+
+            var self = this;
+            config.setType("animate", "bool");
+            config.eachProperty(function(k) {
+                if (k === 'value' || k.indexOf("value.") === 0) {
+                    config.on(k, self.onChange, self);
+                }
+            });
+            self.$super(scope, node, config, renderer, attrSet);
+        },
+
+        initialSet: function() {
+            var self = this;
+            if (self.autoOnChange) {
+                self.onChange();
+            }
+        },
+
+        getCurrentValue: function() {
+            var all = this.config.getAllValues(),
+                values = [];
+
+            if (all[""]) {
+                values.push(all['']);
+                delete all[''];
+            }
+            values.push(all);
+            
+            return flatten(values);
+        },
+
+        onChange: function() {
+
+            var self    = this,
+                node    = self.node,
+                clss    = self.getCurrentValue(),
+                prev    = self.prev,
+                i;
+
+            animate_stop(node);
+
+            if (prev) {
+                for (i in prev) {
+                    if (prev.hasOwnProperty(i)) {
+                        if (clss[i] === undf) {
+                            toggleClass(node, i, false, false);
+                        }
+                    }
+                }
+            }
+
+            for (i in clss) {
+                if (clss.hasOwnProperty(i)) {
+                    toggleClass(node, i, !!clss[i], 
+                        !self.initial && 
+                        self.config.get("animate"));
+                }
+            }
+
+            self.prev = clss;
+            self.initial = false;
+        }
+    }));
+
+}());
+
+
+
+
+
+
+(function(){
+
+    var cmpAttr = function(scope, node, config, parentRenderer, attrSet) { 
+
+        config.setDefaultMode("value", lib_Config.MODE_STATIC);
+        config.setType("sameScope", "bool", lib_Config.MODE_STATIC);
+        config.setType("isolateScope", "bool", lib_Config.MODE_STATIC);
+        config.setDefaultMode("as", lib_Config.MODE_STATIC);
+        config.setDefaultMode("ref", lib_Config.MODE_STATIC);
+
+        var cmpName = config.get("value"),
+            constr  = typeof cmpName === "string" ?
+                        ns.get(cmpName, true) : cmpName;
+
+        if (!constr) {
+            throw new Error("Component " + cmpName + " not found");
+        }
+
+        var sameScope       = config.get("sameScope") || constr.$sameScope,
+            isolateScope    = config.get("isolateScope") || constr.$isolateScope;
+
+        var newScope = isolateScope ? scope.$newIsolated() : 
+                                        (sameScope ? scope : scope.$new());
+
+        config.removeProperty("value");
+
+        var cfg = {
+            scope: newScope,
+            node: node,
+            config: config,
+            parentRenderer: parentRenderer,
+            destroyScope: !sameScope
+        };
+
+        app_resolve(cmpName, cfg, newScope, node, [cfg])
+            .done(function(cmp) {
+                if (config.hasExpression("ref")) {
+                    scope[config.get("ref")] = cmp;
+                }
+            });
+
+        return constr.$resumeRenderer || !!constr.$shadow;
+    };
+
+    cmpAttr.$breakScope = false;
+
+    Directive.registerAttribute("cmp", 200, cmpAttr);
+
+}());
 
 
 
@@ -15701,17 +18579,28 @@ Directive.registerAttribute("ref", 200, function(scope, node, config){
 Directive.registerAttribute("router", 200, 
     function(scope, node, config, parentRenderer) {
 
-    config.setProperty("scrollOnChange", {
-        type: "bool",
-        defaultMode: lib_Config.MODE_STATIC
-    });
     config.setProperty("value", {
         defaultMode: lib_Config.MODE_STATIC,
-        defaultValue: "MetaphorJs.app.Router"
+        defaultValue: "MetaphorJs.app.view.Router"
     });
-    config.setDefaultMode("defaultCmp", lib_Config.MODE_STATIC);
+
+    var routes = [],
+        r;
+
+    config.eachProperty(function(k){
+        if (k.indexOf("value.") === 0) {
+            config.setDefaultMode(k, lib_Config.MODE_SINGLE);
+            r = config.get(k);
+            r['id'] = k.replace('value.', '');
+            routes.push(r);
+        }
+    });
 
     var cfg = {scope: scope, node: node, config: config};
+
+    if (routes.length !== 0) {
+        cfg['route'] = routes;
+    }
 
     app_resolve(
         config.get("value"),
@@ -16266,88 +19155,20 @@ Directive.registerAttribute("update-on", 1000,
 
 
 
+Directive.registerAttribute("view", 200, 
+    function(scope, node, config, parentRenderer) {
 
-var app_StoreRenderer = MetaphorJs.app.StoreRenderer = app_ListRenderer.$extend({
+    var cfg = {scope: scope, node: node, config: config};
 
-    store: null,
+    app_resolve(
+        "MetaphorJs.app.view.Component",
+        cfg,
+        scope, node,
+        [cfg]
+    );
 
-    $constructor: function(scope, node, config, parentRenderer, attrSet) {
-
-        var cfg = config.getAll();
-
-        if (cfg.pullNext) {
-            if (cfg.buffered) {
-                cfg.bufferedPullNext = true;
-                cfg.buffered = false;
-            }
-
-            this.$plugins.push(
-                typeof cfg.pullNext === "string" ?
-                    cfg.pullNext : "MetaphorJs.plugin.ListPullNext");
-        }
-
-        this.$super(scope, node, config, parentRenderer, attrSet);
-    },
-
-    afterInit: function(scope, node, config, parentRenderer, attrSet) {
-
-        var self            = this,
-            store;
-
-        self.store          = store = lib_Expression.get(self.model, scope);
-        self.watcher        = lib_MutationObserver.get(store, "this.current", self.onChange, self);
-        
-        if (self.trackByFn !== false) {
-            self.trackByFn      = bind(store.getRecordId, store);
-        }
-        
-        self.griDelegate    = bind(store.indexOfId, store);
-        self.bindStore(store, "on");
-    },
-
-    bindStore: function(store, fn) {
-
-        var self    = this;
-
-        store[fn]("update", self.onStoreUpdate, self);
-        store[fn]("clear", self.onStoreUpdate, self);
-        store[fn]("destroy", self.onStoreDestroy, self);
-    },
-
-    onStoreUpdate: function() {
-        this.watcher.check();
-    },
-
-    getListItem: function(list, index) {
-        return this.store.getRecordData(list[index]);
-    },
-
-    onStoreDestroy: function() {
-        var self = this;
-        if (self.watcher) {
-            self.onStoreUpdate();
-            self.watcher.unsubscribe(self.onChange, self);
-            self.watcher.$destroy(true);
-            self.watcher = null;
-        }
-    },
-
-    onDestroy: function() {
-        var self = this;
-        if (!self.store.$destroyed) {
-            self.bindStore(self.store, "un");
-        }
-        self.$super();
-    }
-
-},
-{
-    $stopRenderer: true,
-    $registerBy: "id"
-}
-);
-
-
+    return false;
+});
 
 
 
@@ -16548,163 +19369,6 @@ function sortArray(arr, by, dir) {
 
 
 MetaphorJs.model = MetaphorJs.model || {};
-
-
-
-
-/**
- * @mixin MetaphorJs.mixin.Observable
- * @description Mixin adds observable features to the host object.
- *              It adds 'callback' option to the host config. See $beforeInit.
- *              Mixin is designed for MetaphorJs class system.
- * @code src-docs/examples/mixin.js
- */
-var mixin_Observable = MetaphorJs.mixin.Observable = {
-
-    /**
-     * @private
-     * @type {Observable}
-     * @description You can use this instance in your $init function
-     */
-    $$observable: null,
-
-    /**
-     * @private
-     * @type {object}
-     */
-    $$callbackContext: null,
-
-    /**
-     * @protected
-     * @type {object} {
-     *      Override this to define event properties. 
-     *      Object's key is event name, value - either returnResult or 
-     *      options object. See {@link class:lib_Observable.createEvent}
-     * }
-     */
-    $$events: null,
-
-    /**
-     * @method
-     * @private
-     * @param {object} cfg {
-     *      This is a config that was passed to the host object's constructor.
-     *      It is being passed to mixin's $beforeInit automatically.
-     *      @type {object} callback {
-     *          Here, except for 'context', '$context' and 'scope', 
-     *          keys are event names and values are listeners. 
-     *          @type {object} context All given listeners context
-     *          @type {object} scope The same
-     *      }
-     * }
-     */
-    $beforeInit: function(cfg) {
-        var self = this;
-        self.$$observable = new lib_Observable;
-        self.$initObservable(cfg);
-    },
-
-    /**
-     * @method
-     * @private
-     * @ignore
-     * @param {object} cfg
-     */
-    $initObservable: function(cfg) {
-
-        var self    = this,
-            obs     = self.$$observable,
-            i;
-
-        if (cfg && cfg.callback) {
-            var ls = cfg.callback,
-                context = ls.context || ls.scope || ls.$context,
-                events = extend({}, self.$$events, ls.$events, true, false);
-
-            for (i in events) {
-                obs.createEvent(i, events[i]);
-            }
-
-            ls.context = null;
-            ls.scope = null;
-
-            for (i in ls) {
-                if (ls[i]) {
-                    obs.on(i, ls[i], context || self);
-                }
-            }
-
-            cfg.callback = null;
-
-            if (context) {
-                self.$$callbackContext = context;
-            }
-        }
-        else if (self.$$events) {
-            for (i in self.$$events) {
-                obs.createEvent(i, self.$$events[i]);
-            }
-        }
-    },
-
-    /**
-     * @method
-     * @see {@link class:Observable.on}
-     */
-    on: function() {
-        var o = this.$$observable;
-        return o ? o.on.apply(o, arguments) : null;
-    },
-
-    /**
-     * @method
-     * @see {@link class:Observable.un}
-     */
-    un: function() {
-        var o = this.$$observable;
-        return o ? o.un.apply(o, arguments) : null;
-    },
-
-    /**
-     * @method
-     * @see {@link class:Observable.once}
-     */
-    once: function() {
-        var o = this.$$observable;
-        return o ? o.once.apply(o, arguments) : null;
-    },
-
-    /**
-     * @method
-     * @see {@link class:Observable.trigger}
-     */
-    trigger: function() {
-        var o = this.$$observable;
-        return o ? o.trigger.apply(o, arguments) : null;
-    },
-
-    /**
-     * @method
-     * @private
-     * @ignore
-     */
-    $beforeDestroy: function() {
-        this.$$observable.trigger("before-destroy", this);
-    },
-
-    /**
-     * @method
-     * @private
-     * @ignore
-     */
-    $afterDestroy: function() {
-        var self = this;
-        self.$$observable.trigger("destroy", self);
-        self.$$observable.$destroy();
-        self.$$observable = null;
-    }
-};
-
 
 
 
@@ -21507,6 +24171,8 @@ var validator_format = MetaphorJs.validator.format = function(str, params) {
 
 
 
+
+
 var validator_Field = MetaphorJs.validator.Field = (function(){
 
     /* ***************************** FIELD ****************************************** */
@@ -22006,7 +24672,8 @@ var validator_Field = MetaphorJs.validator.Field = (function(){
                     if (val == undf || val === false) {
                         continue;
                     }
-                    if ((i === 'minlength' || i === 'maxlength') && parseInt(val, 10) === -1) {
+                    if ((i === 'minlength' || i === 'maxlength') && 
+                        (val = parseInt(val, 10)) === -1) {
                         continue;
                     }
 
@@ -22035,6 +24702,39 @@ var validator_Field = MetaphorJs.validator.Field = (function(){
 
             for (i in found) {
                 self.setRule(i, found[i], false);
+            }
+        },
+
+        setConfigRules: function(config) {
+            var self    = this,
+                elem    = self.elem,
+                val, i;
+
+            for (i in methods) {
+
+                if (methods.hasOwnProperty(i)) {
+
+                    if (config.hasProperty(i)) {
+                        config.setDefaultMode(i, lib_Config.MODE_STATIC);
+                        config.setDefaultMode(i+".msg", lib_Config.MODE_STATIC);
+                    }
+
+                    val = config.get(i);
+
+                    if (val == undf || val === false) {
+                        continue;
+                    }
+                    if ((i === 'minlength' || i === 'maxlength') && 
+                        (val = parseInt(val, 10)) === -1) {
+                        continue;
+                    }
+
+                    self.setRule(i, val, false);
+
+                    val = (config ? config.get(i + ".msg") : null) ||
+                            dom_getAttr(elem, "data-message-" + i);
+                    val && self.setMessage(i, val);
+                }
             }
         },
 
@@ -24467,6 +27167,28 @@ var validator_Validator = MetaphorJs.validator.Validator = (function(){
 
 
 
+Directive.registerAttribute("field", 200, function(scope, node, config) { 
+
+    var id = dom_getAttr(node, "name") ||
+                dom_getAttr(node, "id"),
+        v = validator_Validator.getValidator(node),
+        f = v ? v.getField(id) : null;
+
+    if (f) {
+        f.setConfigRules(config);
+    }
+
+    config.clear();
+});
+
+
+
+
+
+
+
+
+
 
 
 
@@ -24485,13 +27207,16 @@ var validator_Component = MetaphorJs.validator.Component = cls({
 
         var self        = this;
 
+        nodeCfg.setDefaultMode("ref", lib_Config.MODE_STATIC);
+
         self.node       = node;
         self.scope      = scope;
         self.scopeState = {};
         self.fields     = [];
         self.nodeCfg    = nodeCfg;
         self.validator  = self.createValidator();
-        self.formName   = dom_getAttr(node, 'name') || 
+        self.formName   = nodeCfg.get("ref") ||
+                            dom_getAttr(node, 'name') || 
                             dom_getAttr(node, 'id') || 
                             '$form';
 
@@ -26024,2563 +28749,6 @@ Directive.registerTag("tag", function directive_tag_tag(scope, node) {
     }
 
 });
-
-
-
-
-/**
- * A storage of plural definitions
- * @class MetaphorJs.lib.LocalText
- */
-var lib_LocalText = MetaphorJs.lib.LocalText = function(){
-
-    var pluralDef       = function($number, $locale) {
-
-            if ($locale === "pt_BR") {
-                // temporary set a locale for brasilian
-                $locale = "xbr";
-            }
-
-            if ($locale.length > 3) {
-                $locale = $locale.substr(0, -$locale.lastIndexOf('_'));
-            }
-
-            switch($locale) {
-                case 'bo':
-                case 'dz':
-                case 'id':
-                case 'ja':
-                case 'jv':
-                case 'ka':
-                case 'km':
-                case 'kn':
-                case 'ko':
-                case 'ms':
-                case 'th':
-                case 'tr':
-                case 'vi':
-                case 'zh':
-                    return 0;
-
-                case 'af':
-                case 'az':
-                case 'bn':
-                case 'bg':
-                case 'ca':
-                case 'da':
-                case 'de':
-                case 'el':
-                case 'en':
-                case 'eo':
-                case 'es':
-                case 'et':
-                case 'eu':
-                case 'fa':
-                case 'fi':
-                case 'fo':
-                case 'fur':
-                case 'fy':
-                case 'gl':
-                case 'gu':
-                case 'ha':
-                case 'he':
-                case 'hu':
-                case 'is':
-                case 'it':
-                case 'ku':
-                case 'lb':
-                case 'ml':
-                case 'mn':
-                case 'mr':
-                case 'nah':
-                case 'nb':
-                case 'ne':
-                case 'nl':
-                case 'nn':
-                case 'no':
-                case 'om':
-                case 'or':
-                case 'pa':
-                case 'pap':
-                case 'ps':
-                case 'pt':
-                case 'so':
-                case 'sq':
-                case 'sv':
-                case 'sw':
-                case 'ta':
-                case 'te':
-                case 'tk':
-                case 'ur':
-                case 'zu':
-                    return ($number === 1) ? 0 : 1;
-
-                case 'am':
-                case 'bh':
-                case 'fil':
-                case 'fr':
-                case 'gun':
-                case 'hi':
-                case 'ln':
-                case 'mg':
-                case 'nso':
-                case 'xbr':
-                case 'ti':
-                case 'wa':
-                    return (($number === 0) || ($number === 1)) ? 0 : 1;
-
-                case 'be':
-                case 'bs':
-                case 'hr':
-                case 'ru':
-                case 'sr':
-                case 'uk':
-                    return (($number % 10 === 1) && ($number % 100 !== 11)) ?
-                           0 :
-                           ((($number % 10 >= 2) && ($number % 10 <= 4) &&
-                             (($number % 100 < 10) || ($number % 100 >= 20))) ? 1 : 2);
-
-                case 'cs':
-                case 'sk':
-                    return ($number === 1) ? 0 : ((($number >= 2) && ($number <= 4)) ? 1 : 2);
-
-                case 'ga':
-                    return ($number === 1) ? 0 : (($number === 2) ? 1 : 2);
-
-                case 'lt':
-                    return (($number % 10 === 1) && ($number % 100 !== 11)) ?
-                           0 :
-                           ((($number % 10 >= 2) &&
-                             (($number % 100 < 10) || ($number % 100 >= 20))) ? 1 : 2);
-
-                case 'sl':
-                    return ($number % 100 === 1) ?
-                           0 :
-                           (($number % 100 === 2) ?
-                                1 :
-                                ((($number % 100 === 3) || ($number % 100 === 4)) ? 2 : 3));
-
-                case 'mk':
-                    return ($number % 10 === 1) ? 0 : 1;
-
-                case 'mt':
-                    return ($number === 1) ?
-                           0 :
-                           ((($number === 0) || (($number % 100 > 1) && ($number % 100 < 11))) ?
-                                1 :
-                                ((($number % 100 > 10) && ($number % 100 < 20)) ? 2 : 3));
-
-                case 'lv':
-                    return ($number === 0) ? 0 : ((($number % 10 === 1) && ($number % 100 !== 11)) ? 1 : 2);
-
-                case 'pl':
-                    return ($number === 1) ?
-                           0 :
-                           ((($number % 10 >= 2) && ($number % 10 <= 4) &&
-                             (($number % 100 < 12) || ($number % 100 > 14))) ? 1 : 2);
-
-                case 'cy':
-                    return ($number === 1) ? 0 : (($number === 2) ? 1 : ((($number === 8) || ($number === 11)) ? 2 : 3));
-
-                case 'ro':
-                    return ($number === 1) ?
-                           0 :
-                           ((($number === 0) || (($number % 100 > 0) && ($number % 100 < 20))) ? 1 : 2);
-
-                case 'ar':
-                    return ($number === 0) ?
-                           0 :
-                           (($number === 1) ?
-                                1 :
-                                (($number === 2) ?
-                                    2 :
-                                    ((($number >= 3) && ($number <= 10)) ?
-                                        3 :
-                                        ((($number >= 11) && ($number <= 99)) ? 4 : 5))));
-
-                default:
-                    return 0;
-            }
-        };
-
-
-    /**
-     * @method LocalText
-     * @constructor
-     * @param {string} locale 2char locale id
-     */
-    var LocalText = function(locale) {
-
-        var self    = this;
-        self.store  = {};
-        if (locale) {
-            self.locale = locale;
-        }
-    };
-
-    extend(LocalText.prototype, {
-
-        store: null,
-        locale: "en",
-
-        /**
-         * @method
-         * @param {string} locale 2char locale id
-         */
-        setLocale: function(locale) {
-            this.locale = locale;
-        },
-
-        /**
-         * Set plural definition
-         * @method
-         * @param {string} key
-         * @param {array|object} value {
-         *  Array:<br>
-         *  0: Singular form<br>
-         *  1: LocalText form<br>
-         *  2: Second plural form<br>
-         *  3: Third plural form<br>
-         *  Object:<br>
-         *  <int>: Respective number<br>
-         *  "one": Singular form for 1<br>
-         *  "negative": Negative values form<br>
-         *  "other": All other
-         * }
-         */
-        set: function(key, value) {
-            var store = this.store;
-            if (store[key] === undf) {
-                store[key] = value;
-            }
-        },
-
-        /**
-         * Load plural definitions
-         * @method
-         * @param {object} keys {
-         *  key: definition pairs; see set()
-         * }
-         */
-        load: function(keys) {
-            extend(this.store, keys, false, false);
-        },
-
-        /**
-         * Get definition. If key is not found, will return -- key --
-         * @method
-         * @param {string} key
-         * @returns {array|object|string}
-         */
-        get: function(key) {
-            var self = this;
-            return self.store[key] ||
-                   (self === globalText ? '-- ' + key + ' --' : globalText.get(key));
-        },
-
-        /**
-         * Get variant best suited for the number
-         * @method
-         * @param {string} key
-         * @param {int} number
-         * @returns {string}
-         */
-        plural: function(key, number) {
-            var self    = this,
-                strings = typeof key === "string" ? self.get(key): key,
-                def     = pluralDef(number, self.locale);
-
-            if (!isArray(strings)) {
-                if (isPlainObject(strings)) {
-                    if (strings[number]) {
-                        return strings[number];
-                    }
-                    if (number === 1 && strings.one !== undf) {
-                        return strings.one;
-                    }
-                    else if (number < 0 && strings.negative !== undf) {
-                        return strings.negative;
-                    }
-                    else {
-                        return strings.other;
-                    }
-                }
-                return strings;
-            }
-            else {
-                return strings[def];
-            }
-        },
-
-        /**
-         * Destroy definitions store
-         * @method
-         */
-        $destroy: function() {
-            this.store = null;
-        }
-
-    }, true, false);
-
-
-    var globalText  = new LocalText;
-
-    LocalText.global     = function() {
-        return globalText;
-    };
-
-    return LocalText;
-}();
-
-
-
-
-var mixin_Provider = MetaphorJs.mixin.Provider = {
-
-    /**
-     * @type {Provider}
-     */
-    $$provider: null,
-
-    $beforeInit: function() {
-        this.$$provider = new lib_Provider;
-    },
-
-    value: function() {
-        var p = this.$$provider;
-        return p.value.apply(p, arguments);
-    },
-
-    constant: function() {
-        var p = this.$$provider;
-        return p.constant.apply(p, arguments);
-    },
-
-    factory: function() {
-        var p = this.$$provider;
-        return p.factory.apply(p, arguments);
-    },
-
-    service: function() {
-        var p = this.$$provider;
-        return p.service.apply(p, arguments);
-    },
-
-    provider: function() {
-        var p = this.$$provider;
-        return p.provider.apply(p, arguments);
-    },
-
-    resolve: function() {
-        var p = this.$$provider;
-        return p.resolve.apply(p, arguments);
-    },
-
-    inject: function() {
-        var p = this.$$provider;
-        return p.inject.apply(p, arguments);
-    },
-
-    $afterDestroy: function() {
-
-        this.$$provider.$destroy();
-        this.$$provider = null;
-
-    }
-};
-
-
-
-
-
-
-
-
-
-
-
-/**
- * @class MetaphorJs.app.App
- */
-var app_App = MetaphorJs.app.App = cls({
-
-    $mixins: [mixin_Observable, 
-                mixin_Provider],
-
-    lang: null,
-    scope: null,
-    renderer: null,
-    cmpListeners: null,
-    components: null,
-    sourceObs: null,
-
-    /**
-     * @constructor
-     * @method
-     * @param {Node} node 
-     * @param {object} data 
-     */
-    $init: function(node, data) {
-
-        var self        = this,
-            scope       = data instanceof lib_Scope ? 
-                                data : 
-                                new lib_Scope(data),
-            args;
-
-        dom_removeAttr(node, "mjs-app");
-
-        scope.$app      = self;
-        self.$super();
-
-        self.lang       = new lib_LocalText;
-
-        self.scope          = scope;
-        self.cmpListeners   = {};
-        self.components     = {};
-
-        self.factory('$parentCmp', ['$node', self.getParentCmp], self);
-        self.value('$app', self);
-        self.value('$rootScope', scope.$root);
-        self.value('$lang', self.lang);
-        self.value('$locale', self.lang);
-
-        self.renderer       = new app_Renderer(node, scope);
-        self.renderer.on("rendered", self.afterRender, self);
-
-        args = toArray(arguments);
-        args[1] = scope;
-        self.initApp.apply(self, args);
-    },
-
-    initApp: emptyFn,
-
-    afterRender: function() {
-
-    },
-
-    /**
-     * Start processing the DOM
-     * @method
-     */
-    run: function() {
-        this.renderer.process();
-    },
-
-    /**
-     * Create data source gate
-     * @param {string} name Source name
-     * @param {string|bool} returnResult See MetaphorJs.lib.Observable.createEvent()
-     */
-    createSource: function(name, returnResult) {
-        var key = "source-" + name,
-            self = this;
-
-        if (!self.$$observable.getEvent(key)) {
-            self.$$observable.createEvent(key, returnResult || "nonempty");
-        }
-    },
-
-    /**
-     * Register data source
-     * @param {string} name Source name
-     * @param {function} fn Function yielding the data
-     * @param {object} context fn's context
-     */
-    registerSource: function(name, fn, context) {
-        this.on("source-" + name, fn, context);
-    },
-
-    /**
-     * Unregister data source
-     * @param {string} name Source name
-     * @param {function} fn Data function
-     * @param {object} context fn's context
-     */
-    unregisterSource: function(name, fn, context) {
-        this.un("source-" + name, fn, context);
-    },
-
-    /**
-     * Collect data from data source
-     * @param {string} name Source name
-     * @returns {object|array}
-     */
-    collect: function(name) {
-        arguments[0] = "source-" + arguments[0];
-        return this.trigger.apply(this, arguments);
-    },
-
-    /**
-     * Get parent component for given node
-     * @param {Node} node 
-     * @param {bool} includeSelf 
-     * @returns {MetaphorJs.app.Component}
-     */
-    getParentCmp: function(node, includeSelf) {
-
-        var self    = this,
-            parent  = includeSelf ? node : node.parentNode,
-            id;
-
-        while (parent) {
-            if (id = (dom_getAttr(parent, "cmp-id") || parent.$$cmpId)) {
-                return self.getCmp(id);
-            }
-            parent = parent.parentNode;
-        }
-
-        return null;
-    },
-
-    /**
-     * Register callback for when component becomes available
-     * @param {string} cmpId 
-     * @param {function} fn 
-     * @param {object} context 
-     * @returns {lib_Promise}
-     */
-    onAvailable: function(cmpId, fn, context) {
-
-        var self = this,
-            cmpListeners = self.cmpListeners,
-            components = self.components;
-
-        if (!cmpListeners[cmpId]) {
-            cmpListeners[cmpId] = new lib_Promise;
-        }
-
-        if (fn) {
-            cmpListeners[cmpId].done(fn, context);
-        }
-
-        if (components[cmpId]) {
-            cmpListeners[cmpId].resolve(components[cmpId])
-        }
-
-        return cmpListeners[cmpId];
-    },
-
-    /**
-     * Get component
-     * @param {string} id 
-     * @returns {MetaphorJs.app.Component}
-     */
-    getCmp: function(id) {
-        return this.components[id] || null;
-    },
-
-    /**
-     * Register component
-     * @param {MetaphorJs.app.Component} cmp 
-     * @param {lib_Scope} scope 
-     * @param {string} byKey 
-     */
-    registerCmp: function(cmp, scope, byKey) {
-        var self = this,
-            id = cmp[byKey],
-            deregister = function() {
-                delete self.cmpListeners[id];
-                delete self.components[id];
-            };
-
-        self.components[id] = cmp;
-
-        if (self.cmpListeners[id]) {
-            self.cmpListeners[id].resolve(cmp);
-        }
-
-        if (cmp.on) {
-            cmp.on("destroy", deregister);
-        }
-        scope.$on("destroy", deregister);
-    },
-
-    onDestroy: function() {
-
-        var self    = this;
-
-        self.renderer.$destroy();
-        self.scope.$destroy();
-        self.lang.$destroy();
-
-        self.$super();
-    }
-
-});
-
-
-
-
-
-
-var regexp_location = MetaphorJs.regexp.location = /^(((([^:\/#\?]+:)?(?:(\/\/)((?:(([^:@\/#\?]+)(?:\:([^:@\/#\?]+))?)@)?(([^:\/#\?\]\[]+|\[[^\/\]@#?]+\])(?:\:([0-9]+))?))?)?)?((\/?(?:[^\/\?#]+\/+)*)([^\?#]*)))?(\?[^#]+)?)(#.*)?/;
-
-
-
-
-
-var browser_parseLocation = MetaphorJs.browser.parseLocation = function(url) {
-
-    var matches = url.match(regexp_location) || [],
-        wl = (typeof window != "undefined" ? window.location : null) || {};
-
-    return {
-        protocol: matches[4] || wl.protocol || "http:",
-        hostname: matches[11] || wl.hostname || "",
-        host: ((matches[11] || "") + (matches[12] ? ":" + matches[12] : "")) || wl.host || "",
-        username: matches[8] || wl.username || "",
-        password: matches[9] || wl.password || "",
-        port: parseInt(matches[12], 10) || wl.port || "",
-        href: url,
-        path: (matches[13] || "/") + (matches[16] || ""),
-        pathname: matches[13] || "/",
-        search: matches[16] || "",
-        hash: matches[17] && matches[17] != "#" ? matches[17] : ""
-    };
-};
-
-
-
-var browser_joinLocation = MetaphorJs.browser.joinLocation = function(location, opt) {
-
-    var url = "";
-    opt = opt || {};
-
-    if (!opt.onlyPath) {
-        url += location.protocol + "//";
-
-        if (location.username && location.password) {
-            url += location.username + ":" + location.password + "@";
-        }
-
-        url += location.hostname;
-
-        if (location.hostname && location.port) {
-            url += ":" + location.port;
-        }
-    }
-
-    if (!opt.onlyHost) {
-        url += (location.pathname || "/");
-
-        if (location.search && location.search != "?") {
-            url += location.search;
-        }
-
-        if (location.hash && location.hash != "#") {
-            url += location.hash;
-        }
-    }
-
-    return url;
-};
-
-
-
-
-
-
-
-
-
-
-
-var lib_History = MetaphorJs.lib.History = function() {
-
-    var win,
-        history,
-        location,
-        observable      = new lib_Observable,
-        api             = {},
-        programId       = nextUid(),
-        stateKeyId      = "$$" + programId,
-        currentId       = nextUid(),
-
-        hashIdReg       = new RegExp("#" + programId + "=([A-Z0-9]+)"),
-
-        pushState,
-        replaceState,
-
-        windowLoaded    = typeof window == "undefined",
-
-        prevLocation    = null,
-
-        pushStateSupported,
-        hashChangeSupported,
-        useHash;
-
-
-    observable.createEvent("before-location-change", false);
-    observable.createEvent("void-click", false);
-
-    var initWindow = function() {
-        win                 = window;
-        history             = win.history;
-        location            = win.location;
-        pushStateSupported  = !!history.pushState;
-        hashChangeSupported = "onhashchange" in win;
-        useHash             = false; //pushStateSupported && (navigator.vendor || "").match(/Opera/);
-        prevLocation        = extend({}, location, true, false);
-    };
-
-    var preparePushState = function(state) {
-        state = state || {};
-        if (!state[stateKeyId]) {
-            state[stateKeyId] = nextUid();
-        }
-        currentId = state[stateKeyId];
-
-        return state;
-    };
-
-    var prepareReplaceState = function(state) {
-        state = state || {};
-        if (!state[stateKeyId]) {
-            state[stateKeyId] = currentId;
-        }
-        return state;
-    };
-
-
-    var hostsDiffer = function(prev, next) {
-
-        if (typeof prev == "string") {
-            prev = browser_parseLocation(prev);
-        }
-        if (typeof next == "string") {
-            next = browser_parseLocation(next);
-        }
-
-        var canBeEmpty = ["protocol", "host", "port"],
-            i, l,
-            k;
-
-        for (i = 0, l = canBeEmpty.length; i < l; i++) {
-            k = canBeEmpty[i];
-            if (prev[k] && next[k] && prev[k] != next[k]) {
-                return true;
-            }
-        }
-
-        return false;
-    };
-
-    var pathsDiffer = function(prev, next) {
-
-        if (typeof prev == "string") {
-            prev = browser_parseLocation(prev);
-        }
-        if (typeof next == "string") {
-            next = browser_parseLocation(next);
-        }
-
-        return hostsDiffer(prev, next) || prev.pathname != next.pathname ||
-            prev.search != next.search || prev.hash != next.hash;
-    };
-
-
-
-
-
-
-
-
-
-    var preparePath = function(url) {
-
-        var loc = browser_parseLocation(url);
-
-        if (!pushStateSupported || useHash) {
-            return loc.path;
-        }
-
-        return browser_joinLocation(loc, {onlyPath: true});
-    };
-
-
-
-
-
-
-    var getCurrentStateId = function() {
-
-
-        if (pushStateSupported) {
-            return history.state ? history.state[stateKeyId] : null;
-        }
-        else {
-            return parseOutHashStateId(location.hash).id;
-        }
-
-    };
-
-    var parseOutHashStateId = function(hash) {
-
-        var id = null;
-
-        hash = hash.replace(hashIdReg, function(match, idMatch){
-            id = idMatch;
-            return "";
-        });
-
-        return {
-            hash: hash,
-            id: id
-        };
-    };
-
-    var setHash = function(hash, state) {
-
-        if (hash) {
-            if (hash.substr(0,1) != '#') {
-                hash = parseOutHashStateId(hash).hash;
-                hash = "!" + hash + "#" + programId + "=" + currentId;
-            }
-            location.hash = hash;
-        }
-        else {
-            location.hash = "";
-        }
-    };
-
-    var getCurrentUrl = function() {
-        var loc,
-            tmp;
-
-        if (pushStateSupported) {
-            //loc = location.pathname + location.search + location.hash;
-            loc = browser_joinLocation(location);
-        }
-        else {
-            loc = location.hash.substr(1);
-            tmp = extend({}, location, true, false);
-
-            if (loc) {
-
-                loc = parseOutHashStateId(loc).hash;
-
-                if (loc.substr(0, 1) == "!") {
-                    loc = loc.substr(1);
-                }
-                var p = decodeURIComponent(loc).split("?");
-                tmp.pathname = p[0];
-                tmp.search = p[1] ? "?" + p[1] : "";
-            }
-
-            loc = browser_joinLocation(tmp);
-        }
-
-        return loc;
-    };
-
-
-    var onLocationPush = function(url) {
-        prevLocation = extend({}, location, true, false);
-        triggerEvent("location-change", url);
-    };
-
-    var onLocationPop = function() {
-        if (pathsDiffer(prevLocation, location)) {
-
-            var url     = getCurrentUrl(),
-                state   = history.state || {};
-
-            triggerEvent("before-location-pop", url);
-
-            currentId       = getCurrentStateId();
-            prevLocation    = extend({}, location, true, false);
-
-            triggerEvent("location-change", url);
-        }
-    };
-
-    var triggerEvent = function triggerEvent(event, data, anchor) {
-        var url     = data || getCurrentUrl(),
-            loc     = browser_parseLocation(url),
-            path    = loc.pathname + loc.search + loc.hash;
-        return observable.trigger(event, path, anchor, url);
-    };
-
-    var init = function() {
-
-        initWindow();
-
-        // normal pushState
-        if (pushStateSupported) {
-
-            //history.origPushState       = history.pushState;
-            //history.origReplaceState    = history.replaceState;
-
-            dom_addListener(win, "popstate", onLocationPop);
-
-            pushState = function(url, anchor, state) {
-                if (triggerEvent("before-location-change", url, anchor) === false) {
-                    return false;
-                }
-                history.pushState(preparePushState(state), null, preparePath(url));
-                onLocationPush(url);
-            };
-
-
-            replaceState = function(url, anchor, state) {
-                history.replaceState(prepareReplaceState(state), null, preparePath(url));
-                onLocationPush(url);
-            };
-
-            replaceState(getCurrentUrl());
-        }
-        else {
-
-            // onhashchange
-            if (hashChangeSupported) {
-
-                pushState = function(url, anchor, state) {
-                    if (triggerEvent("before-location-change", url, anchor) === false) {
-                        return false;
-                    }
-                    async(setHash, null, [preparePath(url), preparePushState(state)]);
-                };
-
-                replaceState = function(url, anchor, state) {
-                    async(setHash, null, [preparePath(url), prepareReplaceState(state)]);
-                };
-
-                dom_addListener(win, "hashchange", onLocationPop);
-            }
-            // iframe
-            else {
-
-                var frame   = null,
-                    initialUpdate = false;
-
-                var createFrame = function() {
-                    frame   = window.document.createElement("iframe");
-                    frame.src = 'about:blank';
-                    frame.style.display = 'none';
-                    window.document.body.appendChild(frame);
-                };
-
-                win.onIframeHistoryChange = function(val) {
-                    if (!initialUpdate) {
-                        async(function(){
-                            setHash(val);
-                            onLocationPop();
-                        });
-                    }
-                };
-
-                var pushFrame = function(value) {
-                    var frameDoc;
-                    if (frame.contentDocument) {
-                        frameDoc = frame.contentDocument;
-                    }
-                    else {
-                        frameDoc = frame.contentWindow.document;
-                    }
-                    frameDoc.open();
-                    //update iframe content to force new history record.
-                    frameDoc.write('<html><head><title>' + document.title +
-                                   '</title><script type="text/javascript">' +
-                                   'var hashValue = "'+value+'";'+
-                                   'window.top.onIframeHistoryChange(hashValue);' +
-                                   '</script>' +
-                                   '</head><body>&nbsp;</body></html>'
-                    );
-                    frameDoc.close();
-                };
-
-                var replaceFrame = function(value) {
-                    frame.contentWindow.hashValue = value;
-                };
-
-
-                pushState = function(url, anchor, state) {
-                    if (triggerEvent("before-location-change", url, anchor) === false) {
-                        return false;
-                    }
-                    pushFrame(preparePath(url));
-                };
-
-                replaceState = function(url, anchor, state) {
-                    if (triggerEvent("before-location-change", url, anchor) === false) {
-                        return false;
-                    }
-                    replaceFrame(preparePath(url));
-                };
-
-                var initFrame = function(){
-                    createFrame();
-                    initialUpdate = true;
-                    pushFrame(preparePath(location.hash.substr(1)));
-                    initialUpdate = false;
-                };
-
-                if (windowLoaded) {
-                    initFrame();
-                }
-                else {
-                    dom_addListener(win, "load", initFrame);
-                }
-            }
-        }
-
-        dom_addListener(window.document.documentElement, "click", function(e) {
-
-            e = dom_normalizeEvent(e || win.event);
-
-            var a = e.target,
-                href;
-
-            while (a && a.nodeName.toLowerCase() != "a") {
-                a = a.parentNode;
-            }
-
-            if (a && !e.isDefaultPrevented()) {
-
-                href = dom_getAttr(a, "href");
-
-                if (href == "#") {
-
-                    var res = observable.trigger("void-click", a);
-
-                    if (!res) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        return false;
-                    }
-                }
-
-                if (href && href.substr(0,1) != "#" && !dom_getAttr(a, "target")) {
-
-                    var prev = extend({}, location, true, false),
-                        next = browser_parseLocation(href);
-
-                    if (hostsDiffer(prev, next)) {
-                        return null;
-                    }
-
-                    if (pathsDiffer(prev, next)) {
-                        pushState(href, a);
-                    }
-                    else {
-                        triggerEvent("same-location", null, a);
-                    }
-
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }
-            }
-
-            return null;
-        });
-
-        init = emptyFn;
-    };
-
-
-    dom_addListener(window, "load", function() {
-        windowLoaded = true;
-    });
-
-
-    /**
-     * Browser pushState wrapper and polyfill. 
-     * @object MetaphorJs.lib.History
-     */
-    return extend(api, observable.getApi(), {
-
-        /**
-         * @property {function} push {
-         *  Push new url
-         *  @param {string} url
-         *  @param {object} state
-         * }
-         */
-        push: function(url, state) {
-            init();
-
-            var prev = extend({}, location, true, false),
-                next = browser_parseLocation(url);
-
-            if (hostsDiffer(prev, next)) {
-                return null;
-            }
-
-            if (pathsDiffer(prev, next)) {
-                pushState(url, null, state);
-            }
-        },
-
-        /**
-         * @property {function} replace {
-         *  Replace current url with another url
-         *  @param {string} url
-         *  @param {object} state
-         * }
-         */
-        replace: function(url, state) {
-            init();
-            replaceState(url, null, state);
-        },
-
-        /**
-         * Update state of current url
-         * @property {function} saveState {
-         *  @param {object} state
-         * }
-         */
-        saveState: function(state) {
-            init();
-            replaceState(getCurrentUrl(), null, state);
-        },
-
-        /**
-         * Merge new state into current state 
-         * @property {function} mergeState {
-         *  @param {object} state
-         * }
-         */
-        mergeState: function(state) {
-            this.saveState(extend({}, history.state, state, true, false));
-        },
-
-        /**
-         * Get current state
-         * @property {function} getState {
-         *  @returns {object}
-         * }
-         */
-        getState: function() {
-            return history.state;
-        },
-
-        /**
-         * Get current instance id
-         * @property {functrion} getCurrentStateId {
-         *  @returns {string}
-         * }
-         */
-        getCurrentStateId: function() {
-            return currentId;
-        },
-
-        /**
-         * Get current url
-         * @property {function} current {
-         *  @returns {string} url
-         * }
-         */
-        current: function() {
-            init();
-            return getCurrentUrl();
-        },
-
-        /**
-         * Initialize instance 
-         * @property {function} init
-         */
-        init: function() {
-            return init();
-        },
-
-        /**
-         * Polyfill window.pushState and replaceState
-         * @property {function} polyfill
-         */
-        polyfill: function() {
-            init();
-            window.history.pushState = function(state, title, url) {
-                pushState(url, null, state);
-            };
-            window.history.replaceState = function(state, title, url) {
-                replaceState(url, null, state);
-            };
-        }
-    });
-
-}();
-
-
-
-
-
-
-    
-
-
-var lib_UrlParam = MetaphorJs.lib.UrlParam = (function(){
-
-    var cache = {};
-
-    /**
-     * Url param watcher
-     * @class MetaphorJs.lib.UrlParam
-     */
-    var UrlParam = cls({
-
-        $mixins: [mixin_Observable],
-
-        id: null,
-        name: null,
-        extractor: null,
-        context: null,
-        regexp: null,
-        valueIndex: 1,
-        prev: null,
-        value: null,
-        enabled: true,
-
-        /**
-         * @method
-         * @constructor
-         * @param {object} cfg {
-         *  @type {string} id unique param id
-         *  @type {string|RegExp} regexp
-         *  @type {string} name
-         *  @type {function} extractor {
-         *      @param {string} url     
-         *      @returns {*} value
-         *  }
-         *  @type {object} context extractor's context
-         *  @type {int} valueIndex {
-         *      Index in regexp match array
-         *      @default 1
-         *  }
-         * }
-         */
-        $init: function(cfg) {
-
-            var self = this;
-
-            extend(self, cfg, true, false);
-
-            if (self.regexp && isString(self.regexp)) {
-                self.regexp = getRegExp(self.regexp);
-            }
-
-            if (self.name && !self.regexp && !self.extractor) {
-                self.regexp = getRegExp(self.name + "=([^&]+)");
-            }
-
-            if (!self.regexp && !self.extractor) {
-                throw new Error("Invalid UrlParam config, missing regexp or extractor");
-            }
-
-            if (self.enabled) {
-                self.enabled = false;
-                self.enable();
-            }
-        },
-
-        /**
-         * Enable watcher (enabled by default)
-         * @method 
-         */
-        enable: function() {
-            var self = this;
-            if (!self.enabled) {
-                self.enabled = true;
-                lib_History.on("location-change", self.onLocationChange, self);
-                var url = currentUrl(),
-                    loc = browser_parseLocation(url);
-                self.onLocationChange(loc.pathname + loc.search + loc.hash);
-            }
-        },
-
-        /**
-         * Disable watcher
-         * @method
-         */
-        disable: function() {
-            var self = this;
-            if (self.enabled) {
-                self.enabled = false;
-                lib_History.un("location-change", self.onLocationChange, self);
-            }
-        },
-
-        onLocationChange: function(url) {
-
-            var self = this,
-                value = self.extractValue(url);
-
-            if (self.value != value) {
-                self.prev = self.value;
-                self.value = value;
-                self.trigger("change", value, self.prev);
-            }
-        },
-
-        /**
-         * Extract param value from url
-         * @method
-         * @param {string} url
-         * @returns {string}
-         */
-        extractValue: function(url) {
-            var self = this;
-            if (self.regexp) {
-                var match = url.match(self.regexp);
-                return match ? match[self.valueIndex] : null;
-            }
-            else if (self.extractor) {
-                return self.extractor.call(self.context, url);
-            }
-        },
-
-        /**
-         * Get current param value
-         * @method
-         * @returns {string|null}
-         */
-        getValue: function() {
-            return this.value;
-        },
-
-        /**
-         * Get previous value
-         * @method
-         * @returns {string|null}
-         */
-        getPrev: function() {
-            return this.prev;
-        },
-
-        /**
-         * Destroy param watcher if there are no listeners
-         * @method
-         */
-        destroyIfIdle: function() {
-            var self = this;
-            if (!self.$$observable.hasListener()) {
-                self.$destroy();
-            }
-        },
-
-        onDestroy: function() {
-            var self = this;
-            self.disable();
-        }
-
-    }, {
-
-        /**
-         * Get already initialized instance based on cfg.id
-         * @static
-         * @method
-         * @param {object} cfg See constructor
-         * @returns {MetaphorJs.lib.UrlParam}
-         */
-        get: function(cfg) {
-            if (cfg.id && cache[cfg.id]) {
-                return cache[cfg.id];
-            }
-            else {
-                return new UrlParam(cfg);
-            }
-        }
-
-    });
-
-    return UrlParam;
-}());
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-var app_Router = MetaphorJs.app.Router = cls({
-
-    /**
-     * [
-     *  {
-     *      reg: /.../,
-     *      cmp: 'Cmp.Name',
-     *      params: [name, name...], // param index in array is the same as reg match number - 1
-     *      template: '',
-     *      isolateScope: bool
-     *  }
-     * ]
-     */
-    route: null,
-    node: null,
-    scope: null,
-    cmp: null,
-    id: null,
-
-    currentViewId: null,
-    currentComponent: null,
-    cmpCache: null,
-    domCache: null,
-    currentView: null,
-
-    routeMap: null,
-
-    currentCls: null,
-    currentHtmlCls: null,
-
-    scrollOnChange: true,
-    animate: false,
-
-    $init: function(cfg)  {
-
-        var self    = this;
-
-        extend(self, cfg, true, false);
-
-        self.routeMap = {};
-
-        if (!self.config) {
-            self.config = new lib_Config(null, {
-                scope: self.scope
-            });
-        }
-
-        var node = self.node;
-
-        if (node && node.firstChild) {
-            dom_data(node, "mjs-transclude", 
-                dom_toFragment(node.childNodes));
-        }
-
-        if (!self.id) {
-            self.id = nextUid();
-        }
-
-        self.cmpCache = {};
-        self.domCache = {};
-
-        self.initView();
-        self.scope.$app.registerCmp(self, self.scope, "id");        
-
-        if (self.route) {
-            lib_History.init();
-            lib_History.on("location-change", self.onLocationChange, self);
-            self.initRoutes();
-            self.onLocationChange();
-        }
-        else if (self.config.hasExpression("cmp")) {
-            self.config.on("cmp", self.onCmpChange, self);
-            self.onCmpChange();
-        }
-    },
-
-    initView: function() {
-
-    },
-
-    initRoutes: function() {
-
-        var self = this,
-            routes = self.route,
-            params,
-            param,
-            route,
-            i, l,
-            j, z;
-
-        if (routes) {
-            for (i = 0, l = routes.length; i < l; i++) {
-                route = routes[i];
-                route.id = route.id || nextUid();
-
-                if (route.params) {
-                    params = {};
-                    for (j = 0, z = route.params.length; j < z; j++) {
-                        param = route.params[j];
-                        if (param.name) {
-                            params[param.name] = new lib_UrlParam(
-                                extend({}, param, {enabled: false}, true, false)
-                            );
-                        }
-                    }
-                    route.params = params;
-                }
-
-                self.routeMap[route.id] = route;
-            }
-        }
-    },
-
-
-
-
-
-    onCmpChange: function() {
-
-        var self    = this,
-            cmp     = self.config.get("cmp") || 
-                        self.config.get("defaultCmp");
-
-        cmp && self.setComponent(cmp);
-    },
-
-    onLocationChange: function() {
-
-        var self        = this,
-            url         = lib_History.current(),
-            loc         = browser_parseLocation(url),
-            path        = loc.pathname + loc.search + loc.hash,
-            routes      = self.route,
-            def,
-            i, len,
-            r, matches;
-
-        if (routes) {
-            for (i = 0, len = routes.length; i < len; i++) {
-                r = routes[i];
-
-                if (r.regexp && (matches = loc.pathname.match(r.regexp))) {
-                    self.resolveRoute(r, matches);
-                    return;
-                }
-                else if (r.regexpFull && (matches = path.match(r.regexp))) {
-                    self.resolveRoute(r, matches);
-                    return;
-                }
-                if (r['default'] && !def) {
-                    def = r;
-                }
-            }
-        }
-
-        var tmp = self.onNoMatchFound(loc);
-
-        if (tmp) {
-            if (isThenable(tmp)) {
-                tmp.done(self.resolveRoute, self);
-                tmp.fail(function(){
-                    self.finishOnLocationChange(def);
-                });
-            }
-            else {
-                self.resolveRoute(tmp);
-            }
-        }
-        else {
-            self.finishOnLocationChange(def);
-        }
-    },
-
-    finishOnLocationChange: function(def) {
-        var self = this;
-        if (def) {
-            self.resolveRoute(def);
-        }
-        else if (self.config.hasExpression("defaultCmp")) {
-            self.setComponent(self.config.get("defaultCmp"));
-        }
-    },
-
-    resolveRoute: function(route, matches) {
-
-        var self = this;
-
-        matches = matches || [];
-
-        if (route.resolve) {
-            var promise = route.resolve.call(self, route, matches);
-            if (isThenable(promise)) {
-                promise.done(function(){
-                    self.setRouteComponent(route, matches);
-                });
-            }
-            else if (promise) {
-                self.setRouteComponent(route, matches);
-            }
-        }
-        else {
-            self.setRouteComponent(route, matches);
-        }
-
-    },
-
-
-    onNoMatchFound: function() {
-
-
-
-    },
-
-
-
-
-
-    clearComponent: function() {
-        var self    = this,
-            node    = self.node,
-            cview   = self.currentView || {};
-
-        if (self.currentCls) {
-            dom_removeClass(self.node, self.currentCls);
-        }
-
-        if (self.currentHtmlCls) {
-            dom_removeClass(window.document.documentElement, self.currentHtmlCls);
-        }
-
-        if (self.currentComponent) {
-
-            animate_animate(node, self.config.get("animate") ? "leave" : null).done(function(){
-                
-                if (!cview.keepAlive) {
-
-                    if (self.currentComponent &&
-                        !self.currentComponent.$destroyed &&
-                        !self.currentComponent.$destroying) {
-                        self.currentComponent.$destroy();
-                    }
-
-                    while (node.firstChild) {
-                        node.removeChild(node.firstChild);
-                    }
-                }
-                else {
-                    self.currentComponent.freezeByView(self);
-                    //self.currentComponent.trigger("view-hide", self, self.currentComponent);
-                    var frg = self.domCache[cview.id];
-                    while (node.firstChild) {
-                        frg.appendChild(node.firstChild);
-                    }
-                    if (cview.ttl) {
-                        cview.ttlTmt = async(self.onCmpTtl, self, [cview], cview.ttl);
-                    }
-                }
-
-                self.currentComponent = null;
-            });
-        }
-
-    },
-
-    onCmpTtl: function(route) {
-
-        var self = this,
-            id = route.id;
-        route.ttlTmt = null;
-
-        if (self.cmpCache[id]) {
-            self.cmpCache[id].$destroy();
-            delete self.cmpCache[id];
-            delete self.domCache[id];
-        }
-    },
-
-
-
-
-    toggleRouteParams: function(route, fn) {
-
-        if (route.params) {
-            for (var i in route.params) {
-                route.params[i][fn]();
-            }
-        }
-    },
-
-    setRouteClasses: function(route) {
-        var self    = this;
-
-        if (route.cls) {
-            self.currentCls = route.cls;
-            dom_addClass(self.node, route.cls);
-        }
-        if (route.htmlCls) {
-            self.currentHtmlCls = route.htmlCls;
-            dom_addClass(window.document.documentElement, route.htmlCls);
-        }
-    },
-
-    onRouteFail: function(route) {
-
-    },
-
-    setRouteComponent: function(route, matches) {
-
-        var self    = this,
-            node    = self.node,
-            params  = route.params,
-            cview   = self.currentView || {};
-
-        if (route.id == cview.id) {
-            if (self.currentComponent && self.currentComponent.onViewRepeat) {
-                self.currentComponent.onViewRepeat();
-            }
-            return;
-        }
-
-        if (route.ttlTmt) {
-            clearTimeout(route.ttlTmt);
-        }
-
-        self.beforeRouteCmpChange(route);
-
-        self.toggleRouteParams(cview, "disable");
-        self.toggleRouteParams(route, "enable");
-        animate_stop(self.node);
-        self.clearComponent();
-
-        if (cview.teardown) {
-            cview.teardown(cview, route, matches);
-        }
-
-        self.setRouteClasses(route);
-
-        self.currentView = route;
-
-        animate_animate(node, self.config.get("animate") ? "enter" : null, function(){
-
-            var args    = matches || [],
-                cfg     = {
-                    destroyEl: false,
-                    node: node,
-                    destroyScope: true,
-                    scope: route.$isolateScope ?
-                           self.scope.$newIsolated() :
-                           self.scope.$new()
-                };
-
-            if (route.as) {
-                cfg.as = route.as;
-            }
-            if (route.template) {
-                cfg.template = route.template;
-            }
-
-            args.shift();
-
-            if (params) {
-                extend(cfg, params, false, false);
-            }
-
-            args.unshift(cfg);
-
-            if (self.cmpCache[route.id]) {
-                self.currentComponent = self.cmpCache[route.id];
-                node.appendChild(self.domCache[route.id]);
-                self.currentComponent.unfreezeByView(self);
-                self.afterRouteCmpChange();
-                self.afterCmpChange();
-            }
-            else {
-
-                if (route.setup) {
-                    route.setup(route, matches);
-                }
-                else {
-
-                    return app_resolve(
-                        route.cmp || "MetaphorJs.app.Component",
-                        cfg,
-                        cfg.scope,
-                        node,
-                        args
-                    )
-                    .done(function (newCmp) {
-
-                        self.currentComponent = newCmp;
-
-                        if (route.keepAlive) {
-                            newCmp[self.id] = route.id;
-                            self.cmpCache[route.id] = newCmp;
-                            self.domCache[route.id] = window.document.createDocumentFragment();
-                            newCmp.on("destroy", self.onCmpDestroy, self);
-                        }
-
-                        self.afterRouteCmpChange();
-                        self.afterCmpChange();
-                    })
-                    .fail(function(){
-
-                        if (route.onFail) {
-                            route.onFail.call(self);
-                        }
-                        else {
-                            self.onRouteFail(route);
-                        }
-                    });
-                }
-            }
-        });
-    },
-
-
-    onCmpDestroy: function(cmp) {
-
-        var self = this,
-            routeId = cmp[self.id];
-
-        if (routeId && self.cmpCache[routeId]) {
-            delete self.cmpCache[routeId];
-            delete self.domCache[routeId];
-        }
-    },
-
-
-
-    setComponent: function(cmp) {
-
-        var self    = this,
-            node    = self.node;
-
-        self.beforeCmpChange(cmp);
-
-        animate_stop(self.node);
-        self.clearComponent();
-        self.currentView = null;
-
-        animate_animate(node, self.config.get("animate") ? "enter" : null, function(){
-
-            var cfg     = isObject(cmp) ? cmp : {},
-                cls     = (isString(cmp) ? cmp : null) || "MetaphorJs.app.Component",
-                scope   = cfg.scope || self.scope.$new();
-
-            cfg.destroyEl = false;
-
-            return app_resolve(cls, cfg, scope, node, [cfg]).done(function(newCmp){
-                self.currentComponent = newCmp;
-                self.afterCmpChange();
-            });
-
-        });
-    },
-
-
-
-    beforeRouteCmpChange: function(route) {
-
-    },
-
-    afterRouteCmpChange: function() {
-
-    },
-
-    beforeCmpChange: function(cmpCls) {
-
-    },
-
-    afterCmpChange: function() {
-        var self = this;
-        if (self.config.get("scrollOnChange")) {
-            raf(function () {
-                self.node.scrollTop = 0;
-            });
-        }
-    },
-
-
-
-    onDestroy: function() {
-
-        var self    = this;
-
-        self.clearComponent();
-
-        if (self.route) {
-            lib_History.un("location-change", self.onLocationChange, self);
-
-            var i, l, j;
-
-            for (i = 0, l = self.route.length; i < l; i++) {
-                if (self.route[i].params) {
-                    for (j in self.route[i].params) {
-                        self.route[i].params[j].$destroy();
-                    }
-                }
-            }
-
-            self.route = null;
-        }
-
-        if (self.watchable) {
-            self.watchable.unsubscribe(self.onCmpChange, self);
-            self.watchable.$destroy(true);
-            self.watchable = null;
-        }
-
-        if (self.node) {
-            dom_data(self.node, "mjs-transclude", null, "remove");
-        }
-
-        self.scope = null;
-        self.currentComponent = null;
-
-        self.$super();
-    }
-});
-
-
-
-
-
-
-
-var htmlTags = MetaphorJs.dom.htmlTags = [
-    "a",
-    "abbr",
-    "address",
-    "area",
-    "article",
-    "aside",
-    "audio",
-    "b",
-    "base",
-    "bdi",
-    "bdo",
-    "blockquote",
-    "body",
-    "br",
-    "button",
-    "canvas",
-    "caption",
-    "cite",
-    "code",
-    "col",
-    "colgroup",
-    "data",
-    "datalist",
-    "dd",
-    "del",
-    "details",
-    "dfn",
-    "dialog",
-    "div",
-    "dl",
-    "dt",
-    "em",
-    "embed",
-    "fieldset",
-    "figcaption",
-    "figure",
-    "footer",
-    "form",
-    "h1",
-    "h2",
-    "h3",
-    "h4",
-    "h5",
-    "h6",
-    "head",
-    "header",
-    "hgroup",
-    "hr",
-    "html",
-    "i",
-    "iframe",
-    "img",
-    "input",
-    "ins",
-    "kbd",
-    "keygen",
-    "label",
-    "legend",
-    "li",
-    "link",
-    "main",
-    "map",
-    "mark",
-    "math",
-    "menu",
-    "menuitem",
-    "meta",
-    "meter",
-    "nav",
-    "noscript",
-    "object",
-    "ol",
-    "optgroup",
-    "option",
-    "output",
-    "p",
-    "param",
-    "picture",
-    "pre",
-    "progress",
-    "q",
-    "rb",
-    "rp",
-    "rt",
-    "rtc",
-    "ruby",
-    "s",
-    "samp",
-    "script",
-    "section",
-    "select",
-    "slot",
-    "small",
-    "source",
-    "span",
-    "strong",
-    "style",
-    "sub",
-    "summary",
-    "sup",
-    "svg",
-    "table",
-    "tbody",
-    "td",
-    "template",
-    "textarea",
-    "tfoot",
-    "th",
-    "thead",
-    "time",
-    "title",
-    "tr",
-    "track",
-    "u",
-    "ul",
-    "var",
-    "video",
-    "wbr"
-];
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/**
- * @class MetaphorJs.app.Component
- */
-var app_Component = MetaphorJs.app.Component = cls({
-
-    $mixins: [mixin_Observable],
-    $mixinEvents: ["$initConfig"],
-
-    /**
-     * @access protected
-     * @var string
-     */
-    id:             null,
-
-    _originalId:     false,
-
-    /**
-     * @var Element
-     * @access protected
-     */
-    node:           null,
-
-    /**
-     * @var boolean
-     * @access private
-     */
-    _nodeReplaced:  false,
-
-    /**
-     * @var string|Element
-     * @access protected
-     */
-    renderTo:       null,
-
-    /**
-     * @var {boolean}
-     */
-    autoRender:     true,
-
-    /**
-     * @var bool
-     * @access protected
-     */
-    _rendered:       false,
-
-    /*
-     * @var bool
-     * @access protected
-     */
-    //hidden:         false,
-
-    /**
-     * @var bool
-     * @access protected
-     */
-    destroyEl:      true,
-
-    /**
-     * @var {bool}
-     */
-    destroyScope:   false,
-
-    /**
-     * @var {Scope}
-     */
-    scope:          null,
-
-    /**
-     * @var {Template}
-     */
-    template:       null,
-
-    /**
-     * @var string
-     */
-    templateUrl:    null,
-
-
-    /**
-     * @constructor
-     * @param {object} cfg {
-     *      @type string id Element id
-     *      @type string|Element el
-     *      @type string|Element renderTo
-     *      @type bool hidden
-     *      @type bool destroyEl
-     * }
-     */
-    $init: function(cfg) {
-
-        var self    = this;
-
-        cfg = cfg || {};
-
-        self.$super(cfg);
-
-        extend(self, cfg, true, false);
-
-        if (!self.scope) {
-            self.scope = new lib_Scope;
-        }
-        if (!self.config) {
-            self.config = new lib_Config(null, {
-                scope: self.scope
-            });
-        }
-        else if (!(self.config instanceof lib_Config)) {
-            self.config = new lib_Config(
-                self.config, 
-                {
-                    scope: self.scope
-                }
-            );
-        }
-
-        self.$cfg = {};
-        self.config.setTo(self.$cfg);
-        self._initConfig();
-        self.$callMixins("$initConfig");
-
-        if (self.config.has("as")) {
-            self.scope[self.config.get("as")] = self;
-        }
-
-        if (self.node) {
-            var nodeId = dom_getAttr(self.node, "id");
-            if (nodeId) {
-                self._originalId = true;
-                if (!self.id) {
-                    self.id = nodeId;
-                }
-            }
-        }
-
-        self.id = self.id || "cmp-" + nextUid();
-
-        if (!self.node && self.node !== false) {
-            self._createNode();
-        }
-
-        self.beforeInitComponent.apply(self, arguments);
-        self.initComponent.apply(self, arguments);
-
-        if (self.scope.$app){
-            self.scope.$app.registerCmp(self, self.scope, "id");
-        }
-
-        var tpl = self.template,
-            url = self.templateUrl;
-
-        self._nodeReplaced = htmlTags.indexOf(self.node.tagName.toLowerCase()) === -1;
-
-        if (!tpl || !(tpl instanceof app_Template)) {
-            self.template = tpl = new app_Template({
-                scope: self.scope,
-                node: self.node,
-                deferRendering: !tpl || self._nodeReplaced,
-                ownRenderer: true,
-                replace: self._nodeReplaced,
-                tpl: tpl,
-                url: url,
-                shadow: self.constructor.$shadow,
-                animate: !self.hidden && !!self.animate//,
-                //passAttrs: self.passAttrs
-            });
-
-            self.template.on("first-node", self._onFirstNodeReported, self);
-        }
-        else if (tpl instanceof app_Template) {
-            // it may have just been created
-            self.template.node = self.node;
-        }
-
-        self.afterInitComponent.apply(self, arguments);
-
-        self.template.on("rendered", self._onRenderingFinished, self);
-
-        if (self.parentRenderer) {
-            self.parentRenderer.on("destroy", self._onParentRendererDestroy, self);
-        }
-
-        if (self.node) {
-            self._initElement();
-        }
-
-        if (self.autoRender) {
-
-            if (tpl.initPromise) {
-                tpl.initPromise.done(self.render, self);
-            }
-            else {
-                self.render();
-            }
-        }
-    },
-
-    _initConfig: function() {
-        var self = this,
-            config = self.config,
-            ctx;
-
-        config.setDefaultMode("tag", lib_Config.MODE_STATIC);
-        config.setDefaultValue("tag", "div");
-        config.setDefaultMode("as", lib_Config.MODE_STATIC);
-        config.setDefaultMode("callbackContext", lib_Config.MODE_SINGLE);
-        config.eachProperty(function(name) {
-            if (name.substring(0,4) === 'on--') {
-                config.setMode(name, lib_Config.MODE_LISTENER);
-                if (!ctx) {
-                    ctx = config.get("callbackContext") ||
-                            self.scope.$app.getParentCmp(self.node) ||
-                            self.scope.$app ||
-                            self.scope;
-                    self.on(name.substring(4), config.get(name), ctx);
-                }
-            }
-        });
-    },
-
-    _createNode: function() {
-        var self    = this;
-        self.node   = window.document.createElement(self.config.get("tag"));
-    },
-
-    _initElement: function() {
-
-        var self    = this,
-            node    = self.node;
-
-        if (!self._originalId) {
-            dom_setAttr(node, "id", self.id);
-        }
-
-        self._initNode();
-    },
-
-    _releaseNode: function() {
-        var self = this,
-            node = self.node;
-        dom_removeAttr(node, "cmp-id");
-    },
-
-    _onFirstNodeReported: function(node) {
-        var self = this;
-        if (self._nodeReplaced) {
-            dom_setAttr(node, "cmp-id", self.id);
-            node.$$cmpId = self.id;
-        }
-    },
-
-    _initNode: function() {
-
-        var self = this,
-            node = self.node;
-
-        dom_setAttr(node, "cmp-id", self.id);
-        node.$$cmpId = self.id;
-    },
-
-    _replaceNodeWithTemplate: function() {
-        var self = this;
-
-        if (self._nodeReplaced && self.node.parentNode) {
-            dom_removeAttr(self.node, "id");
-            //self.node.parentNode.removeChild(self.node);
-        }
-
-        self.node = self.template.node;
-
-        // document fragment
-        if (self.node.nodeType === 11 || isArray(self.node)) {
-            var ch = self.node.nodeType === 11 ?
-                self.node.childNodes :
-                self.node,
-                i, l;
-            for (i = 0, l = ch.length; i < l; i++) {
-                if (ch[i].nodeType === 1) {
-                    self.node = ch[i];
-                    break;
-                }
-            }
-        }
-
-        self._initElement();
-    },
-
-    render: function() {
-
-        var self        = this;
-
-        if (self._rendered) {
-            return;
-        }
-
-        if ((self._nodeReplaced && self.node !== self.template.node) ||
-            !self.node) {
-            self._replaceNodeWithTemplate();
-        }
-
-        self.onBeforeRender();
-        self.trigger('render', self);
-        self.template.startRendering();
-    },
-
-    onBeforeRender: function() {
-        this.config.getAll(); // calc all props and put into scope.cfg
-    },
-
-    _onRenderingFinished: function() {
-        var self = this;
-
-        if ((self._nodeReplaced && self.node !== self.template.node) ||
-            !self.node) {
-            self._replaceNodeWithTemplate();
-        }
-
-        if (self.renderTo) {
-            self.renderTo.appendChild(self.node);
-        }
-        else if (!isAttached(self.node)) {
-            window.document.body.appendChild(self.node);
-        }
-
-        self._rendered   = true;
-        self.afterRender();
-        self.trigger('after-render', self);
-    },
-
-
-    /*
-     * @access public
-     * @method
-     */
-    /*show: function() {
-        var self    = this;
-        if (!self.hidden) {
-            return;
-        }
-        if (self.trigger('before-show', self) === false) {
-            return false;
-        }
-
-        if (!self.rendered) {
-            self.render();
-        }
-
-        self.template.setAnimation(true);
-        self.showApply();
-
-        self.hidden = false;
-        self.onShow();
-        self.trigger("show", self);
-    },
-
-    showApply: function() {
-        var self = this;
-        if (self.node) {
-            self.node.style.display = "block";
-        }
-    },*/
-
-    /*
-     * @access public
-     * @method
-     */
-    /*hide: function() {
-        var self    = this;
-        if (self.hidden) {
-            return;
-        }
-        if (self.trigger('before-hide', self) === false) {
-            return false;
-        }
-
-        self.template.setAnimation(false);
-        self.hideApply();
-
-        self.hidden = true;
-        self.onHide();
-        self.trigger("hide", self);
-    },
-
-    hideApply: function() {
-        var self = this;
-        if (self.node) {
-            self.node.style.display = "none";
-        }
-    },*/
-
-    freezeByView: function(view) {
-        var self = this;
-        self._releaseNode();
-        self.scope.$freeze();
-        self.trigger("view-freeze", self, view);
-
-    },
-
-    unfreezeByView: function(view) {
-        var self = this;
-        self._initNode();
-        self.scope.$unfreeze();
-        self.trigger("view-unfreeze", self, view);
-        self.scope.$check();
-    },
-
-    /*
-     * @access public
-     * @return bool
-     */
-    //isHidden: function() {
-    //    return this.hidden;
-    //},
-
-    /**
-     * @access public
-     * @return bool
-     */
-    isRendered: function() {
-        return this._rendered;
-    },
-
-    /**
-     * @access public
-     * @return bool
-     */
-    isDestroyed: function() {
-        return this.destroyed;
-    },
-
-    /**
-     * @access public
-     * @return Element
-     */
-    getEl: function() {
-        return this.node;
-    },
-
-    /**
-     * @method
-     * @access protected
-     */
-    beforeInitComponent:  emptyFn,
-
-    /**
-     * @method
-     * @access protected
-     */
-    initComponent:  emptyFn,
-
-    /**
-     * @method
-     * @access protected
-     */
-    afterInitComponent:  emptyFn,
-
-    /**
-     * @method
-     * @access protected
-     */
-    afterRender:    emptyFn,
-
-    /*
-     * @method
-     * @access protected
-     */
-    //onShow:         emptyFn,
-
-    /*
-     * @method
-     * @access protected
-     */
-    //onHide:         emptyFn,
-
-    _onParentRendererDestroy: function() {
-        this.$destroy();
-    },
-
-    onDestroy:      function() {
-
-        var self    = this;
-
-        if (self.template) {
-            self.template.$destroy();
-        }
-
-        if (self.destroyEl) {
-            if (self.node && isAttached(self.node)) {
-                self.node.parentNode.removeChild(self.node);
-            }
-        }
-        else if (self.node) {
-
-            if (!self._originalId) {
-                dom_removeAttr(self.node, "id");
-            }
-
-            self._releaseNode();
-        }
-
-        self.config.$destroy();
-
-        if (self.destroyScope && self.scope) {
-            self.scope.$destroy();
-        }
-
-        self.$super();
-    }
-
-}, {
-    registerDirective: function(cmp) {
-        if (typeof(cmp) === "string") {
-            Directive.registerComponent(cmp);
-        }
-        else {
-            Directive.registerComponent(cmp.prototype.$class, cmp);
-        }
-    }
-});
-
 
 
 MetaphorJs.dialog = MetaphorJs.dialog || {pointer: {}, position: {}};
@@ -33294,7 +33462,7 @@ cls({
 cls({
 
     $class: "Test.MyView",
-    $extends: "MetaphorJs.app.Router",
+    $extends: "MetaphorJs.app.view.Router",
     route: [
         {
             template: 'test-template.html',
