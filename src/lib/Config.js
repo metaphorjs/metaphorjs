@@ -248,7 +248,8 @@ module.exports = MetaphorJs.lib.Config = (function(){
             var self = this,
                 props = self.properties,
                 prop,
-                changed = false;
+                changed = false,
+                value;
 
             if (!props[name]) {
                 props[name] = {};
@@ -261,6 +262,10 @@ module.exports = MetaphorJs.lib.Config = (function(){
             if (val === undf) {
                 var k;
                 for (k in cfg) {
+                    if (k === "value") {
+                        value = cfg[k];
+                        continue;
+                    }
                     if (cfg[k] !== prop[k]) {
                         changed = true;
                         prop[k] = cfg[k];
@@ -268,7 +273,10 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 }
             }
             else {
-                if (val !== prop[cfg]) {
+                if (cfg === "value") {
+                    value = val;
+                }
+                else if (val !== prop[cfg]) {
                     changed = true;
                     prop[cfg] = val;
                 }
@@ -297,10 +305,13 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 changed = true;
             }
 
-            if (changed && self.values[name] !== undf) {
+            if (value !== undf) {
+                self.values[name] = value;
+            }
+            else if (changed && self.values[name] !== undf) {
                 delete self.values[name];
             }
-        
+
             return changed;
         },
 
@@ -505,6 +516,24 @@ module.exports = MetaphorJs.lib.Config = (function(){
         },
 
         /**
+         * Force property to static mode with given value
+         * @param {string} name 
+         * @param {*} val 
+         */
+        set: function(name, val) {
+            var self = this;
+            if (self.properties[name]) {
+                var prev = self.values[val];
+                self.setMode(name, MODE_STATIC);
+                self.values[name] = val;
+                if (prev != val) {
+                    $$observable.trigger(self.id, name, val, prev);
+                    $$observable.trigger(self.id +'-'+ name, val, prev) ;
+                }
+            }
+        },
+
+        /**
          * Get property keys
          * @method
          * @returns {array}
@@ -612,6 +641,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
         /**
          * Import properties and values from another config
+         * @method
          * @param {MetaphorJs.lib.Config} config 
          */
         importConfig: function(config, overwrite) {
@@ -629,6 +659,33 @@ module.exports = MetaphorJs.lib.Config = (function(){
                     vs[name] = config.values[name];
                 }
             }
+        },
+
+        /**
+         * Create a new config with given properties
+         * @method
+         * @param {array} props
+         * @returns MetaphorJs.lib.Config
+         */
+        slice: function(props) {
+            var map = {}, self = this, 
+                name, i, l,
+                values = {},
+                existing = self.properties;
+            for (i = 0, l = props.length; i < l; i++) {
+                name = props[i];
+                if (existing[name]) {
+                    map[name] = existing[name];
+                    values[name] = self.values[name];
+                    delete map[name].mo;
+                }
+            }
+            var newCfg = new Config(
+                map,
+                self.cfg
+            );
+            newCfg.values = values;
+            return newCfg;
         },
 
         /**

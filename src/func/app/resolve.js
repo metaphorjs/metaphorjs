@@ -5,7 +5,7 @@ require("../dom/toFragment.js");
 require("../dom/data.js");
 require("../dom/addClass.js");
 require("../dom/removeClass.js");
-require("../../app/Template.js")
+require("../../lib/Template.js")
 require("../../lib/Config.js");
 
 var extend = require("metaphorjs-shared/src/func/extend.js"),
@@ -57,7 +57,6 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
     var i,
         defers      = [],
         tpl         = constr.template || cfg.template || null,
-        tplUrl      = constr.templateUrl || cfg.templateUrl || null,
         app         = scope ? scope.$app : null,
         gProvider   = MetaphorJs.lib.Provider.global(),
         injectFn    = app ? app.inject : gProvider.inject,
@@ -88,9 +87,6 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
                 if (isFunction(fn)) {
                     d.resolve(fn(scope, node, config));
                 }
-                /*else if (isString(fn)) {
-                    d.resolve(injectFn(fn));
-                }*/
                 else {
                     d.resolve(
                         injectFn.call(
@@ -109,20 +105,25 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
         }
     }
 
-    if (tpl || tplUrl) {
+    if (tpl) {
+
+        var tplConfig = new MetaphorJs.lib.Config(null, {
+            scope: scope
+        });
+        if (config) {
+            tplConfig.setProperty("animate", config.getProperty("animate"));
+        }
+        MetaphorJs.app.Template.prepareConfig(tpl, tplConfig);
 
         cfg.template = new MetaphorJs.app.Template({
             scope: scope,
             node: node,
             deferRendering: true,
             ownRenderer: true,
-            shadow: constr.$shadow,
-            tpl: tpl,
-            url: tplUrl,
-            animate: config ? config.get("animate") : false
+            config: tplConfig
         });
 
-        defers.push(cfg.template.initPromise);
+        defers.push(cfg.template.childrenPromise);
 
         if (node && node.firstChild) {
             MetaphorJs.dom.data(

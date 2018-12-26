@@ -3,7 +3,7 @@ require("../func/dom/getAttr.js");
 require("../func/dom/setAttr.js");
 require("../func/dom/removeAttr.js");
 require("../func/dom/isAttached.js");
-require("./Template.js");
+require("../lib/Template.js");
 require("./Directive.js");
 require("../func/dom/addClass.js");
 require("../func/dom/removeClass.js");
@@ -33,7 +33,11 @@ module.exports = MetaphorJs.app.Component = cls({
      */
     id:             null,
 
-    _originalId:     false,
+    /**
+     * @access private
+     * @var bool
+     */
+    _originalId:    false,
 
     /**
      * @var Element
@@ -64,12 +68,6 @@ module.exports = MetaphorJs.app.Component = cls({
      */
     _rendered:       false,
 
-    /*
-     * @var bool
-     * @access protected
-     */
-    //hidden:         false,
-
     /**
      * @var bool
      * @access protected
@@ -91,11 +89,6 @@ module.exports = MetaphorJs.app.Component = cls({
      */
     template:       null,
 
-    /**
-     * @var string
-     */
-    templateUrl:    null,
-
 
     /**
      * @constructor
@@ -114,7 +107,6 @@ module.exports = MetaphorJs.app.Component = cls({
         cfg = cfg || {};
 
         self.$super(cfg);
-
         extend(self, cfg, true, false);
 
         if (!self.scope) {
@@ -156,7 +148,7 @@ module.exports = MetaphorJs.app.Component = cls({
         self.id = self.id || "cmp-" + nextUid();
 
         if (!self.node && self.node !== false) {
-            self._createNode();
+            self.node = window.document.createElement(self.config.get("tag"));
         }
 
         self.beforeInitComponent.apply(self, arguments);
@@ -166,36 +158,6 @@ module.exports = MetaphorJs.app.Component = cls({
             self.scope.$app.registerCmp(self, self.scope, "id");
         }
 
-        var tpl = self.template,
-            url = self.templateUrl;
-
-        self._nodeReplaced = htmlTags.indexOf(self.node.tagName.toLowerCase()) === -1;
-
-        if (!tpl || !(tpl instanceof MetaphorJs.app.Template)) {
-            self.template = tpl = new MetaphorJs.app.Template({
-                scope: self.scope,
-                node: self.node,
-                deferRendering: !tpl || self._nodeReplaced,
-                ownRenderer: true,
-                replace: self._nodeReplaced,
-                tpl: tpl,
-                url: url,
-                shadow: self.constructor.$shadow,
-                animate: !self.hidden && !!self.animate//,
-                //passAttrs: self.passAttrs
-            });
-
-            self.template.on("first-node", self._onFirstNodeReported, self);
-        }
-        else if (tpl instanceof MetaphorJs.app.Template) {
-            // it may have just been created
-            self.template.node = self.node;
-        }
-
-        self.afterInitComponent.apply(self, arguments);
-
-        self.template.on("rendered", self._onRenderingFinished, self);
-
         if (self.parentRenderer) {
             self.parentRenderer.on("destroy", self._onParentRendererDestroy, self);
         }
@@ -204,15 +166,52 @@ module.exports = MetaphorJs.app.Component = cls({
             self._claimNode();
         }
 
-        if (self.autoRender) {
+        self._initTemplate();
 
-            if (tpl.initPromise) {
-                tpl.initPromise.done(self.render, self);
-            }
-            else {
-                self.render();
-            }
+        if (self.items) {
+            self._initItems();
         }
+    },
+
+    _initTemplate: function() {
+
+        var self = this,
+            tpl = self.template;
+
+        self._nodeReplaced = htmlTags.indexOf(self.node.tagName.toLowerCase()) === -1;
+        
+        if (tpl instanceof MetaphorJs.app.Template) {
+            // it may have just been created
+            self.template.node = self.node;
+        }
+        else {
+
+            var tplConfig = self.config.slice(["animate"]);
+            MetaphorJs.app.Template.prepareConfig(tpl, tplConfig);
+            self.template = tpl = new MetaphorJs.app.Template({
+                scope: self.scope,
+                node: self.node,
+                deferRendering: self._nodeReplaced,
+                ownRenderer: true,
+                replace: self._nodeReplaced, // <some-custom-tag>
+                config: tplConfig
+                //passAttrs: self.passAttrs
+            });
+
+            self.template.on("first-node", self._onFirstNodeReported, self);
+        }
+
+        self.afterInitComponent.apply(self, arguments);
+
+        self.template.on("rendered", self._onRenderingFinished, self);
+
+        if (self.autoRender) {
+            tpl.childrenPromise.done(self.render, self);
+        }
+    },
+
+    _initItems: function() {
+
     },
 
     _initConfig: function() {
@@ -243,11 +242,6 @@ module.exports = MetaphorJs.app.Component = cls({
         });
     },
 
-    _createNode: function() {
-        var self    = this;
-        self.node   = window.document.createElement(self.config.get("tag"));
-    },
-
     _onFirstNodeReported: function(node) {
         var self = this;
         if (self._nodeReplaced) {
@@ -274,13 +268,11 @@ module.exports = MetaphorJs.app.Component = cls({
         node.$$cmpId = null;
     },
 
-
     _replaceNodeWithTemplate: function() {
         var self = this;
 
         if (self._nodeReplaced && self.node.parentNode) {
             MetaphorJs.dom.removeAttr(self.node, "id");
-            //self.node.parentNode.removeChild(self.node);
         }
 
         self.node = self.template.node;
@@ -319,11 +311,14 @@ module.exports = MetaphorJs.app.Component = cls({
 
         self.onBeforeRender();
         self.trigger('render', self);
-        self.template.startRendering();
+
+        if (self.template) {
+            self.template.startRendering();
+        }
     },
 
     onBeforeRender: function() {
-        this.config.getAll(); // calc all props and put into scope.cfg
+        this.config.getAll(); // calc all props and put into scope.$cfg
     },
 
     _onRenderingFinished: function() {

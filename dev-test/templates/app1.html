@@ -179,7 +179,7 @@
                     <p>transcluded text</p>
                 </div>
                 <label class="case-label">immediate (via tag)</label>
-                <mjs-include src="test-template.html">
+                <mjs-include $name="test-template.html">
                     <p>transcluded text</p>
                 </mjs-include>
                 <label class="case-label">ajax</label>
@@ -262,7 +262,7 @@
                 <a href="#" (click)="this.tpl = 'a+b.html'">a + b</a> |
                 <a href="#" (click)="this.tpl = 'a*b.html'">a * b</a>
 
-                <div {include}="this.tpl" {include.$animate} id="tplComponetInc"></div>
+                <div {include}*="this.tpl" {include.$animate} id="tplComponetInc"></div>
             </div>
 
             <div class="case" {cmp}="Test.StringTemplate">

@@ -181,7 +181,9 @@ cls({
                     as: "dlg",
                 },
                 scope: this.scope,
-                template: '<p>This is a dialog. <a href="#" (click)="this.dlg.hide()">close</a></p>'
+                template: {
+                    html: '<p>This is a dialog. <a href="#" (click)="this.dlg.hide()">close</a></p>'
+                }
             });
             dialog.show();
         },
@@ -247,21 +249,27 @@ cls({
     $class: "Test.StringTemplate",
     $extends: "MetaphorJs.app.Component"
     }, {
-    template: '<p>This template is inlined in components definition ({{this.$root.a}})</p>'
+    template: {
+        html: '<p>This template is inlined in components definition ({{this.$root.a}})</p>'
+    }
 });
 
 cls({
     $class: "Test.DynamicComponent",
     $extends: "MetaphorJs.app.Component"
     }, {
-    template: '<p>This component was created dynamically</p><div {transclude}></div>'
+    template: {
+        html: '<p>This component was created dynamically</p><div {transclude}></div>'
+    }
 });
 
 cls({
 
     $class: "Test.ChangeTemplate",
     $extends: "MetaphorJs.app.Component",
-    template: 'this.tpl',
+    template: {
+        htmlExpression: 'this.tpl'
+    },
 
     initComponent: function() {
 
@@ -277,13 +285,17 @@ cls({
 cls({
     $class: "Test.ViewComponent1",
     $extends: "MetaphorJs.app.Component",
-    template: '<p>View template 1</p><div {transclude}></div>'
+    template: {
+        html: '<p>View template 1</p><div {transclude}></div>'
+    }
 });
 
 cls({
     $class: "Test.ViewComponent2",
     $extends: "MetaphorJs.app.Component",
-    template: '<p>View template 2</p><div {transclude}></div>'
+    template: {
+        html: '<p>View template 2</p><div {transclude}></div>'
+    }
 });
 
 

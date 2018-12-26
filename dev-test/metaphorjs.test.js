@@ -2,7 +2,7 @@
 /* BUNDLE START 004 */
 "use strict";
 
-var MetaphorJsPrebuilt = {"templates":{"a*b.html":"<p>a * b = {{--89W}}</p>","a+b.html":"<p>a + b = {{--89Z}}</p>","app1.html":"<h1>MetaphorJs Feature test</h1><div class=\"cases\"><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Inline</label><div id=\"inline-binding\" class=\"test\">{{--8AV}}</div><label class=\"case-label\">mjs-bind</label><div id=\"binding\" {bind}=\"--8A8\" class=\"test\"></div><label class=\"case-label\">mjs-bind-html</label><div id=\"html-binding\" {bind-html}=\"--8AB\" class=\"test\"></div><label class=\"case-label\">Plain attribute (href)</label><p class=\"test\"><a id=\"attr-binding-href\" [href]=\"http://{{--8AV}}.com\">{{--8A8}}</a></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Input field (value)</label><p class=\"test\"><input id=\"binding-input-value\" type=\"text\" [value]=\"this.a\"></p><label class=\"case-label\">Input field (mjs-bind) (locked)</label><p class=\"test\"><input id=\"binding-input-bind\" type=\"text\" {bind}=\"--8AN\" {bind.$locked}></p><label class=\"case-label\">Checkbox (mjs-bind)</label><p class=\"test\"><input id=\"binding-checkbox\" type=\"checkbox\" {bind}=\"--8AR\"></p><label class=\"case-label\">Radio (mjs-bind) (locked)</label><p class=\"test\"><input id=\"radio-bind-1\" checked=\"checked\" type=\"radio\" value=\"inline1\" name=\"radio-bind\" {bind}=\"--8AV\" {bind.$locked}> <input id=\"radio-bind-2\" type=\"radio\" value=\"inline2\" name=\"radio-bind\"> <input id=\"radio-bind-3\" type=\"radio\" value=\"inline3\" name=\"radio-bind\"></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Select (mjs-bind)</label><p class=\"test\"><select id=\"select-bind\" {bind}=\"--8AN\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p><label class=\"case-label\">Textarea (mjs-bind)</label><p class=\"test\"><textarea id=\"textarea-bind-attr\" {bind}=\"--8AV\"></textarea></p><label class=\"case-label\">Textarea (inline)</label><p class=\"test\"><textarea id=\"textarea-bind-inline\">{{--8AV}}</textarea></p></div><div class=\"case\"><h4>Muplitple inline binding</h4><div id=\"multiple-inline-binding\" class=\"test\">{{--8AV}}<b>{{--8A8}}</b>{{--8AB}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Uppercase (mjs-bind)</label><div id=\"filter-uppercase-binding\" class=\"test\" {bind}=\"this.text | uppercase\"></div><label class=\"case-label\">Uppercase (inline)</label><div id=\"filter-uppercase-inline\" class=\"test\">{{this.text | uppercase}}</div><label class=\"case-label\">Lowercase (inline)</label><div id=\"filter-lowercase-inline\" class=\"test\">{{this.text | lowercase}}</div><label class=\"case-label\">Limit to (string)</label><div id=\"filter-limit-string\" class=\"test\">{{this.text | limitTo:this.a}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Linkify</label><p id=\"filter-linkify\" class=\"test\" {bind-html}=\"this.linkified | linkify\"></p></div><div class=\"case\"><h4>Expressions</h4><label class=\"case-label\">.a + .b</label><div id=\"expr-a-plus-b\" class=\"test\">{{--8HA}}</div><label class=\"case-label\">.bool ? \"true\" : \"false\"</label><div id=\"expr-bool\" class=\"test\">{{--8HB}}</div></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Input (number) (.a)</label><p class=\"test\"><input {model}=\"this.a\" type=\"number\" data-type=\"number\" id=\"model-input-a\"></p><label class=\"case-label\">Checkbox (.bool)</label><p class=\"test\"><input id=\"model-checkbox-bool\" type=\"checkbox\" {model}=\"this.bool\"></p><label class=\"case-label\">Radio (.inline)</label><p class=\"test\"><input id=\"model-radio-1\" checked=\"checked\" type=\"radio\" name=\"r\" value=\"inline1\" {model}=\"this.inline\">1<label><input id=\"model-radio-2\" type=\"radio\" name=\"r\" value=\"inline2\">2</label><input id=\"model-radio-3\" type=\"radio\" name=\"r\" value=\"inline3\">3</p><label class=\"case-label\">Select (.a)</label><p class=\"test\"><select id=\"model-select-a\" {model}=\"this.a\" data-type=\"number\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Textarea (.text)</label><p class=\"test\"><textarea id=\"model-textarea\" {model}=\"this.text\"></textarea></p><label class=\"case-label\">Input (string .text)</label><p class=\"test\"><input type=\"text\" id=\"model-input\" {model}=\"this.text\"></p></div><div class=\"case\"><h4>mjs-class</h4><label class=\"case-label\">Plain attribute</label><div class=\"test\"><p id=\"class-inline\" [class]=\"this.inline\">---</p></div><label class=\"case-label\">mjs-class (string)</label><div class=\"test\"><p id=\"class-string\" {class}=\"--8AV\">---</p></div><label class=\"case-label\">mjs-class ({bool: .bool, inline1: .a == 0})</label><div class=\"test\"><p id=\"class-object\" {class}=\"--8D5\">---</p></div><div class=\"test\"><p id=\"class-object\" {class.bool}=\"--8AR\" {class.inline1}=\"--8D8\">---</p></div></div><div class=\"case\"><h4>mjs-if, mjs-show, mjs-hide</h4><div id=\"if-bool\" {if}=\"--8AR\" class=\"test\" {if.$animate}>this should appear if .bool = true</div><div id=\"show-bool\" {show}=\"--8AR\" class=\"test\" {show.$animate}>this should show if .bool = true</div><div id=\"hide-bool\" {hide}=\"--8AR\" class=\"test\" {hide.$animate}>this should hide if .bool = true</div></div><div class=\"case\"><h4>mjs-include</h4><label class=\"case-label\">immediate</label><div {include}=\"test-template.html\" {include.$animate}><p>transcluded text</p></div><label class=\"case-label\">immediate (via tag)</label><mjs-include src=\"test-template.html\"><p>transcluded text</p></mjs-include><label class=\"case-label\">ajax</label><div {include}=\"template.html\"><p>Transcluded text</p></div></div><div class=\"case\"><h4>mjs-validate</h4><form name=\"myForm\" {validate} {class.error}=\"--8DS\" {class.$animate}><div><input name=\"field1\" data-validate-required {class}=\"--8DV\"></div><div {class}=\"--8DX\"><label><input type=\"radio\" name=\"radio1\" value=\"1\" data-validate-required> -- 1</label><label><input type=\"radio\" name=\"radio1\" value=\"2\"> -- 2</label><label><input type=\"radio\" name=\"radio1\" value=\"3\"> -- 3</label></div><div><input type=\"submit\" value=\"Submit\"> <input type=\"reset\" value=\"Reset\"></div></form></div><div class=\"case\" {init}=\"--8E8\"><h4>dynamic list</h4><label><input id=\"radio-sep-1\" type=\"radio\" name=\"sep\" value=\"/\\n|,/\" {model}=\"this.sep\"> /\\n|,/</label><label><input type=\"radio\" name=\"sep\" value=\"/\\n/\"> /\\n/</label><label><input type=\"radio\" name=\"sep\" value=\",\"> ,</label><br><br><textarea {model}=\"split:this.sep >> this.dynamicList\" {model.$binding}=\"input\"></textarea><ul><li {each}=\"item in this.dynamicList\" {bind}=\"--8EL\" {bind.$recursive}></li></ul></div><div class=\"case\"><h4>mjs-options</h4><label class=\"case-label\">Generated from .alist</label><p class=\"test\"><select {bind}=\"--8AN\" {options}=\"this.alist\"><option>not selected</option></select></p><label class=\"case-label\">Generated from .dynamicList</label><p class=\"test\"><select {options}=\"{\n                        name: this.item,\n                        value: this.$index,\n                        group: this.$index - (this.$index % 2),\n                        disabledGroup: this.$index == 0,\n                        disabled: this.$index == 4\n                        } in this.dynamicList\"><option>default value</option></select></p></div><div class=\"case\" {cmp}=\"Test.TplComponent\" id=\"tplComponentTest\"><h2>{{--8HC}}</h2>mjs-include change template:<br><a href=\"#\" (click)=\"--8F0\">a + b</a>|<a href=\"#\" (click)=\"--8F2\">a * b</a><div {include}=\"--8F4\" {include.$animate} id=\"tplComponetInc\"></div></div><div class=\"case\" {cmp}=\"Test.StringTemplate\"></div><div class=\"case\" {cmp}=\"Test.ChangeTemplate\">mjs-cmp change template:<br><a href=\"#\" (click)=\"--8F9\">tpl1</a>|<a href=\"#\" (click)=\"--8FB\">tpl2</a></div><div class=\"case\"><h4>Router</h4><div {router}=\"Test.MyView\" {router.$animate}></div>pushUrl:<a href=\"/1\">/1</a>|<a href=\"/2\">/2</a>|<a href=\"/3\">/3</a>|<a href=\"http://www.kuindji.com\">outside</a><br><br></div><div class=\"case\" {ignore}>This element is ignored by renderer: {{--8HD}}</div><div class=\"case\" {view}=\"--8FN\" {view.$default-cmp}:=\"Test.ViewComponent1\"><p>change cmp:<a href=\"#\" (click)=\"--8FQ\">Cmp1</a>|<a href=\"#\" (click)=\"--8FS\">Cmp2</a></p></div></div><div class=\"cases\"><div class=\"case double\" {init}=\"--8FV\"><h4>mjs-each (attr)</h4><input {model}=\"this.newItem\" (key.enter)=\"--8FY\"> <input type=\"button\" {disabled}=\"--8G0\" (click)=\"--8G1\" value=\"Add item\"><ul {show}=\"--8AR\" {show.$animate}><li {each}=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\" {each.$animate} {each.$animate-move}><label {class}=\"--8G5\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{--8HE}} - {{--8HF}} - {{--8HG}} - {{--8HH}} - {{--8HI}} - {{--8HJ}}</label><a href=\"#\" (click)=\"--8G8\">x</a></li></ul><input {model}=\"this.listFilter\" placeholder=\"Search\"><a href=\"#\" (click)=\"--8GB\">asc</a><a href=\"#\" (click)=\"--8GD\">desc</a></div><div class=\"case double\"><h4>mjs-each (tag)</h4><mjs-each value=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\"><div><label {class}=\"--8G5\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{--8HE}} - {{--8HF}} - {{--8HG}} - {{--8HH}} - {{--8HI}} - {{--8HJ}}</label><a href=\"#\" (click)=\"--8G8\">x</a></div></mjs-each></div><div class=\"case\" id=\"newComponent\">Dynamically created component on existing element will go here</div><div class=\"case\" id=\"renderToComponent\">Dynamically created component with renderTo will go here</div><div class=\"case double\" {cmp}=\"Test.MyComponent\" {cmp.$as}=\"ctrl\"><p {cmp-prop}=\"para\">Component's transcluded text + {{--8HD}}</p><a href=\"#\" (click)=\"--8GQ\">reverse</a>|<a href=\"#\" (click)=\"--8GS\">create new component on existing element</a>|<a href=\"#\" (click)=\"--8GU\">create new component and render to</a>|<a href=\"#\" (click)=\"--8GW\">create new dialog</a><br><br><button (click)=\"--8H0\">Load store</button><button (click)=\"--8H2\">Clear store</button><ul><li {each}=\"item in this.store\" {each.$animate}>{{--8HK}}</li></ul></div><div class=\"case double\" id=\"myComponent1\" {cmp}=\"Test.MyComponent\"><p>This is another instance with deferred value: {{--8HL}}</p></div><div class=\"case double\"><tagc $as:=\"ctrl\" $test:=\"Value from config\"></tagc></div></div>","app2.html":"<div class=\"case\"><h4>app's resolved value</h4><p class=\"test\">{{--8ID}}</p></div><div class=\"case\"><h4>recursive rendering</h4><p><a href=\"#\" (click)=\"--8HT\">Change level 2</a></p><p class=\"test\">This is level 1:<span {bind}=\"--8HW\" {bind.$recursive}></span></p></div><div class=\"case\"><h4>lang substitution</h4><label class=\"case-label\">using normal expression with filter: 'key' | l</label><p class=\"test\">{{'key' | l}}</p><p class=\"test\" {bind}=\"'subkey1' | l\" {bind.$recursive}></p></div><div class=\"case\"><h4>pluralization</h4><p><a href=\"#\" (click)=\"--8I6\">Increase B</a></p><label class=\"case-label\">using normal expression:</label><p class=\"test\">{{--8IE}} {{'plr' | p:this.b}}</p><p><input type=\"number\" data-type=\"number\" {model}=\"this.people\"></p><p class=\"test\" {bind}=\"'viewing' | p:this.people\" {bind.$recursive}></p></div>","cmp1-template.html":"<h2>{{--8HC}}</h2><div {transclude}></div>","dirs.html":"<div class=\"form_select\" (click)=\"--8IJ\" {class.loading}=\"--8IK\" {class.disabled}=\"--8IL\" {class.search}=\"--8IM\" {class.multiple}=\"--8IN\" {class.black}=\"--8IO\"><input type=\"hidden\" #el_hidden_field [name]=\"this.field.hiddenInputName\" [value]=\"this.field.$$selection | join:','\"><i #el_icon_down (click)=\"--8IR\"><!-- include icons/down.html --></i><a class=\"form_select__label\" {each}=\"item in this.field.getMultiSelection()\" style=\"display: inline-block !important;\">{{--8JU}}<i class=\"delete icon\" (click)=\"--8IU\"></i></a><input type=\"text\" #el_search class=\"search\" [disabled]=\"this.field.disabled\" {show}=\"--8IM\" {show.$display}=\"inline-block\" (focus)=\"--8IW\" (blur)=\"--8IX\" (key.backspace)=\"--8IY\" {model}=\"this.searchQuery\"><span class=\"sizer\" #el_sizer {if}=\"--8J0\" {bind}=\"--8J1\"></span><div class=\"default text\" #el_default_text (click)=\"--8J3\" {show}=\"--8J4\" {show.$display}=\"inline-block\" {show.$save-state}=\"--8J5\" {bind}=\"--8J6\"></div><div class=\"text\" #el_text (click)=\"--8J3\" {class.default}=\"--8J8\" {show}=\"--8J9\" {show.$save-state}=\"--8JA\" {show.$display}=\"inline-block\" {bind}=\"--8JB\"></div><!-- replaces two previous text blocks with invisible placeholder --><div style=\"display: none\" class=\"default text\" {show}=\"--8JD\" {show.$display}=\"inline-block\">&nbsp;</div><select class=\"form-select_hidden-select\" #el_hidden_select (click)=\"--8JF\" (change)=\"--8JG\" {show}=\"--8JH\" {show.$display}=\"block\" {options}=\"this.field._getSelectOptions()\"></select><div class=\"form-select-menu\" #el_menu {class.black}=\"--8IO\"><div class=\"items\" #el_menu_items><div class=\"disabled item\" #el_menu_disabled {if}=\"--8JL\" (click)=\"--8JM\" {bind-html}=\"--8JN\"></div><div class=\"empty item\" #el_menu_empty style=\"color: #999;\" {if}=\"--8JP\" (click)=\"--8JQ\" {bind-html}=\"--8JR\"></div><div class=\"item\" {each}=\"item in this.field.store\" (click)=\"--8JT\" {bind}=\"--8JU\"></div></div><div class=\"pagination_container\" {cmp}=\"Pagination\" {cmp.$autoscroll}=\"false\" {show}=\"--8JW\" (click)=\"--8JX\"></div></div></div>","tagc.html":"<div class=\"component\"><p>This is a tag component.</p><p>{{--8K3}}</p></div>","test-template.html":"<p>{{--8K7}}</p><div {transclude}></div>"},"templateOptions":{"dirs.html":{"includes":true}},"expressionOpts":{"89W":"r","89Z":"r","8FQ":"p","8FS":"p","8G8":"p","8HD":"r","8IU":"p","8JT":"p","8JU":"p","8JX":"p","8K7":"r"}}
+var MetaphorJsPrebuilt = {"templates":{"a*b.html":"<p>a * b = {{--89W}}</p>","a+b.html":"<p>a + b = {{--89Z}}</p>","app1.html":"<h1>MetaphorJs Feature test</h1><div class=\"cases\"><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Inline</label><div id=\"inline-binding\" class=\"test\">{{--8AV}}</div><label class=\"case-label\">mjs-bind</label><div id=\"binding\" {bind}=\"--8A8\" class=\"test\"></div><label class=\"case-label\">mjs-bind-html</label><div id=\"html-binding\" {bind-html}=\"--8AB\" class=\"test\"></div><label class=\"case-label\">Plain attribute (href)</label><p class=\"test\"><a id=\"attr-binding-href\" [href]=\"http://{{--8AV}}.com\">{{--8A8}}</a></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Input field (value)</label><p class=\"test\"><input id=\"binding-input-value\" type=\"text\" [value]=\"this.a\"></p><label class=\"case-label\">Input field (mjs-bind) (locked)</label><p class=\"test\"><input id=\"binding-input-bind\" type=\"text\" {bind}=\"--8AN\" {bind.$locked}></p><label class=\"case-label\">Checkbox (mjs-bind)</label><p class=\"test\"><input id=\"binding-checkbox\" type=\"checkbox\" {bind}=\"--8AR\"></p><label class=\"case-label\">Radio (mjs-bind) (locked)</label><p class=\"test\"><input id=\"radio-bind-1\" checked=\"checked\" type=\"radio\" value=\"inline1\" name=\"radio-bind\" {bind}=\"--8AV\" {bind.$locked}> <input id=\"radio-bind-2\" type=\"radio\" value=\"inline2\" name=\"radio-bind\"> <input id=\"radio-bind-3\" type=\"radio\" value=\"inline3\" name=\"radio-bind\"></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Select (mjs-bind)</label><p class=\"test\"><select id=\"select-bind\" {bind}=\"--8AN\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p><label class=\"case-label\">Textarea (mjs-bind)</label><p class=\"test\"><textarea id=\"textarea-bind-attr\" {bind}=\"--8AV\"></textarea></p><label class=\"case-label\">Textarea (inline)</label><p class=\"test\"><textarea id=\"textarea-bind-inline\">{{--8AV}}</textarea></p></div><div class=\"case\"><h4>Muplitple inline binding</h4><div id=\"multiple-inline-binding\" class=\"test\">{{--8AV}}<b>{{--8A8}}</b>{{--8AB}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Uppercase (mjs-bind)</label><div id=\"filter-uppercase-binding\" class=\"test\" {bind}=\"this.text | uppercase\"></div><label class=\"case-label\">Uppercase (inline)</label><div id=\"filter-uppercase-inline\" class=\"test\">{{this.text | uppercase}}</div><label class=\"case-label\">Lowercase (inline)</label><div id=\"filter-lowercase-inline\" class=\"test\">{{this.text | lowercase}}</div><label class=\"case-label\">Limit to (string)</label><div id=\"filter-limit-string\" class=\"test\">{{this.text | limitTo:this.a}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Linkify</label><p id=\"filter-linkify\" class=\"test\" {bind-html}=\"this.linkified | linkify\"></p></div><div class=\"case\"><h4>Expressions</h4><label class=\"case-label\">.a + .b</label><div id=\"expr-a-plus-b\" class=\"test\">{{--8HA}}</div><label class=\"case-label\">.bool ? \"true\" : \"false\"</label><div id=\"expr-bool\" class=\"test\">{{--8HB}}</div></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Input (number) (.a)</label><p class=\"test\"><input {model}=\"this.a\" type=\"number\" data-type=\"number\" id=\"model-input-a\"></p><label class=\"case-label\">Checkbox (.bool)</label><p class=\"test\"><input id=\"model-checkbox-bool\" type=\"checkbox\" {model}=\"this.bool\"></p><label class=\"case-label\">Radio (.inline)</label><p class=\"test\"><input id=\"model-radio-1\" checked=\"checked\" type=\"radio\" name=\"r\" value=\"inline1\" {model}=\"this.inline\">1<label><input id=\"model-radio-2\" type=\"radio\" name=\"r\" value=\"inline2\">2</label><input id=\"model-radio-3\" type=\"radio\" name=\"r\" value=\"inline3\">3</p><label class=\"case-label\">Select (.a)</label><p class=\"test\"><select id=\"model-select-a\" {model}=\"this.a\" data-type=\"number\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Textarea (.text)</label><p class=\"test\"><textarea id=\"model-textarea\" {model}=\"this.text\"></textarea></p><label class=\"case-label\">Input (string .text)</label><p class=\"test\"><input type=\"text\" id=\"model-input\" {model}=\"this.text\"></p></div><div class=\"case\"><h4>mjs-class</h4><label class=\"case-label\">Plain attribute</label><div class=\"test\"><p id=\"class-inline\" [class]=\"this.inline\">---</p></div><label class=\"case-label\">mjs-class (string)</label><div class=\"test\"><p id=\"class-string\" {class}=\"--8AV\">---</p></div><label class=\"case-label\">mjs-class ({bool: .bool, inline1: .a == 0})</label><div class=\"test\"><p id=\"class-object\" {class}=\"--8D5\">---</p></div><div class=\"test\"><p id=\"class-object\" {class.bool}=\"--8AR\" {class.inline1}=\"--8D8\">---</p></div></div><div class=\"case\"><h4>mjs-if, mjs-show, mjs-hide</h4><div id=\"if-bool\" {if}=\"--8AR\" class=\"test\" {if.$animate}>this should appear if .bool = true</div><div id=\"show-bool\" {show}=\"--8AR\" class=\"test\" {show.$animate}>this should show if .bool = true</div><div id=\"hide-bool\" {hide}=\"--8AR\" class=\"test\" {hide.$animate}>this should hide if .bool = true</div></div><div class=\"case\"><h4>mjs-include</h4><label class=\"case-label\">immediate</label><div {include}=\"test-template.html\" {include.$animate}><p>transcluded text</p></div><label class=\"case-label\">immediate (via tag)</label><mjs-include $name=\"test-template.html\"><p>transcluded text</p></mjs-include><label class=\"case-label\">ajax</label><div {include}=\"template.html\"><p>Transcluded text</p></div></div><div class=\"case\"><h4>mjs-validate</h4><form name=\"myForm\" {validate} {class.error}=\"--8DS\" {class.$animate}><div><input name=\"field1\" data-validate-required {class}=\"--8DV\"></div><div {class}=\"--8DX\"><label><input type=\"radio\" name=\"radio1\" value=\"1\" data-validate-required> -- 1</label><label><input type=\"radio\" name=\"radio1\" value=\"2\"> -- 2</label><label><input type=\"radio\" name=\"radio1\" value=\"3\"> -- 3</label></div><div><input type=\"submit\" value=\"Submit\"> <input type=\"reset\" value=\"Reset\"></div></form></div><div class=\"case\" {init}=\"--8E8\"><h4>dynamic list</h4><label><input id=\"radio-sep-1\" type=\"radio\" name=\"sep\" value=\"/\\n|,/\" {model}=\"this.sep\"> /\\n|,/</label><label><input type=\"radio\" name=\"sep\" value=\"/\\n/\"> /\\n/</label><label><input type=\"radio\" name=\"sep\" value=\",\"> ,</label><br><br><textarea {model}=\"split:this.sep >> this.dynamicList\" {model.$binding}=\"input\"></textarea><ul><li {each}=\"item in this.dynamicList\" {bind}=\"--8EL\" {bind.$recursive}></li></ul></div><div class=\"case\"><h4>mjs-options</h4><label class=\"case-label\">Generated from .alist</label><p class=\"test\"><select {bind}=\"--8AN\" {options}=\"this.alist\"><option>not selected</option></select></p><label class=\"case-label\">Generated from .dynamicList</label><p class=\"test\"><select {options}=\"{\n                        name: this.item,\n                        value: this.$index,\n                        group: this.$index - (this.$index % 2),\n                        disabledGroup: this.$index == 0,\n                        disabled: this.$index == 4\n                        } in this.dynamicList\"><option>default value</option></select></p></div><div class=\"case\" {cmp}=\"Test.TplComponent\" id=\"tplComponentTest\"><h2>{{--8HC}}</h2>mjs-include change template:<br><a href=\"#\" (click)=\"--8F0\">a + b</a>|<a href=\"#\" (click)=\"--8F2\">a * b</a><div {include}*=\"--8F4\" {include.$animate} id=\"tplComponetInc\"></div></div><div class=\"case\" {cmp}=\"Test.StringTemplate\"></div><div class=\"case\" {cmp}=\"Test.ChangeTemplate\">mjs-cmp change template:<br><a href=\"#\" (click)=\"--8F9\">tpl1</a>|<a href=\"#\" (click)=\"--8FB\">tpl2</a></div><div class=\"case\"><h4>Router</h4><div {router}=\"Test.MyView\" {router.$animate}></div>pushUrl:<a href=\"/1\">/1</a>|<a href=\"/2\">/2</a>|<a href=\"/3\">/3</a>|<a href=\"http://www.kuindji.com\">outside</a><br><br></div><div class=\"case\" {ignore}>This element is ignored by renderer: {{--8HD}}</div><div class=\"case\" {view}=\"--8FN\" {view.$default-cmp}:=\"Test.ViewComponent1\"><p>change cmp:<a href=\"#\" (click)=\"--8FQ\">Cmp1</a>|<a href=\"#\" (click)=\"--8FS\">Cmp2</a></p></div></div><div class=\"cases\"><div class=\"case double\" {init}=\"--8FV\"><h4>mjs-each (attr)</h4><input {model}=\"this.newItem\" (key.enter)=\"--8FY\"> <input type=\"button\" {disabled}=\"--8G0\" (click)=\"--8G1\" value=\"Add item\"><ul {show}=\"--8AR\" {show.$animate}><li {each}=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\" {each.$animate} {each.$animate-move}><label {class}=\"--8G5\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{--8HE}} - {{--8HF}} - {{--8HG}} - {{--8HH}} - {{--8HI}} - {{--8HJ}}</label><a href=\"#\" (click)=\"--8G8\">x</a></li></ul><input {model}=\"this.listFilter\" placeholder=\"Search\"><a href=\"#\" (click)=\"--8GB\">asc</a><a href=\"#\" (click)=\"--8GD\">desc</a></div><div class=\"case double\"><h4>mjs-each (tag)</h4><mjs-each value=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\"><div><label {class}=\"--8G5\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{--8HE}} - {{--8HF}} - {{--8HG}} - {{--8HH}} - {{--8HI}} - {{--8HJ}}</label><a href=\"#\" (click)=\"--8G8\">x</a></div></mjs-each></div><div class=\"case\" id=\"newComponent\">Dynamically created component on existing element will go here</div><div class=\"case\" id=\"renderToComponent\">Dynamically created component with renderTo will go here</div><div class=\"case double\" {cmp}=\"Test.MyComponent\" {cmp.$as}=\"ctrl\"><p {cmp-prop}=\"para\">Component's transcluded text + {{--8HD}}</p><a href=\"#\" (click)=\"--8GQ\">reverse</a>|<a href=\"#\" (click)=\"--8GS\">create new component on existing element</a>|<a href=\"#\" (click)=\"--8GU\">create new component and render to</a>|<a href=\"#\" (click)=\"--8GW\">create new dialog</a><br><br><button (click)=\"--8H0\">Load store</button><button (click)=\"--8H2\">Clear store</button><ul><li {each}=\"item in this.store\" {each.$animate}>{{--8HK}}</li></ul></div><div class=\"case double\" id=\"myComponent1\" {cmp}=\"Test.MyComponent\"><p>This is another instance with deferred value: {{--8HL}}</p></div><div class=\"case double\"><tagc $as:=\"ctrl\" $test:=\"Value from config\"></tagc></div></div>","app2.html":"<div class=\"case\"><h4>app's resolved value</h4><p class=\"test\">{{--8ID}}</p></div><div class=\"case\"><h4>recursive rendering</h4><p><a href=\"#\" (click)=\"--8HT\">Change level 2</a></p><p class=\"test\">This is level 1:<span {bind}=\"--8HW\" {bind.$recursive}></span></p></div><div class=\"case\"><h4>lang substitution</h4><label class=\"case-label\">using normal expression with filter: 'key' | l</label><p class=\"test\">{{'key' | l}}</p><p class=\"test\" {bind}=\"'subkey1' | l\" {bind.$recursive}></p></div><div class=\"case\"><h4>pluralization</h4><p><a href=\"#\" (click)=\"--8I6\">Increase B</a></p><label class=\"case-label\">using normal expression:</label><p class=\"test\">{{--8IE}} {{'plr' | p:this.b}}</p><p><input type=\"number\" data-type=\"number\" {model}=\"this.people\"></p><p class=\"test\" {bind}=\"'viewing' | p:this.people\" {bind.$recursive}></p></div>","cmp1-template.html":"<h2>{{--8HC}}</h2><div {transclude}></div>","dirs.html":"<div class=\"form_select\" (click)=\"--8IJ\" {class.loading}=\"--8IK\" {class.disabled}=\"--8IL\" {class.search}=\"--8IM\" {class.multiple}=\"--8IN\" {class.black}=\"--8IO\"><input type=\"hidden\" #el_hidden_field [name]=\"this.field.hiddenInputName\" [value]=\"this.field.$$selection | join:','\"><i #el_icon_down (click)=\"--8IR\"><!-- include icons/down.html --></i><a class=\"form_select__label\" {each}=\"item in this.field.getMultiSelection()\" style=\"display: inline-block !important;\">{{--8JU}}<i class=\"delete icon\" (click)=\"--8IU\"></i></a><input type=\"text\" #el_search class=\"search\" [disabled]=\"this.field.disabled\" {show}=\"--8IM\" {show.$display}=\"inline-block\" (focus)=\"--8IW\" (blur)=\"--8IX\" (key.backspace)=\"--8IY\" {model}=\"this.searchQuery\"><span class=\"sizer\" #el_sizer {if}=\"--8J0\" {bind}=\"--8J1\"></span><div class=\"default text\" #el_default_text (click)=\"--8J3\" {show}=\"--8J4\" {show.$display}=\"inline-block\" {show.$save-state}=\"--8J5\" {bind}=\"--8J6\"></div><div class=\"text\" #el_text (click)=\"--8J3\" {class.default}=\"--8J8\" {show}=\"--8J9\" {show.$save-state}=\"--8JA\" {show.$display}=\"inline-block\" {bind}=\"--8JB\"></div><!-- replaces two previous text blocks with invisible placeholder --><div style=\"display: none\" class=\"default text\" {show}=\"--8JD\" {show.$display}=\"inline-block\">&nbsp;</div><select class=\"form-select_hidden-select\" #el_hidden_select (click)=\"--8JF\" (change)=\"--8JG\" {show}=\"--8JH\" {show.$display}=\"block\" {options}=\"this.field._getSelectOptions()\"></select><div class=\"form-select-menu\" #el_menu {class.black}=\"--8IO\"><div class=\"items\" #el_menu_items><div class=\"disabled item\" #el_menu_disabled {if}=\"--8JL\" (click)=\"--8JM\" {bind-html}=\"--8JN\"></div><div class=\"empty item\" #el_menu_empty style=\"color: #999;\" {if}=\"--8JP\" (click)=\"--8JQ\" {bind-html}=\"--8JR\"></div><div class=\"item\" {each}=\"item in this.field.store\" (click)=\"--8JT\" {bind}=\"--8JU\"></div></div><div class=\"pagination_container\" {cmp}=\"Pagination\" {cmp.$autoscroll}=\"false\" {show}=\"--8JW\" (click)=\"--8JX\"></div></div></div>","tagc.html":"<div class=\"component\"><p>This is a tag component.</p><p>{{--8K3}}</p></div>","test-template.html":"<p>{{--8K7}}</p><div {transclude}></div>"},"templateOptions":{"dirs.html":{"includes":true}},"expressionOpts":{"89W":"r","89Z":"r","8FQ":"p","8FS":"p","8G8":"p","8HD":"r","8IU":"p","8JT":"p","8JU":"p","8JX":"p","8K7":"r"}}
 MetaphorJsPrebuilt['funcs'] = {
 "89W": function(____, $$$$) {try {return ____.$root.a * ____.$root.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a * this.$root.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
 "89Z": function(____, $$$$) {try {return ____.$root.a + ____.$root.b;} catch (thrownError) { /*DEBUG-START*/console.log("this.$root.a + this.$root.b");console.log(thrownError);/*DEBUG-END*/return undefined; }},
@@ -3344,6 +3344,7 @@ var lib_Promise = MetaphorJs.lib.Promise = function(){
     var PENDING     = 0,
         FULFILLED   = 1,
         REJECTED    = 2,
+        CANCELLED   = 3,
 
         queue       = [],
         qRunning    = false,
@@ -3552,6 +3553,15 @@ var lib_Promise = MetaphorJs.lib.Promise = function(){
          */
         isRejected: function() {
             return this._state === REJECTED;
+        },
+
+        /**
+         * Is the promise was destroyed before resolving or rejecting
+         * @method
+         * @returns {boolean}
+         */
+        isCancelled: function() {
+            return this._state === CANCELLED;
         },
 
         /**
@@ -3953,6 +3963,11 @@ var lib_Promise = MetaphorJs.lib.Promise = function(){
             }
 
             return self;
+        },
+
+        $destroy: function() {
+            this._cleanup();
+            this._state === PENDING && (this._state = CANCELLED);
         }
     }, true, false);
 
@@ -4865,7 +4880,8 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
             var self = this,
                 props = self.properties,
                 prop,
-                changed = false;
+                changed = false,
+                value;
 
             if (!props[name]) {
                 props[name] = {};
@@ -4878,6 +4894,10 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
             if (val === undf) {
                 var k;
                 for (k in cfg) {
+                    if (k === "value") {
+                        value = cfg[k];
+                        continue;
+                    }
                     if (cfg[k] !== prop[k]) {
                         changed = true;
                         prop[k] = cfg[k];
@@ -4885,7 +4905,10 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                 }
             }
             else {
-                if (val !== prop[cfg]) {
+                if (cfg === "value") {
+                    value = val;
+                }
+                else if (val !== prop[cfg]) {
                     changed = true;
                     prop[cfg] = val;
                 }
@@ -4914,10 +4937,13 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                 changed = true;
             }
 
-            if (changed && self.values[name] !== undf) {
+            if (value !== undf) {
+                self.values[name] = value;
+            }
+            else if (changed && self.values[name] !== undf) {
                 delete self.values[name];
             }
-        
+
             return changed;
         },
 
@@ -5122,6 +5148,24 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
         },
 
         /**
+         * Force property to static mode with given value
+         * @param {string} name 
+         * @param {*} val 
+         */
+        set: function(name, val) {
+            var self = this;
+            if (self.properties[name]) {
+                var prev = self.values[val];
+                self.setMode(name, MODE_STATIC);
+                self.values[name] = val;
+                if (prev != val) {
+                    $$observable.trigger(self.id, name, val, prev);
+                    $$observable.trigger(self.id +'-'+ name, val, prev) ;
+                }
+            }
+        },
+
+        /**
          * Get property keys
          * @method
          * @returns {array}
@@ -5229,6 +5273,7 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
 
         /**
          * Import properties and values from another config
+         * @method
          * @param {MetaphorJs.lib.Config} config 
          */
         importConfig: function(config, overwrite) {
@@ -5246,6 +5291,33 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                     vs[name] = config.values[name];
                 }
             }
+        },
+
+        /**
+         * Create a new config with given properties
+         * @method
+         * @param {array} props
+         * @returns MetaphorJs.lib.Config
+         */
+        slice: function(props) {
+            var map = {}, self = this, 
+                name, i, l,
+                values = {},
+                existing = self.properties;
+            for (i = 0, l = props.length; i < l; i++) {
+                name = props[i];
+                if (existing[name]) {
+                    map[name] = existing[name];
+                    values[name] = self.values[name];
+                    delete map[name].mo;
+                }
+            }
+            var newCfg = new Config(
+                map,
+                self.cfg
+            );
+            newCfg.values = values;
+            return newCfg;
         },
 
         /**
@@ -11937,12 +12009,16 @@ var ajax = function(){
 
 
 
+
 var app_Template = MetaphorJs.app.Template = function() {
 
     var observable      = new lib_Observable,
         cache           = new lib_Cache,
         options         = {},
+        pblt,
+        pbltOpt,
 
+        //TODO: Check if this is a performance issue
         getFragmentContent  = function(frg) {
             var div = window.document.createElement("div");
             div.appendChild(dom_clone(frg));
@@ -11999,13 +12075,13 @@ var app_Template = MetaphorJs.app.Template = function() {
 
             var opt, inx;
 
-            if (tpl.substr(0,5) === "<!--{") {
+            if (tpl.substring(0,5) === "<!--{") {
                 inx = tpl.indexOf("-->");
                 opt = lib_Expression.get(tpl.substr(4, inx-4), {});
                 options[tplId] = opt;
                 tpl = tpl.substr(inx + 3);
             }
-            
+
             if (!options[tplId]) {
                 options[tplId] = {};
             }
@@ -12026,11 +12102,15 @@ var app_Template = MetaphorJs.app.Template = function() {
 
         findInPrebuilt = function(tplId) {
             var tpl;
-            if (tpl = MetaphorJs.prebuilt.templates[tplId]) {
-                delete MetaphorJs.prebuilt.templates[tplId];
-                if (MetaphorJs.prebuilt.templateOptions[tplId]) {
-                    options[tplId] = MetaphorJs.prebuilt.templateOptions[tplId];
-                    delete MetaphorJs.prebuilt.templateOptions[tplId];
+            if (!pblt) {
+                pblt = MetaphorJs.prebuilt.templates;
+                pbltOpt = MetaphorJs.prebuilt.templateOptions;
+            }
+            if (tpl = pblt[tplId]) {
+                delete pblt[tplId];
+                if (pbltOpt[tplId]) {
+                    options[tplId] = pbltOpt[tplId];
+                    delete pbltOpt[tplId];
                 }
                 return tpl;
             }
@@ -12067,11 +12147,6 @@ var app_Template = MetaphorJs.app.Template = function() {
         },
 
         isExpression = function(str) {
-            /*if (str.substr(0,1) === '.') {
-                var second = str.substr(1,1);
-                return !(second === '.' || second === '/');
-            }*/
-            //str.substr(0,1) === '{' || 
             return str.substr(0,5) === 'this.';
         };
 
@@ -12081,155 +12156,135 @@ var app_Template = MetaphorJs.app.Template = function() {
 
     cache.addFinder(findInScripts);
 
-    return cls({
+    var Template = function(cfg) {
+        var self    = this;
 
-        _watcher:           null,
-        _tpl:               null,
+        extend(self, cfg, true, false);
+
+        self.id = nextUid();
+        observable.createEvent("rendered-" + self.id, {
+            returnResult: false,
+            autoTrigger: true
+        });
+
+        if (!self.scope) {
+            self.scope = new lib_Scope;
+        }
+        if (!self.config) {
+            self.config = new lib_Config(null, {
+                scope: self.scope
+            });
+        }
+        else if (!(self.config instanceof lib_Config)) {
+            self.config = new lib_Config(
+                self.config, 
+                {
+                    scope: self.scope
+                }
+            );
+        }
+
+        var config = self.config,
+            node = self.node;
+
+        config.setDefaultMode("name", lib_Config.MODE_STATIC);
+        config.setDefaultMode("html", lib_Config.MODE_STATIC);
+        config.setType("animate", "bool", 
+                        lib_Config.MODE_STATIC, self.animate);
+        self.name && config.setDefaultValue("name", self.name);
+        self.html && config.setDefaultValue("html", self.html);
+
+        if (self.replace && node && node.parentNode) {
+            var cmts = dom_commentWrap(node, self.id);
+            self._prevEl = cmts[0];
+            self._nextEl = cmts[1];
+        }
+
+        if (!node) {
+            self.deferRendering = true;
+        }
+
+        if ((config.has("name") || config.has("html")) && 
+            node && node.firstChild) {
+            dom_data(node, "mjs-transclude", 
+                dom_toFragment(node.childNodes));
+        }
+
+        self.childrenPromise    = new lib_Promise;
+
+        if (self.ownRenderer) {
+            self.childrenPromise.resolve(false);
+        }
+
+        if (config.has("name")) {
+            config.on("name", self._onChange, self);
+            self._resolveTemplate()
+                .done(function(){
+                    if (!self.deferRendering || !self.ownRenderer) {
+                        self._applyTemplate();
+                    }
+                });
+        }
+        else if (config.has("html")) {
+            config.on("html", self._onHtmlChange, self);
+            if (!self.deferRendering || !self.ownRenderer) {
+                self._resolveHtml();
+            }
+        }
+        else {
+            // run renderer on given node without any templates
+            if (!self.deferRendering && self.ownRenderer) {
+                self._runRenderer();
+            }
+        }
+
+        if (self.ownRenderer && self.parentRenderer) {
+            self.parentRenderer.on("destroy",
+                self._onParentRendererDestroy,
+                self);
+        }
+
+        self.scope.$on("destroy", self._onScopeDestroy, self);
+    };
+
+    extend(Template.prototype, {
+
         _renderer:          null,
         _initial:           true,
         _fragment:          null,
-        _id:                null,
-        _originalNode:      null,
-        _intendedShadow:    false,
         _prevEl:            null,
         _nextEl:            null,
 
         scope:              null,
         node:               null,
-        tpl:                null,
-        url:                null,
-        html:               null,
+        config:             null,
         ownRenderer:        true,
-        initPromise:        null,
-        tplPromise:         null,
+        childrenPromise:    null,
+        resolvePromise:     null,
         parentRenderer:     null,
         deferRendering:     false,
         replace:            false,
-        shadow:             false,
         animate:            false,
 
         passAttrs:          null,
 
-        $init: function(cfg) {
-
-            var self    = this;
-
-            extend(self, cfg, true, false);
-
-            var shadowRootSupported =
-                !!window.document.documentElement.createShadowRoot;
-
-            if (!shadowRootSupported) {
-                self._intendedShadow = self.shadow;
-                self.shadow = false;
-            }
-
-            self.id     = nextUid();
-
-            if (!self.scope) {
-                self.scope = new lib_Scope;
-            }
-
-            observable.createEvent("rendered-" + self.id, {
-                returnResult: false,
-                autoTrigger: true
-            });
-
-            self.tpl && (self.tpl = self.tpl.trim());
-            self.url && (self.url = self.url.trim());
-
-            var node    = self.node,
-                tpl     = self.tpl || self.url;
-
-            //node && removeAttr(node, "include");
-
-            if (self.replace && node && node.parentNode) {
-                var cmts = dom_commentWrap(node, self.id);
-                self._prevEl = cmts[0];
-                self._nextEl = cmts[1];
-            }
-
-            if (self.shadow) {
-                self._originalNode = node;
-                self.node = node = node.createShadowRoot();
-            }
-
-            if (!node) {
-                self.deferRendering = true;
-            }
-
-            if (tpl) {
-
-                if (node && node.firstChild && !self.shadow) {
-                    dom_data(node, "mjs-transclude", 
-                        dom_toFragment(node.childNodes));
-                }
-
-                if (isExpression(tpl) || 
-                    lib_Expression.isPrebuiltKey(tpl)) {
-                    self._watcher = lib_MutationObserver.get(
-                        self.scope,
-                        tpl,
-                        self.onChange,
-                        self
-                    );
-                    var val = self._watcher.getValue();
-                    if (typeof val !== "string") {
-                        extend(self, val, true, false);
-                    }
-                }
-
-                self.resolveTemplate();
-
-                if (!self.deferRendering || !self.ownRenderer) {
-                    self.tplPromise.done(self.applyTemplate, self);
-                }
-            }
-            else if (self.html) {
-                self._watcher = lib_MutationObserver.get(
-                    self.scope,
-                    self.html,
-                    self.onHtmlChange,
-                    self
-                );
-
-                self.initPromise    = new lib_Promise;
-                self.onHtmlChange();
-            }
-            else {
-                if (!self.deferRendering && self.ownRenderer) {
-                    self.doRender();
-                }
-            }
-
-            if (self.ownRenderer && self.parentRenderer) {
-                self.parentRenderer.on("destroy",
-                    self.onParentRendererDestroy,
-                    self);
-            }
-
-            self.scope.$on("destroy", self.onScopeDestroy, self);
-        },
-
-        setAnimation: function(state) {
-            this.animate = state;
-        },
-
-        doRender: function() {
+        _runRenderer: function() {
             var self = this;
             if (!self._renderer) {
-                self._renderer   = new app_Renderer(self.node, self.scope, null/*, self.passAttrs*/);
-                self._renderer.on("rendered", self.onRendered, self);
-                self._renderer.on("first-node", self.onFirstNodeReported, self);
+                self._renderer   = new app_Renderer(
+                        self.node, self.scope/*, null, self.passAttrs*/
+                );
+                self._renderer.on("rendered", self._onRendered, self);
+                self._renderer.on("first-node", self._onFirstNodeReported, self);
                 self._renderer.process();
             }
         },
 
-        onFirstNodeReported: function(node) {
+        _onFirstNodeReported: function(node) {
             observable.trigger("first-node-" + this.id, node);
         },
 
-        onRendered: function() {
+        _onRendered: function() {
             observable.trigger("rendered-" + this.id, this);
         },
 
@@ -12243,142 +12298,132 @@ var app_Template = MetaphorJs.app.Template = function() {
 
         startRendering: function() {
 
-            var self    = this,
-                tpl     = self.tpl || self.url;
-
-            if (self.deferRendering && (self.node || self.node === false)) {
-
+            var self    = this;
+            if (self.deferRendering && 
+                (self.node || self.node === false)) {
                 self.deferRendering = false;
-                if (self.tplPromise) {
-                    self.tplPromise.done(
-                        tpl ? self.applyTemplate : self.doRender,
-                        self
-                    );
-                    return self.initPromise;
+
+                if (self.config.has("name")) {
+                    self._resolveTemplate().done(self._applyTemplate, self);
+                }
+                else if (self.config.has("html")) {
+                    self._resolveHtml();
                 }
                 else {
-                    tpl ? self.applyTemplate() : self.doRender();
+                    self._runRenderer();
                 }
             }
 
-            return null;
+            return self.childrenPromise;
         },
 
-        resolveTemplate: function() {
+        _resolveTemplate: function(renew) {
 
-            var self    = this,
-                url     = self.url,
-                tpl     = self._watcher ?
-                          self._watcher.getValue() :
-                          (self.tpl || url);
+            var self    = this;
 
-            if (self._watcher && !tpl) {
-                url     = null;
+            if (self.resolvePromise) {
+                if (renew) {
+                    self.resolvePromise.$destroy();
+                    self.resolvePromise = null;
+                }
+                else {
+                    return self.resolvePromise;
+                }
             }
 
-            if (tpl && typeof tpl !== "string") {
-                tpl     = tpl.tpl || tpl.url;
-                url     = null;
-            }
-
-            self.initPromise    = new lib_Promise;
-            self.tplPromise     = new lib_Promise;
-
-            if (self.ownRenderer) {
-                self.initPromise.resolve(false);
-            }
-
-            return new lib_Promise(function(resolve, reject){
-                if (tpl || url) {
-                    if (url) {
-                        resolve(getTemplate(tpl) || loadTemplate(url));
+            return self.resolvePromise = new lib_Promise(
+                function(resolve, reject) {
+                    var tpl = self.config.get("name");
+                    if (tpl) {
+                        resolve(getTemplate(tpl) || loadTemplate(tpl));
                     }
                     else {
-                        resolve(getTemplate(tpl) || dom_toFragment(tpl));
+                        reject();
                     }
                 }
-                else {
-                    reject();
-                }
+            )
+            .done(function(fragment){
+                self._fragment = fragment;
             })
-                .done(function(fragment){
-                    self._fragment = fragment;
-                    self.tplPromise.resolve();
-                })
-                .fail(self.initPromise.reject, self.initPromise)
-                .fail(self.tplPromise.reject, self.tplPromise);
+            .fail(self.childrenPromise.reject, self.childrenPromise);
         },
 
-        onHtmlChange: function() {
-            var self    = this,
-                el      = self.node;
-
-            if (self._renderer) {
-                self._renderer.$destroy();
-                self._renderer = null;
-            }
-
-            var htmlVal = self._watcher.getValue();
+        _resolveHtml: function() {
+            var self = this,
+                htmlVal = self.config.get("html");
 
             if (htmlVal) {
                 self._fragment = dom_toFragment(htmlVal);
-                self.applyTemplate();
-            }
-            else if (el) {
-                while (el.firstChild) {
-                    el.removeChild(el.firstChild);
-                }
+                self._applyTemplate();
             }
         },
 
-        onChange: function() {
-
-            var self    = this,
-                el      = self.node;
+        _onHtmlChange: function() {
+            var self    = this;
 
             if (self._renderer) {
                 self._renderer.$destroy();
                 self._renderer = null;
             }
 
-            var tplVal = self._watcher.getValue();
+            if (self.deferRendering) {
+                return;
+            }
+
+            //self._clearNode();
+            self._resolveHtml();
+            
+        },
+
+        _onChange: function() {
+
+            var self    = this;
+
+            if (self._renderer) {
+                self._renderer.$destroy();
+                self._renderer = null;
+            }
+
+            //self._clearNode();
+
+            var tplVal = self.config.get("name");
 
             if (tplVal) {
-                self.resolveTemplate()
-                    .done(self.applyTemplate, self);
+                self._resolveTemplate(true)
+                    .done(self._applyTemplate, self);
             }
-            else if (el) {
+        },
+
+        _clearNode: function() {
+            var self = this;
+
+            if (!self.node) {
+                return;
+            }
+
+            if (self.replace) {
+                var next = self._nextEl, prev = self._prevEl;
+                while (prev.parentNode && prev.nextSibling && 
+                        prev.nextSibling !== next) {
+                    prev.parentNode.removeChild(prev.nextSibling);
+                }
+            }
+            else {
+                var el = self.node;
                 while (el.firstChild) {
                     el.removeChild(el.firstChild);
                 }
             }
         },
 
-        doApplyTemplate: function() {
+        _doApplyTemplate: function() {
 
             var self    = this,
                 el      = self.node,
                 frg,
                 children;
 
-            if (el) {
-                if (self.replace) {
-                    var next = self._nextEl, prev = self._prevEl;
-                    while (prev.parentNode && prev.nextSibling && 
-                            prev.nextSibling !== next) {
-                        prev.parentNode.removeChild(prev.nextSibling);
-                    }
-                }
-                else if (el.firstChild) {
-                    while (el.firstChild) {
-                        el.removeChild(el.firstChild);
-                    }
-                }
-            }
-
-            if (self._intendedShadow) {
-                self.makeTranscludes();
-            }
+            self._clearNode();
 
             if (self.replace) {
 
@@ -12386,10 +12431,12 @@ var app_Template = MetaphorJs.app.Template = function() {
                 children = toArray(frg.childNodes);
 
                 if (el && el.nodeType) {
+                    
                     var transclude = el ? dom_data(el, "mjs-transclude") : null;
 
                     if (transclude) {
-                        var tr = select("[{transclude}], [mjs-transclude], mjs-transclude", frg, true);
+                        var tr = select(
+                            "[{transclude}], [mjs-transclude], mjs-transclude", frg, true);
                         if (tr.length) {
                             dom_data(tr[0], "mjs-transclude", transclude);
                         }
@@ -12400,7 +12447,7 @@ var app_Template = MetaphorJs.app.Template = function() {
 
                 self._nextEl.parentNode.insertBefore(frg, self._nextEl);
                 self.node = children;
-                self.initPromise.resolve(children);
+                self.childrenPromise.resolve(children);
             }
             else {
 
@@ -12410,107 +12457,104 @@ var app_Template = MetaphorJs.app.Template = function() {
                 else {
                     self.node = el = dom_clone(self._fragment);
                 }
-                self.initPromise.resolve(el);
+
+                self.childrenPromise.resolve(el);
             }
 
             observable.trigger("before-render-" + self.id, self);
 
             if (self.ownRenderer) {
-                self.doRender();
+                self._runRenderer();
             }
         },
 
-        applyTemplate: function() {
+        _applyTemplate: function() {
 
             var self        = this,
                 el          = self.node,
+                initial     = self._initial,
                 deferred    = new lib_Promise;
 
-            if (!self._initial && self.animate) {
+            self._initial = false;
+
+            if (!initial && self.config.get("animate")) {
                 animate_animate(el, "leave")
-                    .done(self.doApplyTemplate, self)
+                    .done(self._doApplyTemplate, self)
                     .done(deferred.resolve, deferred);
                 animate_animate(el, "enter");
             }
             else {
-                self.doApplyTemplate();
+                self._doApplyTemplate();
                 deferred.resolve();
             }
-
-            self._initial = false;
 
             return deferred;
         },
 
-        makeTranscludes: function() {
-
-            var self    = this,
-                fr      = self._fragment,
-                cnts    = select("content", fr),
-                el, next,
-                tr, sel,
-                i, l;
-
-            for (i = 0, l = cnts.length; i < l;  i++) {
-
-                tr      = window.document.createElement("transclude");
-                el      = cnts[i];
-                next    = el.nextSibling;
-                sel     = dom_getAttr(el, "select");
-
-                sel && dom_setAttr(tr, "select", sel);
-
-                fr.removeChild(el);
-                fr.insertBefore(tr, next);
-            }
-        },
-
-        onParentRendererDestroy: function() {
+        _onParentRendererDestroy: function() {
             var self = this;
 
             if (!self.$destroyed && self._renderer &&
                 !self._renderer.$destroyed) {
                 self._renderer.$destroy();
             }
+
             self.$destroy();
         },
 
-        onScopeDestroy: function() {
+        _onScopeDestroy: function() {
             this.$destroy();
         },
 
-        onDestroy: function() {
+        $destroy: function() {
 
             var self = this;
 
             if (self._nextEl && self._nextEl.parentNode) {
                 self._nextEl.parentNode.removeChild(self._nextEl);
             }
-            
+
             if (self._prevEl && self._prevEl.parentNode) {
                 self._prevEl.parentNode.removeChild(self._prevEl);
             }
 
-            if (self.shadow) {
-                self._originalNode.createShadowRoot();
+            if (self.config) {
+                self.config.clear();
+                self.config = null;
             }
-
-            if (self._watcher) {
-                if (self.html) {
-                    self._watcher.unsubscribe(self.onHtmlChange, self);
-                }
-                else {
-                    self._watcher.unsubscribe(self.onChange, self);
-                }
-                self._watcher.$destroy(true);
-            }
-
-            //observable.trigger("destroy-" + self.id, self);
         }
-
-    }, {
-        cache: cache
     });
+
+    Template.cache = cache;
+
+    Template.prepareConfig = function(def, tplConfig) {
+        if (typeof def === 'string') {
+            tplConfig.setProperty("name", {
+                expression: def,
+                mode: lib_Config.MODE_STATIC
+            });
+        }
+        else if (def) {
+            if (def.name || def.nameExpression) {
+                tplConfig.setProperty("name", {
+                    expression: def.name || def.nameExpression,
+                    mode: def.nameExpression ? 
+                        lib_Config.MODE_DYNAMIC :
+                        lib_Config.MODE_STATIC
+                });
+            }
+            if (def.html || def.htmlExpression) {
+                tplConfig.setProperty("html", {
+                    expression: def.html || def.htmlExpression,
+                    mode: def.htmlExpression ? 
+                        lib_Config.MODE_DYNAMIC :
+                        lib_Config.MODE_STATIC
+                });
+            }
+        }
+    };
+
+    return Template;
 }();
 
 
@@ -12667,7 +12711,11 @@ var app_Component = MetaphorJs.app.Component = cls({
      */
     id:             null,
 
-    _originalId:     false,
+    /**
+     * @access private
+     * @var bool
+     */
+    _originalId:    false,
 
     /**
      * @var Element
@@ -12698,12 +12746,6 @@ var app_Component = MetaphorJs.app.Component = cls({
      */
     _rendered:       false,
 
-    /*
-     * @var bool
-     * @access protected
-     */
-    //hidden:         false,
-
     /**
      * @var bool
      * @access protected
@@ -12725,11 +12767,6 @@ var app_Component = MetaphorJs.app.Component = cls({
      */
     template:       null,
 
-    /**
-     * @var string
-     */
-    templateUrl:    null,
-
 
     /**
      * @constructor
@@ -12748,7 +12785,6 @@ var app_Component = MetaphorJs.app.Component = cls({
         cfg = cfg || {};
 
         self.$super(cfg);
-
         extend(self, cfg, true, false);
 
         if (!self.scope) {
@@ -12790,7 +12826,7 @@ var app_Component = MetaphorJs.app.Component = cls({
         self.id = self.id || "cmp-" + nextUid();
 
         if (!self.node && self.node !== false) {
-            self._createNode();
+            self.node = window.document.createElement(self.config.get("tag"));
         }
 
         self.beforeInitComponent.apply(self, arguments);
@@ -12800,36 +12836,6 @@ var app_Component = MetaphorJs.app.Component = cls({
             self.scope.$app.registerCmp(self, self.scope, "id");
         }
 
-        var tpl = self.template,
-            url = self.templateUrl;
-
-        self._nodeReplaced = htmlTags.indexOf(self.node.tagName.toLowerCase()) === -1;
-
-        if (!tpl || !(tpl instanceof app_Template)) {
-            self.template = tpl = new app_Template({
-                scope: self.scope,
-                node: self.node,
-                deferRendering: !tpl || self._nodeReplaced,
-                ownRenderer: true,
-                replace: self._nodeReplaced,
-                tpl: tpl,
-                url: url,
-                shadow: self.constructor.$shadow,
-                animate: !self.hidden && !!self.animate//,
-                //passAttrs: self.passAttrs
-            });
-
-            self.template.on("first-node", self._onFirstNodeReported, self);
-        }
-        else if (tpl instanceof app_Template) {
-            // it may have just been created
-            self.template.node = self.node;
-        }
-
-        self.afterInitComponent.apply(self, arguments);
-
-        self.template.on("rendered", self._onRenderingFinished, self);
-
         if (self.parentRenderer) {
             self.parentRenderer.on("destroy", self._onParentRendererDestroy, self);
         }
@@ -12838,15 +12844,52 @@ var app_Component = MetaphorJs.app.Component = cls({
             self._claimNode();
         }
 
-        if (self.autoRender) {
+        self._initTemplate();
 
-            if (tpl.initPromise) {
-                tpl.initPromise.done(self.render, self);
-            }
-            else {
-                self.render();
-            }
+        if (self.items) {
+            self._initItems();
         }
+    },
+
+    _initTemplate: function() {
+
+        var self = this,
+            tpl = self.template;
+
+        self._nodeReplaced = htmlTags.indexOf(self.node.tagName.toLowerCase()) === -1;
+        
+        if (tpl instanceof app_Template) {
+            // it may have just been created
+            self.template.node = self.node;
+        }
+        else {
+
+            var tplConfig = self.config.slice(["animate"]);
+            app_Template.prepareConfig(tpl, tplConfig);
+            self.template = tpl = new app_Template({
+                scope: self.scope,
+                node: self.node,
+                deferRendering: self._nodeReplaced,
+                ownRenderer: true,
+                replace: self._nodeReplaced, // <some-custom-tag>
+                config: tplConfig
+                //passAttrs: self.passAttrs
+            });
+
+            self.template.on("first-node", self._onFirstNodeReported, self);
+        }
+
+        self.afterInitComponent.apply(self, arguments);
+
+        self.template.on("rendered", self._onRenderingFinished, self);
+
+        if (self.autoRender) {
+            tpl.childrenPromise.done(self.render, self);
+        }
+    },
+
+    _initItems: function() {
+
     },
 
     _initConfig: function() {
@@ -12877,11 +12920,6 @@ var app_Component = MetaphorJs.app.Component = cls({
         });
     },
 
-    _createNode: function() {
-        var self    = this;
-        self.node   = window.document.createElement(self.config.get("tag"));
-    },
-
     _onFirstNodeReported: function(node) {
         var self = this;
         if (self._nodeReplaced) {
@@ -12908,13 +12946,11 @@ var app_Component = MetaphorJs.app.Component = cls({
         node.$$cmpId = null;
     },
 
-
     _replaceNodeWithTemplate: function() {
         var self = this;
 
         if (self._nodeReplaced && self.node.parentNode) {
             dom_removeAttr(self.node, "id");
-            //self.node.parentNode.removeChild(self.node);
         }
 
         self.node = self.template.node;
@@ -12953,11 +12989,14 @@ var app_Component = MetaphorJs.app.Component = cls({
 
         self.onBeforeRender();
         self.trigger('render', self);
-        self.template.startRendering();
+
+        if (self.template) {
+            self.template.startRendering();
+        }
     },
 
     onBeforeRender: function() {
-        this.config.getAll(); // calc all props and put into scope.cfg
+        this.config.getAll(); // calc all props and put into scope.$cfg
     },
 
     _onRenderingFinished: function() {
@@ -14207,7 +14246,6 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
     var i,
         defers      = [],
         tpl         = constr.template || cfg.template || null,
-        tplUrl      = constr.templateUrl || cfg.templateUrl || null,
         app         = scope ? scope.$app : null,
         gProvider   = lib_Provider.global(),
         injectFn    = app ? app.inject : gProvider.inject,
@@ -14238,9 +14276,6 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
                 if (isFunction(fn)) {
                     d.resolve(fn(scope, node, config));
                 }
-                /*else if (isString(fn)) {
-                    d.resolve(injectFn(fn));
-                }*/
                 else {
                     d.resolve(
                         injectFn.call(
@@ -14259,20 +14294,27 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
         }
     }
 
-    if (tpl || tplUrl) {
+    if (tpl) {
+
+        var tplConfig = new lib_Config(null, {
+            scope: scope
+        });
+        if (config) {
+            tplConfig.setProperty("animate", config.getProperty("animate"));
+        }
+        app_Template.prepareConfig(tpl, tplConfig);
 
         cfg.template = new app_Template({
             scope: scope,
             node: node,
             deferRendering: true,
             ownRenderer: true,
-            shadow: constr.$shadow,
-            tpl: tpl,
-            url: tplUrl,
-            animate: config ? config.get("animate") : false
+            config: tplConfig
         });
 
-        defers.push(cfg.template.initPromise);
+        defers.push(cfg.template.childrenPromise);
+
+        console.log(cmp, tpl, node.firstChild)
 
         if (node && node.firstChild) {
             dom_data(
@@ -17971,26 +18013,19 @@ Directive.registerAttribute("include", 1100,
     function(scope, node, config, parentRenderer, attrSet){
 
     config.disableProperty("value");
+    config.setProperty("name", config.getProperty("value"));
+    config.removeProperty("value");
+    config.enableProperty("name");
     config.setType("asis", "bool", lib_Config.MODE_STATIC);
     config.setType("animate", "bool", lib_Config.MODE_STATIC);
 
-    var html = config.get("html"),
-        tplCfg = {
-            scope: scope,
-            node: node,
-            parentRenderer: parentRenderer,
-            animate: config.get("animate"),
-            ownRenderer: !config.get("asis") // do not render if asis=true
-        };
-
-    if (html) {
-        tplCfg['html'] = html;
-    }
-    else {
-        tplCfg['url'] = config.getExpression("value");
-    }
-
-    var tpl = new app_Template(tplCfg);
+    var tpl = new app_Template({
+        scope: scope,
+        node: node,
+        parentRenderer: parentRenderer,
+        config: config,
+        ownRenderer: !config.get("asis") // do not render if asis=true
+    });
 
     parentRenderer.on("destroy", function(){
         tpl.$destroy();
@@ -28688,14 +28723,14 @@ Directive.registerTag("if", Directive.attr.If.$extend({
 
 
 
-Directive.registerTag("include", function(scope, node, config, parentRenderer, attrSet) {
+Directive.registerTag("include", function(scope, node, config, parentRenderer) {
 
     config.setType("asis", "bool", lib_Config.MODE_STATIC);
 
     var tpl = new app_Template({
         scope: scope,
         node: node,
-        url: dom_getAttr(node, "src"),
+        config: config,
         parentRenderer: parentRenderer,
         replace: true,
         ownRenderer: !config.get("asis") // if asis, do not render stuff
@@ -33334,7 +33369,7 @@ var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
             self.render();
         }
 
-        self.template.setAnimation(true);
+        self.template.config.set("animate", true);
         self.hidden = false;
     },
 
@@ -33349,7 +33384,8 @@ var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
     onDialogHide: function() {
         var self = this;
         if (!self.$destroyed) {
-            self.template.setAnimation(false);
+            self.template.config.set("animate", false);
+            //self.template.setAnimation(false);
             self.hidden = true;
             //self.onHide();
             self.trigger("hide", self);
@@ -33561,7 +33597,9 @@ cls({
                     as: "dlg",
                 },
                 scope: this.scope,
-                template: '<p>This is a dialog. <a href="#" (click)="this.dlg.hide()">close</a></p>'
+                template: {
+                    html: '<p>This is a dialog. <a href="#" (click)="this.dlg.hide()">close</a></p>'
+                }
             });
             dialog.show();
         },
@@ -33627,21 +33665,27 @@ cls({
     $class: "Test.StringTemplate",
     $extends: "MetaphorJs.app.Component"
     }, {
-    template: '<p>This template is inlined in components definition ({{this.$root.a}})</p>'
+    template: {
+        html: '<p>This template is inlined in components definition ({{this.$root.a}})</p>'
+    }
 });
 
 cls({
     $class: "Test.DynamicComponent",
     $extends: "MetaphorJs.app.Component"
     }, {
-    template: '<p>This component was created dynamically</p><div {transclude}></div>'
+    template: {
+        html: '<p>This component was created dynamically</p><div {transclude}></div>'
+    }
 });
 
 cls({
 
     $class: "Test.ChangeTemplate",
     $extends: "MetaphorJs.app.Component",
-    template: 'this.tpl',
+    template: {
+        htmlExpression: 'this.tpl'
+    },
 
     initComponent: function() {
 
@@ -33657,13 +33701,17 @@ cls({
 cls({
     $class: "Test.ViewComponent1",
     $extends: "MetaphorJs.app.Component",
-    template: '<p>View template 1</p><div {transclude}></div>'
+    template: {
+        html: '<p>View template 1</p><div {transclude}></div>'
+    }
 });
 
 cls({
     $class: "Test.ViewComponent2",
     $extends: "MetaphorJs.app.Component",
-    template: '<p>View template 2</p><div {transclude}></div>'
+    template: {
+        html: '<p>View template 2</p><div {transclude}></div>'
+    }
 });
 
 

@@ -7,7 +7,7 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
 
 describe("MetaphorJs.lib.Config", function(){
    
-    it("should recognize 3 types of properties", function(){
+    it("should work", function(){
 
         var dataObj = {
             a: 1,
@@ -24,6 +24,10 @@ describe("MetaphorJs.lib.Config", function(){
             },
             single: {
                 expression: "this.b",
+                mode: MetaphorJs.lib.Config.MODE_SINGLE
+            },
+            undef: {
+                expression: "this.a * 2",
                 mode: MetaphorJs.lib.Config.MODE_SINGLE
             }
         };
@@ -55,5 +59,9 @@ describe("MetaphorJs.lib.Config", function(){
         assert.strictEqual(false, staticTriggered);
         assert.strictEqual(false, singleTriggered);
         assert.strictEqual(2, config.get("dynamic"));
+
+        var slicedCfg = config.slice(["static", "undef"]);
+        assert.strictEqual(1, slicedCfg.get("static"));
+        assert.strictEqual(4, slicedCfg.get("undef"));
     });
 });
