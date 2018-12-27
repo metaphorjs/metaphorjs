@@ -103,7 +103,7 @@ cls({
         },
         {
             regexp: /^\/3$/,
-            template: "a+b"
+            template: "a+b.html"
         }
     ]
 });

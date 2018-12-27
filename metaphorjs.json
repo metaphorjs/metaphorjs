@@ -55,13 +55,7 @@
                 ["dev-test/templates/**", {
                     "base": "dev-test/templates"
                 }]
-            ],
-            "prebuild": {
-                "directives": [
-                    "src/directive/**",
-                    "src/extra-directives/**"
-                ]
-            }
+            ]
         },
 
         "test-min": {

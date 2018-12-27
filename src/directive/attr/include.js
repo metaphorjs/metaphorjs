@@ -12,6 +12,7 @@ Directive.registerAttribute("include", 1100,
     config.setProperty("name", config.getProperty("value"));
     config.removeProperty("value");
     config.enableProperty("name");
+
     config.setType("asis", "bool", MetaphorJs.lib.Config.MODE_STATIC);
     config.setType("animate", "bool", MetaphorJs.lib.Config.MODE_STATIC);
 

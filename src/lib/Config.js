@@ -426,7 +426,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 });
             }
             else if (prev !== val) {
-                prop.mode === MODE_DYNAMIC && self[val ? "_initMo" : "_unsetMo"](name);
+                prop.mode === MODE_DYNAMIC && self[!val ? "_initMo" : "_unsetMo"](name);
                 prop.disabled = val;
             }
         },
@@ -458,6 +458,10 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 this._toggleProperty(name, true);
                 delete this.properties[name];
                 delete this.values[name];
+                var inx = this.keys.indexOf(name);
+                if (inx !== -1) {
+                    this.keys.splice(inx, 1);
+                }
             }
         },
 

@@ -455,7 +455,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
                         recursive: !!attrs.config.recursive,
                         fullExpr: !MetaphorJs.lib.Text.applicable(textStr)
                     });
-                    
+
                     MetaphorJs.dom.removeAttr(node, attrs['attribute'][i].original);
                     textRenderer.subscribe(self.onTextChange, self, {
                         append: [texts.length]
@@ -543,7 +543,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
             var self    = this,
                 texts   = self.texts,
                 i, len;
-            
+
             for (i = -1, len = texts.length; ++i < len; texts[i].tr.$destroy()) {}
 
             if (self.parent) {
