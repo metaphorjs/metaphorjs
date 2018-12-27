@@ -5223,9 +5223,10 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
          * Create a new config with given properties
          * @method
          * @param {array} props
+         * @param {object} cfg override new config cfg with these values
          * @returns MetaphorJs.lib.Config
          */
-        slice: function(props) {
+        slice: function(props, overrideCfg) {
             var map = {}, self = this, 
                 name, i, l,
                 values = {},
@@ -5233,14 +5234,14 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
             for (i = 0, l = props.length; i < l; i++) {
                 name = props[i];
                 if (existing[name]) {
-                    map[name] = existing[name];
+                    map[name] = extend({}, existing[name], false, false);
                     values[name] = self.values[name];
                     delete map[name].mo;
                 }
             }
             var newCfg = new Config(
                 map,
-                self.cfg
+                extend({}, self.cfg, overrideCfg, true, false)
             );
             newCfg.values = values;
             return newCfg;
@@ -12790,7 +12791,11 @@ var app_Component = MetaphorJs.app.Component = cls({
         }
         else {
 
-            var tplConfig = self.config.slice(["animate"]);
+            var tplConfig = self.config.slice(["animate"], {
+                // component config's scope is from parent,
+                // template's scope must be the same as component's
+                scope: self.scope
+            });
             app_Template.prepareConfig(tpl, tplConfig);
             self.template = tpl = new app_Template({
                 scope: self.scope,
@@ -17940,6 +17945,7 @@ Directive.registerAttribute("include", 1100,
     config.setProperty("name", config.getProperty("value"));
     config.removeProperty("value");
     config.enableProperty("name");
+
     config.setType("asis", "bool", lib_Config.MODE_STATIC);
     config.setType("animate", "bool", lib_Config.MODE_STATIC);
 
@@ -33619,6 +33625,7 @@ cls({
         scope.tpl2 = '<p>Template 2</p><div {transclude}></div>';
 
         scope.tpl = scope.tpl1;
+        console.log(this)
     }
 });
 

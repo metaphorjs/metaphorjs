@@ -186,7 +186,11 @@ module.exports = MetaphorJs.app.Component = cls({
         }
         else {
 
-            var tplConfig = self.config.slice(["animate"]);
+            var tplConfig = self.config.slice(["animate"], {
+                // component config's scope is from parent,
+                // template's scope must be the same as component's
+                scope: self.scope
+            });
             MetaphorJs.app.Template.prepareConfig(tpl, tplConfig);
             self.template = tpl = new MetaphorJs.app.Template({
                 scope: self.scope,

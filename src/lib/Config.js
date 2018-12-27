@@ -669,9 +669,10 @@ module.exports = MetaphorJs.lib.Config = (function(){
          * Create a new config with given properties
          * @method
          * @param {array} props
+         * @param {object} cfg override new config cfg with these values
          * @returns MetaphorJs.lib.Config
          */
-        slice: function(props) {
+        slice: function(props, overrideCfg) {
             var map = {}, self = this, 
                 name, i, l,
                 values = {},
@@ -679,14 +680,14 @@ module.exports = MetaphorJs.lib.Config = (function(){
             for (i = 0, l = props.length; i < l; i++) {
                 name = props[i];
                 if (existing[name]) {
-                    map[name] = existing[name];
+                    map[name] = extend({}, existing[name], false, false);
                     values[name] = self.values[name];
                     delete map[name].mo;
                 }
             }
             var newCfg = new Config(
                 map,
-                self.cfg
+                extend({}, self.cfg, overrideCfg, true, false)
             );
             newCfg.values = values;
             return newCfg;
