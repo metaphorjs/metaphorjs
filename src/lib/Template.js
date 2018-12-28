@@ -308,6 +308,7 @@ module.exports = MetaphorJs.app.Template = function() {
         moveTo: function(parent, before) {
             var self = this,
                 el,
+                moved = false,
                 els = [], i, l, j, jl;
             self._prevEl && els.push(self._prevEl);
             self.node && els.push(self.node);
@@ -316,10 +317,21 @@ module.exports = MetaphorJs.app.Template = function() {
             for (i = 0, l = els.length; i < l; i++) {
                 el = els[i];
                 if (isArray(el)) 
-                    for (j = -1, jl = el.length; ++j < jl; 
-                        parent.insertBefore(el[j], before)) {}
-                else parent.insertBefore(el, before);
+                    for (j = -1, jl = el.length; ++j < jl;) {
+                        if (el[j].parentNode !== parent) {
+                            moved = true;
+                        }
+                        parent.insertBefore(el[j], before);
+                    }
+                else {
+                    if (el.parentNode !== parent) {
+                        moved = true;
+                    }
+                    parent.insertBefore(el, before);
+                } 
             }
+
+            return moved;
         },
 
         startRendering: function() {

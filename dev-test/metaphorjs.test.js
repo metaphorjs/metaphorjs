@@ -12240,6 +12240,7 @@ var app_Template = MetaphorJs.app.Template = function() {
         moveTo: function(parent, before) {
             var self = this,
                 el,
+                moved = false,
                 els = [], i, l, j, jl;
             self._prevEl && els.push(self._prevEl);
             self.node && els.push(self.node);
@@ -12248,10 +12249,21 @@ var app_Template = MetaphorJs.app.Template = function() {
             for (i = 0, l = els.length; i < l; i++) {
                 el = els[i];
                 if (isArray(el)) 
-                    for (j = -1, jl = el.length; ++j < jl; 
-                        parent.insertBefore(el[j], before)) {}
-                else parent.insertBefore(el, before);
+                    for (j = -1, jl = el.length; ++j < jl;) {
+                        if (el[j].parentNode !== parent) {
+                            moved = true;
+                        }
+                        parent.insertBefore(el[j], before);
+                    }
+                else {
+                    if (el.parentNode !== parent) {
+                        moved = true;
+                    }
+                    parent.insertBefore(el, before);
+                } 
             }
+
+            return moved;
         },
 
         startRendering: function() {
@@ -12952,8 +12964,14 @@ var app_Component = MetaphorJs.app.Component = cls({
     },
 
     moveTo: function(parent) {
-        this.renderTo = parent;
-        this.template.moveTo(parent);
+        var self = this;
+
+        self.renderTo = parent;
+
+        if (self.template.moveTo(parent)) {
+            self.afterAttached();
+            self.trigger('after-attached', self);
+        }
     },
 
     onBeforeRender: function() {
@@ -12978,6 +12996,11 @@ var app_Component = MetaphorJs.app.Component = cls({
         self._rendered   = true;
         self.afterRender();
         self.trigger('after-render', self);
+
+        if (isAttached(self.node)) {
+            self.afterAttached();
+            self.trigger('after-attached', self);
+        }
     },
 
 
@@ -13052,6 +13075,12 @@ var app_Component = MetaphorJs.app.Component = cls({
      * @access protected
      */
     afterRender:    emptyFn,
+
+    /**
+     * @method
+     * @access protected
+     */
+    afterAttached:  emptyFn,
 
 
     
