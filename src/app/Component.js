@@ -191,7 +191,7 @@ module.exports = MetaphorJs.app.Component = cls({
             self.template = tpl = new MetaphorJs.app.Template({
                 scope: self.scope,
                 node: self.node,
-                deferRendering: self._nodeReplaced,
+                deferRendering: self._nodeReplaced || !self.autoRender,
                 ownRenderer: true,
                 replace: self._nodeReplaced, // <some-custom-tag>
                 config: tplConfig
@@ -302,17 +302,11 @@ module.exports = MetaphorJs.app.Component = cls({
         var self = this;
 
         if (self._rendered) {
-            if (parent) {
-                this.moveTo(parent);
-            }
+            parent && this.moveTo(parent);
             return;
         }
-        else {
-            if (parent) {
-                this.renderTo = parent;
-            }
-        }
-
+        else parent && (this.renderTo = parent);
+        
         self.onBeforeRender();
         self.trigger('render', self);
 

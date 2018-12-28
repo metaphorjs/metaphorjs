@@ -12827,7 +12827,7 @@ var app_Component = MetaphorJs.app.Component = cls({
             self.template = tpl = new app_Template({
                 scope: self.scope,
                 node: self.node,
-                deferRendering: self._nodeReplaced,
+                deferRendering: self._nodeReplaced || !self.autoRender,
                 ownRenderer: true,
                 replace: self._nodeReplaced, // <some-custom-tag>
                 config: tplConfig
@@ -12938,17 +12938,11 @@ var app_Component = MetaphorJs.app.Component = cls({
         var self = this;
 
         if (self._rendered) {
-            if (parent) {
-                this.moveTo(parent);
-            }
+            parent && this.moveTo(parent);
             return;
         }
-        else {
-            if (parent) {
-                this.renderTo = parent;
-            }
-        }
-
+        else parent && (this.renderTo = parent);
+        
         self.onBeforeRender();
         self.trigger('render', self);
 
@@ -13113,6 +13107,64 @@ var app_Component = MetaphorJs.app.Component = cls({
 
 
 var app_Container = MetaphorJs.app.Container = app_Component.$extend({
+
+    initComponent: function() {
+        var self = this, i, l;
+
+        self.$super.apply(self, arguments);
+        self.items = self.items || [];
+        self.itemsMap = {};
+
+        var items = self.items;
+
+        for (i = -1, l = items.length; ++i < l;){
+            self.itemsMap[items[i].id] = items[i];
+            items[i].$$parent = self;
+        }
+    },
+
+    render: function() {
+
+        var self = this,
+            items = self.items || [],
+            i, l;
+
+        for (i = -1, l = items.length; ++i < l; 
+            items[i].render()){}
+
+        self.$super.apply(self, arguments);
+
+        for (i = -1, l = items.length; ++i < l; 
+            items[i].moveTo(self.node)){}
+    },
+
+    addItem: function(item) {
+        var self = this;
+        if (item.$$parent === self) {
+            return;
+        }
+        item.$$parent && item.$$parent.removeItem(item);
+        item.$$parent = self;
+        self.items.push(item);
+        self.itemsMap[item.id] = item;
+
+        if (self._rendered) {
+            item.render(self.node);
+        }
+    },
+
+    removeItem: function(item) {
+        var self = this;
+        if (item.$$parent !== self) {
+            return;
+        }
+        item.$$parent = null;
+        delete self.itemsMap[item.id];
+        var inx = self.items.indexOf(item);
+        if (inx !== -1) {
+            self.items.splice(inx, 1);
+        }
+    }
 
 });
 
@@ -33748,16 +33800,24 @@ dom_onReady(function(){
 cls({
     $class: "Test.container.Cmp1",
     $extends: "MetaphorJs.app.Component",
+    as: "child1",
+    move: function() {
+        var parent2 = this.scope.$app.getCmp("parent2");
+        parent2.addItem(this);
+    },
     template: {
-        html: "<p>This is container child #1</p>"
+        html: "<p>This is container child #1; " +
+                "<a href=\"#\" (click)=\"this.child1.move()\">move</a></p>"
     }
 });
 
 cls({
     $class: "Test.container.Cmp2",
-    $extends: "MetaphorJs.app.Component",
+    $extends: "Test.container.Cmp1",
+    as: "child2",
     template: {
-        html: "<p>This is container child #2</p>"
+        html: "<p>This is container child #2; "+
+                "<a href=\"#\" (click)=\"this.child2.move()\">move</a></p>"
     }
 });
 
@@ -33769,13 +33829,31 @@ cls({
 
         window.mainApp = this;
 
-        var cmp = new app_Container({
+        var parent1 = new app_Container({
+            id: "parent1",
             renderTo: document.getElementById("container-app"),
+            scope: scope,
             items: [
-                new Test.container.Cmp1,
-                new Test.container.Cmp2
+                new Test.container.Cmp1({
+                    scope: scope,
+                    id: "child1"
+                }),
+                new Test.container.Cmp2({
+                    scope: scope,
+                    id: "child2"
+                })
             ]
         });
+
+        parent1.render();
+
+        var parent2 = new app_Container({
+            id: "parent2",
+            scope: scope,
+            renderTo: document.getElementById("container-app")
+        });
+
+        parent2.render();
 
     }
 });
