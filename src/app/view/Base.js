@@ -95,6 +95,7 @@ module.exports = MetaphorJs.app.view.Base = cls({
                 scope   = cfg.scope || self.scope.$new();
 
             cfg.destroyEl = false;
+            cfg.autoRender = true;
 
             return MetaphorJs.app.resolve(cls, cfg, scope, node, [cfg]).done(function(newCmp){
                 newCmp.on("destroy", self.onCmpDestroy, self);

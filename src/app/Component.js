@@ -60,7 +60,7 @@ module.exports = MetaphorJs.app.Component = cls({
     /**
      * @var {boolean}
      */
-    autoRender:     true,
+    autoRender:     false,
 
     /**
      * @var bool
@@ -167,10 +167,6 @@ module.exports = MetaphorJs.app.Component = cls({
         }
 
         self._initTemplate();
-
-        if (self.items) {
-            self._initItems();
-        }
     },
 
     _initTemplate: function() {
@@ -212,10 +208,6 @@ module.exports = MetaphorJs.app.Component = cls({
         if (self.autoRender) {
             tpl.childrenPromise.done(self.render, self);
         }
-    },
-
-    _initItems: function() {
-
     },
 
     _initConfig: function() {
@@ -305,12 +297,20 @@ module.exports = MetaphorJs.app.Component = cls({
 
 
 
-    render: function() {
+    render: function(parent) {
 
-        var self        = this;
+        var self = this;
 
         if (self._rendered) {
+            if (parent) {
+                this.moveTo(parent);
+            }
             return;
+        }
+        else {
+            if (parent) {
+                this.renderTo = parent;
+            }
         }
 
         self.onBeforeRender();
@@ -319,6 +319,11 @@ module.exports = MetaphorJs.app.Component = cls({
         if (self.template) {
             self.template.startRendering();
         }
+    },
+
+    moveTo: function(parent) {
+        this.renderTo = parent;
+        this.template.moveTo(parent);
     },
 
     onBeforeRender: function() {
@@ -336,9 +341,9 @@ module.exports = MetaphorJs.app.Component = cls({
         if (self.renderTo) {
             self.renderTo.appendChild(self.node);
         }
-        else if (!MetaphorJs.dom.isAttached(self.node)) {
-            window.document.body.appendChild(self.node);
-        }
+        //else if (!MetaphorJs.dom.isAttached(self.node)) {
+        //    window.document.body.appendChild(self.node);
+        //}
 
         self._rendered   = true;
         self.afterRender();

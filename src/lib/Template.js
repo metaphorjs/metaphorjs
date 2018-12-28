@@ -18,6 +18,7 @@ require("../func/dom/commentWrap.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
+    isArray = require("metaphorjs-shared/src/func/isArray.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     ajax = require("metaphorjs-ajax/src/func/ajax.js");
@@ -156,10 +157,6 @@ module.exports = MetaphorJs.app.Template = function() {
                 );
             }
             return cache.get(tplUrl);
-        },
-
-        isExpression = function(str) {
-            return str.substr(0,5) === 'this.';
         };
 
     if (MetaphorJs.prebuilt && MetaphorJs.prebuilt.templates) {
@@ -306,6 +303,23 @@ module.exports = MetaphorJs.app.Template = function() {
 
         un: function(event, fn, context) {
             return observable.un(event + "-" + this.id, fn, context);
+        },
+
+        moveTo: function(parent, before) {
+            var self = this,
+                el,
+                els = [], i, l, j, jl;
+            self._prevEl && els.push(self._prevEl);
+            self.node && els.push(self.node);
+            self._nextEl && els.push(self._nextEl);
+
+            for (i = 0, l = els.length; i < l; i++) {
+                el = els[i];
+                if (isArray(el)) 
+                    for (j = -1, jl = el.length; ++j < jl; 
+                        parent.insertBefore(el[j], before)) {}
+                else parent.insertBefore(el, before);
+            }
         },
 
         startRendering: function() {

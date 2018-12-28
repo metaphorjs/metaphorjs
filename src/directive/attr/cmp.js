@@ -37,7 +37,8 @@ var Directive = require("../../app/Directive.js"),
             node: node,
             config: config,
             parentRenderer: parentRenderer,
-            destroyScope: !sameScope
+            destroyScope: !sameScope,
+            autoRender: true
         };
 
         MetaphorJs.app.resolve(cmpName, cfg, newScope, node, [cfg])

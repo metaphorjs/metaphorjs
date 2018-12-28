@@ -2,6 +2,7 @@
 require("../src/app/App.js");
 require("../src/app/view/Router.js");
 require("../src/app/Component.js");
+require("../src/app/Container.js");
 require("../src/func/app/resolve.js");
 require("../src/func/app/init.js");
 require("../src/func/dom/onReady.js");
@@ -12,9 +13,12 @@ require("metaphorjs-dialog/src/dialog/Component.js");
 require("metaphorjs-promise/src/lib/Promise.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
-    ns = require("metaphorjs-namespace/src/var/ns.js");
+    ns = require("metaphorjs-namespace/src/var/ns.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-ns.register("Test", {});
+var Test = {};
+
+ns.register("Test", Test);
 
 cls({
 
@@ -154,12 +158,13 @@ cls({
 
         createNew: function() {
             var node    = document.getElementById("newComponent");
-            MetaphorJs.app.resolve("Test.DynamicComponent", {}, this.scope, node);
+            MetaphorJs.app.resolve("Test.DynamicComponent", {autoRender: true}, this.scope, node);
         },
 
         createRender: function() {
             var to  = document.getElementById("renderToComponent");
-            MetaphorJs.app.resolve("Test.DynamicComponent", {renderTo: to}, this.scope);
+            MetaphorJs.app.resolve("Test.DynamicComponent", 
+                {renderTo: to, autoRender: true}, this.scope);
         },
 
         createDialog: function() {
@@ -343,3 +348,45 @@ MetaphorJs.dom.onReady(function(){
     }
 
 });
+
+
+
+
+cls({
+    $class: "Test.container.Cmp1",
+    $extends: "MetaphorJs.app.Component",
+    template: {
+        html: "<p>This is container child #1</p>"
+    }
+});
+
+cls({
+    $class: "Test.container.Cmp2",
+    $extends: "MetaphorJs.app.Component",
+    template: {
+        html: "<p>This is container child #2</p>"
+    }
+});
+
+cls({
+    $class: "Test.ContainerApp",
+    $extends: "MetaphorJs.app.App",
+
+    initApp: function(node, scope) {
+
+        window.mainApp = this;
+
+        var cmp = new MetaphorJs.app.Container({
+            renderTo: document.getElementById("container-app"),
+            items: [
+                new Test.container.Cmp1,
+                new Test.container.Cmp2
+            ]
+        });
+
+    }
+});
+
+
+
+window.MetaphorJs = MetaphorJs;

@@ -77,6 +77,10 @@ label.case-label {
     float: left;
 }
 
+#container-app {
+    
+}
+
 
 .mjs-show, .mjs-hide, .ng-hide-add, .ng-hide-remove {
     -webkit-transition:  opacity 0.4s;

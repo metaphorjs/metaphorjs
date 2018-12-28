@@ -210,6 +210,7 @@ module.exports = MetaphorJs.app.view.Router = MetaphorJs.app.view.Base.$extend({
             var args    = matches || [],
                 cfg     = {
                     destroyEl: false,
+                    autoRender: true,
                     node: node,
                     destroyScope: true,
                     scope: route.$isolateScope ?

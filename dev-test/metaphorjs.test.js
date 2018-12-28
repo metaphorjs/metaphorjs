@@ -12089,10 +12089,6 @@ var app_Template = MetaphorJs.app.Template = function() {
                 );
             }
             return cache.get(tplUrl);
-        },
-
-        isExpression = function(str) {
-            return str.substr(0,5) === 'this.';
         };
 
     if (MetaphorJs.prebuilt && MetaphorJs.prebuilt.templates) {
@@ -12239,6 +12235,23 @@ var app_Template = MetaphorJs.app.Template = function() {
 
         un: function(event, fn, context) {
             return observable.un(event + "-" + this.id, fn, context);
+        },
+
+        moveTo: function(parent, before) {
+            var self = this,
+                el,
+                els = [], i, l, j, jl;
+            self._prevEl && els.push(self._prevEl);
+            self.node && els.push(self.node);
+            self._nextEl && els.push(self._nextEl);
+
+            for (i = 0, l = els.length; i < l; i++) {
+                el = els[i];
+                if (isArray(el)) 
+                    for (j = -1, jl = el.length; ++j < jl; 
+                        parent.insertBefore(el[j], before)) {}
+                else parent.insertBefore(el, before);
+            }
         },
 
         startRendering: function() {
@@ -12683,7 +12696,7 @@ var app_Component = MetaphorJs.app.Component = cls({
     /**
      * @var {boolean}
      */
-    autoRender:     true,
+    autoRender:     false,
 
     /**
      * @var bool
@@ -12790,10 +12803,6 @@ var app_Component = MetaphorJs.app.Component = cls({
         }
 
         self._initTemplate();
-
-        if (self.items) {
-            self._initItems();
-        }
     },
 
     _initTemplate: function() {
@@ -12835,10 +12844,6 @@ var app_Component = MetaphorJs.app.Component = cls({
         if (self.autoRender) {
             tpl.childrenPromise.done(self.render, self);
         }
-    },
-
-    _initItems: function() {
-
     },
 
     _initConfig: function() {
@@ -12928,12 +12933,20 @@ var app_Component = MetaphorJs.app.Component = cls({
 
 
 
-    render: function() {
+    render: function(parent) {
 
-        var self        = this;
+        var self = this;
 
         if (self._rendered) {
+            if (parent) {
+                this.moveTo(parent);
+            }
             return;
+        }
+        else {
+            if (parent) {
+                this.renderTo = parent;
+            }
         }
 
         self.onBeforeRender();
@@ -12942,6 +12955,11 @@ var app_Component = MetaphorJs.app.Component = cls({
         if (self.template) {
             self.template.startRendering();
         }
+    },
+
+    moveTo: function(parent) {
+        this.renderTo = parent;
+        this.template.moveTo(parent);
     },
 
     onBeforeRender: function() {
@@ -12959,9 +12977,9 @@ var app_Component = MetaphorJs.app.Component = cls({
         if (self.renderTo) {
             self.renderTo.appendChild(self.node);
         }
-        else if (!isAttached(self.node)) {
-            window.document.body.appendChild(self.node);
-        }
+        //else if (!isAttached(self.node)) {
+        //    window.document.body.appendChild(self.node);
+        //}
 
         self._rendered   = true;
         self.afterRender();
@@ -13089,6 +13107,14 @@ var app_Component = MetaphorJs.app.Component = cls({
     }
 });
 
+
+
+
+
+
+var app_Container = MetaphorJs.app.Container = app_Component.$extend({
+
+});
 
 
 
@@ -14402,6 +14428,7 @@ var app_view_Base = MetaphorJs.app.view.Base = cls({
                 scope   = cfg.scope || self.scope.$new();
 
             cfg.destroyEl = false;
+            cfg.autoRender = true;
 
             return app_resolve(cls, cfg, scope, node, [cfg]).done(function(newCmp){
                 newCmp.on("destroy", self.onCmpDestroy, self);
@@ -15495,6 +15522,7 @@ var app_view_Router = MetaphorJs.app.view.Router = app_view_Base.$extend({
             var args    = matches || [],
                 cfg     = {
                     destroyEl: false,
+                    autoRender: true,
                     node: node,
                     destroyScope: true,
                     scope: route.$isolateScope ?
@@ -16771,7 +16799,8 @@ DO NOT put class="{}" when using class.name="{}"
             node: node,
             config: config,
             parentRenderer: parentRenderer,
-            destroyScope: !sameScope
+            destroyScope: !sameScope,
+            autoRender: true
         };
 
         app_resolve(cmpName, cfg, newScope, node, [cfg])
@@ -33363,6 +33392,7 @@ var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
 
 });
 
+var index = (function(){
 
 
 
@@ -33378,7 +33408,10 @@ var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
 
 
 
-ns.register("Test", {});
+
+var Test = {};
+
+ns.register("Test", Test);
 
 cls({
 
@@ -33518,12 +33551,13 @@ cls({
 
         createNew: function() {
             var node    = document.getElementById("newComponent");
-            app_resolve("Test.DynamicComponent", {}, this.scope, node);
+            app_resolve("Test.DynamicComponent", {autoRender: true}, this.scope, node);
         },
 
         createRender: function() {
             var to  = document.getElementById("renderToComponent");
-            app_resolve("Test.DynamicComponent", {renderTo: to}, this.scope);
+            app_resolve("Test.DynamicComponent", 
+                {renderTo: to, autoRender: true}, this.scope);
         },
 
         createDialog: function() {
@@ -33708,4 +33742,46 @@ dom_onReady(function(){
 
 });
 
+
+
+
+cls({
+    $class: "Test.container.Cmp1",
+    $extends: "MetaphorJs.app.Component",
+    template: {
+        html: "<p>This is container child #1</p>"
+    }
+});
+
+cls({
+    $class: "Test.container.Cmp2",
+    $extends: "MetaphorJs.app.Component",
+    template: {
+        html: "<p>This is container child #2</p>"
+    }
+});
+
+cls({
+    $class: "Test.ContainerApp",
+    $extends: "MetaphorJs.app.App",
+
+    initApp: function(node, scope) {
+
+        window.mainApp = this;
+
+        var cmp = new app_Container({
+            renderTo: document.getElementById("container-app"),
+            items: [
+                new Test.container.Cmp1,
+                new Test.container.Cmp2
+            ]
+        });
+
+    }
+});
+
+
+
+window.MetaphorJs = MetaphorJs;
+}());
 }());/* BUNDLE END 004 */
