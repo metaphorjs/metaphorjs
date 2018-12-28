@@ -111,7 +111,7 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
             scope: scope
         });
         if (config) {
-            tplConfig.setProperty("animate", config.getProperty("animate"));
+            tplConfig.setProperty("animate", config.copyProperty("animate"));
         }
         MetaphorJs.app.Template.prepareConfig(tpl, tplConfig);
 

@@ -72,7 +72,8 @@ module.exports = MetaphorJs.lib.Config = (function(){
             var self = this,
                 prop = self.properties[name];
             prop.mo = MetaphorJs.lib.MutationObserver.get(
-                self.cfg.scope, prop.expression
+                prop.scope || self.cfg.scope, 
+                prop.expression
             );
             prop.mo.subscribe(self._onPropMutated, self, {
                 append: [name]
@@ -323,6 +324,23 @@ module.exports = MetaphorJs.lib.Config = (function(){
          */
         getProperty: function(name) {
             return this.properties[name] || null;
+        },
+
+        /**
+         * Create prop definition copy (without mutation observer)
+         * @param {string} name 
+         */
+        copyProperty: function(name) {
+            var prop = this.properties[name],
+                cp;
+
+            if (prop) {
+                cp = extend({}, prop, false, false);
+                cp.scope = cp.scope || this.cfg.scope;
+                delete cp['mo'];
+                return cp;
+            }
+            else return null;
         },
 
         /**

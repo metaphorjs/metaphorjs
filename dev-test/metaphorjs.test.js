@@ -4626,7 +4626,8 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
             var self = this,
                 prop = self.properties[name];
             prop.mo = lib_MutationObserver.get(
-                self.cfg.scope, prop.expression
+                prop.scope || self.cfg.scope, 
+                prop.expression
             );
             prop.mo.subscribe(self._onPropMutated, self, {
                 append: [name]
@@ -4877,6 +4878,23 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
          */
         getProperty: function(name) {
             return this.properties[name] || null;
+        },
+
+        /**
+         * Create prop definition copy (without mutation observer)
+         * @param {string} name 
+         */
+        copyProperty: function(name) {
+            var prop = this.properties[name],
+                cp;
+
+            if (prop) {
+                cp = extend({}, prop, false, false);
+                cp.scope = cp.scope || this.cfg.scope;
+                delete cp['mo'];
+                return cp;
+            }
+            else return null;
         },
 
         /**
@@ -14231,7 +14249,7 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
             scope: scope
         });
         if (config) {
-            tplConfig.setProperty("animate", config.getProperty("animate"));
+            tplConfig.setProperty("animate", config.copyProperty("animate"));
         }
         app_Template.prepareConfig(tpl, tplConfig);
 
@@ -33625,7 +33643,6 @@ cls({
         scope.tpl2 = '<p>Template 2</p><div {transclude}></div>';
 
         scope.tpl = scope.tpl1;
-        console.log(this)
     }
 });
 
