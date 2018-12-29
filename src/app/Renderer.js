@@ -150,12 +150,12 @@ module.exports = MetaphorJs.app.Renderer = function() {
         passedAttrs: null,
         reportFirstNode: true,
 
-        on: function(event, fn, context) {
-            return observer.on(event + '-' + this.id, fn, context);
+        on: function(event, fn, context, opt) {
+            return observer.on(event + '-' + this.id, fn, context, opt);
         },
 
-        once: function(event, fn, context) {
-            return observer.once(event + '-' + this.id, fn, context);
+        once: function(event, fn, context, opt) {
+            return observer.once(event + '-' + this.id, fn, context, opt);
         },
 
         un: function(event, fn, context) {
@@ -434,7 +434,16 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 }
 
                 if (attrs.reference) {
-                    scope[attrs.reference] = node;
+                    if (attrs.reference[0] === '#') {
+                        observer.trigger(
+                            "reference-" + self.id, 
+                            attrs.reference.substring(1),
+                            node
+                        );
+                    }
+                    else {
+                        scope[attrs.reference] = node;
+                    }
                     MetaphorJs.dom.removeAttr(node, '#' + attrs.reference);
                 }
 

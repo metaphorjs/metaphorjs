@@ -15,6 +15,7 @@ require("./MutationObserver.js");
 require("./Config.js");
 require("../app/Renderer.js");
 require("../func/dom/commentWrap.js");
+require("metaphorjs-observable/src/lib/Observable.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
@@ -221,6 +222,8 @@ module.exports = MetaphorJs.app.Template = function() {
 
         self.childrenPromise    = new MetaphorJs.lib.Promise;
 
+        MetaphorJs.lib.Observable.$initHost(this, cfg, observable);
+
         if (self.ownRenderer) {
             self.childrenPromise.resolve(false);
         }
@@ -283,6 +286,9 @@ module.exports = MetaphorJs.app.Template = function() {
                 self._renderer   = new MetaphorJs.app.Renderer(
                         self.node, self.scope/*, null, self.passAttrs*/
                 );
+                observable.relayEvent(
+                    self._renderer, "reference", "reference-" + self.id
+                );
                 self._renderer.on("rendered", self._onRendered, self);
                 self._renderer.on("first-node", self._onFirstNodeReported, self);
                 self._renderer.process();
@@ -297,8 +303,12 @@ module.exports = MetaphorJs.app.Template = function() {
             observable.trigger("rendered-" + this.id, this);
         },
 
-        on: function(event, fn, context) {
-            return observable.on(event + "-" + this.id, fn, context);
+        createEvent: function(event, opt) {
+            return observable.createEvent(event + "-" + this.id, opt);
+        },
+
+        on: function(event, fn, context, opt) {
+            return observable.on(event + "-" + this.id, fn, context, opt);
         },
 
         un: function(event, fn, context) {

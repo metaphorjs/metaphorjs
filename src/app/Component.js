@@ -179,6 +179,8 @@ module.exports = MetaphorJs.app.Component = cls({
         if (tpl instanceof MetaphorJs.app.Template) {
             // it may have just been created
             self.template.node = self.node;
+            self.template.on("reference", self._onNodeReference, self);
+            self.template.on("rendered", self._onRenderingFinished, self);
         }
         else {
 
@@ -194,16 +196,18 @@ module.exports = MetaphorJs.app.Component = cls({
                 deferRendering: self._nodeReplaced || !self.autoRender,
                 ownRenderer: true,
                 replace: self._nodeReplaced, // <some-custom-tag>
-                config: tplConfig
+                config: tplConfig,
+                callback: {
+                    context: self,
+                    reference: self._onNodeReference,
+                    rendered: self._onRenderingFinished,
+                    "first-node": self._onFirstNodeReported
+                }
                 //passAttrs: self.passAttrs
             });
-
-            self.template.on("first-node", self._onFirstNodeReported, self);
         }
 
         self.afterInitComponent.apply(self, arguments);
-
-        self.template.on("rendered", self._onRenderingFinished, self);
 
         if (self.autoRender) {
             tpl.childrenPromise.done(self.render, self);

@@ -388,6 +388,7 @@ cls({
             id: "parent1",
             renderTo: document.getElementById("container-app"),
             scope: scope,
+            template: 'container1.html',
             items: [
                 new Test.container.Cmp1({
                     scope: scope,
