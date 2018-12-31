@@ -224,6 +224,15 @@ module.exports = MetaphorJs.lib.Config = (function(){
         },
 
         /**
+         * Get config's option
+         * @param {string} name 
+         * @returns {*}
+         */
+        getOption: function(name) {
+            return this.cfg[name];
+        },
+
+        /**
          * Set or update property
          * @method
          * @param {string} name 

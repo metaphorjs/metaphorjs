@@ -128,9 +128,6 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
                 }
             }
 
-            parts = name.split(".");
-            name = parts.shift();
-
 
             if (mode === '$') {
                 if (value === "") {
@@ -152,6 +149,9 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
                 set['names'][tagName].push(attrs[i].name);
             }
             else if (mode === '(' || mode === '{') { 
+
+                parts = name.split(".");
+                name = parts.shift();
 
                 coll = set['directive'];
                 subname = parts.length ? parts.join(".") : null;

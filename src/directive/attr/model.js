@@ -1,5 +1,6 @@
 require("../../lib/Scope.js");
 require("../../lib/Expression.js");
+require("../../func/dom/isField.js");
 require("../../lib/MutationObserver.js");
 require("../../lib/Input.js");
 require("../../lib/Config.js");
@@ -26,7 +27,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     autoOnChange: false,
 
     $init: function(scope, node, config, renderer, attrSet) {
-        
+
         var self    = this,
             expr    = config.getExpression("value"),
             descr   = MetaphorJs.lib.Expression.describeExpression(expr);
@@ -50,7 +51,9 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         }
 
         self.node           = node;
-        self.input          = MetaphorJs.lib.Input.get(node, scope);
+        self.input          = MetaphorJs.dom.isField(node) ?
+                                 MetaphorJs.lib.Input.get(node, scope) :
+                                 node.getInputApi();
         self.binding        = config.get("binding");
         self.mo             = MetaphorJs.lib.MutationObserver.get(
                                 scope, expr, null, null, {
@@ -123,7 +126,10 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
     onDestroy: function() {
         var self        = this;
+
+        self.input.unChange(self.onInputChange, self);
         self.input.$destroy();
+        self.input = null;
 
         if (self.mo) {
             self.mo.unsubscribe(self.onChange, self);

@@ -8,7 +8,7 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
  * @returns {boolean}
  */
 module.exports = MetaphorJs.dom.isField = function dom_isField(el) {
-    var tag	= el.nodeName.toLowerCase(),
+    var tag	= el && el.nodeName ? el.nodeName.toLowerCase() : null,
         type = el.type;
     if (tag == 'input' || tag == 'textarea' || tag == 'select') {
         if (type != "submit" && type != "reset" && type != "button") {

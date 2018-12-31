@@ -25,10 +25,15 @@ Directive.registerAttribute("bind", 1000,
             self.scope      = scope;
             self.node       = node;
             self.config     = config;
-            self.isInput    = MetaphorJs.dom.isField(node);
 
-            if (self.isInput) {
+            if (MetaphorJs.dom.isField(node)) {
                 self.input = MetaphorJs.lib.Input.get(node);
+            }
+            else if (node.getInputApi) {
+                self.input = node.getInputApi();
+            }
+
+            if (self.input) {
                 self.input.onChange(self.onInputChange, self);
             }
 
@@ -78,7 +83,7 @@ Directive.registerAttribute("bind", 1000,
 
             var self = this;
 
-            if (self.isInput) {
+            if (self.input) {
                 self.input.setValue(val);
             }
             else {
@@ -96,6 +101,7 @@ Directive.registerAttribute("bind", 1000,
             }
 
             if (self.input) {
+                self.inputApi.unChange(self.onInputChange, self);
                 self.input.$destroy();
                 self.input = null;
             }

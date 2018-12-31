@@ -194,7 +194,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 args    = [scope, node, nodeConfig, self, attrs],
                 inst;
 
-            if (attrs.reference) {
+            if (attrs.reference && attrs.reference[0] !== '#') {
                 scope[attrs.reference] = node;
             }
 

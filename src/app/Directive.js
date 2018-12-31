@@ -107,6 +107,10 @@ module.exports = MetaphorJs.app.Directive = (function() {
                 self.watcher.$destroy(true);
             }
 
+            if (self.config) {
+                self.config.$destroy();
+            }
+
             if (self.wrapperOpen) {
                 self.wrapperOpen.parentNode.removeChild(self.wrapperOpen);
             }
