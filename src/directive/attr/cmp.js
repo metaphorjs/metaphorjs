@@ -43,9 +43,9 @@ var Directive = require("../../app/Directive.js"),
 
         MetaphorJs.app.resolve(cmpName, cfg, newScope, node, [cfg])
             .done(function(cmp) {
-                if (config.hasExpression("ref")) {
-                    scope[config.get("ref")] = cmp;
-                }
+                parentRenderer.trigger(
+                    "reference", "cmp", config.get("ref") || cmp.id, cmp
+                );
             });
 
         return constr.$resumeRenderer || !!constr.$shadow;

@@ -1,5 +1,5 @@
 require("../../func/dom/getAttr.js");
-require("../../lib/Template.js");
+require("../../app/Template.js");
 require("../../lib/Config.js");
 
 var Directive = require("../../app/Directive.js"),

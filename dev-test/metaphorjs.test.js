@@ -1308,28 +1308,40 @@ extend(Observable.prototype, {
 }, true, false);
 
 
+var __createEvents = function(host, obs, events) {
+    for (var i in events) {
+        host.createEvent ?
+            host.createEvent(i, events[i]) :
+            obs.createEvent(i, events[i]);
+    }
+};
+
+var __on = function(host, obs, event, fn, context) {
+    host.on ?
+        host.on(event, fn, context || host) :
+        obs.on(event, fn, context || host);
+};
+
 Observable.$initHost = function(host, hostCfg, observable)  {
     var i;
 
+    if (host.$$events) {
+        __createEvents(host, observable, host.$$events);
+    }
+
     if (hostCfg && hostCfg.callback) {
         var ls = hostCfg.callback,
-            context = ls.context || ls.scope || ls.$context,
-            events = extend({}, host.$$events, ls.$events, true, false);
+            context = ls.context || ls.scope || ls.$context;
 
-        for (i in events) {
-            host.createEvent ? 
-                host.createEvent(i, events[i]) :
-                observable.createEvent(i, events[i]);
-        }
+        if (ls.$events)
+            __createEvents(host, observable, ls.$events);
 
         ls.context = null;
         ls.scope = null;
 
         for (i in ls) {
             if (ls[i]) {
-                host.on ?
-                    host.on(i, ls[i], context || host) :
-                    observable.on(i, ls[i], context || host);
+                __on(host, observable, i, ls[i], context);
             }
         }
 
@@ -1337,13 +1349,6 @@ Observable.$initHost = function(host, hostCfg, observable)  {
 
         if (context) {
             host.$$callbackContext = context;
-        }
-    }
-    else if (host.$$events) {
-        for (i in host.$$events) {
-            host.createEvent ?
-                host.createEvent(i, host.$$events[i]) :
-                observable.createEvent(i, host.$$events[i]);
         }
     }
 };
@@ -7268,6 +7273,11 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
             return observer.un(event + '-' + this.id, fn, context);
         },
 
+        trigger: function(event) {
+            arguments[0] = event + "-" + this.id;
+            return observer.trigger.apply(observer, arguments);
+        },
+
         createChild: function(node) {
             return new Renderer(node, this.scope, this);
         },
@@ -7450,9 +7460,9 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
 
                         f = dirs.attr.cmp;
                         delete attrs['directive']['cmp'];
+
                         /*var passAttrs = extend({}, attrs);
                         delete passAttrs['directive']['cmp'];
-
                         attrs.config.passAttrs = passAttrs;*/
 
                         config = new lib_Config(
@@ -7543,6 +7553,7 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                     if (attrs.reference[0] === '#') {
                         observer.trigger(
                             "reference-" + self.id, 
+                            "node",
                             attrs.reference.substring(1),
                             node
                         );
@@ -12803,6 +12814,7 @@ var app_Component = MetaphorJs.app.Component = cls({
             );
         }
 
+        self.$refs = {node: {}, cmp: {}};
         self.$cfg = {};
         self.config.setTo(self.$cfg);
         self._initConfig();
@@ -12856,7 +12868,7 @@ var app_Component = MetaphorJs.app.Component = cls({
         if (tpl instanceof app_Template) {
             // it may have just been created
             self.template.node = self.node;
-            self.template.on("reference", self._onNodeReference, self);
+            self.template.on("reference", self._onChildReference, self);
             self.template.on("rendered", self._onRenderingFinished, self);
         }
         else {
@@ -12876,7 +12888,7 @@ var app_Component = MetaphorJs.app.Component = cls({
                 config: tplConfig,
                 callback: {
                     context: self,
-                    reference: self._onNodeReference,
+                    reference: self._onChildReference,
                     rendered: self._onRenderingFinished,
                     "first-node": self._onFirstNodeReported
                 }
@@ -12913,8 +12925,8 @@ var app_Component = MetaphorJs.app.Component = cls({
                             self.scope.$app.getParentCmp(self.node) ||
                             self.scope.$app ||
                             self.scope;
-                    self.on(name.substring(4), config.get(name), ctx);
                 }
+                self.on(name.substring(4), config.get(name), ctx);
             }
         });
     },
@@ -12924,6 +12936,14 @@ var app_Component = MetaphorJs.app.Component = cls({
         if (self._nodeReplaced) {
             self._claimNode(node);
         }
+    },
+
+    _onChildReference: function(type, ref, item) {
+        var self = this;
+        if (!self.$refs[type]) {
+            self.$refs[type] = {};
+        }
+        self.$refs[type][ref] = item;
     },
 
     _claimNode: function(node) {
@@ -12983,10 +13003,10 @@ var app_Component = MetaphorJs.app.Component = cls({
         var self = this;
 
         if (self._rendered) {
-            parent && this.moveTo(parent);
+            parent && self.attach(parent);
             return;
         }
-        else parent && (this.renderTo = parent);
+        else parent && (self.renderTo = parent);
         
         self.onBeforeRender();
         self.trigger('render', self);
@@ -12996,14 +13016,37 @@ var app_Component = MetaphorJs.app.Component = cls({
         }
     },
 
-    moveTo: function(parent) {
+    isAttached: function(parent) {
+        if (!this.node || !this.node.parentNode) 
+            return false;
+        return parent ? this.node.parentNode === parent : true;
+    },
+
+    attach: function(parent) {
         var self = this;
 
+        if (!parent) {
+            throw new Error("Parent node is required");
+        }
+        if (self.isAttached(parent)) {
+            return;
+        }
+
+        self.detach(true);
         self.renderTo = parent;
 
         if (self.template.moveTo(parent)) {
             self.afterAttached();
-            self.trigger('after-attached', self);
+            self.trigger('attached', self);
+        }
+    },
+
+    detach: function(willAttach) {
+        var self = this;
+        if (self.isAttached()) {
+            self.node.parentNode.removeChild(self.node);
+            self.afterDetached(willAttach);
+            self.trigger('detached', self, willAttach);
         }
     },
 
@@ -13115,6 +13158,12 @@ var app_Component = MetaphorJs.app.Component = cls({
      */
     afterAttached:  emptyFn,
 
+    /**
+     * @method
+     * @access protected
+     */
+    afterDetached:  emptyFn,
+
 
     
     _onParentRendererDestroy: function() {
@@ -13185,6 +13234,10 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
         }
     },
 
+    getSectionEl: function(name) {
+        return this.$refs['node'][name] || this.node;
+    },
+
     render: function() {
 
         var self = this,
@@ -13197,7 +13250,7 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
         self.$super.apply(self, arguments);
 
         for (i = -1, l = items.length; ++i < l; 
-            items[i].moveTo(self.node)){}
+            items[i].attach(self.getSectionEl("items"))){}
     },
 
     addItem: function(item) {
@@ -13210,8 +13263,9 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
         self.items.push(item);
         self.itemsMap[item.id] = item;
 
+        item.renderTo = self.node;
         if (self._rendered) {
-            item.render(self.node);
+            item.attach(self.node);
         }
     },
 
@@ -13226,6 +13280,8 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
         if (inx !== -1) {
             self.items.splice(inx, 1);
         }
+        item.detach();
+        item.renderTo = null;
     }
 
 });
@@ -16919,9 +16975,9 @@ DO NOT put class="{}" when using class.name="{}"
 
         app_resolve(cmpName, cfg, newScope, node, [cfg])
             .done(function(cmp) {
-                if (config.hasExpression("ref")) {
-                    scope[config.get("ref")] = cmp;
-                }
+                parentRenderer.trigger(
+                    "reference", "cmp", config.get("ref") || cmp.id, cmp
+                );
             });
 
         return constr.$resumeRenderer || !!constr.$shadow;

@@ -3,7 +3,7 @@ require("../func/dom/getAttr.js");
 require("../func/dom/setAttr.js");
 require("../func/dom/removeAttr.js");
 require("../func/dom/isAttached.js");
-require("../lib/Template.js");
+require("./Template.js");
 require("./Directive.js");
 require("../func/dom/addClass.js");
 require("../func/dom/removeClass.js");
@@ -126,6 +126,7 @@ module.exports = MetaphorJs.app.Component = cls({
             );
         }
 
+        self.$refs = {node: {}, cmp: {}};
         self.$cfg = {};
         self.config.setTo(self.$cfg);
         self._initConfig();
@@ -179,7 +180,7 @@ module.exports = MetaphorJs.app.Component = cls({
         if (tpl instanceof MetaphorJs.app.Template) {
             // it may have just been created
             self.template.node = self.node;
-            self.template.on("reference", self._onNodeReference, self);
+            self.template.on("reference", self._onChildReference, self);
             self.template.on("rendered", self._onRenderingFinished, self);
         }
         else {
@@ -199,7 +200,7 @@ module.exports = MetaphorJs.app.Component = cls({
                 config: tplConfig,
                 callback: {
                     context: self,
-                    reference: self._onNodeReference,
+                    reference: self._onChildReference,
                     rendered: self._onRenderingFinished,
                     "first-node": self._onFirstNodeReported
                 }
@@ -236,8 +237,8 @@ module.exports = MetaphorJs.app.Component = cls({
                             self.scope.$app.getParentCmp(self.node) ||
                             self.scope.$app ||
                             self.scope;
-                    self.on(name.substring(4), config.get(name), ctx);
                 }
+                self.on(name.substring(4), config.get(name), ctx);
             }
         });
     },
@@ -247,6 +248,14 @@ module.exports = MetaphorJs.app.Component = cls({
         if (self._nodeReplaced) {
             self._claimNode(node);
         }
+    },
+
+    _onChildReference: function(type, ref, item) {
+        var self = this;
+        if (!self.$refs[type]) {
+            self.$refs[type] = {};
+        }
+        self.$refs[type][ref] = item;
     },
 
     _claimNode: function(node) {
@@ -306,10 +315,10 @@ module.exports = MetaphorJs.app.Component = cls({
         var self = this;
 
         if (self._rendered) {
-            parent && this.moveTo(parent);
+            parent && self.attach(parent);
             return;
         }
-        else parent && (this.renderTo = parent);
+        else parent && (self.renderTo = parent);
         
         self.onBeforeRender();
         self.trigger('render', self);
@@ -319,14 +328,37 @@ module.exports = MetaphorJs.app.Component = cls({
         }
     },
 
-    moveTo: function(parent) {
+    isAttached: function(parent) {
+        if (!this.node || !this.node.parentNode) 
+            return false;
+        return parent ? this.node.parentNode === parent : true;
+    },
+
+    attach: function(parent) {
         var self = this;
 
+        if (!parent) {
+            throw new Error("Parent node is required");
+        }
+        if (self.isAttached(parent)) {
+            return;
+        }
+
+        self.detach(true);
         self.renderTo = parent;
 
         if (self.template.moveTo(parent)) {
             self.afterAttached();
-            self.trigger('after-attached', self);
+            self.trigger('attached', self);
+        }
+    },
+
+    detach: function(willAttach) {
+        var self = this;
+        if (self.isAttached()) {
+            self.node.parentNode.removeChild(self.node);
+            self.afterDetached(willAttach);
+            self.trigger('detached', self, willAttach);
         }
     },
 
@@ -437,6 +469,12 @@ module.exports = MetaphorJs.app.Component = cls({
      * @access protected
      */
     afterAttached:  emptyFn,
+
+    /**
+     * @method
+     * @access protected
+     */
+    afterDetached:  emptyFn,
 
 
     

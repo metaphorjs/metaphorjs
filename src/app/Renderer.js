@@ -162,6 +162,11 @@ module.exports = MetaphorJs.app.Renderer = function() {
             return observer.un(event + '-' + this.id, fn, context);
         },
 
+        trigger: function(event) {
+            arguments[0] = event + "-" + this.id;
+            return observer.trigger.apply(observer, arguments);
+        },
+
         createChild: function(node) {
             return new Renderer(node, this.scope, this);
         },
@@ -344,9 +349,9 @@ module.exports = MetaphorJs.app.Renderer = function() {
 
                         f = dirs.attr.cmp;
                         delete attrs['directive']['cmp'];
+
                         /*var passAttrs = extend({}, attrs);
                         delete passAttrs['directive']['cmp'];
-
                         attrs.config.passAttrs = passAttrs;*/
 
                         config = new MetaphorJs.lib.Config(
@@ -437,6 +442,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
                     if (attrs.reference[0] === '#') {
                         observer.trigger(
                             "reference-" + self.id, 
+                            "node",
                             attrs.reference.substring(1),
                             node
                         );

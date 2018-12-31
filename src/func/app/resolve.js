@@ -5,7 +5,7 @@ require("../dom/toFragment.js");
 require("../dom/data.js");
 require("../dom/addClass.js");
 require("../dom/removeClass.js");
-require("../../lib/Template.js")
+require("../../app/Template.js")
 require("../../lib/Config.js");
 
 var extend = require("metaphorjs-shared/src/func/extend.js"),

@@ -9,11 +9,11 @@ require("../func/dom/setAttr.js");
 require("metaphorjs-promise/src/lib/Promise.js");
 require("metaphorjs-observable/src/lib/Observable.js");
 require("metaphorjs-shared/src/lib/Cache.js");
-require("./Scope.js");
-require("./Expression.js");
-require("./MutationObserver.js");
-require("./Config.js");
-require("../app/Renderer.js");
+require("../lib/Scope.js");
+require("../lib/Expression.js");
+require("../lib/MutationObserver.js");
+require("../lib/Config.js");
+require("./Renderer.js");
 require("../func/dom/commentWrap.js");
 require("metaphorjs-observable/src/lib/Observable.js");
 

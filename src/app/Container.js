@@ -20,6 +20,10 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         }
     },
 
+    getSectionEl: function(name) {
+        return this.$refs['node'][name] || this.node;
+    },
+
     render: function() {
 
         var self = this,
@@ -32,7 +36,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         self.$super.apply(self, arguments);
 
         for (i = -1, l = items.length; ++i < l; 
-            items[i].moveTo(self.node)){}
+            items[i].attach(self.getSectionEl("items"))){}
     },
 
     addItem: function(item) {
@@ -45,8 +49,9 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         self.items.push(item);
         self.itemsMap[item.id] = item;
 
+        item.renderTo = self.node;
         if (self._rendered) {
-            item.render(self.node);
+            item.attach(self.node);
         }
     },
 
@@ -61,6 +66,8 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         if (inx !== -1) {
             self.items.splice(inx, 1);
         }
+        item.detach();
+        item.renderTo = null;
     }
 
 });
