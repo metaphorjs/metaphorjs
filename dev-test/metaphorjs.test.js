@@ -13262,10 +13262,12 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
         item.$$parent = self;
         self.items.push(item);
         self.itemsMap[item.id] = item;
-
-        item.renderTo = self.node;
+        
         if (self._rendered) {
-            item.attach(self.node);
+            item.attach(self.getSectionEl("items"));
+        }
+        else {
+            item.renderTo = self.getSectionEl("items");
         }
     },
 
@@ -33900,8 +33902,15 @@ cls({
     $extends: "MetaphorJs.app.Component",
     as: "child1",
     move: function() {
-        var parent2 = this.scope.$app.getCmp("parent2");
-        parent2.addItem(this);
+        var parent1 = this.scope.$app.getCmp("parent1"),
+            parent2 = this.scope.$app.getCmp("parent2");
+
+        if (this.$$parent === parent1) {
+            parent2.addItem(this);
+        }
+        else {
+            parent1.addItem(this);
+        }
     },
     template: {
         html: "<p>This is container child #1; " +
@@ -33948,12 +33957,10 @@ cls({
 
         var parent2 = new app_Container({
             id: "parent2",
-            scope: scope,
-            renderTo: document.getElementById("container-app")
+            scope: scope
         });
 
-        parent2.render();
-
+        parent2.render(document.getElementById("container-app"));
     }
 });
 

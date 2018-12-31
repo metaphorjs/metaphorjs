@@ -362,6 +362,10 @@ module.exports = MetaphorJs.app.Component = cls({
         }
     },
 
+    getRefEl: function(name) {
+        return this.$refs['node'][name];
+    },
+
     onBeforeRender: function() {
         this.config.getAll(); // calc all props and put into scope.$cfg
     },

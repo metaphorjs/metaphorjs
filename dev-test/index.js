@@ -2,7 +2,7 @@
 require("../src/app/App.js");
 require("../src/app/view/Router.js");
 require("../src/app/Component.js");
-require("../src/app/Container.js");
+require("metaphorjs-ui/src/ui/Container.js");
 require("../src/func/app/resolve.js");
 require("../src/func/app/init.js");
 require("../src/func/dom/onReady.js");
@@ -357,8 +357,15 @@ cls({
     $extends: "MetaphorJs.app.Component",
     as: "child1",
     move: function() {
-        var parent2 = this.scope.$app.getCmp("parent2");
-        parent2.addItem(this);
+        var parent1 = this.scope.$app.getCmp("parent1"),
+            parent2 = this.scope.$app.getCmp("parent2");
+
+        if (this.$$parent === parent1) {
+            parent2.addItem(this);
+        }
+        else {
+            parent1.addItem(this);
+        }
     },
     template: {
         html: "<p>This is container child #1; " +
@@ -405,12 +412,10 @@ cls({
 
         var parent2 = new MetaphorJs.app.Container({
             id: "parent2",
-            scope: scope,
-            renderTo: document.getElementById("container-app")
+            scope: scope
         });
 
-        parent2.render();
-
+        parent2.render(document.getElementById("container-app"));
     }
 });
 
