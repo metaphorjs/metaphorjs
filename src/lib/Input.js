@@ -18,6 +18,9 @@ var bind    = require("metaphorjs-shared/src/func/bind.js"),
 
 module.exports = MetaphorJs.lib.Input = function(){
 
+var observable = new MetaphorJs.lib.Observable,
+    id = 0;
+
 var Input = function(el, changeFn, changeFnContext, cfg) {
 
     if (el.$$input) {
@@ -31,14 +34,15 @@ var Input = function(el, changeFn, changeFnContext, cfg) {
 
     cfg = cfg || {};
 
-    self.observable     = new MetaphorJs.lib.Observable;
+    //self.observable     = new MetaphorJs.lib.Observable;
     self.el             = el;
+    self.id             = ++id;
     self.inputType      = el.type.toLowerCase();
     self.dataType       = cfg.type || MetaphorJs.dom.getAttr(el, "data-type") || self.inputType;
     self.listeners      = [];
 
     if (changeFn) {
-        self.onChange(changeFn, changeFnContext);
+        self.on("change", changeFn, changeFnContext);
     }
 };
 
@@ -57,7 +61,9 @@ extend(Input.prototype, {
         var self        = this,
             i;
 
-        self.observable.$destroy();
+        //self.observable.$destroy();
+        observable.destroyEvent("change-" + self.id);
+        observable.destroyEvent("key-" + self.id);
         self._addOrRemoveListeners(MetaphorJs.dom.removeListener, true);
 
         self.el.$$input = null;
@@ -265,7 +271,7 @@ extend(Input.prototype, {
         var self    = this,
             val     = self.getValue();
 
-        self.observable.trigger("change", self.processValue(val));
+        observable.trigger("change-"+self.id, self.processValue(val));
     },
 
 
@@ -273,7 +279,7 @@ extend(Input.prototype, {
         var self    = this,
             node    = self.el;
 
-        self.observable.trigger("change", self.processValue(
+        observable.trigger("change-"+self.id, self.processValue(
             node.checked ? (MetaphorJs.dom.getAttr(node, "value") || true) : false)
         );
     },
@@ -297,7 +303,7 @@ extend(Input.prototype, {
         var self    = this,
             trg     = e.target || e.srcElement;
 
-        self.observable.trigger("change", self.processValue(trg.value));
+        observable.trigger("change-"+self.id, self.processValue(trg.value));
     },
 
     setValue: function(val) {
@@ -358,43 +364,44 @@ extend(Input.prototype, {
     },
 
 
-    onChange: function(fn, context) {
+    on: function(event, fn, ctx, opt) {
         var self = this;
-        if (!self.changeInitialized) {
+        if (event === "change" && !self.changeInitialized) {
             self.initInputChange();
         }
-        this.observable.on("change", fn, context);
-    },
-
-    unChange: function(fn, context) {
-        this.observable.un("change", fn, context);
-    },
-
-
-    onKey: function(key, fn, context, args) {
-
-        var self = this;
-
-        if (!self.keydownDelegate) {
+        else if (event === "key" && !self.keydownDelegate) {
             self.keydownDelegate = bind(self.keyHandler, self);
             self.listeners.push(["keydown", self.keydownDelegate, false]);
             MetaphorJs.dom.addListener(self.el, "keydown", self.keydownDelegate);
-            self.observable.createEvent("key", {
+            observable.createEvent("key-"+self.id, {
                 returnResult: false,
                 triggerFilter: self.keyEventFilter
             });
         }
+        return observable.on(event+"-"+self.id, fn, ctx, opt);
+    },
 
-        self.observable.on("key", fn, context, {
+    un: function(event, fn, ctx) {
+        return observable.un(event+"-"+this.id, fn, ctx);
+    },
+
+    onChange: function(fn, context) {
+        return this.on("change", fn, context);
+    },
+
+    unChange: function(fn, context) {
+        return this.un("change", fn, context);
+    },
+
+    onKey: function(key, fn, context, args) {
+        return this.on("key", fn, context, {
             key: key,
             prepend: args
         });
     },
 
     unKey: function(key, fn, context) {
-
-        var self    = this;
-        self.observable.un("key", fn, context);
+        this.un("key", fn, context);
     },
 
     keyEventFilter: function(l, args) {
@@ -417,11 +424,10 @@ extend(Input.prototype, {
     },
 
     keyHandler: function(event) {
-
-        var e       = MetaphorJs.dom.normalizeEvent(event || window.event),
-            self    = this;
-
-        self.observable.trigger("key", e);
+        observable.trigger(
+            "key-"+this.id, 
+            MetaphorJs.dom.normalizeEvent(event || window.event)
+        );
     },
 
     triggerChange: function() {
