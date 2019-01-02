@@ -278,29 +278,17 @@ module.exports = MetaphorJs.app.Template = function() {
         replace:            false,
         animate:            false,
 
-        passAttrs:          null,
-
         _runRenderer: function() {
             var self = this;
             if (!self._renderer) {
                 self._renderer   = new MetaphorJs.app.Renderer(
-                        self.node, self.scope/*, null, self.passAttrs*/
+                        self.node, self.scope
                 );
-                observable.relayEvent(
-                    self._renderer, "reference", "reference-" + self.id
-                );
-                self._renderer.on("rendered", self._onRendered, self);
-                self._renderer.on("first-node", self._onFirstNodeReported, self);
+                observable.relayEvent(self._renderer, "reference", "reference-" + self.id);
+                observable.relayEvent(self._renderer, "first-node", "first-node-" + self.id);
+                observable.relayEvent(self._renderer, "rendered", "rendered-" + self.id);
                 self._renderer.process();
             }
-        },
-
-        _onFirstNodeReported: function(node) {
-            observable.trigger("first-node-" + this.id, node);
-        },
-
-        _onRendered: function() {
-            observable.trigger("rendered-" + this.id, this);
         },
 
         createEvent: function(event, opt) {

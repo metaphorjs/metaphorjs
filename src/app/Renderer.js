@@ -65,8 +65,6 @@ module.exports = MetaphorJs.app.Renderer = function() {
             }
         },
 
-        //rSkipTag = /^(script|template|mjs-template|style)$/i,
-
         skipMap = {
             "script": true,
             "template": true,
@@ -117,9 +115,72 @@ module.exports = MetaphorJs.app.Renderer = function() {
             --cnt.countdown === 0 && finish && finish.call(fnScope);
         },
 
+        applyDirective = function(dir, parentScope, node, config, attrs, renderer, passDirectives) {
+
+            var scope   = dir.$isolateScope ?
+                            parentScope.$newIsolated() :
+                          (dir.$breakScope  ?
+                           parentScope.$new() :
+                           parentScope),
+                app     = parentScope.$app,
+                inject  = {
+                    $scope: scope,
+                    $node: node,
+                    $nodeConfig: config,
+                    $attrSet: attrs,
+                    $renderer: renderer
+                },
+                args    = [scope, node, config, renderer, attrs],
+                inst;
+
+            //if (attrs.reference && attrs.reference[0] !== '#') {
+            //    scope[attrs.reference] = node;
+            //}
+
+            if (app) {
+                inst = app.inject(dir, null, inject, args);
+            }
+            else if (dir.$instantiate) {
+                inst = dir.$instantiate.apply(dir, args);
+            }
+            else {
+                inst = dir.apply(null, args);
+            }
+
+            if (app && dir.$registerBy && inst) {
+                if (isThenable(inst)) {
+                    inst.done(function(cmp){
+                        app.registerCmp(cmp, parentScope, dir.$registerBy);
+                    });
+                }
+                else {
+                    app.registerCmp(inst, parentScope, dir.$registerBy);
+                }
+            }
+
+            if (inst && inst.$destroy) {
+                renderer && renderer.on("destroy", inst.$destroy, inst);
+                !renderer && parentScope.$on("destroy", inst.$destroy, inst);
+            }
+            else if (typeof inst === "function") {
+                renderer && renderer.on("destroy", inst);
+                !renderer && parentScope.$on("destroy", inst);
+            }
+
+            if (dir.$stopRenderer) {
+                return false;
+            }
+
+            if (inst && inst.getChildren) {
+                return inst.getChildren();
+            }
+
+            return inst;
+        },
+
         observer = new MetaphorJs.lib.Observable;
 
-    var Renderer = function(el, scope, parent, passedAttrs) {
+    var Renderer = function(el, scope, parent) {
 
         var self            = this;
 
@@ -128,7 +189,6 @@ module.exports = MetaphorJs.app.Renderer = function() {
         self.scope          = scope;
         self.texts          = [];
         self.parent         = parent;
-        self.passedAttrs    = passedAttrs;
 
         if (scope instanceof MetaphorJs.lib.Scope) {
             scope.$on("destroy", self.$destroy, self);
@@ -154,10 +214,6 @@ module.exports = MetaphorJs.app.Renderer = function() {
             return observer.on(event + '-' + this.id, fn, context, opt);
         },
 
-        once: function(event, fn, context, opt) {
-            return observer.once(event + '-' + this.id, fn, context, opt);
-        },
-
         un: function(event, fn, context) {
             return observer.un(event + '-' + this.id, fn, context);
         },
@@ -167,77 +223,9 @@ module.exports = MetaphorJs.app.Renderer = function() {
             return observer.trigger.apply(observer, arguments);
         },
 
-        createChild: function(node) {
-            return new Renderer(node, this.scope, this);
-        },
-
         getEl: function() {
             return this.el;
         },
-
-        runHandler: function(f, parentScope, node, nodeConfig, attrs) {
-
-            var self    = this,
-                scope   = f.$isolateScope ?
-                            parentScope.$newIsolated() :
-                          (f.$breakScope  ?
-                           parentScope.$new() :
-                           parentScope),
-                app     = parentScope.$app,
-                inject  = {
-                    $scope: scope,
-                    $node: node,
-                    $nodeConfig: nodeConfig,
-                    $attrSet: attrs,
-                    $renderer: self
-                },
-                args    = [scope, node, nodeConfig, self, attrs],
-                inst;
-
-            if (attrs.reference && attrs.reference[0] !== '#') {
-                scope[attrs.reference] = node;
-            }
-
-            if (app) {
-                inst = app.inject(f, null, inject, args);
-            }
-            else if (f.$instantiate) {
-                inst = f.$instantiate.apply(f, args);
-            }
-            else {
-                inst = f.apply(null, args);
-            }
-
-            if (app && f.$registerBy && inst) {
-                if (isThenable(inst)) {
-                    inst.done(function(cmp){
-                        app.registerCmp(cmp, parentScope, f.$registerBy);
-                    });
-                }
-                else {
-                    app.registerCmp(inst, parentScope, f.$registerBy);
-                }
-            }
-
-
-            if (inst && inst.$destroy) {
-                self.on("destroy", inst.$destroy, inst);
-            }
-            else if (typeof inst === "function") {
-                self.on("destroy", inst);
-            }
-
-            if (f.$stopRenderer) {
-                return false;
-            }
-
-            if (inst && inst.getChildren) {
-                return inst.getChildren();
-            }
-
-            return inst;
-        },
-
 
         processNode: function(node) {
 
@@ -301,20 +289,6 @@ module.exports = MetaphorJs.app.Renderer = function() {
                     return false;
                 }
 
-                config = new MetaphorJs.lib.Config(attrs.config, {
-                    scope: self.scope
-                });                
-
-                if (self.passedAttrs) {
-                    attrs['directive'] = extend(
-                        {}, 
-                        attrs['directive'], 
-                        self.passedAttrs['directive'], 
-                        true, true
-                    );
-                    self.passedAttrs = null;
-                }
-
                 // this tag represents component
                 // we just pass it to attr.cmp directive
                 // by adding it to the attr map
@@ -322,6 +296,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
 
                     as = attrs.config.tag ? attrs.config.tag.expression : null;
 
+                    // TODO do not make this a separate branch
                     if (as) {
 
                         attrs["directive"]['cmp'] = {
@@ -350,10 +325,6 @@ module.exports = MetaphorJs.app.Renderer = function() {
                         f = dirs.attr.cmp;
                         delete attrs['directive']['cmp'];
 
-                        /*var passAttrs = extend({}, attrs);
-                        delete passAttrs['directive']['cmp'];
-                        attrs.config.passAttrs = passAttrs;*/
-
                         config = new MetaphorJs.lib.Config(
                             extend({}, attrs.config, {
                                 value: {
@@ -365,7 +336,8 @@ module.exports = MetaphorJs.app.Renderer = function() {
                         );
                         self.on("destroy", config.$destroy, config);
 
-                        res = self.runHandler(f, scope, node, config, attrs);
+                        res = applyDirective(f, scope, node, config, attrs, self, true);
+                        attrs['directive'] = {};
 
                         if (res === false) {
                             return false;
@@ -384,10 +356,10 @@ module.exports = MetaphorJs.app.Renderer = function() {
 
                     config = new MetaphorJs.lib.Config(
                         attrs.config, 
-                        {scope: self.scope, deferInit: true}
+                        {scope: self.scope}
                     );
                     self.on("destroy", config.$destroy, config);
-                    res = self.runHandler(f, scope, node, config, attrs);
+                    res = applyDirective(f, scope, node, config, attrs, self);
 
                     attrs.removeDirective(node, tag);
 
@@ -422,7 +394,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
                             {scope: self.scope}
                         );
                         self.on("destroy", config.$destroy, config);
-                        res     = self.runHandler(handler, scope, node, config, attrs);
+                        res     = applyDirective(handler, scope, node, config, attrs, self);
 
                         attrProps.handled = true;
 
@@ -573,6 +545,8 @@ module.exports = MetaphorJs.app.Renderer = function() {
     Renderer.skip = function(tag, value) {
         skipMap[tag] = value;
     };
+
+    Renderer.applyDirective = applyDirective;
 
     return Renderer;
 

@@ -18,7 +18,8 @@ var Directive = require("../../app/Directive.js"),
 
         var cmpName = config.get("value"),
             constr  = typeof cmpName === "string" ?
-                        ns.get(cmpName, true) : cmpName;
+                        ns.get(cmpName, true) : cmpName,
+            tag     = node.tagName.toLowerCase();
 
         if (!constr) {
             throw new Error("Component " + cmpName + " not found");
@@ -40,6 +41,10 @@ var Directive = require("../../app/Directive.js"),
             destroyScope: !sameScope,
             autoRender: true
         };
+
+        if (MetaphorJs.directive.component[tag]) {
+            cfg.directives = attrSet.directive;
+        }
 
         MetaphorJs.app.resolve(cmpName, cfg, newScope, node, [cfg])
             .done(function(cmp) {

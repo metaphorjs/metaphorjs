@@ -5,6 +5,7 @@ require("../func/dom/removeAttr.js");
 require("../func/dom/isAttached.js");
 require("./Template.js");
 require("./Directive.js");
+require("./Renderer.js");
 require("../func/dom/addClass.js");
 require("../func/dom/removeClass.js");
 require("../lib/Scope.js");
@@ -204,7 +205,6 @@ module.exports = MetaphorJs.app.Component = cls({
                     rendered: self._onRenderingFinished,
                     "first-node": self._onFirstNodeReported
                 }
-                //passAttrs: self.passAttrs
             });
         }
 
@@ -241,6 +241,35 @@ module.exports = MetaphorJs.app.Component = cls({
                 self.on(name.substring(4), config.get(name), ctx);
             }
         });
+    },
+
+    _initDirectives: function() {
+        var self = this,
+            dirs = self.directives,
+            attrProps,
+            config,
+            handlers = MetaphorJs.app.Directive.getAttributes(),
+            i, len, name,
+            parentScope = self.scope.$parent || 
+                            self.config.getOption("scope") ||
+                            self.scope;
+
+        for (i = 0, len = handlers.length; i < len; i++) {
+            name    = handlers[i].name;
+
+            if ((attrProps = dirs[name]) !== undf) {
+                config = new MetaphorJs.lib.Config(
+                    attrProps.config, 
+                    {
+                        scope: parentScope
+                    }
+                );
+                self.on("destroy", config.$destroy, config);
+                MetaphorJs.app.Renderer.applyDirective(
+                    handlers[i].handler, parentScope, self, config
+                );
+            }
+        }
     },
 
     _onFirstNodeReported: function(node) {
@@ -378,20 +407,20 @@ module.exports = MetaphorJs.app.Component = cls({
             self._replaceNodeWithTemplate();
         }
 
-        if (self.renderTo) {
-            self.renderTo.appendChild(self.node);
-        }
-        //else if (!MetaphorJs.dom.isAttached(self.node)) {
-        //    window.document.body.appendChild(self.node);
-        //}
-
         self._rendered   = true;
         self.afterRender();
         self.trigger('after-render', self);
 
+        if (self.directives) {
+            self._initDirectives();
+        }
+
         if (MetaphorJs.dom.isAttached(self.node)) {
             self.afterAttached();
             self.trigger('after-attached', self);
+        }
+        else if (self.renderTo && self.node.parentNode !== self.renderTo) {
+            self.attach(self.renderTo);
         }
     },
 
@@ -441,6 +470,15 @@ module.exports = MetaphorJs.app.Component = cls({
      * @return Element
      */
     getEl: function() {
+        return this.node;
+    },
+
+    /**
+     * Returns api (in a simplest case - dom element) 
+     * for directive to work with
+     * @param {string} directive 
+     */
+    getDomApi: function(directive) {
         return this.node;
     },
 
