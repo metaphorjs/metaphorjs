@@ -43,7 +43,13 @@ var Directive = require("../../app/Directive.js"),
         };
 
         if (MetaphorJs.directive.component[tag]) {
-            cfg.directives = attrSet.directive;
+            var ds = {}, k;
+            for(k in attrSet.directive) {
+                if (attrSet.directive.hasOwnProperty(k)) {
+                    ds[k] = attrSet.directive[k].config;
+                }
+            }
+            cfg.directives = ds;
         }
 
         MetaphorJs.app.resolve(cmpName, cfg, newScope, node, [cfg])

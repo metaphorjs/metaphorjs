@@ -90,6 +90,11 @@ module.exports = MetaphorJs.app.Component = cls({
      */
     template:       null,
 
+    /**
+     * @var {object|bool}
+     */
+    supportsDirectives: false,
+
 
     /**
      * @constructor
@@ -246,7 +251,8 @@ module.exports = MetaphorJs.app.Component = cls({
     _initDirectives: function() {
         var self = this,
             dirs = self.directives,
-            attrProps,
+            support = self.supportsDirectives,
+            dirCfg,
             config,
             handlers = MetaphorJs.app.Directive.getAttributes(),
             i, len, name,
@@ -254,15 +260,26 @@ module.exports = MetaphorJs.app.Component = cls({
                             self.config.getOption("scope") ||
                             self.scope;
 
+        if (!support) {
+            return;
+        }
+
         for (i = 0, len = handlers.length; i < len; i++) {
             name    = handlers[i].name;
 
-            if ((attrProps = dirs[name]) !== undf) {
-                config = new MetaphorJs.lib.Config(
-                    attrProps.config, 
-                    {
-                        scope: parentScope
+            if (!(support === true || support[name])) {
+                continue;
+            }
+
+            if ((dirCfg = dirs[name]) !== undf) {
+                if (typeof dirCfg === "string") {
+                    dirCfg = {
+                        value: dirCfg
                     }
+                }
+                config = new MetaphorJs.lib.Config(
+                    dirCfg, 
+                    {scope: parentScope}
                 );
                 self.on("destroy", config.$destroy, config);
                 MetaphorJs.app.Renderer.applyDirective(
@@ -479,7 +496,14 @@ module.exports = MetaphorJs.app.Component = cls({
      * @param {string} directive 
      */
     getDomApi: function(directive) {
-        return this.node;
+        var sup = this.supportsDirectives;
+        if (!sup) {
+            return null;
+        }
+        if (sup[directive] === true) {
+            return this.node;
+        }
+        return this.$refs.node[sup[directive]];
     },
 
     /**

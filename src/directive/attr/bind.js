@@ -21,23 +21,13 @@ Directive.registerAttribute("bind", 1000,
 
             config.setType("recursive", "bool");
             config.setType("once", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+            config.setType("locked", "bool");
 
             self.scope      = scope;
             self.node       = node;
             self.config     = config;
 
-            if (MetaphorJs.dom.isField(node)) {
-                self.input = MetaphorJs.lib.Input.get(node);
-            }
-            else if (node.getInputApi) {
-                self.input = node.getInputApi();
-            }
-
-            if (self.input) {
-                self.input.onChange(self.onInputChange, self);
-            }
-
-            config.setType("locked", "bool");
+            self._initNode(node);            
 
             if (config.get("recursive")) {
                 config.disableProperty("value");
@@ -59,7 +49,23 @@ Directive.registerAttribute("bind", 1000,
                 }
             }
             else {
-                self.$super(scope, node, config);
+                self.$super(scope, self.node, config);
+            }
+        },
+
+        _initNode: function(node) {
+            var self = this;
+            if (node.getDomApi) {
+                self.node = node.getDomApi("bind");
+            }
+            if (MetaphorJs.dom.isField(node)) {
+                self.input = MetaphorJs.lib.Input.get(node);
+            }
+            else if (node.getInputApi) {
+                self.input = node.getInputApi("bind");
+            }
+            if (self.input) {
+                self.input.onChange(self.onInputChange, self);
             }
         },
 

@@ -53,7 +53,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         self.node           = node;
         self.input          = MetaphorJs.dom.isField(node) ?
                                  MetaphorJs.lib.Input.get(node, scope) :
-                                 node.getInputApi();
+                                 node.getInputApi("model");
         self.binding        = config.get("binding");
         self.mo             = MetaphorJs.lib.MutationObserver.get(
                                 scope, expr, null, null, {
