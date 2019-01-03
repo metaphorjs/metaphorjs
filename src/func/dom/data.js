@@ -22,37 +22,43 @@ var nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
  * @returns {*}
  */
 module.exports = MetaphorJs.dom.data = function(){
-
-    var dataCache   = {},
+//dataCache   = {},
+    var getNodeKey  = function(key) {
+            return '$$mjs-' + key;
+        }/*,
 
         getNodeId   = function(el) {
             return el._mjsid || (el._mjsid = nextUid());
-        };
+        }*/;
 
 
     return function dom_data(el, key, value, action) {
-        var id  = getNodeId(el),
-            obj = dataCache[id];
+        //var id  = getNodeId(el),
+        //    obj = dataCache[id];
+        var nodekey = getNodeKey(key);
 
         if (action === 'remove') {
             if (key) {
-                obj && (delete obj[key]);
+                //obj && (delete obj[key]);
+                delete el[nodekey];
             }
             else {
-                delete dataCache[id];
+                //delete dataCache[id];
             }
             return;
         }
 
         if (value !== undf) {
-            if (!obj) {
+            /*if (!obj) {
                 obj = dataCache[id] = {};
             }
-            obj[key] = value;
+            obj[key] = value;*/
+            el[nodekey] = value;
             return value;
         }
         else {
-            return obj ? obj[key] : undf;
+            //return obj ? obj[key] : undf;
+            return el[nodekey];
         }
     };
 

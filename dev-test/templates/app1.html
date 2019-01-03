@@ -371,7 +371,7 @@
             <div class="case double" 
                  {cmp}="Test.MyComponent"
                  {cmp.$as}="ctrl">
-                <p {cmp-prop}="para">Component's transcluded text + {{ this.$root.a}}</p>
+                <p ##para>Component's transcluded text + {{ this.$root.a}}</p>
                 <a href="#" (click)="this.ctrl.reverse()">reverse</a> |
                 <a href="#" (click)="this.ctrl.createNew()">create new component on existing element</a> |
                 <a href="#" (click)="this.ctrl.createRender()">create new component and render to</a> |
@@ -385,7 +385,7 @@
                     </li>
                 </ul>
             </div>
-          
+
             <div class="case double" id="myComponent1" {cmp}="Test.MyComponent">
                 <p>This is another instance with deferred value: {{ this.deferred }}</p>
             </div>

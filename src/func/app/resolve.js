@@ -125,11 +125,11 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
 
         defers.push(cfg.template.childrenPromise);
 
-        if (node && node.firstChild) {
+        /*if (node && node.firstChild) {
             MetaphorJs.dom.data(
                 node, "mjs-transclude", 
                 MetaphorJs.dom.toFragment(node.childNodes));
-        }
+        }*/
     }
 
     var p;

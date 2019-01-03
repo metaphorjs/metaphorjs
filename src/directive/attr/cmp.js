@@ -15,6 +15,7 @@ var Directive = require("../../app/Directive.js"),
         config.setType("isolateScope", "bool", MetaphorJs.lib.Config.MODE_STATIC);
         config.setDefaultMode("as", MetaphorJs.lib.Config.MODE_STATIC);
         config.setDefaultMode("ref", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setMode("into", MetaphorJs.lib.Config.MODE_STATIC);
 
         var cmpName = config.get("value"),
             constr  = typeof cmpName === "string" ?
@@ -52,12 +53,13 @@ var Directive = require("../../app/Directive.js"),
             cfg.directives = ds;
         }
 
-        MetaphorJs.app.resolve(cmpName, cfg, newScope, node, [cfg])
+        var res = MetaphorJs.app.resolve(cmpName, cfg, newScope, node, [cfg])
             .done(function(cmp) {
                 parentRenderer.trigger(
-                    "reference", "cmp", config.get("ref") || cmp.id, cmp
+                    "reference", "cmp", config.get("ref") || cmp.id, cmp, node
                 );
             });
+        parentRenderer.trigger("reference-promise", res, cmpName, config, node);
 
         return constr.$resumeRenderer || !!constr.$shadow;
     };

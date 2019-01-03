@@ -468,7 +468,7 @@ module.exports = MetaphorJs.app.Template = function() {
 
                 if (el && el.nodeType) {
                     
-                    var transclude = el ? MetaphorJs.dom.data(el, "mjs-transclude") : null;
+                    /*var transclude = el ? MetaphorJs.dom.data(el, "mjs-transclude") : null;
 
                     if (transclude) {
                         var tr = MetaphorJs.dom.select(
@@ -476,7 +476,7 @@ module.exports = MetaphorJs.app.Template = function() {
                         if (tr.length) {
                             MetaphorJs.dom.data(tr[0], "mjs-transclude", transclude);
                         }
-                    }
+                    }*/
 
                     el.parentNode && el.parentNode.removeChild(el);
                 }

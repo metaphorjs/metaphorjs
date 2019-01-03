@@ -133,10 +133,6 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 args    = [scope, node, config, renderer, attrs],
                 inst;
 
-            //if (attrs.reference && attrs.reference[0] !== '#') {
-            //    scope[attrs.reference] = node;
-            //}
-
             if (app) {
                 inst = app.inject(dir, null, inject, args);
             }
