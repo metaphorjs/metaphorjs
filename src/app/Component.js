@@ -356,16 +356,19 @@ module.exports = MetaphorJs.app.Component = cls({
 
 
 
-    render: function(parent) {
+    render: function(parent, before) {
 
         var self = this;
 
         if (self._rendered) {
-            parent && self.attach(parent);
+            parent && self.attach(parent, before);
             return;
         }
-        else parent && (self.renderTo = parent);
-        
+        else if (parent) {
+            self.renderTo = parent;
+            self.renderBefore = before;
+        }
+
         self.onBeforeRender();
         self.trigger('render', self);
 
@@ -380,7 +383,7 @@ module.exports = MetaphorJs.app.Component = cls({
         return parent ? this.node.parentNode === parent : true;
     },
 
-    attach: function(parent) {
+    attach: function(parent, before) {
         var self = this;
 
         if (!parent) {
@@ -392,8 +395,9 @@ module.exports = MetaphorJs.app.Component = cls({
 
         self.detach(true);
         self.renderTo = parent;
+        self.renderBefore = before;
 
-        if (self.template.moveTo(parent)) {
+        if (self.template.moveTo(parent, before)) {
             self.afterAttached();
             self.trigger('attached', self);
         }
@@ -437,7 +441,7 @@ module.exports = MetaphorJs.app.Component = cls({
             self.trigger('after-attached', self);
         }
         else if (self.renderTo && self.node.parentNode !== self.renderTo) {
-            self.attach(self.renderTo);
+            self.attach(self.renderTo, self.renderBefore);
         }
     },
 
