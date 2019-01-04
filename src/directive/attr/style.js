@@ -48,6 +48,12 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
             prev    = self.prev,
             k, trg;
 
+        node = node.getDomApi ? node.getDomApi("style") : node;
+
+        if (!node) {
+            return;
+        }
+
         for (k in prev) {
             if (!props || props[k] === undf) {
                 MetaphorJs.dom.removeStyle(node, k);

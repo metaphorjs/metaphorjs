@@ -135,6 +135,12 @@ DO NOT put class="{}" when using class.name="{}"
                 prev    = self.prev,
                 i;
 
+            node = node.getDomApi ? node.getDomApi("class") : node;
+
+            if (!node) {
+                return;
+            }
+
             MetaphorJs.animate.stop(node);
 
             if (prev) {
