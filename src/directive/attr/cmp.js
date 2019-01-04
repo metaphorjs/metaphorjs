@@ -56,10 +56,16 @@ var Directive = require("../../app/Directive.js"),
         var res = MetaphorJs.app.resolve(cmpName, cfg, newScope, node, [cfg])
             .done(function(cmp) {
                 parentRenderer.trigger(
-                    "reference", "cmp", config.get("ref") || cmp.id, cmp, node
+                    "reference", "cmp", 
+                    config.get("ref") || cmp.id, cmp, 
+                    cfg, attrSet
                 );
             });
-        parentRenderer.trigger("reference-promise", res, cmpName, config, node);
+        parentRenderer.trigger(
+            "reference-promise", 
+            res, cmpName, 
+            cfg, attrSet
+        );
 
         return constr.$resumeRenderer || !!constr.$shadow;
     };

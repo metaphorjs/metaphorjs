@@ -230,10 +230,23 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 texts       = self.texts,
                 scope       = self.scope,
                 textStr,
-                textRenderer;
+                textRenderer,
+                ref;
 
+            // comment
+            if (nodeType === 8) {
+                var cmtData = node.textContent || node.data;
+                if (cmtData.substring(0,2) === '##') {
+                    observer.trigger(
+                        "reference-" + self.id, 
+                        "node",
+                        cmtData.substring(2),
+                        node
+                    );
+                }
+            }
             // text node
-            if (nodeType === 3) {
+            else if (nodeType === 3) {
 
                 textStr = node.textContent || node.nodeValue;
 
@@ -406,19 +419,22 @@ module.exports = MetaphorJs.app.Renderer = function() {
                     }
                 }
 
-                if (attrs.reference) {
-                    if (attrs.reference[0] === '#') {
-                        observer.trigger(
-                            "reference-" + self.id, 
-                            "node",
-                            attrs.reference.substring(1),
-                            node
-                        );
+                if (attrs.reference && attrs.reference.length) {
+                    for (i = 0, len = attrs.reference.length; i < len; i++) {
+                        ref = attrs.reference[i];
+                        if (ref[0] === '#') {
+                            observer.trigger(
+                                "reference-" + self.id, 
+                                "node",
+                                ref.substring(1),
+                                node
+                            );
+                        }
+                        else {
+                            scope[ref] = node;
+                        }
+                        MetaphorJs.dom.removeAttr(node, '#' + ref);
                     }
-                    else {
-                        scope[attrs.reference] = node;
-                    }
-                    MetaphorJs.dom.removeAttr(node, '#' + attrs.reference);
                 }
 
                 if (defers.length && !attrs.config.ignoreInside) {
