@@ -18,7 +18,7 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
 
     // regular expression seems to be a few milliseconds faster
     // than plain parsing
-    var reg = /^([\[({#$])([^)\]}"':\*]+)[\])}]?([:\*!]?)$/;
+    var reg = /^([\[({#$@])([^)\]}"':\*]+)[\])}]?([:\*!]?)$/;
 
     var removeDirective = function removeDirective(node, directive) {
         if (this.inflated) {
@@ -58,7 +58,8 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
             attribute: {},
             config: {},
             rest: {},
-            reference: null,
+            reference: [],
+            at: null,
             names: {},
             removeDirective: removeDirective
         };
@@ -113,7 +114,11 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
                 execMode = execModes[match[3]];
 
                 if (mode === '#') {
-                    set.reference = name;
+                    set.reference.push(name);
+                    continue;
+                }
+                if (mode === '@') {
+                    set.at = name;
                     continue;
                 }
             }
@@ -156,6 +161,10 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
                 coll = set['directive'];
                 subname = parts.length ? parts.join(".") : null;
 
+                if (value === "") {
+                    value = true;
+                }
+
                 if (!coll[name]) {
                     coll[name] = {
                         //name: name,
@@ -174,9 +183,7 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
                 }
 
                 if (subname && subname[0] === '$') {
-                    if (value === "") {
-                        value = true;
-                    }
+                    
                     prop = ccName(subname.substr(1));
                     coll[name].config[prop] = {
                         mode: execMode,
