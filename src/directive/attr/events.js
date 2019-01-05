@@ -38,6 +38,13 @@ var Directive = require("../../app/Directive.js"),
             Directive.registerAttribute(name, 1000,
                 function(scope, node, config, renderer, attrSet) {
 
+                if (node.getDomApi) {
+                    node = node.getDomApi(name);
+                    if (!node) {
+                        return null;
+                    }
+                }
+
                 var eh = new MetaphorJs.lib.EventHandler(
                     name, scope, node, prepareConfig(config)
                 );
