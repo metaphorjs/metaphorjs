@@ -12,7 +12,6 @@ var Directive = require("../../app/Directive.js"),
 
         config.setDefaultMode("value", MetaphorJs.lib.Config.MODE_STATIC);
         config.setType("sameScope", "bool", MetaphorJs.lib.Config.MODE_STATIC);
-        config.setType("isolateScope", "bool", MetaphorJs.lib.Config.MODE_STATIC);
         config.setDefaultMode("as", MetaphorJs.lib.Config.MODE_STATIC);
         config.setDefaultMode("ref", MetaphorJs.lib.Config.MODE_STATIC);
         config.setMode("into", MetaphorJs.lib.Config.MODE_STATIC);
@@ -26,11 +25,8 @@ var Directive = require("../../app/Directive.js"),
             throw new Error("Component " + cmpName + " not found");
         }
 
-        var sameScope       = config.get("sameScope") || constr.$sameScope,
-            isolateScope    = config.get("isolateScope") || constr.$isolateScope;
-
-        var newScope = isolateScope ? scope.$newIsolated() : 
-                                        (sameScope ? scope : scope.$new());
+        var sameScope   = config.get("sameScope") || constr.$sameScope;
+        var newScope    = sameScope ? scope : scope.$new();
 
         config.removeProperty("value");
 

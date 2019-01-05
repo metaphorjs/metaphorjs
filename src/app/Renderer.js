@@ -117,11 +117,9 @@ module.exports = MetaphorJs.app.Renderer = function() {
 
         applyDirective = function(dir, parentScope, node, config, attrs, renderer, passDirectives) {
 
-            var scope   = dir.$isolateScope ?
-                            parentScope.$newIsolated() :
-                          (dir.$breakScope  ?
+            var scope   = dir.$breakScope  ?
                            parentScope.$new() :
-                           parentScope),
+                           parentScope,
                 app     = parentScope.$app,
                 inject  = {
                     $scope: scope,

@@ -213,9 +213,7 @@ module.exports = MetaphorJs.app.view.Router = MetaphorJs.app.view.Base.$extend({
                     autoRender: true,
                     node: node,
                     destroyScope: true,
-                    scope: route.$isolateScope ?
-                           self.scope.$newIsolated() :
-                           self.scope.$new()
+                    scope: self.scope.$new()
                 };
 
             if (route.config) {

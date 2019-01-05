@@ -50,10 +50,6 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
         throw new Error("Component " + cmp + " not found");
     }
 
-    if (scope && constr.$isolateScope) {
-        cfg.scope   = scope = scope.$newIsolated();
-    }
-
     var i,
         defers      = [],
         tpl         = constr.template || cfg.template || null,
