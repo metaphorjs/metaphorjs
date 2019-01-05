@@ -13,6 +13,7 @@ require("../lib/Config.js");
 require("metaphorjs-observable/src/mixin/Observable.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
+    ns = require("metaphorjs-namespace/src/var/ns.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
@@ -95,6 +96,13 @@ module.exports = MetaphorJs.app.Component = cls({
      */
     supportsDirectives: false,
 
+    $constructor: function(cfg) {
+        var self = this,
+            viewCls = self.$view || (cfg ? cfg.$view : null);
+
+        viewCls && self.$plugins.push(viewCls);
+        self.$super();
+    },
 
     /**
      * @constructor
@@ -120,24 +128,31 @@ module.exports = MetaphorJs.app.Component = cls({
         }
         if (!self.config) {
             self.config = new MetaphorJs.lib.Config(null, {
-                scope: self.scope
+                scope: self.parentScope || self.scope
             });
         }
         else if (!(self.config instanceof MetaphorJs.lib.Config)) {
+            var cfgScope = self.config.scope;
+            if (cfgScope) {
+                delete self.config.scope;
+            }
             self.config = new MetaphorJs.lib.Config(
                 self.config, 
                 {
-                    scope: self.scope
+                    scope: cfgScope || self.parentScope || self.scope
                 }
             );
         }
 
         self.$refs = {node: {}, cmp: {}};
-        self.$cfg = {};
-        self.config.setTo(self.$cfg);
+        self.scope.$cfg = {};
+        self.config.setTo(self.scope.$cfg);
         self._initConfig();
         self.$callMixins("$initConfig");
 
+        if (self.$view) {
+            self.scope.$view = self.$view;
+        }
         if (self.config.has("as")) {
             self.scope[self.config.get("as")] = self;
         }
@@ -238,10 +253,13 @@ module.exports = MetaphorJs.app.Component = cls({
             if (name.substring(0,4) === 'on--') {
                 config.setMode(name, MetaphorJs.lib.Config.MODE_LISTENER);
                 if (!ctx) {
-                    ctx = config.get("callbackContext") ||
-                            self.scope.$app.getParentCmp(self.node) ||
-                            self.scope.$app ||
-                            self.scope;
+                    if (self.scope.$app)
+                        ctx = config.get("callbackContext") ||
+                                self.scope.$app.getParentCmp(self.node) ||
+                                self.scope.$app ||
+                                self.scope;
+                    else 
+                        ctx = config.get("callbackContext") || self.scope;
                 }
                 self.on(name.substring(4), config.get(name), ctx);
             }
@@ -256,7 +274,9 @@ module.exports = MetaphorJs.app.Component = cls({
             config,
             handlers = MetaphorJs.app.Directive.getAttributes(),
             i, len, name,
-            parentScope = self.scope.$parent || 
+            parentScope =   dirs.scope ||
+                            self.parentScope ||
+                            self.scope.$parent || 
                             self.config.getOption("scope") ||
                             self.scope;
 
@@ -266,6 +286,10 @@ module.exports = MetaphorJs.app.Component = cls({
 
         for (i = 0, len = handlers.length; i < len; i++) {
             name    = handlers[i].name;
+
+            if (name === "scope") {
+                continue;
+            }
 
             if (!(support === true || support[name])) {
                 continue;
