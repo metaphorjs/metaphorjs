@@ -175,6 +175,13 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 return value;
             }
 
+            if (value === true && 
+                prop.type !== "bool" && 
+                prop.type !== "boolean" && 
+                prop.defaultValue) {
+                value = prop.defaultValue;
+            }
+
             switch (prop.type) {
                 case 'int':
                     return parseInt(value);
