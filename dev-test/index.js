@@ -2,7 +2,7 @@
 require("../src/app/App.js");
 require("../src/app/view/Router.js");
 require("../src/app/Component.js");
-require("metaphorjs-ui/src/ui/Container.js");
+require("../src/app/Container.js");
 require("../src/func/app/resolve.js");
 require("../src/func/app/init.js");
 require("../src/func/dom/onReady.js");

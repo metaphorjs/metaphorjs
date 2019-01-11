@@ -19,9 +19,12 @@ var MetaphorJs = {
     prebuilt: typeof MetaphorJsPrebuilt !== "undefined" ? MetaphorJsPrebuilt : null
 };
 
+var __init = (function(){
 
 
 MetaphorJs.app.view = MetaphorJs.app.view || {};
+MetaphorJs.app.component = MetaphorJs.app.component || {};
+}());
 
 /**
  * Bind function to context (Function.bind wrapper)
@@ -4780,6 +4783,13 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                 return value;
             }
 
+            if (value === true && 
+                prop.type !== "bool" && 
+                prop.type !== "boolean" && 
+                prop.defaultValue) {
+                value = prop.defaultValue;
+            }
+
             switch (prop.type) {
                 case 'int':
                     return parseInt(value);
@@ -6096,7 +6106,7 @@ var classManagerFactory = function(){
 
                         if (isString(plugin)) {
                             plCls = plugin;
-                            plugin = ns ? ns.get(plugin, true) : null;
+                            plugin = ns ? ns.get(plugin) : null;
                             if (!plugin) {
                                 throw plCls + " not found";
                             }
@@ -6930,7 +6940,7 @@ var dom_getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
 
     // regular expression seems to be a few milliseconds faster
     // than plain parsing
-    var reg = /^([\[({#$])([^)\]}"':\*]+)[\])}]?([:\*!]?)$/;
+    var reg = /^([\[({#$@])([^)\]}"':\*]+)[\])}]?([:\*!]?)$/;
 
     var removeDirective = function removeDirective(node, directive) {
         if (this.inflated) {
@@ -6970,7 +6980,8 @@ var dom_getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
             attribute: {},
             config: {},
             rest: {},
-            reference: null,
+            reference: [],
+            at: null,
             names: {},
             removeDirective: removeDirective
         };
@@ -7025,7 +7036,11 @@ var dom_getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
                 execMode = execModes[match[3]];
 
                 if (mode === '#') {
-                    set.reference = name;
+                    set.reference.push(name);
+                    continue;
+                }
+                if (mode === '@') {
+                    set.at = name;
                     continue;
                 }
             }
@@ -7068,6 +7083,10 @@ var dom_getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
                 coll = set['directive'];
                 subname = parts.length ? parts.join(".") : null;
 
+                if (value === "") {
+                    value = true;
+                }
+
                 if (!coll[name]) {
                     coll[name] = {
                         //name: name,
@@ -7086,9 +7105,7 @@ var dom_getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
                 }
 
                 if (subname && subname[0] === '$') {
-                    if (value === "") {
-                        value = true;
-                    }
+                    
                     prop = ccName(subname.substr(1));
                     coll[name].config[prop] = {
                         mode: execMode,
@@ -7244,11 +7261,9 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
 
         applyDirective = function(dir, parentScope, node, config, attrs, renderer, passDirectives) {
 
-            var scope   = dir.$isolateScope ?
-                            parentScope.$newIsolated() :
-                          (dir.$breakScope  ?
+            var scope   = dir.$breakScope  ?
                            parentScope.$new() :
-                           parentScope),
+                           parentScope,
                 app     = parentScope.$app,
                 inject  = {
                     $scope: scope,
@@ -7357,10 +7372,23 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                 texts       = self.texts,
                 scope       = self.scope,
                 textStr,
-                textRenderer;
+                textRenderer,
+                ref;
 
+            // comment
+            if (nodeType === 8) {
+                var cmtData = node.textContent || node.data;
+                if (cmtData.substring(0,2) === '##') {
+                    observer.trigger(
+                        "reference-" + self.id, 
+                        "node",
+                        cmtData.substring(2),
+                        node
+                    );
+                }
+            }
             // text node
-            if (nodeType === 3) {
+            else if (nodeType === 3) {
 
                 textStr = node.textContent || node.nodeValue;
 
@@ -7533,19 +7561,22 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                     }
                 }
 
-                if (attrs.reference) {
-                    if (attrs.reference[0] === '#') {
-                        observer.trigger(
-                            "reference-" + self.id, 
-                            "node",
-                            attrs.reference.substring(1),
-                            node
-                        );
+                if (attrs.reference && attrs.reference.length) {
+                    for (i = 0, len = attrs.reference.length; i < len; i++) {
+                        ref = attrs.reference[i];
+                        if (ref[0] === '#') {
+                            observer.trigger(
+                                "reference-" + self.id, 
+                                "node",
+                                ref.substring(1),
+                                node
+                            );
+                        }
+                        else {
+                            scope[ref] = node;
+                        }
+                        dom_removeAttr(node, '#' + ref);
                     }
-                    else {
-                        scope[attrs.reference] = node;
-                    }
-                    dom_removeAttr(node, '#' + attrs.reference);
                 }
 
                 if (defers.length && !attrs.config.ignoreInside) {
@@ -12763,6 +12794,13 @@ var app_Component = MetaphorJs.app.Component = cls({
      */
     supportsDirectives: false,
 
+    $constructor: function(cfg) {
+        var self = this,
+            viewCls = self.$view || (cfg ? cfg.$view : null);
+
+        viewCls && self.$plugins.push(viewCls);
+        self.$super();
+    },
 
     /**
      * @constructor
@@ -12788,24 +12826,31 @@ var app_Component = MetaphorJs.app.Component = cls({
         }
         if (!self.config) {
             self.config = new lib_Config(null, {
-                scope: self.scope
+                scope: self.parentScope || self.scope
             });
         }
         else if (!(self.config instanceof lib_Config)) {
+            var cfgScope = self.config.scope;
+            if (cfgScope) {
+                delete self.config.scope;
+            }
             self.config = new lib_Config(
                 self.config, 
                 {
-                    scope: self.scope
+                    scope: cfgScope || self.parentScope || self.scope
                 }
             );
         }
 
         self.$refs = {node: {}, cmp: {}};
-        self.$cfg = {};
-        self.config.setTo(self.$cfg);
+        self.scope.$cfg = {};
+        self.config.setTo(self.scope.$cfg);
         self._initConfig();
         self.$callMixins("$initConfig");
 
+        if (self.$view) {
+            self.scope.$view = self.$view;
+        }
         if (self.config.has("as")) {
             self.scope[self.config.get("as")] = self;
         }
@@ -12906,10 +12951,13 @@ var app_Component = MetaphorJs.app.Component = cls({
             if (name.substring(0,4) === 'on--') {
                 config.setMode(name, lib_Config.MODE_LISTENER);
                 if (!ctx) {
-                    ctx = config.get("callbackContext") ||
-                            self.scope.$app.getParentCmp(self.node) ||
-                            self.scope.$app ||
-                            self.scope;
+                    if (self.scope.$app)
+                        ctx = config.get("callbackContext") ||
+                                self.scope.$app.getParentCmp(self.node) ||
+                                self.scope.$app ||
+                                self.scope;
+                    else 
+                        ctx = config.get("callbackContext") || self.scope;
                 }
                 self.on(name.substring(4), config.get(name), ctx);
             }
@@ -12924,7 +12972,9 @@ var app_Component = MetaphorJs.app.Component = cls({
             config,
             handlers = Directive.getAttributes(),
             i, len, name,
-            parentScope = self.scope.$parent || 
+            parentScope =   dirs.scope ||
+                            self.parentScope ||
+                            self.scope.$parent || 
                             self.config.getOption("scope") ||
                             self.scope;
 
@@ -12934,6 +12984,10 @@ var app_Component = MetaphorJs.app.Component = cls({
 
         for (i = 0, len = handlers.length; i < len; i++) {
             name    = handlers[i].name;
+
+            if (name === "scope") {
+                continue;
+            }
 
             if (!(support === true || support[name])) {
                 continue;
@@ -13262,6 +13316,582 @@ var app_Component = MetaphorJs.app.Component = cls({
     }
 });
 
+
+
+
+
+
+
+MetaphorJs.app.component.View = cls({
+
+    $init: function(host) {
+        this.component = host;
+        this.component.$view = this;
+    }
+});
+
+
+
+MetaphorJs.app = MetaphorJs.app || {};
+
+
+
+
+
+
+
+
+
+
+
+
+var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, node, args) {
+
+    cfg         = cfg || {};
+    args        = args || [];
+
+    scope       = scope || cfg.scope; // || new Scope;
+    node        = node || cfg.node;
+    var config  = cfg.config || null;
+
+    cfg.config  = config;
+    cfg.scope   = cfg.scope || scope;
+    cfg.node    = cfg.node || node;
+
+    if (args.length === 0) {
+        args.push(cfg);
+    }
+
+    if (config) {
+
+        if (isPlainObject(config)) {
+            config = new lib_Config(config, {
+                scope: scope
+            });
+        }
+
+        config.setType("cloak", "bool", lib_Config.MODE_STATIC);
+        config.setType("animate", "bool", lib_Config.MODE_STATIC);
+    }
+
+    var constr      = isString(cmp) ? ns.get(cmp) : cmp;
+    if (!constr) {
+        throw new Error("Component " + cmp + " not found");
+    }
+
+    var i,
+        defers      = [],
+        tpl         = constr.template || cfg.template || null,
+        app         = scope ? scope.$app : null,
+        gProvider   = lib_Provider.global(),
+        injectFn    = app ? app.inject : gProvider.inject,
+        injectCt    = app ? app : gProvider,
+        cloak       = config ? config.get("cloak") : null,
+        inject      = {
+            $node: node || null,
+            $scope: scope || null,
+            $config: config || null,
+            $args: args || null
+        };
+
+    if (constr.resolve) {
+
+        for (i in constr.resolve) {
+            (function(name){
+                var d = new lib_Promise,
+                    fn;
+
+                defers.push(d.done(function(value){
+                    inject[name] = value;
+                    cfg[name] = value;
+                    args.push(value);
+                }));
+
+                fn = constr.resolve[i];
+
+                if (isFunction(fn)) {
+                    d.resolve(fn(scope, node, config));
+                }
+                else {
+                    d.resolve(
+                        injectFn.call(
+                            injectCt, fn, null, extend({}, inject, cfg, false, false)
+                        )
+                    );
+                }
+
+                d.fail(function(reason){
+                    if (reason instanceof Error) {
+                        error(reason);
+                    }
+                });
+
+            }(i));
+        }
+    }
+
+    if (tpl) {
+
+        var tplConfig = new lib_Config(null, {
+            scope: scope
+        });
+        if (config) {
+            tplConfig.setProperty("animate", config.copyProperty("animate"));
+        }
+        app_Template.prepareConfig(tpl, tplConfig);
+
+        cfg.template = new app_Template({
+            scope: scope,
+            node: node,
+            deferRendering: true,
+            ownRenderer: true,
+            config: tplConfig
+        });
+
+        defers.push(cfg.template.childrenPromise);
+
+        /*if (node && node.firstChild) {
+            dom_data(
+                node, "mjs-transclude", 
+                dom_toFragment(node.childNodes));
+        }*/
+    }
+
+    var p;
+
+    if (defers.length) {
+        p = new lib_Promise;
+        lib_Promise.all(defers)
+            .done(function(values){
+                p.resolve(
+                    injectFn.call(
+                        injectCt, constr, null, extend({}, inject, cfg, false, false), args
+                    )
+                );
+            })
+            .fail(p.reject, p);
+    }
+    else {
+        p = lib_Promise.resolve(
+            injectFn.call(
+                injectCt, constr, null, extend({}, inject, cfg, false, false), args
+            )
+        );
+    }
+
+    if (node && p.isPending() && cloak !== null) {
+        cloak !== true ? dom_addClass(node, cloak) : node.style.visibility = "hidden";
+        p.then(function() {
+            cloak !== true ? dom_removeClass(node, cloak) : node.style.visibility = "";
+        });
+    }
+
+    if (node) {
+        p.then(function(){
+            dom_removeClass(node, "mjs-cloak");
+        });
+    }
+
+    return p;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+MetaphorJs.app.Container = app_Component.$extend({
+
+    initComponent: function() {
+        var self = this;
+
+        self.$super.apply(self, arguments);
+
+        if (self.template && self.node.firstChild) {
+            self._prepareDeclaredItems(toArray(self.node.childNodes));
+        }
+
+        self._initItems();
+    },
+
+    _prepareDeclaredItems: function(nodes) {
+
+        var self = this,
+            i, l, node, renderer,
+            found = false,
+            renderRef, attrSet,
+            foundCmp, foundPromise,
+            scope = self.config.getOption("scope"),
+            items = self.items || [],
+            
+            refCallback = function(type, ref, cmp, cfg, attrSet){
+                if (cfg.node === node) {
+                    foundCmp = cmp;
+                    renderRef = attrSet.at;
+                }
+            },
+
+            promiseCallback = function(promise, cmpName, cfg, attrSet){
+                if (cfg.node === node) {
+                    foundPromise = promise;
+                    renderRef = attrSet.at;
+                }
+            };
+
+        if (isArray(items)) {
+            items = {
+                body: items
+            }
+        }
+
+        for (i = 0, l = nodes.length; i < l; i++) {
+            node = nodes[i];
+            if (node.nodeType === 1) {
+
+                foundCmp = null;
+                foundPromise = null;
+                renderRef = null;
+                renderer = new app_Renderer(node, scope);
+                renderer.on("reference", refCallback);
+                renderer.on("reference-promise", promiseCallback);
+                renderer.process();
+
+                if (foundCmp || foundPromise) {
+                    if (!renderRef) {
+                        renderRef = "body";
+                    }
+                    if (!items[renderRef]) {
+                        items[renderRef] = [];
+                    }
+                    items[renderRef].push({
+                        type: "component",
+                        renderRef: renderRef,
+                        renderer: renderer,
+                        component: foundCmp || foundPromise
+                    })
+                }   
+                else {
+                    attrSet = dom_getAttrSet(node);
+                    renderRef = attrSet.at || "body";
+                    if (!items[renderRef]) {
+                        items[renderRef] = [];
+                    }
+                    items[renderRef].push({
+                        type: "node",
+                        renderRef: renderRef,
+                        node: node
+                    });
+                }
+
+                found = true;
+
+                renderer.un("reference", refCallback);
+                renderer.un("reference-promise", promiseCallback);
+            }
+        }
+
+        if (found) {
+            self.items = items;
+        }
+
+    },
+
+    _initItems: function() {
+
+        var self = this,
+            items = self.items || [],
+            defs,
+            list = [],
+            item,
+            i, l;
+
+        self.itemsMap = {};
+        
+        if (isArray(items)) {
+            items = {
+                body: items
+            }
+        }
+
+        for (var ref in items) {
+            defs = items[ref];
+            if (!isArray(defs)) {
+                defs = [defs];
+            }
+            for (i = -1, l = defs.length; ++i < l;) {
+                item = self._processItemDef(defs[i]);
+                item.renderRef = ref;
+                list.push(item);
+                self.itemsMap[item.id] = item;
+            }
+        }
+
+        self.items = list;
+    },
+
+    _getIdKey: function() {
+        return "$$container_" + this.id;
+    },
+
+    _processItemDef: function(def) {
+
+        var self = this,
+            idkey = self._getIdKey(),
+            item = {
+                type: "component",
+                placeholder: window.document.createComment("***"),
+                id: nextUid(),
+                resolved: true
+            };
+
+        if (isPlainObject(def)) {
+            item = extend({}, def, item, false, false);
+            if (item.type === "component") {
+                if (isThenable(item.component)) {
+                    item.component.done(function(cmp){
+                        cmp[idkey] = item.id;
+                        self._onChildResolved(cmp);
+                    });
+                }
+                else {
+                    item.component[idkey] = item.id;
+                    self._initChildEvents("on", item.component);
+                }
+            }
+            else {
+                item.node[idkey] = item.id;
+            }
+        }
+        else if (def instanceof app_Component) {
+            item.component = def;
+            def[idkey] = item.id;
+            self._initChildEvents("on", def);   
+        }
+        else if (def instanceof window.Node) {
+            item.type = "node";
+            item.node = def;
+            def[idkey] = item.id;
+        }
+        else if (def instanceof app_Template) {
+            item.component = new app_Component({
+                scope: self.scope,
+                template: def
+            });
+            item.component[idkey] = item.id;
+            self._initChildEvents("on", item.component);
+        }
+        else if (typeof def === "string") {
+            var cfg = {scope: self.scope};
+            cfg[idkey] = item.id;
+            item.resolved = false;
+            item.component = MetaphorJs.app
+                            .resolve(def, cfg)
+                            .done(self._onChildResolved, self);
+        }
+        else if (isThenable(def)) {
+            item.resolved = false;
+            item.component = def;
+            def.done(function(cmp){
+                cmp[idkey] = item.id;
+                self._onChildResolved(cmp);
+            });
+        }
+        else {
+            throw new Error("Failed to initialize item");
+        }
+
+        return item;
+    },
+
+    _initChildEvents: function(mode, cmp) {
+        var self = this;
+        cmp[mode]("remove-from-container", self._onChildRemove, self);
+    },
+
+    _onChildRemove: function(cmp) {
+        var self = this,
+            idkey = self._getIdKey(),
+            itemid = cmp[idkey],
+            item, inx;
+
+        if (itemid && (item = self.itemsMap[itemid])) {
+            delete cmp[idkey];
+            delete self.itemsMap[itemid];
+            inx = self.items.indexOf(item);
+            if (cmp instanceof app_Component) {
+                self._initChildEvents("un", cmp);
+            }
+            if (inx !== -1) {
+                self.items.splice(inx, 1);
+            }
+            self._detachChildItem(item);
+        }
+    },
+
+    _onChildResolved: function(cmp) {
+        var self = this,
+            idkey = self._getIdKey(),
+            itemid = cmp[idkey],
+            item;
+
+        if (itemid && (item = self.itemsMap[itemid])) {
+            item.resolved = true;
+            item.component = cmp;
+
+            self._initChildEvents("on", cmp);
+
+            if (self._rendered) {
+                self._attachChildItem(item);
+            }
+        }
+    },
+
+    render: function() {
+
+        var self = this,
+            items = self.items || [],
+            i, l;
+
+        for (i = -1, l = items.length; ++i < l;){
+            if (items[i].type === "component" && items[i].resolved) {
+                items[i].component.render();
+            }
+        }
+
+        self.$super.apply(self, arguments);
+    },
+
+    _onRenderingFinished: function() {
+        var self = this, i, l, items = self.items;
+        self.$super();
+
+        // empty container without template or content
+        if (!self.node.firstChild) {
+            self.$refs.node.body = self.node;
+        }
+
+        // insert all placeholders, but
+        // attach only resolved items
+        for (i = -1, l = items.length; ++i < l;){
+            self._preparePlaceholder(items[i]);
+            if (items[i].resolved) {
+                self._attachChildItem(items[i]);
+            }
+        }
+    },
+
+    _preparePlaceholder: function(item) {
+        var self = this,
+            refnode = self.getRefEl(item.renderRef);
+        if (!refnode) {
+            throw new Error("Can't find referenced node: " + item.renderRef);
+        }
+        // comment
+        if (refnode.nodeType === 8) {
+            refnode.parentNode.insertBefore(item.placeholder, refnode);
+        }
+        else refnode.appendChild(item.placeholder);
+    },
+
+    // only resolved components get here; so do attach
+    _attachChildItem: function(item) {
+        var self = this,
+            refnode = self.getRefEl(item.renderRef);
+
+        if (item.type === "node") {
+            if (refnode.nodeType === 8)
+                refnode.parentNode.insertBefore(item.node, item.placeholder);
+            else refnode.insertBefore(item.node, item.placeholder);
+        }
+        else if (item.type === "component") {
+            if (refnode.nodeType === 8)
+                item.component.render(refnode.parentNode, item.placeholder);    
+            else item.component.render(refnode, item.placeholder);
+        }
+    },
+
+    _detachChildItem: function(item) {
+        if (item.type === "node") {
+            item.node.parentNode && item.node.parentNode.removeChild(item.node);
+        }
+        else if (item.type === "component") {
+            item.component.detach();
+            item.placeholder.parentNode && 
+                item.placeholder.parentNode.removeChild(item.placeholder);
+        }
+    },
+
+    hasItem: function(cmp) {
+        var self = this,
+        idkey = self._getIdKey();
+        return !!cmp[idkey];
+    },
+
+    addItem: function(cmp, to) {
+        var self = this,
+            item;
+
+        if (self.hasItem(cmp)) {
+            return;
+        }
+
+        if (cmp instanceof app_Component) {
+            cmp.trigger("remove-from-container", cmp);
+        }
+
+        item = self._processItemDef(cmp);
+        item.renderRef = to || "body";
+        self.items.push(item);
+        self.itemsMap[item.id] = item;
+
+        if (self._rendered) {
+            self._preparePlaceholder(item);
+            if (item.resolved) {
+                self._attachChildItem(item);
+            }
+        }
+    },
+
+    removeItem: function(cmp) {
+        var self = this;
+
+        if (!self.hasItem(cmp)) {
+            return;
+        }
+
+        if (cmp instanceof app_Component) {
+            cmp.trigger("remove-from-container", cmp);
+        }
+        else {
+            self._onChildRemove(cmp);
+        }
+    },
+
+    onDestroy: function() {
+
+        var self = this,
+            i, l, item;
+
+        for (i = 0, l = self.items.length; i < l; i++) {
+            item = self.items[i];
+            if (item.renderer) {
+                item.renderer.$destroy();
+            }
+            if (item.type === "component") {
+                item.component.$destroy && item.component.$destroy();
+            }
+        }
+        self.items = null;
+
+        self.$super();
+    }
+});
 
 
 
@@ -14309,177 +14939,6 @@ var app_StoreRenderer = MetaphorJs.app.StoreRenderer = app_ListRenderer.$extend(
 }
 );
 
-
-
-
-
-
-MetaphorJs.app = MetaphorJs.app || {};
-
-
-
-
-
-
-
-
-
-
-
-
-var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, node, args) {
-
-    cfg         = cfg || {};
-    args        = args || [];
-
-    scope       = scope || cfg.scope; // || new Scope;
-    node        = node || cfg.node;
-    var config  = cfg.config || null;
-
-    cfg.config  = config;
-    cfg.scope   = cfg.scope || scope;
-    cfg.node    = cfg.node || node;
-
-    if (args.length === 0) {
-        args.push(cfg);
-    }
-
-    if (config) {
-
-        if (isPlainObject(config)) {
-            config = new lib_Config(config, {
-                scope: scope
-            });
-        }
-
-        config.setType("cloak", "bool", lib_Config.MODE_STATIC);
-        config.setType("animate", "bool", lib_Config.MODE_STATIC);
-    }
-
-    var constr      = isString(cmp) ? ns.get(cmp) : cmp;
-    if (!constr) {
-        throw new Error("Component " + cmp + " not found");
-    }
-
-    if (scope && constr.$isolateScope) {
-        cfg.scope   = scope = scope.$newIsolated();
-    }
-
-    var i,
-        defers      = [],
-        tpl         = constr.template || cfg.template || null,
-        app         = scope ? scope.$app : null,
-        gProvider   = lib_Provider.global(),
-        injectFn    = app ? app.inject : gProvider.inject,
-        injectCt    = app ? app : gProvider,
-        cloak       = config ? config.get("cloak") : null,
-        inject      = {
-            $node: node || null,
-            $scope: scope || null,
-            $config: config || null,
-            $args: args || null
-        };
-
-    if (constr.resolve) {
-
-        for (i in constr.resolve) {
-            (function(name){
-                var d = new lib_Promise,
-                    fn;
-
-                defers.push(d.done(function(value){
-                    inject[name] = value;
-                    cfg[name] = value;
-                    args.push(value);
-                }));
-
-                fn = constr.resolve[i];
-
-                if (isFunction(fn)) {
-                    d.resolve(fn(scope, node, config));
-                }
-                else {
-                    d.resolve(
-                        injectFn.call(
-                            injectCt, fn, null, extend({}, inject, cfg, false, false)
-                        )
-                    );
-                }
-
-                d.fail(function(reason){
-                    if (reason instanceof Error) {
-                        error(reason);
-                    }
-                });
-
-            }(i));
-        }
-    }
-
-    if (tpl) {
-
-        var tplConfig = new lib_Config(null, {
-            scope: scope
-        });
-        if (config) {
-            tplConfig.setProperty("animate", config.copyProperty("animate"));
-        }
-        app_Template.prepareConfig(tpl, tplConfig);
-
-        cfg.template = new app_Template({
-            scope: scope,
-            node: node,
-            deferRendering: true,
-            ownRenderer: true,
-            config: tplConfig
-        });
-
-        defers.push(cfg.template.childrenPromise);
-
-        /*if (node && node.firstChild) {
-            dom_data(
-                node, "mjs-transclude", 
-                dom_toFragment(node.childNodes));
-        }*/
-    }
-
-    var p;
-
-    if (defers.length) {
-        p = new lib_Promise;
-        lib_Promise.all(defers)
-            .done(function(values){
-                p.resolve(
-                    injectFn.call(
-                        injectCt, constr, null, extend({}, inject, cfg, false, false), args
-                    )
-                );
-            })
-            .fail(p.reject, p);
-    }
-    else {
-        p = lib_Promise.resolve(
-            injectFn.call(
-                injectCt, constr, null, extend({}, inject, cfg, false, false), args
-            )
-        );
-    }
-
-    if (node && p.isPending() && cloak !== null) {
-        cloak !== true ? dom_addClass(node, cloak) : node.style.visibility = "hidden";
-        p.then(function() {
-            cloak !== true ? dom_removeClass(node, cloak) : node.style.visibility = "";
-        });
-    }
-
-    if (node) {
-        p.then(function(){
-            dom_removeClass(node, "mjs-cloak");
-        });
-    }
-
-    return p;
-};
 
 
 
@@ -15672,9 +16131,7 @@ var app_view_Router = MetaphorJs.app.view.Router = app_view_Base.$extend({
                     autoRender: true,
                     node: node,
                     destroyScope: true,
-                    scope: route.$isolateScope ?
-                           self.scope.$newIsolated() :
-                           self.scope.$new()
+                    scope: self.scope.$new()
                 };
 
             if (route.config) {
@@ -16897,6 +17354,12 @@ DO NOT put class="{}" when using class.name="{}"
                 prev    = self.prev,
                 i;
 
+            node = node.getDomApi ? node.getDomApi("class") : node;
+
+            if (!node) {
+                return;
+            }
+
             animate_stop(node);
 
             if (prev) {
@@ -16935,9 +17398,9 @@ DO NOT put class="{}" when using class.name="{}"
 
         config.setDefaultMode("value", lib_Config.MODE_STATIC);
         config.setType("sameScope", "bool", lib_Config.MODE_STATIC);
-        config.setType("isolateScope", "bool", lib_Config.MODE_STATIC);
         config.setDefaultMode("as", lib_Config.MODE_STATIC);
         config.setDefaultMode("ref", lib_Config.MODE_STATIC);
+        config.setMode("into", lib_Config.MODE_STATIC);
 
         var cmpName = config.get("value"),
             constr  = typeof cmpName === "string" ?
@@ -16948,11 +17411,8 @@ DO NOT put class="{}" when using class.name="{}"
             throw new Error("Component " + cmpName + " not found");
         }
 
-        var sameScope       = config.get("sameScope") || constr.$sameScope,
-            isolateScope    = config.get("isolateScope") || constr.$isolateScope;
-
-        var newScope = isolateScope ? scope.$newIsolated() : 
-                                        (sameScope ? scope : scope.$new());
+        var sameScope   = config.get("sameScope") || constr.$sameScope;
+        var newScope    = sameScope ? scope : scope.$new();
 
         config.removeProperty("value");
 
@@ -16975,12 +17435,19 @@ DO NOT put class="{}" when using class.name="{}"
             cfg.directives = ds;
         }
 
-        app_resolve(cmpName, cfg, newScope, node, [cfg])
+        var res = app_resolve(cmpName, cfg, newScope, node, [cfg])
             .done(function(cmp) {
                 parentRenderer.trigger(
-                    "reference", "cmp", config.get("ref") || cmp.id, cmp
+                    "reference", "cmp", 
+                    config.get("ref") || cmp.id, cmp, 
+                    cfg, attrSet
                 );
             });
+        parentRenderer.trigger(
+            "reference-promise", 
+            res, cmpName, 
+            cfg, attrSet
+        );
 
         return constr.$resumeRenderer || !!constr.$shadow;
     };
@@ -17945,6 +18412,13 @@ var lib_EventHandler = MetaphorJs.lib.EventHandler;
 
             Directive.registerAttribute(name, 1000,
                 function(scope, node, config, renderer, attrSet) {
+
+                if (node.getDomApi) {
+                    node = node.getDomApi(name);
+                    if (!node) {
+                        return null;
+                    }
+                }
 
                 var eh = new lib_EventHandler(
                     name, scope, node, prepareConfig(config)
@@ -19224,6 +19698,12 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
             props   = self.getCurrentValue(),
             prev    = self.prev,
             k, trg;
+
+        node = node.getDomApi ? node.getDomApi("style") : node;
+
+        if (!node) {
+            return;
+        }
 
         for (k in prev) {
             if (!props || props[k] === undf) {
@@ -27626,12 +28106,16 @@ Directive.registerAttribute("validate", 250,
 
     config.setProperty("value", {
         mode: lib_Config.MODE_STATIC,
+        type: "string",
         defaultValue: "MetaphorJs.validator.Component"
     });
     config.setMode("submit", lib_Config.MODE_FUNC);
 
+    
+
     var cls     = config.get("value"),
         constr  = ns.get(cls);
+
 
     if (!constr) {
         error(new Error("Class '"+cls+"' not found"));
@@ -28936,289 +29420,6 @@ Directive.registerTag("tag", function directive_tag_tag(scope, node) {
         return [el];
     }
 
-});
-
-
-
-
-
-
-
-
-
-MetaphorJs.app.Container = app_Component.$extend({
-
-    initComponent: function() {
-        var self = this;
-
-        self.$super.apply(self, arguments);
-        self._initItems();
-    },
-
-    _initTemplate: function() {
-        var self = this,
-            tag = self.node.tagName.toLowerCase(),
-            dir = MetaphorJs.directive.component[tag];
-        
-        if (dir && self instanceof dir) {
-            if (self.node.firstChild) {
-                self._prepareDeclaredItems(
-                    dom_toFragment(self.node.childNodes)
-                );
-            }
-        }
-
-        self.$super();
-    },
-
-    _prepareDeclaredItems: function(frag) {
-        console.log("prepare", frag)
-    },
-
-    _initItems: function() {
-
-        var self = this,
-            items = self.items || [],
-            defs,
-            list = [],
-            item,
-            i, l;
-
-        self.itemsMap = {};
-        
-        if (isArray(items)) {
-            items = {
-                body: items
-            }
-        }
-
-        for (var ref in items) {
-            defs = items[ref];
-            if (!isArray(defs)) {
-                defs = [defs];
-            }
-            for (i = -1, l = defs.length; ++i < l;) {
-                item = self._processItemDef(defs[i]);
-                item.renderRef = ref;
-                list.push(item);
-                self.itemsMap[item.id] = item;
-            }
-        }
-
-        self.items = list;
-    },
-
-    _getIdKey: function() {
-        return "$$container_" + this.id;
-    },
-
-    _processItemDef: function(def) {
-
-        var self = this,
-            idkey = self._getIdKey(),
-            item = {
-                type: "component",
-                placeholder: window.document.createComment("***"),
-                id: nextUid(),
-                resolved: true
-            };
-
-        if (def instanceof app_Component) {
-            item.component = def;
-            def[idkey] = item.id;
-            self._initChildEvents("on", def);   
-        }
-        else if (def instanceof window.Node) {
-            item.type = "node";
-            item.node = def;
-            def[idkey] = item.id;
-        }
-        else if (def instanceof app_Template) {
-            item.component = new app_Component({
-                scope: self.scope,
-                template: def
-            });
-            item.component[idkey] = item.id;
-            self._initChildEvents("on", item.component);
-        }
-        else if (typeof def === "string") {
-            var cfg = {scope: self.scope};
-            cfg[idkey] = item.id;
-            item.resolved = false;
-            item.component = MetaphorJs.app
-                            .resolve(def, cfg)
-                            .done(self._onChildResolved, self);
-        }
-        else if (isThenable(def)) {
-            item.resolved = false;
-            item.component = def;
-            def.done(function(cmp){
-                cmp[idkey] = item.id;
-                self._onChildResolved(cmp);
-            });
-        }
-        else {
-            throw new Error("Failed to initialize item");
-        }
-
-        return item;
-    },
-
-    _initChildEvents: function(mode, cmp) {
-        var self = this;
-        cmp[mode]("remove-from-container", self._onChildRemove, self);
-    },
-
-    _onChildRemove: function(cmp) {
-        var self = this,
-            idkey = self._getIdKey(),
-            itemid = cmp[idkey],
-            item, inx;
-
-        if (itemid && (item = self.itemsMap[itemid])) {
-            delete cmp[idkey];
-            delete self.itemsMap[itemid];
-            inx = self.items.indexOf(item);
-            if (cmp instanceof app_Component) {
-                self._initChildEvents("un", cmp);
-            }
-            if (inx !== -1) {
-                self.items.splice(inx, 1);
-            }
-            self._detachChildItem(item);
-        }
-    },
-
-    _onChildResolved: function(cmp) {
-        var self = this,
-            idkey = self._getIdKey(),
-            itemid = cmp[idkey],
-            item;
-
-        if (itemid && (item = self.itemsMap[itemid])) {
-            item.resolved = true;
-            item.component = cmp;
-
-            self._initChildEvents("on", cmp);
-
-            if (self._rendered) {
-                self._attachChildItem(item);
-            }
-        }
-    },
-
-    render: function() {
-
-        var self = this,
-            items = self.items || [],
-            i, l;
-
-        for (i = -1, l = items.length; ++i < l;){
-            if (items[i].type === "component" && items[i].resolved) {
-                items[i].component.render();
-            }
-        }
-
-        self.$super.apply(self, arguments);
-    },
-
-    _onRenderingFinished: function() {
-        var self = this, i, l, items = self.items;
-        self.$super();
-
-        // empty container without template or content
-        if (!self.node.firstChild) {
-            self.$refs.node.body = self.node;
-        }
-
-        // insert all placeholders, but
-        // attach only resolved items
-        for (i = -1, l = items.length; ++i < l;){
-            self._preparePlaceholder(items[i]);
-            if (items[i].resolved) {
-                self._attachChildItem(items[i]);
-            }
-        }
-    },
-
-    _preparePlaceholder: function(item) {
-        var self = this,
-            refnode = self.getRefEl(item.renderRef);
-        if (!refnode) {
-            throw new Error("Can't find referenced node: " + item.renderRef);
-        }
-        refnode.appendChild(item.placeholder);
-    },
-
-    // only resolved components get here; so do attach
-    _attachChildItem: function(item) {
-        var self = this,
-            refnode = self.getRefEl(item.renderRef);
-
-        if (item.type === "node") {
-            refnode.insertBefore(item.node, item.placeholder);
-        }
-        else if (item.type === "component") {
-            item.component.render(refnode, item.placeholder);
-        }
-    },
-
-    _detachChildItem: function(item) {
-        if (item.type === "node") {
-            item.node.parentNode && item.node.parentNode.removeChild(item.node);
-        }
-        else if (item.type === "component") {
-            item.component.detach();
-            item.placeholder.parentNode && 
-                item.placeholder.parentNode.removeChild(item.placeholder);
-        }
-    },
-
-    hasItem: function(cmp) {
-        var self = this,
-        idkey = self._getIdKey();
-        return !!cmp[idkey];
-    },
-
-    addItem: function(cmp, to) {
-        var self = this,
-            item;
-
-        if (self.hasItem(cmp)) {
-            return;
-        }
-
-        if (cmp instanceof app_Component) {
-            cmp.trigger("remove-from-container", cmp);
-        }
-
-        item = self._processItemDef(cmp);
-        item.renderRef = to || "body";
-        self.items.push(item);
-        self.itemsMap[item.id] = item;
-
-        if (self._rendered) {
-            self._preparePlaceholder(item);
-            if (item.resolved) {
-                self._attachChildItem(item);
-            }
-        }
-    },
-
-    removeItem: function(cmp) {
-        var self = this;
-
-        if (!self.hasItem(cmp)) {
-            return;
-        }
-
-        if (cmp instanceof app_Component) {
-            cmp.trigger("remove-from-container", cmp);
-        }
-        else {
-            self._onChildRemove(cmp);
-        }
-    }
 });
 
 

@@ -244,6 +244,9 @@ module.exports = MetaphorJs.app.Template = function() {
             }
         }
         else {
+            if (self.replace) {
+                throw new Error("Template's name or html properties must be defined");
+            }
             // run renderer on given node without any templates
             if (!self.deferRendering && self.ownRenderer) {
                 self._runRenderer();
