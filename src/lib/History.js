@@ -416,7 +416,41 @@ module.exports = MetaphorJs.lib.History = function() {
      * Browser pushState wrapper and polyfill. 
      * @object MetaphorJs.lib.History
      */
-    return extend(api, observable.getApi(), {
+    return extend(api, {
+
+        /**
+         * @property {function} on {
+         * @param {string} event
+         * @param {function} listener 
+         * @param {object} callback context
+         * @param {object} options
+         * }
+         */
+        on: function() {
+            return observable.on.apply(observable, arguments);
+        },
+
+        /**
+         * @property {function} un {
+         * @param {string} event
+         * @param {function} listener 
+         * @param {object} callback context
+         * }
+         */
+        un: function() {
+            return observable.un.apply(observable, arguments);
+        },
+
+        /**
+         * @property {function} once {
+         * @param {string} event
+         * @param {function} listener 
+         * @param {object} callback context
+         * }
+         */
+        once: function() {
+            return observable.once.apply(observable, arguments);
+        },
 
         /**
          * @property {function} push {
