@@ -4,8 +4,11 @@ require("../../func/dom/isField.js");
 require("../../lib/MutationObserver.js");
 require("../../lib/Input.js");
 require("../../lib/Config.js");
+require("../../func/dom/addListener.js");
+require("../../func/dom/removeListener.js");
 
 var async = require("metaphorjs-shared/src/func/async.js"),
+    bind = require("metaphorjs-shared/src/func/bind.js"),
     isIE = require("../../func/browser/isIE.js"),
     undf = require("metaphorjs-shared/src/var/undf.js"),
     isString = require("metaphorjs-shared/src/func/isString.js"),
@@ -43,18 +46,18 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         });
         config.setProperty("binding", {
             defaultValue: "both",
-            mode: MetaphorJs.lib.Config.MODE_STATIC
+            defaultMode: MetaphorJs.lib.Config.MODE_STATIC
         });
 
         if (config.hasExpression("change")) {
             self.changeFn   = MetaphorJs.lib.Expression.func(config.get("change"));
         }
 
-        self.node           = node;
         self.input          = MetaphorJs.dom.isField(node) ?
                                  MetaphorJs.lib.Input.get(node, scope) :
                                  node.getInputApi("model");
-        self.binding        = config.get("binding");
+        self.node           = node.getDomApi ? node.getDomApi("model") : node;
+        //self.binding        = config.get("binding");
         self.mo             = MetaphorJs.lib.MutationObserver.get(
                                 scope, expr, null, null, {
                                     setter: true
@@ -64,19 +67,24 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         self.mo.subscribe(self.onChange, self);
         self.input.onChange(self.onInputChange, self);
 
+        self.optionsChangeDelegate = bind(self.onOptionsChange, self);
+        MetaphorJs.dom.addListener(self.node, "optionschange", 
+                                    self.optionsChangeDelegate);
+
         self.$super(scope, node, config, renderer, attrSet);
 
         var inputValue      = self.input.getValue(),
-            scopeValue      = self.mo.getValue(); 
-
+            scopeValue      = self.mo.getValue(),
+            binding         = self.config.get("binding");
+        
         self.initial = true;
 
         if (scopeValue !== inputValue) {
             // scope value takes priority
-            if (self.binding !== "input" && scopeValue !== undf) {
+            if (binding !== "input" && scopeValue !== undf) {
                 self.onChange(scopeValue);
             }
-            else if (self.binding !== "scope" && inputValue !== undf) {
+            else if (binding !== "scope" && inputValue !== undf) {
                 self.onInputChange(inputValue);
             }
         }
@@ -86,12 +94,16 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
     initialSet: emptyFn,
 
+    onOptionsChange: function() {
+        this.onChange();
+    },
+
     onInputChange: function(val) {
 
         var self    = this,
             scope   = self.scope;
 
-        if (self.binding !== "scope") {
+        if (self.config.get("binding") !== "scope") {
 
             if (val && isString(val) && val.indexOf('\\{') !== -1) {
                 val = val.replace(/\\{/g, '{');
@@ -127,6 +139,10 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     onDestroy: function() {
         var self        = this;
 
+        MetaphorJs.dom.removeListener(
+            self.node, "optionschange", 
+            self.optionsChangeDelegate);
+
         self.input.unChange(self.onInputChange, self);
         self.input.$destroy();
         self.input = null;
@@ -144,7 +160,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
         var self    = this,
             val     = self.mo.getValue(), //self.getterFn(self.scope),
-            binding = self.binding,
+            binding = self.binding || self.config.get("binding"),
             ie;
 
         if (binding !== "input" && !self.inProg) {
@@ -167,7 +183,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
                 self.input.setValue(val);
             }
 
-            self.binding = binding;
+            self.binding = null;
         }
 
         if (self.changeFn && !self.initial) {

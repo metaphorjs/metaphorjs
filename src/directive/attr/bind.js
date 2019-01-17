@@ -3,8 +3,11 @@ require("../../lib/Text.js");
 require("../../func/dom/isField.js");
 require("../../lib/Input.js");
 require("../../lib/Config.js");
+require("../../func/dom/addListener.js");
+require("../../func/dom/removeListener.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+    bind = require("metaphorjs-shared/src/func/bind.js"),
     Directive = require("../../app/Directive.js");
 
 Directive.registerAttribute("bind", 1000, 
@@ -27,7 +30,11 @@ Directive.registerAttribute("bind", 1000,
             self.node       = node;
             self.config     = config;
 
-            self._initNode(node);            
+            self._initNode(node);
+            
+            self.optionsChangeDelegate = bind(self.onOptionsChange, self);
+            MetaphorJs.dom.addListener(self.node, "optionschange", 
+                                    self.optionsChangeDelegate);
 
             if (config.get("recursive")) {
                 config.disableProperty("value");
@@ -71,7 +78,8 @@ Directive.registerAttribute("bind", 1000,
 
         onInputChange: function(val) {
             var self = this,
-                cfgVal = self.config.get("value");
+                cfgVal = self.config.get("value") || null;
+            val = val || null;
             if (self.config.get("locked") && val != cfgVal) {
                 self.onChange(cfgVal);
             }
@@ -79,6 +87,10 @@ Directive.registerAttribute("bind", 1000,
 
         onTextRendererChange: function() {
             this.onChange(this.textRenderer.getString());
+        },
+
+        onOptionsChange: function() {
+            this.onChange();
         },
 
         onChange: function(text) {
@@ -100,6 +112,10 @@ Directive.registerAttribute("bind", 1000,
         onDestroy: function() {
 
             var self    = this;
+
+            MetaphorJs.dom.removeListener(
+                self.node, "optionschange", 
+                self.optionsChangeDelegate);
 
             if (self.textRenderer) {
                 self.textRenderer.$destroy();

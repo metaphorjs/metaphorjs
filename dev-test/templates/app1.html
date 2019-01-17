@@ -370,7 +370,8 @@
   
             <div class="case double" 
                  {cmp}="Test.MyComponent"
-                 {cmp.$as}="ctrl">
+                 {cmp.$as}="ctrl" 
+                 {init}="this.selectBinding = 'scope'">
                 <p ##para>Component's transcluded text + {{ this.$root.a}}</p>
                 <a href="#" (click)="this.ctrl.reverse()">reverse</a> |
                 <a href="#" (click)="this.ctrl.createNew()">create new component on existing element</a> |
@@ -379,6 +380,23 @@
                 <br><br>
                 <button (click)="this.store.load()">Load store</button>
                 <button (click)="this.store.clear()">Clear store</button>
+                <br><br>
+                this.selectBinding: 
+                <select {model}="this.selectBinding">
+                    <option value="input">Input</option>
+                    <option value="scope">Scope</option>
+                    <option value="both">Both</option>
+                </select>
+                <br><br>
+                this.a: <select
+                    {options}="{
+                        name: this.item.data.name, 
+                        value: this.item.data.id
+                    } in this.store"
+                    {model}="this.$parent.a" 
+                    {model.$binding}*="this.selectBinding">
+                        <option>Nothing selected</option>
+                    </select>
                 <ul>
                     <li {each}="item in this.store" {each.$animate}>
                         {{ this.item.name }}

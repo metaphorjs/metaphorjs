@@ -18,7 +18,16 @@ module.exports = MetaphorJs.dom.triggerEvent = function dom_triggerEvent(el, eve
         return el.fireEvent("on" + type);
     }
     else {
-        event = isStr ? new Event(event) : event;
+        if (isStr) {
+            if (document.createEvent) {
+                event = document.createEvent("Event");
+                event.initEvent(type, true, true);
+            }
+            else {
+                event = new Event(event);
+            }
+        }
+        
         return el.dispatchEvent(event);
     }
 };

@@ -4,6 +4,7 @@ require("../../func/dom/getInputValue.js");
 require("../../func/dom/setInputValue.js");
 require("../../func/dom/setAttr.js");
 require("../../func/browser/isIE.js");
+require("../../func/dom/triggerEvent.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
@@ -25,6 +26,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
     prevGroup: null,
     groupEl: null,
     fragment: null,
+    initial: false,
 
     $init: function(scope, node, config) {
 
@@ -76,15 +78,26 @@ Directive.registerAttribute("options", 100, Directive.$extend({
 
     renderStore: function() {
         var self = this;
-        self.render(self.store.current);
+        self.render(self.store.toArray());
+        self.dispatchOptionsChange();
     },
 
     renderAll: function() {
         this.render(toArray(this.watcher.getValue()));
+        this.dispatchOptionsChange();
     },
 
     onChange: function() {
-        this.renderAll();
+        var self = this;
+        self.renderAll();
+    },
+
+    dispatchOptionsChange: function() {
+        var self = this;
+        if (!self.initial && self.node.dispatchEvent) {
+            MetaphorJs.dom.triggerEvent(self.node, "optionschange");
+        }
+        self.initial = false;
     },
 
     renderOption: function(item, index, scope) {
