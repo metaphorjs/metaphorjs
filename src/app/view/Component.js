@@ -17,12 +17,15 @@ module.exports = MetaphorJs.app.view.Component = MetaphorJs.app.view.Base.$exten
     },
 
     onCmpChange: function() {
-
         var self    = this,
             cmp     = self.config.get("value") || 
                         self.config.get("defaultCmp");
 
-        cmp && self.setComponent(cmp);
+        if (!cmp) {
+            self.currentComponent && self.clearComponent();
+        }
+        else {
+            self.setComponent(cmp);
+        }
     }
-
 });
