@@ -78,6 +78,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                         items[renderRef] = [];
                     }
                     items[renderRef].push({
+                        __containerItemDef: true,
                         type: "component",
                         renderRef: renderRef,
                         renderer: renderer,
@@ -91,6 +92,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                         items[renderRef] = [];
                     }
                     items[renderRef].push({
+                        __containerItemDef: true,
                         type: "node",
                         renderRef: renderRef,
                         node: node
@@ -152,11 +154,24 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         var self = this,
             idkey = self._getIdKey(),
             item = {
+                __containerItemDef: true,
                 type: "component",
                 placeholder: window.document.createComment("***"),
                 id: nextUid(),
                 resolved: true
             };
+
+        // component[idkey] = item.id
+        // every child component contains `idkey` field
+        // holding its id in parent container;
+        // and by idkey itself we can identify container
+
+        if (isPlainObject(def)) {
+            def = self._initObjectItem(def);
+        }
+        else if (typeof def === "string") {
+            def = self._initStringItem(def);
+        }
 
         if (isPlainObject(def)) {
             item = extend({}, def, item, false, false);
@@ -215,6 +230,19 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         }
 
         return item;
+    },
+
+    _initObjectItem: function(def) {
+        return def;
+    },
+
+    _initStringItem: function(def) {
+        if (def.substring(0,1) === '<') {
+            var div = document.createElement("div");
+            div.innerHTML = def;
+            return div.firstChild;
+        }
+        return def;
     },
 
     _initChildEvents: function(mode, cmp) {
