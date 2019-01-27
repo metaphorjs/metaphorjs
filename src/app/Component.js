@@ -195,8 +195,10 @@ module.exports = MetaphorJs.app.Component = cls({
         var self = this,
             tpl = self.template;
 
-        self._nodeReplaced = htmlTags.indexOf(self.node.tagName.toLowerCase()) === -1;
-        
+        if (self.node) {
+            self._nodeReplaced = htmlTags.indexOf(self.node.tagName.toLowerCase()) === -1;
+        }
+
         if (tpl instanceof MetaphorJs.app.Template) {
             // it may have just been created
             self.template.node = self.node;
@@ -317,6 +319,11 @@ module.exports = MetaphorJs.app.Component = cls({
         if (self._nodeReplaced) {
             self._claimNode(node);
         }
+        else if (!self.node) {
+            self.node = node;
+            self.template.node = node;
+            self._claimNode(node);
+        }
     },
 
     _onChildReference: function(type, ref, item) {
@@ -349,7 +356,7 @@ module.exports = MetaphorJs.app.Component = cls({
     _replaceNodeWithTemplate: function() {
         var self = this;
 
-        if (self._nodeReplaced && self.node.parentNode) {
+        if (self._nodeReplaced && self.node && self.node.parentNode) {
             MetaphorJs.dom.removeAttr(self.node, "id");
         }
 
@@ -368,6 +375,8 @@ module.exports = MetaphorJs.app.Component = cls({
                 }
             }
         }
+
+        self.template.node = self.node;
 
         self._claimNode();
     },
@@ -396,6 +405,7 @@ module.exports = MetaphorJs.app.Component = cls({
         self.trigger('render', self);
 
         if (self.template) {
+            
             self.template.startRendering();
         }
     },
@@ -420,6 +430,7 @@ module.exports = MetaphorJs.app.Component = cls({
         self.renderTo = parent;
         self.renderBefore = before;
 
+        
         if (self.template.moveTo(parent, before)) {
             self.afterAttached();
             self.trigger('attached', self);
@@ -455,16 +466,19 @@ module.exports = MetaphorJs.app.Component = cls({
         self.afterRender();
         self.trigger('after-render', self);
 
-        if (self.directives) {
-            self._initDirectives();
-        }
+        if (self.node) {
 
-        if (MetaphorJs.dom.isAttached(self.node)) {
-            self.afterAttached();
-            self.trigger('after-attached', self);
-        }
-        else if (self.renderTo && self.node.parentNode !== self.renderTo) {
-            self.attach(self.renderTo, self.renderBefore);
+            if (self.directives) {
+                self._initDirectives();
+            }
+
+            if (MetaphorJs.dom.isAttached(self.node)) {
+                self.afterAttached();
+                self.trigger('after-attached', self);
+            }
+            else if (self.renderTo && self.node.parentNode !== self.renderTo) {
+                self.attach(self.renderTo, self.renderBefore);
+            }
         }
     },
 
@@ -583,18 +597,19 @@ module.exports = MetaphorJs.app.Component = cls({
             self.template.$destroy();
         }
 
-        if (self.destroyEl) {
-            if (self.node && MetaphorJs.dom.isAttached(self.node)) {
-                self.node.parentNode.removeChild(self.node);
+        if (self.node) {
+            if (self.destroyEl) {
+                if (MetaphorJs.dom.isAttached(self.node)) {
+                    self.node.parentNode.removeChild(self.node);
+                }
             }
-        }
-        else if (self.node) {
+            else {
+                if (!self._originalId) {
+                    MetaphorJs.dom.removeAttr(self.node, "id");
+                }
 
-            if (!self._originalId) {
-                MetaphorJs.dom.removeAttr(self.node, "id");
+                self._releaseNode();
             }
-
-            self._releaseNode();
         }
 
         self.config.$destroy();

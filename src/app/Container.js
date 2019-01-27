@@ -21,7 +21,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
         self.$super.apply(self, arguments);
 
-        if (self.template && self.node.firstChild) {
+        if (self.node && self.template && self.node.firstChild) {
             self._prepareDeclaredItems(toArray(self.node.childNodes));
         }
 
@@ -82,7 +82,8 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                         type: "component",
                         renderRef: renderRef,
                         renderer: renderer,
-                        component: foundCmp || foundPromise
+                        component: foundCmp || foundPromise,
+                        resolved: !!foundCmp
                     })
                 }   
                 else {
@@ -138,7 +139,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                 item = self._processItemDef(defs[i]);
                 item.renderRef = ref;
                 list.push(item);
-                self.itemsMap[item.id] = item;
+                //self.itemsMap[item.id] = item;
             }
         }
 
@@ -161,6 +162,8 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                 resolved: true
             };
 
+        self.itemsMap[item.id] = item;
+
         // component[idkey] = item.id
         // every child component contains `idkey` field
         // holding its id in parent container;
@@ -175,8 +178,10 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
         if (isPlainObject(def)) {
             item = extend({}, def, item, false, false);
+            self.itemsMap[item.id] = item;
             if (item.type === "component") {
                 if (isThenable(item.component)) {
+                    item.resolved = false;
                     item.component.done(function(cmp){
                         cmp[idkey] = item.id;
                         self._onChildResolved(cmp);
@@ -213,9 +218,12 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             var cfg = {scope: self.scope};
             cfg[idkey] = item.id;
             item.resolved = false;
-            item.component = MetaphorJs.app
-                            .resolve(def, cfg)
-                            .done(self._onChildResolved, self);
+            var promise = MetaphorJs.app
+                .resolve(def, cfg)
+                .done(self._onChildResolved, self);
+            if (!item.component){
+                item.component = promise;
+            }
         }
         else if (isThenable(def)) {
             item.resolved = false;

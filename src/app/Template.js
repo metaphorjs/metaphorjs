@@ -285,7 +285,7 @@ module.exports = MetaphorJs.app.Template = function() {
             var self = this;
             if (!self._renderer) {
                 self._renderer   = new MetaphorJs.app.Renderer(
-                        self.node, self.scope
+                    self.node, self.scope
                 );
                 observable.relayEvent(self._renderer, "reference", "reference-" + self.id);
                 observable.relayEvent(self._renderer, "first-node", "first-node-" + self.id);
@@ -442,7 +442,7 @@ module.exports = MetaphorJs.app.Template = function() {
 
             if (self.replace) {
                 var next = self._nextEl, prev = self._prevEl;
-                while (prev.parentNode && prev.nextSibling && 
+                while (prev && prev.parentNode && prev.nextSibling && 
                         prev.nextSibling !== next) {
                     prev.parentNode.removeChild(prev.nextSibling);
                 }
@@ -516,7 +516,7 @@ module.exports = MetaphorJs.app.Template = function() {
 
             self._initial = false;
 
-            if (!initial && self.config.get("animate")) {
+            if (!initial && el && self.config.get("animate")) {
                 MetaphorJs.animate.animate(el, "leave")
                     .done(self._doApplyTemplate, self)
                     .done(deferred.resolve, deferred);
