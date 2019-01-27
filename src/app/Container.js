@@ -37,7 +37,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             foundCmp, foundPromise,
             scope = self.config.getOption("scope"),
             items = self.items || [],
-            
+
             refCallback = function(type, ref, cmp, cfg, attrSet){
                 if (cfg.node === node) {
                     foundCmp = cmp;
@@ -84,8 +84,8 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                         renderer: renderer,
                         component: foundCmp || foundPromise,
                         resolved: !!foundCmp
-                    })
-                }   
+                    });
+                }
                 else {
                     attrSet = MetaphorJs.dom.getAttrSet(node);
                     renderRef = attrSet.at || "body";
@@ -120,17 +120,17 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             defs,
             list = [],
             item,
-            i, l;
+            i, l, ref;
 
         self.itemsMap = {};
-        
+
         if (isArray(items)) {
             items = {
                 body: items
             }
         }
 
-        for (var ref in items) {
+        for (ref in items) {
             defs = items[ref];
             if (!isArray(defs)) {
                 defs = [defs];
@@ -139,6 +139,8 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                 item = self._processItemDef(defs[i]);
                 item.renderRef = ref;
                 list.push(item);
+
+                // moved to _processItemDef
                 //self.itemsMap[item.id] = item;
             }
         }
@@ -150,17 +152,21 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         return "$$container_" + this.id;
     },
 
+    _createDefaultItemDef: function() {
+        return {
+            __containerItemDef: true,
+            type: "component",
+            placeholder: window.document.createComment("***"),
+            id: nextUid(),
+            resolved: true
+        };
+    },
+
     _processItemDef: function(def) {
 
         var self = this,
             idkey = self._getIdKey(),
-            item = {
-                __containerItemDef: true,
-                type: "component",
-                placeholder: window.document.createComment("***"),
-                id: nextUid(),
-                resolved: true
-            };
+            item = self._createDefaultItemDef();
 
         self.itemsMap[item.id] = item;
 
@@ -178,65 +184,70 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
         if (isPlainObject(def)) {
             item = extend({}, def, item, false, false);
-            self.itemsMap[item.id] = item;
-            if (item.type === "component") {
-                if (isThenable(item.component)) {
-                    item.resolved = false;
-                    item.component.done(function(cmp){
-                        cmp[idkey] = item.id;
-                        self._onChildResolved(cmp);
-                    });
-                }
-                else {
-                    item.component[idkey] = item.id;
-                    self._initChildEvents("on", item.component);
-                }
-            }
-            else {
-                item.node[idkey] = item.id;
-            }
+            self.itemsMap[item.id] = item; // rewrite item map
+        }
+        else if (typeof def === "function") {
+            item.component = new def({
+                scope: self.scope.$new()
+            });
         }
         else if (def instanceof MetaphorJs.app.Component) {
             item.component = def;
-            def[idkey] = item.id;
-            self._initChildEvents("on", def);   
         }
         else if (def instanceof window.Node) {
             item.type = "node";
             item.node = def;
-            def[idkey] = item.id;
         }
         else if (def instanceof MetaphorJs.app.Template) {
             item.component = new MetaphorJs.app.Component({
                 scope: self.scope,
                 template: def
             });
-            item.component[idkey] = item.id;
-            self._initChildEvents("on", item.component);
         }
         else if (typeof def === "string") {
             var cfg = {scope: self.scope};
-            cfg[idkey] = item.id;
-            item.resolved = false;
-            var promise = MetaphorJs.app
-                .resolve(def, cfg)
-                .done(self._onChildResolved, self);
-            if (!item.component){
-                item.component = promise;
-            }
+            item.component = MetaphorJs.app.resolve(def, cfg);
         }
         else if (isThenable(def)) {
-            item.resolved = false;
             item.component = def;
-            def.done(function(cmp){
-                cmp[idkey] = item.id;
-                self._onChildResolved(cmp);
-            });
         }
         else {
             throw new Error("Failed to initialize item");
         }
 
+        var prevItem = item;
+
+        if (item.type === "node") {
+            item = self._wrapChildItem(item);
+            item.node[idkey] = item.id;
+        }
+        else if (item.type === "component") {
+            if (isThenable(item.component)) {
+                item.resolved = false;
+                item.component.done(function(cmp){
+                    item.component = cmp;
+                    item = self._wrapChildItem(item);
+                    item.component[idkey] = item.id;
+                    self._onChildResolved(item.component);
+                });
+            }
+            else {
+                item = self._wrapChildItem(item);
+                item.component[idkey] = item.id;
+                self._onChildResolved(item.component);
+            }
+        }
+
+        // item got wrapped
+        if (prevItem !== item) {
+            delete self.itemsMap[prevItem.id];
+            self.itemsMap[item.id] = item;
+        }
+
+        return item;
+    },
+
+    _wrapChildItem: function(item) {
         return item;
     },
 
