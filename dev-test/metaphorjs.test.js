@@ -12241,7 +12241,7 @@ var app_Template = MetaphorJs.app.Template = function() {
             var self = this;
             if (!self._renderer) {
                 self._renderer   = new app_Renderer(
-                        self.node, self.scope
+                    self.node, self.scope
                 );
                 observable.relayEvent(self._renderer, "reference", "reference-" + self.id);
                 observable.relayEvent(self._renderer, "first-node", "first-node-" + self.id);
@@ -12398,7 +12398,7 @@ var app_Template = MetaphorJs.app.Template = function() {
 
             if (self.replace) {
                 var next = self._nextEl, prev = self._prevEl;
-                while (prev.parentNode && prev.nextSibling && 
+                while (prev && prev.parentNode && prev.nextSibling && 
                         prev.nextSibling !== next) {
                     prev.parentNode.removeChild(prev.nextSibling);
                 }
@@ -12472,7 +12472,7 @@ var app_Template = MetaphorJs.app.Template = function() {
 
             self._initial = false;
 
-            if (!initial && self.config.get("animate")) {
+            if (!initial && el && self.config.get("animate")) {
                 animate_animate(el, "leave")
                     .done(self._doApplyTemplate, self)
                     .done(deferred.resolve, deferred);
@@ -12868,8 +12868,10 @@ var app_Component = MetaphorJs.app.Component = cls({
         var self = this,
             tpl = self.template;
 
-        self._nodeReplaced = htmlTags.indexOf(self.node.tagName.toLowerCase()) === -1;
-        
+        if (self.node) {
+            self._nodeReplaced = htmlTags.indexOf(self.node.tagName.toLowerCase()) === -1;
+        }
+
         if (tpl instanceof app_Template) {
             // it may have just been created
             self.template.node = self.node;
@@ -12990,6 +12992,11 @@ var app_Component = MetaphorJs.app.Component = cls({
         if (self._nodeReplaced) {
             self._claimNode(node);
         }
+        else if (!self.node) {
+            self.node = node;
+            self.template.node = node;
+            self._claimNode(node);
+        }
     },
 
     _onChildReference: function(type, ref, item) {
@@ -13022,7 +13029,7 @@ var app_Component = MetaphorJs.app.Component = cls({
     _replaceNodeWithTemplate: function() {
         var self = this;
 
-        if (self._nodeReplaced && self.node.parentNode) {
+        if (self._nodeReplaced && self.node && self.node.parentNode) {
             dom_removeAttr(self.node, "id");
         }
 
@@ -13041,6 +13048,8 @@ var app_Component = MetaphorJs.app.Component = cls({
                 }
             }
         }
+
+        self.template.node = self.node;
 
         self._claimNode();
     },
@@ -13069,6 +13078,7 @@ var app_Component = MetaphorJs.app.Component = cls({
         self.trigger('render', self);
 
         if (self.template) {
+            
             self.template.startRendering();
         }
     },
@@ -13093,6 +13103,7 @@ var app_Component = MetaphorJs.app.Component = cls({
         self.renderTo = parent;
         self.renderBefore = before;
 
+        
         if (self.template.moveTo(parent, before)) {
             self.afterAttached();
             self.trigger('attached', self);
@@ -13128,16 +13139,19 @@ var app_Component = MetaphorJs.app.Component = cls({
         self.afterRender();
         self.trigger('after-render', self);
 
-        if (self.directives) {
-            self._initDirectives();
-        }
+        if (self.node) {
 
-        if (isAttached(self.node)) {
-            self.afterAttached();
-            self.trigger('after-attached', self);
-        }
-        else if (self.renderTo && self.node.parentNode !== self.renderTo) {
-            self.attach(self.renderTo, self.renderBefore);
+            if (self.directives) {
+                self._initDirectives();
+            }
+
+            if (isAttached(self.node)) {
+                self.afterAttached();
+                self.trigger('after-attached', self);
+            }
+            else if (self.renderTo && self.node.parentNode !== self.renderTo) {
+                self.attach(self.renderTo, self.renderBefore);
+            }
         }
     },
 
@@ -13256,18 +13270,19 @@ var app_Component = MetaphorJs.app.Component = cls({
             self.template.$destroy();
         }
 
-        if (self.destroyEl) {
-            if (self.node && isAttached(self.node)) {
-                self.node.parentNode.removeChild(self.node);
+        if (self.node) {
+            if (self.destroyEl) {
+                if (isAttached(self.node)) {
+                    self.node.parentNode.removeChild(self.node);
+                }
             }
-        }
-        else if (self.node) {
+            else {
+                if (!self._originalId) {
+                    dom_removeAttr(self.node, "id");
+                }
 
-            if (!self._originalId) {
-                dom_removeAttr(self.node, "id");
+                self._releaseNode();
             }
-
-            self._releaseNode();
         }
 
         self.config.$destroy();
@@ -13487,7 +13502,7 @@ MetaphorJs.app.Container = app_Component.$extend({
 
         self.$super.apply(self, arguments);
 
-        if (self.template && self.node.firstChild) {
+        if (self.node && self.template && self.node.firstChild) {
             self._prepareDeclaredItems(toArray(self.node.childNodes));
         }
 
@@ -13544,10 +13559,12 @@ MetaphorJs.app.Container = app_Component.$extend({
                         items[renderRef] = [];
                     }
                     items[renderRef].push({
+                        __containerItemDef: true,
                         type: "component",
                         renderRef: renderRef,
                         renderer: renderer,
-                        component: foundCmp || foundPromise
+                        component: foundCmp || foundPromise,
+                        resolved: !!foundCmp
                     })
                 }   
                 else {
@@ -13557,6 +13574,7 @@ MetaphorJs.app.Container = app_Component.$extend({
                         items[renderRef] = [];
                     }
                     items[renderRef].push({
+                        __containerItemDef: true,
                         type: "node",
                         renderRef: renderRef,
                         node: node
@@ -13602,7 +13620,7 @@ MetaphorJs.app.Container = app_Component.$extend({
                 item = self._processItemDef(defs[i]);
                 item.renderRef = ref;
                 list.push(item);
-                self.itemsMap[item.id] = item;
+                //self.itemsMap[item.id] = item;
             }
         }
 
@@ -13618,16 +13636,33 @@ MetaphorJs.app.Container = app_Component.$extend({
         var self = this,
             idkey = self._getIdKey(),
             item = {
+                __containerItemDef: true,
                 type: "component",
                 placeholder: window.document.createComment("***"),
                 id: nextUid(),
                 resolved: true
             };
 
+        self.itemsMap[item.id] = item;
+
+        // component[idkey] = item.id
+        // every child component contains `idkey` field
+        // holding its id in parent container;
+        // and by idkey itself we can identify container
+
+        if (isPlainObject(def)) {
+            def = self._initObjectItem(def);
+        }
+        else if (typeof def === "string") {
+            def = self._initStringItem(def);
+        }
+
         if (isPlainObject(def)) {
             item = extend({}, def, item, false, false);
+            self.itemsMap[item.id] = item;
             if (item.type === "component") {
                 if (isThenable(item.component)) {
+                    item.resolved = false;
                     item.component.done(function(cmp){
                         cmp[idkey] = item.id;
                         self._onChildResolved(cmp);
@@ -13664,9 +13699,12 @@ MetaphorJs.app.Container = app_Component.$extend({
             var cfg = {scope: self.scope};
             cfg[idkey] = item.id;
             item.resolved = false;
-            item.component = MetaphorJs.app
-                            .resolve(def, cfg)
-                            .done(self._onChildResolved, self);
+            var promise = MetaphorJs.app
+                .resolve(def, cfg)
+                .done(self._onChildResolved, self);
+            if (!item.component){
+                item.component = promise;
+            }
         }
         else if (isThenable(def)) {
             item.resolved = false;
@@ -13681,6 +13719,19 @@ MetaphorJs.app.Container = app_Component.$extend({
         }
 
         return item;
+    },
+
+    _initObjectItem: function(def) {
+        return def;
+    },
+
+    _initStringItem: function(def) {
+        if (def.substring(0,1) === '<') {
+            var div = document.createElement("div");
+            div.innerHTML = def;
+            return div.firstChild;
+        }
+        return def;
     },
 
     _initChildEvents: function(mode, cmp) {
@@ -18881,7 +18932,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         var inputValue      = self.input.getValue(),
             scopeValue      = self.mo.getValue(),
             binding         = self.config.get("binding");
-
+        
         self.initial = true;
 
         if (scopeValue !== inputValue) {
@@ -18906,9 +18957,10 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     onInputChange: function(val) {
 
         var self    = this,
-            scope   = self.scope;
+            scope   = self.scope,
+            binding = self.binding || self.config.get("binding")
 
-        if (self.config.get("binding") !== "scope") {
+        if (binding !== "scope") {
 
             if (val && isString(val) && val.indexOf('\\{') !== -1) {
                 val = val.replace(/\\{/g, '{');

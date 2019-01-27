@@ -101,9 +101,10 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     onInputChange: function(val) {
 
         var self    = this,
-            scope   = self.scope;
+            scope   = self.scope,
+            binding = self.binding || self.config.get("binding")
 
-        if (self.config.get("binding") !== "scope") {
+        if (binding !== "scope") {
 
             if (val && isString(val) && val.indexOf('\\{') !== -1) {
                 val = val.replace(/\\{/g, '{');
