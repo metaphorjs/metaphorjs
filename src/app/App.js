@@ -51,6 +51,7 @@ module.exports = MetaphorJs.app.App = cls({
         self.scope          = scope;
         self.cmpListeners   = {};
         self.components     = {};
+        self.$refs          = {node: {}, cmp: {}};
 
         self.factory('$parentCmp', ['$node', self.getParentCmp], self);
         self.value('$app', self);
@@ -60,6 +61,7 @@ module.exports = MetaphorJs.app.App = cls({
 
         self.renderer       = new MetaphorJs.app.Renderer(node, scope);
         self.renderer.on("rendered", self.afterRender, self);
+        self.renderer.on("reference", self._onChildReference, self);
 
         args = toArray(arguments);
         args[1] = scope;
@@ -70,6 +72,14 @@ module.exports = MetaphorJs.app.App = cls({
 
     afterRender: function() {
 
+    },
+
+    _onChildReference: function(type, ref, item) {
+        var self = this;
+        if (!self.$refs[type]) {
+            self.$refs[type] = {};
+        }
+        self.$refs[type][ref] = item;
     },
 
     /**
@@ -144,6 +154,15 @@ module.exports = MetaphorJs.app.App = cls({
         }
 
         return null;
+    },
+
+    /**
+     * Get referenced node from top level
+     * @param {string} name 
+     * @returns Node|null
+     */
+    getRefEl: function(name) {
+        return this.$refs['node'][name];
     },
 
     /**

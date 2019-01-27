@@ -392,6 +392,11 @@ module.exports = MetaphorJs.app.Component = cls({
 
         var self = this;
 
+        if (parent && parent.nodeType === 8) {
+            before = parent;
+            parent = parent.parentNode;
+        }
+
         if (self._rendered) {
             parent && self.attach(parent, before);
             return;
@@ -405,7 +410,6 @@ module.exports = MetaphorJs.app.Component = cls({
         self.trigger('render', self);
 
         if (self.template) {
-            
             self.template.startRendering();
         }
     },
