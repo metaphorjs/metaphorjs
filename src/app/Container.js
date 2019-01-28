@@ -175,11 +175,11 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         // holding its id in parent container;
         // and by idkey itself we can identify container
 
+        if (typeof def === "string") {
+            def = self._initStringItem(def);
+        }
         if (isPlainObject(def)) {
             def = self._initObjectItem(def);
-        }
-        else if (typeof def === "string") {
-            def = self._initStringItem(def);
         }
 
         if (isPlainObject(def)) {
