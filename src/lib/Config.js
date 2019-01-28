@@ -266,12 +266,14 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 props = self.properties,
                 prop,
                 changed = false,
+                newProp = false,
                 value;
 
             if (!props[name]) {
                 props[name] = {};
                 self.keys.push(name);
                 changed = true;
+                newProp = true;
             }
 
             prop = props[name];
@@ -312,6 +314,9 @@ module.exports = MetaphorJs.lib.Config = (function(){
                     prop.mode = self.cfg.defaultMode;
                     changed = true;
                 }
+                else if (newProp && value !== undf) {
+                    prop.mode = MODE_STATIC;
+                }
             }
 
             if (prop.mode === MODE_DYNAMIC && 
@@ -325,7 +330,8 @@ module.exports = MetaphorJs.lib.Config = (function(){
             if (value !== undf) {
                 self.values[name] = value;
             }
-            else if (changed && self.values[name] !== undf) {
+            else if (changed && self.values[name] !== undf && 
+                    prop.mode !== MODE_STATIC) {
                 delete self.values[name];
             }
 
