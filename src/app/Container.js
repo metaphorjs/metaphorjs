@@ -244,7 +244,13 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             self.itemsMap[item.id] = item;
         }
 
+        this._initChildItem(item);
+
         return item;
+    },
+
+    _initChildItem: function(item) {
+
     },
 
     _wrapChildItem: function(item) {
@@ -293,11 +299,15 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         var self = this,
             idkey = self._getIdKey(),
             itemid = cmp[idkey],
-            item;
-
+            item, ref;
+        
         if (itemid && (item = self.itemsMap[itemid])) {
             item.resolved = true;
             item.component = cmp;
+
+            if (ref = cmp.config.get("ref")) {
+                self._onChildReference("cmp", ref, cmp);
+            }
 
             self._initChildEvents("on", cmp);
 

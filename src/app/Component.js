@@ -11,6 +11,7 @@ require("../func/dom/removeClass.js");
 require("../lib/Scope.js");
 require("../lib/Config.js");
 require("metaphorjs-observable/src/mixin/Observable.js");
+require("metaphorjs-promise/src/lib/Promise.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
@@ -18,6 +19,7 @@ var cls = require("metaphorjs-class/src/cls.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
+    isThenable = require("metaphorjs-shared/src/func/isThenable.js"),
     htmlTags = require("../var/dom/htmlTags");
 
 /**
@@ -299,9 +301,12 @@ module.exports = MetaphorJs.app.Component = cls({
             if ((dirCfg = dirs[name]) !== undf) {
                 if (typeof dirCfg === "string") {
                     dirCfg = {
-                        value: dirCfg
+                        value: {
+                            value: dirCfg
+                        }
                     }
                 }
+
                 config = new MetaphorJs.lib.Config(
                     dirCfg, 
                     {scope: parentScope}
@@ -331,7 +336,13 @@ module.exports = MetaphorJs.app.Component = cls({
         if (!self.$refs[type]) {
             self.$refs[type] = {};
         }
+
+        var th = self.$refs[type][ref];
         self.$refs[type][ref] = item;
+
+        if (th && isThenable(th)) {
+            th.resolve(item);
+        }
     },
 
     _claimNode: function(node) {
@@ -452,6 +463,23 @@ module.exports = MetaphorJs.app.Component = cls({
 
     getRefEl: function(name) {
         return this.$refs['node'][name];
+    },
+
+    getRefCmp: function(name) {
+        return this.$refs['cmp'][name];
+    },
+
+    getRefCmpPromise: function(name) {
+        var cmp = this.$refs['cmp'][name];
+        if (!cmp) {
+            return this.$refs['cmp'][name] = new MetaphorJs.lib.Promise;
+        }
+        else if (isThenable(cmp)) {
+            return cmp;
+        }
+        else {
+            return MetaphorJs.lib.Promise.resolve(cmp);
+        }
     },
 
     onBeforeRender: function() {

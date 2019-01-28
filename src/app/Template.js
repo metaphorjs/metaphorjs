@@ -574,10 +574,10 @@ module.exports = MetaphorJs.app.Template = function() {
             });
         }
         else if (def) {
-            if (def.name || def.nameExpression) {
+            if (def.name || def.nameExpression || def.expression) {
                 tplConfig.setProperty("name", {
-                    expression: def.name || def.nameExpression,
-                    mode: def.nameExpression ? 
+                    expression: def.name || def.nameExpression || def.expression,
+                    mode: def.nameExpression || def.expression ? 
                         MetaphorJs.lib.Config.MODE_DYNAMIC :
                         MetaphorJs.lib.Config.MODE_STATIC
                 });
