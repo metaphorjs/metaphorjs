@@ -92,11 +92,6 @@ module.exports = MetaphorJs.app.Component = cls({
      */
     template:       null,
 
-    /**
-     * @var {object|bool}
-     */
-    supportsDirectives: false,
-
     $constructor: function(cfg) {
         var self = this,
             viewCls = self.$view || (cfg ? cfg.$view : null);
@@ -269,19 +264,88 @@ module.exports = MetaphorJs.app.Component = cls({
         });
     },
 
+    hasDirective: function(name) {
+        return this.directives && !!this.directives[name];
+    },
+
+    applyDirective: function(name, cfg) {
+        var self = this,
+            support = self.$self.supportsDirectives,
+            dir;
+
+        if (!support) {
+            return;
+        }
+        if (support !== true && !support[name]) {
+            return;
+        }
+
+        if (self._rendered) {
+            dir = MetaphorJs.app.Directive.getDirective("attr", name);
+            if (dir) {
+                MetaphorJs.app.Renderer.applyDirective(
+                    dir.handler, 
+                    self._getDirectiveScope(), 
+                    self, 
+                    self._prepareDirectiveCfg(dirCfg)
+                );
+            }
+            else {
+                throw new Error("Directive " + name + " not found");
+            }
+        }
+        else {
+            if (!self.directives) {
+                self.directives = {};
+            }
+            if (!self.directives[name]) {
+                self.directives[name] = cfg;
+            }
+        }
+    },
+
+    _getDirectiveScope: function() {
+        var self = this,
+            dirs = self.directives || {};
+        return  dirs.scope ||
+                self.parentScope ||
+                self.scope.$parent || 
+                self.config.getOption("scope") ||
+                self.scope;
+    },
+
+    _prepareDirectiveCfg: function(cfg) {
+
+        if (cfg instanceof MetaphorJs.lib.Config) {
+            return cfg;
+        }
+
+        var self = this,
+            config;
+
+        if (typeof cfg === "string") {
+            cfg = {
+                value: {
+                    value: cfg
+                }
+            }
+        }
+
+        config = new MetaphorJs.lib.Config(
+            cfg, 
+            {scope: self._getDirectiveScope()}
+        );
+        self.on("destroy", config.$destroy, config);
+        return config;
+    },
+
     _initDirectives: function() {
         var self = this,
             dirs = self.directives,
-            support = self.supportsDirectives,
+            support = self.$self.supportsDirectives,
             dirCfg,
-            config,
             handlers = MetaphorJs.app.Directive.getAttributes(),
-            i, len, name,
-            parentScope =   dirs.scope ||
-                            self.parentScope ||
-                            self.scope.$parent || 
-                            self.config.getOption("scope") ||
-                            self.scope;
+            i, len, name;
 
         if (!support) {
             return;
@@ -299,21 +363,11 @@ module.exports = MetaphorJs.app.Component = cls({
             }
 
             if ((dirCfg = dirs[name]) !== undf) {
-                if (typeof dirCfg === "string") {
-                    dirCfg = {
-                        value: {
-                            value: dirCfg
-                        }
-                    }
-                }
-
-                config = new MetaphorJs.lib.Config(
-                    dirCfg, 
-                    {scope: parentScope}
-                );
-                self.on("destroy", config.$destroy, config);
                 MetaphorJs.app.Renderer.applyDirective(
-                    handlers[i].handler, parentScope, self, config
+                    handlers[i].handler, 
+                    self._getDirectiveScope(), 
+                    self, 
+                    self._prepareDirectiveCfg(dirCfg)
                 );
             }
         }
@@ -569,7 +623,7 @@ module.exports = MetaphorJs.app.Component = cls({
      * @param {string} directive 
      */
     getDomApi: function(directive) {
-        var sup = this.supportsDirectives;
+        var sup = this.$self.supportsDirectives;
         if (!sup) {
             return null;
         }
@@ -661,5 +715,39 @@ module.exports = MetaphorJs.app.Component = cls({
         else {
             Directive.registerComponent(cmp.prototype.$class, cmp);
         }
+    },
+
+
+    /**
+     * @static
+     * @var {object|bool}
+     */
+    supportsDirectives: false,
+
+    configProps: [],
+
+    createFromPlainObject: function(obj) {
+
+        if (obj instanceof this) {
+            return obj;
+        }
+
+        if (!obj.config) {
+            var config = {},
+                props = this.configProps,
+                i, l, name;
+
+            obj.config = config;
+
+            for (i = 0, l = props.length; i < l; i++) {
+                name = props[i];
+                if (obj[name]) {
+                    config[name] = obj[name];
+                    delete obj[name];
+                }
+            }
+        }
+
+        return new this(obj);
     }
 });
