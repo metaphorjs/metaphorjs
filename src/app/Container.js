@@ -12,7 +12,8 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     isThenable = require("metaphorjs-shared/src/func/isThenable.js"),
-    nextUid = require("metaphorjs-shared/src/func/nextUid.js");
+    nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
+    ns = require("metaphorjs-namespace/src/var/ns.js");
 
 module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
@@ -117,9 +118,10 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
         var self = this,
             items = self.items || [],
+            p2i = self.$self.propsToItems,
             defs,
             list = [],
-            item,
+            item, name,
             i, l, ref;
 
         self.itemsMap = {};
@@ -130,6 +132,14 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             }
         }
 
+        if (p2i) {
+            for (name in p2i) {
+                if (self[name]) {
+                    self._initIntoItems(self[name], p2i[name]);
+                }
+            }
+        }
+
         for (ref in items) {
             defs = items[ref];
             if (!isArray(defs)) {
@@ -137,8 +147,11 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             }
             for (i = -1, l = defs.length; ++i < l;) {
                 item = self._processItemDef(defs[i]);
-                item.renderRef = ref;
-                list.push(item);
+
+                if (item) {
+                    item.renderRef = ref;
+                    list.push(item);
+                }
 
                 // moved to _processItemDef
                 //self.itemsMap[item.id] = item;
@@ -217,6 +230,10 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
         var prevItem = item;
 
+        if (!self._allowChildItem(item)) {
+            return null;
+        }
+
         if (item.type === "node") {
             item = self._wrapChildItem(item);
             item.node[idkey] = item.id;
@@ -226,6 +243,9 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                 item.resolved = false;
                 item.component.done(function(cmp){
                     item.component = cmp;
+                    if (!self._allowChildItem(item)) {
+                        return null;
+                    }
                     item = self._wrapChildItem(item);
                     item.component[idkey] = item.id;
                     self._onChildResolved(item.component);
@@ -249,11 +269,56 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         return item;
     },
 
-    _initChildItem: function(item) {
+    _initChildItem: function(item) {},
 
+    _allowChildItem: function(item) {
+        var allow = this.$self.allowItems || ["*"];
+        typeof allow === "string" && (allow = [allow]);
+        if (allow.indexOf("*") !== -1)  {
+            return true;
+        }
+        if (item.type === "component") {
+            return allow.indexOf(item.component.$class) !== -1;
+        }
+        return true;
     },
 
     _wrapChildItem: function(item) {
+
+        var self = this,
+            cls = self.$self,
+            allow = cls.allowUnwrapped || [],
+            wrapper = cls.wrapper,
+            wrapCls;
+
+        typeof allow === "string" && (allow = [allow]);
+
+        if (!wrapper || allow.indexOf("*") !== -1) {
+            return item;
+        }
+
+        if (item.type === "component") {
+
+            if (allow.indexOf(item.component.$class) !== -1) {
+                return item;
+            }
+
+            wrapCls = typeof wrapper === "string" || typeof wrapper === "function" ? 
+                        wrapper :
+                        (wrapper[item.component.$class] || wrapper["*"]);
+            wrapCls = typeof wrapper === "string" ? ns.get(wrapper) : wrapper;
+
+            var newItem = self._createDefaultItemDef();
+            newItem.component = new wrapCls({
+                scope: self.scope,
+                items: [
+                    item.component
+                ]
+            });
+
+            return newItem;
+        }
+
         return item;
     },
 
@@ -314,6 +379,27 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             if (self._rendered) {
                 self._attachChildItem(item);
             }
+        }
+    },
+
+    _initIntoItems: function(smth, cls) {
+        var self = this,
+            item = self._createDefaultItemDef();
+
+        typeof cls === "string" && (cls = ns.get(cls));
+
+        if (!(smth instanceof cls)) {
+            smth = cls.createFromPlainObject(smth);
+        }
+
+        item.component = smth;
+        item.resolved = !isThenable(smth);
+        !self.items && (self.items = []);
+        if (isArray(self.items)) {
+            self.items.push(item);
+        }
+        else {
+            self.items.body.push(item);
         }
     },
 
@@ -456,4 +542,10 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
         self.$super();
     }
+}, {
+
+    allowItems: ["*"],
+    allowUnwrapped: ["*"],
+    wrapper: null
+
 });
