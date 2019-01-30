@@ -19,6 +19,7 @@ var cls = require("metaphorjs-class/src/cls.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
+    isPrimitive = require("metaphorjs-shared/src/func/isPrimitive.js"),
     isThenable = require("metaphorjs-shared/src/func/isThenable.js"),
     htmlTags = require("../var/dom/htmlTags");
 
@@ -122,22 +123,19 @@ module.exports = MetaphorJs.app.Component = cls({
         if (!self.scope) {
             self.scope = new MetaphorJs.lib.Scope;
         }
-        if (!self.config) {
-            self.config = new MetaphorJs.lib.Config(null, {
-                scope: self.parentScope || self.scope
+
+        // We initialize config with current scope or change config's scope
+        // to current so that all new properties that come from _initConfig
+        // are bound to local scope. 
+        // All pre-existing properties are already bound to outer scope;
+        // Also, each property configuration can have its scope specified
+        if (!self.config || !(self.config instanceof MetaphorJs.lib.Config)) {
+            self.config = new MetaphorJs.lib.Config(self.config, {
+                scope: self.scope
             });
         }
-        else if (!(self.config instanceof MetaphorJs.lib.Config)) {
-            var cfgScope = self.config.scope;
-            if (cfgScope) {
-                delete self.config.scope;
-            }
-            self.config = new MetaphorJs.lib.Config(
-                self.config, 
-                {
-                    scope: cfgScope || self.parentScope || self.scope
-                }
-            );
+        else {
+            self.config.setOption("scope", self.scope);
         }
 
         self.$refs = {node: {}, cmp: {}};
@@ -742,7 +740,10 @@ module.exports = MetaphorJs.app.Component = cls({
             for (i = 0, l = props.length; i < l; i++) {
                 name = props[i];
                 if (obj[name]) {
-                    config[name] = obj[name];
+                    if (isPrimitive(obj[name])) {
+                        config[name] = {defaultValue: obj[name]};    
+                    }
+                    else config[name] = obj[name];
                     delete obj[name];
                 }
             }
