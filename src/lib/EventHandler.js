@@ -90,6 +90,7 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
             scope.$event = e;
             scope.$eventNode = self.node;
             scope.$prevEvent = self.prevEvent[e.type];
+            scope.$eventCmp = self.config.get("targetComponent");
 
             if (handler) {
                 res = handler.call(cfg.context || null, scope);

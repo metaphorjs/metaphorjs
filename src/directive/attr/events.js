@@ -39,6 +39,10 @@ var Directive = require("../../app/Directive.js"),
                 function(scope, node, config, renderer, attrSet) {
 
                 if (node.getDomApi) {
+                    config.setProperty("targetComponent", {
+                        mode: MetaphorJs.lib.Config.MODE_STATIC,
+                        value: node
+                    });
                     node = node.getDomApi(name);
                     if (!node) {
                         return null;
