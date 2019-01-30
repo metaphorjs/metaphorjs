@@ -163,7 +163,7 @@ module.exports = MetaphorJs.app.Component = cls({
 
         self.id = self.id || "cmp-" + nextUid();
 
-        if (!self.node && self.node !== false) {
+        if (!self.node && self.config.has("tag")) {
             self.node = window.document.createElement(self.config.get("tag"));
         }
 
@@ -237,7 +237,6 @@ module.exports = MetaphorJs.app.Component = cls({
             ctx;
 
         config.setDefaultMode("tag", MetaphorJs.lib.Config.MODE_STATIC);
-        config.setDefaultValue("tag", "div");
         config.setDefaultMode("as", MetaphorJs.lib.Config.MODE_STATIC);
 
         if (self.as) {

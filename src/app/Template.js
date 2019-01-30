@@ -338,8 +338,7 @@ module.exports = MetaphorJs.app.Template = function() {
         startRendering: function() {
 
             var self    = this;
-            if (self.deferRendering && 
-                (self.node || self.node === false)) {
+            if (self.deferRendering) {
                 self.deferRendering = false;
 
                 if (self.config.has("name")) {
