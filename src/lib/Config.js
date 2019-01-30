@@ -259,8 +259,11 @@ module.exports = MetaphorJs.lib.Config = (function(){
          * @param {string} name 
          * @param {string} cfg 
          * @param {*} val 
+         * @param {bool} override {
+         *  @default true
+         * }
          */
-        setProperty: function(name, cfg, val) {
+        setProperty: function(name, cfg, val, override) {
 
             var self = this,
                 props = self.properties,
@@ -268,6 +271,10 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 changed = false,
                 newProp = false,
                 value;
+
+            if (override === undf) {
+                override = true;
+            }
 
             if (!props[name]) {
                 props[name] = {};
@@ -278,14 +285,14 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
             prop = props[name];
 
-            if (val === undf) {
+            if (val === undf || val === null) {
                 var k;
                 for (k in cfg) {
                     if (k === "value") {
                         value = cfg[k];
                         continue;
                     }
-                    if (cfg[k] !== prop[k]) {
+                    if (cfg[k] !== prop[k] && override) {
                         changed = true;
                         prop[k] = cfg[k];
                     }
@@ -295,7 +302,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 if (cfg === "value") {
                     value = val;
                 }
-                else if (val !== prop[cfg]) {
+                else if (val !== prop[cfg] && override) {
                     changed = true;
                     prop[cfg] = val;
                 }
@@ -306,7 +313,8 @@ module.exports = MetaphorJs.lib.Config = (function(){
                     prop.mode = prop.defaultMode;
                     changed = true;
                 }
-                else if (prop.expression === true) {
+                else if (prop.expression === true || 
+                        prop.expression === false) {
                     prop.mode = MODE_STATIC;
                     changed = true;
                 }
@@ -314,9 +322,13 @@ module.exports = MetaphorJs.lib.Config = (function(){
                     prop.mode = self.cfg.defaultMode;
                     changed = true;
                 }
-                else if (newProp && value !== undf) {
+                else if (newProp && value !== undf && value !== null) {
                     prop.mode = MODE_STATIC;
                 }
+            }
+
+            if (!prop.scope) {
+                prop.scope = self.cfg.scope;
             }
 
             if (prop.mode === MODE_DYNAMIC && 
@@ -327,7 +339,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 changed = true;
             }
 
-            if (value !== undf) {
+            if (value !== undf && value !== null) {
                 self.values[name] = value;
             }
             else if (changed && self.values[name] !== undf && 
@@ -510,9 +522,14 @@ module.exports = MetaphorJs.lib.Config = (function(){
          * @method
          * @param {string} name 
          * @param {int} mode 
+         * @param {string|*} expression
          */
-        setMode: function(name, mode) {
-            this.setProperty(name, "mode", mode);
+        setMode: function(name, mode, expression) {
+            var prop = {mode: mode};
+            if (expression !== undf) {
+                prop.expression = expression;
+            }
+            this.setProperty(name, prop);
         },
 
         /**
@@ -560,11 +577,44 @@ module.exports = MetaphorJs.lib.Config = (function(){
         },
 
         /**
+         * Transform property to dynamic mode if it is static
+         * @param {string} name 
+         * @param {string} expression 
+         * @param {object|null} scope {
+         *  @optional
+         * }
+         */
+        makeLocalDynamic: function(name, expression, scope) {
+            var self = this,
+                prop, val;
+            scope = scope || self.cfg.scope;
+            if (prop = self.properties[name]) {
+                if (!prop.mode || prop.mode === MODE_STATIC || prop.mode === MODE_SINGLE) {
+                    val = self.get(name);
+                    self.setProperty(name, {
+                        expression: expression,
+                        mode: MODE_DYNAMIC,
+                        scope: scope
+                    });
+                    self.values[name] = val;
+                    self.set(name, val);
+                }
+            }
+            else {
+                self.setProperty(name, {
+                    expression: expression,
+                    mode: MODE_DYNAMIC,
+                    scope: scope
+                });
+            }
+        },
+
+        /**
          * Force property to static mode with given value
          * @param {string} name 
          * @param {*} val 
          */
-        set: function(name, val) {
+        setStatic: function(name, val) {
             var self = this;
             if (self.properties[name]) {
                 var prev = self.values[val];
@@ -573,6 +623,40 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 if (prev != val) {
                     $$observable.trigger(self.id, name, val, prev);
                     $$observable.trigger(self.id +'-'+ name, val, prev) ;
+                }
+            }
+        },
+
+        /**
+         * Try to set value based on property mode
+         * @param {string} name 
+         * @param {*} val 
+         */
+        set: function(name, val) {
+            var self = this,
+                prop;
+            if (prop = self.properties[name]) {
+                switch (prop.mode) {
+                    case MODE_DYNAMIC: {
+                        !prop.mo && self._initMo(name);
+                        prop.mo.setValue(val);
+                        break;
+                    }
+                    case MODE_GETTER:
+                    case MODE_FUNC:
+                    case MODE_SETTER:
+                    case MODE_FNSET: {
+                        throw new Error("Incompatible property mode");
+                    }
+                    case MODE_SINGLE:
+                    case MODE_STATIC: {
+                        self.setStatic(name, val);
+                        break;
+                    }
+                    default: {
+                        self.setStatic(name, val);
+                        break;
+                    }
                 }
             }
         },
