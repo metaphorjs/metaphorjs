@@ -17,6 +17,8 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
 
 module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
+    $mixinEvents: ["$initChildItem"],
+
     initComponent: function() {
         var self = this;
 
@@ -264,7 +266,8 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             self.itemsMap[item.id] = item;
         }
 
-        this._initChildItem(item);
+        self._initChildItem(item);
+        self.$callMixins("$initChildItem", item);
 
         return item;
     },
@@ -480,8 +483,37 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
     hasItem: function(cmp) {
         var self = this,
-        idkey = self._getIdKey();
-        return !!cmp[idkey];
+            idkey = self._getIdKey(),
+            id,
+            item;
+
+        if (typeof cmp === "string" || typeof cmp === "function") {
+            for (id in self.itemMap) {
+                item = self.itemMap[id];
+                if (item.type === "component" && 
+                    (item.componet.id === cmp || item.component.$is(cmp))) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        else return !!cmp[idkey];
+    },
+
+    hasItemIn: function(ref, smth) {
+        if (!this.items[ref] || this.items[ref].length === 0) {
+            return false;
+        }
+        var i, l, item;
+        for (i = 0, l = this.items[ref].length; i < l; i++) {
+            item = this.items[ref][i];
+            if (item.type === "component") {
+                if (item.component.$is(smth)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     },
 
     addItem: function(cmp, to) {
