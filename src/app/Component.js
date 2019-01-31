@@ -51,6 +51,12 @@ module.exports = MetaphorJs.app.Component = cls({
 
     /**
      * @var boolean
+     * @access protected
+     */
+    keepCustomNode: false,
+
+    /**
+     * @var boolean
      * @access private
      */
     _nodeReplaced:  false,
@@ -92,6 +98,12 @@ module.exports = MetaphorJs.app.Component = cls({
      * @var {Template}
      */
     template:       null,
+
+    /**
+     * @var bool
+     * @access private
+     */
+    isWebComponent: false,
 
     $constructor: function(cfg) {
         var self = this,
@@ -178,7 +190,7 @@ module.exports = MetaphorJs.app.Component = cls({
             self.parentRenderer.on("destroy", self._onParentRendererDestroy, self);
         }
 
-        if (self.node) {
+        if (self.node && !self.isWebComponent) {
             self._claimNode();
         }
 
@@ -191,7 +203,10 @@ module.exports = MetaphorJs.app.Component = cls({
             tpl = self.template;
 
         if (self.node) {
-            self._nodeReplaced = htmlTags.indexOf(self.node.tagName.toLowerCase()) === -1;
+            self._nodeReplaced = !self.keepCustomNode && 
+                                    htmlTags.indexOf(
+                                        self.node.tagName.toLowerCase()
+                                    ) === -1;
         }
 
         if (tpl instanceof MetaphorJs.app.Template) {
@@ -213,6 +228,7 @@ module.exports = MetaphorJs.app.Component = cls({
                 node: self.node,
                 deferRendering: self._nodeReplaced || !self.autoRender,
                 ownRenderer: true,
+                useShadow: self.isWebComponent,
                 replace: self._nodeReplaced, // <some-custom-tag>
                 config: tplConfig,
                 callback: {
@@ -496,7 +512,6 @@ module.exports = MetaphorJs.app.Component = cls({
         self.renderTo = parent;
         self.renderBefore = before;
 
-        
         if (self.template.moveTo(parent, before)) {
             self.afterAttached();
             self.trigger('attached', self);
@@ -705,6 +720,13 @@ module.exports = MetaphorJs.app.Component = cls({
     }
 
 }, {
+
+    registerWebComponent: function(tagName) {
+        var cls = this;
+        Directive.registerComponent(tagName, cls);
+        return MetaphorJs.dom.webComponentWrapper(tagName, cls);
+    },
+
     registerDirective: function(cmp) {
         if (typeof(cmp) === "string") {
             Directive.registerComponent(cmp);

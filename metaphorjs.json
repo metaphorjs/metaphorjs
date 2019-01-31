@@ -58,6 +58,18 @@
             ]
         },
 
+        "test-webc": {
+            "target": "dev-test/metaphorjs.test-webc.js",
+            "files": [
+                "core",
+                "dev-test/webc.js"
+            ],
+            "options": {
+                "wrap": true,
+                "removeDebug": false
+            }
+        },
+
         "test-min": {
             "extend": "test",
             "target": "dev-test/metaphorjs.test.min.js",

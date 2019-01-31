@@ -13,6 +13,14 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
  */
 module.exports = MetaphorJs.dom.is = function(el, selector) {
 
+    if (!selector) {
+        return false;
+    }
+
+    if (typeof selector === "function") {
+        return el instanceof selector;
+    }
+
     var els = MetaphorJs.dom.select(selector, el.parentNode),
         i, l;
 
@@ -21,5 +29,6 @@ module.exports = MetaphorJs.dom.is = function(el, selector) {
             return true;
         }
     }
+
     return false;
 };

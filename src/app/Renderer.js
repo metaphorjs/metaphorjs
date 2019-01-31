@@ -285,6 +285,17 @@ module.exports = MetaphorJs.app.Renderer = function() {
                     name,
                     res,
                     handler;
+                
+                // skip <slot> but reference it same way as ##ref
+                if (tag === "slot") {
+                    observer.trigger(
+                        "reference-" + self.id, 
+                        "node",
+                        node.getAttribute("name"),
+                        node
+                    );
+                    return;
+                }
 
                 if (tag.substr(0, 4) === "mjs-") {
                     tag = tag.substr(4);

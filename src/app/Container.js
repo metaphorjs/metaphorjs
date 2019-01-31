@@ -5,6 +5,7 @@ require("./Template.js");
 require("./Renderer.js");
 require("../func/app/resolve.js");
 require("../func/dom/getAttrSet.js");
+require("../func/dom/is.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
@@ -18,6 +19,7 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
 module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
     $mixinEvents: ["$initChildItem"],
+    _itemsInitialized: false,
 
     initComponent: function() {
         var self = this;
@@ -40,6 +42,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             foundCmp, foundPromise,
             scope = self.config.getOption("scope"),
             items = self.items || [],
+            def,
 
             refCallback = function(type, ref, cmp, cfg, attrSet){
                 if (cfg.node === node) {
@@ -55,7 +58,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                 }
             };
 
-        if (isArray(items)) {
+        if (!self._itemsInitialized && isArray(items)) {
             items = {
                 body: items
             }
@@ -63,6 +66,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
         for (i = 0, l = nodes.length; i < l; i++) {
             node = nodes[i];
+            def = null;
             if (node.nodeType === 1) {
 
                 foundCmp = null;
@@ -77,40 +81,41 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                     if (!renderRef) {
                         renderRef = "body";
                     }
-                    if (!items[renderRef]) {
-                        items[renderRef] = [];
-                    }
-                    items[renderRef].push({
-                        __containerItemDef: true,
+                    def = extend({
                         type: "component",
                         renderRef: renderRef,
                         renderer: renderer,
                         component: foundCmp || foundPromise,
                         resolved: !!foundCmp
-                    });
+                    }, self._createDefaultItemDef());
                 }
                 else {
                     attrSet = MetaphorJs.dom.getAttrSet(node);
                     renderRef = attrSet.at || "body";
-                    if (!items[renderRef]) {
-                        items[renderRef] = [];
-                    }
-                    items[renderRef].push({
-                        __containerItemDef: true,
+                    def = extend({
                         type: "node",
                         renderRef: renderRef,
                         node: node
-                    });
+                    }, self._createDefaultItemDef());
                 }
 
                 found = true;
-
                 renderer.un("reference", refCallback);
                 renderer.un("reference-promise", promiseCallback);
+
+                if (!self._itemsInitialized) {
+                    if (!items[renderRef]) {
+                        items[renderRef] = [];
+                    }
+                    items[renderRef].push(def);
+                }
+                else {
+                    self.addItem(def);
+                }
             }
         }
 
-        if (found) {
+        if (found && !self._itemsInitialized) {
             self.items = items;
         }
 
@@ -126,6 +131,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             item, name,
             i, l, ref;
 
+        self._itemsInitialized = true;
         self.itemsMap = {};
 
         if (isArray(items)) {
@@ -178,6 +184,10 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
     },
 
     _processItemDef: function(def) {
+
+        if (def.__containerItemDef) {
+            return def;
+        }
 
         var self = this,
             idkey = self._getIdKey(),
@@ -426,7 +436,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         self.$super();
 
         // empty container without template or content
-        if (!self.node.firstChild) {
+        if (!self.node.firstChild && !self.isWebComponent) {
             self.$refs.node.body = self.node;
         }
 
@@ -443,9 +453,21 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
     _preparePlaceholder: function(item) {
         var self = this,
             refnode = self.getRefEl(item.renderRef);
+
+        if (item.type === "node" && item.node.hasAttribute("slot")) {
+            return;
+        }
+
         if (!refnode) {
             throw new Error("Can't find referenced node: " + item.renderRef);
         }
+
+        // if refnode is <slot> we do nothing;
+        // when attaching, we just set "slot" attribute on item
+        if (refnode instanceof window.HTMLSlotElement) {
+            return;
+        }
+
         // comment
         if (refnode.nodeType === 8) {
             refnode.parentNode.insertBefore(item.placeholder, refnode);
@@ -459,8 +481,15 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             refnode = self.getRefEl(item.renderRef);
 
         if (item.type === "node") {
-            if (refnode.nodeType === 8)
+            if (item.node.hasAttribute("slot")) {
+                return;
+            }
+            if (refnode instanceof window.HTMLSlotElement) {
+                item.node.setAttribute("slot", refnode.getAttribute("name"));
+            }
+            else if (refnode.nodeType === 8) {
                 refnode.parentNode.insertBefore(item.node, item.placeholder);
+            }
             else refnode.insertBefore(item.node, item.placeholder);
         }
         else if (item.type === "component") {
@@ -529,7 +558,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         }
 
         item = self._processItemDef(cmp);
-        item.renderRef = to || "body";
+        item.renderRef = item.renderRef || to || "body";
         self.items.push(item);
         self.itemsMap[item.id] = item;
 

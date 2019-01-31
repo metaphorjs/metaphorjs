@@ -228,6 +228,10 @@ module.exports = MetaphorJs.app.Template = function() {
             self.childrenPromise.resolve(false);
         }
 
+        if (self.useShadow && !self.deferRendering) {
+            self._createShadow();
+        }
+
         if (config.has("name")) {
             config.on("name", self._onChange, self);
             self._resolveTemplate()
@@ -269,7 +273,10 @@ module.exports = MetaphorJs.app.Template = function() {
         _fragment:          null,
         _prevEl:            null,
         _nextEl:            null,
+        _shadowRoot:        null,
+        _shadowParent:      null,
 
+        useShadow:          false,
         scope:              null,
         node:               null,
         config:             null,
@@ -281,11 +288,20 @@ module.exports = MetaphorJs.app.Template = function() {
         replace:            false,
         animate:            false,
 
+        _createShadow: function() {
+            if (!this._shadowRoot) {
+                this._shadowParent = this.node;
+                this._shadowRoot = this.node.attachShadow({mode: "open"});
+                this.node = this._shadowRoot;
+            }
+        },
+
         _runRenderer: function() {
             var self = this;
             if (!self._renderer) {
                 self._renderer   = new MetaphorJs.app.Renderer(
-                    self.node, self.scope
+                    self.node, 
+                    self.scope
                 );
                 observable.relayEvent(self._renderer, "reference", "reference-" + self.id);
                 observable.relayEvent(self._renderer, "first-node", "first-node-" + self.id);
@@ -325,10 +341,15 @@ module.exports = MetaphorJs.app.Template = function() {
                         parent.insertBefore(el[j], before);
                     }
                 else {
-                    if (el.parentNode !== parent) {
-                        moved = true;
+                    if (parent instanceof window.HTMLSlotElement) {
+                        el.setAttribute("slot", parent.getAttribute("name"));
                     }
-                    parent.insertBefore(el, before);
+                    else {
+                        if (el.parentNode !== parent) {
+                            moved = true;
+                        }
+                        parent.insertBefore(el, before);
+                    }
                 } 
             }
 
@@ -340,6 +361,10 @@ module.exports = MetaphorJs.app.Template = function() {
             var self    = this;
             if (self.deferRendering) {
                 self.deferRendering = false;
+
+                if (self.useShadow) {
+                    self._createShadow();
+                }
 
                 if (self.config.has("name")) {
                     self._resolveTemplate().done(self._applyTemplate, self);
