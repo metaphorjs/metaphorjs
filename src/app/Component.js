@@ -132,9 +132,7 @@ module.exports = MetaphorJs.app.Component = cls({
         self.$super(cfg);
         extend(self, cfg, true, false);
 
-        if (!self.scope) {
-            self.scope = new MetaphorJs.lib.Scope;
-        }
+        self.scope = MetaphorJs.lib.Scope.$produce(self.scope);
 
         // We initialize config with current scope or change config's scope
         // to current so that all new properties that come from _initConfig

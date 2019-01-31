@@ -177,9 +177,8 @@ module.exports = MetaphorJs.app.Template = function() {
             autoTrigger: true
         });
 
-        if (!self.scope) {
-            self.scope = new MetaphorJs.lib.Scope;
-        }
+        self.scope = MetaphorJs.lib.Scope.$produce(self.scope);
+
         if (!self.config) {
             self.config = new MetaphorJs.lib.Config(null, {
                 scope: self.scope
@@ -215,7 +214,7 @@ module.exports = MetaphorJs.app.Template = function() {
         }
 
         if ((config.has("name") || config.has("html")) && 
-            node && node.firstChild) {
+            node && node.firstChild && !self.useShadow) {
             MetaphorJs.dom.data(node, "mjs-transclude", 
                 MetaphorJs.dom.toFragment(node.childNodes));
         }
@@ -291,9 +290,11 @@ module.exports = MetaphorJs.app.Template = function() {
         _createShadow: function() {
             if (!this._shadowRoot) {
                 this._shadowParent = this.node;
-                this._shadowRoot = this.node.attachShadow({mode: "open"});
+                this._shadowRoot = this.node.shadowRoot || 
+                                    this.node.attachShadow({mode: "open"});
                 this.node = this._shadowRoot;
             }
+
         },
 
         _runRenderer: function() {
@@ -433,9 +434,7 @@ module.exports = MetaphorJs.app.Template = function() {
                 return;
             }
 
-            //self._clearNode();
             self._resolveHtml();
-            
         },
 
         _onChange: function() {
@@ -446,8 +445,6 @@ module.exports = MetaphorJs.app.Template = function() {
                 self._renderer.$destroy();
                 self._renderer = null;
             }
-
-            //self._clearNode();
 
             var tplVal = self.config.get("name");
 
@@ -494,17 +491,6 @@ module.exports = MetaphorJs.app.Template = function() {
                 children = toArray(frg.childNodes);
 
                 if (el && el.nodeType) {
-                    
-                    /*var transclude = el ? MetaphorJs.dom.data(el, "mjs-transclude") : null;
-
-                    if (transclude) {
-                        var tr = MetaphorJs.dom.select(
-                            "[{transclude}], [mjs-transclude], mjs-transclude", frg, true);
-                        if (tr.length) {
-                            MetaphorJs.dom.data(tr[0], "mjs-transclude", transclude);
-                        }
-                    }*/
-
                     el.parentNode && el.parentNode.removeChild(el);
                 }
 

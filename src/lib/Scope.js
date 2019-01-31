@@ -1,21 +1,27 @@
 require("metaphorjs-observable/src/lib/Observable.js");
-require("./Expression.js");
 require("./MutationObserver.js");
 
 var extend = require("metaphorjs-shared/src/func/extend.js"),
     async = require("metaphorjs-shared/src/func/async.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
+
 /**
- * The scope object is what templates see while rendering
+ * The scope object is what templates see as "this" when executing expressions.
+ * (Actually, this is more like a Context)
  * @class MetaphorJs.lib.Scope
  */
+module.exports = MetaphorJs.lib.Scope = (function(){
+
+
+var publicScopes = {};
+
 /**
  * @method Scope
  * @constructor
  * @param {object} cfg Whatever data should be visible in template
  */
-MetaphorJs.lib.Scope = function(cfg) {
+var Scope = function(cfg) {
     var self    = this;
 
     self.$$observable    = new MetaphorJs.lib.Observable;
@@ -50,9 +56,16 @@ MetaphorJs.lib.Scope = function(cfg) {
         self.$root  = self;
         self.$isRoot= true;
     }
+
+    if (self.$$publicName) {
+        if (publicScopes[self.$$publicName]) {
+            self.$$publicName = null;
+        }
+        publicScopes[self.$$publicName] = self;
+    }
 };
 
-extend(MetaphorJs.lib.Scope.prototype, {
+extend(Scope.prototype, {
 
     /**
      * @property {MetaphorJs.app.App}
@@ -87,6 +100,7 @@ extend(MetaphorJs.lib.Scope.prototype, {
     $$checking: false,
     $$destroyed: false,
     $$changing: false,
+    $$publicName: null,
 
     $$tmt: null,
 
@@ -98,7 +112,7 @@ extend(MetaphorJs.lib.Scope.prototype, {
      */
     $new: function(data) {
         var self = this;
-        return new MetaphorJs.lib.Scope(extend({}, data, {
+        return new Scope(extend({}, data, {
             $parent: self,
             $root: self.$root,
             $app: self.$app,
@@ -115,7 +129,7 @@ extend(MetaphorJs.lib.Scope.prototype, {
      * @returns {MetaphorJs.lib.Scope}
      */
     $newIsolated: function(data) {
-        return new MetaphorJs.lib.Scope(extend({}, data, {
+        return new Scope(extend({}, data, {
             $app: this.$app,
             $level: self.$level + 1,
             $static: this.$static
@@ -166,21 +180,6 @@ extend(MetaphorJs.lib.Scope.prototype, {
      */
     $un: function(event, fn, fnScope) {
         return this.$$observable.un(event, fn, fnScope);
-    },
-
-    /**
-     * Create a function out of an expression and bind it to the scope
-     * @method
-     * @param {string} expr 
-     * @param {object} opt See MetaphorJs.lib.Expression.parse
-     * @returns {function}
-     */
-    $parseExpression: function(expr, opt) {
-        var self = this,
-            func = MetaphorJs.lib.Expression.parse(expr, opt);
-        return function(inputVal) {
-            return func(self, inputVal);
-        }
     },
 
     /**
@@ -338,6 +337,32 @@ extend(MetaphorJs.lib.Scope.prototype, {
     },
 
     /**
+     * Register this scope as public
+     * @method
+     * @param {string} name 
+     */
+    $registerPublic: function(name) {
+        if (this.$$publicName || publicScopes[name]) {
+            return;
+        }
+        this.$$publicName = name;
+        publicScopes[name] = this;
+    },
+
+    /**
+     * Unregister public scope
+     * @method
+     */
+    $unregisterPublic: function() {
+        var name = this.$$publicName;
+        if (!name || !publicScopes[name]) {
+            return;
+        }
+        delete publicScopes[name];
+        this.$$publicName = null;
+    },
+
+    /**
      * Destroy scope
      * @method
      */
@@ -369,6 +394,8 @@ extend(MetaphorJs.lib.Scope.prototype, {
             self.$unwatchHistory(param);
         }
 
+        self.$unregisterPublic();
+
         for (i in self) {
             if (self.hasOwnProperty(i)) {
                 self[i] = null;
@@ -380,5 +407,57 @@ extend(MetaphorJs.lib.Scope.prototype, {
 
 }, true, false);
 
+/**
+ * Check if public scope exists
+ * @static
+ * @method $exists
+ * @param {string} name
+ * @returns MetaphorJs.lib.Scope
+ */
+Scope.$exists = function(name) {
+    return !!publicScopes[name];    
+};
 
-module.exports = MetaphorJs.lib.Scope;
+/**
+ * Get public scope
+ * @static
+ * @method $get
+ * @param {string} name
+ * @returns MetaphorJs.lib.Scope
+ */
+Scope.$get = function(name) {
+    return publicScopes[name];
+};
+
+/**
+ * Produce a scope either by getting a public scope,
+ * or creating a child of public scope or
+ * creating a new scope
+ * @static
+ * @method
+ * @param {string|MetaphorJs.lib.Scope} name {
+ *  @optional
+ * }
+ * @returns MetaphorJs.lib.Scope
+ */
+Scope.$produce = function(name) {
+
+    if (name instanceof Scope) {
+        return name;
+    }
+
+    if (!name) {
+        return new Scope;
+    }
+    var scope = this.$get(name);
+
+    if (scope) {
+        return scope;
+    }
+
+    return new Scope;
+};
+
+return Scope;
+
+}());
