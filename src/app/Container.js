@@ -38,6 +38,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         var self = this,
             i, l, node, renderer,
             found = false,
+            idkey = self._getIdKey(),
             renderRef, attrSet,
             foundCmp, foundPromise,
             scope = self.config.getOption("scope"),
@@ -66,8 +67,17 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
         for (i = 0, l = nodes.length; i < l; i++) {
             node = nodes[i];
+
+            if (!node) {
+                continue;
+            }
+
             def = null;
             if (node.nodeType === 1) {
+
+                if (node[idkey]) {
+                    continue;
+                }
 
                 foundCmp = null;
                 foundPromise = null;
@@ -88,10 +98,12 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                         component: foundCmp || foundPromise,
                         resolved: !!foundCmp
                     }, self._createDefaultItemDef());
+
+                    node[idkey] = def.id;
                 }
                 else {
                     attrSet = MetaphorJs.dom.getAttrSet(node);
-                    renderRef = attrSet.at || "body";
+                    renderRef = attrSet.at || attrSet.rest.slot || "body";
                     def = extend({
                         type: "node",
                         renderRef: renderRef,

@@ -3,8 +3,13 @@
 require("metaphorjs/src/app/Component.js");
 require("metaphorjs/src/app/Container.js");
 require("metaphorjs/src/web-component/wrapper.js");
+require("metaphorjs/src/lib/Scope.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+
+var rootScope = new MetaphorJs.lib.Scope;
+rootScope.$registerPublic("root");
+rootScope.text = "Hello world!";
 
 MetaphorJs.MyComponent = MetaphorJs.app.Container.$extend({
     template: "my-component-tpl",

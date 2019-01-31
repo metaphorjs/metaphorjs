@@ -1,6 +1,7 @@
 
 require("../../func/app/resolve.js");
 require("../../lib/Config.js");
+require("../../lib/Scope.js");
 
 var Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
@@ -8,25 +9,39 @@ var Directive = require("../../app/Directive.js"),
 
 (function(){
 
-    var cmpAttr = function(scope, node, config, parentRenderer, attrSet) { 
+    var cmpAttr = function(scope, node, config, parentRenderer, attrSet) {
+        
+        var ms = MetaphorJs.lib.Config.MODE_STATIC;
 
-        config.setDefaultMode("value", MetaphorJs.lib.Config.MODE_STATIC);
-        config.setType("sameScope", "bool", MetaphorJs.lib.Config.MODE_STATIC);
-        config.setDefaultMode("as", MetaphorJs.lib.Config.MODE_STATIC);
-        config.setDefaultMode("ref", MetaphorJs.lib.Config.MODE_STATIC);
-        config.setMode("into", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setDefaultMode("value", ms);
+        config.setType("sameScope", "bool", ms);
+        config.setType("publicScope", "string", ms);
+        config.setDefaultMode("as", ms);
+        config.setDefaultMode("ref", ms);
+        config.setMode("into", ms);
 
         var cmpName = config.get("value"),
             constr  = typeof cmpName === "string" ?
                         ns.get(cmpName, true) : cmpName,
-            tag     = node.tagName.toLowerCase();
+            tag     = node.tagName.toLowerCase(),
+            newScope;
 
         if (!constr) {
             throw new Error("Component " + cmpName + " not found");
         }
 
         var sameScope   = config.get("sameScope") || constr.$sameScope;
-        var newScope    = sameScope ? scope : scope.$new();
+        var publicScope = config.get("publicScope");
+
+        if (publicScope) {
+            newScope    =  MetaphorJs.lib.Scope.$get(publicScope);
+            if (!newScope) {
+                throw new Error("Public scope " + publicScope + " not found");
+            }
+        }
+        else {
+            newScope    = sameScope ? scope : scope.$new();
+        }
 
         config.removeProperty("value");
 
@@ -57,6 +72,7 @@ var Directive = require("../../app/Directive.js"),
                     cfg, attrSet
                 );
             });
+
         parentRenderer.trigger(
             "reference-promise", 
             res, cmpName, 

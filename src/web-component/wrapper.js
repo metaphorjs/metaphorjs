@@ -3,8 +3,8 @@ require("../app/Renderer.js");
 require("../lib/Scope.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
-    async = require("metaphorjs-shared/src/func/async.js"),
-    getAttrSet = require("../func/dom/getAttrSet.js");
+    getAttrSet = require("../func/dom/getAttrSet.js"),
+    toArray = require("metaphorjs-shared/src/func/toArray.js");
 
 module.exports = MetaphorJs.dom.webComponentWrapper = function(tagName, cls, parentCls, props) {
 
@@ -13,32 +13,43 @@ module.exports = MetaphorJs.dom.webComponentWrapper = function(tagName, cls, par
     var webCls = class extends parentCls {
 
         constructor() {
-
             super();
 
-            var scope = new MetaphorJs.lib.Scope,
-                attrSet = getAttrSet(this),
-                config = new MetaphorJs.lib.Config(
-                    attrSet.config,
-                    {
-                        scope: scope
-                    }
+            this._domeReadyDelegate = this._onDocumentReady.bind(this);
+        }
+
+        static get observedAttributes() { 
+            return cls.observedAttributes || []; 
+        }
+
+        _initComponent() {
+
+            if (!this.cmp) {
+
+                var scope = MetaphorJs.lib.Scope.$produce(this.getAttribute("scope")),
+                    attrSet = getAttrSet(this),
+                    config = new MetaphorJs.lib.Config(
+                        attrSet.config,
+                        {
+                            scope: scope
+                        }
+                    );
+
+                this.cmp = new cls({
+                    scope: scope,
+                    config: config,
+                    node: this,
+                    isWebComponent: true,
+                    keepCustomNode: true,
+                    autoRender: true,
+                    directives: this._simplifyDirectives(attrSet.directive)
+                });
+
+                window.document.addEventListener(
+                    "DOMContentLoaded",
+                    this._domeReadyDelegate
                 );
-
-            this.cmp = new cls({
-                scope: scope,
-                config: config,
-                node: this,
-                isWebComponent: true,
-                keepCustomNode: true,
-                autoRender: true,
-                directives: this._simplifyDirectives(attrSet.directive)
-            });
-
-            var self = this;
-            document.addEventListener("DOMContentLoaded", function(){
-                self.cmp._prepareDeclaredItems(toArray(self.childNodes));
-            });
+            }
         }
 
         _simplifyDirectives(ds) {
@@ -52,22 +63,36 @@ module.exports = MetaphorJs.dom.webComponentWrapper = function(tagName, cls, par
             return directives;
         }
 
+        _callCmpEvent(event, args) {
+            if (this.cmp) {
+                args.unshift(event);
+                this.cmp.trigger.apply(this.cmp, args);
+            }
+        }
+
+        _onDocumentReady() {
+            if (this.cmp && this.cmp._prepareDeclaredItems) {
+                // run this once again
+                this.cmp._prepareDeclaredItems(this.childNodes);
+            }
+        }
+
         connectedCallback() {
-            this.cmp.trigger("webc-connected");
+            this._initComponent();
+            this._callCmpEvent("webc-connected", toArray(arguments));
         }
 
         disconnectedCallback() {
-            this.cmp.trigger("webc-disconnected");
+            this._callCmpEvent("webc-disconnected", toArray(arguments));
         }
 
         adoptedCallback() {
-            this.cmp.trigger("webc-adopted");
+            this._callCmpEvent("webc-adopted", toArray(arguments));
         }
 
         attributeChangedCallback() {
-            this.cmp.trigger("webc-attribute-changed");
+            this._callCmpEvent("webc-attribute-changed", toArray(arguments));
         }
-
     }
 
     webCls.MetaphorJsComponent = cls;
