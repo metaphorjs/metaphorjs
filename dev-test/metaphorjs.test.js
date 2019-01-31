@@ -1318,16 +1318,6 @@ Observable.$initHost = function(host, hostCfg, observable)  {
 return Observable;
 }());
 
-/**
- * Check if given value is a string
- * @function isString
- * @param {*} value 
- * @returns {boolean}
- */
-function isString(value) {
-    return typeof value === "string" || value === ""+value;
-};
-
 
 
 /**
@@ -1338,6 +1328,181 @@ function isString(value) {
  */
 function isArray(value) {
     return typeof value === "object" && _varType(value) === 5;
+};
+
+/**
+ * Bind function to context (Function.bind wrapper)
+ * @function bind
+ * @param {function} fn
+ * @param {*} context
+ * @returns {function}
+ */
+function bind(fn, context){
+    return fn.bind(context);
+};
+
+
+
+/**
+ * Check if given value is a Date object
+ * @function isDate
+ * @param {*} value
+ * @returns {boolean} 
+ */
+function isDate(value) {
+    return _varType(value) === 10;
+};
+
+
+
+/**
+ * Check if given value is regular expression
+ * @function isRegExp
+ * @param {*} value 
+ * @returns {boolean}
+ */
+function isRegExp(value) {
+    return _varType(value) === 9;
+};
+
+/**
+ * Check if given object is a window object
+ * @function isWindow
+ * @param {*} obj 
+ * @returns {boolean}
+ */
+function isWindow(obj) {
+    if (typeof window === "undefined") {
+        return false;
+    }
+    return obj === window ||
+           (obj && obj.document && obj.location && 
+            obj.alert && obj.setInterval);
+};
+
+
+
+// from Angular
+
+/**
+ * Performs various checks comparing two arguments. 
+ * Compared items can be of any type including
+ * objects and arrays.
+ * @function equals
+ * @param {*} o1 
+ * @param {*} o2 
+ * @returns {boolean}
+ */
+function equals(o1, o2) {
+    if (o1 === o2) return true;
+    if (o1 === null || o2 === null) return false;
+    if (o1 !== o1 && o2 !== o2) return true; // NaN === NaN
+    var t1 = typeof o1, t2 = typeof o2, length, key, keySet;
+    if (t1 === t2) {
+        if (t1 === 'object') {
+            if (isArray(o1)) {
+                if (!isArray(o2)) return false;
+                if ((length = o1.length) === o2.length) {
+                    for(key=0; key<length; key++) {
+                        if (!equals(o1[key], o2[key])) return false;
+                    }
+                    return true;
+                }
+            } else if (isDate(o1)) {
+                return isDate(o2) && o1.getTime() === o2.getTime();
+            } else if (isRegExp(o1) && isRegExp(o2)) {
+                return o1.toString() === o2.toString();
+            } else {
+                if (isWindow(o1) || isWindow(o2) || isArray(o2)) return false;
+                keySet = {};
+                for(key in o1) {
+                    if (key.charAt(0) === '$' || isFunction(o1[key])) {//&& typeof o1[key] == "object") {
+                        continue;
+                    }
+                    //if (isFunction(o1[key])) {
+                    //    continue;
+                    //}
+                    if (!equals(o1[key], o2[key])) {
+                        return false;
+                    }
+                    keySet[key] = true;
+                }
+                for(key in o2) {
+                    if (!keySet.hasOwnProperty(key) &&
+                        key.charAt(0) !== '$' &&
+                        o2[key] !== undf &&
+                        !isFunction(o2[key])) return false;
+                }
+                return true;
+            }
+        }
+    }
+    return false;
+};
+
+
+
+
+function copy(source, dest){
+
+    if (typeof window != strUndef && source === window) {
+        throw new Error("Cannot copy window object");
+    }
+    else if (typeof global != strUndef && source === global) {
+        throw new Error("Cannot copy global object");
+    }
+
+    if (!dest) {
+        dest = source;
+        if (source) {
+            if (isArray(source)) {
+                dest = copy(source, []);
+            } else if (isDate(source)) {
+                dest = new Date(source.getTime());
+            } else if (isRegExp(source)) {
+                dest = new RegExp(source.source);
+            } else if (isPlainObject(source)) {
+                dest = copy(source, {});
+            }
+        }
+    } else {
+        if (source === dest) {
+            throw new Error("Objects are identical");
+        }
+        if (isArray(source)) {
+            dest.length = 0;
+            for ( var i = 0, l = source.length; i < l; i++) {
+                dest.push(copy(source[i]));
+            }
+        } else {
+            var key;
+            for (key in dest) {
+                delete dest[key];
+            }
+            for (key in source) {
+                if (source.hasOwnProperty(key)) {
+                    if (key.charAt(0) == '$' || isFunction(source[key])) {
+                        dest[key] = source[key];
+                    }
+                    else {
+                        dest[key] = copy(source[key]);
+                    }
+                }
+            }
+        }
+    }
+    return dest;
+};
+
+
+/**
+ * Check if given value is a string
+ * @function isString
+ * @param {*} value 
+ * @returns {boolean}
+ */
+function isString(value) {
+    return typeof value === "string" || value === ""+value;
 };
 
 
@@ -2270,171 +2435,6 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
 }());
 
 
-/**
- * Bind function to context (Function.bind wrapper)
- * @function bind
- * @param {function} fn
- * @param {*} context
- * @returns {function}
- */
-function bind(fn, context){
-    return fn.bind(context);
-};
-
-
-
-/**
- * Check if given value is a Date object
- * @function isDate
- * @param {*} value
- * @returns {boolean} 
- */
-function isDate(value) {
-    return _varType(value) === 10;
-};
-
-
-
-/**
- * Check if given value is regular expression
- * @function isRegExp
- * @param {*} value 
- * @returns {boolean}
- */
-function isRegExp(value) {
-    return _varType(value) === 9;
-};
-
-/**
- * Check if given object is a window object
- * @function isWindow
- * @param {*} obj 
- * @returns {boolean}
- */
-function isWindow(obj) {
-    if (typeof window === "undefined") {
-        return false;
-    }
-    return obj === window ||
-           (obj && obj.document && obj.location && 
-            obj.alert && obj.setInterval);
-};
-
-
-
-// from Angular
-
-/**
- * Performs various checks comparing two arguments. 
- * Compared items can be of any type including
- * objects and arrays.
- * @function equals
- * @param {*} o1 
- * @param {*} o2 
- * @returns {boolean}
- */
-function equals(o1, o2) {
-    if (o1 === o2) return true;
-    if (o1 === null || o2 === null) return false;
-    if (o1 !== o1 && o2 !== o2) return true; // NaN === NaN
-    var t1 = typeof o1, t2 = typeof o2, length, key, keySet;
-    if (t1 === t2) {
-        if (t1 === 'object') {
-            if (isArray(o1)) {
-                if (!isArray(o2)) return false;
-                if ((length = o1.length) === o2.length) {
-                    for(key=0; key<length; key++) {
-                        if (!equals(o1[key], o2[key])) return false;
-                    }
-                    return true;
-                }
-            } else if (isDate(o1)) {
-                return isDate(o2) && o1.getTime() === o2.getTime();
-            } else if (isRegExp(o1) && isRegExp(o2)) {
-                return o1.toString() === o2.toString();
-            } else {
-                if (isWindow(o1) || isWindow(o2) || isArray(o2)) return false;
-                keySet = {};
-                for(key in o1) {
-                    if (key.charAt(0) === '$' || isFunction(o1[key])) {//&& typeof o1[key] == "object") {
-                        continue;
-                    }
-                    //if (isFunction(o1[key])) {
-                    //    continue;
-                    //}
-                    if (!equals(o1[key], o2[key])) {
-                        return false;
-                    }
-                    keySet[key] = true;
-                }
-                for(key in o2) {
-                    if (!keySet.hasOwnProperty(key) &&
-                        key.charAt(0) !== '$' &&
-                        o2[key] !== undf &&
-                        !isFunction(o2[key])) return false;
-                }
-                return true;
-            }
-        }
-    }
-    return false;
-};
-
-
-
-
-function copy(source, dest){
-
-    if (typeof window != strUndef && source === window) {
-        throw new Error("Cannot copy window object");
-    }
-    else if (typeof global != strUndef && source === global) {
-        throw new Error("Cannot copy global object");
-    }
-
-    if (!dest) {
-        dest = source;
-        if (source) {
-            if (isArray(source)) {
-                dest = copy(source, []);
-            } else if (isDate(source)) {
-                dest = new Date(source.getTime());
-            } else if (isRegExp(source)) {
-                dest = new RegExp(source.source);
-            } else if (isPlainObject(source)) {
-                dest = copy(source, {});
-            }
-        }
-    } else {
-        if (source === dest) {
-            throw new Error("Objects are identical");
-        }
-        if (isArray(source)) {
-            dest.length = 0;
-            for ( var i = 0, l = source.length; i < l; i++) {
-                dest.push(copy(source[i]));
-            }
-        } else {
-            var key;
-            for (key in dest) {
-                delete dest[key];
-            }
-            for (key in source) {
-                if (source.hasOwnProperty(key)) {
-                    if (key.charAt(0) == '$' || isFunction(source[key])) {
-                        dest[key] = source[key];
-                    }
-                    else {
-                        dest[key] = copy(source[key]);
-                    }
-                }
-            }
-        }
-    }
-    return dest;
-};
-
-
 
 
 
@@ -2873,15 +2873,21 @@ var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
 
 
 /**
- * The scope object is what templates see while rendering
+ * The scope object is what templates see as "this" when executing expressions.
+ * (Actually, this is more like a Context)
  * @class MetaphorJs.lib.Scope
  */
+var lib_Scope = MetaphorJs.lib.Scope = (function(){
+
+
+var publicScopes = {};
+
 /**
  * @method Scope
  * @constructor
  * @param {object} cfg Whatever data should be visible in template
  */
-MetaphorJs.lib.Scope = function(cfg) {
+var Scope = function(cfg) {
     var self    = this;
 
     self.$$observable    = new lib_Observable;
@@ -2916,9 +2922,16 @@ MetaphorJs.lib.Scope = function(cfg) {
         self.$root  = self;
         self.$isRoot= true;
     }
+
+    if (self.$$publicName) {
+        if (publicScopes[self.$$publicName]) {
+            self.$$publicName = null;
+        }
+        publicScopes[self.$$publicName] = self;
+    }
 };
 
-extend(MetaphorJs.lib.Scope.prototype, {
+extend(Scope.prototype, {
 
     /**
      * @property {MetaphorJs.app.App}
@@ -2953,6 +2966,7 @@ extend(MetaphorJs.lib.Scope.prototype, {
     $$checking: false,
     $$destroyed: false,
     $$changing: false,
+    $$publicName: null,
 
     $$tmt: null,
 
@@ -2964,7 +2978,7 @@ extend(MetaphorJs.lib.Scope.prototype, {
      */
     $new: function(data) {
         var self = this;
-        return new MetaphorJs.lib.Scope(extend({}, data, {
+        return new Scope(extend({}, data, {
             $parent: self,
             $root: self.$root,
             $app: self.$app,
@@ -2981,7 +2995,7 @@ extend(MetaphorJs.lib.Scope.prototype, {
      * @returns {MetaphorJs.lib.Scope}
      */
     $newIsolated: function(data) {
-        return new MetaphorJs.lib.Scope(extend({}, data, {
+        return new Scope(extend({}, data, {
             $app: this.$app,
             $level: self.$level + 1,
             $static: this.$static
@@ -3032,21 +3046,6 @@ extend(MetaphorJs.lib.Scope.prototype, {
      */
     $un: function(event, fn, fnScope) {
         return this.$$observable.un(event, fn, fnScope);
-    },
-
-    /**
-     * Create a function out of an expression and bind it to the scope
-     * @method
-     * @param {string} expr 
-     * @param {object} opt See lib_Expression.parse
-     * @returns {function}
-     */
-    $parseExpression: function(expr, opt) {
-        var self = this,
-            func = lib_Expression.parse(expr, opt);
-        return function(inputVal) {
-            return func(self, inputVal);
-        }
     },
 
     /**
@@ -3204,6 +3203,32 @@ extend(MetaphorJs.lib.Scope.prototype, {
     },
 
     /**
+     * Register this scope as public
+     * @method
+     * @param {string} name 
+     */
+    $registerPublic: function(name) {
+        if (this.$$publicName || publicScopes[name]) {
+            return;
+        }
+        this.$$publicName = name;
+        publicScopes[name] = this;
+    },
+
+    /**
+     * Unregister public scope
+     * @method
+     */
+    $unregisterPublic: function() {
+        var name = this.$$publicName;
+        if (!name || !publicScopes[name]) {
+            return;
+        }
+        delete publicScopes[name];
+        this.$$publicName = null;
+    },
+
+    /**
      * Destroy scope
      * @method
      */
@@ -3235,6 +3260,8 @@ extend(MetaphorJs.lib.Scope.prototype, {
             self.$unwatchHistory(param);
         }
 
+        self.$unregisterPublic();
+
         for (i in self) {
             if (self.hasOwnProperty(i)) {
                 self[i] = null;
@@ -3246,8 +3273,61 @@ extend(MetaphorJs.lib.Scope.prototype, {
 
 }, true, false);
 
+/**
+ * Check if public scope exists
+ * @static
+ * @method $exists
+ * @param {string} name
+ * @returns MetaphorJs.lib.Scope
+ */
+Scope.$exists = function(name) {
+    return !!publicScopes[name];    
+};
 
-var lib_Scope = MetaphorJs.lib.Scope;
+/**
+ * Get public scope
+ * @static
+ * @method $get
+ * @param {string} name
+ * @returns MetaphorJs.lib.Scope
+ */
+Scope.$get = function(name) {
+    return publicScopes[name];
+};
+
+/**
+ * Produce a scope either by getting a public scope,
+ * or creating a child of public scope or
+ * creating a new scope
+ * @static
+ * @method
+ * @param {string|MetaphorJs.lib.Scope} name {
+ *  @optional
+ * }
+ * @returns MetaphorJs.lib.Scope
+ */
+Scope.$produce = function(name) {
+
+    if (name instanceof Scope) {
+        return name;
+    }
+
+    if (!name) {
+        return new Scope;
+    }
+    var scope = this.$get(name);
+
+    if (scope) {
+        return scope;
+    }
+
+    return new Scope;
+};
+
+return Scope;
+
+}());
+
 
 
 
@@ -4775,7 +4855,7 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                     return !isArray(value) ? [value] : value;
                 case 'string':
                 case 'str':
-                    return "" + value;
+                    return value === null || value === undf ? "" : "" + value;
             }
 
             return value;
@@ -4838,31 +4918,40 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
          * @param {string} name 
          * @param {string} cfg 
          * @param {*} val 
+         * @param {bool} override {
+         *  @default true
+         * }
          */
-        setProperty: function(name, cfg, val) {
+        setProperty: function(name, cfg, val, override) {
 
             var self = this,
                 props = self.properties,
                 prop,
                 changed = false,
+                newProp = false,
                 value;
+
+            if (override === undf) {
+                override = true;
+            }
 
             if (!props[name]) {
                 props[name] = {};
                 self.keys.push(name);
                 changed = true;
+                newProp = true;
             }
 
             prop = props[name];
 
-            if (val === undf) {
+            if (val === undf || val === null) {
                 var k;
                 for (k in cfg) {
                     if (k === "value") {
                         value = cfg[k];
                         continue;
                     }
-                    if (cfg[k] !== prop[k]) {
+                    if (cfg[k] !== prop[k] && override) {
                         changed = true;
                         prop[k] = cfg[k];
                     }
@@ -4872,7 +4961,7 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                 if (cfg === "value") {
                     value = val;
                 }
-                else if (val !== prop[cfg]) {
+                else if (val !== prop[cfg] && override) {
                     changed = true;
                     prop[cfg] = val;
                 }
@@ -4883,7 +4972,8 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                     prop.mode = prop.defaultMode;
                     changed = true;
                 }
-                else if (prop.expression === true) {
+                else if (prop.expression === true || 
+                        prop.expression === false) {
                     prop.mode = MODE_STATIC;
                     changed = true;
                 }
@@ -4891,6 +4981,13 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                     prop.mode = self.cfg.defaultMode;
                     changed = true;
                 }
+                else if (newProp && value !== undf && value !== null) {
+                    prop.mode = MODE_STATIC;
+                }
+            }
+
+            if (!prop.scope) {
+                prop.scope = self.cfg.scope;
             }
 
             if (prop.mode === MODE_DYNAMIC && 
@@ -4901,10 +4998,11 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                 changed = true;
             }
 
-            if (value !== undf) {
+            if (value !== undf && value !== null) {
                 self.values[name] = value;
             }
-            else if (changed && self.values[name] !== undf) {
+            else if (changed && self.values[name] !== undf && 
+                    prop.mode !== MODE_STATIC) {
                 delete self.values[name];
             }
 
@@ -5083,9 +5181,14 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
          * @method
          * @param {string} name 
          * @param {int} mode 
+         * @param {string|*} expression
          */
-        setMode: function(name, mode) {
-            this.setProperty(name, "mode", mode);
+        setMode: function(name, mode, expression) {
+            var prop = {mode: mode};
+            if (expression !== undf) {
+                prop.expression = expression;
+            }
+            this.setProperty(name, prop);
         },
 
         /**
@@ -5133,11 +5236,44 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
         },
 
         /**
+         * Transform property to dynamic mode if it is static
+         * @param {string} name 
+         * @param {string} expression 
+         * @param {object|null} scope {
+         *  @optional
+         * }
+         */
+        makeLocalDynamic: function(name, expression, scope) {
+            var self = this,
+                prop, val;
+            scope = scope || self.cfg.scope;
+            if (prop = self.properties[name]) {
+                if (!prop.mode || prop.mode === MODE_STATIC || prop.mode === MODE_SINGLE) {
+                    val = self.get(name);
+                    self.setProperty(name, {
+                        expression: expression,
+                        mode: MODE_DYNAMIC,
+                        scope: scope
+                    });
+                    self.values[name] = val;
+                    self.set(name, val);
+                }
+            }
+            else {
+                self.setProperty(name, {
+                    expression: expression,
+                    mode: MODE_DYNAMIC,
+                    scope: scope
+                });
+            }
+        },
+
+        /**
          * Force property to static mode with given value
          * @param {string} name 
          * @param {*} val 
          */
-        set: function(name, val) {
+        setStatic: function(name, val) {
             var self = this;
             if (self.properties[name]) {
                 var prev = self.values[val];
@@ -5146,6 +5282,40 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                 if (prev != val) {
                     $$observable.trigger(self.id, name, val, prev);
                     $$observable.trigger(self.id +'-'+ name, val, prev) ;
+                }
+            }
+        },
+
+        /**
+         * Try to set value based on property mode
+         * @param {string} name 
+         * @param {*} val 
+         */
+        set: function(name, val) {
+            var self = this,
+                prop;
+            if (prop = self.properties[name]) {
+                switch (prop.mode) {
+                    case MODE_DYNAMIC: {
+                        !prop.mo && self._initMo(name);
+                        prop.mo.setValue(val);
+                        break;
+                    }
+                    case MODE_GETTER:
+                    case MODE_FUNC:
+                    case MODE_SETTER:
+                    case MODE_FNSET: {
+                        throw new Error("Incompatible property mode");
+                    }
+                    case MODE_SINGLE:
+                    case MODE_STATIC: {
+                        self.setStatic(name, val);
+                        break;
+                    }
+                    default: {
+                        self.setStatic(name, val);
+                        break;
+                    }
                 }
             }
         },
@@ -7400,6 +7570,17 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                     name,
                     res,
                     handler;
+                
+                // skip <slot> but reference it same way as ##ref
+                if (tag === "slot") {
+                    observer.trigger(
+                        "reference-" + self.id, 
+                        "node",
+                        node.getAttribute("name"),
+                        node
+                    );
+                    return;
+                }
 
                 if (tag.substr(0, 4) === "mjs-") {
                     tag = tag.substr(4);
@@ -8443,6 +8624,7 @@ var app_App = MetaphorJs.app.App = cls({
         self.scope          = scope;
         self.cmpListeners   = {};
         self.components     = {};
+        self.$refs          = {node: {}, cmp: {}};
 
         self.factory('$parentCmp', ['$node', self.getParentCmp], self);
         self.value('$app', self);
@@ -8452,6 +8634,7 @@ var app_App = MetaphorJs.app.App = cls({
 
         self.renderer       = new app_Renderer(node, scope);
         self.renderer.on("rendered", self.afterRender, self);
+        self.renderer.on("reference", self._onChildReference, self);
 
         args = toArray(arguments);
         args[1] = scope;
@@ -8462,6 +8645,14 @@ var app_App = MetaphorJs.app.App = cls({
 
     afterRender: function() {
 
+    },
+
+    _onChildReference: function(type, ref, item) {
+        var self = this;
+        if (!self.$refs[type]) {
+            self.$refs[type] = {};
+        }
+        self.$refs[type][ref] = item;
     },
 
     /**
@@ -8536,6 +8727,15 @@ var app_App = MetaphorJs.app.App = cls({
         }
 
         return null;
+    },
+
+    /**
+     * Get referenced node from top level
+     * @param {string} name 
+     * @returns Node|null
+     */
+    getRefEl: function(name) {
+        return this.$refs['node'][name];
     },
 
     /**
@@ -12133,9 +12333,8 @@ var app_Template = MetaphorJs.app.Template = function() {
             autoTrigger: true
         });
 
-        if (!self.scope) {
-            self.scope = new lib_Scope;
-        }
+        self.scope = lib_Scope.$produce(self.scope);
+
         if (!self.config) {
             self.config = new lib_Config(null, {
                 scope: self.scope
@@ -12171,7 +12370,7 @@ var app_Template = MetaphorJs.app.Template = function() {
         }
 
         if ((config.has("name") || config.has("html")) && 
-            node && node.firstChild) {
+            node && node.firstChild && !self.useShadow) {
             dom_data(node, "mjs-transclude", 
                 dom_toFragment(node.childNodes));
         }
@@ -12182,6 +12381,10 @@ var app_Template = MetaphorJs.app.Template = function() {
 
         if (self.ownRenderer) {
             self.childrenPromise.resolve(false);
+        }
+
+        if (self.useShadow && !self.deferRendering) {
+            self._createShadow();
         }
 
         if (config.has("name")) {
@@ -12225,7 +12428,10 @@ var app_Template = MetaphorJs.app.Template = function() {
         _fragment:          null,
         _prevEl:            null,
         _nextEl:            null,
+        _shadowRoot:        null,
+        _shadowParent:      null,
 
+        useShadow:          false,
         scope:              null,
         node:               null,
         config:             null,
@@ -12237,11 +12443,22 @@ var app_Template = MetaphorJs.app.Template = function() {
         replace:            false,
         animate:            false,
 
+        _createShadow: function() {
+            if (!this._shadowRoot) {
+                this._shadowParent = this.node;
+                this._shadowRoot = this.node.shadowRoot || 
+                                    this.node.attachShadow({mode: "open"});
+                this.node = this._shadowRoot;
+            }
+
+        },
+
         _runRenderer: function() {
             var self = this;
             if (!self._renderer) {
                 self._renderer   = new app_Renderer(
-                    self.node, self.scope
+                    self.node, 
+                    self.scope
                 );
                 observable.relayEvent(self._renderer, "reference", "reference-" + self.id);
                 observable.relayEvent(self._renderer, "first-node", "first-node-" + self.id);
@@ -12281,10 +12498,15 @@ var app_Template = MetaphorJs.app.Template = function() {
                         parent.insertBefore(el[j], before);
                     }
                 else {
-                    if (el.parentNode !== parent) {
-                        moved = true;
+                    if (parent instanceof window.HTMLSlotElement) {
+                        el.setAttribute("slot", parent.getAttribute("name"));
                     }
-                    parent.insertBefore(el, before);
+                    else {
+                        if (el.parentNode !== parent) {
+                            moved = true;
+                        }
+                        parent.insertBefore(el, before);
+                    }
                 } 
             }
 
@@ -12294,9 +12516,12 @@ var app_Template = MetaphorJs.app.Template = function() {
         startRendering: function() {
 
             var self    = this;
-            if (self.deferRendering && 
-                (self.node || self.node === false)) {
+            if (self.deferRendering) {
                 self.deferRendering = false;
+
+                if (self.useShadow) {
+                    self._createShadow();
+                }
 
                 if (self.config.has("name")) {
                     self._resolveTemplate().done(self._applyTemplate, self);
@@ -12365,9 +12590,7 @@ var app_Template = MetaphorJs.app.Template = function() {
                 return;
             }
 
-            //self._clearNode();
             self._resolveHtml();
-            
         },
 
         _onChange: function() {
@@ -12378,8 +12601,6 @@ var app_Template = MetaphorJs.app.Template = function() {
                 self._renderer.$destroy();
                 self._renderer = null;
             }
-
-            //self._clearNode();
 
             var tplVal = self.config.get("name");
 
@@ -12426,17 +12647,6 @@ var app_Template = MetaphorJs.app.Template = function() {
                 children = toArray(frg.childNodes);
 
                 if (el && el.nodeType) {
-                    
-                    /*var transclude = el ? dom_data(el, "mjs-transclude") : null;
-
-                    if (transclude) {
-                        var tr = select(
-                            "[{transclude}], [mjs-transclude], mjs-transclude", frg, true);
-                        if (tr.length) {
-                            dom_data(tr[0], "mjs-transclude", transclude);
-                        }
-                    }*/
-
                     el.parentNode && el.parentNode.removeChild(el);
                 }
 
@@ -12530,10 +12740,10 @@ var app_Template = MetaphorJs.app.Template = function() {
             });
         }
         else if (def) {
-            if (def.name || def.nameExpression) {
+            if (def.name || def.nameExpression || def.expression) {
                 tplConfig.setProperty("name", {
-                    expression: def.name || def.nameExpression,
-                    mode: def.nameExpression ? 
+                    expression: def.name || def.nameExpression || def.expression,
+                    mode: def.nameExpression || def.expression ? 
                         lib_Config.MODE_DYNAMIC :
                         lib_Config.MODE_STATIC
                 });
@@ -12693,6 +12903,7 @@ var htmlTags = MetaphorJs.dom.htmlTags = [
 
 
 
+
 /**
  * @class MetaphorJs.app.Component
  */
@@ -12718,6 +12929,12 @@ var app_Component = MetaphorJs.app.Component = cls({
      * @access protected
      */
     node:           null,
+
+    /**
+     * @var boolean
+     * @access protected
+     */
+    keepCustomNode: false,
 
     /**
      * @var boolean
@@ -12764,9 +12981,10 @@ var app_Component = MetaphorJs.app.Component = cls({
     template:       null,
 
     /**
-     * @var {object|bool}
+     * @var bool
+     * @access private
      */
-    supportsDirectives: false,
+    isWebComponent: false,
 
     $constructor: function(cfg) {
         var self = this,
@@ -12795,25 +13013,20 @@ var app_Component = MetaphorJs.app.Component = cls({
         self.$super(cfg);
         extend(self, cfg, true, false);
 
-        if (!self.scope) {
-            self.scope = new lib_Scope;
-        }
-        if (!self.config) {
-            self.config = new lib_Config(null, {
-                scope: self.parentScope || self.scope
+        self.scope = lib_Scope.$produce(self.scope);
+
+        // We initialize config with current scope or change config's scope
+        // to current so that all new properties that come from _initConfig
+        // are bound to local scope. 
+        // All pre-existing properties are already bound to outer scope;
+        // Also, each property configuration can have its scope specified
+        if (!self.config || !(self.config instanceof lib_Config)) {
+            self.config = new lib_Config(self.config, {
+                scope: self.scope
             });
         }
-        else if (!(self.config instanceof lib_Config)) {
-            var cfgScope = self.config.scope;
-            if (cfgScope) {
-                delete self.config.scope;
-            }
-            self.config = new lib_Config(
-                self.config, 
-                {
-                    scope: cfgScope || self.parentScope || self.scope
-                }
-            );
+        else {
+            self.config.setOption("scope", self.scope);
         }
 
         self.$refs = {node: {}, cmp: {}};
@@ -12841,7 +13054,7 @@ var app_Component = MetaphorJs.app.Component = cls({
 
         self.id = self.id || "cmp-" + nextUid();
 
-        if (!self.node && self.node !== false) {
+        if (!self.node && self.config.has("tag")) {
             self.node = window.document.createElement(self.config.get("tag"));
         }
 
@@ -12856,7 +13069,7 @@ var app_Component = MetaphorJs.app.Component = cls({
             self.parentRenderer.on("destroy", self._onParentRendererDestroy, self);
         }
 
-        if (self.node) {
+        if (self.node && !self.isWebComponent) {
             self._claimNode();
         }
 
@@ -12869,7 +13082,10 @@ var app_Component = MetaphorJs.app.Component = cls({
             tpl = self.template;
 
         if (self.node) {
-            self._nodeReplaced = htmlTags.indexOf(self.node.tagName.toLowerCase()) === -1;
+            self._nodeReplaced = !self.keepCustomNode && 
+                                    htmlTags.indexOf(
+                                        self.node.tagName.toLowerCase()
+                                    ) === -1;
         }
 
         if (tpl instanceof app_Template) {
@@ -12891,6 +13107,7 @@ var app_Component = MetaphorJs.app.Component = cls({
                 node: self.node,
                 deferRendering: self._nodeReplaced || !self.autoRender,
                 ownRenderer: true,
+                useShadow: self.isWebComponent,
                 replace: self._nodeReplaced, // <some-custom-tag>
                 config: tplConfig,
                 callback: {
@@ -12915,7 +13132,6 @@ var app_Component = MetaphorJs.app.Component = cls({
             ctx;
 
         config.setDefaultMode("tag", lib_Config.MODE_STATIC);
-        config.setDefaultValue("tag", "div");
         config.setDefaultMode("as", lib_Config.MODE_STATIC);
 
         if (self.as) {
@@ -12940,19 +13156,88 @@ var app_Component = MetaphorJs.app.Component = cls({
         });
     },
 
+    hasDirective: function(name) {
+        return this.directives && !!this.directives[name];
+    },
+
+    applyDirective: function(name, cfg) {
+        var self = this,
+            support = self.$self.supportsDirectives,
+            dir;
+
+        if (!support) {
+            return;
+        }
+        if (support !== true && !support[name]) {
+            return;
+        }
+
+        if (self._rendered) {
+            dir = Directive.getDirective("attr", name);
+            if (dir) {
+                app_Renderer.applyDirective(
+                    dir.handler, 
+                    self._getDirectiveScope(), 
+                    self, 
+                    self._prepareDirectiveCfg(dirCfg)
+                );
+            }
+            else {
+                throw new Error("Directive " + name + " not found");
+            }
+        }
+        else {
+            if (!self.directives) {
+                self.directives = {};
+            }
+            if (!self.directives[name]) {
+                self.directives[name] = cfg;
+            }
+        }
+    },
+
+    _getDirectiveScope: function() {
+        var self = this,
+            dirs = self.directives || {};
+        return  dirs.scope ||
+                self.parentScope ||
+                self.scope.$parent || 
+                self.config.getOption("scope") ||
+                self.scope;
+    },
+
+    _prepareDirectiveCfg: function(cfg) {
+
+        if (cfg instanceof lib_Config) {
+            return cfg;
+        }
+
+        var self = this,
+            config;
+
+        if (typeof cfg === "string") {
+            cfg = {
+                value: {
+                    value: cfg
+                }
+            }
+        }
+
+        config = new lib_Config(
+            cfg, 
+            {scope: self._getDirectiveScope()}
+        );
+        self.on("destroy", config.$destroy, config);
+        return config;
+    },
+
     _initDirectives: function() {
         var self = this,
             dirs = self.directives,
-            support = self.supportsDirectives,
+            support = self.$self.supportsDirectives,
             dirCfg,
-            config,
             handlers = Directive.getAttributes(),
-            i, len, name,
-            parentScope =   dirs.scope ||
-                            self.parentScope ||
-                            self.scope.$parent || 
-                            self.config.getOption("scope") ||
-                            self.scope;
+            i, len, name;
 
         if (!support) {
             return;
@@ -12970,18 +13255,11 @@ var app_Component = MetaphorJs.app.Component = cls({
             }
 
             if ((dirCfg = dirs[name]) !== undf) {
-                if (typeof dirCfg === "string") {
-                    dirCfg = {
-                        value: dirCfg
-                    }
-                }
-                config = new lib_Config(
-                    dirCfg, 
-                    {scope: parentScope}
-                );
-                self.on("destroy", config.$destroy, config);
                 app_Renderer.applyDirective(
-                    handlers[i].handler, parentScope, self, config
+                    handlers[i].handler, 
+                    self._getDirectiveScope(), 
+                    self, 
+                    self._prepareDirectiveCfg(dirCfg)
                 );
             }
         }
@@ -13004,7 +13282,15 @@ var app_Component = MetaphorJs.app.Component = cls({
         if (!self.$refs[type]) {
             self.$refs[type] = {};
         }
-        self.$refs[type][ref] = item;
+
+        var th = self.$refs[type][ref];
+
+        if (!th) {
+            self.$refs[type][ref] = item;
+        }
+        if (isThenable(th)) {
+            th.resolve(item);
+        }
     },
 
     _claimNode: function(node) {
@@ -13065,6 +13351,11 @@ var app_Component = MetaphorJs.app.Component = cls({
 
         var self = this;
 
+        if (parent && parent.nodeType === 8) {
+            before = parent;
+            parent = parent.parentNode;
+        }
+
         if (self._rendered) {
             parent && self.attach(parent, before);
             return;
@@ -13078,7 +13369,6 @@ var app_Component = MetaphorJs.app.Component = cls({
         self.trigger('render', self);
 
         if (self.template) {
-            
             self.template.startRendering();
         }
     },
@@ -13103,7 +13393,6 @@ var app_Component = MetaphorJs.app.Component = cls({
         self.renderTo = parent;
         self.renderBefore = before;
 
-        
         if (self.template.moveTo(parent, before)) {
             self.afterAttached();
             self.trigger('attached', self);
@@ -13121,6 +13410,23 @@ var app_Component = MetaphorJs.app.Component = cls({
 
     getRefEl: function(name) {
         return this.$refs['node'][name];
+    },
+
+    getRefCmp: function(name) {
+        return this.$refs['cmp'][name];
+    },
+
+    getRefCmpPromise: function(name) {
+        var cmp = this.$refs['cmp'][name];
+        if (!cmp) {
+            return this.$refs['cmp'][name] = new lib_Promise;
+        }
+        else if (isThenable(cmp)) {
+            return cmp;
+        }
+        else {
+            return lib_Promise.resolve(cmp);
+        }
     },
 
     onBeforeRender: function() {
@@ -13210,7 +13516,7 @@ var app_Component = MetaphorJs.app.Component = cls({
      * @param {string} directive 
      */
     getDomApi: function(directive) {
-        var sup = this.supportsDirectives;
+        var sup = this.$self.supportsDirectives;
         if (!sup) {
             return null;
         }
@@ -13295,6 +13601,13 @@ var app_Component = MetaphorJs.app.Component = cls({
     }
 
 }, {
+
+    registerWebComponent: function(tagName) {
+        var cls = this;
+        Directive.registerComponent(tagName, cls);
+        return MetaphorJs.dom.webComponentWrapper(tagName, cls);
+    },
+
     registerDirective: function(cmp) {
         if (typeof(cmp) === "string") {
             Directive.registerComponent(cmp);
@@ -13302,6 +13615,43 @@ var app_Component = MetaphorJs.app.Component = cls({
         else {
             Directive.registerComponent(cmp.prototype.$class, cmp);
         }
+    },
+
+
+    /**
+     * @static
+     * @var {object|bool}
+     */
+    supportsDirectives: false,
+
+    configProps: [],
+
+    createFromPlainObject: function(obj) {
+
+        if (obj instanceof this) {
+            return obj;
+        }
+
+        if (!obj.config) {
+            var config = {},
+                props = this.configProps,
+                i, l, name;
+
+            obj.config = config;
+
+            for (i = 0, l = props.length; i < l; i++) {
+                name = props[i];
+                if (obj[name]) {
+                    if (isPrimitive(obj[name])) {
+                        config[name] = {defaultValue: obj[name]};    
+                    }
+                    else config[name] = obj[name];
+                    delete obj[name];
+                }
+            }
+        }
+
+        return new this(obj);
     }
 });
 
@@ -13491,11 +13841,49 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
 
 
 
+/**
+ * Check if given element matches selector
+ * @function MetaphorJs.dom.is
+ * @param {Element} el
+ * @param {string} selector
+ * @returns {boolean}
+ */
+var dom_is = MetaphorJs.dom.is = function(el, selector) {
+
+    if (!selector) {
+        return false;
+    }
+
+    if (typeof selector === "function") {
+        return el instanceof selector;
+    }
+
+    var els = select(selector, el.parentNode),
+        i, l;
+
+    for (i = -1, l = els.length; ++i < l;) {
+        if (els[i] === el) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
+
+
+
+
+
+
 
 
 
 
 MetaphorJs.app.Container = app_Component.$extend({
+
+    $mixinEvents: ["$initChildItem"],
+    _itemsInitialized: false,
 
     initComponent: function() {
         var self = this;
@@ -13514,11 +13902,13 @@ MetaphorJs.app.Container = app_Component.$extend({
         var self = this,
             i, l, node, renderer,
             found = false,
+            idkey = self._getIdKey(),
             renderRef, attrSet,
             foundCmp, foundPromise,
             scope = self.config.getOption("scope"),
             items = self.items || [],
-            
+            def,
+
             refCallback = function(type, ref, cmp, cfg, attrSet){
                 if (cfg.node === node) {
                     foundCmp = cmp;
@@ -13533,7 +13923,7 @@ MetaphorJs.app.Container = app_Component.$extend({
                 }
             };
 
-        if (isArray(items)) {
+        if (!self._itemsInitialized && isArray(items)) {
             items = {
                 body: items
             }
@@ -13541,7 +13931,17 @@ MetaphorJs.app.Container = app_Component.$extend({
 
         for (i = 0, l = nodes.length; i < l; i++) {
             node = nodes[i];
+
+            if (!node) {
+                continue;
+            }
+
+            def = null;
             if (node.nodeType === 1) {
+
+                if (node[idkey]) {
+                    continue;
+                }
 
                 foundCmp = null;
                 foundPromise = null;
@@ -13555,40 +13955,42 @@ MetaphorJs.app.Container = app_Component.$extend({
                     if (!renderRef) {
                         renderRef = "body";
                     }
-                    if (!items[renderRef]) {
-                        items[renderRef] = [];
-                    }
-                    items[renderRef].push({
-                        __containerItemDef: true,
+                    def = extend({
                         type: "component",
                         renderRef: renderRef,
                         renderer: renderer,
                         component: foundCmp || foundPromise,
                         resolved: !!foundCmp
-                    })
-                }   
+                    }, self._createDefaultItemDef());
+                    node[idkey] = def.id;
+                }
                 else {
                     attrSet = dom_getAttrSet(node);
-                    renderRef = attrSet.at || "body";
-                    if (!items[renderRef]) {
-                        items[renderRef] = [];
-                    }
-                    items[renderRef].push({
-                        __containerItemDef: true,
+                    renderRef = attrSet.at || attrSet.rest.slot || "body";
+                    def = extend({
                         type: "node",
                         renderRef: renderRef,
                         node: node
-                    });
+                    }, self._createDefaultItemDef());
                 }
 
                 found = true;
-
                 renderer.un("reference", refCallback);
                 renderer.un("reference-promise", promiseCallback);
+
+                if (!self._itemsInitialized) {
+                    if (!items[renderRef]) {
+                        items[renderRef] = [];
+                    }
+                    items[renderRef].push(def);
+                }
+                else {
+                    self.addItem(def);
+                }
             }
         }
 
-        if (found) {
+        if (found && !self._itemsInitialized) {
             self.items = items;
         }
 
@@ -13598,28 +14000,43 @@ MetaphorJs.app.Container = app_Component.$extend({
 
         var self = this,
             items = self.items || [],
+            p2i = self.$self.propsToItems,
             defs,
             list = [],
-            item,
-            i, l;
+            item, name,
+            i, l, ref;
 
+        self._itemsInitialized = true;
         self.itemsMap = {};
-        
+
         if (isArray(items)) {
             items = {
                 body: items
             }
         }
 
-        for (var ref in items) {
+        if (p2i) {
+            for (name in p2i) {
+                if (self[name]) {
+                    self._initIntoItems(self[name], p2i[name]);
+                }
+            }
+        }
+
+        for (ref in items) {
             defs = items[ref];
             if (!isArray(defs)) {
                 defs = [defs];
             }
             for (i = -1, l = defs.length; ++i < l;) {
                 item = self._processItemDef(defs[i]);
-                item.renderRef = ref;
-                list.push(item);
+
+                if (item) {
+                    item.renderRef = ref;
+                    list.push(item);
+                }
+
+                // moved to _processItemDef
                 //self.itemsMap[item.id] = item;
             }
         }
@@ -13631,91 +14048,172 @@ MetaphorJs.app.Container = app_Component.$extend({
         return "$$container_" + this.id;
     },
 
+    _createDefaultItemDef: function() {
+        return {
+            __containerItemDef: true,
+            type: "component",
+            placeholder: window.document.createComment("***"),
+            id: nextUid(),
+            resolved: true,
+            processed: false
+        };
+    },
+
     _processItemDef: function(def) {
 
         var self = this,
             idkey = self._getIdKey(),
-            item = {
-                __containerItemDef: true,
-                type: "component",
-                placeholder: window.document.createComment("***"),
-                id: nextUid(),
-                resolved: true
-            };
+            item;
 
-        self.itemsMap[item.id] = item;
-
-        // component[idkey] = item.id
-        // every child component contains `idkey` field
-        // holding its id in parent container;
-        // and by idkey itself we can identify container
-
-        if (isPlainObject(def)) {
-            def = self._initObjectItem(def);
-        }
-        else if (typeof def === "string") {
-            def = self._initStringItem(def);
-        }
-
-        if (isPlainObject(def)) {
-            item = extend({}, def, item, false, false);
+        if (def.__containerItemDef) {
+            item = def;
             self.itemsMap[item.id] = item;
-            if (item.type === "component") {
+        }
+        else {
+            item = self._createDefaultItemDef();
+            self.itemsMap[item.id] = item;
+
+            // component[idkey] = item.id
+            // every child component contains `idkey` field
+            // holding its id in parent container;
+            // and by idkey itself we can identify container
+
+            if (typeof def === "string") {
+                def = self._initStringItem(def);
+            }
+            if (isPlainObject(def)) {
+                def = self._initObjectItem(def);
+            }
+
+            if (isPlainObject(def)) {
+                item = extend({}, def, item, false, false);
+                self.itemsMap[item.id] = item; // rewrite item map
+            }
+            else if (typeof def === "function") {
+                item.component = new def({
+                    scope: self.scope.$new()
+                });
+            }
+            else if (def instanceof app_Component) {
+                item.component = def;
+            }
+            else if (def instanceof window.Node) {
+                item.type = "node";
+                item.node = def;
+            }
+            else if (def instanceof app_Template) {
+                item.component = new app_Component({
+                    scope: self.scope,
+                    template: def
+                });
+            }
+            else if (typeof def === "string") {
+                var cfg = {scope: self.scope};
+                item.component = app_resolve(def, cfg);
+            }
+            else if (isThenable(def)) {
+                item.component = def;
+            }
+            else {
+                throw new Error("Failed to initialize item");
+            }
+        }
+
+        if (!item.processed) {
+
+            var prevItem = item;
+
+            if (!self._allowChildItem(item)) {
+                return null;
+            }
+
+            if (item.type === "node") {
+                item = self._wrapChildItem(item);
+                item.node[idkey] = item.id;
+            }
+            else if (item.type === "component") {
                 if (isThenable(item.component)) {
                     item.resolved = false;
                     item.component.done(function(cmp){
-                        cmp[idkey] = item.id;
-                        self._onChildResolved(cmp);
+                        item.component = cmp;
+                        if (!self._allowChildItem(item)) {
+                            return null;
+                        }
+                        item = self._wrapChildItem(item);
+                        item.component[idkey] = item.id;
+                        self._onChildResolved(item.component);
                     });
                 }
                 else {
+                    item = self._wrapChildItem(item);
                     item.component[idkey] = item.id;
-                    self._initChildEvents("on", item.component);
+                    self._onChildResolved(item.component);
                 }
             }
-            else {
-                item.node[idkey] = item.id;
+
+            // item got wrapped
+            if (prevItem !== item) {
+                delete self.itemsMap[prevItem.id];
+                self.itemsMap[item.id] = item;
             }
+
+            self._initChildItem(item);
+            self.$callMixins("$initChildItem", item);
+
+            item.processed = true;
         }
-        else if (def instanceof app_Component) {
-            item.component = def;
-            def[idkey] = item.id;
-            self._initChildEvents("on", def);   
+
+        return item;
+    },
+
+    _initChildItem: function(item) {},
+
+    _allowChildItem: function(item) {
+        var allow = this.$self.allowItems || ["*"];
+        typeof allow === "string" && (allow = [allow]);
+        if (allow.indexOf("*") !== -1)  {
+            return true;
         }
-        else if (def instanceof window.Node) {
-            item.type = "node";
-            item.node = def;
-            def[idkey] = item.id;
+        if (item.type === "component") {
+            return allow.indexOf(item.component.$class) !== -1;
         }
-        else if (def instanceof app_Template) {
-            item.component = new app_Component({
+        return true;
+    },
+
+    _wrapChildItem: function(item) {
+
+        var self = this,
+            cls = self.$self,
+            allow = cls.allowUnwrapped || [],
+            wrapper = cls.wrapper,
+            wrapCls;
+
+        typeof allow === "string" && (allow = [allow]);
+
+        if (!wrapper || allow.indexOf("*") !== -1) {
+            return item;
+        }
+
+        if (item.type === "component") {
+
+            if (allow.indexOf(item.component.$class) !== -1) {
+                return item;
+            }
+
+            wrapCls = typeof wrapper === "string" || typeof wrapper === "function" ? 
+                        wrapper :
+                        (wrapper[item.component.$class] || wrapper["*"]);
+            wrapCls = typeof wrapper === "string" ? ns.get(wrapper) : wrapper;
+
+            var newItem = self._createDefaultItemDef();
+            newItem.component = new wrapCls({
                 scope: self.scope,
-                template: def
+                items: [
+                    item.component
+                ]
             });
-            item.component[idkey] = item.id;
-            self._initChildEvents("on", item.component);
-        }
-        else if (typeof def === "string") {
-            var cfg = {scope: self.scope};
-            cfg[idkey] = item.id;
-            item.resolved = false;
-            var promise = MetaphorJs.app
-                .resolve(def, cfg)
-                .done(self._onChildResolved, self);
-            if (!item.component){
-                item.component = promise;
-            }
-        }
-        else if (isThenable(def)) {
-            item.resolved = false;
-            item.component = def;
-            def.done(function(cmp){
-                cmp[idkey] = item.id;
-                self._onChildResolved(cmp);
-            });
-        }
-        else {
-            throw new Error("Failed to initialize item");
+
+            return newItem;
         }
 
         return item;
@@ -13760,20 +14258,46 @@ MetaphorJs.app.Container = app_Component.$extend({
     },
 
     _onChildResolved: function(cmp) {
+        
         var self = this,
             idkey = self._getIdKey(),
             itemid = cmp[idkey],
-            item;
+            item, ref;
 
         if (itemid && (item = self.itemsMap[itemid])) {
             item.resolved = true;
             item.component = cmp;
+
+            if (ref = cmp.config.get("ref")) {
+                self._onChildReference("cmp", ref, cmp);
+            }
 
             self._initChildEvents("on", cmp);
 
             if (self._rendered) {
                 self._attachChildItem(item);
             }
+        }
+    },
+
+    _initIntoItems: function(smth, cls) {
+        var self = this,
+            item = self._createDefaultItemDef();
+
+        typeof cls === "string" && (cls = ns.get(cls));
+
+        if (!(smth instanceof cls)) {
+            smth = cls.createFromPlainObject(smth);
+        }
+
+        item.component = smth;
+        item.resolved = !isThenable(smth);
+        !self.items && (self.items = []);
+        if (isArray(self.items)) {
+            self.items.push(item);
+        }
+        else {
+            self.items.body.push(item);
         }
     },
 
@@ -13797,7 +14321,7 @@ MetaphorJs.app.Container = app_Component.$extend({
         self.$super();
 
         // empty container without template or content
-        if (!self.node.firstChild) {
+        if (!self.node.firstChild && !self.isWebComponent) {
             self.$refs.node.body = self.node;
         }
 
@@ -13814,9 +14338,21 @@ MetaphorJs.app.Container = app_Component.$extend({
     _preparePlaceholder: function(item) {
         var self = this,
             refnode = self.getRefEl(item.renderRef);
+
+        if (item.type === "node" && item.node.hasAttribute("slot")) {
+            return;
+        }
+
         if (!refnode) {
             throw new Error("Can't find referenced node: " + item.renderRef);
         }
+
+        // if refnode is <slot> we do nothing;
+        // when attaching, we just set "slot" attribute on item
+        if (refnode instanceof window.HTMLSlotElement) {
+            return;
+        }
+
         // comment
         if (refnode.nodeType === 8) {
             refnode.parentNode.insertBefore(item.placeholder, refnode);
@@ -13830,8 +14366,15 @@ MetaphorJs.app.Container = app_Component.$extend({
             refnode = self.getRefEl(item.renderRef);
 
         if (item.type === "node") {
-            if (refnode.nodeType === 8)
+            if (item.node.hasAttribute("slot")) {
+                return;
+            }
+            if (refnode instanceof window.HTMLSlotElement) {
+                item.node.setAttribute("slot", refnode.getAttribute("name"));
+            }
+            else if (refnode.nodeType === 8) {
                 refnode.parentNode.insertBefore(item.node, item.placeholder);
+            }
             else refnode.insertBefore(item.node, item.placeholder);
         }
         else if (item.type === "component") {
@@ -13854,8 +14397,37 @@ MetaphorJs.app.Container = app_Component.$extend({
 
     hasItem: function(cmp) {
         var self = this,
-        idkey = self._getIdKey();
-        return !!cmp[idkey];
+            idkey = self._getIdKey(),
+            id,
+            item;
+
+        if (typeof cmp === "string" || typeof cmp === "function") {
+            for (id in self.itemMap) {
+                item = self.itemMap[id];
+                if (item.type === "component" && 
+                    (item.componet.id === cmp || item.component.$is(cmp))) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        else return !!cmp[idkey];
+    },
+
+    hasItemIn: function(ref, smth) {
+        if (!this.items[ref] || this.items[ref].length === 0) {
+            return false;
+        }
+        var i, l, item;
+        for (i = 0, l = this.items[ref].length; i < l; i++) {
+            item = this.items[ref][i];
+            if (item.type === "component") {
+                if (item.component.$is(smth)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     },
 
     addItem: function(cmp, to) {
@@ -13871,7 +14443,7 @@ MetaphorJs.app.Container = app_Component.$extend({
         }
 
         item = self._processItemDef(cmp);
-        item.renderRef = to || "body";
+        item.renderRef = item.renderRef || to || "body";
         self.items.push(item);
         self.itemsMap[item.id] = item;
 
@@ -13916,6 +14488,12 @@ MetaphorJs.app.Container = app_Component.$extend({
 
         self.$super();
     }
+}, {
+
+    allowItems: ["*"],
+    allowUnwrapped: ["*"],
+    wrapper: null
+
 });
 
 
@@ -17469,27 +18047,42 @@ DO NOT put class="{}" when using class.name="{}"
 
 
 
+
 (function(){
 
-    var cmpAttr = function(scope, node, config, parentRenderer, attrSet) { 
+    var cmpAttr = function(scope, node, config, parentRenderer, attrSet) {
+        
+        var ms = lib_Config.MODE_STATIC;
 
-        config.setDefaultMode("value", lib_Config.MODE_STATIC);
-        config.setType("sameScope", "bool", lib_Config.MODE_STATIC);
-        config.setDefaultMode("as", lib_Config.MODE_STATIC);
-        config.setDefaultMode("ref", lib_Config.MODE_STATIC);
-        config.setMode("into", lib_Config.MODE_STATIC);
+        config.setDefaultMode("value", ms);
+        config.setType("sameScope", "bool", ms);
+        config.setType("publicScope", "string", ms);
+        config.setDefaultMode("as", ms);
+        config.setDefaultMode("ref", ms);
+        config.setMode("into", ms);
 
         var cmpName = config.get("value"),
             constr  = typeof cmpName === "string" ?
                         ns.get(cmpName, true) : cmpName,
-            tag     = node.tagName.toLowerCase();
+            tag     = node.tagName.toLowerCase(),
+            newScope;
 
         if (!constr) {
             throw new Error("Component " + cmpName + " not found");
         }
 
         var sameScope   = config.get("sameScope") || constr.$sameScope;
-        var newScope    = sameScope ? scope : scope.$new();
+        var publicScope = config.get("publicScope");
+
+        if (publicScope) {
+            newScope    =  lib_Scope.$get(publicScope);
+            if (!newScope) {
+                throw new Error("Public scope " + publicScope + " not found");
+            }
+        }
+        else {
+            newScope    = sameScope ? scope : scope.$new();
+        }
 
         config.removeProperty("value");
 
@@ -17520,6 +18113,7 @@ DO NOT put class="{}" when using class.name="{}"
                     cfg, attrSet
                 );
             });
+
         parentRenderer.trigger(
             "reference-promise", 
             res, cmpName, 
@@ -18358,6 +18952,7 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
             scope.$event = e;
             scope.$eventNode = self.node;
             scope.$prevEvent = self.prevEvent[e.type];
+            scope.$eventCmp = self.config.get("targetComponent");
 
             if (handler) {
                 res = handler.call(cfg.context || null, scope);
@@ -18491,6 +19086,10 @@ var lib_EventHandler = MetaphorJs.lib.EventHandler;
                 function(scope, node, config, renderer, attrSet) {
 
                 if (node.getDomApi) {
+                    config.setProperty("targetComponent", {
+                        mode: lib_Config.MODE_STATIC,
+                        value: node
+                    });
                     node = node.getDomApi(name);
                     if (!node) {
                         return null;
@@ -29615,33 +30214,8 @@ var dom_setStyle = MetaphorJs.dom.setStyle = function dom_setStyle(el, name, val
  * @param {DomNode} el
  * @returns {boolean}
  */
-var dom_isVisible = MetaphorJs.dom.isVisible = function dom_isVisible(el) {
+MetaphorJs.dom.isVisible = function dom_isVisible(el) {
     return el && !(el.offsetWidth <= 0 || el.offsetHeight <= 0);
-};
-
-
-
-
-
-
-/**
- * Check if given element matches selector
- * @function MetaphorJs.dom.is
- * @param {Element} el
- * @param {string} selector
- * @returns {boolean}
- */
-var dom_is = MetaphorJs.dom.is = function(el, selector) {
-
-    var els = select(selector, el.parentNode),
-        i, l;
-
-    for (i = -1, l = els.length; ++i < l;) {
-        if (els[i] === el) {
-            return true;
-        }
-    }
-    return false;
 };
 
 

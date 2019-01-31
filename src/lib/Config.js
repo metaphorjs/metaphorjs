@@ -196,7 +196,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                     return !isArray(value) ? [value] : value;
                 case 'string':
                 case 'str':
-                    return "" + value;
+                    return value === null || value === undf ? "" : "" + value;
             }
 
             return value;

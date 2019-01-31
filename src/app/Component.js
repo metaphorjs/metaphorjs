@@ -403,9 +403,11 @@ module.exports = MetaphorJs.app.Component = cls({
         }
 
         var th = self.$refs[type][ref];
-        self.$refs[type][ref] = item;
 
-        if (th && isThenable(th)) {
+        if (!th) {
+            self.$refs[type][ref] = item;
+        }
+        if (isThenable(th)) {
             th.resolve(item);
         }
     },

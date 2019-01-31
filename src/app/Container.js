@@ -98,7 +98,6 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                         component: foundCmp || foundPromise,
                         resolved: !!foundCmp
                     }, self._createDefaultItemDef());
-
                     node[idkey] = def.id;
                 }
                 else {
@@ -191,105 +190,114 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             type: "component",
             placeholder: window.document.createComment("***"),
             id: nextUid(),
-            resolved: true
+            resolved: true,
+            processed: false
         };
     },
 
     _processItemDef: function(def) {
 
-        if (def.__containerItemDef) {
-            return def;
-        }
-
         var self = this,
             idkey = self._getIdKey(),
-            item = self._createDefaultItemDef();
+            item;
 
-        self.itemsMap[item.id] = item;
-
-        // component[idkey] = item.id
-        // every child component contains `idkey` field
-        // holding its id in parent container;
-        // and by idkey itself we can identify container
-
-        if (typeof def === "string") {
-            def = self._initStringItem(def);
-        }
-        if (isPlainObject(def)) {
-            def = self._initObjectItem(def);
-        }
-
-        if (isPlainObject(def)) {
-            item = extend({}, def, item, false, false);
-            self.itemsMap[item.id] = item; // rewrite item map
-        }
-        else if (typeof def === "function") {
-            item.component = new def({
-                scope: self.scope.$new()
-            });
-        }
-        else if (def instanceof MetaphorJs.app.Component) {
-            item.component = def;
-        }
-        else if (def instanceof window.Node) {
-            item.type = "node";
-            item.node = def;
-        }
-        else if (def instanceof MetaphorJs.app.Template) {
-            item.component = new MetaphorJs.app.Component({
-                scope: self.scope,
-                template: def
-            });
-        }
-        else if (typeof def === "string") {
-            var cfg = {scope: self.scope};
-            item.component = MetaphorJs.app.resolve(def, cfg);
-        }
-        else if (isThenable(def)) {
-            item.component = def;
+        if (def.__containerItemDef) {
+            item = def;
+            self.itemsMap[item.id] = item;
         }
         else {
-            throw new Error("Failed to initialize item");
+            item = self._createDefaultItemDef();
+            self.itemsMap[item.id] = item;
+
+            // component[idkey] = item.id
+            // every child component contains `idkey` field
+            // holding its id in parent container;
+            // and by idkey itself we can identify container
+
+            if (typeof def === "string") {
+                def = self._initStringItem(def);
+            }
+            if (isPlainObject(def)) {
+                def = self._initObjectItem(def);
+            }
+
+            if (isPlainObject(def)) {
+                item = extend({}, def, item, false, false);
+                self.itemsMap[item.id] = item; // rewrite item map
+            }
+            else if (typeof def === "function") {
+                item.component = new def({
+                    scope: self.scope.$new()
+                });
+            }
+            else if (def instanceof MetaphorJs.app.Component) {
+                item.component = def;
+            }
+            else if (def instanceof window.Node) {
+                item.type = "node";
+                item.node = def;
+            }
+            else if (def instanceof MetaphorJs.app.Template) {
+                item.component = new MetaphorJs.app.Component({
+                    scope: self.scope,
+                    template: def
+                });
+            }
+            else if (typeof def === "string") {
+                var cfg = {scope: self.scope};
+                item.component = MetaphorJs.app.resolve(def, cfg);
+            }
+            else if (isThenable(def)) {
+                item.component = def;
+            }
+            else {
+                throw new Error("Failed to initialize item");
+            }
         }
 
-        var prevItem = item;
+        if (!item.processed) {
 
-        if (!self._allowChildItem(item)) {
-            return null;
-        }
+            var prevItem = item;
 
-        if (item.type === "node") {
-            item = self._wrapChildItem(item);
-            item.node[idkey] = item.id;
-        }
-        else if (item.type === "component") {
-            if (isThenable(item.component)) {
-                item.resolved = false;
-                item.component.done(function(cmp){
-                    item.component = cmp;
-                    if (!self._allowChildItem(item)) {
-                        return null;
-                    }
+            if (!self._allowChildItem(item)) {
+                return null;
+            }
+
+            if (item.type === "node") {
+                item = self._wrapChildItem(item);
+                item.node[idkey] = item.id;
+            }
+            else if (item.type === "component") {
+                if (isThenable(item.component)) {
+                    item.resolved = false;
+                    item.component.done(function(cmp){
+                        item.component = cmp;
+                        if (!self._allowChildItem(item)) {
+                            return null;
+                        }
+                        item = self._wrapChildItem(item);
+                        item.component[idkey] = item.id;
+                        self._onChildResolved(item.component);
+                    });
+                }
+                else {
                     item = self._wrapChildItem(item);
                     item.component[idkey] = item.id;
                     self._onChildResolved(item.component);
-                });
+                }
             }
-            else {
-                item = self._wrapChildItem(item);
-                item.component[idkey] = item.id;
-                self._onChildResolved(item.component);
+
+            // item got wrapped
+            if (prevItem !== item) {
+                delete self.itemsMap[prevItem.id];
+                self.itemsMap[item.id] = item;
             }
-        }
 
-        // item got wrapped
-        if (prevItem !== item) {
-            delete self.itemsMap[prevItem.id];
-            self.itemsMap[item.id] = item;
-        }
+            self._initChildItem(item);
+            self.$callMixins("$initChildItem", item);
 
-        self._initChildItem(item);
-        self.$callMixins("$initChildItem", item);
+            item.processed = true;
+        }
 
         return item;
     },
@@ -386,11 +394,12 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
     },
 
     _onChildResolved: function(cmp) {
+        
         var self = this,
             idkey = self._getIdKey(),
             itemid = cmp[idkey],
             item, ref;
-        
+
         if (itemid && (item = self.itemsMap[itemid])) {
             item.resolved = true;
             item.component = cmp;
