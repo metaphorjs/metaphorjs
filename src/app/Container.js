@@ -73,7 +73,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             }
 
             def = null;
-            if (node.nodeType === 1) {
+            if (node.nodeType === window.document.ELEMENT_NODE) {
 
                 if (node[idkey]) {
                     continue;
@@ -490,7 +490,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         }
 
         // comment
-        if (refnode.nodeType === 8) {
+        if (refnode.nodeType === window.document.COMMENT_NODE) {
             refnode.parentNode.insertBefore(item.placeholder, refnode);
         }
         else refnode.appendChild(item.placeholder);
@@ -508,13 +508,13 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             if (refnode instanceof window.HTMLSlotElement) {
                 item.node.setAttribute("slot", refnode.getAttribute("name"));
             }
-            else if (refnode.nodeType === 8) {
+            else if (refnode.nodeType === window.document.COMMENT_NODE) {
                 refnode.parentNode.insertBefore(item.node, item.placeholder);
             }
             else refnode.insertBefore(item.node, item.placeholder);
         }
         else if (item.type === "component") {
-            if (refnode.nodeType === 8)
+            if (refnode.nodeType === window.document.COMMENT_NODE)
                 item.component.render(refnode.parentNode, item.placeholder);    
             else item.component.render(refnode, item.placeholder);
         }

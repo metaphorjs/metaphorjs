@@ -36,11 +36,16 @@ module.exports = MetaphorJs.lib.Config = (function(){
      *  @type {object} scope Data object
      *  @type {object} setTo set all values to this object
      * }
+     * @param {string} scalarAs {
+     *  expression|defaultValue|value -- 
+     *  if property comes as scalar value {name: value}, this
+     *  option helps determine what to do with it, make an expression
+     *  out of it, or use as default value.
+     * }
      */
-    var Config = function(properties, cfg) {
+    var Config = function(properties, cfg, scalarAs) {
 
-        var self = this,
-            k;
+        var self = this;
 
         self.id = nextUid();
         self.values = {};
@@ -49,14 +54,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
         self.keys = [];
 
         if (properties) {
-            for (k in properties) {
-                self.setProperty(
-                    k, 
-                    isPrimitive(properties[k]) ? 
-                        {expression: properties[k]}:
-                        properties[k]
-                );
-            }
+            self.addProperties(properties, scalarAs);
         }
     };
 
@@ -240,6 +238,47 @@ module.exports = MetaphorJs.lib.Config = (function(){
         },
 
         /**
+         * Add multiple properties to the config.
+         * @param {object} properties {name: {cfg}}
+         * @param {string} scalarAs {
+         *  expression|defaultValue|value -- 
+         *  if property comes as scalar value {name: value}, this
+         *  option helps determine what to do with it, make an expression
+         *  out of it, or use as default value.
+         * }
+         * @param {bool} override {
+         *  Override existing settings
+         *  @default true
+         * }
+         */
+        addProperties: function(properties, scalarAs, override) {
+
+            var prop, k, val;
+            for (k in properties) {
+                val = properties[k];
+
+                if (val === null || val === undf) {
+                    continue;
+                }
+
+                // string can be a value or expression
+                if (typeof val === "string") {
+                    prop = {};
+                    prop[scalarAs || "expression"] = val;
+                }
+                // bool and int can only be a value
+                else if (isPrimitive(val)) {
+                    prop = {defaultValue: val};
+                }
+                // objects can only describe properties
+                else {
+                    prop = val;
+                }
+                self.setProperty(k, prop, undf, override);
+            }
+        },
+
+        /**
          * Set or update property
          * @method
          * @param {string} name 
@@ -281,6 +320,10 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 self.keys.push(name);
                 changed = true;
                 newProp = true;
+            }
+
+            if (!cfg) {
+                cfg = {};
             }
 
             prop = props[name];
@@ -616,14 +659,12 @@ module.exports = MetaphorJs.lib.Config = (function(){
          */
         setStatic: function(name, val) {
             var self = this;
-            if (self.properties[name]) {
-                var prev = self.values[val];
-                self.setMode(name, MODE_STATIC);
-                self.values[name] = val;
-                if (prev != val) {
-                    $$observable.trigger(self.id, name, val, prev);
-                    $$observable.trigger(self.id +'-'+ name, val, prev) ;
-                }
+            var prev = self.values[val];
+            self.setMode(name, MODE_STATIC);
+            self.values[name] = val;
+            if (prev != val) {
+                $$observable.trigger(self.id, name, val, prev);
+                $$observable.trigger(self.id +'-'+ name, val, prev) ;
             }
         },
 
@@ -635,28 +676,30 @@ module.exports = MetaphorJs.lib.Config = (function(){
         set: function(name, val) {
             var self = this,
                 prop;
-            if (prop = self.properties[name]) {
-                switch (prop.mode) {
-                    case MODE_DYNAMIC: {
-                        !prop.mo && self._initMo(name);
-                        prop.mo.setValue(val);
-                        break;
-                    }
-                    case MODE_GETTER:
-                    case MODE_FUNC:
-                    case MODE_SETTER:
-                    case MODE_FNSET: {
-                        throw new Error("Incompatible property mode");
-                    }
-                    case MODE_SINGLE:
-                    case MODE_STATIC: {
-                        self.setStatic(name, val);
-                        break;
-                    }
-                    default: {
-                        self.setStatic(name, val);
-                        break;
-                    }
+            if (!self.properties[name]) {
+                self.setProperty(name);
+            }
+            prop = self.properties[name];
+            switch (prop.mode) {
+                case MODE_DYNAMIC: {
+                    !prop.mo && self._initMo(name);
+                    prop.mo.setValue(val);
+                    break;
+                }
+                case MODE_GETTER:
+                case MODE_FUNC:
+                case MODE_SETTER:
+                case MODE_FNSET: {
+                    throw new Error("Incompatible property mode");
+                }
+                case MODE_SINGLE:
+                case MODE_STATIC: {
+                    self.setStatic(name, val);
+                    break;
+                }
+                default: {
+                    self.setStatic(name, val);
+                    break;
                 }
             }
         },
@@ -928,6 +971,14 @@ module.exports = MetaphorJs.lib.Config = (function(){
     Config.MODE_FUNC = MODE_FUNC;
     Config.MODE_FNSET = MODE_FNSET;
     Config.MODE_LISTENER = MODE_LISTENER;
+
+
+    Config.create = function(properties, cfg, scalarAs) {
+        if (properties instanceof Config) {
+            return properties;
+        }
+        return new Config(properties, cfg, scalarAs);
+    }
 
     return Config;
 

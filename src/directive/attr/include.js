@@ -12,16 +12,14 @@ Directive.registerAttribute("include", 1100,
     config.setProperty("name", config.getProperty("value"));
     config.removeProperty("value");
     config.enableProperty("name");
-
     config.setType("asis", "bool", MetaphorJs.lib.Config.MODE_STATIC);
-    config.setType("animate", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+    config.setDefaultValue("runRenderer", !config.get("asis"));
 
     var tpl = new MetaphorJs.app.Template({
         scope: scope,
         node: node,
         parentRenderer: parentRenderer,
-        config: config,
-        ownRenderer: !config.get("asis") // do not render if asis=true
+        config: config
     });
 
     parentRenderer.on("destroy", function(){

@@ -30,7 +30,7 @@ module.exports = MetaphorJs.app.App = cls({
     /**
      * @constructor
      * @method
-     * @param {Node} node 
+     * @param {HTMLElement} node 
      * @param {object} data 
      */
     $init: function(node, data) {
@@ -136,7 +136,7 @@ module.exports = MetaphorJs.app.App = cls({
 
     /**
      * Get parent component for given node
-     * @param {Node} node 
+     * @param {HTMLElement} node 
      * @param {bool} includeSelf 
      * @returns {MetaphorJs.app.Component}
      */
@@ -146,8 +146,9 @@ module.exports = MetaphorJs.app.App = cls({
             parent  = includeSelf ? node : node.parentNode,
             id;
 
-        while (parent) {
-            if (id = (MetaphorJs.dom.getAttr(parent, "cmp-id") || parent.$$cmpId)) {
+        while (parent && parent !== window.document.documentElement) {
+            //if (id = (MetaphorJs.dom.getAttr(parent, "cmp-id") || parent.$$cmpId)) {
+            if (id = parent.$$cmpId) {
                 return self.getCmp(id);
             }
             parent = parent.parentNode;

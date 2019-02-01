@@ -97,7 +97,7 @@ module.exports = function(type, name) {
         }
 
         // Get document width or height
-        if (elem.nodeType === 9) {
+        if (elem.nodeType === window.document.DOCUMENT_NODE) {
             var doc = elem.documentElement;
 
             // Either scroll[Width/Height] or offset[Width/Height] or client[Width/Height],

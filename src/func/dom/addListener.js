@@ -5,7 +5,7 @@ var _mousewheelHandler = require("./_/_mousewheelHandler.js"),
 
 /**
  * @function MetaphorJs.dom.addListener
- * @param {Element} el
+ * @param {HTMLElement} el
  * @param {string} eventName
  * @param {function} func {
  *  @param {object} event

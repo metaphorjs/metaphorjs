@@ -14,7 +14,7 @@ var toArray     = require("metaphorjs-shared/src/func/toArray.js"),
 
 /**
  * @function MetaphorJs.dom.setInputValue
- * @param {Element} el
+ * @param {HTMLElement} el
  * @param {*} val
  */
 module.exports = MetaphorJs.dom.setInputValue = function() {
@@ -67,7 +67,7 @@ module.exports = MetaphorJs.dom.setInputValue = function() {
 
     return function(el, val) {
 
-        if (el.nodeType !== 1) {
+        if (el.nodeType !== window.document.ELEMENT_NODE) {
             return;
         }
 

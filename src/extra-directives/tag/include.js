@@ -8,14 +8,15 @@ var Directive = require("../../app/Directive.js"),
 Directive.registerTag("include", function(scope, node, config, parentRenderer) {
 
     config.setType("asis", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+    config.setDefaultValue("runRenderer", !config.get("asis"));
+    config.set("wrapInComments", true);
+    config.set("replaceNode", true);
 
     var tpl = new MetaphorJs.app.Template({
         scope: scope,
         node: node,
         config: config,
-        parentRenderer: parentRenderer,
-        replace: true,
-        ownRenderer: !config.get("asis") // if asis, do not render stuff
+        parentRenderer: parentRenderer
     });
 
     parentRenderer.on("destroy", function(){

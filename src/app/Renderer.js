@@ -232,7 +232,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 ref;
 
             // comment
-            if (nodeType === 8) {
+            if (nodeType === window.document.COMMENT_NODE) {
                 var cmtData = node.textContent || node.data;
                 if (cmtData.substring(0,2) === '##') {
                     observer.trigger(
@@ -244,7 +244,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 }
             }
             // text node
-            else if (nodeType === 3) {
+            else if (nodeType === window.document.TEXT_NODE) {
 
                 textStr = node.textContent || node.nodeValue;
 
@@ -265,12 +265,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
             }
 
             // element node
-            else if (nodeType === 1) {
-
-                if (self.reportFirstNode) {
-                    observer.trigger("first-node-" + self.id, node);
-                    self.reportFirstNode = false;
-                }
+            else if (nodeType === window.document.ELEMENT_NODE) {
 
                 if (!handlers) {
                     handlers = MetaphorJs.app.Directive.getAttributes();
@@ -280,8 +275,10 @@ module.exports = MetaphorJs.app.Renderer = function() {
                     defers  = [],
                     nodes   = [],
                     i, f, len, c,
-                    attrs, as, config,
+                    attrs = MetaphorJs.dom.getAttrSet(node), 
+                    as, config,
                     attrProps,
+                    rootMode = false,
                     name,
                     res,
                     handler;
@@ -296,66 +293,103 @@ module.exports = MetaphorJs.app.Renderer = function() {
                     );
                     return;
                 }
+                else if (tag === "apply-to-root") {
+                    rootMode = true;
+                    if (node.parentNode) {
+                        node.parentNode.removeChild(node);
+                    }
+                    node = self.node;
+                    tag = node.tagName.toLowerCase();
+                }
 
                 if (tag.substr(0, 4) === "mjs-") {
                     tag = tag.substr(4);
                 }
 
-                attrs = MetaphorJs.dom.getAttrSet(node);
+                if (self.reportFirstNode && !rootMode) {
+                    observer.trigger("first-node-" + self.id, node);
+                    self.reportFirstNode = false;
+                }
 
                 if (attrs.config.ignore) {
                     return false;
                 }
 
-                // this tag represents component
-                // we just pass it to attr.cmp directive
-                // by adding it to the attr map
-                if (c = dirs.component[tag]) {
+                if (!rootMode) {
 
-                    as = attrs.config.tag ? attrs.config.tag.expression : null;
+                    // this tag represents component
+                    // we just pass it to attr.cmp directive
+                    // by adding it to the attr map
+                    if (c = dirs.component[tag]) {
 
-                    // TODO do not make this a separate branch
-                    if (as) {
+                        as = attrs.config.tag ? attrs.config.tag.expression : null;
 
-                        attrs["directive"]['cmp'] = {
-                            name: "cmp",
-                            original: "{cmp}",
-                            config: extend({}, attrs.config, {
-                                value: {
-                                    mode: MetaphorJs.lib.Config.MODE_STATIC,
-                                    expression: c.prototype.$class
-                                }
-                            })
-                        };
+                        // TODO do not make this a separate branch
+                        if (as) {
 
-                        as = window.document.createElement(as);
-                        node.parentNode.replaceChild(as, node);
-                        while (node.firstChild) {
-                            as.appendChild(node.firstChild);
+                            attrs["directive"]['cmp'] = {
+                                name: "cmp",
+                                original: "{cmp}",
+                                config: extend({}, attrs.config, {
+                                    value: {
+                                        mode: MetaphorJs.lib.Config.MODE_STATIC,
+                                        expression: c.prototype.$class
+                                    }
+                                })
+                            };
+
+                            as = window.document.createElement(as);
+                            node.parentNode.replaceChild(as, node);
+                            while (node.firstChild) {
+                                as.appendChild(node.firstChild);
+                            }
+                            node = as;
+                            for (name in attrs.rest) {
+                                MetaphorJs.dom.setAttr(node, name, attrs.rest[name]);
+                            }
                         }
-                        node = as;
-                        for (name in attrs.rest) {
-                            MetaphorJs.dom.setAttr(node, name, attrs.rest[name]);
+                        else {
+
+                            f = dirs.attr.cmp;
+                            delete attrs['directive']['cmp'];
+
+                            config = new MetaphorJs.lib.Config(
+                                extend({}, attrs.config, {
+                                    value: {
+                                        mode: MetaphorJs.lib.Config.MODE_STATIC,
+                                        expression: c
+                                    }
+                                }, true, false),
+                                {scope: self.scope}
+                            );
+                            self.on("destroy", config.$destroy, config);
+
+                            res = applyDirective(f, scope, node, config, attrs, self, true);
+                            attrs['directive'] = {};
+
+                            if (res === false) {
+                                return false;
+                            }
+                            if (isThenable(res)) {
+                                defers.push(res);
+                            }
+                            else {
+                                collectNodes(nodes, res);
+                            }
                         }
                     }
-                    else {
 
-                        f = dirs.attr.cmp;
-                        delete attrs['directive']['cmp'];
+                    // this is a tag directive
+                    else if (f = dirs.tag[tag]) {
 
                         config = new MetaphorJs.lib.Config(
-                            extend({}, attrs.config, {
-                                value: {
-                                    mode: MetaphorJs.lib.Config.MODE_STATIC,
-                                    expression: c
-                                }
-                            }, true, false),
+                            attrs.config, 
                             {scope: self.scope}
                         );
                         self.on("destroy", config.$destroy, config);
+                        res = applyDirective(f, scope, node, config, attrs, self);
 
-                        res = applyDirective(f, scope, node, config, attrs, self, true);
-                        attrs['directive'] = {};
+                        attrs.removeDirective(node, tag);
 
                         if (res === false) {
                             return false;
@@ -366,29 +400,6 @@ module.exports = MetaphorJs.app.Renderer = function() {
                         else {
                             collectNodes(nodes, res);
                         }
-                    }
-                }
-
-                // this is a tag directive
-                else if (f = dirs.tag[tag]) {
-
-                    config = new MetaphorJs.lib.Config(
-                        attrs.config, 
-                        {scope: self.scope}
-                    );
-                    self.on("destroy", config.$destroy, config);
-                    res = applyDirective(f, scope, node, config, attrs, self);
-
-                    attrs.removeDirective(node, tag);
-
-                    if (res === false) {
-                        return false;
-                    }
-                    if (isThenable(res)) {
-                        defers.push(res);
-                    }
-                    else {
-                        collectNodes(nodes, res);
                     }
                 }
 
@@ -446,7 +457,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
                     }
                 }
 
-                if (defers.length && !attrs.config.ignoreInside) {
+                if (!rootMode && defers.length && !attrs.config.ignoreInside) {
                     var deferred = new MetaphorJs.lib.Promise;
                     MetaphorJs.lib.Promise.all(defers).done(function(values){
                         collectNodes(nodes, values);
@@ -474,6 +485,10 @@ module.exports = MetaphorJs.app.Renderer = function() {
                         tr: textRenderer
                     });
                     self.renderText(texts.length - 1);
+                }
+
+                if (rootMode) {
+                    return false;
                 }
 
                 if (attrs.config.ignoreInside) {

@@ -5,7 +5,7 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
  * @function MetaphorJs.dom.hasClass
- * @param {Element} el
+ * @param {HTMLElement} el
  * @param {String} cls
  * @returns {boolean}
  */

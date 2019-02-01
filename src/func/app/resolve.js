@@ -103,29 +103,20 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
 
     if (tpl) {
 
-        var tplConfig = new MetaphorJs.lib.Config(null, {
-            scope: scope
+        var tplConfig = new MetaphorJs.lib.Config(null, {scope: scope});
+        MetaphorJs.app.Template.prepareConfig(tplConfig, tpl);
+        tplConfig.addProperties({
+            deferRendering: true,
+            runRenderer: true
         });
-        if (config) {
-            tplConfig.setProperty("animate", config.copyProperty("animate"));
-        }
-        MetaphorJs.app.Template.prepareConfig(tpl, tplConfig);
 
         cfg.template = new MetaphorJs.app.Template({
             scope: scope,
             node: node,
-            deferRendering: true,
-            ownRenderer: true,
             config: tplConfig
         });
 
         defers.push(cfg.template.childrenPromise);
-
-        /*if (node && node.firstChild) {
-            MetaphorJs.dom.data(
-                node, "mjs-transclude", 
-                MetaphorJs.dom.toFragment(node.childNodes));
-        }*/
     }
 
     var p;

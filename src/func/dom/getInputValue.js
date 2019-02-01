@@ -8,7 +8,7 @@ var isNull = require("metaphorjs-shared/src/func/isNull.js"),
 
 /**
  * @function MetaphorJs.dom.getInputValue
- * @param {Element} elem
+ * @param {HTMLElement} elem
  * @returns {string}
  */
 module.exports = MetaphorJs.dom.getInputValue = function(){

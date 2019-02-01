@@ -7,7 +7,7 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 /**
  * Check if given element matches selector
  * @function MetaphorJs.dom.is
- * @param {Element} el
+ * @param {HTMLElement} el
  * @param {string} selector
  * @returns {boolean}
  */

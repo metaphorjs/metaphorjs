@@ -14,7 +14,7 @@ var toArray = require("metaphorjs-shared/src/func/toArray.js"),
  * Returns array of nodes or an empty array
  * @function MetaphorJs.dom.select
  * @param {string} selector
- * @param {Element} root to look into
+ * @param {HTMLElement} root to look into
  */
 module.exports = MetaphorJs.dom.select = function() {
 
@@ -31,6 +31,8 @@ module.exports = MetaphorJs.dom.select = function() {
         rRepPrnth   = /[^(]*\(([^)]*)\)/,
         rRepAftPrn  = /\(.*/,
         rGetSquare  = /\[([^!~^*|$ [:=]+)([$^*|]?=)?([^ :\]]+)?\]/,
+
+        elemNodeType= window.document.ELEMENT_NODE,
 
         doc         = window.document,
         bcn         = !!doc.getElementsByClassName,
@@ -51,7 +53,7 @@ module.exports = MetaphorJs.dom.select = function() {
             'last-child': function (child) {
                 var brother = child;
                 /* loop in lastChilds while nodeType isn't element */
-                while ((brother = brother.nextSibling) && brother.nodeType !== 1) {}
+                while ((brother = brother.nextSibling) && brother.nodeType !== elemNodeType) {}
                 /* Check for node's existence */
                 return !!brother;
             },
@@ -74,7 +76,7 @@ module.exports = MetaphorJs.dom.select = function() {
                     /* looping in child to find if nth expression is correct */
                     do {
                         /* nodeIndex expando used from Peppy / Sizzle/ jQuery */
-                        if (brother.nodeType === 1 && (brother.nodeIndex = ++i) && child === brother && ((i + a) % b)) {
+                        if (brother.nodeType === elemNodeType && (brother.nodeIndex = ++i) && child === brother && ((i + a) % b)) {
                             return 0;
                         }
                     } while (brother = brother.nextSibling);
@@ -96,7 +98,7 @@ module.exports = MetaphorJs.dom.select = function() {
                     var brother = child.parentNode.lastChild;
                     i++;
                     do {
-                        if (brother.nodeType === 1 && (brother.nodeLastIndex = i++) && child === brother && ((i + a) % b)) {
+                        if (brother.nodeType === elemNodeType && (brother.nodeLastIndex = i++) && child === brother && ((i + a) % b)) {
                             return 0;
                         }
                     } while (brother = brother.previousSibling);
@@ -479,7 +481,7 @@ module.exports = MetaphorJs.dom.select = function() {
 
                                         /* don't touch already selected elements */
                                         while ((child = child.nextSibling) && !child.yeasss) {
-                                            if (child.nodeType === 1 &&
+                                            if (child.nodeType === elemNodeType &&
                                                 (tag === '*' || child.nodeName.toLowerCase() === tag) &&
                                                 (!id || child.id === id) &&
                                                 (!klass || (' ' + child.className + ' ').indexOf(klass) !== -1) &&
@@ -500,7 +502,7 @@ module.exports = MetaphorJs.dom.select = function() {
 
                                     /* W3C: "an F element immediately preceded by an E element" */
                                     case '+':
-                                        while ((child = child.nextSibling) && child.nodeType !== 1) {}
+                                        while ((child = child.nextSibling) && child.nodeType !== elemNodeType) {}
                                         if (child &&
                                             (child.nodeName.toLowerCase() === tag.toLowerCase() || tag === '*') &&
                                             (!id || child.id === id) &&

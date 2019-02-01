@@ -22,7 +22,7 @@ var undf = require("metaphorjs-shared/src/var/undf.js"),
  * @constructor
  * @param {string} event Dom event name
  * @param {MetaphorJs.lib.Scope} scope 
- * @param {Node} node 
+ * @param {HTMLElement} node 
  * @param {MetaphorJs.lib.Config} cfg MetaphorJs.lib.Config
  */
 MetaphorJs.lib.EventHandler = function(event, scope, node, cfg) {

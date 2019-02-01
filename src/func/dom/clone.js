@@ -24,13 +24,13 @@ module.exports = MetaphorJs.dom.clone = function dom_clone(node) {
     else if (node) {
         switch (node.nodeType) {
             // element
-            case 1:
+            case window.document.ELEMENT_NODE:
                 return node.cloneNode(true);
             // text node
-            case 3:
+            case window.document.TEXT_NODE:
                 return window.document.createTextNode(node.innerText || node.textContent);
             // document fragment
-            case 11:
+            case window.document.DOCUMENT_FRAGMENT_NODE:
                 return node.cloneNode(true);
 
             default:

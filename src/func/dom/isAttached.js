@@ -12,7 +12,7 @@ module.exports = MetaphorJs.dom.isAttached = function dom_isAttached(node) {
     if (node === window) {
         return true;
     }
-    if (node.nodeType == 3) {
+    if (node.nodeType == window.document.TEXT_NODE) {
         if (node.parentElement) {
             return dom_isAttached(node.parentElement);
         }

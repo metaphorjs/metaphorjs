@@ -40,7 +40,7 @@ module.exports = function(vertical) {
         if (!node || node === window) {
             return ret(defaultST(), allowNegative);
         }
-        else if (node && node.nodeType == 1 &&
+        else if (node && node.nodeType == window.document.ELEMENT_NODE &&
             node !== body && node !== html) {
             return ret(node[sProp], allowNegative);
         }

@@ -8,14 +8,14 @@ var nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
 /**
  * Get dom data value
  * @function MetaphorJs.dom.data
- * @param {Element} el
+ * @param {HTMLElement} el
  * @param {string} key
  */
 
 /**
  * Set dom data value
  * @function MetaphorJs.dom.data
- * @param {Element} el
+ * @param {HTMLElement} el
  * @param {string} key
  * @param {*} value
  * @param {string|null} action Pass "remove" to delete one data key or all keys
