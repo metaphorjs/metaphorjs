@@ -206,34 +206,24 @@ module.exports = MetaphorJs.app.Template = function() {
         config.setType("wrapInComments", "bool", sm);
         config.setType("useShadow", "bool", sm);
         config.setType("deferRendering", "bool", sm);
-        config.setType("replaceNode", "bool", sm);
 
-        if (!shadowSupported || config.get("replaceNode")) {
+        if (!shadowSupported) {
             config.setStatic("useShadow", false);
         }
         if (config.get("useShadow")) {
             config.setStatic("wrapInComments", false);
         }
-        if (config.get("replaceNode")) {
-            config.setStatic("wrapInComments", true);
-        }
 
-        var defer = config.get("deferRendering"),
-            rr = config.get("runRenderer");
-
-        self.childrenPromise = new MetaphorJs.lib.Promise;
-        rr && self.childrenPromise.resolve(false);
-
-        if (rr && self.parentRenderer) {
-            self.parentRenderer.on("destroy",
-                self._onParentRendererDestroy,
-                self);
+        if (config.get("runRenderer") && self._parentRenderer) {
+            self._parentRenderer.on("destroy",
+                self._onParentRendererDestroy, self
+            );
         }
         self.scope.$on("destroy", self._onScopeDestroy, self);
 
         self.resolve();
 
-        if (!defer) {
+        if (!config.get("deferRendering")) {
             self.render();
         }
     };
@@ -243,74 +233,54 @@ module.exports = MetaphorJs.app.Template = function() {
 
         _rendering:         false,
         _renderer:          null,
+        _attached:          false,
         _initial:           true,
         _fragment:          null,
         _template:          null,
+        _nodes:             null,
         _prevEl:            null,
         _nextEl:            null,
+        _attachTo:          null,
+        _attachBefore:      null,
         _shadowRoot:        null,
+        _resolvePromise:    null,
+        _parentRenderer:    null,
 
+        /**
+         * @var {MetpahorJs.lib.Scope}
+         */
         scope:              null,
-        node:               null,
 
         /**
          * @var {MetpahorJs.lib.Config}
          */
-        config:             null,
+        config:             null,        
 
-        
-        childrenPromise:    null,
-        _resolvePromise:     null,
-        parentRenderer:     null,
-
-        setNode: function(node) {
-            var self = this;
-            if (self.node) {
-                return;
-            }
-            self.node = node;
-            if (self._resolvePromise && self._resolvePromise.isResolved() &&
-                !self.config.get("deferRendering")) {
-                self.render(true);
-                self._fragment = null;
-            }
-        },
-
-        render: function(anew) {
+        render: function() {
 
             var self    = this;
 
-            if (self._rendering) {
-                return;
-            }
-            if (!self._initial && !anew) {
+            if (self._rendering || !self._initial) {
                 return;
             }
 
             self._rendering = true;
-
-            if (self._renderer) {
-                self._renderer.$destroy();
-                self._renderer = null;
-                self._fragment = null;
-            }
-
             self.config.setStatic("deferRendering", false);
 
-            if (self._initial) {
-                self._prepareTranscludes();
+            if (self.attachTo) {
+                self.attach(self.attachTo, self.attachBefore);
+                delete self.attachTo;
+                delete self.attachBefore;
             }
-            else {
-                self._clearNode();
+            else if (self.replaceNode) {
+                self.replace(self.replaceNode);
+                delete self.replaceNode;
             }
-
-            self._wrapInComments();
-            self._createShadow();
-
+        
             if (self.config.has("name") || 
                 self.config.has("html")) {
-                self.resolve()
-                    .done(self._applyTemplate, self)    
+                self.resolve()   
+                    .done(self._attach, self)
                     .done(self._runRenderer, self);
             }
             else {
@@ -319,30 +289,67 @@ module.exports = MetaphorJs.app.Template = function() {
 
             self._initial = false;
             self._rendering = false;
-            return self.childrenPromise;
         },
 
-        getRenderedFragment: function() {
-            var self = this,
-                els = [];
+        attach: function(parent, before) {
 
+            var self = this;
+
+            if (self._attachTo !== parent) {
+
+                if (self._attached) {
+                    self.detach();
+                }
+                if (self._nextEl) {
+                    self._removeComments();
+                }
+                if (self._shadowRoot) {
+                    self._destroyShadow();
+                }
+
+                self._attachTo = parent;
+                self._attachBefore = before;
+
+                self._prepareTranscludes();
+                self._createShadow();
+                self._createComments();
+
+                if (self._nodes) {
+                    self._attach();
+                }
+            }
+        },
+
+        replace: function(node) {
+
+            var self = this;
+
+            if (self._attached) {
+                self.detach();
+            }
             if (self._nextEl) {
-                els = self._collectBetweenComments();
-                els.push(self._nextEl);
-                els.unshift(self._prevEl);
-                MetaphorJs.dom.toFragment(els)
+                self._removeComments();
             }
-            else if (self._shadowRoot) {
-                return MetaphorJs.dom.toFragment(self._shadowRoot.childNodes);
-            }
-            else if (self.node) {
-                return MetaphorJs.dom.toFragment(self.node.childNodes);
-            }
-            else if (self._fragment) {
-                return self._fragment;
+            if (self._shadowRoot) {
+                self._destroyShadow();
             }
 
-            return null;
+            self._replaceNode(node);
+
+            if (self._nodes) {
+                self._attach();
+            }
+        },
+
+        detach: function() {
+            var self = this;
+
+            if (!self._attached) {
+                return;
+            }
+
+            self._attached = false;
+            self._nodes = self._clear();            
         },
 
         resolve: function(renew) {
@@ -352,6 +359,7 @@ module.exports = MetaphorJs.app.Template = function() {
                 if (renew) {
                     self._resolvePromise.$destroy();
                     self._resolvePromise = null;
+                    self._nodes = null;
                 }
                 else {
                     return self._resolvePromise;
@@ -371,15 +379,24 @@ module.exports = MetaphorJs.app.Template = function() {
                 self._resolvePromise = MetaphorJs.lib.Promise.reject();
             }
 
-            self._resolvePromise.done(function(fragment){
-                self._template = typeof fragment === "string" ? 
-                        MetaphorJs.dom.toFragment(fragment) :
-                        fragment;
-            })
-            .fail(self.childrenPromise.reject, self.childrenPromise);
-
-            return self._resolvePromise;
+            return self._resolvePromise.done(self._onTemplateResolved, self);
         },
+
+        _onTemplateResolved: function(fragment) {
+            var self = this;
+            self._template = typeof fragment === "string" ? 
+                            MetaphorJs.dom.toFragment(fragment) :
+                            fragment;
+            self._fragment = MetaphorJs.dom.clone(self._template);
+
+            if (self._attached) {
+                self._clear();
+            }
+
+            self._nodes = toArray(self._fragment.childNodes);
+        },
+
+
 
         createEvent: function(event, opt) {
             return observable.createEvent(event + "-" + this.id, opt);
@@ -396,75 +413,76 @@ module.exports = MetaphorJs.app.Template = function() {
 
         _prepareTranscludes: function() {
             var self = this;
-            if (self.node && !self.config.get("useShadow")) {
-                MetaphorJs.dom.data(self.node, "mjs-transclude", 
-                    MetaphorJs.dom.toFragment(self.node.childNodes));
+            if (self._attachTo && !self.config.get("useShadow")) {
+                MetaphorJs.dom.data(self._attachTo, "mjs-transclude", 
+                    MetaphorJs.dom.toFragment(self._attachTo.childNodes));
             }
         },
 
-        _wrapInComments: function() {
-            var self = this;
-            if (self.node && !self._prevEl && 
-                self.config.get("wrapInComments")) {
+        _replaceNode: function(node) {
+            var self = this,
+                cmts = MetaphorJs.dom.commentWrap(node, self.id);
+                node.parentNode && node.parentNode.removeChild(node);
+            self._prevEl = cmts[0];
+            self._nextEl = cmts[1];
+        },
 
-                if (self.config.get("replaceNode")) {
-                    var cmts = MetaphorJs.dom.commentWrap(self.node, self.id);
-                    if (self.node.parentNode) {
-                        self.node.parentNode.removeChild(self.node);
-                    }
-                }
-                else {
-                    var cmts = [
+        _createComments: function() {
+            var self = this,
+                parent = self._attachTo,
+                before = self._attachBefore;
+
+            if (!self._prevEl && self.config.get("wrapInComments")) {
+                var cmts = [
                         window.document.createComment("<" + self.id),
                         window.document.createComment(self.id + ">")
                     ];
-                    self.node.appendChild(cmts[0]);
-                    self.node.appendChild(cmts[1]);
-                }
-
+                parent.insertBefore(cmts[0], before);
+                parent.insertBefore(cmts[1], before);
                 self._prevEl = cmts[0];
                 self._nextEl = cmts[1];
             }
         },
 
+        _removeComments: function() {
+            var self = this,
+                next = self._nextEl,
+                prev = self._prevEl;
+
+            next.parentNode && next.parentNode.removeChild(next);
+            prev.parentNode && prev.parentNode.removeChild(next);
+            self._nextEl = null;
+            self._prevEl = null;
+        },
+
         _createShadow: function() {
             var self = this;
-            if (self.node && !self._shadowRoot && 
+            if (self._attachTo && !self._shadowRoot && 
                 self.config.get("useShadow")) {
-                self._shadowRoot = self.node.shadowRoot || 
-                                    self.node.attachShadow({mode: "open"});
+                self._shadowRoot = self._attachTo.shadowRoot || 
+                                    self._attachTo.attachShadow({mode: "open"});
             }
         },
 
-        _runRenderer: function() {
-            var self = this,
-                nodes;
+        _destroyShadow: function() {
+            this._shadowRoot = null;
+        },
 
-            if (!self._renderer && self.config.get("runRenderer")) {
+        _runRenderer: function() {
+            var self = this;
+
+            if (self.config.get("runRenderer")) {
+                if (self._renderer) {
+                    self._renderer.$destroy();
+                    self._renderer = null;
+                }
 
                 observable.trigger("before-render-" + self.id, self);
-
-                if (self._shadowRoot) {
-                    nodes = self._shadowRoot;
-                }
-                else if (self._nextEl) {
-                    nodes = self._collectBetweenComments();
-                }
-                else if (self.node) {
-                    nodes = self.node;
-                }
-                else {
-                    nodes = self._fragment;
-                }
-
-                if (!nodes) {
-                    throw new Error("Cannot find what to render");
-                }
 
                 self._renderer   = new MetaphorJs.app.Renderer(self.scope);
                 observable.relayEvent(self._renderer, "reference", "reference-" + self.id);
                 observable.relayEvent(self._renderer, "rendered", "rendered-" + self.id);
-                self._renderer.process(nodes);
+                self._renderer.process(self._nodes);
             }
         },
 
@@ -477,7 +495,7 @@ module.exports = MetaphorJs.app.Template = function() {
             )
         },
 
-        _resolveHtml: function(renew) {
+        _resolveHtml: function() {
             var html = this.config.get("html");
             return new MetaphorJs.lib.Promise(
                 function(resolve, reject) {
@@ -487,36 +505,20 @@ module.exports = MetaphorJs.app.Template = function() {
         },
 
         _onHtmlChange: function() {
-            if (!this.config.get("deferRendering")) {
-                this.resolve(true);
-                this.render(true);
+            var self = this;
+            if (!self.config.get("deferRendering")) {
+                self.resolve(true)   
+                    .done(self._attach, self)
+                    .done(self._runRenderer, self);
             }
         },
 
         _onNameChange: function() {
-            if (!this.config.get("deferRendering")) {
-                this.resolve(true);
-                this.render(true);
-            }
-        },
-
-        _clearNode: function() {
             var self = this;
-
-            if (self._nextEl) {
-                // remove all children between prev and next
-                var next = self._nextEl, prev = self._prevEl;
-                while (prev && prev.parentNode && prev.nextSibling && 
-                        prev.nextSibling !== next) {
-                    prev.parentNode.removeChild(prev.nextSibling);
-                }
-            }
-            else {
-                // remove all children of main node
-                var el = self._shadowRoot || self.node;
-                while (el && el.firstChild) {
-                    el.removeChild(el.firstChild);
-                }
+            if (!self.config.get("deferRendering")) {
+                self.resolve(true)   
+                    .done(self._attach, self)
+                    .done(self._runRenderer, self);
             }
         },
 
@@ -537,30 +539,69 @@ module.exports = MetaphorJs.app.Template = function() {
             return els;
         },
 
-        _applyTemplate: function() {
-            var self    = this,
-                frg, 
-                el = self._shadowRoot || self.node,
-                children;
+        _attach: function() {
+            var self = this,
+                i, l, 
+                nodes = self._nodes,
+                child,
+                attached = false,
+                next = self._nextEl,
+                parent = self._shadowRoot || self._attachTo,
+                before = self._attachBefore;
 
-            if (!self._template) {
+            if (!nodes || self._attached) {
                 return;
             }
 
-            frg = self._fragment || MetaphorJs.dom.clone(self._template);
+            for (i = 0, l = nodes.length; i < l; i++) {
+                child = nodes[i];
 
-            if (self._nextEl) {
-                children = toArray(frg.childNodes);
-                self._nextEl.parentNode.insertBefore(frg, self._nextEl);
-                self.childrenPromise.resolve(children);
+                // between comments mode
+                if (next) {
+                    next.parentNode.insertBefore(child, next);
+                    attached = true;
+                }
+                // shadow or normal parent
+                else if (parent) {
+                    if (before) {
+                        parent.insertBefore(child, before);
+                    }
+                    else {
+                        parent.appendChild(child);
+                    }
+                    attached = true;
+                }
             }
-            else if (el) {
-                el.appendChild(frg);
-                self.childrenPromise.resolve(el.childNodes);
+
+            self._attached = attached;
+            if (attached) {
+                self.trigger("attached", self, nodes);
+            }
+        },
+
+        _clear: function() {
+            var self = this,
+                nodes = [], 
+                i, l, parent;
+
+            // remove all children between prev and next
+            if (self._nextEl) {
+                nodes = self._collectBetweenComments();
             }
             else {
-                self._fragment = frg;
+                // remove all children of main node
+                var parent = self._shadowRoot || self._attachTo;
+                if (parent) {
+                    nodes = toArray(parent.childNodes);
+                }
             }
+
+            for (i = 0, l = nodes.length; i < l; i++) {
+                n = nodes[i];
+                n.parentNode && n.parentNode.removeChild(n);
+            }
+
+            return nodes;
         },
 
         _onParentRendererDestroy: function() {
@@ -600,6 +641,10 @@ module.exports = MetaphorJs.app.Template = function() {
 
     Template.load = loadTemplate;
     Template.cache = cache;
+
+    Template.add = function(name, tpl) {
+        Template.cache.add(name, tpl);
+    };
 
     Template.prepareConfig = function(config, values) {
         if (typeof values === 'string') {

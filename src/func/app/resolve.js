@@ -116,7 +116,7 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
             config: tplConfig
         });
 
-        defers.push(cfg.template.childrenPromise);
+        defers.push(cfg.template.resolve());
     }
 
     var p;
