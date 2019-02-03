@@ -4,6 +4,10 @@
 </head>
 <body>
     <div id="test1" 
+            #node1
+            #node11
+            @before
+            !ignore
             {dir}="this.a" 
             {dir.value-expr}*="this.b"
             {dir.value-static}:="2"
@@ -15,6 +19,10 @@
             [value]="this.a"></div>
 
     <comp id="test2" 
+            #node2
+            #node21
+            @after
+            !ignore-inside
             $as:="div" 
             $cfg-expr*="this.a" 
             $cfg-static:="1" 

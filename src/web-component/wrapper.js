@@ -42,7 +42,7 @@ module.exports = MetaphorJs.dom.webComponentWrapper = function(tagName, cls, par
                     isWebComponent: true,
                     keepCustomNode: true,
                     autoRender: true,
-                    directives: this._simplifyDirectives(attrSet.directive)
+                    directives: attrSet.directives
                 });
 
                 window.document.addEventListener(
@@ -50,17 +50,6 @@ module.exports = MetaphorJs.dom.webComponentWrapper = function(tagName, cls, par
                     this._domeReadyDelegate
                 );
             }
-        }
-
-        _simplifyDirectives(ds) {
-            var directives = {},
-                name;
-
-            for (name in ds) {
-                directives[name] = ds.config;
-            }
-
-            return directives;
         }
 
         _callCmpEvent(event, args) {

@@ -20,8 +20,8 @@ module.exports = MetaphorJs.app.renderTpl = function app_renderTpl(htmlString, s
 
     var fragment = MetaphorJs.dom.toFragment(div.childNodes);
 
-    var renderer = new MetaphorJs.app.Renderer(fragment, scope);
-    renderer.process();
+    var renderer = new MetaphorJs.app.Renderer(scope);
+    renderer.process(fragment);
 
     return fragment;
 };

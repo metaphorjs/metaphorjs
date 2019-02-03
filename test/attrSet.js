@@ -28,7 +28,7 @@ describe("getAttrSet", function(){
 
         getAttrSet(node1)
         getAttrSet(node2)
-        //console.log(getAttrSet(node1)['directive']['dir'])
-        //console.log(getAttrSet(node2))
+        console.dir(getAttrSet(node1), {depth: null})
+        console.dir(getAttrSet(node2), {depth: null})
     });
 });

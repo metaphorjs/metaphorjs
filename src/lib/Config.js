@@ -274,7 +274,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 else {
                     prop = val;
                 }
-                self.setProperty(k, prop, undf, override);
+                this.setProperty(k, prop, undf, override);
             }
         },
 

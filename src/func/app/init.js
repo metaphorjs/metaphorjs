@@ -11,20 +11,9 @@ var error = require("metaphorjs-shared/src/func/error.js"),
 
 module.exports = MetaphorJs.app.init = function app_init(node, cls, data, autorun) {
 
-    var attrDirs = MetaphorJs.directive.attr;
-
-    var attrs = MetaphorJs.dom.getAttrSet(node, function(name) {
-        return !!attrDirs[name];
-    });
-
-    var cfg = attrs.directive.app ? attrs.directive.app.config : {},
-        i, l;
-
-    if (attrs.names['app']) {
-        for (i = 0, l = attrs.names['app'].length; i < l; i++) {
-            MetaphorJs.dom.removeAttr(node, attrs.names[i]);
-        }
-    }
+    var attrs = MetaphorJs.dom.getAttrSet(node);
+    var cfg = attrs.directives.app || {};
+    attrs.__remove("directive", node, "app")
 
     try {
         var p = MetaphorJs.app.resolve(

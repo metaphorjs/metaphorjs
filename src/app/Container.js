@@ -82,10 +82,10 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                 foundCmp = null;
                 foundPromise = null;
                 renderRef = null;
-                renderer = new MetaphorJs.app.Renderer(node, scope);
+                renderer = new MetaphorJs.app.Renderer(scope);
                 renderer.on("reference", refCallback);
                 renderer.on("reference-promise", promiseCallback);
-                renderer.process();
+                renderer.process(node);
 
                 if (foundCmp || foundPromise) {
                     if (!renderRef) {

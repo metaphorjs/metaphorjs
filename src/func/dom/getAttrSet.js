@@ -18,23 +18,74 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
 
     // regular expression seems to be a few milliseconds faster
     // than plain parsing
-    var reg = /^([\[({#$@])([^)\]}"':\*]+)[\])}]?([:\*!]?)$/;
+    var reg = /^([\[({#$@!])([^)\]}"':\*!]+)[\])}]?([:\*!]?)$/;
 
     var removeDirective = function removeDirective(node, directive) {
-        if (this.inflated) {
-            delete this.directive[directive];
+        var ds = this.__directives;
+        if (!this.inflated && ds[directive]) {
+            if (ds[directive].original) {
+                MetaphorJs.dom.removeAttr(node, ds[directive].original);
+            }
+            if (ds[directive].names) {
+                var i, l, ns = ds[directive].names;
+                for (i = 0, l = ns.length; i < l; i++) {
+                    MetaphorJs.dom.removeAttr(node, ns[i]);
+                }
+            }
+        }
+        //delete ds[directive];
+    };
+
+    var removeAttributes = function(node, what, param) {
+        var names, i, l;
+        if (what === "all") {
+            removeAttributes(node, "directives");
+            removeAttributes(node, "attributes");
+            removeAttributes(node, "config");
+        }
+        else if (what === "directives") {
+            for (i in this.__directives) {
+                removeDirective.call(this, node, i);    
+            }
             return;
         }
-        if (this.directive[directive] && 
-            this.directive[directive].original) {
-            MetaphorJs.dom.removeAttr(node, this.directive[directive].original);
+        else if (what === "directive") {
+            removeDirective.call(this, node, param);
+            return;
         }
-        var i, l, sn = this.names[directive];
-        if (sn) {
-            for (i = 0, l = sn.length; i < l; i++) {
-                MetaphorJs.dom.removeAttr(node, sn[i]);
+        else if (what === "attributes") {
+            names = this.__attributes;
+        }
+        else if (what === "attribute" && this.__attributes[param]) {
+            names = [this.__attributes[param]];
+        }
+        else if (what === "config") {
+            names = this.__config;
+        }
+        else if (what === "reference") {
+            names = ["#" + param];
+        }
+        else if (what === "references") {
+            names = [];
+            for (i = 0, l = this.references.length; i < l; i++) {
+                names.push("#" + this.references[i]);
             }
-            delete this.names[directive];
+        }
+        else if (what === "at") {
+            names = ["@" + this.at];
+        }
+
+        if (names) {
+            if (isArray(names)) {
+                for (i = 0, l = names.length; i < l; i++) {
+                    MetaphorJs.dom.removeAttr(node, names[i]);
+                }
+            }
+            else {
+                for (i in names) {
+                    MetaphorJs.dom.removeAttr(node, names[i]);
+                }
+            }
         }
     };
 
@@ -49,25 +100,31 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
         '{': "dir",
         '(': "event",
         '[': "attr",
-        '$': "cfg"
+        '$': "cfg",
+        '!': "renderer"
     };
 
     var getEmpty = function() {
         return {
-            directive: {},
-            attribute: {},
+            directives: {},
+            attributes: {},
             config: {},
             rest: {},
-            reference: [],
+            references: [],
+            renderer: {},
             at: null,
-            names: {},
-            removeDirective: removeDirective
+
+            __directives: {},
+            __attributes: {},
+            __config: [],
+            __remove: removeAttributes
         };
     };
 
     var inflate = function(set) {
         extend(set, getEmpty(), false, false);
         set.inflated = true;
+        return set;
     };
 
     var ccName = function(name) {
@@ -77,10 +134,12 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
     return function dom_getAttrSet(node) {
 
         var set = getEmpty(),
-            i, l, tagName,
+            i, l, 
             name, value,
             match, parts,
-            coll, mode,
+            ds = set.directives, 
+            __ds = set.__directives, 
+            mode,
             subname,
             prop, execMode,
             attrs = isArray(node) ? node : node.attributes;
@@ -96,8 +155,7 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
         if (node.nodeType && node.hasAttribute && node.hasAttribute("mjs")) {
             set = MetaphorJs.prebuilt.configs[node.getAttribute("mjs")];
             //MetaphorJs.dom.removeAttr(node, "mjs");
-            inflate(set);
-            return set;
+            return inflate(set);
         }
 
         for (i = 0, l = attrs.length; i < l; i++) {
@@ -114,11 +172,15 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
                 execMode = execModes[match[3]];
 
                 if (mode === '#') {
-                    set.reference.push(name);
+                    set.references.push(name);
                     continue;
                 }
                 if (mode === '@') {
                     set.at = name;
+                    continue;
+                }
+                if (mode === "!") {
+                    set.renderer[ccName(name)] = true;
                     continue;
                 }
             }
@@ -139,58 +201,41 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
                     value = true;
                 }
 
-                tagName = node.tagName.toLowerCase();
-
                 set['config'][ccName(name)] = {
                     expression: value,
-                    mode: execMode,
-                    dtype: dtypes[mode]
+                    mode: execMode
                 };
-
-                if (!set['names'][tagName]) {
-                    set['names'][tagName] = [];
-                }
-
-                set['names'][tagName].push(attrs[i].name);
+                set.__config.push(attrs[i].name);
             }
             else if (mode === '(' || mode === '{') { 
 
                 parts = name.split(".");
                 name = parts.shift();
-
-                coll = set['directive'];
                 subname = parts.length ? parts.join(".") : null;
+                value === "" && (value = true);
 
-                if (value === "") {
-                    value = true;
-                }
-
-                if (!coll[name]) {
-                    coll[name] = {
-                        //name: name,
+                if (!ds[name]) {
+                    ds[name] = {};
+                    __ds[name] = {
+                        type: dtypes[mode],
                         original: null,
-                        config: {},
-                        dtype: dtypes[mode]
+                        names: []
                     };
                 }
 
                 if (!subname) {
-                    coll[name].original = attrs[i].name;
-                }
-
-                if (subname && !set['names'][name]) {
-                    set['names'][name] = [];
+                    __ds[name].original = attrs[i].name;
                 }
 
                 if (subname && subname[0] === '$') {
                     
                     prop = ccName(subname.substr(1));
-                    coll[name].config[prop] = {
+                    ds[name][prop] = {
                         mode: execMode,
                         expression: value,
-                        original: attrs[i].name
+                        attr: attrs[i].name
                     };
-                    set['names'][name].push(attrs[i].name);
+                    __ds[name].names.push(attrs[i].name);
                 }
                 else {
                     if (subname) {
@@ -198,27 +243,25 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
                         // directive value keys are not camelcased
                         // do this inside directive if needed
                         // ('class' directive needs originals)
-                        coll[name].config[prop] = {
+                        ds[name][prop] = {
                             mode: execMode,
                             expression: value,
-                            original: attrs[i].name
+                            attr: attrs[i].name
                         };
-                        set['names'][name].push(attrs[i].name);
+                        __ds[name].names.push(attrs[i].name);
                     }
                     else {
-                        coll[name].config['value'] = {
+                        ds[name]['value'] = {
                             mode: execMode,
                             expression: value,
-                            original: attrs[i].name
+                            attr: attrs[i].name
                         };
                     }
                 }
             }
             else if (mode === '[') {
-                set['attribute'][name] = {
-                    value: value,
-                    original: attrs[i].name
-                };
+                set.attributes[name] = value;
+                set.__attributes[name] = attrs[i].name;
             }
         }
 

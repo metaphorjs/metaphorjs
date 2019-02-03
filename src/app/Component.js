@@ -224,7 +224,6 @@ module.exports = MetaphorJs.app.Component = cls({
             self.node && self.template.setNode(self.node);
             self.template.on("reference", self._onChildReference, self);
             self.template.on("rendered", self._onRenderingFinished, self);
-            self.template.on("first-node", self._onFirstNodeReported, self);
         }
         else {
 
@@ -235,7 +234,7 @@ module.exports = MetaphorJs.app.Component = cls({
                 wrapInComments: self._nodeReplaced,
                 replaceNode: self._nodeReplaced
             }, {scope: self.scope});
-            
+
             MetaphorJs.app.Template.prepareConfig(tplConfig, tpl);
 
             self.template = tpl = new MetaphorJs.app.Template({
@@ -245,8 +244,7 @@ module.exports = MetaphorJs.app.Component = cls({
                 callback: {
                     context: self,
                     reference: self._onChildReference,
-                    rendered: self._onRenderingFinished,
-                    "first-node": self._onFirstNodeReported
+                    rendered: self._onRenderingFinished
                 }
             });
         }
@@ -444,7 +442,7 @@ module.exports = MetaphorJs.app.Component = cls({
     },
 
     _replaceNodeWithTemplate: function() {
-        var self = this;
+        /*var self = this;
 
         if (self._nodeReplaced && self.node && self.node.parentNode) {
             MetaphorJs.dom.removeAttr(self.node, "id");
@@ -468,7 +466,7 @@ module.exports = MetaphorJs.app.Component = cls({
 
         self.template.node = self.node;
 
-        self._claimNode();
+        self._claimNode();*/
     },
 
 
@@ -523,10 +521,10 @@ module.exports = MetaphorJs.app.Component = cls({
         self.renderTo = parent;
         self.renderBefore = before;
 
-        if (self.template.moveTo(parent, before)) {
+        /*if (self.template.moveTo(parent, before)) {
             self.afterAttached();
             self.trigger('attached', self);
-        }
+        }*/
     },
 
     detach: function(willAttach) {

@@ -309,7 +309,7 @@ module.exports = MetaphorJs.app.Template = function() {
 
             if (self.config.has("name") || 
                 self.config.has("html")) {
-                self._resolve()
+                self.resolve()
                     .done(self._applyTemplate, self)    
                     .done(self._runRenderer, self);
             }
@@ -461,14 +461,10 @@ module.exports = MetaphorJs.app.Template = function() {
                     throw new Error("Cannot find what to render");
                 }
 
-                self._renderer   = new MetaphorJs.app.Renderer(
-                    nodes, 
-                    self.scope
-                );
+                self._renderer   = new MetaphorJs.app.Renderer(self.scope);
                 observable.relayEvent(self._renderer, "reference", "reference-" + self.id);
-                observable.relayEvent(self._renderer, "first-node", "first-node-" + self.id);
                 observable.relayEvent(self._renderer, "rendered", "rendered-" + self.id);
-                self._renderer.process();
+                self._renderer.process(nodes);
             }
         },
 

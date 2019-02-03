@@ -48,6 +48,7 @@ module.exports = MetaphorJs.app.App = cls({
 
         self.lang       = new MetaphorJs.lib.LocalText;
 
+        self.node           = node;
         self.scope          = scope;
         self.cmpListeners   = {};
         self.components     = {};
@@ -59,7 +60,7 @@ module.exports = MetaphorJs.app.App = cls({
         self.value('$lang', self.lang);
         self.value('$locale', self.lang);
 
-        self.renderer       = new MetaphorJs.app.Renderer(node, scope);
+        self.renderer       = new MetaphorJs.app.Renderer(scope);
         self.renderer.on("rendered", self.afterRender, self);
         self.renderer.on("reference", self._onChildReference, self);
 
@@ -87,7 +88,7 @@ module.exports = MetaphorJs.app.App = cls({
      * @method
      */
     run: function() {
-        this.renderer.process();
+        this.renderer.process(this.node);
     },
 
     /**
