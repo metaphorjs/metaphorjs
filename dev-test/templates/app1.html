@@ -262,7 +262,7 @@
                 <a href="#" (click)="this.tpl = 'a+b.html'">a + b</a> |
                 <a href="#" (click)="this.tpl = 'a*b.html'">a * b</a>
 
-                <div {include}*="this.tpl" {include.$animate} id="tplComponetInc"></div>
+                <div {include}*="this.tpl"  id="tplComponetInc"></div>
             </div>
 
             <div class="case" {cmp}="Test.StringTemplate"></div>
@@ -371,7 +371,7 @@
             <div class="case double" 
                  {cmp}="Test.MyComponent"
                  {cmp.$as}="ctrl" 
-                 {init}="this.selectBinding = 'scope'">
+                 {cmp.$init}="this.selectBinding = 'scope'">
                 <p ##para>Component's transcluded text + {{ this.$root.a}}</p>
                 <a href="#" (click)="this.ctrl.reverse()">reverse</a> |
                 <a href="#" (click)="this.ctrl.createNew()">create new component on existing element</a> |

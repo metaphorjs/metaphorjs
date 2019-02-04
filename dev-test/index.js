@@ -146,8 +146,8 @@ cls({
         },
 
         afterRender: function() {
-            if (this.para && window.console && window.console.log) {
-                console.log("got child property 'para': ", this.para);
+            if (this.$refs.node.para) {
+                console.log("got child property 'para': ", this.$refs.node.para);
             }
         },
 
@@ -163,8 +163,14 @@ cls({
 
         createRender: function() {
             var to  = document.getElementById("renderToComponent");
-            MetaphorJs.app.resolve("Test.DynamicComponent", 
-                {renderTo: to, autoRender: true}, this.scope);
+            MetaphorJs.app.resolve(
+                "Test.DynamicComponent", 
+                {autoRender: false}, 
+                this.scope
+            )
+            .done(function(cmp){
+                cmp.render(to)
+            });
         },
 
         createDialog: function() {
@@ -273,7 +279,9 @@ cls({
     $class: "Test.ChangeTemplate",
     $extends: "MetaphorJs.app.Component",
     template: {
-        htmlExpression: 'this.tpl'
+        html: {
+            expression: 'this.tpl'
+        }
     },
 
     initComponent: function() {
@@ -312,6 +320,11 @@ cls({
 });
 
 
+MetaphorJs.app.Template.cache.addFinder(function(name){
+    if (name) {
+        return MetaphorJs.app.Template.load(name, name);
+    }
+});
 
 MetaphorJs.dom.onReady(function(){
     var dataObj     = {

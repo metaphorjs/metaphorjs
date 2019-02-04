@@ -9,12 +9,11 @@ Directive.registerTag("include", function(scope, node, config, parentRenderer) {
 
     config.setType("asis", "bool", MetaphorJs.lib.Config.MODE_STATIC);
     config.setDefaultValue("runRenderer", !config.get("asis"));
-    config.set("wrapInComments", true);
-    config.set("replaceNode", true);
+    config.set("useComments", true);
 
     var tpl = new MetaphorJs.app.Template({
         scope: scope,
-        node: node,
+        replaceNode: node,
         config: config,
         parentRenderer: parentRenderer
     });

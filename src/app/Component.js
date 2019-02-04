@@ -18,8 +18,6 @@ var cls = require("metaphorjs-class/src/cls.js"),
     emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
-    isArray = require("metaphorjs-shared/src/func/isArray.js"),
-    isPrimitive = require("metaphorjs-shared/src/func/isPrimitive.js"),
     isThenable = require("metaphorjs-shared/src/func/isThenable.js"),
     htmlTags = require("../var/dom/htmlTags");
 
@@ -139,38 +137,44 @@ module.exports = MetaphorJs.app.Component = cls({
      */
     $init: function(cfg) {
 
-        var self    = this;
+        var self    = this,
+            scope,
+            config;
 
         cfg = cfg || {};
 
         self.$super(cfg);
         extend(self, cfg, true, false);
 
-        self.scope = MetaphorJs.lib.Scope.$produce(self.scope);
+        scope = self.scope = MetaphorJs.lib.Scope.$produce(self.scope);
 
         // We initialize config with current scope or change config's scope
         // to current so that all new properties that come from _initConfig
         // are bound to local scope. 
         // All pre-existing properties are already bound to outer scope;
         // Also, each property configuration can have its scope specified
-        self.config = MetaphorJs.lib.Config.create(
+        config = self.config = MetaphorJs.lib.Config.create(
             self.config,
-            {scope: self.scope}, 
+            {scope: scope}, 
             /*scalarAs: */"defaultValue"
         )
-        self.config.setOption("scope", self.scope);
+        config.setOption("scope", scope);
 
         self.$refs = {node: {}, cmp: {}};
-        self.scope.$cfg = {};
-        self.config.setTo(self.scope.$cfg);
+        scope.$cfg = {};
+        config.setTo(scope.$cfg);
         self._initConfig();
         self.$callMixins("$initConfig");
 
-        if (self.$view) {
-            self.scope.$view = self.$view;
+        if (config.has("init")) {
+            config.get("init")(scope);
         }
-        if (self.config.has("as")) {
-            self.scope[self.config.get("as")] = self;
+
+        if (self.$view) {
+            scope.$view = self.$view;
+        }
+        if (config.has("as")) {
+            scope[config.get("as")] = self;
         }
 
         if (self.node) {
@@ -185,15 +189,15 @@ module.exports = MetaphorJs.app.Component = cls({
 
         self.id = self.id || "cmp-" + nextUid();
 
-        if (!self.node && self.config.has("tag")) {
-            self.node = window.document.createElement(self.config.get("tag"));
+        if (!self.node && config.has("tag")) {
+            self.node = window.document.createElement(config.get("tag"));
         }
 
         self.beforeInitComponent.apply(self, arguments);
         self.initComponent.apply(self, arguments);
 
-        if (self.scope.$app) {
-            self.scope.$app.registerCmp(self, self.scope, "id");
+        if (scope.$app) {
+            scope.$app.registerCmp(self, scope, "id");
         }
 
         if (self.parentRenderer) {
@@ -221,7 +225,11 @@ module.exports = MetaphorJs.app.Component = cls({
 
         if (tpl instanceof MetaphorJs.app.Template) {
             // it may have just been created
-            self.node && self.template.setNode(self.node);
+            if (self.node) {
+                self._nodeReplaced ? 
+                    self.template.replace(self.node) :
+                    self.template.attach(self.node);
+            }
             self.template.on("reference", self._onChildReference, self);
             self.template.on("rendered", self._onRenderingFinished, self);
         }
@@ -231,16 +239,18 @@ module.exports = MetaphorJs.app.Component = cls({
                 deferRendering: !self.autoRender,
                 runRenderer: true,
                 useShadow: self.useShadowDOM,
-                wrapInComments: self._nodeReplaced,
-                replaceNode: self._nodeReplaced
+                useComments: self._nodeReplaced
             }, {scope: self.scope});
 
             MetaphorJs.app.Template.prepareConfig(tplConfig, tpl);
 
             self.template = tpl = new MetaphorJs.app.Template({
                 scope: self.scope,
-                node: self.node,
                 config: tplConfig,
+
+                attachTo: self._nodeReplaced ? null : self.node,
+                replaceNode: self._nodeReplaced ? self.node : null,
+
                 callback: {
                     context: self,
                     reference: self._onChildReference,
@@ -253,7 +263,6 @@ module.exports = MetaphorJs.app.Component = cls({
 
         if (self.autoRender) {
             tpl.resolve().done(self.render, self);
-            //tpl.render();
         }
     },
 
@@ -262,6 +271,7 @@ module.exports = MetaphorJs.app.Component = cls({
             config = self.config,
             ctx;
 
+        config.setMode("init", MetaphorJs.lib.Config.MODE_FUNC);
         config.setDefaultMode("tag", MetaphorJs.lib.Config.MODE_STATIC);
         config.setDefaultMode("as", MetaphorJs.lib.Config.MODE_STATIC);
 
@@ -396,7 +406,7 @@ module.exports = MetaphorJs.app.Component = cls({
         }
     },
 
-    _onFirstNodeReported: function(node) {
+    /*_onFirstNodeReported: function(node) {
         var self = this;
         if (self._nodeReplaced) {
             self._claimNode(node);
@@ -406,7 +416,7 @@ module.exports = MetaphorJs.app.Component = cls({
             self.template.node = node;
             self._claimNode(node);
         }
-    },
+    },*/
 
     _onChildReference: function(type, ref, item) {
         var self = this;
@@ -484,14 +494,17 @@ module.exports = MetaphorJs.app.Component = cls({
             before = parent;
             parent = parent.parentNode;
         }
-        if (self._rendered) {
+
+        parent && self.attach(parent, before);
+
+        /*if (self._rendered) {
             parent && self.attach(parent, before);
             return;
         }
         else if (parent) {
             self.renderTo = parent;
             self.renderBefore = before;
-        }
+        }*/
 
         self.onBeforeRender();
         self.trigger('render', self);
@@ -513,6 +526,7 @@ module.exports = MetaphorJs.app.Component = cls({
         if (!parent) {
             throw new Error("Parent node is required");
         }
+
         if (self.isAttached(parent)) {
             return;
         }
@@ -520,11 +534,7 @@ module.exports = MetaphorJs.app.Component = cls({
         self.detach(true);
         self.renderTo = parent;
         self.renderBefore = before;
-
-        /*if (self.template.moveTo(parent, before)) {
-            self.afterAttached();
-            self.trigger('attached', self);
-        }*/
+        self.template.attach(parent, before);
     },
 
     detach: function(willAttach) {
@@ -535,6 +545,11 @@ module.exports = MetaphorJs.app.Component = cls({
             self.trigger('detached', self, willAttach);
         }
     },
+
+    /*_onTemplateAttached: function() {
+        self.afterAttached();
+        self.trigger("attached", self);
+    },*/
 
     getRefEl: function(name) {
         return this.$refs['node'][name];
@@ -564,11 +579,6 @@ module.exports = MetaphorJs.app.Component = cls({
     _onRenderingFinished: function() {
         var self = this;
 
-        if ((self._nodeReplaced && self.node !== self.template.node) ||
-            !self.node) {
-            self._replaceNodeWithTemplate();
-        }
-
         self._rendered   = true;
         self.afterRender();
         self.trigger('after-render', self);
@@ -584,6 +594,11 @@ module.exports = MetaphorJs.app.Component = cls({
                 self.trigger('after-attached', self);
             }
             else if (self.renderTo && self.node.parentNode !== self.renderTo) {
+                self.attach(self.renderTo, self.renderBefore);
+            }
+        }
+        else {
+            if (self.renderTo) {
                 self.attach(self.renderTo, self.renderBefore);
             }
         }

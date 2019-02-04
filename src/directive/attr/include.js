@@ -17,7 +17,7 @@ Directive.registerAttribute("include", 1100,
 
     var tpl = new MetaphorJs.app.Template({
         scope: scope,
-        node: node,
+        attachTo: node,
         parentRenderer: parentRenderer,
         config: config
     });

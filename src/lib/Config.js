@@ -273,6 +273,13 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 // objects can only describe properties
                 else {
                     prop = val;
+                    if (prop.expression && 
+                        typeof prop.expression === "string" && 
+                        !prop.mode && scalarAs === "defaultValue" && 
+                        (!this.properties[k] || !this.properties[k].mode)) {
+                        
+                        prop.mode = MODE_DYNAMIC;
+                    }
                 }
                 this.setProperty(k, prop, undf, override);
             }

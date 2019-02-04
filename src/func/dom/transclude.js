@@ -29,13 +29,14 @@ module.exports = MetaphorJs.dom.transclude = function dom_transclude(node, repla
         }
 
         var parent      = node.parentNode,
-            next        = node.nextSibling,
+            //next        = node.nextSibling,
             cloned      = MetaphorJs.dom.clone(contents),
             children    = toArray(cloned.childNodes);
 
         if (replace) {
-            parent.removeChild(node);
-            parent.insertBefore(cloned, next);
+            parent.replaceChild(node, cloned);
+            //parent.removeChild(node);
+            //parent.insertBefore(cloned, next);
         }
         else {
             node.appendChild(cloned);

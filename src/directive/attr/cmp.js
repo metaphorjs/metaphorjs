@@ -55,13 +55,7 @@ var Directive = require("../../app/Directive.js"),
         };
 
         if (MetaphorJs.directive.component[tag]) {
-            var ds = {}, k;
-            for(k in attrSet.directive) {
-                if (attrSet.directive.hasOwnProperty(k)) {
-                    ds[k] = attrSet.directive[k].config;
-                }
-            }
-            cfg.directives = ds;
+            cfg.directives = attrSet.directives;
         }
 
         var res = MetaphorJs.app.resolve(cmpName, cfg, newScope, node, [cfg])
@@ -79,10 +73,10 @@ var Directive = require("../../app/Directive.js"),
             cfg, attrSet
         );
 
-        return constr.$resumeRenderer || !!constr.$shadow;
+        attrSet.renderer.ignoreInside = true;
     };
 
-    cmpAttr.$breakScope = false;
+    //cmpAttr.$breakScope = false;
 
     Directive.registerAttribute("cmp", 200, cmpAttr);
 

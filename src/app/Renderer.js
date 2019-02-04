@@ -393,13 +393,14 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 // by adding it to the attr map
                 if (component = dirs.component[tag]) {
                     res = self._processComponent(component, node, attrs);
+                    if (res === false) return false;
+                    isThenable(res) ? defers.push(res) : collectNodes(nodes, res);
                 }
                 else if (directive = dirs.tag[tag]) {
                     res = self._processTag(directive, node, attrs);
+                    if (res === false) return false;
+                    isThenable(res) ? defers.push(res) : collectNodes(nodes, res);
                 }
-
-                if (res === false) return false;
-                isThenable(res) ? defers.push(res) : collectNodes(nodes, res);
 
                 if (attrs.references && attrs.references.length) {
                     self._processReferences(node, attrs);
@@ -424,8 +425,8 @@ module.exports = MetaphorJs.app.Renderer = function() {
 
                 if (attrs.renderer.ignoreInside) {
                     return false;
-                }     
-                
+                }
+
                 if (defers.length) {
                     var deferred = new MetaphorJs.lib.Promise;
                     MetaphorJs.lib.Promise.all(defers).done(function(values){

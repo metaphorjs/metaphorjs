@@ -2,7 +2,7 @@
 /* BUNDLE START 004 */
 "use strict";
 
-var MetaphorJsPrebuilt = {"templates":{"a*b.html":"<p>a * b = {{ this.$root.a * this.$root.b }}</p>","a+b.html":"<p>a + b = {{ this.$root.a + this.$root.b }}</p>","app1.html":"<h1>MetaphorJs Feature test</h1><div class=\"cases\"><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Inline</label><div id=\"inline-binding\" class=\"test\">{{this.inline}}</div><label class=\"case-label\">mjs-bind</label><div id=\"binding\" {bind}=\"this.text\" class=\"test\"></div><label class=\"case-label\">mjs-bind-html</label><div id=\"html-binding\" {bind-html}=\"this.html\" class=\"test\"></div><label class=\"case-label\">Plain attribute (href)</label><p class=\"test\"><a id=\"attr-binding-href\" [href]=\"http://{{this.inline}}.com\">{{this.text}}</a></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Input field (value)</label><p class=\"test\"><input id=\"binding-input-value\" type=\"text\" [value]=\"this.a\"></p><label class=\"case-label\">Input field (mjs-bind) (locked)</label><p class=\"test\"><input id=\"binding-input-bind\" type=\"text\" {bind}=\"this.a\" {bind.$locked}></p><label class=\"case-label\">Checkbox (mjs-bind)</label><p class=\"test\"><input id=\"binding-checkbox\" type=\"checkbox\" {bind}=\"this.bool\"></p><label class=\"case-label\">Radio (mjs-bind) (locked)</label><p class=\"test\"><input id=\"radio-bind-1\" checked=\"checked\" type=\"radio\" value=\"inline1\" name=\"radio-bind\" {bind}=\"this.inline\" {bind.$locked}> <input id=\"radio-bind-2\" type=\"radio\" value=\"inline2\" name=\"radio-bind\"> <input id=\"radio-bind-3\" type=\"radio\" value=\"inline3\" name=\"radio-bind\"></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Select (mjs-bind)</label><p class=\"test\"><select id=\"select-bind\" {bind}=\"this.a\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p><label class=\"case-label\">Textarea (mjs-bind)</label><p class=\"test\"><textarea id=\"textarea-bind-attr\" {bind}=\"this.inline\"></textarea></p><label class=\"case-label\">Textarea (inline)</label><p class=\"test\"><textarea id=\"textarea-bind-inline\">{{this.inline}}</textarea></p></div><div class=\"case\"><h4>Muplitple inline binding</h4><div id=\"multiple-inline-binding\" class=\"test\">{{this.inline}}<b>{{this.text}}</b>{{this.html}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Uppercase (mjs-bind)</label><div id=\"filter-uppercase-binding\" class=\"test\" {bind}=\"this.text | uppercase\"></div><label class=\"case-label\">Uppercase (inline)</label><div id=\"filter-uppercase-inline\" class=\"test\">{{this.text | uppercase}}</div><label class=\"case-label\">Lowercase (inline)</label><div id=\"filter-lowercase-inline\" class=\"test\">{{this.text | lowercase}}</div><label class=\"case-label\">Limit to (string)</label><div id=\"filter-limit-string\" class=\"test\">{{this.text | limitTo:this.a}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Linkify</label><p id=\"filter-linkify\" class=\"test\" {bind-html}=\"this.linkified | linkify\"></p></div><div class=\"case\"><h4>Expressions</h4><label class=\"case-label\">.a + .b</label><div id=\"expr-a-plus-b\" class=\"test\">{{this.a + this.b}}</div><label class=\"case-label\">.bool ? \"true\" : \"false\"</label><div id=\"expr-bool\" class=\"test\">{{this.bool ? \"true\": \"false\"}}</div></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Input (number) (.a)</label><p class=\"test\"><input {model}=\"this.a\" type=\"number\" data-type=\"number\" id=\"model-input-a\"></p><label class=\"case-label\">Checkbox (.bool)</label><p class=\"test\"><input id=\"model-checkbox-bool\" type=\"checkbox\" {model}=\"this.bool\"></p><label class=\"case-label\">Radio (.inline)</label><p class=\"test\"><input id=\"model-radio-1\" checked=\"checked\" type=\"radio\" name=\"r\" value=\"inline1\" {model}=\"this.inline\">1<label><input id=\"model-radio-2\" type=\"radio\" name=\"r\" value=\"inline2\">2</label><input id=\"model-radio-3\" type=\"radio\" name=\"r\" value=\"inline3\">3</p><label class=\"case-label\">Select (.a)</label><p class=\"test\"><select id=\"model-select-a\" {model}=\"this.a\" data-type=\"number\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Textarea (.text)</label><p class=\"test\"><textarea id=\"model-textarea\" {model}=\"this.text\"></textarea></p><label class=\"case-label\">Input (string .text)</label><p class=\"test\"><input type=\"text\" id=\"model-input\" {model}=\"this.text\"></p></div><div class=\"case\"><h4>mjs-class</h4><label class=\"case-label\">Plain attribute</label><div class=\"test\"><p id=\"class-inline\" [class]=\"this.inline\">---</p></div><label class=\"case-label\">mjs-class (string)</label><div class=\"test\"><p id=\"class-string\" {class}=\"this.inline\">---</p></div><label class=\"case-label\">mjs-class ({bool: .bool, inline1: .a == 0})</label><div class=\"test\"><p id=\"class-object\" {class}=\"{bool: this.bool, inline1: this.a == 0}\">---</p></div><div class=\"test\"><p id=\"class-object\" {class.bool}=\"this.bool\" {class.inline1}=\"this.a == 0\">---</p></div></div><div class=\"case\"><h4>mjs-if, mjs-show, mjs-hide</h4><div id=\"if-bool\" {if}=\"this.bool\" class=\"test\" {if.$animate}>this should appear if .bool = true</div><div id=\"show-bool\" {show}=\"this.bool\" class=\"test\" {show.$animate}>this should show if .bool = true</div><div id=\"hide-bool\" {hide}=\"this.bool\" class=\"test\" {hide.$animate}>this should hide if .bool = true</div></div><div class=\"case\"><h4>mjs-include</h4><label class=\"case-label\">immediate</label><div {include}=\"test-template.html\" {include.$animate}><p>transcluded text</p></div><label class=\"case-label\">immediate (via tag)</label><mjs-include $name=\"test-template.html\"><p>transcluded text</p></mjs-include><label class=\"case-label\">ajax</label><div {include}=\"template.html\"><p>Transcluded text</p></div></div><div class=\"case\"><h4>mjs-validate</h4><form name=\"myForm\" {validate} {class.error}=\"this.myForm.$invalid\" {class.$animate}><div><input name=\"field1\" data-validate-required {class}=\"{error: this.myForm.field1.$invalid}\"></div><div {class}=\"{error: this.myForm.radio1.$invalid}\"><label><input type=\"radio\" name=\"radio1\" value=\"1\" data-validate-required> -- 1</label><label><input type=\"radio\" name=\"radio1\" value=\"2\"> -- 2</label><label><input type=\"radio\" name=\"radio1\" value=\"3\"> -- 3</label></div><div><input type=\"submit\" value=\"Submit\"> <input type=\"reset\" value=\"Reset\"></div></form></div><div class=\"case\" {init}=\"this.dynamicList = []\"><h4>dynamic list</h4><label><input id=\"radio-sep-1\" type=\"radio\" name=\"sep\" value=\"/\\n|,/\" {model}=\"this.sep\"> /\\n|,/</label><label><input type=\"radio\" name=\"sep\" value=\"/\\n/\"> /\\n/</label><label><input type=\"radio\" name=\"sep\" value=\",\"> ,</label><br><br><textarea {model}=\"split:this.sep >> this.dynamicList\" {model.$binding}=\"input\"></textarea><ul><li {each}=\"item in this.dynamicList\" {bind}=\"this.item\" {bind.$recursive}></li></ul></div><div class=\"case\"><h4>mjs-options</h4><label class=\"case-label\">Generated from .alist</label><p class=\"test\"><select {bind}=\"this.a\" {options}=\"this.alist\"><option>not selected</option></select></p><label class=\"case-label\">Generated from .dynamicList</label><p class=\"test\"><select {options}=\"{\n                        name: this.item,\n                        value: this.$index,\n                        group: this.$index - (this.$index % 2),\n                        disabledGroup: this.$index == 0,\n                        disabled: this.$index == 4\n                        } in this.dynamicList\"><option>default value</option></select></p></div><div class=\"case\" {cmp}=\"Test.TplComponent\" id=\"tplComponentTest\"><h2>{{ this.title }}</h2>mjs-include change template:<br><a href=\"#\" (click)=\"this.tpl = 'a+b.html'\">a + b</a>|<a href=\"#\" (click)=\"this.tpl = 'a*b.html'\">a * b</a><div {include}*=\"this.tpl\" {include.$animate} id=\"tplComponetInc\"></div></div><div class=\"case\" {cmp}=\"Test.StringTemplate\"></div><div class=\"case\" {cmp}=\"Test.ChangeTemplate\">mjs-cmp change template:<br><a href=\"#\" (click)=\"this.tpl = this.tpl1\">tpl1</a>|<a href=\"#\" (click)=\"this.tpl = this.tpl2\">tpl2</a></div><div class=\"case\"><h4>Router</h4><div {router}=\"Test.MyView\" {router.$animate}></div>pushUrl:<a href=\"/1\">/1</a>|<a href=\"/2\">/2</a>|<a href=\"/3\">/3</a>|<a href=\"http://www.kuindji.com\">outside</a><br><br></div><div class=\"case\" {ignore}>This element is ignored by renderer: {{ this.$root.a }}</div><div class=\"case\" {view}=\"this.viewCmp\" {view.$default-cmp}:=\"Test.ViewComponent1\"><p>change cmp:<a href=\"#\" (click)=\"this.$parent.viewCmp = 'Test.ViewComponent1'\">Cmp1</a>|<a href=\"#\" (click)=\"this.$parent.viewCmp = 'Test.ViewComponent2'\">Cmp2</a></p></div></div><div class=\"cases\"><div class=\"case double\" {init}=\"this.newItem = '';\n                            this.listFilter = '';\n                            this.sortBy = 'asc'\"><h4>mjs-each (attr)</h4><input {model}=\"this.newItem\" (key.enter)=\"if (this.newItem) {\n                                        this.list.push({bool: false, txt: this.newItem}); \n                                        this.newItem = '';\n                                    }\"> <input type=\"button\" {disabled}=\"!this.newItem\" (click)=\"this.list.push({bool: false, txt: this.newItem}); this.newItem = '';\" value=\"Add item\"><ul {show}=\"this.bool\" {show.$animate}><li {each}=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\" {each.$animate} {each.$animate-move}><label {class}=\"{cls3: this.item.bool}\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{ this.$index }} - {{ this.item.txt }} - {{ this.$first ? \"first\" : \"\" }} - {{ this.$last ? \"last\" : \"\" }} - {{ this.$even ? \"even\" : \"\" }} - {{ this.$odd ? \"odd\" : \"\" }}</label><a href=\"#\" (click)=\"this.$parent.list.splice(this.$getRawIndex(this.$trackId),1);\">x</a></li></ul><input {model}=\"this.listFilter\" placeholder=\"Search\"><a href=\"#\" (click)=\"this.sortBy='asc'\">asc</a><a href=\"#\" (click)=\"this.sortBy='desc'\">desc</a></div><div class=\"case double\"><h4>mjs-each (tag)</h4><mjs-each value=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\"><div><label {class}=\"{cls3: this.item.bool}\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{ this.$index }} - {{ this.item.txt }} - {{ this.$first ? \"first\" : \"\" }} - {{ this.$last ? \"last\" : \"\" }} - {{ this.$even ? \"even\" : \"\" }} - {{ this.$odd ? \"odd\" : \"\" }}</label><a href=\"#\" (click)=\"this.$parent.list.splice(this.$getRawIndex(this.$trackId),1);\">x</a></div></mjs-each></div><div class=\"case\" id=\"newComponent\">Dynamically created component on existing element will go here</div><div class=\"case\" id=\"renderToComponent\">Dynamically created component with renderTo will go here</div><div class=\"case double\" {cmp}=\"Test.MyComponent\" {cmp.$as}=\"ctrl\" {init}=\"this.selectBinding = 'scope'\"><p ##para>Component's transcluded text + {{ this.$root.a}}</p><a href=\"#\" (click)=\"this.ctrl.reverse()\">reverse</a>|<a href=\"#\" (click)=\"this.ctrl.createNew()\">create new component on existing element</a>|<a href=\"#\" (click)=\"this.ctrl.createRender()\">create new component and render to</a>|<a href=\"#\" (click)=\"this.ctrl.createDialog()\">create new dialog</a><br><br><button (click)=\"this.store.load()\">Load store</button><button (click)=\"this.store.clear()\">Clear store</button><br><br>this.selectBinding:<select {model}=\"this.selectBinding\"><option value=\"input\">Input</option><option value=\"scope\">Scope</option><option value=\"both\">Both</option></select><br><br>this.a:<select {options}=\"{\n                        name: this.item.data.name, \n                        value: this.item.data.id\n                    } in this.store\" {model}=\"this.$parent.a\" {model.$binding}*=\"this.selectBinding\"><option>Nothing selected</option></select><ul><li {each}=\"item in this.store\" {each.$animate}>{{ this.item.name }}</li></ul></div><div class=\"case double\" id=\"myComponent1\" {cmp}=\"Test.MyComponent\"><p>This is another instance with deferred value: {{ this.deferred }}</p></div><div class=\"case double\"><tagc $as:=\"ctrl\" $test:=\"Value from config\"></tagc></div></div>","app2.html":"<div class=\"case\"><h4>app's resolved value</h4><p class=\"test\">{{this.resolved}}</p></div><div class=\"case\"><h4>recursive rendering</h4><p><a href=\"#\" (click)=\"this.changeLevel2()\">Change level 2</a></p><p class=\"test\">This is level 1:<span {bind}=\"this.level1\" {bind.$recursive}></span></p></div><div class=\"case\"><h4>lang substitution</h4><label class=\"case-label\">using normal expression with filter: 'key' | l</label><p class=\"test\">{{ 'key' | l }}</p><p class=\"test\" {bind}=\"'subkey1' | l\" {bind.$recursive}></p></div><div class=\"case\"><h4>pluralization</h4><p><a href=\"#\" (click)=\"this.increaseB()\">Increase B</a></p><label class=\"case-label\">using normal expression:</label><p class=\"test\">{{this.b}} {{ 'plr' | p:this.b}}</p><p><input type=\"number\" data-type=\"number\" {model}=\"this.people\"></p><p class=\"test\" {bind}=\"'viewing' | p:this.people\" {bind.$recursive}></p></div>","cmp1-template.html":"<h2>{{this.title}}</h2><div {transclude}></div>","dirs.html":"<!--{includes: true}--><div class=\"form_select\" (click)=\"this.field.onSelfClick(this.$event)\" {class.loading}=\"this.loading\" {class.disabled}=\"this.field.disabled\" {class.search}=\"this.field.searchable\" {class.multiple}=\"this.field.multiple\" {class.black}=\"this.field.black\"><input type=\"hidden\" #el_hidden_field [name]=\"this.field.hiddenInputName\" [value]=\"this.field.$$selection | join:','\"><i #el_icon_down (click)=\"this.field.onDropdownIconClick(this.$event)\"><!-- include icons/down.html --></i><a class=\"form_select__label\" {each}=\"item in this.field.getMultiSelection()\" style=\"display: inline-block !important;\">{{ this.$parent.field.getItemName(this.item) }}<i class=\"delete icon\" (click)=\"this.$parent.field.onItemDeleteClick(this.item, this.$event)\"></i></a><input type=\"text\" #el_search class=\"search\" [disabled]=\"this.field.disabled\" {show}=\"this.field.searchable\" {show.$display}=\"inline-block\" (focus)=\"this.field.onSearchFocus(this.$event)\" (blur)=\"this.field.onSearchBlur(this.$event)\" (key.backspace)=\"this.field.onSearchBackspace(this.$event)\" {model}=\"this.searchQuery\"><span class=\"sizer\" #el_sizer {if}=\"this.field.multiple && this.field.searchable\" {bind}=\"this.searchQuery\"></span><div class=\"default text\" #el_default_text (click)=\"this.field.onValueTextClick(this.$event)\" {show}=\"!this.searchQuery && !this.field.hasSelection() &&\n                    !!this.field.emptyText\" {show.$display}=\"inline-block\" {show.$save-state}=\"this.emptyShown\" {bind}=\"this.field.emptyText\"></div><div class=\"text\" #el_text (click)=\"this.field.onValueTextClick(this.$event)\" {class.default}=\"this.focused && this.searchQuery == ''\" {show}=\"!this.searchQuery && !this.field.multiple && this.field.hasSelection()\" {show.$save-state}=\"this.selectedShown\" {show.$display}=\"inline-block\" {bind}=\"this.field.getSelectedName()\"></div><!-- replaces two previous text blocks with invisible placeholder --><div style=\"display: none\" class=\"default text\" {show}=\"!this.emptyShown && !this.selectedShown && !this.field.searchable\" {show.$display}=\"inline-block\">&nbsp;</div><select class=\"form-select_hidden-select\" #el_hidden_select (click)=\"this.field.onHiddenSelectClick(this.$event)\" (change)=\"this.field.onHiddenSelectChange(this.$event)\" {show}=\"this.field.useHiddenSelect\" {show.$display}=\"block\" {options}=\"this.field._getSelectOptions()\"></select><div class=\"form-select-menu\" #el_menu {class.black}=\"this.field.black\"><div class=\"items\" #el_menu_items><div class=\"disabled item\" #el_menu_disabled {if}=\"this.field.showNotFound && this.field.store.isEmpty()\" (click)=\"this.field.onNotFoundClick(null, this.$event)\" {bind-html}=\"this.field.notFoundText\"></div><div class=\"empty item\" #el_menu_empty style=\"color: #999;\" {if}=\"this.field.showEmptyItem && !this.field.store.isEmpty()\" (click)=\"this.field.onItemClick(null, this.$event)\" {bind-html}=\"this.field.emptyItemText\"></div><div class=\"item\" {each}=\"item in this.field.store\" (click)=\"this.$parent.field.onItemClick(this.item, this.$event)\" {bind}=\"this.$parent.field.getItemName(this.item)\"></div></div><div class=\"pagination_container\" {cmp}=\"Pagination\" {cmp.$autoscroll}=\"false\" {show}=\"this.pagination.hasPages()\" (click)=\"this.$parent.field.onPaginationClick(this.$event)\"></div></div></div>","tagc.html":"<div class=\"component\"><p>This is a tag component.</p><p>{{ this.ctrl.config.get('test') }}</p></div>","test-template.html":"<p>{{this.$root.text}}</p><div {transclude}></div>"},"templateOptions":{"dirs.html":{"includes":true}},"expressionOpts":{}}
+var MetaphorJsPrebuilt = {"templates":{"a*b.html":"<p>a * b = {{ this.$root.a * this.$root.b }}</p>","a+b.html":"<p>a + b = {{ this.$root.a + this.$root.b }}</p>","app1.html":"<h1>MetaphorJs Feature test</h1><div class=\"cases\"><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Inline</label><div id=\"inline-binding\" class=\"test\">{{this.inline}}</div><label class=\"case-label\">mjs-bind</label><div id=\"binding\" {bind}=\"this.text\" class=\"test\"></div><label class=\"case-label\">mjs-bind-html</label><div id=\"html-binding\" {bind-html}=\"this.html\" class=\"test\"></div><label class=\"case-label\">Plain attribute (href)</label><p class=\"test\"><a id=\"attr-binding-href\" [href]=\"http://{{this.inline}}.com\">{{this.text}}</a></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Input field (value)</label><p class=\"test\"><input id=\"binding-input-value\" type=\"text\" [value]=\"this.a\"></p><label class=\"case-label\">Input field (mjs-bind) (locked)</label><p class=\"test\"><input id=\"binding-input-bind\" type=\"text\" {bind}=\"this.a\" {bind.$locked}></p><label class=\"case-label\">Checkbox (mjs-bind)</label><p class=\"test\"><input id=\"binding-checkbox\" type=\"checkbox\" {bind}=\"this.bool\"></p><label class=\"case-label\">Radio (mjs-bind) (locked)</label><p class=\"test\"><input id=\"radio-bind-1\" checked=\"checked\" type=\"radio\" value=\"inline1\" name=\"radio-bind\" {bind}=\"this.inline\" {bind.$locked}> <input id=\"radio-bind-2\" type=\"radio\" value=\"inline2\" name=\"radio-bind\"> <input id=\"radio-bind-3\" type=\"radio\" value=\"inline3\" name=\"radio-bind\"></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Select (mjs-bind)</label><p class=\"test\"><select id=\"select-bind\" {bind}=\"this.a\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p><label class=\"case-label\">Textarea (mjs-bind)</label><p class=\"test\"><textarea id=\"textarea-bind-attr\" {bind}=\"this.inline\"></textarea></p><label class=\"case-label\">Textarea (inline)</label><p class=\"test\"><textarea id=\"textarea-bind-inline\">{{this.inline}}</textarea></p></div><div class=\"case\"><h4>Muplitple inline binding</h4><div id=\"multiple-inline-binding\" class=\"test\">{{this.inline}}<b>{{this.text}}</b>{{this.html}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Uppercase (mjs-bind)</label><div id=\"filter-uppercase-binding\" class=\"test\" {bind}=\"this.text | uppercase\"></div><label class=\"case-label\">Uppercase (inline)</label><div id=\"filter-uppercase-inline\" class=\"test\">{{this.text | uppercase}}</div><label class=\"case-label\">Lowercase (inline)</label><div id=\"filter-lowercase-inline\" class=\"test\">{{this.text | lowercase}}</div><label class=\"case-label\">Limit to (string)</label><div id=\"filter-limit-string\" class=\"test\">{{this.text | limitTo:this.a}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Linkify</label><p id=\"filter-linkify\" class=\"test\" {bind-html}=\"this.linkified | linkify\"></p></div><div class=\"case\"><h4>Expressions</h4><label class=\"case-label\">.a + .b</label><div id=\"expr-a-plus-b\" class=\"test\">{{this.a + this.b}}</div><label class=\"case-label\">.bool ? \"true\" : \"false\"</label><div id=\"expr-bool\" class=\"test\">{{this.bool ? \"true\": \"false\"}}</div></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Input (number) (.a)</label><p class=\"test\"><input {model}=\"this.a\" type=\"number\" data-type=\"number\" id=\"model-input-a\"></p><label class=\"case-label\">Checkbox (.bool)</label><p class=\"test\"><input id=\"model-checkbox-bool\" type=\"checkbox\" {model}=\"this.bool\"></p><label class=\"case-label\">Radio (.inline)</label><p class=\"test\"><input id=\"model-radio-1\" checked=\"checked\" type=\"radio\" name=\"r\" value=\"inline1\" {model}=\"this.inline\">1<label><input id=\"model-radio-2\" type=\"radio\" name=\"r\" value=\"inline2\">2</label><input id=\"model-radio-3\" type=\"radio\" name=\"r\" value=\"inline3\">3</p><label class=\"case-label\">Select (.a)</label><p class=\"test\"><select id=\"model-select-a\" {model}=\"this.a\" data-type=\"number\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Textarea (.text)</label><p class=\"test\"><textarea id=\"model-textarea\" {model}=\"this.text\"></textarea></p><label class=\"case-label\">Input (string .text)</label><p class=\"test\"><input type=\"text\" id=\"model-input\" {model}=\"this.text\"></p></div><div class=\"case\"><h4>mjs-class</h4><label class=\"case-label\">Plain attribute</label><div class=\"test\"><p id=\"class-inline\" [class]=\"this.inline\">---</p></div><label class=\"case-label\">mjs-class (string)</label><div class=\"test\"><p id=\"class-string\" {class}=\"this.inline\">---</p></div><label class=\"case-label\">mjs-class ({bool: .bool, inline1: .a == 0})</label><div class=\"test\"><p id=\"class-object\" {class}=\"{bool: this.bool, inline1: this.a == 0}\">---</p></div><div class=\"test\"><p id=\"class-object\" {class.bool}=\"this.bool\" {class.inline1}=\"this.a == 0\">---</p></div></div><div class=\"case\"><h4>mjs-if, mjs-show, mjs-hide</h4><div id=\"if-bool\" {if}=\"this.bool\" class=\"test\" {if.$animate}>this should appear if .bool = true</div><div id=\"show-bool\" {show}=\"this.bool\" class=\"test\" {show.$animate}>this should show if .bool = true</div><div id=\"hide-bool\" {hide}=\"this.bool\" class=\"test\" {hide.$animate}>this should hide if .bool = true</div></div><div class=\"case\"><h4>mjs-include</h4><label class=\"case-label\">immediate</label><div {include}=\"test-template.html\" {include.$animate}><p>transcluded text</p></div><label class=\"case-label\">immediate (via tag)</label><mjs-include $name=\"test-template.html\"><p>transcluded text</p></mjs-include><label class=\"case-label\">ajax</label><div {include}=\"template.html\"><p>Transcluded text</p></div></div><div class=\"case\"><h4>mjs-validate</h4><form name=\"myForm\" {validate} {class.error}=\"this.myForm.$invalid\" {class.$animate}><div><input name=\"field1\" data-validate-required {class}=\"{error: this.myForm.field1.$invalid}\"></div><div {class}=\"{error: this.myForm.radio1.$invalid}\"><label><input type=\"radio\" name=\"radio1\" value=\"1\" data-validate-required> -- 1</label><label><input type=\"radio\" name=\"radio1\" value=\"2\"> -- 2</label><label><input type=\"radio\" name=\"radio1\" value=\"3\"> -- 3</label></div><div><input type=\"submit\" value=\"Submit\"> <input type=\"reset\" value=\"Reset\"></div></form></div><div class=\"case\" {init}=\"this.dynamicList = []\"><h4>dynamic list</h4><label><input id=\"radio-sep-1\" type=\"radio\" name=\"sep\" value=\"/\\n|,/\" {model}=\"this.sep\"> /\\n|,/</label><label><input type=\"radio\" name=\"sep\" value=\"/\\n/\"> /\\n/</label><label><input type=\"radio\" name=\"sep\" value=\",\"> ,</label><br><br><textarea {model}=\"split:this.sep >> this.dynamicList\" {model.$binding}=\"input\"></textarea><ul><li {each}=\"item in this.dynamicList\" {bind}=\"this.item\" {bind.$recursive}></li></ul></div><div class=\"case\"><h4>mjs-options</h4><label class=\"case-label\">Generated from .alist</label><p class=\"test\"><select {bind}=\"this.a\" {options}=\"this.alist\"><option>not selected</option></select></p><label class=\"case-label\">Generated from .dynamicList</label><p class=\"test\"><select {options}=\"{\n                        name: this.item,\n                        value: this.$index,\n                        group: this.$index - (this.$index % 2),\n                        disabledGroup: this.$index == 0,\n                        disabled: this.$index == 4\n                        } in this.dynamicList\"><option>default value</option></select></p></div><div class=\"case\" {cmp}=\"Test.TplComponent\" id=\"tplComponentTest\"><h2>{{ this.title }}</h2>mjs-include change template:<br><a href=\"#\" (click)=\"this.tpl = 'a+b.html'\">a + b</a>|<a href=\"#\" (click)=\"this.tpl = 'a*b.html'\">a * b</a><div {include}*=\"this.tpl\" id=\"tplComponetInc\"></div></div><div class=\"case\" {cmp}=\"Test.StringTemplate\"></div><div class=\"case\" {cmp}=\"Test.ChangeTemplate\">mjs-cmp change template:<br><a href=\"#\" (click)=\"this.tpl = this.tpl1\">tpl1</a>|<a href=\"#\" (click)=\"this.tpl = this.tpl2\">tpl2</a></div><div class=\"case\"><h4>Router</h4><div {router}=\"Test.MyView\" {router.$animate}></div>pushUrl:<a href=\"/1\">/1</a>|<a href=\"/2\">/2</a>|<a href=\"/3\">/3</a>|<a href=\"http://www.kuindji.com\">outside</a><br><br></div><div class=\"case\" {ignore}>This element is ignored by renderer: {{ this.$root.a }}</div><div class=\"case\" {view}=\"this.viewCmp\" {view.$default-cmp}:=\"Test.ViewComponent1\"><p>change cmp:<a href=\"#\" (click)=\"this.$parent.viewCmp = 'Test.ViewComponent1'\">Cmp1</a>|<a href=\"#\" (click)=\"this.$parent.viewCmp = 'Test.ViewComponent2'\">Cmp2</a></p></div></div><div class=\"cases\"><div class=\"case double\" {init}=\"this.newItem = '';\n                            this.listFilter = '';\n                            this.sortBy = 'asc'\"><h4>mjs-each (attr)</h4><input {model}=\"this.newItem\" (key.enter)=\"if (this.newItem) {\n                                        this.list.push({bool: false, txt: this.newItem}); \n                                        this.newItem = '';\n                                    }\"> <input type=\"button\" {disabled}=\"!this.newItem\" (click)=\"this.list.push({bool: false, txt: this.newItem}); this.newItem = '';\" value=\"Add item\"><ul {show}=\"this.bool\" {show.$animate}><li {each}=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\" {each.$animate} {each.$animate-move}><label {class}=\"{cls3: this.item.bool}\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{ this.$index }} - {{ this.item.txt }} - {{ this.$first ? \"first\" : \"\" }} - {{ this.$last ? \"last\" : \"\" }} - {{ this.$even ? \"even\" : \"\" }} - {{ this.$odd ? \"odd\" : \"\" }}</label><a href=\"#\" (click)=\"this.$parent.list.splice(this.$getRawIndex(this.$trackId),1);\">x</a></li></ul><input {model}=\"this.listFilter\" placeholder=\"Search\"><a href=\"#\" (click)=\"this.sortBy='asc'\">asc</a><a href=\"#\" (click)=\"this.sortBy='desc'\">desc</a></div><div class=\"case double\"><h4>mjs-each (tag)</h4><mjs-each value=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\"><div><label {class}=\"{cls3: this.item.bool}\"><input type=\"checkbox\" {model}=\"this.item.bool\"> {{ this.$index }} - {{ this.item.txt }} - {{ this.$first ? \"first\" : \"\" }} - {{ this.$last ? \"last\" : \"\" }} - {{ this.$even ? \"even\" : \"\" }} - {{ this.$odd ? \"odd\" : \"\" }}</label><a href=\"#\" (click)=\"this.$parent.list.splice(this.$getRawIndex(this.$trackId),1);\">x</a></div></mjs-each></div><div class=\"case\" id=\"newComponent\">Dynamically created component on existing element will go here</div><div class=\"case\" id=\"renderToComponent\">Dynamically created component with renderTo will go here</div><div class=\"case double\" {cmp}=\"Test.MyComponent\" {cmp.$as}=\"ctrl\" {cmp.$init}=\"this.selectBinding = 'scope'\"><p ##para>Component's transcluded text + {{ this.$root.a}}</p><a href=\"#\" (click)=\"this.ctrl.reverse()\">reverse</a>|<a href=\"#\" (click)=\"this.ctrl.createNew()\">create new component on existing element</a>|<a href=\"#\" (click)=\"this.ctrl.createRender()\">create new component and render to</a>|<a href=\"#\" (click)=\"this.ctrl.createDialog()\">create new dialog</a><br><br><button (click)=\"this.store.load()\">Load store</button><button (click)=\"this.store.clear()\">Clear store</button><br><br>this.selectBinding:<select {model}=\"this.selectBinding\"><option value=\"input\">Input</option><option value=\"scope\">Scope</option><option value=\"both\">Both</option></select><br><br>this.a:<select {options}=\"{\n                        name: this.item.data.name, \n                        value: this.item.data.id\n                    } in this.store\" {model}=\"this.$parent.a\" {model.$binding}*=\"this.selectBinding\"><option>Nothing selected</option></select><ul><li {each}=\"item in this.store\" {each.$animate}>{{ this.item.name }}</li></ul></div><div class=\"case double\" id=\"myComponent1\" {cmp}=\"Test.MyComponent\"><p>This is another instance with deferred value: {{ this.deferred }}</p></div><div class=\"case double\"><tagc $as:=\"ctrl\" $test:=\"Value from config\"></tagc></div></div>","app2.html":"<div class=\"case\"><h4>app's resolved value</h4><p class=\"test\">{{this.resolved}}</p></div><div class=\"case\"><h4>recursive rendering</h4><p><a href=\"#\" (click)=\"this.changeLevel2()\">Change level 2</a></p><p class=\"test\">This is level 1:<span {bind}=\"this.level1\" {bind.$recursive}></span></p></div><div class=\"case\"><h4>lang substitution</h4><label class=\"case-label\">using normal expression with filter: 'key' | l</label><p class=\"test\">{{ 'key' | l }}</p><p class=\"test\" {bind}=\"'subkey1' | l\" {bind.$recursive}></p></div><div class=\"case\"><h4>pluralization</h4><p><a href=\"#\" (click)=\"this.increaseB()\">Increase B</a></p><label class=\"case-label\">using normal expression:</label><p class=\"test\">{{this.b}} {{ 'plr' | p:this.b}}</p><p><input type=\"number\" data-type=\"number\" {model}=\"this.people\"></p><p class=\"test\" {bind}=\"'viewing' | p:this.people\" {bind.$recursive}></p></div>","cmp1-template.html":"<h2>{{this.title}}</h2><div {transclude}></div>","dirs.html":"<!--{includes: true}--><div class=\"form_select\" (click)=\"this.field.onSelfClick(this.$event)\" {class.loading}=\"this.loading\" {class.disabled}=\"this.field.disabled\" {class.search}=\"this.field.searchable\" {class.multiple}=\"this.field.multiple\" {class.black}=\"this.field.black\"><input type=\"hidden\" #el_hidden_field [name]=\"this.field.hiddenInputName\" [value]=\"this.field.$$selection | join:','\"><i #el_icon_down (click)=\"this.field.onDropdownIconClick(this.$event)\"><!-- include icons/down.html --></i><a class=\"form_select__label\" {each}=\"item in this.field.getMultiSelection()\" style=\"display: inline-block !important;\">{{ this.$parent.field.getItemName(this.item) }}<i class=\"delete icon\" (click)=\"this.$parent.field.onItemDeleteClick(this.item, this.$event)\"></i></a><input type=\"text\" #el_search class=\"search\" [disabled]=\"this.field.disabled\" {show}=\"this.field.searchable\" {show.$display}=\"inline-block\" (focus)=\"this.field.onSearchFocus(this.$event)\" (blur)=\"this.field.onSearchBlur(this.$event)\" (key.backspace)=\"this.field.onSearchBackspace(this.$event)\" {model}=\"this.searchQuery\"><span class=\"sizer\" #el_sizer {if}=\"this.field.multiple && this.field.searchable\" {bind}=\"this.searchQuery\"></span><div class=\"default text\" #el_default_text (click)=\"this.field.onValueTextClick(this.$event)\" {show}=\"!this.searchQuery && !this.field.hasSelection() &&\n                    !!this.field.emptyText\" {show.$display}=\"inline-block\" {show.$save-state}=\"this.emptyShown\" {bind}=\"this.field.emptyText\"></div><div class=\"text\" #el_text (click)=\"this.field.onValueTextClick(this.$event)\" {class.default}=\"this.focused && this.searchQuery == ''\" {show}=\"!this.searchQuery && !this.field.multiple && this.field.hasSelection()\" {show.$save-state}=\"this.selectedShown\" {show.$display}=\"inline-block\" {bind}=\"this.field.getSelectedName()\"></div><!-- replaces two previous text blocks with invisible placeholder --><div style=\"display: none\" class=\"default text\" {show}=\"!this.emptyShown && !this.selectedShown && !this.field.searchable\" {show.$display}=\"inline-block\">&nbsp;</div><select class=\"form-select_hidden-select\" #el_hidden_select (click)=\"this.field.onHiddenSelectClick(this.$event)\" (change)=\"this.field.onHiddenSelectChange(this.$event)\" {show}=\"this.field.useHiddenSelect\" {show.$display}=\"block\" {options}=\"this.field._getSelectOptions()\"></select><div class=\"form-select-menu\" #el_menu {class.black}=\"this.field.black\"><div class=\"items\" #el_menu_items><div class=\"disabled item\" #el_menu_disabled {if}=\"this.field.showNotFound && this.field.store.isEmpty()\" (click)=\"this.field.onNotFoundClick(null, this.$event)\" {bind-html}=\"this.field.notFoundText\"></div><div class=\"empty item\" #el_menu_empty style=\"color: #999;\" {if}=\"this.field.showEmptyItem && !this.field.store.isEmpty()\" (click)=\"this.field.onItemClick(null, this.$event)\" {bind-html}=\"this.field.emptyItemText\"></div><div class=\"item\" {each}=\"item in this.field.store\" (click)=\"this.$parent.field.onItemClick(this.item, this.$event)\" {bind}=\"this.$parent.field.getItemName(this.item)\"></div></div><div class=\"pagination_container\" {cmp}=\"Pagination\" {cmp.$autoscroll}=\"false\" {show}=\"this.pagination.hasPages()\" (click)=\"this.$parent.field.onPaginationClick(this.$event)\"></div></div></div>","tagc.html":"<div class=\"component\"><p>This is a tag component.</p><p>{{ this.ctrl.config.get('test') }}</p></div>","test-template.html":"<p>{{this.$root.text}}</p><div {transclude}></div>"},"templateOptions":{"dirs.html":{"includes":true}},"expressionOpts":{}}
 MetaphorJsPrebuilt['funcs'] = {
 
 };
@@ -4616,8 +4616,8 @@ var dom_setAttr = MetaphorJs.dom.setAttr = function(el, name, value) {
 var dom_commentWrap = MetaphorJs.dom.commentWrap = function commentWrap(node, name) {
     name = name || "";
 
-    var before = window.document.createComment(name + " - start"),
-        after = window.document.createComment(name + " - end"),
+    var before = window.document.createComment("<" + name),
+        after = window.document.createComment(name + ">"),
         parent = node.parentNode;
 
     parent.insertBefore(before, node);
@@ -4932,6 +4932,13 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                 // objects can only describe properties
                 else {
                     prop = val;
+                    if (prop.expression && 
+                        typeof prop.expression === "string" && 
+                        !prop.mode && scalarAs === "defaultValue" && 
+                        (!this.properties[k] || !this.properties[k].mode)) {
+                        
+                        prop.mode = MODE_DYNAMIC;
+                    }
                 }
                 this.setProperty(k, prop, undf, override);
             }
@@ -7772,13 +7779,14 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                 // by adding it to the attr map
                 if (component = dirs.component[tag]) {
                     res = self._processComponent(component, node, attrs);
+                    if (res === false) return false;
+                    isThenable(res) ? defers.push(res) : collectNodes(nodes, res);
                 }
                 else if (directive = dirs.tag[tag]) {
                     res = self._processTag(directive, node, attrs);
+                    if (res === false) return false;
+                    isThenable(res) ? defers.push(res) : collectNodes(nodes, res);
                 }
-
-                if (res === false) return false;
-                isThenable(res) ? defers.push(res) : collectNodes(nodes, res);
 
                 if (attrs.references && attrs.references.length) {
                     self._processReferences(node, attrs);
@@ -7803,8 +7811,8 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
 
                 if (attrs.renderer.ignoreInside) {
                     return false;
-                }     
-                
+                }
+
                 if (defers.length) {
                     var deferred = new lib_Promise;
                     lib_Promise.all(defers).done(function(values){
@@ -12415,11 +12423,16 @@ var app_Template = MetaphorJs.app.Template = function() {
 
         extend(self, cfg, true, false);
 
+        if (self.parentRenderer) {
+            self._parentRenderer = self.parentRenderer;
+            delete self.parentRenderer;
+        }
         self.id = nextUid();
         observable.createEvent("rendered-" + self.id, {
             returnResult: false,
             autoTrigger: true
         });
+        observable.createEvent("attached-" + self.id);
 
         self.scope = lib_Scope.$produce(self.scope);
         self.config = lib_Config.create(
@@ -12437,37 +12450,24 @@ var app_Template = MetaphorJs.app.Template = function() {
         config.on("name", self._onNameChange, self);
         config.on("html", self._onHtmlChange, self);
         config.setType("runRenderer", "bool", sm);
-        config.setType("wrapInComments", "bool", sm);
+        config.setType("useComments", "bool", sm);
         config.setType("useShadow", "bool", sm);
         config.setType("deferRendering", "bool", sm);
-        config.setType("replaceNode", "bool", sm);
 
-        if (!shadowSupported || config.get("replaceNode")) {
-            config.setStatic("useShadow", false);
-        }
-        if (config.get("useShadow")) {
-            config.setStatic("wrapInComments", false);
-        }
-        if (config.get("replaceNode")) {
-            config.setStatic("wrapInComments", true);
-        }
+        !shadowSupported && config.setStatic("useShadow", false);
+        config.get("useShadow") && config.setStatic("useComments", false);
 
-        var defer = config.get("deferRendering"),
-            rr = config.get("runRenderer");
-
-        self.childrenPromise = new lib_Promise;
-        rr && self.childrenPromise.resolve(false);
-
-        if (rr && self.parentRenderer) {
-            self.parentRenderer.on("destroy",
-                self._onParentRendererDestroy,
-                self);
+        if (config.get("runRenderer") && self._parentRenderer) {
+            self._parentRenderer.on("destroy",
+                self._onParentRendererDestroy, self
+            );
         }
         self.scope.$on("destroy", self._onScopeDestroy, self);
 
+        self._collectInitialNodes(self.attachTo || self.replaceNode);
         self.resolve();
 
-        if (!defer) {
+        if (!config.get("deferRendering")) {
             self.render();
         }
     };
@@ -12477,74 +12477,56 @@ var app_Template = MetaphorJs.app.Template = function() {
 
         _rendering:         false,
         _renderer:          null,
+        _attached:          false,
         _initial:           true,
         _fragment:          null,
         _template:          null,
+        _nodes:             null,
         _prevEl:            null,
         _nextEl:            null,
+        _attachTo:          null,
+        _attachBefore:      null,
         _shadowRoot:        null,
+        _resolvePromise:    null,
+        _pubResolvePromise: null,
+        _parentRenderer:    null,
 
+        /**
+         * @var {MetpahorJs.lib.Scope}
+         */
         scope:              null,
-        node:               null,
 
         /**
          * @var {MetpahorJs.lib.Config}
          */
-        config:             null,
+        config:             null,        
 
-        
-        childrenPromise:    null,
-        _resolvePromise:     null,
-        parentRenderer:     null,
-
-        setNode: function(node) {
-            var self = this;
-            if (self.node) {
-                return;
-            }
-            self.node = node;
-            if (self._resolvePromise && self._resolvePromise.isResolved() &&
-                !self.config.get("deferRendering")) {
-                self.render(true);
-                self._fragment = null;
-            }
-        },
-
-        render: function(anew) {
+        render: function() {
 
             var self    = this;
 
-            if (self._rendering) {
-                return;
-            }
-            if (!self._initial && !anew) {
+            if (self._rendering || !self._initial) {
                 return;
             }
 
             self._rendering = true;
-
-            if (self._renderer) {
-                self._renderer.$destroy();
-                self._renderer = null;
-                self._fragment = null;
-            }
-
             self.config.setStatic("deferRendering", false);
 
-            if (self._initial) {
-                self._prepareTranscludes();
+            if (self.replaceNode) {
+                self.replace(self.replaceNode, self.attachTo);
+                delete self.replaceNode;
+                delete self.attachTo;
             }
-            else {
-                self._clearNode();
+            else if (self.attachTo) {
+                self.attach(self.attachTo, self.attachBefore);
+                delete self.attachTo;
+                delete self.attachBefore;
             }
-
-            self._wrapInComments();
-            self._createShadow();
 
             if (self.config.has("name") || 
                 self.config.has("html")) {
-                self.resolve()
-                    .done(self._applyTemplate, self)    
+                self.resolve()   
+                    .done(self._attach, self)
                     .done(self._runRenderer, self);
             }
             else {
@@ -12553,30 +12535,72 @@ var app_Template = MetaphorJs.app.Template = function() {
 
             self._initial = false;
             self._rendering = false;
-            return self.childrenPromise;
         },
 
-        getRenderedFragment: function() {
-            var self = this,
-                els = [];
+        attach: function(parent, before) {
 
-            if (self._nextEl) {
-                els = self._collectBetweenComments();
-                els.push(self._nextEl);
-                els.unshift(self._prevEl);
-                dom_toFragment(els)
+            var self = this;
+
+            if (self._attachTo !== parent) {
+
+                self._attached && self.detach();
+                self._nextEl && self._removeComments();
+                self._shadowRoot && self._destroyShadow();
+
+                self._attachTo = parent;
+                self._attachBefore = before;  
+
+                if (self.config.has("name") || 
+                    self.config.has("html")) {
+                    self._prepareTranscludes();
+                }
+                self._createShadow();
+                self._createComments();
+
+                if (self._nodes) {
+                    self._attach();
+                }
             }
-            else if (self._shadowRoot) {
-                return dom_toFragment(self._shadowRoot.childNodes);
-            }
-            else if (self.node) {
-                return dom_toFragment(self.node.childNodes);
-            }
-            else if (self._fragment) {
-                return self._fragment;
+        },
+
+        replace: function(node, attachTo) {
+
+            var self = this;
+
+            self._attached && self.detach();
+            self._nextEl && self._removeComments();
+            self._shadowRoot && self._destroyShadow();
+
+            if (attachTo) {
+                self._attachTo = attachTo;
+                self._attachBefore = null;
+                self._replaceNodeWithNode(node, attachTo);
+                self._prepareTranscludes();
+                self._createShadow();
+            }   
+            else {
+                self._prepareTranscludes(node.parentNode, node);
+                self._replaceNodeWithComments(node);
             }
 
-            return null;
+            if (self._nodes) {
+                self._attach();
+            }
+        },
+
+        isAttached: function() {
+            return this._attached;
+        },
+
+        detach: function() {
+            var self = this;
+
+            if (!self._attached) {
+                return;
+            }
+
+            self._attached = false;
+            self._nodes = self._clear();            
         },
 
         resolve: function(renew) {
@@ -12586,11 +12610,18 @@ var app_Template = MetaphorJs.app.Template = function() {
                 if (renew) {
                     self._resolvePromise.$destroy();
                     self._resolvePromise = null;
+                    self._pubResolvePromise.$destroy();
+                    self._pubResolvePromise = null;
+                    self._nodes = null;
+                    self._template = null;
+                    self._fragment = null;
                 }
                 else {
-                    return self._resolvePromise;
+                    return self._pubResolvePromise;
                 }
             }
+
+            self._pubResolvePromise = new lib_Promise;
 
             if (self.config.has("name")) {
                 self._resolvePromise = self._resolveTemplate();
@@ -12598,22 +12629,40 @@ var app_Template = MetaphorJs.app.Template = function() {
             else if (self.config.has("html")) {
                 self._resolvePromise = self._resolveHtml();
             }
-            else if (self.node) {
-                self._resolvePromise = lib_Promise.resolve(self.node);
-            }
             else {
-                self._resolvePromise = lib_Promise.reject();
+                self._resolvePromise = lib_Promise.resolve();
             }
 
-            self._resolvePromise.done(function(fragment){
-                self._template = typeof fragment === "string" ? 
-                        dom_toFragment(fragment) :
-                        fragment;
-            })
-            .fail(self.childrenPromise.reject, self.childrenPromise);
-
-            return self._resolvePromise;
+            return self._resolvePromise.done(self._onTemplateResolved, self);
         },
+
+        _onTemplateResolved: function(fragment) {
+            var self = this;
+
+            if (self._attached) {
+                self._clear();
+            }
+
+            if (fragment) {
+                self._template = typeof fragment === "string" ? 
+                                dom_toFragment(fragment) :
+                                fragment;
+                self._fragment = dom_clone(self._template);
+                self._nodes = toArray(self._fragment.childNodes);
+            }           
+
+            self._pubResolvePromise.resolve();
+        },
+
+        _collectInitialNodes: function(parent) {
+            var self = this;
+            if (!self.config.has("name") && !self.config.has("html")) {
+                parent = parent || self._attachTo || self.attachTo;
+                parent && (self._nodes = toArray(parent.childNodes));
+            }
+        },
+
+
 
         createEvent: function(event, opt) {
             return observable.createEvent(event + "-" + this.id, opt);
@@ -12628,90 +12677,109 @@ var app_Template = MetaphorJs.app.Template = function() {
         },
 
 
-        _prepareTranscludes: function() {
+        _prepareTranscludes: function(saveIn, takeFrom) {
             var self = this;
-            if (self.node && !self.config.get("useShadow")) {
-                dom_data(self.node, "mjs-transclude", 
-                    dom_toFragment(self.node.childNodes));
+            saveIn = saveIn || self._attachTo;
+            takeFrom = takeFrom || self._attachTo;
+            if (saveIn && takeFrom && !self.config.get("useShadow") && 
+                takeFrom.firstChild && 
+                !dom_data(saveIn, "mjs-transclude")) {
+
+                dom_data(saveIn, "mjs-transclude", 
+                    dom_toFragment(takeFrom.childNodes));
             }
         },
 
-        _wrapInComments: function() {
-            var self = this;
-            if (self.node && !self._prevEl && 
-                self.config.get("wrapInComments")) {
+        _replaceNodeWithComments: function(node) {
+            var self = this,
+                cmts = dom_commentWrap(node, self.id);
+                node.parentNode && node.parentNode.removeChild(node);
+            self._prevEl = cmts[0];
+            self._nextEl = cmts[1];
+        },
 
-                if (self.config.get("replaceNode")) {
-                    var cmts = dom_commentWrap(self.node, self.id);
-                    if (self.node.parentNode) {
-                        self.node.parentNode.removeChild(self.node);
-                    }
-                }
-                else {
-                    var cmts = [
+        _replaceNodeWithNode: function(replacedNode, withNode) {
+            var frg = dom_toFragment(replacedNode.childNodes);
+            replacedNode.parentNode && 
+                replacedNode.parentNode.replaceChild(replacedNode, withNode);
+            withNode.appendChild(frg);
+        },
+
+        _createComments: function() {
+            var self = this,
+                parent = self._attachTo,
+                before = self._attachBefore;
+
+            if (!self._prevEl && self.config.get("useComments")) {
+                var cmts = [
                         window.document.createComment("<" + self.id),
                         window.document.createComment(self.id + ">")
                     ];
-                    self.node.appendChild(cmts[0]);
-                    self.node.appendChild(cmts[1]);
-                }
-
+                parent.insertBefore(cmts[0], before);
+                parent.insertBefore(cmts[1], before);
                 self._prevEl = cmts[0];
                 self._nextEl = cmts[1];
             }
         },
 
+        _removeComments: function() {
+            var self = this,
+                next = self._nextEl,
+                prev = self._prevEl;
+
+            next.parentNode && next.parentNode.removeChild(next);
+            prev.parentNode && prev.parentNode.removeChild(next);
+            self._nextEl = null;
+            self._prevEl = null;
+        },
+
         _createShadow: function() {
             var self = this;
-            if (self.node && !self._shadowRoot && 
+            if (self._attachTo && !self._shadowRoot && 
                 self.config.get("useShadow")) {
-                self._shadowRoot = self.node.shadowRoot || 
-                                    self.node.attachShadow({mode: "open"});
+                self._shadowRoot = self._attachTo.shadowRoot || 
+                                    self._attachTo.attachShadow({mode: "open"});
             }
         },
 
-        _runRenderer: function() {
-            var self = this,
-                nodes;
+        _destroyShadow: function() {
+            this._shadowRoot = null;
+        },
 
-            if (!self._renderer && self.config.get("runRenderer")) {
+        _runRenderer: function() {
+            var self = this;
+
+            if (self.config.get("runRenderer")) {
+                if (self._renderer) {
+                    self._renderer.$destroy();
+                    self._renderer = null;
+                }
 
                 observable.trigger("before-render-" + self.id, self);
-
-                if (self._shadowRoot) {
-                    nodes = self._shadowRoot;
-                }
-                else if (self._nextEl) {
-                    nodes = self._collectBetweenComments();
-                }
-                else if (self.node) {
-                    nodes = self.node;
-                }
-                else {
-                    nodes = self._fragment;
-                }
-
-                if (!nodes) {
-                    throw new Error("Cannot find what to render");
-                }
 
                 self._renderer   = new app_Renderer(self.scope);
                 observable.relayEvent(self._renderer, "reference", "reference-" + self.id);
                 observable.relayEvent(self._renderer, "rendered", "rendered-" + self.id);
-                self._renderer.process(nodes);
+                self._renderer.process(self._nodes);
             }
         },
 
         _resolveTemplate: function() {
             var tpl = this.config.get("name");
+            
             return new lib_Promise(
                 function(resolve, reject) {
-                    tpl ? resolve(getTemplate(tpl)): reject();
+                    if (tpl) {
+                        tpl = getTemplate(tpl);
+                        tpl ? resolve(tpl) : reject();
+                    }
+                    else reject();
                 }
             )
+            
         },
 
-        _resolveHtml: function(renew) {
+        _resolveHtml: function() {
             var html = this.config.get("html");
             return new lib_Promise(
                 function(resolve, reject) {
@@ -12721,36 +12789,20 @@ var app_Template = MetaphorJs.app.Template = function() {
         },
 
         _onHtmlChange: function() {
-            if (!this.config.get("deferRendering")) {
-                this.resolve(true);
-                this.render(true);
+            var self = this;
+            if (!self.config.get("deferRendering")) {
+                self.resolve(true)   
+                    .done(self._attach, self)
+                    .done(self._runRenderer, self);
             }
         },
 
         _onNameChange: function() {
-            if (!this.config.get("deferRendering")) {
-                this.resolve(true);
-                this.render(true);
-            }
-        },
-
-        _clearNode: function() {
             var self = this;
-
-            if (self._nextEl) {
-                // remove all children between prev and next
-                var next = self._nextEl, prev = self._prevEl;
-                while (prev && prev.parentNode && prev.nextSibling && 
-                        prev.nextSibling !== next) {
-                    prev.parentNode.removeChild(prev.nextSibling);
-                }
-            }
-            else {
-                // remove all children of main node
-                var el = self._shadowRoot || self.node;
-                while (el && el.firstChild) {
-                    el.removeChild(el.firstChild);
-                }
+            if (!self.config.get("deferRendering")) {
+                self.resolve(true)   
+                    .done(self._attach, self)
+                    .done(self._runRenderer, self);
             }
         },
 
@@ -12771,30 +12823,77 @@ var app_Template = MetaphorJs.app.Template = function() {
             return els;
         },
 
-        _applyTemplate: function() {
-            var self    = this,
-                frg, 
-                el = self._shadowRoot || self.node,
-                children;
+        _attach: function() {
+            var self = this,
+                i, l, 
+                nodes = self._nodes,
+                child,
+                attached = false,
+                next = self._nextEl,
+                parent = self._shadowRoot || self._attachTo,
+                before = self._attachBefore;
 
-            if (!self._template) {
+            if (!nodes || self._attached) {
                 return;
             }
 
-            frg = self._fragment || dom_clone(self._template);
+            // without the fragment we're in no-template mode
+            // processing parent's children
+            if (self._fragment) {
 
-            if (self._nextEl) {
-                children = toArray(frg.childNodes);
-                self._nextEl.parentNode.insertBefore(frg, self._nextEl);
-                self.childrenPromise.resolve(children);
+                for (i = 0, l = nodes.length; i < l; i++) {
+                    child = nodes[i];
+
+                    // between comments mode
+                    if (next) {
+                        next.parentNode.insertBefore(child, next);
+                        attached = true;
+                    }
+                    // shadow or normal parent
+                    else if (parent) {
+                        if (before) {
+                            parent.insertBefore(child, before);
+                        }
+                        else {
+                            parent.appendChild(child);
+                        }
+                        attached = true;
+                    }
+                }
             }
-            else if (el) {
-                el.appendChild(frg);
-                self.childrenPromise.resolve(el.childNodes);
+            else attached = true;
+
+            self._attached = attached;
+            if (attached) {
+                observable.trigger("attached-" + self.id, self, nodes);
+            }
+        },
+
+        _clear: function() {
+            var self = this,
+                nodes = [], 
+                i, l, n, parent;
+
+            // remove all children between prev and next
+            if (self._nextEl) {
+                nodes = self._collectBetweenComments();
             }
             else {
-                self._fragment = frg;
+                // remove all children of main node
+                var parent = self._shadowRoot || self._attachTo;
+                if (parent) {
+                    nodes = toArray(parent.childNodes);
+                }
             }
+
+            for (i = 0, l = nodes.length; i < l; i++) {
+                n = nodes[i];
+                n.parentNode && n.parentNode.removeChild(n);
+            }
+
+            self._attached = false;
+
+            return nodes;
         },
 
         _onParentRendererDestroy: function() {
@@ -12824,6 +12923,9 @@ var app_Template = MetaphorJs.app.Template = function() {
                 self._prevEl.parentNode.removeChild(self._prevEl);
             }
 
+            observable.destroyEvent("rendered-" + self.id);
+            observable.destroyEvent("attached-" + self.id);
+
             if (self.config) {
                 self.config.clear();
                 self.config = null;
@@ -12834,6 +12936,10 @@ var app_Template = MetaphorJs.app.Template = function() {
 
     Template.load = loadTemplate;
     Template.cache = cache;
+
+    Template.add = function(name, tpl) {
+        Template.cache.add(name, tpl);
+    };
 
     Template.prepareConfig = function(config, values) {
         if (typeof values === 'string') {
@@ -13105,38 +13211,44 @@ var app_Component = MetaphorJs.app.Component = cls({
      */
     $init: function(cfg) {
 
-        var self    = this;
+        var self    = this,
+            scope,
+            config;
 
         cfg = cfg || {};
 
         self.$super(cfg);
         extend(self, cfg, true, false);
 
-        self.scope = lib_Scope.$produce(self.scope);
+        scope = self.scope = lib_Scope.$produce(self.scope);
 
         // We initialize config with current scope or change config's scope
         // to current so that all new properties that come from _initConfig
         // are bound to local scope. 
         // All pre-existing properties are already bound to outer scope;
         // Also, each property configuration can have its scope specified
-        self.config = lib_Config.create(
+        config = self.config = lib_Config.create(
             self.config,
-            {scope: self.scope}, 
+            {scope: scope}, 
             /*scalarAs: */"defaultValue"
         )
-        self.config.setOption("scope", self.scope);
+        config.setOption("scope", scope);
 
         self.$refs = {node: {}, cmp: {}};
-        self.scope.$cfg = {};
-        self.config.setTo(self.scope.$cfg);
+        scope.$cfg = {};
+        config.setTo(scope.$cfg);
         self._initConfig();
         self.$callMixins("$initConfig");
 
-        if (self.$view) {
-            self.scope.$view = self.$view;
+        if (config.has("init")) {
+            config.get("init")(scope);
         }
-        if (self.config.has("as")) {
-            self.scope[self.config.get("as")] = self;
+
+        if (self.$view) {
+            scope.$view = self.$view;
+        }
+        if (config.has("as")) {
+            scope[config.get("as")] = self;
         }
 
         if (self.node) {
@@ -13151,15 +13263,15 @@ var app_Component = MetaphorJs.app.Component = cls({
 
         self.id = self.id || "cmp-" + nextUid();
 
-        if (!self.node && self.config.has("tag")) {
-            self.node = window.document.createElement(self.config.get("tag"));
+        if (!self.node && config.has("tag")) {
+            self.node = window.document.createElement(config.get("tag"));
         }
 
         self.beforeInitComponent.apply(self, arguments);
         self.initComponent.apply(self, arguments);
 
-        if (self.scope.$app) {
-            self.scope.$app.registerCmp(self, self.scope, "id");
+        if (scope.$app) {
+            scope.$app.registerCmp(self, scope, "id");
         }
 
         if (self.parentRenderer) {
@@ -13187,7 +13299,11 @@ var app_Component = MetaphorJs.app.Component = cls({
 
         if (tpl instanceof app_Template) {
             // it may have just been created
-            self.node && self.template.setNode(self.node);
+            if (self.node) {
+                self._nodeReplaced ? 
+                    self.template.replace(self.node) :
+                    self.template.attach(self.node);
+            }
             self.template.on("reference", self._onChildReference, self);
             self.template.on("rendered", self._onRenderingFinished, self);
         }
@@ -13197,16 +13313,18 @@ var app_Component = MetaphorJs.app.Component = cls({
                 deferRendering: !self.autoRender,
                 runRenderer: true,
                 useShadow: self.useShadowDOM,
-                wrapInComments: self._nodeReplaced,
-                replaceNode: self._nodeReplaced
+                useComments: self._nodeReplaced
             }, {scope: self.scope});
 
             app_Template.prepareConfig(tplConfig, tpl);
 
             self.template = tpl = new app_Template({
                 scope: self.scope,
-                node: self.node,
                 config: tplConfig,
+
+                attachTo: self._nodeReplaced ? null : self.node,
+                replaceNode: self._nodeReplaced ? self.node : null,
+
                 callback: {
                     context: self,
                     reference: self._onChildReference,
@@ -13219,7 +13337,6 @@ var app_Component = MetaphorJs.app.Component = cls({
 
         if (self.autoRender) {
             tpl.resolve().done(self.render, self);
-            //tpl.render();
         }
     },
 
@@ -13228,6 +13345,7 @@ var app_Component = MetaphorJs.app.Component = cls({
             config = self.config,
             ctx;
 
+        config.setMode("init", lib_Config.MODE_FUNC);
         config.setDefaultMode("tag", lib_Config.MODE_STATIC);
         config.setDefaultMode("as", lib_Config.MODE_STATIC);
 
@@ -13362,7 +13480,7 @@ var app_Component = MetaphorJs.app.Component = cls({
         }
     },
 
-    _onFirstNodeReported: function(node) {
+    /*_onFirstNodeReported: function(node) {
         var self = this;
         if (self._nodeReplaced) {
             self._claimNode(node);
@@ -13372,7 +13490,7 @@ var app_Component = MetaphorJs.app.Component = cls({
             self.template.node = node;
             self._claimNode(node);
         }
-    },
+    },*/
 
     _onChildReference: function(type, ref, item) {
         var self = this;
@@ -13450,14 +13568,17 @@ var app_Component = MetaphorJs.app.Component = cls({
             before = parent;
             parent = parent.parentNode;
         }
-        if (self._rendered) {
+
+        parent && self.attach(parent, before);
+
+        /*if (self._rendered) {
             parent && self.attach(parent, before);
             return;
         }
         else if (parent) {
             self.renderTo = parent;
             self.renderBefore = before;
-        }
+        }*/
 
         self.onBeforeRender();
         self.trigger('render', self);
@@ -13479,6 +13600,7 @@ var app_Component = MetaphorJs.app.Component = cls({
         if (!parent) {
             throw new Error("Parent node is required");
         }
+
         if (self.isAttached(parent)) {
             return;
         }
@@ -13486,11 +13608,7 @@ var app_Component = MetaphorJs.app.Component = cls({
         self.detach(true);
         self.renderTo = parent;
         self.renderBefore = before;
-
-        /*if (self.template.moveTo(parent, before)) {
-            self.afterAttached();
-            self.trigger('attached', self);
-        }*/
+        self.template.attach(parent, before);
     },
 
     detach: function(willAttach) {
@@ -13501,6 +13619,11 @@ var app_Component = MetaphorJs.app.Component = cls({
             self.trigger('detached', self, willAttach);
         }
     },
+
+    /*_onTemplateAttached: function() {
+        self.afterAttached();
+        self.trigger("attached", self);
+    },*/
 
     getRefEl: function(name) {
         return this.$refs['node'][name];
@@ -13530,11 +13653,6 @@ var app_Component = MetaphorJs.app.Component = cls({
     _onRenderingFinished: function() {
         var self = this;
 
-        if ((self._nodeReplaced && self.node !== self.template.node) ||
-            !self.node) {
-            self._replaceNodeWithTemplate();
-        }
-
         self._rendered   = true;
         self.afterRender();
         self.trigger('after-render', self);
@@ -13550,6 +13668,11 @@ var app_Component = MetaphorJs.app.Component = cls({
                 self.trigger('after-attached', self);
             }
             else if (self.renderTo && self.node.parentNode !== self.renderTo) {
+                self.attach(self.renderTo, self.renderBefore);
+            }
+        }
+        else {
+            if (self.renderTo) {
                 self.attach(self.renderTo, self.renderBefore);
             }
         }
@@ -13875,7 +13998,7 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
             config: tplConfig
         });
 
-        defers.push(cfg.template.childrenPromise);
+        defers.push(cfg.template.resolve());
     }
 
     var p;
@@ -18178,13 +18301,7 @@ DO NOT put class="{}" when using class.name="{}"
         };
 
         if (MetaphorJs.directive.component[tag]) {
-            var ds = {}, k;
-            for(k in attrSet.directive) {
-                if (attrSet.directive.hasOwnProperty(k)) {
-                    ds[k] = attrSet.directive[k].config;
-                }
-            }
-            cfg.directives = ds;
+            cfg.directives = attrSet.directives;
         }
 
         var res = app_resolve(cmpName, cfg, newScope, node, [cfg])
@@ -18202,10 +18319,10 @@ DO NOT put class="{}" when using class.name="{}"
             cfg, attrSet
         );
 
-        return constr.$resumeRenderer || !!constr.$shadow;
+        attrSet.renderer.ignoreInside = true;
     };
 
-    cmpAttr.$breakScope = false;
+    //cmpAttr.$breakScope = false;
 
     Directive.registerAttribute("cmp", 200, cmpAttr);
 
@@ -19408,7 +19525,7 @@ Directive.registerAttribute("include", 1100,
 
     var tpl = new app_Template({
         scope: scope,
-        node: node,
+        attachTo: node,
         parentRenderer: parentRenderer,
         config: config
     });
@@ -20575,13 +20692,14 @@ var dom_transclude = MetaphorJs.dom.transclude = function dom_transclude(node, r
         }
 
         var parent      = node.parentNode,
-            next        = node.nextSibling,
+            //next        = node.nextSibling,
             cloned      = dom_clone(contents),
             children    = toArray(cloned.childNodes);
 
         if (replace) {
-            parent.removeChild(node);
-            parent.insertBefore(cloned, next);
+            parent.replaceChild(node, cloned);
+            //parent.removeChild(node);
+            //parent.insertBefore(cloned, next);
         }
         else {
             node.appendChild(cloned);
@@ -30171,12 +30289,11 @@ Directive.registerTag("include", function(scope, node, config, parentRenderer) {
 
     config.setType("asis", "bool", lib_Config.MODE_STATIC);
     config.setDefaultValue("runRenderer", !config.get("asis"));
-    config.set("wrapInComments", true);
-    config.set("replaceNode", true);
+    config.set("useComments", true);
 
     var tpl = new app_Template({
         scope: scope,
-        node: node,
+        replaceNode: node,
         config: config,
         parentRenderer: parentRenderer
     });
@@ -30287,6 +30404,7 @@ var dom_setStyle = MetaphorJs.dom.setStyle = function dom_setStyle(el, name, val
 MetaphorJs.dom.isVisible = function dom_isVisible(el) {
     return el && !(el.offsetWidth <= 0 || el.offsetHeight <= 0);
 };
+
 
 
 
@@ -34982,8 +35100,8 @@ cls({
         },
 
         afterRender: function() {
-            if (this.para && window.console && window.console.log) {
-                console.log("got child property 'para': ", this.para);
+            if (this.$refs.node.para) {
+                console.log("got child property 'para': ", this.$refs.node.para);
             }
         },
 
@@ -34999,8 +35117,14 @@ cls({
 
         createRender: function() {
             var to  = document.getElementById("renderToComponent");
-            app_resolve("Test.DynamicComponent", 
-                {renderTo: to, autoRender: true}, this.scope);
+            app_resolve(
+                "Test.DynamicComponent", 
+                {autoRender: false}, 
+                this.scope
+            )
+            .done(function(cmp){
+                cmp.render(to)
+            });
         },
 
         createDialog: function() {
@@ -35109,7 +35233,9 @@ cls({
     $class: "Test.ChangeTemplate",
     $extends: "MetaphorJs.app.Component",
     template: {
-        htmlExpression: 'this.tpl'
+        html: {
+            expression: 'this.tpl'
+        }
     },
 
     initComponent: function() {
@@ -35148,6 +35274,11 @@ cls({
 });
 
 
+MetaphorJs.app.Template.cache.addFinder(function(name){
+    if (name) {
+        return MetaphorJs.app.Template.load(name, name);
+    }
+});
 
 dom_onReady(function(){
     var dataObj     = {
