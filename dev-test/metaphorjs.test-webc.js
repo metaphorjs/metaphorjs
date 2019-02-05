@@ -7506,9 +7506,13 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
 
         applyDirective = function(dir, parentScope, node, config, attrs, renderer) {
 
-            var scope   = dir.$breakScope  ?
-                           parentScope.$new() :
-                           parentScope,
+            config.setDefaultMode("scope", lib_Config.MODE_STATIC);
+
+            var scope   = config.has("scope") ? 
+                            lib_Scope.$produce(config.get("scope")) :
+                            dir.$breakScope  ?
+                                parentScope.$new() :
+                                parentScope,
                 app     = parentScope.$app,
                 inject  = {
                     $scope: scope,
@@ -7519,6 +7523,10 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                 },
                 args    = [scope, node, config, renderer, attrs],
                 inst;
+            
+            if (config.has("scope")) {
+                config.setOption("scope", scope);
+            }
 
             if (app) {
                 inst = app.inject(dir, null, inject, args);
@@ -14105,7 +14113,7 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
             idkey = self._getIdKey(),
             renderRef, attrSet,
             foundCmp, foundPromise,
-            scope = self.config.getOption("scope"),
+            scope = self.scope,
             items = self.items || [],
             def,
 
@@ -25355,10 +25363,13 @@ var webc = (function(){
 var rootScope = new MetaphorJs.lib.Scope;
 rootScope.$registerPublic("root");
 rootScope.text = "Hello world!";
-rootScope.a = 1;
 
 var childScope = rootScope.$new();
 childScope.$registerPublic("child");
+
+var childScope2 = rootScope.$new();
+childScope2.$registerPublic("child2");
+childScope2.a = 1;
 
 MetaphorJs.MyComponent = app_Container.$extend({
     template: "my-component-tpl",

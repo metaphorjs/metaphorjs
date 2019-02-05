@@ -120,9 +120,13 @@ module.exports = MetaphorJs.app.Renderer = function() {
 
         applyDirective = function(dir, parentScope, node, config, attrs, renderer) {
 
-            var scope   = dir.$breakScope  ?
-                           parentScope.$new() :
-                           parentScope,
+            config.setDefaultMode("scope", MetaphorJs.lib.Config.MODE_STATIC);
+
+            var scope   = config.has("scope") ? 
+                            MetaphorJs.lib.Scope.$produce(config.get("scope")) :
+                            dir.$breakScope  ?
+                                parentScope.$new() :
+                                parentScope,
                 app     = parentScope.$app,
                 inject  = {
                     $scope: scope,
@@ -133,6 +137,10 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 },
                 args    = [scope, node, config, renderer, attrs],
                 inst;
+            
+            if (config.has("scope")) {
+                config.setOption("scope", scope);
+            }
 
             if (app) {
                 inst = app.inject(dir, null, inject, args);
