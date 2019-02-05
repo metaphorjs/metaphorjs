@@ -14796,6 +14796,13 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
             renderRef: to || "body"
         });
         self.items.push(item);
+
+        if (item.type === "node" && self._rendered) {
+            if (item.placeholder && !item.placeholder.parentNode) {
+                self._preparePlaceholder(item);
+            }
+            self._attachChildItem(item);
+        }
     },
 
     removeItem: function(cmp) {
@@ -25452,6 +25459,8 @@ MetaphorJs.dom.webComponentWrapper = function(tagName, cls, parentCls, props) {
                     autoRender: true,
                     directives: attrSet.directives
                 });
+
+                console.log(this.cmp)
 
                 window.document.addEventListener(
                     "DOMContentLoaded",

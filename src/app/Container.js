@@ -594,6 +594,13 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             renderRef: to || "body"
         });
         self.items.push(item);
+
+        if (item.type === "node" && self._rendered) {
+            if (item.placeholder && !item.placeholder.parentNode) {
+                self._preparePlaceholder(item);
+            }
+            self._attachChildItem(item);
+        }
     },
 
     removeItem: function(cmp) {
