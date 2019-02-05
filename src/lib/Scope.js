@@ -350,6 +350,15 @@ extend(Scope.prototype, {
     },
 
     /**
+     * Register this scope as default public
+     * @method
+     * @param {string} name 
+     */
+    $makePublicDefault: function() {
+        this.$registerPublic("__default");
+    },
+
+    /**
      * Unregister public scope
      * @method
      */
@@ -447,15 +456,13 @@ Scope.$produce = function(name) {
     }
 
     if (!name) {
-        return new Scope;
+        var def = publicScopes['__default'];
+        return def ? def.$new() : new Scope;
     }
-    var scope = this.$get(name);
-
-    if (scope) {
-        return scope;
+    else {
+        var scope = this.$get(name);
+        return scope ? scope : new Scope;
     }
-
-    return new Scope;
 };
 
 return Scope;

@@ -35,6 +35,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
     _initTplConfig: function(tplConfig) {
         tplConfig.setStatic("makeTranscludes", false);
+        tplConfig.setFinal("makeTranscludes");
     },
 
     _prepareDeclaredItems: function(nodes) {
@@ -198,7 +199,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         };
     },
 
-    _processItemDef: function(def) {
+    _processItemDef: function(def, ext) {
 
         var self = this,
             idkey = self._getIdKey(),
@@ -210,6 +211,11 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         }
         else {
             item = self._createDefaultItemDef();
+
+            if (ext) {
+                extend(item, ext, false, false);
+            }
+
             self.itemsMap[item.id] = item;
 
             // component[idkey] = item.id
@@ -414,6 +420,9 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             self._initChildEvents("on", cmp);
 
             if (self._rendered) {
+                if (item.placeholder && !item.placeholder.parentNode) {
+                    self._preparePlaceholder(item);
+                }
                 self._attachChildItem(item);
             }
         }
@@ -460,7 +469,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         self.$super();
 
         // empty container without template or content
-        if (self.node && !self.node.firstChild && !self.isWebComponent) {
+        if (self.node && !self.node.firstChild) {
             self.$refs.node.body = self.node;
         }
 
@@ -491,8 +500,6 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         if (refnode instanceof window.HTMLSlotElement) {
             return;
         }
-
-        item.placeholder.__tmpId = nextUid();
 
         // comment
         if (refnode.nodeType === window.document.COMMENT_NODE) {
@@ -583,17 +590,10 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             cmp.trigger("remove-from-container", cmp);
         }
 
-        item = self._processItemDef(cmp);
-        item.renderRef = item.renderRef || to || "body";
+        item = self._processItemDef(cmp, {
+            renderRef: to || "body"
+        });
         self.items.push(item);
-        self.itemsMap[item.id] = item;
-
-        if (self._rendered) {
-            self._preparePlaceholder(item);
-            if (item.resolved) {
-                self._attachChildItem(item);
-            }
-        }
     },
 
     removeItem: function(cmp) {

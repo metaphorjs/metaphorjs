@@ -227,6 +227,14 @@ module.exports = MetaphorJs.app.Renderer = function() {
             return observer.trigger.apply(observer, arguments);
         },
 
+        attached: function(to) {
+            this.trigger("attached", this, to);
+        },
+
+        detached: function() {
+            this.trigger("detached", this);
+        },
+
         _processCommentNode: function(node) {
             var cmtData = node.textContent || node.data;
             if (cmtData.substring(0,2) === '##') {

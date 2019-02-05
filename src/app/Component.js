@@ -105,6 +105,12 @@ module.exports = MetaphorJs.app.Component = cls({
     _nodeReplaced:  false,
 
     /**
+     * @var {boolean}
+     * @access private
+     */
+    _nodeCreated:   false,
+
+    /**
      * @var {bool}
      * @access protected
      */
@@ -186,6 +192,7 @@ module.exports = MetaphorJs.app.Component = cls({
 
         if (!self.node && config.has("tag")) {
             self.node = window.document.createElement(config.get("tag"));
+            self._nodeCreated = true;
         }
 
         self.beforeInitComponent.apply(self, arguments);
@@ -222,8 +229,7 @@ module.exports = MetaphorJs.app.Component = cls({
             deferRendering: !self.autoRender,
             runRenderer: true,
             useShadow: self.config.copyProperty("useShadow"),
-            makeTranscludes: self.config.copyProperty("makeTranscludes"),
-            useComments: self._nodeReplaced
+            makeTranscludes: self.config.copyProperty("makeTranscludes")
         }, {scope: self.scope});
 
         MetaphorJs.app.Template.prepareConfig(tplConfig, tpl);
@@ -234,6 +240,7 @@ module.exports = MetaphorJs.app.Component = cls({
             scope: self.scope,
             config: tplConfig,
 
+            rootNode: self._nodeCreated ? self.node : null,
             attachTo: self._nodeReplaced ? null : self.node,
             replaceNode: self._nodeReplaced ? self.node : null,
 
@@ -491,16 +498,13 @@ module.exports = MetaphorJs.app.Component = cls({
             parent = parent.parentNode;
         }
 
-        parent && self.attach(parent, before);
-
-        /*if (self._rendered) {
+        if (self._rendered) {
             parent && self.attach(parent, before);
-            return;
         }
         else if (parent) {
             self.renderTo = parent;
             self.renderBefore = before;
-        }*/
+        }
 
         self.onBeforeRender();
         self.trigger('render', self);
@@ -511,9 +515,10 @@ module.exports = MetaphorJs.app.Component = cls({
     },
 
     isAttached: function(parent) {
-        if (!this.node || !this.node.parentNode) 
+        return this.template.isAttached(parent);
+        /*if (!this.node || !this.node.parentNode) 
             return false;
-        return parent ? this.node.parentNode === parent : true;
+        return parent ? this.node.parentNode === parent : true;*/
     },
 
     attach: function(parent, before) {
@@ -523,22 +528,24 @@ module.exports = MetaphorJs.app.Component = cls({
             throw new Error("Parent node is required");
         }
 
-        if (self.isAttached(parent)) {
+        /*if (self.isAttached(parent)) {
+            console.log("is attached", self.node, parent)
             return;
-        }
+        }*/
 
-        self.detach(true);
-        self.renderTo = parent;
-        self.renderBefore = before;
+        //self.detach(true);
+        //self.renderTo = parent;
+        //self.renderBefore = before;
         self.template.attach(parent, before);
     },
 
     detach: function(willAttach) {
         var self = this;
-        if (self.isAttached()) {
-            self.node.parentNode.removeChild(self.node);
-            self.afterDetached(willAttach);
-            self.trigger('detached', self, willAttach);
+        if (self.template.isAttached()) {
+            self.template.detach();
+            //self.node.parentNode.removeChild(self.node);
+            //self.afterDetached(willAttach);
+            //self.trigger('detached', self, willAttach);
         }
     },
 
