@@ -292,10 +292,12 @@ module.exports = MetaphorJs.lib.Config = (function(){
          * @param {object} cfg {
          *  @type {string} type int|float|array|bool|string
          *  @type {object} setTo
+         *  @type {object} scope
          *  @type {boolean} disabled
          *  @type {*} defaultValue
+         *  @type {*} value
          *  @type {int} defaultMode
-         *  @type {int} mode 1: static, 2: dynamic, 3: single run
+         *  @type {int} mode MetaphorJs.lib.Config.MODE_***
          * }
          */
 
@@ -316,6 +318,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 prop,
                 changed = false,
                 newProp = false,
+                changes = {},
                 value;
 
             if (override === undf) {
@@ -335,6 +338,10 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
             prop = props[name];
 
+            if (prop.final === true) {
+                return false;
+            }
+
             if (val === undf || val === null) {
                 var k;
                 for (k in cfg) {
@@ -342,8 +349,9 @@ module.exports = MetaphorJs.lib.Config = (function(){
                         value = cfg[k];
                         continue;
                     }
-                    if (cfg[k] !== prop[k] && override) {
-                        changed = true;
+                    else if (prop[k] === undf || 
+                            (cfg[k] !== prop[k] && override)) {
+                        changes[k] = true;
                         prop[k] = cfg[k];
                     }
                 }
@@ -352,8 +360,9 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 if (cfg === "value") {
                     value = val;
                 }
-                else if (val !== prop[cfg] && override) {
-                    changed = true;
+                else if (prop[cfg] === undf || 
+                        (prop[cfg] !== val && override)) {
+                    changes[cfg] = true;
                     prop[cfg] = val;
                 }
             }
@@ -386,18 +395,18 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 !prop.mo && 
                 !prop.disabled) {
                 self._initMo(name);
-                changed = true;
             }
 
             if (value !== undf && value !== null) {
                 self.values[name] = value;
             }
-            else if (changed && self.values[name] !== undf && 
-                    prop.mode !== MODE_STATIC) {
-                delete self.values[name];
+            else if (self.values[name] !== undf) {
+                if (changes.mode || changes.expression || (
+                    !prop.mode && changes.defaultMode
+                )) {
+                    delete self.values[name];
+                }
             }
-
-            return changed;
         },
 
         /**
@@ -422,6 +431,14 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 cp = extend({}, prop, false, false);
                 cp.scope = cp.scope || this.cfg.scope;
                 delete cp['mo'];
+
+                if (cp.mode === MODE_STATIC || 
+                    (!cp.mode && cp.defaultMode === cp.mode === MODE_STATIC) ||
+                    (!cp.mode && !cp.defaultMode)) {
+                    if (this.values[name] !== undf) {
+                        cp.value = this.values[name];
+                    }
+                }
                 return cp;
             }
             else return null;
@@ -593,16 +610,19 @@ module.exports = MetaphorJs.lib.Config = (function(){
          * @param {*} defaultValue {
          *  @optional
          * }
+         * @param {bool} override {
+         * @default true
+         * }
          */
-        setType: function(name, type, defaultMode, defaultValue) {
+        setType: function(name, type, defaultMode, defaultValue, override) {
             if (type) {
-                this.setProperty(name, "type", type);
+                this.setProperty(name, "type", type, override);
             }
             if (defaultMode) {
-                this.setProperty(name, "defaultMode", defaultMode);
+                this.setProperty(name, "defaultMode", defaultMode, override);
             }
             if (defaultValue !== undf) {
-                this.setProperty(name, "defaultValue", defaultValue);
+                this.setProperty(name, "defaultValue", defaultValue, override);
             }
         },
 
@@ -611,9 +631,12 @@ module.exports = MetaphorJs.lib.Config = (function(){
          * @method
          * @param {string} name 
          * @param {int} mode 
+         * @param {bool} override {
+         * @default true
+         * }
          */
-        setDefaultMode: function(name, mode) {
-            this.setProperty(name, "defaultMode", mode);
+        setDefaultMode: function(name, mode, override) {
+            this.setProperty(name, "defaultMode", mode, override);
         },
 
         /**
@@ -621,9 +644,12 @@ module.exports = MetaphorJs.lib.Config = (function(){
          * @method
          * @param {string} name 
          * @param {*} val 
+         * @param {bool} override {
+         * @default true
+         * }
          */
-        setDefaultValue: function(name, val) {
-            this.setProperty(name, "defaultValue", val);
+        setDefaultValue: function(name, val, override) {
+            this.setProperty(name, "defaultValue", val, override);
         },
 
         /**
@@ -639,6 +665,9 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 prop, val;
             scope = scope || self.cfg.scope;
             if (prop = self.properties[name]) {
+                if (prop.final) {
+                    return;
+                }
                 if (!prop.mode || prop.mode === MODE_STATIC || prop.mode === MODE_SINGLE) {
                     val = self.get(name);
                     self.setProperty(name, {
@@ -666,6 +695,9 @@ module.exports = MetaphorJs.lib.Config = (function(){
          */
         setStatic: function(name, val) {
             var self = this;
+            if (self.properties[name] && self.properties[name].final) {
+                return;
+            }
             var prev = self.values[val];
             self.setMode(name, MODE_STATIC);
             self.values[name] = val;
@@ -673,6 +705,14 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 $$observable.trigger(self.id, name, val, prev);
                 $$observable.trigger(self.id +'-'+ name, val, prev) ;
             }
+        },
+
+        /**
+         * Lock the property
+         * @param {string} name 
+         */
+        setFinal: function(name) {
+            this.setProperty(name, "final", true);
         },
 
         /**

@@ -121,6 +121,10 @@ cls({
 
     $class: "Test.MyComponent",
     $extends: "MetaphorJs.app.Component",
+    template: "cmp1-template.html",
+    config: {
+        makeTranscludes: true
+    },
 
         initComponent: function() {
 
@@ -208,7 +212,6 @@ cls({
                 });
         }
     }, {
-        template: "cmp1-template.html",
         resolve: {
             deferred: ['$node', '$scope', 'test', function(node, scope, test) {
                 return new MetaphorJs.lib.Promise(function(resolve, reject){
@@ -224,8 +227,10 @@ cls({
 
     $class: "Test.MyComponent2",
     $extends: "MetaphorJs.app.Component",
-
     template: 'cmp1-template.html',
+    config: {
+        makeTranscludes: true
+    },
 
     initComponent: function(cfg, param) {
         var self    = this;
@@ -241,6 +246,9 @@ cls({
 
     $class: "Test.TplComponent",
     $extends: "MetaphorJs.app.Component",
+    config: {
+        makeTranscludes: true
+    },
 
     initComponent: function() {
 
@@ -259,8 +267,10 @@ cls({
 
 cls({
     $class: "Test.StringTemplate",
-    $extends: "MetaphorJs.app.Component"
-    }, {
+    $extends: "MetaphorJs.app.Component",
+    config: {
+        makeTranscludes: true
+    },
     template: {
         html: '<p>This template is inlined in components definition ({{this.$root.a}})</p>'
     }
@@ -268,8 +278,10 @@ cls({
 
 cls({
     $class: "Test.DynamicComponent",
-    $extends: "MetaphorJs.app.Component"
-    }, {
+    $extends: "MetaphorJs.app.Component",
+    config: {
+        makeTranscludes: true
+    },
     template: {
         html: '<p>This component was created dynamically</p><div {transclude}></div>'
     }
@@ -279,6 +291,9 @@ cls({
 
     $class: "Test.ChangeTemplate",
     $extends: "MetaphorJs.app.Component",
+    config: {
+        makeTranscludes: true
+    },
     template: {
         html: {
             expression: 'this.tpl'
@@ -299,6 +314,9 @@ cls({
 cls({
     $class: "Test.ViewComponent1",
     $extends: "MetaphorJs.app.Component",
+    config: {
+        makeTranscludes: true
+    },
     template: {
         html: '<p>View template 1</p><div {transclude}></div>'
     }
@@ -307,6 +325,9 @@ cls({
 cls({
     $class: "Test.ViewComponent2",
     $extends: "MetaphorJs.app.Component",
+    config: {
+        makeTranscludes: true
+    },
     template: {
         html: '<p>View template 2</p><div {transclude}></div>'
     }
@@ -315,6 +336,9 @@ cls({
 
 cls({
     $class: "Test.TagComponent",
+    config: {
+        makeTranscludes: true
+    },
     $extends: "MetaphorJs.app.Component",
     $alias: "MetaphorJs.directive.component.tagc",
     template: "tagc.html"

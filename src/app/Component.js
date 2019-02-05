@@ -137,6 +137,7 @@ module.exports = MetaphorJs.app.Component = cls({
 
         cfg = cfg || {};
 
+        self._protoCfg = self.config;
         self.$super(cfg);
         extend(self, cfg, true, false);
 
@@ -157,8 +158,8 @@ module.exports = MetaphorJs.app.Component = cls({
         self.$refs = {node: {}, cmp: {}};
         scope.$cfg = {};
         config.setTo(scope.$cfg);
-        self._initConfig();
-        self.$callMixins("$initConfig");
+        self._initConfig(config);
+        self.$callMixins("$initConfig", config);
 
         if (config.has("init")) {
             config.get("init")(scope);
@@ -217,41 +218,31 @@ module.exports = MetaphorJs.app.Component = cls({
                                     ) === -1;
         }
 
-        if (tpl instanceof MetaphorJs.app.Template) {
-            // it may have just been created
-            if (self.node) {
-                self._nodeReplaced ? 
-                    self.template.replace(self.node) :
-                    self.template.attach(self.node);
+        var tplConfig = new MetaphorJs.lib.Config({
+            deferRendering: !self.autoRender,
+            runRenderer: true,
+            useShadow: self.config.copyProperty("useShadow"),
+            makeTranscludes: self.config.copyProperty("makeTranscludes"),
+            useComments: self._nodeReplaced
+        }, {scope: self.scope});
+
+        MetaphorJs.app.Template.prepareConfig(tplConfig, tpl);
+
+        self._initTplConfig(tplConfig);
+
+        self.template = tpl = new MetaphorJs.app.Template({
+            scope: self.scope,
+            config: tplConfig,
+
+            attachTo: self._nodeReplaced ? null : self.node,
+            replaceNode: self._nodeReplaced ? self.node : null,
+
+            callback: {
+                context: self,
+                reference: self._onChildReference,
+                rendered: self._onRenderingFinished
             }
-            self.template.on("reference", self._onChildReference, self);
-            self.template.on("rendered", self._onRenderingFinished, self);
-        }
-        else {
-
-            var tplConfig = new MetaphorJs.lib.Config({
-                deferRendering: !self.autoRender,
-                runRenderer: true,
-                useShadow: self.useShadowDOM,
-                useComments: self._nodeReplaced
-            }, {scope: self.scope});
-
-            MetaphorJs.app.Template.prepareConfig(tplConfig, tpl);
-
-            self.template = tpl = new MetaphorJs.app.Template({
-                scope: self.scope,
-                config: tplConfig,
-
-                attachTo: self._nodeReplaced ? null : self.node,
-                replaceNode: self._nodeReplaced ? self.node : null,
-
-                callback: {
-                    context: self,
-                    reference: self._onChildReference,
-                    rendered: self._onRenderingFinished
-                }
-            });
-        }
+        });
 
         self.afterInitComponent.apply(self, arguments);
 
@@ -260,15 +251,22 @@ module.exports = MetaphorJs.app.Component = cls({
         }
     },
 
+    _initTplConfig: function(config) {},
+
     _initConfig: function() {
         var self = this,
+            scope = self.scope,
             config = self.config,
+            mst = MetaphorJs.lib.Config.MODE_STATIC,
+            msl = MetaphorJs.lib.Config.MODE_LISTENER,
             ctx;
 
-        config.setMode("scope", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setType("makeTranscludes", "bool", mst, false);
+        config.setType("useShadow", "bool", mst, false);
+        config.setMode("scope", mst);
         config.setMode("init", MetaphorJs.lib.Config.MODE_FUNC);
-        config.setDefaultMode("tag", MetaphorJs.lib.Config.MODE_STATIC);
-        config.setDefaultMode("as", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setDefaultMode("tag", mst);
+        config.setDefaultMode("as", mst);
 
         if (self.as) {
             config.setDefaultValue("as", self.as);
@@ -277,19 +275,26 @@ module.exports = MetaphorJs.app.Component = cls({
         config.setDefaultMode("callbackContext", MetaphorJs.lib.Config.MODE_SINGLE);
         config.eachProperty(function(name) {
             if (name.substring(0,4) === 'on--') {
-                config.setMode(name, MetaphorJs.lib.Config.MODE_LISTENER);
+                config.setMode(name, msl);
                 if (!ctx) {
-                    if (self.scope.$app)
+                    if (scope.$app)
                         ctx = config.get("callbackContext") ||
-                                self.scope.$app.getParentCmp(self.node) ||
-                                self.scope.$app ||
-                                self.scope;
+                                scope.$app.getParentCmp(self.node) ||
+                                scope.$app ||
+                                scope;
                     else 
-                        ctx = config.get("callbackContext") || self.scope;
+                        ctx = config.get("callbackContext") || scope;
                 }
                 self.on(name.substring(4), config.get(name), ctx);
             }
         });
+
+        if (self._protoCfg) {
+            config.addProperties(
+                self._protoCfg, 
+                /*scalarAs: */"defaultValue"
+            );
+        }
     },
 
     hasDirective: function(name) {
@@ -381,10 +386,6 @@ module.exports = MetaphorJs.app.Component = cls({
 
         for (i = 0, len = handlers.length; i < len; i++) {
             name    = handlers[i].name;
-
-            if (name === "scope") {
-                continue;
-            }
 
             if (!(support === true || support[name])) {
                 continue;
@@ -578,11 +579,11 @@ module.exports = MetaphorJs.app.Component = cls({
         self.afterRender();
         self.trigger('after-render', self);
 
-        if (self.node) {
+        if (self.directives) {
+            self._initDirectives();
+        }
 
-            if (self.directives) {
-                self._initDirectives();
-            }
+        if (self.node) {
 
             if (MetaphorJs.dom.isAttached(self.node)) {
                 self.afterAttached();

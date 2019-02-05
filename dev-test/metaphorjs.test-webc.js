@@ -4951,10 +4951,12 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
          * @param {object} cfg {
          *  @type {string} type int|float|array|bool|string
          *  @type {object} setTo
+         *  @type {object} scope
          *  @type {boolean} disabled
          *  @type {*} defaultValue
+         *  @type {*} value
          *  @type {int} defaultMode
-         *  @type {int} mode 1: static, 2: dynamic, 3: single run
+         *  @type {int} mode MetaphorJs.lib.Config.MODE_***
          * }
          */
 
@@ -4975,6 +4977,7 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                 prop,
                 changed = false,
                 newProp = false,
+                changes = {},
                 value;
 
             if (override === undf) {
@@ -4994,6 +4997,10 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
 
             prop = props[name];
 
+            if (prop.final === true) {
+                return false;
+            }
+
             if (val === undf || val === null) {
                 var k;
                 for (k in cfg) {
@@ -5001,8 +5008,9 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                         value = cfg[k];
                         continue;
                     }
-                    if (cfg[k] !== prop[k] && override) {
-                        changed = true;
+                    else if (prop[k] === undf || 
+                            (cfg[k] !== prop[k] && override)) {
+                        changes[k] = true;
                         prop[k] = cfg[k];
                     }
                 }
@@ -5011,8 +5019,9 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                 if (cfg === "value") {
                     value = val;
                 }
-                else if (val !== prop[cfg] && override) {
-                    changed = true;
+                else if (prop[cfg] === undf || 
+                        (prop[cfg] !== val && override)) {
+                    changes[cfg] = true;
                     prop[cfg] = val;
                 }
             }
@@ -5045,18 +5054,18 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                 !prop.mo && 
                 !prop.disabled) {
                 self._initMo(name);
-                changed = true;
             }
 
             if (value !== undf && value !== null) {
                 self.values[name] = value;
             }
-            else if (changed && self.values[name] !== undf && 
-                    prop.mode !== MODE_STATIC) {
-                delete self.values[name];
+            else if (self.values[name] !== undf) {
+                if (changes.mode || changes.expression || (
+                    !prop.mode && changes.defaultMode
+                )) {
+                    delete self.values[name];
+                }
             }
-
-            return changed;
         },
 
         /**
@@ -5081,6 +5090,14 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                 cp = extend({}, prop, false, false);
                 cp.scope = cp.scope || this.cfg.scope;
                 delete cp['mo'];
+
+                if (cp.mode === MODE_STATIC || 
+                    (!cp.mode && cp.defaultMode === cp.mode === MODE_STATIC) ||
+                    (!cp.mode && !cp.defaultMode)) {
+                    if (this.values[name] !== undf) {
+                        cp.value = this.values[name];
+                    }
+                }
                 return cp;
             }
             else return null;
@@ -5252,16 +5269,19 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
          * @param {*} defaultValue {
          *  @optional
          * }
+         * @param {bool} override {
+         * @default true
+         * }
          */
-        setType: function(name, type, defaultMode, defaultValue) {
+        setType: function(name, type, defaultMode, defaultValue, override) {
             if (type) {
-                this.setProperty(name, "type", type);
+                this.setProperty(name, "type", type, override);
             }
             if (defaultMode) {
-                this.setProperty(name, "defaultMode", defaultMode);
+                this.setProperty(name, "defaultMode", defaultMode, override);
             }
             if (defaultValue !== undf) {
-                this.setProperty(name, "defaultValue", defaultValue);
+                this.setProperty(name, "defaultValue", defaultValue, override);
             }
         },
 
@@ -5270,9 +5290,12 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
          * @method
          * @param {string} name 
          * @param {int} mode 
+         * @param {bool} override {
+         * @default true
+         * }
          */
-        setDefaultMode: function(name, mode) {
-            this.setProperty(name, "defaultMode", mode);
+        setDefaultMode: function(name, mode, override) {
+            this.setProperty(name, "defaultMode", mode, override);
         },
 
         /**
@@ -5280,9 +5303,12 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
          * @method
          * @param {string} name 
          * @param {*} val 
+         * @param {bool} override {
+         * @default true
+         * }
          */
-        setDefaultValue: function(name, val) {
-            this.setProperty(name, "defaultValue", val);
+        setDefaultValue: function(name, val, override) {
+            this.setProperty(name, "defaultValue", val, override);
         },
 
         /**
@@ -5298,6 +5324,9 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                 prop, val;
             scope = scope || self.cfg.scope;
             if (prop = self.properties[name]) {
+                if (prop.final) {
+                    return;
+                }
                 if (!prop.mode || prop.mode === MODE_STATIC || prop.mode === MODE_SINGLE) {
                     val = self.get(name);
                     self.setProperty(name, {
@@ -5325,6 +5354,9 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
          */
         setStatic: function(name, val) {
             var self = this;
+            if (self.properties[name] && self.properties[name].final) {
+                return;
+            }
             var prev = self.values[val];
             self.setMode(name, MODE_STATIC);
             self.values[name] = val;
@@ -5332,6 +5364,14 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                 $$observable.trigger(self.id, name, val, prev);
                 $$observable.trigger(self.id +'-'+ name, val, prev) ;
             }
+        },
+
+        /**
+         * Lock the property
+         * @param {string} name 
+         */
+        setFinal: function(name) {
+            this.setProperty(name, "final", true);
         },
 
         /**
@@ -12461,9 +12501,12 @@ var app_Template = MetaphorJs.app.Template = function() {
         config.setType("useComments", "bool", sm);
         config.setType("useShadow", "bool", sm);
         config.setType("deferRendering", "bool", sm);
+        config.setType("makeTranscludes", "bool", sm);
+        config.setProperty("makeTranscludes", "defaultValue", true, /*override: */false);
 
         !shadowSupported && config.setStatic("useShadow", false);
         config.get("useShadow") && config.setStatic("useComments", false);
+        config.get("useShadow") && config.setStatic("makeTranscludes", false);
 
         if (config.get("runRenderer") && self._parentRenderer) {
             self._parentRenderer.on("destroy",
@@ -12478,6 +12521,8 @@ var app_Template = MetaphorJs.app.Template = function() {
         if (!config.get("deferRendering")) {
             self.render();
         }
+
+        console.log(self)
     };
 
 
@@ -12543,6 +12588,8 @@ var app_Template = MetaphorJs.app.Template = function() {
 
             self._initial = false;
             self._rendering = false;
+
+
         },
 
         attach: function(parent, before) {
@@ -12689,7 +12736,8 @@ var app_Template = MetaphorJs.app.Template = function() {
             var self = this;
             saveIn = saveIn || self._attachTo;
             takeFrom = takeFrom || self._attachTo;
-            if (saveIn && takeFrom && !self.config.get("useShadow") && 
+            if (saveIn && takeFrom && 
+                self.config.get("makeTranscludes") && 
                 takeFrom.firstChild && 
                 !dom_data(saveIn, "mjs-transclude")) {
 
@@ -12701,7 +12749,7 @@ var app_Template = MetaphorJs.app.Template = function() {
         _replaceNodeWithComments: function(node) {
             var self = this,
                 cmts = dom_commentWrap(node, self.id);
-                node.parentNode && node.parentNode.removeChild(node);
+            node.parentNode && node.parentNode.removeChild(node);
             self._prevEl = cmts[0];
             self._nextEl = cmts[1];
         },
@@ -12718,7 +12766,7 @@ var app_Template = MetaphorJs.app.Template = function() {
                 parent = self._attachTo,
                 before = self._attachBefore;
 
-            if (!self._prevEl && self.config.get("useComments")) {
+            if (parent && !self._prevEl && self.config.get("useComments")) {
                 var cmts = [
                         window.document.createComment("<" + self.id),
                         window.document.createComment(self.id + ">")
@@ -12736,7 +12784,7 @@ var app_Template = MetaphorJs.app.Template = function() {
                 prev = self._prevEl;
 
             next.parentNode && next.parentNode.removeChild(next);
-            prev.parentNode && prev.parentNode.removeChild(next);
+            prev.parentNode && prev.parentNode.removeChild(prev);
             self._nextEl = null;
             self._prevEl = null;
         },
@@ -13219,6 +13267,7 @@ var app_Component = MetaphorJs.app.Component = cls({
 
         cfg = cfg || {};
 
+        self._protoCfg = self.config;
         self.$super(cfg);
         extend(self, cfg, true, false);
 
@@ -13239,8 +13288,8 @@ var app_Component = MetaphorJs.app.Component = cls({
         self.$refs = {node: {}, cmp: {}};
         scope.$cfg = {};
         config.setTo(scope.$cfg);
-        self._initConfig();
-        self.$callMixins("$initConfig");
+        self._initConfig(config);
+        self.$callMixins("$initConfig", config);
 
         if (config.has("init")) {
             config.get("init")(scope);
@@ -13299,41 +13348,31 @@ var app_Component = MetaphorJs.app.Component = cls({
                                     ) === -1;
         }
 
-        if (tpl instanceof MetaphorJs.app.Template) {
-            // it may have just been created
-            if (self.node) {
-                self._nodeReplaced ? 
-                    self.template.replace(self.node) :
-                    self.template.attach(self.node);
+        var tplConfig = new lib_Config({
+            deferRendering: !self.autoRender,
+            runRenderer: true,
+            useShadow: self.config.copyProperty("useShadow"),
+            makeTranscludes: self.config.copyProperty("makeTranscludes"),
+            useComments: self._nodeReplaced
+        }, {scope: self.scope});
+
+        app_Template.prepareConfig(tplConfig, tpl);
+
+        self._initTplConfig(tplConfig);
+
+        self.template = tpl = new app_Template({
+            scope: self.scope,
+            config: tplConfig,
+
+            attachTo: self._nodeReplaced ? null : self.node,
+            replaceNode: self._nodeReplaced ? self.node : null,
+
+            callback: {
+                context: self,
+                reference: self._onChildReference,
+                rendered: self._onRenderingFinished
             }
-            self.template.on("reference", self._onChildReference, self);
-            self.template.on("rendered", self._onRenderingFinished, self);
-        }
-        else {
-
-            var tplConfig = new lib_Config({
-                deferRendering: !self.autoRender,
-                runRenderer: true,
-                useShadow: self.useShadowDOM,
-                useComments: self._nodeReplaced
-            }, {scope: self.scope});
-
-            app_Template.prepareConfig(tplConfig, tpl);
-
-            self.template = tpl = new app_Template({
-                scope: self.scope,
-                config: tplConfig,
-
-                attachTo: self._nodeReplaced ? null : self.node,
-                replaceNode: self._nodeReplaced ? self.node : null,
-
-                callback: {
-                    context: self,
-                    reference: self._onChildReference,
-                    rendered: self._onRenderingFinished
-                }
-            });
-        }
+        });
 
         self.afterInitComponent.apply(self, arguments);
 
@@ -13342,15 +13381,22 @@ var app_Component = MetaphorJs.app.Component = cls({
         }
     },
 
+    _initTplConfig: function(config) {},
+
     _initConfig: function() {
         var self = this,
+            scope = self.scope,
             config = self.config,
+            mst = lib_Config.MODE_STATIC,
+            msl = lib_Config.MODE_LISTENER,
             ctx;
 
-        config.setMode("scope", lib_Config.MODE_STATIC);
+        config.setType("makeTranscludes", "bool", mst, false);
+        config.setType("useShadow", "bool", mst, false);
+        config.setMode("scope", mst);
         config.setMode("init", lib_Config.MODE_FUNC);
-        config.setDefaultMode("tag", lib_Config.MODE_STATIC);
-        config.setDefaultMode("as", lib_Config.MODE_STATIC);
+        config.setDefaultMode("tag", mst);
+        config.setDefaultMode("as", mst);
 
         if (self.as) {
             config.setDefaultValue("as", self.as);
@@ -13359,19 +13405,26 @@ var app_Component = MetaphorJs.app.Component = cls({
         config.setDefaultMode("callbackContext", lib_Config.MODE_SINGLE);
         config.eachProperty(function(name) {
             if (name.substring(0,4) === 'on--') {
-                config.setMode(name, lib_Config.MODE_LISTENER);
+                config.setMode(name, msl);
                 if (!ctx) {
-                    if (self.scope.$app)
+                    if (scope.$app)
                         ctx = config.get("callbackContext") ||
-                                self.scope.$app.getParentCmp(self.node) ||
-                                self.scope.$app ||
-                                self.scope;
+                                scope.$app.getParentCmp(self.node) ||
+                                scope.$app ||
+                                scope;
                     else 
-                        ctx = config.get("callbackContext") || self.scope;
+                        ctx = config.get("callbackContext") || scope;
                 }
                 self.on(name.substring(4), config.get(name), ctx);
             }
         });
+
+        if (self._protoCfg) {
+            config.addProperties(
+                self._protoCfg, 
+                /*scalarAs: */"defaultValue"
+            );
+        }
     },
 
     hasDirective: function(name) {
@@ -13463,10 +13516,6 @@ var app_Component = MetaphorJs.app.Component = cls({
 
         for (i = 0, len = handlers.length; i < len; i++) {
             name    = handlers[i].name;
-
-            if (name === "scope") {
-                continue;
-            }
 
             if (!(support === true || support[name])) {
                 continue;
@@ -13660,11 +13709,11 @@ var app_Component = MetaphorJs.app.Component = cls({
         self.afterRender();
         self.trigger('after-render', self);
 
-        if (self.node) {
+        if (self.directives) {
+            self._initDirectives();
+        }
 
-            if (self.directives) {
-                self._initDirectives();
-            }
+        if (self.node) {
 
             if (dom_isAttached(self.node)) {
                 self.afterAttached();
@@ -13937,7 +13986,7 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
 
     var i,
         defers      = [],
-        tpl         = constr.template || cfg.template || null,
+        //tpl         = constr.template || cfg.template || null,
         app         = scope ? scope.$app : null,
         gProvider   = lib_Provider.global(),
         injectFn    = app ? app.inject : gProvider.inject,
@@ -13986,7 +14035,7 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
         }
     }
 
-    if (tpl) {
+    /*if (tpl) {
 
         var tplConfig = new lib_Config(null, {scope: scope});
         app_Template.prepareConfig(tplConfig, tpl);
@@ -14002,7 +14051,7 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
         });
 
         defers.push(cfg.template.resolve());
-    }
+    }*/
 
     var p;
 
@@ -14103,6 +14152,10 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
         }
 
         self._initItems();
+    },
+
+    _initTplConfig: function(tplConfig) {
+        tplConfig.setStatic("makeTranscludes", false);
     },
 
     _prepareDeclaredItems: function(nodes) {
@@ -14245,9 +14298,6 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
                     item.renderRef = ref;
                     list.push(item);
                 }
-
-                // moved to _processItemDef
-                //self.itemsMap[item.id] = item;
             }
         }
 
@@ -14531,7 +14581,7 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
         self.$super();
 
         // empty container without template or content
-        if (!self.node.firstChild && !self.isWebComponent) {
+        if (self.node && !self.node.firstChild && !self.isWebComponent) {
             self.$refs.node.body = self.node;
         }
 
@@ -14562,6 +14612,8 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
         if (refnode instanceof window.HTMLSlotElement) {
             return;
         }
+
+        item.placeholder.__tmpId = nextUid();
 
         // comment
         if (refnode.nodeType === window.document.COMMENT_NODE) {
@@ -25294,12 +25346,13 @@ MetaphorJs.dom.webComponentWrapper = function(tagName, cls, parentCls, props) {
                         }
                     );
 
+                config.setStatic("useShadow", true);
+                config.setFinal("useShadow");
+
                 this.cmp = new cls({
                     scope: scope,
                     config: config,
                     node: this,
-                    isWebComponent: true,
-                    useShadowDOM: true,
                     replaceCustomNode: false,
                     autoRender: true,
                     directives: attrSet.directives

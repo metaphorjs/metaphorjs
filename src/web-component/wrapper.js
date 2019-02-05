@@ -35,12 +35,13 @@ module.exports = MetaphorJs.dom.webComponentWrapper = function(tagName, cls, par
                         }
                     );
 
+                config.setStatic("useShadow", true);
+                config.setFinal("useShadow");
+
                 this.cmp = new cls({
                     scope: scope,
                     config: config,
                     node: this,
-                    isWebComponent: true,
-                    useShadowDOM: true,
                     replaceCustomNode: false,
                     autoRender: true,
                     directives: attrSet.directives

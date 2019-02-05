@@ -52,7 +52,7 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
 
     var i,
         defers      = [],
-        tpl         = constr.template || cfg.template || null,
+        //tpl         = constr.template || cfg.template || null,
         app         = scope ? scope.$app : null,
         gProvider   = MetaphorJs.lib.Provider.global(),
         injectFn    = app ? app.inject : gProvider.inject,
@@ -101,7 +101,7 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
         }
     }
 
-    if (tpl) {
+    /*if (tpl) {
 
         var tplConfig = new MetaphorJs.lib.Config(null, {scope: scope});
         MetaphorJs.app.Template.prepareConfig(tplConfig, tpl);
@@ -117,7 +117,7 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
         });
 
         defers.push(cfg.template.resolve());
-    }
+    }*/
 
     var p;
 

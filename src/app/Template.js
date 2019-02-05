@@ -210,9 +210,12 @@ module.exports = MetaphorJs.app.Template = function() {
         config.setType("useComments", "bool", sm);
         config.setType("useShadow", "bool", sm);
         config.setType("deferRendering", "bool", sm);
+        config.setType("makeTranscludes", "bool", sm);
+        config.setProperty("makeTranscludes", "defaultValue", true, /*override: */false);
 
         !shadowSupported && config.setStatic("useShadow", false);
         config.get("useShadow") && config.setStatic("useComments", false);
+        config.get("useShadow") && config.setStatic("makeTranscludes", false);
 
         if (config.get("runRenderer") && self._parentRenderer) {
             self._parentRenderer.on("destroy",
@@ -292,6 +295,8 @@ module.exports = MetaphorJs.app.Template = function() {
 
             self._initial = false;
             self._rendering = false;
+
+
         },
 
         attach: function(parent, before) {
@@ -438,7 +443,8 @@ module.exports = MetaphorJs.app.Template = function() {
             var self = this;
             saveIn = saveIn || self._attachTo;
             takeFrom = takeFrom || self._attachTo;
-            if (saveIn && takeFrom && !self.config.get("useShadow") && 
+            if (saveIn && takeFrom && 
+                self.config.get("makeTranscludes") && 
                 takeFrom.firstChild && 
                 !MetaphorJs.dom.data(saveIn, "mjs-transclude")) {
 
@@ -450,7 +456,7 @@ module.exports = MetaphorJs.app.Template = function() {
         _replaceNodeWithComments: function(node) {
             var self = this,
                 cmts = MetaphorJs.dom.commentWrap(node, self.id);
-                node.parentNode && node.parentNode.removeChild(node);
+            node.parentNode && node.parentNode.removeChild(node);
             self._prevEl = cmts[0];
             self._nextEl = cmts[1];
         },
@@ -467,7 +473,7 @@ module.exports = MetaphorJs.app.Template = function() {
                 parent = self._attachTo,
                 before = self._attachBefore;
 
-            if (!self._prevEl && self.config.get("useComments")) {
+            if (parent && !self._prevEl && self.config.get("useComments")) {
                 var cmts = [
                         window.document.createComment("<" + self.id),
                         window.document.createComment(self.id + ">")
@@ -485,7 +491,7 @@ module.exports = MetaphorJs.app.Template = function() {
                 prev = self._prevEl;
 
             next.parentNode && next.parentNode.removeChild(next);
-            prev.parentNode && prev.parentNode.removeChild(next);
+            prev.parentNode && prev.parentNode.removeChild(prev);
             self._nextEl = null;
             self._prevEl = null;
         },

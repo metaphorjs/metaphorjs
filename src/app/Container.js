@@ -33,6 +33,10 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         self._initItems();
     },
 
+    _initTplConfig: function(tplConfig) {
+        tplConfig.setStatic("makeTranscludes", false);
+    },
+
     _prepareDeclaredItems: function(nodes) {
 
         var self = this,
@@ -173,9 +177,6 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                     item.renderRef = ref;
                     list.push(item);
                 }
-
-                // moved to _processItemDef
-                //self.itemsMap[item.id] = item;
             }
         }
 
@@ -459,7 +460,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         self.$super();
 
         // empty container without template or content
-        if (!self.node.firstChild && !self.isWebComponent) {
+        if (self.node && !self.node.firstChild && !self.isWebComponent) {
             self.$refs.node.body = self.node;
         }
 
@@ -490,6 +491,8 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         if (refnode instanceof window.HTMLSlotElement) {
             return;
         }
+
+        item.placeholder.__tmpId = nextUid();
 
         // comment
         if (refnode.nodeType === window.document.COMMENT_NODE) {
