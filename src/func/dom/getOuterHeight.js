@@ -6,7 +6,7 @@ var _dom_getDimensions = require("./_/_getDimensions.js"),
 /**
  * Get element outer height
  * @function MetaphorJs.dom.getOuterHeight
- * @param {DomNode} el
+ * @param {HTMLElement} el
  * @returns {int}
  */
 module.exports = MetaphorJs.dom.getOuterHeight = _dom_getDimensions("outer", "Height");

@@ -5,7 +5,7 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 /**
  * Get node attribute value
  * @function MetaphorJs.dom.getAttr
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @returns {string}
  */
 module.exports = MetaphorJs.dom.getAttr = function dom_getAttr(el, name) {

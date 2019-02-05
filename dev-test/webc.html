@@ -3,6 +3,11 @@
     <head>
         <title>Web Components test</title>
         <script src="./metaphorjs.test-webc.js"></script>
+        <style>
+            my-component {
+                display: block;
+            }
+        </style>
     </head>
 
     <template id="my-component-tpl">
@@ -11,10 +16,18 @@
         <p class='some-class' ##body {bind}="this.text"></p>
         <slot name="after"></slot>
     </template>
-    <my-component id="mycmp" scope="root">
+
+    <my-component id="mycmp" $scope="root">
         <span @before>I am before</span>
         <span slot="after">I am after</span>
     </my-component>
+    <br><br><br>
+    <my-component id="mycmp2" 
+            $init="this.text = 'Second hello'" 
+            $scope="child">
+        <span @before (click)="console.log(this.a)">I am before</span>
+        <span slot="after" (click)="console.log(this.a)">I am after</span>
+    </my-component>
 
-    
+
 </html>

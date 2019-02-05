@@ -26,7 +26,7 @@ module.exports = MetaphorJs.dom.webComponentWrapper = function(tagName, cls, par
 
             if (!this.cmp) {
 
-                var scope = MetaphorJs.lib.Scope.$produce(this.getAttribute("scope")),
+                var scope = MetaphorJs.lib.Scope.$produce(this.getAttribute("$scope")),
                     attrSet = getAttrSet(this),
                     config = new MetaphorJs.lib.Config(
                         attrSet.config,
@@ -40,7 +40,8 @@ module.exports = MetaphorJs.dom.webComponentWrapper = function(tagName, cls, par
                     config: config,
                     node: this,
                     isWebComponent: true,
-                    keepCustomNode: true,
+                    useShadowDOM: true,
+                    replaceCustomNode: false,
                     autoRender: true,
                     directives: attrSet.directives
                 });

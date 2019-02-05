@@ -6,7 +6,7 @@ var _getScrollTopOrLeft = require("./_/_getScrollTopOrLeft.js"),
 /**
  * Get element's horizontal scroll position
  * @function MetaphorJs.dom.getScrollLeft
- * @param {DomNode} element
+ * @param {HTMLElement} element
  * @returns {int}
  */
 module.exports = MetaphorJs.dom.getScrollLeft = _getScrollTopOrLeft(false);

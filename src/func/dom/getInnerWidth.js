@@ -6,7 +6,7 @@ var _dom_getDimensions = require("./_/_getDimensions.js"),
 /**
  * Get element inner width
  * @function MetaphorJs.dom.getInnerWidth
- * @param {DomNode} el
+ * @param {HTMLElement} el
  * @returns {int}
  */
 module.exports = MetaphorJs.dom.getInnerWidth = _dom_getDimensions("inner", "Width");

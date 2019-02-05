@@ -9,7 +9,7 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 /**
  * Get element's offset
  * @function MetaphorJs.dom.getOffet
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @returns {object} {
  *  @type {int} top
  *  @type {int} left

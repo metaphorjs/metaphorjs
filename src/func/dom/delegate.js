@@ -10,7 +10,7 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 /**
  * Delegate dom event
  * @function MetaphorJs.dom.delegate
- * @param {DomNode} el Dom node to add event listener to
+ * @param {HTMLElement} el Dom node to add event listener to
  * @param {string} selector Event target selector
  * @param {string} event Event name
  * @param {function} fn {

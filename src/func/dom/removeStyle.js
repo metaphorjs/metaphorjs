@@ -5,7 +5,7 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 /**
  * Remove specific style from element
  * @function MetaphorJs.dom.removeStyle
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @param {string} name Style property name
  */
 module.exports = MetaphorJs.dom.removeStyle = (function() {

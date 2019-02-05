@@ -949,7 +949,7 @@ extend(Observable.prototype, {
      *      to the next promise.
      *  }
      * }
-     * @returns {lib_ObservableEvent}
+     * @returns {MetaphorJs.lib.ObservableEvent}
      */
     createEvent: function(name, options) {
         name = name.toLowerCase();
@@ -964,7 +964,7 @@ extend(Observable.prototype, {
     * @method
     * @access public
     * @param {string} name Event name
-    * @return {lib_ObservableEvent|undefined}
+    * @return {MetaphorJs.lib.ObservableEvent|undefined}
     */
     getEvent: function(name) {
         name = name.toLowerCase();
@@ -2446,7 +2446,7 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
  */
 var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
 
-    var observable = new lib_Observable;
+    var observable = new MetaphorJs.lib.Observable;
 
     var checkAll = function() {
         var k, changes = 0;
@@ -2890,7 +2890,7 @@ var publicScopes = {};
 var Scope = function(cfg) {
     var self    = this;
 
-    self.$$observable    = new lib_Observable;
+    self.$$observable    = new MetaphorJs.lib.Observable;
     self.$$historyWatchers  = {};
     extend(self, cfg, true, false);
 
@@ -3056,7 +3056,7 @@ extend(Scope.prototype, {
      *  @param {*} value
      * }
      * @param {object} fnScope
-     * @returns {lib_MutationObserver}
+     * @returns {MetaphorJs.lib.MutationObserver}
      */
     $watch: function(expr, fn, fnScope) {
         return lib_MutationObserver.get(this, expr, fn, fnScope);
@@ -4337,7 +4337,7 @@ var lib_Text = MetaphorJs.lib.Text = (function(){
         startSymbolLength       = 2,
         endSymbolLength         = 2,
 
-        events                  = new lib_Observable,
+        events                  = new MetaphorJs.lib.Observable,
 
         _procExpr               = function(expr, scope, observers) {
             if (observers) {
@@ -4565,7 +4565,7 @@ var lib_Text = MetaphorJs.lib.Text = (function(){
      * @param {object} dataObj Data object (app.Scope) to read variables from
      * @param {array|null} observers {
      *  Pass empty array 
-     *  @type {lib_MutationObserver} observer
+     *  @type {MetaphorJs.lib.MutationObserver} observer
      * }
      * @param {bool} recursive Recursively process text template
      * @returns {string}
@@ -4676,7 +4676,7 @@ function isPrimitive(value) {
  */
 var lib_Config = MetaphorJs.lib.Config = (function(){
 
-    var $$observable = new lib_Observable;
+    var $$observable = new MetaphorJs.lib.Observable;
 
     var MODE_STATIC = 1,
         MODE_DYNAMIC = 2,
@@ -6247,7 +6247,7 @@ var classManagerFactory = function(){
      * Instantiate class system with namespace.
      * @group api
      * @function
-     * @param {lib_Namespace} ns {
+     * @param {MetaphorJs.lib.Namespace} ns {
      *  Provide your own namespace or a new private ns will be 
      *  constructed automatically. 
      *  @optional
@@ -6257,7 +6257,7 @@ var classManagerFactory = function(){
     var classManagerFactory = function(ns) {
 
         if (!ns) {
-            ns = new lib_Namespace;
+            ns = new MetaphorJs.lib.Namespace;
         }
 
         var createConstructor = function(className) {
@@ -6847,7 +6847,7 @@ var classManagerFactory = function(){
         /**
          * @property {function} Namespace Namespace constructor
          */
-        defineClass.Namespace = lib_Namespace;
+        defineClass.Namespace = MetaphorJs.lib.Namespace;
 
         /**
          * @property {class} BaseClass
@@ -6887,7 +6887,7 @@ var classManagerFactory = function(){
  * @var ns 
  */
 var ns = (function(){
-    var ns = new lib_Namespace;
+    var ns = new MetaphorJs.lib.Namespace;
     ns.register("MetaphorJs", MetaphorJs);
     ns.register("mjs", MetaphorJs);
     return ns;
@@ -7101,7 +7101,7 @@ var Directive = MetaphorJs.app.Directive = (function() {
 /**
  * Remove element's attribute
  * @function MetaphorJs.dom.removeAttr
- * @param {DomNode} node 
+ * @param {HTMLElement} node 
  * @param {string} name
  */
 var dom_removeAttr = MetaphorJs.dom.removeAttr = function dom_removeAttr(el, name) {
@@ -7132,7 +7132,7 @@ function toCamelCase(str) {
 /**
  * Get node attributes classified by directive
  * @function MetaphorJs.dom.getAttrSet
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @returns {object}
  */
 var dom_getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
@@ -7561,7 +7561,7 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
             return inst;
         },
 
-        observer = new lib_Observable;
+        observer = new MetaphorJs.lib.Observable;
 
     var Renderer = function(scope, parent) {
 
@@ -7572,7 +7572,7 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
         self.texts          = [];
         self.parent         = parent;
 
-        if (scope instanceof lib_Scope) {
+        if (scope instanceof MetaphorJs.lib.Scope) {
             scope.$on("destroy", self.$destroy, self);
         }
 
@@ -7814,7 +7814,7 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                 }
 
                 if (defers.length) {
-                    var deferred = new lib_Promise;
+                    var deferred = new MetaphorJs.lib.Promise;
                     lib_Promise.all(defers).done(function(values){
                         collectNodes(nodes, values);
                         deferred.resolve(nodes);
@@ -7823,7 +7823,7 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                 }
 
                 /*if (defers.length && !attrs.config.ignoreInside) {
-                    var deferred = new lib_Promise;
+                    var deferred = new MetaphorJs.lib.Promise;
                     lib_Promise.all(defers).done(function(values){
                         collectNodes(nodes, values);
                         deferred.resolve(nodes);
@@ -7838,7 +7838,7 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
 
                 if (attrs.config.ignoreInside) {
                     if (defers.length) {
-                        var deferred = new lib_Promise;
+                        var deferred = new MetaphorJs.lib.Promise;
                         lib_Promise.all(defers).done(function(){
                             return deferred.resolve(false);
                         });
@@ -7948,7 +7948,7 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
 /**
  * Get node attribute value
  * @function MetaphorJs.dom.getAttr
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @returns {string}
  */
 var dom_getAttr = MetaphorJs.dom.getAttr = function dom_getAttr(el, name) {
@@ -8487,7 +8487,7 @@ var mixin_Provider = MetaphorJs.mixin.Provider = {
     $$provider: null,
 
     $beforeInit: function() {
-        this.$$provider = new lib_Provider;
+        this.$$provider = new MetaphorJs.lib.Provider;
     },
 
     value: function() {
@@ -8584,7 +8584,7 @@ var mixin_Observable = MetaphorJs.mixin.Observable = {
      */
     $beforeInit: function(cfg) {
         var self = this;
-        self.$$observable = new lib_Observable;
+        self.$$observable = new MetaphorJs.lib.Observable;
         self.$initObservable(cfg);
     },
 
@@ -8672,8 +8672,8 @@ var mixin_Observable = MetaphorJs.mixin.Observable = {
  */
 var app_App = MetaphorJs.app.App = cls({
 
-    $mixins: [mixin_Observable, 
-                mixin_Provider],
+    $mixins: [MetaphorJs.mixin.Observable, 
+                MetaphorJs.mixin.Provider],
 
     lang: null,
     scope: null,
@@ -8691,7 +8691,7 @@ var app_App = MetaphorJs.app.App = cls({
     $init: function(node, data) {
 
         var self        = this,
-            scope       = data instanceof lib_Scope ? 
+            scope       = data instanceof MetaphorJs.lib.Scope ? 
                                 data : 
                                 new lib_Scope(data),
             args;
@@ -8701,7 +8701,7 @@ var app_App = MetaphorJs.app.App = cls({
         scope.$app      = self;
         self.$super();
 
-        self.lang       = new lib_LocalText;
+        self.lang       = new MetaphorJs.lib.LocalText;
 
         self.node           = node;
         self.scope          = scope;
@@ -8827,7 +8827,7 @@ var app_App = MetaphorJs.app.App = cls({
      * @param {string} cmpId 
      * @param {function} fn 
      * @param {object} context 
-     * @returns {lib_Promise}
+     * @returns {MetaphorJs.lib.Promise}
      */
     onAvailable: function(cmpId, fn, context) {
 
@@ -8836,7 +8836,7 @@ var app_App = MetaphorJs.app.App = cls({
             components = self.components;
 
         if (!cmpListeners[cmpId]) {
-            cmpListeners[cmpId] = new lib_Promise;
+            cmpListeners[cmpId] = new MetaphorJs.lib.Promise;
         }
 
         if (fn) {
@@ -8862,7 +8862,7 @@ var app_App = MetaphorJs.app.App = cls({
     /**
      * Register component
      * @param {MetaphorJs.app.Component} cmp 
-     * @param {lib_Scope} scope 
+     * @param {MetaphorJs.lib.Scope} scope 
      * @param {string} byKey 
      */
     registerCmp: function(cmp, scope, byKey) {
@@ -8905,7 +8905,7 @@ var app_App = MetaphorJs.app.App = cls({
 /**
  * Is node attached to DOM
  * @function MetaphorJs.dom.isAttached
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @returns {boolean}
  */
 var isAttached = MetaphorJs.dom.isAttached = function dom_isAttached(node) {
@@ -9362,7 +9362,7 @@ var dom_addClass = MetaphorJs.dom.addClass = function dom_addClass(el, cls) {
 /**
  * Remove element's class
  * @function MetaphorJs.dom.removeClass
- * @param {DomNode} el
+ * @param {HTMLElement} el
  * @param {string} cls
  */
 var dom_removeClass = MetaphorJs.dom.removeClass = function(el, cls) {
@@ -9618,11 +9618,11 @@ var animate_animate = MetaphorJs.animate.animate = function(){
      * }
      * @param {function} startCallback call this function before animation begins
      * @param {function} stepCallback call this function between stages
-     * @returns {lib_Promise}
+     * @returns {MetaphorJs.lib.Promise}
      */
     var animate = function animate(el, animation, startCallback, stepCallback) {
 
-        var deferred    = new lib_Promise,
+        var deferred    = new MetaphorJs.lib.Promise,
             queue       = dom_data(el, dataParam) || [],
             id          = ++animId,
             stages,
@@ -10395,7 +10395,7 @@ var mixin_Promise = MetaphorJs.mixin.Promise = {
     $$promise: null,
 
     $beforeInit: function() {
-        this.$$promise = new lib_Promise;
+        this.$$promise = new MetaphorJs.lib.Promise;
     },
 
     /**
@@ -10654,7 +10654,7 @@ var ajax_transport_XHR = MetaphorJs.ajax.transport.XHR = (function(){
                         // from resolving the promise.
                         // they are needed to process the response though
                         // even it failed. 
-                        self._ajax.$$promise = new lib_Promise;
+                        self._ajax.$$promise = new MetaphorJs.lib.Promise;
                         xhr.responseData = self._ajax.returnResponse(
                             isString(xhr.responseText) ? xhr.responseText : undf,
                             xhr.getResponseHeader("content-type") || ''
@@ -11289,7 +11289,7 @@ var ajax_Ajax = MetaphorJs.ajax.Ajax = (function(){
         rts             = /([?&])_=[^&]*/,
         rgethead        = /^(?:GET|HEAD)$/i,
 
-        globalEvents    = new lib_Observable,
+        globalEvents    = new MetaphorJs.lib.Observable,
 
         formDataSupport = !!(window && window.FormData),
 
@@ -11446,11 +11446,11 @@ var ajax_Ajax = MetaphorJs.ajax.Ajax = (function(){
 
     /**
      * @class MetaphorJs.ajax.Ajax
-     * @mixes mixin:mixin_Promise
+     * @mixes mixin:MetaphorJs.mixin.Promise
      */
     return cls({
 
-        $mixins: [mixin_Promise],
+        $mixins: [MetaphorJs.mixin.Promise],
 
         _jsonpName: null,
         _transport: null,
@@ -12071,13 +12071,13 @@ var ajax = function(){
      * @function ajax
      * @param {string} url Url to load or send data to
      * @param {object} opt See ajax.defaults
-     * @returns {ajax_Ajax}
+     * @returns {MetaphorJs.ajax.Ajax}
      */
 
     /**
      * @function ajax
      * @param {object} opt See ajax.defaults
-     * @returns {ajax_Ajax}
+     * @returns {MetaphorJs.ajax.Ajax}
      */
     var ajax    = function ajax(url, opt) {
 
@@ -12157,7 +12157,7 @@ var ajax = function(){
      * @function ajax.get
      * @param {string} url 
      * @param {object} opt 
-     * @returns {ajax_Ajax}
+     * @returns {MetaphorJs.ajax.Ajax}
      */
     ajax.get    = function(url, opt) {
         opt = opt || {};
@@ -12170,7 +12170,7 @@ var ajax = function(){
      * @function ajax.post
      * @param {string} url 
      * @param {object} opt 
-     * @returns {ajax_Ajax}
+     * @returns {MetaphorJs.ajax.Ajax}
      */
     ajax.post   = function(url, opt) {
         opt = opt || {};
@@ -12184,7 +12184,7 @@ var ajax = function(){
      * @param {HTMLElement} el
      * @param {string} url 
      * @param {object} opt 
-     * @returns {ajax_Ajax}
+     * @returns {MetaphorJs.ajax.Ajax}
      */
     ajax.load   = function(el, url, opt) {
 
@@ -12210,7 +12210,7 @@ var ajax = function(){
      * Load script
      * @function ajax.loadScript
      * @param {string} url 
-     * @returns {ajax_Ajax}
+     * @returns {MetaphorJs.ajax.Ajax}
      */
     ajax.loadScript = function(url) {
         return ajax(url, {transport: "script"});
@@ -12221,7 +12221,7 @@ var ajax = function(){
      * @function ajax.submit
      * @param {FormElement} form
      * @param {object} opt
-     * @returns {ajax_Ajax}
+     * @returns {MetaphorJs.ajax.Ajax}
      */
     ajax.submit = function(form, opt) {
         opt = opt || {};
@@ -12268,8 +12268,8 @@ var ajax = function(){
 
 var app_Template = MetaphorJs.app.Template = function() {
 
-    var observable      = new lib_Observable,
-        cache           = new lib_Cache,
+    var observable      = new MetaphorJs.lib.Observable,
+        cache           = new MetaphorJs.lib.Cache,
         options         = {},
         shadowSupported = !!document.head.attachShadow,
         pblt,
@@ -12621,7 +12621,7 @@ var app_Template = MetaphorJs.app.Template = function() {
                 }
             }
 
-            self._pubResolvePromise = new lib_Promise;
+            self._pubResolvePromise = new MetaphorJs.lib.Promise;
 
             if (self.config.has("name")) {
                 self._resolvePromise = self._resolveTemplate();
@@ -13100,7 +13100,7 @@ var htmlTags = MetaphorJs.dom.htmlTags = [
  */
 var app_Component = MetaphorJs.app.Component = cls({
 
-    $mixins: [mixin_Observable],
+    $mixins: [MetaphorJs.mixin.Observable],
     $mixinEvents: ["$initConfig"],
 
     /**
@@ -13150,12 +13150,12 @@ var app_Component = MetaphorJs.app.Component = cls({
     destroyScope:   false,
 
     /**
-     * @var {lib_Scope}
+     * @var {MetaphorJs.lib.Scope}
      */
     scope:          null,
 
     /**
-     * @var {lib_Config}
+     * @var {MetaphorJs.lib.Config}
      */
     config:         null,
 
@@ -13297,7 +13297,7 @@ var app_Component = MetaphorJs.app.Component = cls({
                                     ) === -1;
         }
 
-        if (tpl instanceof app_Template) {
+        if (tpl instanceof MetaphorJs.app.Template) {
             // it may have just been created
             if (self.node) {
                 self._nodeReplaced ? 
@@ -13423,7 +13423,7 @@ var app_Component = MetaphorJs.app.Component = cls({
 
     _prepareDirectiveCfg: function(cfg) {
 
-        if (cfg instanceof lib_Config) {
+        if (cfg instanceof MetaphorJs.lib.Config) {
             return cfg;
         }
 
@@ -13636,7 +13636,7 @@ var app_Component = MetaphorJs.app.Component = cls({
     getRefCmpPromise: function(name) {
         var cmp = this.$refs['cmp'][name];
         if (!cmp) {
-            return this.$refs['cmp'][name] = new lib_Promise;
+            return this.$refs['cmp'][name] = new MetaphorJs.lib.Promise;
         }
         else if (isThenable(cmp)) {
             return cmp;
@@ -13951,7 +13951,7 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
 
         for (i in constr.resolve) {
             (function(name){
-                var d = new lib_Promise,
+                var d = new MetaphorJs.lib.Promise,
                     fn;
 
                 defers.push(d.done(function(value){
@@ -14004,7 +14004,7 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
     var p;
 
     if (defers.length) {
-        p = new lib_Promise;
+        p = new MetaphorJs.lib.Promise;
         lib_Promise.all(defers)
             .done(function(values){
                 p.resolve(
@@ -14299,14 +14299,14 @@ MetaphorJs.app.Container = app_Component.$extend({
                     scope: self.scope.$new()
                 });
             }
-            else if (def instanceof app_Component) {
+            else if (def instanceof MetaphorJs.app.Component) {
                 item.component = def;
             }
             else if (def instanceof window.Node) {
                 item.type = "node";
                 item.node = def;
             }
-            else if (def instanceof app_Template) {
+            else if (def instanceof MetaphorJs.app.Template) {
                 item.component = new app_Component({
                     scope: self.scope,
                     template: def
@@ -14452,7 +14452,7 @@ MetaphorJs.app.Container = app_Component.$extend({
             delete cmp[idkey];
             delete self.itemsMap[itemid];
             inx = self.items.indexOf(item);
-            if (cmp instanceof app_Component) {
+            if (cmp instanceof MetaphorJs.app.Component) {
                 self._initChildEvents("un", cmp);
             }
             if (inx !== -1) {
@@ -14643,7 +14643,7 @@ MetaphorJs.app.Container = app_Component.$extend({
             return;
         }
 
-        if (cmp instanceof app_Component) {
+        if (cmp instanceof MetaphorJs.app.Component) {
             cmp.trigger("remove-from-container", cmp);
         }
 
@@ -14667,7 +14667,7 @@ MetaphorJs.app.Container = app_Component.$extend({
             return;
         }
 
-        if (cmp instanceof app_Component) {
+        if (cmp instanceof MetaphorJs.app.Component) {
             cmp.trigger("remove-from-container", cmp);
         }
         else {
@@ -15923,7 +15923,7 @@ var regexp_location = MetaphorJs.regexp.location = /^(((([^:\/#\?]+:)?(?:(\/\/)(
 
 var browser_parseLocation = MetaphorJs.browser.parseLocation = function(url) {
 
-    var matches = url.match(regexp_location) || [],
+    var matches = url.match(MetaphorJs.regexp.location) || [],
         wl = (typeof window != "undefined" ? window.location : null) || {};
 
     return {
@@ -15992,7 +15992,7 @@ var lib_History = MetaphorJs.lib.History = function() {
     var win,
         history,
         location,
-        observable      = new lib_Observable,
+        observable      = new MetaphorJs.lib.Observable,
         api             = {},
         programId       = nextUid(),
         stateKeyId      = "$$" + programId,
@@ -16555,7 +16555,7 @@ var lib_UrlParam = MetaphorJs.lib.UrlParam = (function(){
      */
     var UrlParam = cls({
 
-        $mixins: [mixin_Observable],
+        $mixins: [MetaphorJs.mixin.Observable],
 
         id: null,
         name: null,
@@ -17164,7 +17164,7 @@ Directive.registerAttribute("app", 100, appDirective);
 /**
  * Is given element a field
  * @function MetaphorJs.dom.isField
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @returns {boolean}
  */
 var dom_isField = MetaphorJs.dom.isField = function dom_isField(el) {
@@ -17360,7 +17360,7 @@ var dom_setInputValue = MetaphorJs.dom.setInputValue = function() {
 /**
  * Remove listeners from element's events
  * @function MetaphorJs.dom.removeListener
- * @param {DomNode} el 
+ * @param {HTMLElement} el 
  * @param {string} eventName
  * @param {function} fn
  */
@@ -17485,7 +17485,7 @@ var browser_hasEvent = MetaphorJs.browser.hasEvent = function(){
 
 var lib_Input = MetaphorJs.lib.Input = function(){
 
-var observable = new lib_Observable,
+var observable = new MetaphorJs.lib.Observable,
     id = 0;
 
 var Input = function(el, changeFn, changeFnContext, cfg) {
@@ -17501,7 +17501,7 @@ var Input = function(el, changeFn, changeFnContext, cfg) {
 
     cfg = cfg || {};
 
-    //self.observable     = new lib_Observable;
+    //self.observable     = new MetaphorJs.lib.Observable;
     self.el             = el;
     self.id             = ++id;
     self.inputType      = el.type.toLowerCase();
@@ -17531,7 +17531,7 @@ extend(Input.prototype, {
         //self.observable.$destroy();
         observable.destroyEvent("change-" + self.id);
         observable.destroyEvent("key-" + self.id);
-        self._addOrRemoveListeners(dom_removeListener, true);
+        self._addOrRemoveListeners(MetaphorJs.dom.removeListener, true);
 
         self.el.$$input = null;
 
@@ -17586,7 +17586,7 @@ extend(Input.prototype, {
             self.initTextInput();
         }
 
-        self._addOrRemoveListeners(dom_addListener, false);
+        self._addOrRemoveListeners(MetaphorJs.dom.addListener, false);
 
         self.changeInitialized = true;
     },
@@ -17925,8 +17925,8 @@ Input.get = function(node, scope) {
     return new Input(node);
 };
 
-Input.getValue = dom_getInputValue;
-Input.setValue = dom_setInputValue;
+Input.getValue = MetaphorJs.dom.getInputValue;
+Input.setValue = MetaphorJs.dom.setInputValue;
 
 
 
@@ -17984,7 +17984,7 @@ Directive.registerAttribute("bind", 1000,
                 self.textRenderer.subscribe(self.onTextRendererChange, self);
                 self.onTextRendererChange();
 
-                if (scope instanceof lib_Scope) {
+                if (scope instanceof MetaphorJs.lib.Scope) {
                     scope.$on("destroy", self.onScopeDestroy, self);
                 }
             }
@@ -18366,7 +18366,7 @@ DO NOT put class="{}" when using class.name="{}"
             expr = config.getExpression("value");
         }
 
-        var handler = detectModelType(expr, scope) || app_ListRenderer;
+        var handler = detectModelType(expr, scope) || MetaphorJs.app.ListRenderer;
 
         return new handler(scope, node, config, parentRenderer, attrSet);
     };
@@ -18382,7 +18382,7 @@ DO NOT put class="{}" when using class.name="{}"
         skip: true
     };
 
-    eachDirective.registerType(Array, app_ListRenderer);
+    eachDirective.registerType(Array, MetaphorJs.app.ListRenderer);
 
     Directive.registerAttribute("each", 100, eachDirective);
     Directive.registerTag("each", eachDirective);
@@ -18398,14 +18398,14 @@ DO NOT put class="{}" when using class.name="{}"
 /**
  * Get element's style object
  * @function MetaphorJs.dom.getStyle
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @returns {DomStyle}
  */
 
  /**
  * Get element's style property
  * @function MetaphorJs.dom.getStyle
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @param {string} prop
  * @param {boolean} numeric return as number
  * @returns {string|int}
@@ -18602,7 +18602,7 @@ var _dom_getDimensions = function(type, name) {
 /**
  * Get element width
  * @function MetaphorJs.dom.getWidth
- * @param {DomNode} el
+ * @param {HTMLElement} el
  * @returns {int}
  */
 var dom_getWidth = MetaphorJs.dom.getWidth = _dom_getDimensions("", "Width");
@@ -18613,7 +18613,7 @@ var dom_getWidth = MetaphorJs.dom.getWidth = _dom_getDimensions("", "Width");
 /**
  * Get element height
  * @function MetaphorJs.dom.getHeight
- * @param {DomNode} el
+ * @param {HTMLElement} el
  * @returns {int}
  */
 var dom_getHeight = MetaphorJs.dom.getHeight = _dom_getDimensions("", "Height");
@@ -18676,7 +18676,7 @@ var _getScrollTopOrLeft = function(vertical) {
 /**
  * Get element's vertical scroll position
  * @function MetaphorJs.dom.getScrollTop
- * @param {DomNode} element
+ * @param {HTMLElement} element
  * @returns {int}
  */
 var dom_getScrollTop = MetaphorJs.dom.getScrollTop = _getScrollTopOrLeft(true);
@@ -18688,7 +18688,7 @@ var dom_getScrollTop = MetaphorJs.dom.getScrollTop = _getScrollTopOrLeft(true);
 /**
  * Get element's horizontal scroll position
  * @function MetaphorJs.dom.getScrollLeft
- * @param {DomNode} element
+ * @param {HTMLElement} element
  * @returns {int}
  */
 var dom_getScrollLeft = MetaphorJs.dom.getScrollLeft = _getScrollTopOrLeft(false);
@@ -18718,7 +18718,7 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
     /**
      * @method EventBuffer
      * @constructor
-     * @param {DomNode} node 
+     * @param {HTMLElement} node 
      * @param {string} event Dom event name
      * @param {int} interval 
      */
@@ -18738,7 +18738,7 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
         self.watchers = {};
         self.node = node;
         self.event = event;
-        self.observable = new lib_Observable;
+        self.observable = new MetaphorJs.lib.Observable;
         self.interval = interval || 0;
         self.handlerDelegate = bind(self.handler, self);
         self.triggerDelegate = bind(self.trigger, self);
@@ -18799,7 +18799,7 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
          * @method
          */
         watchWidth: function() {
-            this.addWatcher("width", dom_getWidth);
+            this.addWatcher("width", MetaphorJs.dom.getWidth);
         },
 
         /**
@@ -18807,7 +18807,7 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
          * @method
          */
         watchHeight: function() {
-            this.addWatcher("width", dom_getHeight);
+            this.addWatcher("width", MetaphorJs.dom.getHeight);
         },
 
         /**
@@ -18815,7 +18815,7 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
          * @method
          */
         watchScrollTop: function() {
-            this.addWatcher("scrollTop", dom_getScrollTop);
+            this.addWatcher("scrollTop", MetaphorJs.dom.getScrollTop);
         },
 
         /**
@@ -18823,7 +18823,7 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
          * @method
          */
         watchScrollLeft: function() {
-            this.addWatcher("scrollLeft", dom_getScrollLeft);
+            this.addWatcher("scrollLeft", MetaphorJs.dom.getScrollLeft);
         },
 
         /**
@@ -18831,7 +18831,7 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
          * @method
          * @param {string} name Watcher name
          * @param {function} fn {
-         *  @param {DomNode} node
+         *  @param {HTMLElement} node
          * }
          * @param {object} context fn's context
          */
@@ -19043,7 +19043,7 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
      * Get existing event buffer
      * @method get
      * @static
-     * @param {DomNode} node 
+     * @param {HTMLElement} node 
      * @param {string} event 
      * @param {int} interval 
      * @returns {MetaphorJs.lib.EventBuffer}
@@ -19769,7 +19769,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             self.mo.setValue(val);
             self.inProg = true;
 
-            if (scope instanceof lib_Scope) {
+            if (scope instanceof MetaphorJs.lib.Scope) {
                 if (self.config.get("checkRoot")) {
                     scope.$root.$check();
                 }
@@ -19860,7 +19860,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 /**
  * Trigger DOM event on element
  * @function MetaphorJs.dom.triggerEvent
- * @param {DomNode} el
+ * @param {HTMLElement} el
  * @param {string} event
  */
 var dom_triggerEvent = MetaphorJs.dom.triggerEvent = function dom_triggerEvent(el, event) {
@@ -20336,7 +20336,7 @@ var dom_preloadImage = MetaphorJs.dom.preloadImage = function() {
         var doc = window.document,
             img = doc.createElement("img"),
             style = img.style,
-            deferred = new lib_Promise;
+            deferred = new MetaphorJs.lib.Promise;
 
         loading[src] = deferred;
 
@@ -20569,7 +20569,7 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
 /**
  * Remove specific style from element
  * @function MetaphorJs.dom.removeStyle
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @param {string} name Style property name
  */
 var dom_removeStyle = MetaphorJs.dom.removeStyle = (function() {
@@ -20993,7 +20993,7 @@ var model_Model = MetaphorJs.model.Model = function(){
      */
     return cls({
 
-        $mixins:        [mixin_Observable],
+        $mixins:        [MetaphorJs.mixin.Observable],
 
         type:           null,
         fields:         null,
@@ -21078,7 +21078,7 @@ var model_Model = MetaphorJs.model.Model = function(){
          *      @type {object} ajax Various ajax settings from MetaphorJs.ajax module.
          *      @type {function} processRequest {
          *          Custom request processor.
-         *          @param {lib_Promise} returnPromise The promise 
+         *          @param {MetaphorJs.lib.Promise} returnPromise The promise 
          *                          that is returned from load()/save() etc. 
          *                          You can take control of this promise if needed.
          *          @param {int|string|null} id Record id (if applicable)
@@ -21095,7 +21095,7 @@ var model_Model = MetaphorJs.model.Model = function(){
          *          Custom request resolver
          *          @param {int|string|null} id Record id (if applicable)
          *          @param {object|string|null} data Payload
-         *          @returns {lib_Promise|*} If returned Promise, 
+         *          @returns {MetaphorJs.lib.Promise|*} If returned Promise, 
          *              this promise will be returned from the function making
          *              the request. If returned something else, 
          *              will return a new Promise resolved with this value. 
@@ -21357,7 +21357,7 @@ var model_Model = MetaphorJs.model.Model = function(){
 
             if (isFunction(cfg.url)) {
                 var df = cfg.url(ajaxCfg.data),
-                    promise = new lib_Promise;
+                    promise = new MetaphorJs.lib.Promise;
 
                 df.then(function(response){
                     if (what === "record") {
@@ -21512,7 +21512,7 @@ var model_Model = MetaphorJs.model.Model = function(){
         /**
          * @method
          * @param {string|number} id Record id
-         * @returns {lib_Promise}
+         * @returns {MetaphorJs.lib.Promise}
          */
         loadRecord: function(id) {
             return this._makeRequest("record", "load", id);
@@ -21524,7 +21524,7 @@ var model_Model = MetaphorJs.model.Model = function(){
          * @param {MetaphorJs.model.Record} rec
          * @param {array|null} keys
          * @param {object|null} extra
-         * @returns {lib_Promise}
+         * @returns {MetaphorJs.lib.Promise}
          */
         saveRecord: function(rec, keys, extra) {
             return this._makeRequest(
@@ -21539,7 +21539,7 @@ var model_Model = MetaphorJs.model.Model = function(){
          * Make a record/delete request.
          * @method
          * @param {MetaphorJs.model.Record} rec
-         * @returns {lib_Promise}
+         * @returns {MetaphorJs.lib.Promise}
          */
         deleteRecord: function(rec) {
             return this._makeRequest("record", "delete", rec.getId());
@@ -21550,7 +21550,7 @@ var model_Model = MetaphorJs.model.Model = function(){
          * @method
          * @param {MetaphorJs.model.Store} store
          * @param {object} params
-         * @returns {lib_Promise}
+         * @returns {MetaphorJs.lib.Promise}
          */
         loadStore: function(store, params) {
             return this._makeRequest("store", "load", null, params);
@@ -21561,7 +21561,7 @@ var model_Model = MetaphorJs.model.Model = function(){
          * @method
          * @param {MetaphorJs.model.Store} store
          * @param {object} recordData
-         * @returns {lib_Promise}
+         * @returns {MetaphorJs.lib.Promise}
          */
         saveStore: function(store, recordData) {
             return this._makeRequest("store", "save", null, recordData);
@@ -21572,7 +21572,7 @@ var model_Model = MetaphorJs.model.Model = function(){
          * @method
          * @param {MetaphorJs.model.Store} store
          * @param {array} ids
-         * @returns {lib_Promise}
+         * @returns {MetaphorJs.lib.Promise}
          */
         deleteRecords: function(store, ids) {
             return this._makeRequest("store", "delete", ids);
@@ -21844,7 +21844,7 @@ var model_Model = MetaphorJs.model.Model = function(){
 
 /**
  * @class MetaphorJs.model.Record
- * @mixes mixin_Observable
+ * @mixes MetaphorJs.mixin.Observable
  */
 var model_Record = MetaphorJs.model.Record = cls({
 
@@ -21925,7 +21925,7 @@ var model_Record = MetaphorJs.model.Record = cls({
      */
 
 
-    $mixins: [mixin_Observable],
+    $mixins: [MetaphorJs.mixin.Observable],
 
     id:             null,
     data:           null,
@@ -21945,7 +21945,7 @@ var model_Record = MetaphorJs.model.Record = cls({
      * @method $init
      * @param {*} id
      * @param {object} cfg {
-     *  @type {string|model_Model} model
+     *  @type {string|MetaphorJs.model.Model} model
      *  @type {boolean} autoLoad {
      *      Load record automatically when constructed
      *      @default true
@@ -21999,7 +21999,7 @@ var model_Record = MetaphorJs.model.Record = cls({
         if (isString(self.model)) {
             self.model  = model_Model.create(self.model);
         }
-        else if (!(self.model instanceof model_Model)) {
+        else if (!(self.model instanceof MetaphorJs.model.Model)) {
             self.model  = new model_Model(self.model);
         }
 
@@ -22055,7 +22055,7 @@ var model_Record = MetaphorJs.model.Record = cls({
 
     /**
      * @method
-     * @returns {model_Model}
+     * @returns {MetaphorJs.model.Model}
      */
     getModel: function() {
         return this.model;
@@ -22390,7 +22390,7 @@ var model_Store = MetaphorJs.model.Store = function(){
 
     /**
      * @class MetaphorJs.model.Store
-     * @mixes mixin_Observable
+     * @mixes MetaphorJs.mixin.Observable
      */
     return cls({
 
@@ -22398,7 +22398,7 @@ var model_Store = MetaphorJs.model.Store = function(){
          * @event update {
          *  Store contents got updated
          *  @param {MetaphorJs.model.Store} store
-         *  @param {model_Record|object} rec
+         *  @param {MetaphorJs.model.Record|object} rec
          * }
          */
         /**
@@ -22493,7 +22493,7 @@ var model_Store = MetaphorJs.model.Store = function(){
          * @event remove {
          *  Record got removed from the store
          *  @param {MetaphorJs.model.Store} store
-         *  @param {model_Record|object} rec
+         *  @param {MetaphorJs.model.Record|object} rec
          *  @param {string|int} id 
          * }
          */
@@ -22501,8 +22501,8 @@ var model_Store = MetaphorJs.model.Store = function(){
          * @event replace {
          *  A record was replaced
          *  @param {MetaphorJs.model.Store} store
-         *  @param {model_Record|object} old
-         *  @param {model_Record|object} rec
+         *  @param {MetaphorJs.model.Record|object} old
+         *  @param {MetaphorJs.model.Record|object} rec
          * }
          */
         /**
@@ -22513,7 +22513,7 @@ var model_Store = MetaphorJs.model.Store = function(){
          * }
          */
 
-            $mixins:        [mixin_Observable],
+            $mixins:        [MetaphorJs.mixin.Observable],
 
             id:             null,
             autoLoad:       false,
@@ -22566,7 +22566,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              *      On load, remove everything already added 
              *      @default true
              *  }
-             *  @type {string|object|model_Model} model
+             *  @type {string|object|MetaphorJs.model.Model} model
              *  @type {object} extraParams {
              *      Extra params to add to every request
              *  }
@@ -22643,7 +22643,7 @@ var model_Store = MetaphorJs.model.Store = function(){
 
             /**
              * Change store's model
-             * @param {model_Model} model 
+             * @param {MetaphorJs.model.Model} model 
              */
             setModel: function(model) {
                 this.model = model;
@@ -22657,7 +22657,7 @@ var model_Store = MetaphorJs.model.Store = function(){
                 if (isString(self.model)) {
                     self.model  = model_Model.create(self.model);
                 }
-                else if (!(self.model instanceof model_Model)) {
+                else if (!(self.model instanceof MetaphorJs.model.Model)) {
                     self.model  = new model_Model(self.model);
                 }
 
@@ -22908,7 +22908,7 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Get current model
              * @method
-             * @returns {model_Model}
+             * @returns {MetaphorJs.model.Model}
              */
             getModel: function() {
                 return this.model;
@@ -23277,7 +23277,7 @@ var model_Store = MetaphorJs.model.Store = function(){
                 for (i = 0, len = ids.length; i < len; i++){
                     rec = self.getById(ids[i]);
                     self.remove(rec, silent, skipUpdate);
-                    if (rec instanceof model_Record) {
+                    if (rec instanceof MetaphorJs.model.Record) {
                         rec.$destroy();
                     }
                 }
@@ -23335,7 +23335,7 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Delete record
              * @method
-             * @param {model_Record} rec
+             * @param {MetaphorJs.model.Record} rec
              * @param {boolean} silent
              * @param {boolean} skipUpdate
              * @returns {MetaphorJs.lib.Promise}
@@ -23498,11 +23498,11 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Extract id from a record
              * @method
-             * @param {model_Record|object} rec
+             * @param {MetaphorJs.model.Record|object} rec
              * @returns {int|string|null}
              */
             getRecordId: function(rec) {
-                if (rec instanceof model_Record) {
+                if (rec instanceof MetaphorJs.model.Record) {
                     return rec.getId();
                 }
                 else if (this.model) {
@@ -23516,7 +23516,7 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Get record data as plain object
              * @method
-             * @param {model_Record|object} rec
+             * @param {MetaphorJs.model.Record|object} rec
              * @returns {object}
              */
             getRecordData: function(rec) {
@@ -23527,14 +23527,14 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @ignore
              * @method
              * @access protected
-             * @param {model_Record|Object} item
-             * @returns model_Record|Object
+             * @param {MetaphorJs.model.Record|Object} item
+             * @returns MetaphorJs.model.Record|Object
              */
             processRawDataItem: function(item) {
 
                 var self    = this;
 
-                if (item instanceof model_Record) {
+                if (item instanceof MetaphorJs.model.Record) {
                     return item;
                 }
 
@@ -23566,8 +23566,8 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @ignore
              * @method
              * @param {string} mode on|un
-             * @param {model_Record} rec
-             * @returns {model_Record}
+             * @param {MetaphorJs.model.Record} rec
+             * @returns {MetaphorJs.model.Record}
              */
             bindRecord: function(mode, rec) {
                 var self = this;
@@ -23581,7 +23581,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @ignore
              * @method
              * @access protected
-             * @param {model_Record|Object} rec
+             * @param {MetaphorJs.model.Record|Object} rec
              */
             onRecordDirtyChange: function(rec) {
                 this.trigger("update", this, rec);
@@ -23591,7 +23591,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @ignore
              * @method
              * @access protected
-             * @param {model_Record|Object} rec
+             * @param {MetaphorJs.model.Record|Object} rec
              * @param {string} k
              * @param {string|int|bool} v
              * @param {string|int|bool} prev
@@ -23604,7 +23604,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @ignore
              * @method
              * @access protected
-             * @param {model_Record|Object} rec
+             * @param {MetaphorJs.model.Record|Object} rec
              */
             onRecordDestroy: function(rec) {
                 this.remove(rec);
@@ -23620,7 +23620,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
              * @param {boolean} unfiltered Execute on unfiltered set of records
-             * @returns {model_Record|Object|null}
+             * @returns {MetaphorJs.model.Record|Object|null}
              */
             shift: function(silent, skipUpdate, unfiltered) {
                 return this.removeAt(0, 1, silent, skipUpdate, unfiltered);
@@ -23629,10 +23629,10 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Insert record at the beginning. Works with unfiltered data
              * @method
-             * @param {object|model_Record} rec
+             * @param {object|MetaphorJs.model.Record} rec
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
-             * @returns {model_Record|object}
+             * @returns {MetaphorJs.model.Record|object}
              */
             unshift: function(rec, silent, skipUpdate) {
                 return this.insert(0, rec, silent, skipUpdate);
@@ -23644,7 +23644,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
              * @param {boolean} unfiltered Execute on unfiltered set of records
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              */
             pop: function(silent, skipUpdate, unfiltered) {
                 return this.removeAt(this.length - 1, 1, silent, skipUpdate, unfiltered);
@@ -23676,7 +23676,7 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Add one record to the store. Works with unfiltered data
              * @method
-             * @param {model_Record|object} rec
+             * @param {MetaphorJs.model.Record|object} rec
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
              */
@@ -23688,7 +23688,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * Override this method to catch when records are added
              * @method 
              * @param {int} index
-             * @param {model_Record|object} rec
+             * @param {MetaphorJs.model.Record|object} rec
              */
             onAdd: emptyFn,
 
@@ -23706,7 +23706,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
              * @param {boolean} unfiltered Execute on unfiltered set of records
-             * @returns {model_Record|object|undefined}
+             * @returns {MetaphorJs.model.Record|object|undefined}
              */
             removeAt: function(index, length, silent, skipUpdate, unfiltered) {
 
@@ -23757,7 +23757,7 @@ var model_Store = MetaphorJs.model.Store = function(){
                         self.trigger('remove', rec, id);
                     }
 
-                    if (rec instanceof model_Record) {
+                    if (rec instanceof MetaphorJs.model.Record) {
                         self.bindRecord("un", rec);
                         rec.detachStore(self);
 
@@ -23785,7 +23785,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
              * @param {boolean} unfiltered Execute on unfiltered set of records
-             * @returns {model_Record|object|undefined}
+             * @returns {MetaphorJs.model.Record|object|undefined}
              */
             removeRange: function(start, end, silent, skipUpdate, unfiltered) {
                 var l       = this.length;
@@ -23817,7 +23817,7 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Override this method to catch all record removals
              * @method
-             * @param {model_Record|object} rec
+             * @param {MetaphorJs.model.Record|object} rec
              * @param {int|string|null} id
              */
             onRemove: emptyFn,
@@ -23851,10 +23851,10 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @param {number} index {
              *  @required
              * }
-             * @param {model_Record|object} rec
+             * @param {MetaphorJs.model.Record|object} rec
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
-             * @returns {model_Record|object}
+             * @returns {MetaphorJs.model.Record|object}
              */
             insert: function(index, rec, silent, skipUpdate) {
 
@@ -23894,7 +23894,7 @@ var model_Store = MetaphorJs.model.Store = function(){
                     self.map[id] = rec;
                 }
 
-                if (rec instanceof model_Record) {
+                if (rec instanceof MetaphorJs.model.Record) {
                     rec.attachStore(self);
                     self.bindRecord("on", rec);
                 }
@@ -23915,11 +23915,11 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Replace one record with another
              * @method
-             * @param {model_Record|object} old Old record
-             * @param {model_Record|object} rec New record
+             * @param {MetaphorJs.model.Record|object} old Old record
+             * @param {MetaphorJs.model.Record|object} rec New record
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
-             * @returns {model_Record|object} new record
+             * @returns {MetaphorJs.model.Record|object} new record
              */
             replace: function(old, rec, silent, skipUpdate) {
                 var self    = this,
@@ -23948,10 +23948,10 @@ var model_Store = MetaphorJs.model.Store = function(){
              * Replace record with given id by another record
              * @method
              * @param {int|string} id Old record id
-             * @param {model_Record|object} rec New record
+             * @param {MetaphorJs.model.Record|object} rec New record
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
-             * @returns {model_Record|object} new record
+             * @returns {MetaphorJs.model.Record|object} new record
              */
             replaceId: function(id, rec, silent, skipUpdate) {
                 var self    = this,
@@ -23965,18 +23965,18 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Override this method to catch all record replacements
              * @method
-             * @param {model_Record|object} old Old record
-             * @param {model_Record|object} rec New record
+             * @param {MetaphorJs.model.Record|object} old Old record
+             * @param {MetaphorJs.model.Record|object} rec New record
              */
             onReplace: emptyFn,
 
             /**
              * Remove record from the store
              * @method
-             * @param {model_Record|object} rec
+             * @param {MetaphorJs.model.Record|object} rec
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              */
             remove: function(rec, silent, skipUpdate) {
                 var inx = this.indexOf(rec, true);
@@ -23992,7 +23992,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @param {string|int} id Record id
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              */
             removeId: function(id, silent, skipUpdate) {
                 var inx = this.indexOfId(id, true);
@@ -24006,7 +24006,7 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Does this store contains record
              * @method
-             * @param {model_Record|object} rec
+             * @param {MetaphorJs.model.Record|object} rec
              * @param {boolean} unfiltered Check unfiltered set
              * @returns {boolean}
              */
@@ -24071,7 +24071,7 @@ var model_Store = MetaphorJs.model.Store = function(){
                 if (!keepRecords) {
                     for (i = 0, len = self.items.length; i < len; i++) {
                         rec = self.items[i];
-                        if (rec instanceof model_Record) {
+                        if (rec instanceof MetaphorJs.model.Record) {
                             self.bindRecord("un", rec);
                             rec.detachStore(self);
                         }
@@ -24094,7 +24094,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @method
              * @param {int} index
              * @param {boolean} unfiltered Get from unfiltered set
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              */
             getAt: function(index, unfiltered) {
                 return unfiltered ?
@@ -24107,7 +24107,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @method
              * @param {string|int} id Record id
              * @param {boolean} unfiltered Get from unfiltered set
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              */
             getById: function(id, unfiltered) {
                 return unfiltered ?
@@ -24118,7 +24118,7 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Get index of record
              * @method
-             * @param {model_Record|object} rec
+             * @param {MetaphorJs.model.Record|object} rec
              * @param {boolean} unfiltered Lookup in unfiltered set
              * @returns {int} returns -1 if not found
              */
@@ -24143,7 +24143,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * Interate over store records
              * @method
              * @param {function} fn {
-             *      @param {model_Record|object} rec
+             *      @param {MetaphorJs.model.Record|object} rec
              *      @param {number} index
              *      @param {number} length
              *      @returns {boolean|null} return false to stop
@@ -24213,7 +24213,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * Get first record
              * @method
              * @param {boolean} unfiltered Get from unfiltered set
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              */
             first : function(unfiltered){
                 return unfiltered ? this.items[0] : 
@@ -24224,7 +24224,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * Get last record
              * @method
              * @param {boolean} unfiltered Get from unfiltered set
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              */
             last : function(unfiltered){
                 return unfiltered ? this.items[this.length-1] : 
@@ -24274,14 +24274,14 @@ var model_Store = MetaphorJs.model.Store = function(){
              * Find and return record matching custom filter
              * @method
              * @param {function} fn {
-             *      @param {model_Record|object} rec
+             *      @param {MetaphorJs.model.Record|object} rec
              *      @param {string|int} id
              *      @returns {boolean} Return true to accept record
              * }
              * @param {object} context fn's context
              * @param {number} start { @default 0 }
              * @param {boolean} unfiltered Look in unfiltered set
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              */
             findBy: function(fn, context, start, unfiltered) {
                 var inx = this.findIndexBy(fn, context, start, unfiltered);
@@ -24292,7 +24292,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * Find index of a record matching custom filter
              * @method
              * @param {function} fn {
-             *      @param {model_Record|object} rec
+             *      @param {MetaphorJs.model.Record|object} rec
              *      @param {string|int} id
              *      @returns {boolean} return true to accept record
              * }
@@ -24322,7 +24322,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @param {string|int|bool} value Value to compare to
              * @param {bool} exact Make a strict comparison
              * @param {boolean} unfiltered Look in unfiltered set
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              * @code store.find("name", "Jane");
              */
             find: function(property, value, exact, unfiltered) {
@@ -24354,7 +24354,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @param {string} property Record's field name
              * @param {string|int|bool} value Value to compare to
              * @param {boolean} unfiltered Look in unfiltered set
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              */
             findExact: function(property, value, unfiltered) {
                 return this.find(property, value, true, unfiltered);
@@ -24366,7 +24366,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @param {object} props A set of field:value pairs to match record against.
              * All fields must match for the record to be accepted.
              * @param {boolean} unfiltered Look in unfiltered set
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              */
             findBySet: function(props, unfiltered) {
 
@@ -24495,8 +24495,8 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @method
              * @param {string|function} by {
              *  Either a field name to sort by, or a function 
-             *  @param {model_Record|object} a
-             *  @param {model_Record|object} b 
+             *  @param {MetaphorJs.model.Record|object} a
+             *  @param {MetaphorJs.model.Record|object} b 
              *  @returns {int} -1|0|1
              * }
              * @param {string} dir asc|desc
@@ -24584,7 +24584,7 @@ var model_Store = MetaphorJs.model.Store = function(){
 
 
 Directive.getDirective("attr", "each")
-    .registerType(model_Store, app_StoreRenderer);
+    .registerType(MetaphorJs.model.Store, MetaphorJs.app.StoreRenderer);
 
 
 
@@ -25300,9 +25300,9 @@ var validator_checkable = MetaphorJs.validator.checkable = function(elem) {
 /**
  * Walk dom tree
  * @function MetaphorJs.dom.eachNode
- * @param {DomNode} el
+ * @param {HTMLElement} el
  * @param {function} fn {
- *  @param {DomNode} el
+ *  @param {HTMLElement} el
  * }
  * @param {object} context fn's context
  */
@@ -25456,8 +25456,8 @@ var regexp_email = MetaphorJs.regexp.email = /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^
 
 (function(){
 
-    var empty = validator_empty,
-        getLength = validator_getLength;
+    var empty = MetaphorJs.validator.empty,
+        getLength = MetaphorJs.validator.getLength;
 
     // from http://bassistance.de/jquery-plugins/jquery-plugin-validation/
     // i've changed most of the functions, but the result is the same.
@@ -25843,7 +25843,7 @@ var validator_Field = MetaphorJs.validator.Field = (function(){
              * @property {function} fn {
              *  Must return dom node (cancels auto creation)
              *  @param {MetaphorJs.validator.Field} f
-             *  @returns {DomNode}
+             *  @returns {HTMLElement}
              * }
              */
             fn:				null,
@@ -25977,15 +25977,15 @@ var validator_Field = MetaphorJs.validator.Field = (function(){
     };
 
 
-    var messages = validator_messages,
+    var messages = MetaphorJs.validator.messages,
         methods = MetaphorJs.validator.methods,
-        empty = validator_empty,
-        format = validator_format;
+        empty = MetaphorJs.validator.empty,
+        format = MetaphorJs.validator.format;
 
 
     /**
      * @class MetaphorJs.validator.Field
-     * @mixes mixin_Observable
+     * @mixes MetaphorJs.mixin.Observable
      */
     return cls({
 
@@ -26034,7 +26034,7 @@ var validator_Field = MetaphorJs.validator.Field = (function(){
          * }
          */
         
-        $mixins: [mixin_Observable],
+        $mixins: [MetaphorJs.mixin.Observable],
 
         vldr:           null,
         elem:           null,
@@ -26466,7 +26466,7 @@ var validator_Field = MetaphorJs.validator.Field = (function(){
         /**
          * Get field's dom node
          * @method
-         * @returns {DomNode}
+         * @returns {HTMLElement}
          */
         getElem: function() {
             return this.elem;
@@ -26709,7 +26709,7 @@ var validator_Field = MetaphorJs.validator.Field = (function(){
 
         /**
          * @method
-         * @returns {DomNode}
+         * @returns {HTMLElement}
          */
         getErrorBox: function() {
 
@@ -27012,7 +27012,7 @@ var validator_Group = MetaphorJs.validator.Group = (function(){
         value:				null,
 
         /**
-         * @property {DomNode} elem Group's dom node. 
+         * @property {HTMLElement} elem Group's dom node. 
          */
         elem:				null,			// dom node
 
@@ -27107,14 +27107,14 @@ var validator_Group = MetaphorJs.validator.Group = (function(){
     };
 
 
-    var messages = validator_messages,
+    var messages = MetaphorJs.validator.messages,
         methods = MetaphorJs.validator.methods,
-        format = validator_format;
+        format = MetaphorJs.validator.format;
 
 
     /**
      * @class MetaphorJs.validator.Group
-     * @mixes mixin_Observable
+     * @mixes MetaphorJs.mixin.Observable
      */
     return cls({
 
@@ -27144,7 +27144,7 @@ var validator_Group = MetaphorJs.validator.Group = (function(){
          * }
          */
 
-        $mixins: [mixin_Observable],
+        $mixins: [MetaphorJs.mixin.Observable],
 
         fields:         null,
         rules:          null,
@@ -27537,7 +27537,7 @@ var validator_Group = MetaphorJs.validator.Group = (function(){
 
         /**
          * @method
-         * @returns {DomNode}
+         * @returns {HTMLElement}
          */
         getErrorBox: function() {
 
@@ -27674,8 +27674,8 @@ var validator_Validator = MetaphorJs.validator.Validator = (function(){
 
     var validators  = {};
 
-    var Field = validator_Field,
-        Group = validator_Group;
+    var Field = MetaphorJs.validator.Field,
+        Group = MetaphorJs.validator.Group;
 
 
     /**
@@ -27783,7 +27783,7 @@ var validator_Validator = MetaphorJs.validator.Validator = (function(){
 
     /**
      * @class MetaphorJs.validator.Validator
-     * @mixes mixin_Observable
+     * @mixes MetaphorJs.mixin.Observable
      */
     var Validator = cls({
 
@@ -27833,14 +27833,14 @@ var validator_Validator = MetaphorJs.validator.Validator = (function(){
         /**
          * @event field-error-change {
          *  @param {MetaphorJs.validator.Validator} v
-         *  @param {validator_Field} f 
+         *  @param {MetaphorJs.validator.Field} f 
          *  @param {string} error
          * }
          */
         /**
          * @event field-state-change {
          *  @param {MetaphorJs.validator.Validator} v
-         *  @param {validator_Field} f 
+         *  @param {MetaphorJs.validator.Field} f 
          *  @param {boolean} valid
          * }
          */
@@ -27851,7 +27851,7 @@ var validator_Validator = MetaphorJs.validator.Validator = (function(){
          * }
          */
 
-        $mixins: [mixin_Observable],
+        $mixins: [MetaphorJs.mixin.Observable],
 
         id:             null,
         el:             null,
@@ -27975,7 +27975,7 @@ var validator_Validator = MetaphorJs.validator.Validator = (function(){
          * Get group by its name
          * @method
          * @param {string} name
-         * @returns {validator_Group}
+         * @returns {MetaphorJs.validator.Group}
          */
         getGroup: function(name) {
             return this.groups[name] || null;
@@ -27985,7 +27985,7 @@ var validator_Validator = MetaphorJs.validator.Validator = (function(){
          * Get field by name or id
          * @method
          * @param {string} id
-         * @return {validator_Field}
+         * @return {MetaphorJs.validator.Field}
          */
         getField:	function(id) {
             return this.fields[id] || null;
@@ -28410,8 +28410,8 @@ var validator_Validator = MetaphorJs.validator.Validator = (function(){
                 nodes   = el.getElementsByTagName("input"),
                 submits = select(".submit", el),
                 resets  = select(".reset", el),
-                fn      = mode === "bind" ? dom_addListener : 
-                                            dom_removeListener,
+                fn      = mode === "bind" ? MetaphorJs.dom.addListener : 
+                                            MetaphorJs.dom.removeListener,
                 i, l,
                 type,
                 node;
@@ -29196,9 +29196,9 @@ Directive.registerAttribute("validate", 250,
             }
 
             var animPromises    = [],
-                startAnimation  = new lib_Promise,
-                applyFrom       = new lib_Promise,
-                donePromise     = new lib_Promise,
+                startAnimation  = new MetaphorJs.lib.Promise,
+                applyFrom       = new MetaphorJs.lib.Promise,
+                donePromise     = new MetaphorJs.lib.Promise,
                 animReady       = lib_Promise.counter(newRenderers.length),
                 startCallback   = function(){
                     animReady.countdown();
@@ -29296,8 +29296,8 @@ Directive.registerAttribute("validate", 250,
 /**
  * Get element's scrolling parent
  * @function MetaphorJs.dom.getScrollParent
- * @param {DomNode} node
- * @returns {DomNode}
+ * @param {HTMLElement} node
+ * @returns {HTMLElement}
  */
 var dom_getScrollParent = MetaphorJs.dom.getScrollParent = function() {
 
@@ -29343,8 +29343,8 @@ var dom_getScrollParent = MetaphorJs.dom.getScrollParent = function() {
 /**
  * Get element's offset parent
  * @function MetaphorJs.dom.getOffsetParent
- * @param {DomNode} node 
- * @returns {DomNode}
+ * @param {HTMLElement} node 
+ * @returns {HTMLElement}
  */
 var dom_getOffsetParent = MetaphorJs.dom.getOffsetParent = function dom_getOffsetParent(node) {
 
@@ -29371,7 +29371,7 @@ var dom_getOffsetParent = MetaphorJs.dom.getOffsetParent = function dom_getOffse
 /**
  * Get element's offset
  * @function MetaphorJs.dom.getOffet
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @returns {object} {
  *  @type {int} top
  *  @type {int} left
@@ -29409,8 +29409,8 @@ var dom_getOffset = MetaphorJs.dom.getOffset = function dom_getOffset(node) {
 /**
  * Get node position relative to offset parent or specific node
  * @function MetaphorJs.dom.getPosition
- * @param {DomNode} node 
- * @param {DomNode} to 
+ * @param {HTMLElement} node 
+ * @param {HTMLElement} to 
  * @return {object} {
  *  @type {int} top
  *  @type {int} left
@@ -29711,7 +29711,7 @@ cls({
             rs          = list.renderers,
             bot         = self.botStub,
             bs          = self.getBufferState(self.dynamicOffset),
-            promise     = new lib_Promise,
+            promise     = new MetaphorJs.lib.Promise,
             doc         = window.document,
             fragment,
             i, x, r;
@@ -29829,7 +29829,7 @@ cls({
             sp      = self.scrollEl || dom_getScrollParent(list.parentEl),
             hor     = self.horizontal,
             prop    = hor ? "scrollLeft" : "scrollTop",
-            promise = new lib_Promise,
+            promise = new MetaphorJs.lib.Promise,
             pos;
 
 
@@ -30365,7 +30365,7 @@ function ucfirst(str) {
 /**
  * Set element's style
  * @function MetaphorJs.dom.setStyle
- * @param {DomNode} el
+ * @param {HTMLElement} el
  * @param {string} name
  * @param {*} value
  */
@@ -30398,10 +30398,10 @@ var dom_setStyle = MetaphorJs.dom.setStyle = function dom_setStyle(el, name, val
 /**
  * Is element visible on the page
  * @function MetaphorJs.dom.isVisible
- * @param {DomNode} el
+ * @param {HTMLElement} el
  * @returns {boolean}
  */
-MetaphorJs.dom.isVisible = function dom_isVisible(el) {
+var dom_isVisible = MetaphorJs.dom.isVisible = function dom_isVisible(el) {
     return el && !(el.offsetWidth <= 0 || el.offsetHeight <= 0);
 };
 
@@ -30412,7 +30412,7 @@ MetaphorJs.dom.isVisible = function dom_isVisible(el) {
 /**
  * Get element outer width
  * @function MetaphorJs.dom.getOuterWidth
- * @param {DomNode} el
+ * @param {HTMLElement} el
  * @returns {int}
  */
 var dom_getOuterWidth = MetaphorJs.dom.getOuterWidth = _dom_getDimensions("outer", "Width");
@@ -30423,7 +30423,7 @@ var dom_getOuterWidth = MetaphorJs.dom.getOuterWidth = _dom_getDimensions("outer
 /**
  * Get element outer height
  * @function MetaphorJs.dom.getOuterHeight
- * @param {DomNode} el
+ * @param {HTMLElement} el
  * @returns {int}
  */
 var dom_getOuterHeight = MetaphorJs.dom.getOuterHeight = _dom_getDimensions("outer", "Height");
@@ -30439,7 +30439,7 @@ var dom_getOuterHeight = MetaphorJs.dom.getOuterHeight = _dom_getDimensions("out
 /**
  * Delegate dom event
  * @function MetaphorJs.dom.delegate
- * @param {DomNode} el Dom node to add event listener to
+ * @param {HTMLElement} el Dom node to add event listener to
  * @param {string} selector Event target selector
  * @param {string} event Event name
  * @param {function} fn {
@@ -31782,7 +31782,7 @@ var dialog_Overlay = MetaphorJs.dialog.Overlay = cls({
     animateShow:	false,
     animateHide:	false,
 
-    $mixins:        [mixin_Observable],
+    $mixins:        [MetaphorJs.mixin.Observable],
 
     $init: function(dialog) {
 
@@ -32081,7 +32081,7 @@ var dialog_Manager = MetaphorJs.dialog.Manager = cls({
 
 var dialog_Dialog = MetaphorJs.dialog.Dialog = (function(){
 
-    var manager = new dialog_Manager;
+    var manager = new MetaphorJs.dialog.Manager;
 
     var defaultEventProcessor = function(dlg, e, type, returnMode){
         if (type === "show" || !returnMode) {
@@ -33136,11 +33136,11 @@ var dialog_Dialog = MetaphorJs.dialog.Dialog = (function(){
 
     /**
      * @class MetaphorJs.dialog.Dialog
-     * @mixes mixin_Observable
+     * @mixes MetaphorJs.mixin.Observable
      */
     var Dialog = cls({
 
-        $mixins:            [mixin_Observable],
+        $mixins:            [MetaphorJs.mixin.Observable],
 
         id:                 null,
         node:               null,
@@ -33294,7 +33294,7 @@ var dialog_Dialog = MetaphorJs.dialog.Dialog = (function(){
         /**
          * Get dialog's overlay object
          * @method
-         * @returns {dialog_Overlay}
+         * @returns {MetaphorJs.dialog.Overlay}
          */
         getOverlay: function() {
             return this.overlay;
@@ -33446,9 +33446,9 @@ var dialog_Dialog = MetaphorJs.dialog.Dialog = (function(){
             var self    = this,
                 cfg     = self.cfg,
                 fns     = ["show", "hide", "toggle"],
-                lfn     = mode === "bind" ? dom_addListener : 
-                                            dom_removeListener,
-                dfn     = mode === "bind" ? dom_delegate :
+                lfn     = mode === "bind" ? MetaphorJs.dom.addListener : 
+                                            MetaphorJs.dom.removeListener,
+                dfn     = mode === "bind" ? MetaphorJs.dom.delegate :
                                             MetaphorJs.dom.undelegate,
                 fn,
                 fnCfg,
@@ -34847,6 +34847,7 @@ var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
         self._createDialog();
     },
 
+
     _getDialogCfg: function() {
 
         var self    = this;
@@ -34884,7 +34885,7 @@ var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
     },
 
     show: function(e) {
-        if (e && !(e instanceof lib_DomEvent)) {
+        if (e && !(e instanceof MetaphorJs.lib.DomEvent)) {
             e = null;
         }
 
@@ -34893,7 +34894,7 @@ var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
 
     hide: function(e) {
 
-        if (e && !(e instanceof lib_DomEvent)) {
+        if (e && !(e instanceof MetaphorJs.lib.DomEvent)) {
             e = null;
         }
 
@@ -34907,7 +34908,7 @@ var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
             self.render();
         }
 
-        self.template.config.set("animate", true);
+        //self.template.config.set("animate", true);
         self.hidden = false;
     },
 
@@ -35026,7 +35027,7 @@ cls({
     inject: ['$node', '$scope', 'someValue'],
     resolve: {
         someValue: function() {
-            var p = new lib_Promise;
+            var p = new MetaphorJs.lib.Promise;
             setTimeout(function(){
                 p.resolve((new Date).getTime());
             }, 100);
@@ -35144,6 +35145,7 @@ cls({
                 },
                 config: {
                     as: "dlg",
+                    tag: "div"
                 },
                 scope: this.scope,
                 template: {

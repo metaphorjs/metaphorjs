@@ -190,6 +190,7 @@ cls({
                 },
                 config: {
                     as: "dlg",
+                    tag: "div"
                 },
                 scope: this.scope,
                 template: {

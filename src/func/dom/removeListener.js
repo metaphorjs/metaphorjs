@@ -5,7 +5,7 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 /**
  * Remove listeners from element's events
  * @function MetaphorJs.dom.removeListener
- * @param {DomNode} el 
+ * @param {HTMLElement} el 
  * @param {string} eventName
  * @param {function} fn
  */

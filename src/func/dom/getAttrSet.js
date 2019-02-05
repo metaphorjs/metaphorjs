@@ -11,7 +11,7 @@ var toCamelCase = require("metaphorjs-shared/src/func/toCamelCase.js"),
 /**
  * Get node attributes classified by directive
  * @function MetaphorJs.dom.getAttrSet
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @returns {object}
  */
 module.exports = MetaphorJs.dom.getAttrSet = (function() {

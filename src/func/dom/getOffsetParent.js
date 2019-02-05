@@ -7,8 +7,8 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 /**
  * Get element's offset parent
  * @function MetaphorJs.dom.getOffsetParent
- * @param {DomNode} node 
- * @returns {DomNode}
+ * @param {HTMLElement} node 
+ * @returns {HTMLElement}
  */
 module.exports = MetaphorJs.dom.getOffsetParent = function dom_getOffsetParent(node) {
 

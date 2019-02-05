@@ -949,7 +949,7 @@ extend(Observable.prototype, {
      *      to the next promise.
      *  }
      * }
-     * @returns {lib_ObservableEvent}
+     * @returns {MetaphorJs.lib.ObservableEvent}
      */
     createEvent: function(name, options) {
         name = name.toLowerCase();
@@ -964,7 +964,7 @@ extend(Observable.prototype, {
     * @method
     * @access public
     * @param {string} name Event name
-    * @return {lib_ObservableEvent|undefined}
+    * @return {MetaphorJs.lib.ObservableEvent|undefined}
     */
     getEvent: function(name) {
         name = name.toLowerCase();
@@ -2446,7 +2446,7 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
  */
 var lib_MutationObserver = MetaphorJs.lib.MutationObserver = (function(){
 
-    var observable = new lib_Observable;
+    var observable = new MetaphorJs.lib.Observable;
 
     var checkAll = function() {
         var k, changes = 0;
@@ -2890,7 +2890,7 @@ var publicScopes = {};
 var Scope = function(cfg) {
     var self    = this;
 
-    self.$$observable    = new lib_Observable;
+    self.$$observable    = new MetaphorJs.lib.Observable;
     self.$$historyWatchers  = {};
     extend(self, cfg, true, false);
 
@@ -3056,7 +3056,7 @@ extend(Scope.prototype, {
      *  @param {*} value
      * }
      * @param {object} fnScope
-     * @returns {lib_MutationObserver}
+     * @returns {MetaphorJs.lib.MutationObserver}
      */
     $watch: function(expr, fn, fnScope) {
         return lib_MutationObserver.get(this, expr, fn, fnScope);
@@ -4337,7 +4337,7 @@ var lib_Text = MetaphorJs.lib.Text = (function(){
         startSymbolLength       = 2,
         endSymbolLength         = 2,
 
-        events                  = new lib_Observable,
+        events                  = new MetaphorJs.lib.Observable,
 
         _procExpr               = function(expr, scope, observers) {
             if (observers) {
@@ -4565,7 +4565,7 @@ var lib_Text = MetaphorJs.lib.Text = (function(){
      * @param {object} dataObj Data object (app.Scope) to read variables from
      * @param {array|null} observers {
      *  Pass empty array 
-     *  @type {lib_MutationObserver} observer
+     *  @type {MetaphorJs.lib.MutationObserver} observer
      * }
      * @param {bool} recursive Recursively process text template
      * @returns {string}
@@ -4616,8 +4616,8 @@ var dom_setAttr = MetaphorJs.dom.setAttr = function(el, name, value) {
 var dom_commentWrap = MetaphorJs.dom.commentWrap = function commentWrap(node, name) {
     name = name || "";
 
-    var before = window.document.createComment(name + " - start"),
-        after = window.document.createComment(name + " - end"),
+    var before = window.document.createComment("<" + name),
+        after = window.document.createComment(name + ">"),
         parent = node.parentNode;
 
     parent.insertBefore(before, node);
@@ -4676,7 +4676,7 @@ function isPrimitive(value) {
  */
 var lib_Config = MetaphorJs.lib.Config = (function(){
 
-    var $$observable = new lib_Observable;
+    var $$observable = new MetaphorJs.lib.Observable;
 
     var MODE_STATIC = 1,
         MODE_DYNAMIC = 2,
@@ -4695,11 +4695,16 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
      *  @type {object} scope Data object
      *  @type {object} setTo set all values to this object
      * }
+     * @param {string} scalarAs {
+     *  expression|defaultValue|value -- 
+     *  if property comes as scalar value {name: value}, this
+     *  option helps determine what to do with it, make an expression
+     *  out of it, or use as default value.
+     * }
      */
-    var Config = function(properties, cfg) {
+    var Config = function(properties, cfg, scalarAs) {
 
-        var self = this,
-            k;
+        var self = this;
 
         self.id = nextUid();
         self.values = {};
@@ -4708,14 +4713,7 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
         self.keys = [];
 
         if (properties) {
-            for (k in properties) {
-                self.setProperty(
-                    k, 
-                    isPrimitive(properties[k]) ? 
-                        {expression: properties[k]}:
-                        properties[k]
-                );
-            }
+            self.addProperties(properties, scalarAs);
         }
     };
 
@@ -4899,6 +4897,54 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
         },
 
         /**
+         * Add multiple properties to the config.
+         * @param {object} properties {name: {cfg}}
+         * @param {string} scalarAs {
+         *  expression|defaultValue|value -- 
+         *  if property comes as scalar value {name: value}, this
+         *  option helps determine what to do with it, make an expression
+         *  out of it, or use as default value.
+         * }
+         * @param {bool} override {
+         *  Override existing settings
+         *  @default true
+         * }
+         */
+        addProperties: function(properties, scalarAs, override) {
+
+            var prop, k, val;
+            for (k in properties) {
+                val = properties[k];
+
+                if (val === null || val === undf) {
+                    continue;
+                }
+
+                // string can be a value or expression
+                if (typeof val === "string") {
+                    prop = {};
+                    prop[scalarAs || "expression"] = val;
+                }
+                // bool and int can only be a value
+                else if (isPrimitive(val)) {
+                    prop = {defaultValue: val};
+                }
+                // objects can only describe properties
+                else {
+                    prop = val;
+                    if (prop.expression && 
+                        typeof prop.expression === "string" && 
+                        !prop.mode && scalarAs === "defaultValue" && 
+                        (!this.properties[k] || !this.properties[k].mode)) {
+                        
+                        prop.mode = MODE_DYNAMIC;
+                    }
+                }
+                this.setProperty(k, prop, undf, override);
+            }
+        },
+
+        /**
          * Set or update property
          * @method
          * @param {string} name 
@@ -4940,6 +4986,10 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                 self.keys.push(name);
                 changed = true;
                 newProp = true;
+            }
+
+            if (!cfg) {
+                cfg = {};
             }
 
             prop = props[name];
@@ -5275,14 +5325,12 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
          */
         setStatic: function(name, val) {
             var self = this;
-            if (self.properties[name]) {
-                var prev = self.values[val];
-                self.setMode(name, MODE_STATIC);
-                self.values[name] = val;
-                if (prev != val) {
-                    $$observable.trigger(self.id, name, val, prev);
-                    $$observable.trigger(self.id +'-'+ name, val, prev) ;
-                }
+            var prev = self.values[val];
+            self.setMode(name, MODE_STATIC);
+            self.values[name] = val;
+            if (prev != val) {
+                $$observable.trigger(self.id, name, val, prev);
+                $$observable.trigger(self.id +'-'+ name, val, prev) ;
             }
         },
 
@@ -5294,28 +5342,30 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
         set: function(name, val) {
             var self = this,
                 prop;
-            if (prop = self.properties[name]) {
-                switch (prop.mode) {
-                    case MODE_DYNAMIC: {
-                        !prop.mo && self._initMo(name);
-                        prop.mo.setValue(val);
-                        break;
-                    }
-                    case MODE_GETTER:
-                    case MODE_FUNC:
-                    case MODE_SETTER:
-                    case MODE_FNSET: {
-                        throw new Error("Incompatible property mode");
-                    }
-                    case MODE_SINGLE:
-                    case MODE_STATIC: {
-                        self.setStatic(name, val);
-                        break;
-                    }
-                    default: {
-                        self.setStatic(name, val);
-                        break;
-                    }
+            if (!self.properties[name]) {
+                self.setProperty(name);
+            }
+            prop = self.properties[name];
+            switch (prop.mode) {
+                case MODE_DYNAMIC: {
+                    !prop.mo && self._initMo(name);
+                    prop.mo.setValue(val);
+                    break;
+                }
+                case MODE_GETTER:
+                case MODE_FUNC:
+                case MODE_SETTER:
+                case MODE_FNSET: {
+                    throw new Error("Incompatible property mode");
+                }
+                case MODE_SINGLE:
+                case MODE_STATIC: {
+                    self.setStatic(name, val);
+                    break;
+                }
+                default: {
+                    self.setStatic(name, val);
+                    break;
                 }
             }
         },
@@ -5587,6 +5637,14 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
     Config.MODE_FUNC = MODE_FUNC;
     Config.MODE_FNSET = MODE_FNSET;
     Config.MODE_LISTENER = MODE_LISTENER;
+
+
+    Config.create = function(properties, cfg, scalarAs) {
+        if (properties instanceof Config) {
+            return properties;
+        }
+        return new Config(properties, cfg, scalarAs);
+    }
 
     return Config;
 
@@ -6189,7 +6247,7 @@ var classManagerFactory = function(){
      * Instantiate class system with namespace.
      * @group api
      * @function
-     * @param {lib_Namespace} ns {
+     * @param {MetaphorJs.lib.Namespace} ns {
      *  Provide your own namespace or a new private ns will be 
      *  constructed automatically. 
      *  @optional
@@ -6199,7 +6257,7 @@ var classManagerFactory = function(){
     var classManagerFactory = function(ns) {
 
         if (!ns) {
-            ns = new lib_Namespace;
+            ns = new MetaphorJs.lib.Namespace;
         }
 
         var createConstructor = function(className) {
@@ -6789,7 +6847,7 @@ var classManagerFactory = function(){
         /**
          * @property {function} Namespace Namespace constructor
          */
-        defineClass.Namespace = lib_Namespace;
+        defineClass.Namespace = MetaphorJs.lib.Namespace;
 
         /**
          * @property {class} BaseClass
@@ -6829,7 +6887,7 @@ var classManagerFactory = function(){
  * @var ns 
  */
 var ns = (function(){
-    var ns = new lib_Namespace;
+    var ns = new MetaphorJs.lib.Namespace;
     ns.register("MetaphorJs", MetaphorJs);
     ns.register("mjs", MetaphorJs);
     return ns;
@@ -7043,7 +7101,7 @@ var Directive = MetaphorJs.app.Directive = (function() {
 /**
  * Remove element's attribute
  * @function MetaphorJs.dom.removeAttr
- * @param {DomNode} node 
+ * @param {HTMLElement} node 
  * @param {string} name
  */
 var dom_removeAttr = MetaphorJs.dom.removeAttr = function dom_removeAttr(el, name) {
@@ -7074,30 +7132,81 @@ function toCamelCase(str) {
 /**
  * Get node attributes classified by directive
  * @function MetaphorJs.dom.getAttrSet
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @returns {object}
  */
 var getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
 
     // regular expression seems to be a few milliseconds faster
     // than plain parsing
-    var reg = /^([\[({#$@])([^)\]}"':\*]+)[\])}]?([:\*!]?)$/;
+    var reg = /^([\[({#$@!])([^)\]}"':\*!]+)[\])}]?([:\*!]?)$/;
 
     var removeDirective = function removeDirective(node, directive) {
-        if (this.inflated) {
-            delete this.directive[directive];
+        var ds = this.__directives;
+        if (!this.inflated && ds[directive]) {
+            if (ds[directive].original) {
+                dom_removeAttr(node, ds[directive].original);
+            }
+            if (ds[directive].names) {
+                var i, l, ns = ds[directive].names;
+                for (i = 0, l = ns.length; i < l; i++) {
+                    dom_removeAttr(node, ns[i]);
+                }
+            }
+        }
+        //delete ds[directive];
+    };
+
+    var removeAttributes = function(node, what, param) {
+        var names, i, l;
+        if (what === "all") {
+            removeAttributes(node, "directives");
+            removeAttributes(node, "attributes");
+            removeAttributes(node, "config");
+        }
+        else if (what === "directives") {
+            for (i in this.__directives) {
+                removeDirective.call(this, node, i);    
+            }
             return;
         }
-        if (this.directive[directive] && 
-            this.directive[directive].original) {
-            dom_removeAttr(node, this.directive[directive].original);
+        else if (what === "directive") {
+            removeDirective.call(this, node, param);
+            return;
         }
-        var i, l, sn = this.names[directive];
-        if (sn) {
-            for (i = 0, l = sn.length; i < l; i++) {
-                dom_removeAttr(node, sn[i]);
+        else if (what === "attributes") {
+            names = this.__attributes;
+        }
+        else if (what === "attribute" && this.__attributes[param]) {
+            names = [this.__attributes[param]];
+        }
+        else if (what === "config") {
+            names = this.__config;
+        }
+        else if (what === "reference") {
+            names = ["#" + param];
+        }
+        else if (what === "references") {
+            names = [];
+            for (i = 0, l = this.references.length; i < l; i++) {
+                names.push("#" + this.references[i]);
             }
-            delete this.names[directive];
+        }
+        else if (what === "at") {
+            names = ["@" + this.at];
+        }
+
+        if (names) {
+            if (isArray(names)) {
+                for (i = 0, l = names.length; i < l; i++) {
+                    dom_removeAttr(node, names[i]);
+                }
+            }
+            else {
+                for (i in names) {
+                    dom_removeAttr(node, names[i]);
+                }
+            }
         }
     };
 
@@ -7112,25 +7221,31 @@ var getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
         '{': "dir",
         '(': "event",
         '[': "attr",
-        '$': "cfg"
+        '$': "cfg",
+        '!': "renderer"
     };
 
     var getEmpty = function() {
         return {
-            directive: {},
-            attribute: {},
+            directives: {},
+            attributes: {},
             config: {},
             rest: {},
-            reference: [],
+            references: [],
+            renderer: {},
             at: null,
-            names: {},
-            removeDirective: removeDirective
+
+            __directives: {},
+            __attributes: {},
+            __config: [],
+            __remove: removeAttributes
         };
     };
 
     var inflate = function(set) {
         extend(set, getEmpty(), false, false);
         set.inflated = true;
+        return set;
     };
 
     var ccName = function(name) {
@@ -7140,10 +7255,12 @@ var getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
     return function dom_getAttrSet(node) {
 
         var set = getEmpty(),
-            i, l, tagName,
+            i, l, 
             name, value,
             match, parts,
-            coll, mode,
+            ds = set.directives, 
+            __ds = set.__directives, 
+            mode,
             subname,
             prop, execMode,
             attrs = isArray(node) ? node : node.attributes;
@@ -7159,8 +7276,7 @@ var getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
         if (node.nodeType && node.hasAttribute && node.hasAttribute("mjs")) {
             set = MetaphorJs.prebuilt.configs[node.getAttribute("mjs")];
             //dom_removeAttr(node, "mjs");
-            inflate(set);
-            return set;
+            return inflate(set);
         }
 
         for (i = 0, l = attrs.length; i < l; i++) {
@@ -7177,11 +7293,15 @@ var getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
                 execMode = execModes[match[3]];
 
                 if (mode === '#') {
-                    set.reference.push(name);
+                    set.references.push(name);
                     continue;
                 }
                 if (mode === '@') {
                     set.at = name;
+                    continue;
+                }
+                if (mode === "!") {
+                    set.renderer[ccName(name)] = true;
                     continue;
                 }
             }
@@ -7202,58 +7322,41 @@ var getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
                     value = true;
                 }
 
-                tagName = node.tagName.toLowerCase();
-
                 set['config'][ccName(name)] = {
                     expression: value,
-                    mode: execMode,
-                    dtype: dtypes[mode]
+                    mode: execMode
                 };
-
-                if (!set['names'][tagName]) {
-                    set['names'][tagName] = [];
-                }
-
-                set['names'][tagName].push(attrs[i].name);
+                set.__config.push(attrs[i].name);
             }
             else if (mode === '(' || mode === '{') { 
 
                 parts = name.split(".");
                 name = parts.shift();
-
-                coll = set['directive'];
                 subname = parts.length ? parts.join(".") : null;
+                value === "" && (value = true);
 
-                if (value === "") {
-                    value = true;
-                }
-
-                if (!coll[name]) {
-                    coll[name] = {
-                        //name: name,
+                if (!ds[name]) {
+                    ds[name] = {};
+                    __ds[name] = {
+                        type: dtypes[mode],
                         original: null,
-                        config: {},
-                        dtype: dtypes[mode]
+                        names: []
                     };
                 }
 
                 if (!subname) {
-                    coll[name].original = attrs[i].name;
-                }
-
-                if (subname && !set['names'][name]) {
-                    set['names'][name] = [];
+                    __ds[name].original = attrs[i].name;
                 }
 
                 if (subname && subname[0] === '$') {
                     
                     prop = ccName(subname.substr(1));
-                    coll[name].config[prop] = {
+                    ds[name][prop] = {
                         mode: execMode,
                         expression: value,
-                        original: attrs[i].name
+                        attr: attrs[i].name
                     };
-                    set['names'][name].push(attrs[i].name);
+                    __ds[name].names.push(attrs[i].name);
                 }
                 else {
                     if (subname) {
@@ -7261,27 +7364,25 @@ var getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
                         // directive value keys are not camelcased
                         // do this inside directive if needed
                         // ('class' directive needs originals)
-                        coll[name].config[prop] = {
+                        ds[name][prop] = {
                             mode: execMode,
                             expression: value,
-                            original: attrs[i].name
+                            attr: attrs[i].name
                         };
-                        set['names'][name].push(attrs[i].name);
+                        __ds[name].names.push(attrs[i].name);
                     }
                     else {
-                        coll[name].config['value'] = {
+                        ds[name]['value'] = {
                             mode: execMode,
                             expression: value,
-                            original: attrs[i].name
+                            attr: attrs[i].name
                         };
                     }
                 }
             }
             else if (mode === '[') {
-                set['attribute'][name] = {
-                    value: value,
-                    original: attrs[i].name
-                };
+                set.attributes[name] = value;
+                set.__attributes[name] = attrs[i].name;
             }
         }
 
@@ -7305,8 +7406,11 @@ var getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
 var app_Renderer = MetaphorJs.app.Renderer = function() {
 
     var handlers                = null,
-        //createText              = TextRenderer.create,
         dirs                    = MetaphorJs.directive,
+
+        nodeCmt                 = window.document.COMMENT_NODE,
+        nodeText                = window.document.TEXT_NODE,
+        nodeElem                = window.document.ELEMENT_NODE,
 
         nodeChildren = function(res, el, fn, fnScope, finish, cnt) {
 
@@ -7400,7 +7504,7 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
             --cnt.countdown === 0 && finish && finish.call(fnScope);
         },
 
-        applyDirective = function(dir, parentScope, node, config, attrs, renderer, passDirectives) {
+        applyDirective = function(dir, parentScope, node, config, attrs, renderer) {
 
             var scope   = dir.$breakScope  ?
                            parentScope.$new() :
@@ -7457,19 +7561,18 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
             return inst;
         },
 
-        observer = new lib_Observable;
+        observer = new MetaphorJs.lib.Observable;
 
-    var Renderer = function(el, scope, parent) {
+    var Renderer = function(scope, parent) {
 
         var self            = this;
 
         self.id             = nextUid();
-        self.el             = el;
         self.scope          = scope;
         self.texts          = [];
         self.parent         = parent;
 
-        if (scope instanceof lib_Scope) {
+        if (scope instanceof MetaphorJs.lib.Scope) {
             scope.$on("destroy", self.$destroy, self);
         }
 
@@ -7502,237 +7605,225 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
             return observer.trigger.apply(observer, arguments);
         },
 
-        getEl: function() {
-            return this.el;
+        _processCommentNode: function(node) {
+            var cmtData = node.textContent || node.data;
+            if (cmtData.substring(0,2) === '##') {
+                observer.trigger(
+                    "reference-" + this.id, 
+                    "node",
+                    cmtData.substring(2),
+                    node
+                );
+            }
         },
 
-        processNode: function(node) {
+        _processTextNode: function(node) {
+            var self    = this,
+                texts   = self.texts,
+                textStr = node.textContent || node.nodeValue,
+                textRenderer;
 
-            var self        = this,
-                nodeType    = node.nodeType,
-                texts       = self.texts,
-                scope       = self.scope,
-                textStr,
-                textRenderer,
-                ref;
+            if (lib_Text.applicable(textStr)) {
+                textRenderer = new lib_Text(
+                    self.scope,
+                    textStr
+                );
+                textRenderer.subscribe(self.onTextChange, self, {
+                    append: [texts.length]
+                });
+                texts.push({
+                    node: node,
+                    tr: textRenderer
+                });
+                self.renderText(texts.length - 1);
+            }
+        },
 
-            // comment
-            if (nodeType === 8) {
-                var cmtData = node.textContent || node.data;
-                if (cmtData.substring(0,2) === '##') {
+        // skip <slot> but reference it same way as ##ref
+        _processSlotNode: function(node) {
+            observer.trigger(
+                "reference-" + this.id, "node",
+                node.getAttribute("name"), node
+            );
+            return false;
+        },
+
+        _processComponent: function(component, node, attrs) {
+            var self = this,
+                config = new lib_Config(
+                    attrs.config, 
+                    {scope: self.scope}
+                );
+    
+            var directive = Directive.getDirective("attr", "cmp");
+            config.setProperty("value", {
+                mode: lib_Config.MODE_STATIC,
+                expression: component
+            });
+
+            self.on("destroy", config.$destroy, config);
+
+            return applyDirective(directive, self.scope, node, config, attrs, self);
+        },
+
+        _processTag: function(directive, node, attrs) {
+
+            var self = this,
+                config = new lib_Config(
+                    attrs.config, 
+                    {scope: self.scope}
+                );
+            self.on("destroy", config.$destroy, config);
+
+            return applyDirective(directive, self.scope, node, config, attrs, self);
+        },
+
+        _processDirAttribute: function(node, directive, name, attrs) {
+            var self = this,
+                config = new lib_Config(
+                    attrs.directives[name], 
+                    {scope: self.scope}
+                );
+            self.on("destroy", config.$destroy, config);
+            attrs.__remove(node, "directive", name);
+            attrs.__directives[name].handled = true;
+
+            return applyDirective(directive, self.scope, node, config, attrs, self);
+        },
+
+        _processReferences: function(node, attrs) {
+            var self = this, i, len, ref;
+            for (i = 0, len = attrs.references.length; i < len; i++) {
+                ref = attrs.references[i];
+                if (ref[0] === '#') {
                     observer.trigger(
                         "reference-" + self.id, 
                         "node",
-                        cmtData.substring(2),
+                        ref.substring(1),
                         node
                     );
                 }
+                else {
+                    self.scope[ref] = node;
+                }
+                dom_removeAttr(node, '#' + ref);
             }
-            // text node
-            else if (nodeType === 3) {
+        },
 
-                textStr = node.textContent || node.nodeValue;
+        _processAttribute: function(node, name, attrs) {
+            var self = this,
+                texts = self.texts,
+                textStr = attrs['attributes'][name],
+                textRenderer = new lib_Text(self.scope, textStr, {
+                    //recursive: !!attrs.config.recursive,
+                    fullExpr: !lib_Text.applicable(textStr)
+                });
 
-                if (lib_Text.applicable(textStr)) {
-                    textRenderer = new lib_Text(
-                        self.scope,
-                        textStr
-                    );
-                    textRenderer.subscribe(self.onTextChange, self, {
-                        append: [texts.length]
-                    });
-                    texts.push({
-                        node: node,
-                        tr: textRenderer
-                    });
-                    self.renderText(texts.length - 1);
-                }
+            dom_removeAttr(node, attrs['__attributes'][name]);
+            textRenderer.subscribe(self.onTextChange, self, {
+                append: [texts.length]
+            });
+            texts.push({
+                node: node,
+                attr: name,
+                tr: textRenderer
+            });
+            self.renderText(texts.length - 1);
+        },
+
+        /**
+         * Processes one signle node and gives glues on there to go next.<br>
+         * Return false to skip this branch. Do not go inside this node.<br>
+         * Return a Node or array of Nodes to add to processing list
+         * along with this node's children<br>
+         * Return a Promise resolving in any of the above
+         * @param {Node} node 
+         * @returns {boolean|array|Promise|Node}
+         */
+        processNode: function(node) {
+
+            var self        = this,
+                nodeType    = node.nodeType;
+
+            if (nodeType === nodeCmt) {
+                self._processCommentNode(node);
             }
-
-            // element node
-            else if (nodeType === 1) {
-
-                if (self.reportFirstNode) {
-                    observer.trigger("first-node-" + self.id, node);
-                    self.reportFirstNode = false;
-                }
-
-                if (!handlers) {
-                    handlers = Directive.getAttributes();
-                }
+            else if (nodeType === nodeText) {
+                self._processTextNode(node);
+            }
+            else if (nodeType === nodeElem) {
 
                 var tag     = node.tagName.toLowerCase(),
                     defers  = [],
                     nodes   = [],
-                    i, f, len, c,
-                    attrs, as, config,
-                    attrProps,
+                    component,
+                    directive,
+                    i, len,
+                    attrs = getAttrSet(node),
                     name,
-                    res,
-                    handler;
+                    res;
                 
-                // skip <slot> but reference it same way as ##ref
-                if (tag === "slot") {
-                    observer.trigger(
-                        "reference-" + self.id, 
-                        "node",
-                        node.getAttribute("name"),
-                        node
-                    );
-                    return;
-                }
-
                 if (tag.substr(0, 4) === "mjs-") {
                     tag = tag.substr(4);
                 }
+                if (tag === "slot") {
+                    return this._processSlotNode(node);
+                }
 
-                attrs = getAttrSet(node);
-
-                if (attrs.config.ignore) {
+                if (attrs.renderer.ignore) {
                     return false;
                 }
 
                 // this tag represents component
                 // we just pass it to attr.cmp directive
                 // by adding it to the attr map
-                if (c = dirs.component[tag]) {
-
-                    as = attrs.config.tag ? attrs.config.tag.expression : null;
-
-                    // TODO do not make this a separate branch
-                    if (as) {
-
-                        attrs["directive"]['cmp'] = {
-                            name: "cmp",
-                            original: "{cmp}",
-                            config: extend({}, attrs.config, {
-                                value: {
-                                    mode: lib_Config.MODE_STATIC,
-                                    expression: c.prototype.$class
-                                }
-                            })
-                        };
-
-                        as = window.document.createElement(as);
-                        node.parentNode.replaceChild(as, node);
-                        while (node.firstChild) {
-                            as.appendChild(node.firstChild);
-                        }
-                        node = as;
-                        for (name in attrs.rest) {
-                            dom_setAttr(node, name, attrs.rest[name]);
-                        }
-                    }
-                    else {
-
-                        f = dirs.attr.cmp;
-                        delete attrs['directive']['cmp'];
-
-                        config = new lib_Config(
-                            extend({}, attrs.config, {
-                                value: {
-                                    mode: lib_Config.MODE_STATIC,
-                                    expression: c
-                                }
-                            }, true, false),
-                            {scope: self.scope}
-                        );
-                        self.on("destroy", config.$destroy, config);
-
-                        res = applyDirective(f, scope, node, config, attrs, self, true);
-                        attrs['directive'] = {};
-
-                        if (res === false) {
-                            return false;
-                        }
-                        if (isThenable(res)) {
-                            defers.push(res);
-                        }
-                        else {
-                            collectNodes(nodes, res);
-                        }
-                    }
+                if (component = dirs.component[tag]) {
+                    res = self._processComponent(component, node, attrs);
+                    if (res === false) return false;
+                    isThenable(res) ? defers.push(res) : collectNodes(nodes, res);
+                }
+                else if (directive = dirs.tag[tag]) {
+                    res = self._processTag(directive, node, attrs);
+                    if (res === false) return false;
+                    isThenable(res) ? defers.push(res) : collectNodes(nodes, res);
                 }
 
-                // this is a tag directive
-                else if (f = dirs.tag[tag]) {
-
-                    config = new lib_Config(
-                        attrs.config, 
-                        {scope: self.scope}
-                    );
-                    self.on("destroy", config.$destroy, config);
-                    res = applyDirective(f, scope, node, config, attrs, self);
-
-                    attrs.removeDirective(node, tag);
-
-                    if (res === false) {
-                        return false;
-                    }
-                    if (isThenable(res)) {
-                        defers.push(res);
-                    }
-                    else {
-                        collectNodes(nodes, res);
-                    }
+                if (attrs.references && attrs.references.length) {
+                    self._processReferences(node, attrs);
                 }
-
 
                 // this is an attribute directive
                 for (i = 0, len = handlers.length; i < len; i++) {
-                    name    = handlers[i].name;
-
-                    if ((attrProps = attrs['directive'][name]) !== undf &&
-                        !attrProps.handled) {
-
-                        handler = handlers[i].handler;
-
-                        if (!handler.$keepAttribute) {
-                            dom_removeAttr(node, attrProps.original);
-                        }
-                        attrs.removeDirective(node, name);
-
-                        config = new lib_Config(
-                            attrProps.config, 
-                            {scope: self.scope}
+                    name = handlers[i].name;
+                    if (attrs['directives'][name] !== undf &&
+                        !attrs['__directives'][name].handled) {
+                        res = self._processDirAttribute(
+                            node, handlers[i].handler, name, attrs
                         );
-                        self.on("destroy", config.$destroy, config);
-                        res     = applyDirective(handler, scope, node, config, attrs, self);
-
-                        attrProps.handled = true;
-
-                        if (res === false) {
-                            return false;
-                        }
-                        if (isThenable(res)) {
-                            defers.push(res);
-                        }
-                        else {
-                            collectNodes(nodes, res);
-                        }
+                        if (res === false) return false;
+                        isThenable(res) ? defers.push(res) : collectNodes(nodes, res);
                     }
                 }
 
-                if (attrs.reference && attrs.reference.length) {
-                    for (i = 0, len = attrs.reference.length; i < len; i++) {
-                        ref = attrs.reference[i];
-                        if (ref[0] === '#') {
-                            observer.trigger(
-                                "reference-" + self.id, 
-                                "node",
-                                ref.substring(1),
-                                node
-                            );
-                        }
-                        else {
-                            scope[ref] = node;
-                        }
-                        dom_removeAttr(node, '#' + ref);
-                    }
+                for (i in attrs['attributes']) {
+                    self._processAttribute(node, i, attrs);
                 }
 
-                if (defers.length && !attrs.config.ignoreInside) {
-                    var deferred = new lib_Promise;
+                if (attrs.renderer.ignoreInside) {
+                    return false;
+                }
+
+                if (defers.length) {
+                    var deferred = new MetaphorJs.lib.Promise;
+                    lib_Promise.all(defers).done(function(values){
+                        collectNodes(nodes, values);
+                        deferred.resolve(nodes);
+                    });
+                    return deferred;
+                }
+
+                /*if (defers.length && !attrs.config.ignoreInside) {
+                    var deferred = new MetaphorJs.lib.Promise;
                     lib_Promise.all(defers).done(function(values){
                         collectNodes(nodes, values);
                         deferred.resolve(nodes);
@@ -7741,29 +7832,13 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                 }
 
                 // this is a plain attribute
-                for (i in attrs['attribute']) {
-
-                    textStr = attrs['attribute'][i].value;
-                    textRenderer = new lib_Text(self.scope, textStr, {
-                        recursive: !!attrs.config.recursive,
-                        fullExpr: !lib_Text.applicable(textStr)
-                    });
-
-                    dom_removeAttr(node, attrs['attribute'][i].original);
-                    textRenderer.subscribe(self.onTextChange, self, {
-                        append: [texts.length]
-                    });
-                    texts.push({
-                        node: node,
-                        attr: i,
-                        tr: textRenderer
-                    });
-                    self.renderText(texts.length - 1);
+                for (i in attrs['attributes']) {
+                    self._processAttribute(node, i, attrs);
                 }
 
                 if (attrs.config.ignoreInside) {
                     if (defers.length) {
-                        var deferred = new lib_Promise;
+                        var deferred = new MetaphorJs.lib.Promise;
                         lib_Promise.all(defers).done(function(){
                             return deferred.resolve(false);
                         });
@@ -7772,7 +7847,7 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                     else {
                         return false;
                     }
-                }
+                }*/
 
                 return nodes.length ? nodes : true;
             }
@@ -7780,16 +7855,23 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
             return true;
         },
 
-        process: function() {
+        process: function(node) {
             var self    = this;
 
-            if (self.el.nodeType) {
-                eachNode(self.el, self.processNode, self,
+            if (!handlers) {
+                handlers = Directive.getAttributes();
+            }
+            if (!node) {
+                return;
+            }
+
+            if (node.nodeType) {
+                eachNode(node, self.processNode, self,
                     self.onProcessingFinished, {countdown: 1});
             }
             else {
                 nodeChildren(
-                    null, self.el, self.processNode,
+                    null, node, self.processNode,
                     self, self.onProcessingFinished, {countdown: 0});
             }
         },
@@ -7866,7 +7948,7 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
 /**
  * Get node attribute value
  * @function MetaphorJs.dom.getAttr
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @returns {string}
  */
 var dom_getAttr = MetaphorJs.dom.getAttr = function dom_getAttr(el, name) {
@@ -8405,7 +8487,7 @@ var mixin_Provider = MetaphorJs.mixin.Provider = {
     $$provider: null,
 
     $beforeInit: function() {
-        this.$$provider = new lib_Provider;
+        this.$$provider = new MetaphorJs.lib.Provider;
     },
 
     value: function() {
@@ -8502,7 +8584,7 @@ var mixin_Observable = MetaphorJs.mixin.Observable = {
      */
     $beforeInit: function(cfg) {
         var self = this;
-        self.$$observable = new lib_Observable;
+        self.$$observable = new MetaphorJs.lib.Observable;
         self.$initObservable(cfg);
     },
 
@@ -8590,8 +8672,8 @@ var mixin_Observable = MetaphorJs.mixin.Observable = {
  */
 MetaphorJs.app.App = cls({
 
-    $mixins: [mixin_Observable, 
-                mixin_Provider],
+    $mixins: [MetaphorJs.mixin.Observable, 
+                MetaphorJs.mixin.Provider],
 
     lang: null,
     scope: null,
@@ -8603,13 +8685,13 @@ MetaphorJs.app.App = cls({
     /**
      * @constructor
      * @method
-     * @param {Node} node 
+     * @param {HTMLElement} node 
      * @param {object} data 
      */
     $init: function(node, data) {
 
         var self        = this,
-            scope       = data instanceof lib_Scope ? 
+            scope       = data instanceof MetaphorJs.lib.Scope ? 
                                 data : 
                                 new lib_Scope(data),
             args;
@@ -8619,8 +8701,9 @@ MetaphorJs.app.App = cls({
         scope.$app      = self;
         self.$super();
 
-        self.lang       = new lib_LocalText;
+        self.lang       = new MetaphorJs.lib.LocalText;
 
+        self.node           = node;
         self.scope          = scope;
         self.cmpListeners   = {};
         self.components     = {};
@@ -8632,7 +8715,7 @@ MetaphorJs.app.App = cls({
         self.value('$lang', self.lang);
         self.value('$locale', self.lang);
 
-        self.renderer       = new app_Renderer(node, scope);
+        self.renderer       = new app_Renderer(scope);
         self.renderer.on("rendered", self.afterRender, self);
         self.renderer.on("reference", self._onChildReference, self);
 
@@ -8660,7 +8743,7 @@ MetaphorJs.app.App = cls({
      * @method
      */
     run: function() {
-        this.renderer.process();
+        this.renderer.process(this.node);
     },
 
     /**
@@ -8709,7 +8792,7 @@ MetaphorJs.app.App = cls({
 
     /**
      * Get parent component for given node
-     * @param {Node} node 
+     * @param {HTMLElement} node 
      * @param {bool} includeSelf 
      * @returns {MetaphorJs.app.Component}
      */
@@ -8719,8 +8802,9 @@ MetaphorJs.app.App = cls({
             parent  = includeSelf ? node : node.parentNode,
             id;
 
-        while (parent) {
-            if (id = (dom_getAttr(parent, "cmp-id") || parent.$$cmpId)) {
+        while (parent && parent !== window.document.documentElement) {
+            //if (id = (dom_getAttr(parent, "cmp-id") || parent.$$cmpId)) {
+            if (id = parent.$$cmpId) {
                 return self.getCmp(id);
             }
             parent = parent.parentNode;
@@ -8743,7 +8827,7 @@ MetaphorJs.app.App = cls({
      * @param {string} cmpId 
      * @param {function} fn 
      * @param {object} context 
-     * @returns {lib_Promise}
+     * @returns {MetaphorJs.lib.Promise}
      */
     onAvailable: function(cmpId, fn, context) {
 
@@ -8752,7 +8836,7 @@ MetaphorJs.app.App = cls({
             components = self.components;
 
         if (!cmpListeners[cmpId]) {
-            cmpListeners[cmpId] = new lib_Promise;
+            cmpListeners[cmpId] = new MetaphorJs.lib.Promise;
         }
 
         if (fn) {
@@ -8778,7 +8862,7 @@ MetaphorJs.app.App = cls({
     /**
      * Register component
      * @param {MetaphorJs.app.Component} cmp 
-     * @param {lib_Scope} scope 
+     * @param {MetaphorJs.lib.Scope} scope 
      * @param {string} byKey 
      */
     registerCmp: function(cmp, scope, byKey) {
@@ -8821,7 +8905,7 @@ MetaphorJs.app.App = cls({
 /**
  * Is node attached to DOM
  * @function MetaphorJs.dom.isAttached
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @returns {boolean}
  */
 var dom_isAttached = MetaphorJs.dom.isAttached = function dom_isAttached(node) {
@@ -8829,7 +8913,7 @@ var dom_isAttached = MetaphorJs.dom.isAttached = function dom_isAttached(node) {
     if (node === window) {
         return true;
     }
-    if (node.nodeType == 3) {
+    if (node.nodeType == window.document.TEXT_NODE) {
         if (node.parentElement) {
             return dom_isAttached(node.parentElement);
         }
@@ -8851,14 +8935,14 @@ var dom_isAttached = MetaphorJs.dom.isAttached = function dom_isAttached(node) {
 /**
  * Get dom data value
  * @function MetaphorJs.dom.data
- * @param {Element} el
+ * @param {HTMLElement} el
  * @param {string} key
  */
 
 /**
  * Set dom data value
  * @function MetaphorJs.dom.data
- * @param {Element} el
+ * @param {HTMLElement} el
  * @param {string} key
  * @param {*} value
  * @param {string|null} action Pass "remove" to delete one data key or all keys
@@ -8966,13 +9050,13 @@ var dom_clone = MetaphorJs.dom.clone = function dom_clone(node) {
     else if (node) {
         switch (node.nodeType) {
             // element
-            case 1:
+            case window.document.ELEMENT_NODE:
                 return node.cloneNode(true);
             // text node
-            case 3:
+            case window.document.TEXT_NODE:
                 return window.document.createTextNode(node.innerText || node.textContent);
             // document fragment
-            case 11:
+            case window.document.DOCUMENT_FRAGMENT_NODE:
                 return node.cloneNode(true);
 
             default:
@@ -9123,7 +9207,7 @@ var animate_getDuration = MetaphorJs.animate.getDuration = function(){
      * Get duration in milliseconds from html 
      * element based on current computed style
      * @function MetaphorJs.animate.getDuration
-     * @param {Element} el
+     * @param {HTMLElement} el
      * @returns {number}
      */
     return function(el) {
@@ -9245,7 +9329,7 @@ var dom_getClsReg = MetaphorJs.dom.getClsReg = function(cls) {
 
 /**
  * @function MetaphorJs.dom.hasClass
- * @param {Element} el
+ * @param {HTMLElement} el
  * @param {String} cls
  * @returns {boolean}
  */
@@ -9259,7 +9343,7 @@ var dom_hasClass = MetaphorJs.dom.hasClass = function(el, cls) {
 
 /**
  * @function MetaphorJs.dom.addClass
- * @param {Element} el
+ * @param {HTMLElement} el
  * @param {string} cls
  */
 var dom_addClass = MetaphorJs.dom.addClass = function dom_addClass(el, cls) {
@@ -9278,7 +9362,7 @@ var dom_addClass = MetaphorJs.dom.addClass = function dom_addClass(el, cls) {
 /**
  * Remove element's class
  * @function MetaphorJs.dom.removeClass
- * @param {DomNode} el
+ * @param {HTMLElement} el
  * @param {string} cls
  */
 var dom_removeClass = MetaphorJs.dom.removeClass = function(el, cls) {
@@ -9524,7 +9608,7 @@ var animate_animate = MetaphorJs.animate.animate = function(){
 
     /**
      * @function MetaphorJs.animate.animate
-     * @param {Element} el Element being animated
+     * @param {HTMLElement} el Element being animated
      * @param {string|function|[]|object} animation {
      *  'string' - registered animation name,<br>
      *  'function' - fn(el, callback) - your own animation<br>
@@ -9534,11 +9618,11 @@ var animate_animate = MetaphorJs.animate.animate = function(){
      * }
      * @param {function} startCallback call this function before animation begins
      * @param {function} stepCallback call this function between stages
-     * @returns {lib_Promise}
+     * @returns {MetaphorJs.lib.Promise}
      */
     var animate = function animate(el, animation, startCallback, stepCallback) {
 
-        var deferred    = new lib_Promise,
+        var deferred    = new MetaphorJs.lib.Promise,
             queue       = dom_data(el, dataParam) || [],
             id          = ++animId,
             stages,
@@ -9685,7 +9769,7 @@ var animate_animate = MetaphorJs.animate.animate = function(){
  * Returns array of nodes or an empty array
  * @function MetaphorJs.dom.select
  * @param {string} selector
- * @param {Element} root to look into
+ * @param {HTMLElement} root to look into
  */
 var dom_select = MetaphorJs.dom.select = function() {
 
@@ -9702,6 +9786,8 @@ var dom_select = MetaphorJs.dom.select = function() {
         rRepPrnth   = /[^(]*\(([^)]*)\)/,
         rRepAftPrn  = /\(.*/,
         rGetSquare  = /\[([^!~^*|$ [:=]+)([$^*|]?=)?([^ :\]]+)?\]/,
+
+        elemNodeType= window.document.ELEMENT_NODE,
 
         doc         = window.document,
         bcn         = !!doc.getElementsByClassName,
@@ -9722,7 +9808,7 @@ var dom_select = MetaphorJs.dom.select = function() {
             'last-child': function (child) {
                 var brother = child;
                 /* loop in lastChilds while nodeType isn't element */
-                while ((brother = brother.nextSibling) && brother.nodeType !== 1) {}
+                while ((brother = brother.nextSibling) && brother.nodeType !== elemNodeType) {}
                 /* Check for node's existence */
                 return !!brother;
             },
@@ -9745,7 +9831,7 @@ var dom_select = MetaphorJs.dom.select = function() {
                     /* looping in child to find if nth expression is correct */
                     do {
                         /* nodeIndex expando used from Peppy / Sizzle/ jQuery */
-                        if (brother.nodeType === 1 && (brother.nodeIndex = ++i) && child === brother && ((i + a) % b)) {
+                        if (brother.nodeType === elemNodeType && (brother.nodeIndex = ++i) && child === brother && ((i + a) % b)) {
                             return 0;
                         }
                     } while (brother = brother.nextSibling);
@@ -9767,7 +9853,7 @@ var dom_select = MetaphorJs.dom.select = function() {
                     var brother = child.parentNode.lastChild;
                     i++;
                     do {
-                        if (brother.nodeType === 1 && (brother.nodeLastIndex = i++) && child === brother && ((i + a) % b)) {
+                        if (brother.nodeType === elemNodeType && (brother.nodeLastIndex = i++) && child === brother && ((i + a) % b)) {
                             return 0;
                         }
                     } while (brother = brother.previousSibling);
@@ -10150,7 +10236,7 @@ var dom_select = MetaphorJs.dom.select = function() {
 
                                         /* don't touch already selected elements */
                                         while ((child = child.nextSibling) && !child.yeasss) {
-                                            if (child.nodeType === 1 &&
+                                            if (child.nodeType === elemNodeType &&
                                                 (tag === '*' || child.nodeName.toLowerCase() === tag) &&
                                                 (!id || child.id === id) &&
                                                 (!klass || (' ' + child.className + ' ').indexOf(klass) !== -1) &&
@@ -10171,7 +10257,7 @@ var dom_select = MetaphorJs.dom.select = function() {
 
                                     /* W3C: "an F element immediately preceded by an E element" */
                                     case '+':
-                                        while ((child = child.nextSibling) && child.nodeType !== 1) {}
+                                        while ((child = child.nextSibling) && child.nodeType !== elemNodeType) {}
                                         if (child &&
                                             (child.nodeName.toLowerCase() === tag.toLowerCase() || tag === '*') &&
                                             (!id || child.id === id) &&
@@ -10309,7 +10395,7 @@ var mixin_Promise = MetaphorJs.mixin.Promise = {
     $$promise: null,
 
     $beforeInit: function() {
-        this.$$promise = new lib_Promise;
+        this.$$promise = new MetaphorJs.lib.Promise;
     },
 
     /**
@@ -10568,7 +10654,7 @@ var ajax_transport_XHR = MetaphorJs.ajax.transport.XHR = (function(){
                         // from resolving the promise.
                         // they are needed to process the response though
                         // even it failed. 
-                        self._ajax.$$promise = new lib_Promise;
+                        self._ajax.$$promise = new MetaphorJs.lib.Promise;
                         xhr.responseData = self._ajax.returnResponse(
                             isString(xhr.responseText) ? xhr.responseText : undf,
                             xhr.getResponseHeader("content-type") || ''
@@ -10950,7 +11036,7 @@ var _mousewheelHandler = function(e) {
 
 /**
  * @function MetaphorJs.dom.addListener
- * @param {Element} el
+ * @param {HTMLElement} el
  * @param {string} eventName
  * @param {function} func {
  *  @param {object} event
@@ -11203,7 +11289,7 @@ var ajax_Ajax = MetaphorJs.ajax.Ajax = (function(){
         rts             = /([?&])_=[^&]*/,
         rgethead        = /^(?:GET|HEAD)$/i,
 
-        globalEvents    = new lib_Observable,
+        globalEvents    = new MetaphorJs.lib.Observable,
 
         formDataSupport = !!(window && window.FormData),
 
@@ -11360,11 +11446,11 @@ var ajax_Ajax = MetaphorJs.ajax.Ajax = (function(){
 
     /**
      * @class MetaphorJs.ajax.Ajax
-     * @mixes mixin:mixin_Promise
+     * @mixes mixin:MetaphorJs.mixin.Promise
      */
     return cls({
 
-        $mixins: [mixin_Promise],
+        $mixins: [MetaphorJs.mixin.Promise],
 
         _jsonpName: null,
         _transport: null,
@@ -11985,13 +12071,13 @@ var ajax = function(){
      * @function ajax
      * @param {string} url Url to load or send data to
      * @param {object} opt See ajax.defaults
-     * @returns {ajax_Ajax}
+     * @returns {MetaphorJs.ajax.Ajax}
      */
 
     /**
      * @function ajax
      * @param {object} opt See ajax.defaults
-     * @returns {ajax_Ajax}
+     * @returns {MetaphorJs.ajax.Ajax}
      */
     var ajax    = function ajax(url, opt) {
 
@@ -12071,7 +12157,7 @@ var ajax = function(){
      * @function ajax.get
      * @param {string} url 
      * @param {object} opt 
-     * @returns {ajax_Ajax}
+     * @returns {MetaphorJs.ajax.Ajax}
      */
     ajax.get    = function(url, opt) {
         opt = opt || {};
@@ -12084,7 +12170,7 @@ var ajax = function(){
      * @function ajax.post
      * @param {string} url 
      * @param {object} opt 
-     * @returns {ajax_Ajax}
+     * @returns {MetaphorJs.ajax.Ajax}
      */
     ajax.post   = function(url, opt) {
         opt = opt || {};
@@ -12095,10 +12181,10 @@ var ajax = function(){
     /**
      * Load response to given html element
      * @function ajax.load
-     * @param {Element} el
+     * @param {HTMLElement} el
      * @param {string} url 
      * @param {object} opt 
-     * @returns {ajax_Ajax}
+     * @returns {MetaphorJs.ajax.Ajax}
      */
     ajax.load   = function(el, url, opt) {
 
@@ -12124,7 +12210,7 @@ var ajax = function(){
      * Load script
      * @function ajax.loadScript
      * @param {string} url 
-     * @returns {ajax_Ajax}
+     * @returns {MetaphorJs.ajax.Ajax}
      */
     ajax.loadScript = function(url) {
         return ajax(url, {transport: "script"});
@@ -12135,7 +12221,7 @@ var ajax = function(){
      * @function ajax.submit
      * @param {FormElement} form
      * @param {object} opt
-     * @returns {ajax_Ajax}
+     * @returns {MetaphorJs.ajax.Ajax}
      */
     ajax.submit = function(form, opt) {
         opt = opt || {};
@@ -12182,9 +12268,10 @@ var ajax = function(){
 
 var app_Template = MetaphorJs.app.Template = function() {
 
-    var observable      = new lib_Observable,
-        cache           = new lib_Cache,
+    var observable      = new MetaphorJs.lib.Observable,
+        cache           = new MetaphorJs.lib.Cache,
         options         = {},
+        shadowSupported = !!document.head.attachShadow,
         pblt,
         pbltOpt,
 
@@ -12227,7 +12314,7 @@ var app_Template = MetaphorJs.app.Template = function() {
             }
             else if (tpl && tpl.nodeType) {
                 // do not re-create fragments;
-                if (tpl.nodeType !== 11) { // document fragment
+                if (tpl.nodeType !== window.document.DOCUMENT_FRAGMENT_NODE) { // document fragment
                     if ("content" in tpl) {
                         tpl = tpl.content;
                     }
@@ -12304,16 +12391,25 @@ var app_Template = MetaphorJs.app.Template = function() {
             }
         },
 
-        loadTemplate = function(tplUrl) {
-            if (!cache.exists(tplUrl)) {
-                return cache.add(tplUrl,
-                    ajax(tplUrl, {dataType: 'fragment'})
-                        .then(function(fragment){
-                            return cache.add(tplUrl, fragment);
-                        })
-                );
+        loadPromises = {},
+
+        loadTemplate = function(name, url) {
+
+            if (!cache.exists(name)) {
+                if (!loadPromises[url]) {
+                    loadPromises[url] = ajax(url, {dataType: 'fragment'})
+                    .always(function(fragment) { // sync action
+                        cache.add(name, fragment);
+                    })
+                    .then(function(fragment) { // async action
+                        delete loadPromises[url];
+                        return fragment;
+                    });
+                }
+
+                return loadPromises[url];
             }
-            return cache.get(tplUrl);
+            return lib_Promise.resolve(cache.get(name));
         };
 
     if (MetaphorJs.prebuilt && MetaphorJs.prebuilt.templates) {
@@ -12327,145 +12423,246 @@ var app_Template = MetaphorJs.app.Template = function() {
 
         extend(self, cfg, true, false);
 
+        if (self.parentRenderer) {
+            self._parentRenderer = self.parentRenderer;
+            delete self.parentRenderer;
+        }
         self.id = nextUid();
         observable.createEvent("rendered-" + self.id, {
             returnResult: false,
             autoTrigger: true
         });
+        observable.createEvent("attached-" + self.id);
 
         self.scope = lib_Scope.$produce(self.scope);
-
-        if (!self.config) {
-            self.config = new lib_Config(null, {
-                scope: self.scope
-            });
-        }
-        else if (!(self.config instanceof lib_Config)) {
-            self.config = new lib_Config(
-                self.config, 
-                {
-                    scope: self.scope
-                }
-            );
-        }
-
-        var config = self.config,
-            node = self.node;
-
-        config.setDefaultMode("name", lib_Config.MODE_STATIC);
-        config.setDefaultMode("html", lib_Config.MODE_STATIC);
-        config.setType("animate", "bool", 
-                        lib_Config.MODE_STATIC, self.animate);
-        self.name && config.setDefaultValue("name", self.name);
-        self.html && config.setDefaultValue("html", self.html);
-
-        if (self.replace && node && node.parentNode) {
-            var cmts = dom_commentWrap(node, self.id);
-            self._prevEl = cmts[0];
-            self._nextEl = cmts[1];
-        }
-
-        if (!node) {
-            self.deferRendering = true;
-        }
-
-        if ((config.has("name") || config.has("html")) && 
-            node && node.firstChild && !self.useShadow) {
-            dom_data(node, "mjs-transclude", 
-                dom_toFragment(node.childNodes));
-        }
-
-        self.childrenPromise    = new lib_Promise;
+        self.config = lib_Config.create(
+            self.config, 
+            {scope: self.scope}
+        );
 
         lib_Observable.$initHost(this, cfg, observable);
 
-        if (self.ownRenderer) {
-            self.childrenPromise.resolve(false);
-        }
+        var config = self.config,
+            sm = lib_Config.MODE_STATIC;
 
-        if (self.useShadow && !self.deferRendering) {
-            self._createShadow();
-        }
+        config.setDefaultMode("name", sm);
+        config.setDefaultMode("html", sm);
+        config.on("name", self._onNameChange, self);
+        config.on("html", self._onHtmlChange, self);
+        config.setType("runRenderer", "bool", sm);
+        config.setType("useComments", "bool", sm);
+        config.setType("useShadow", "bool", sm);
+        config.setType("deferRendering", "bool", sm);
 
-        if (config.has("name")) {
-            config.on("name", self._onChange, self);
-            self._resolveTemplate()
-                .done(function(){
-                    if (!self.deferRendering || !self.ownRenderer) {
-                        self._applyTemplate();
-                    }
-                });
-        }
-        else if (config.has("html")) {
-            config.on("html", self._onHtmlChange, self);
-            if (!self.deferRendering || !self.ownRenderer) {
-                self._resolveHtml();
-            }
-        }
-        else {
-            if (self.replace) {
-                throw new Error("Template's name or html properties must be defined");
-            }
-            // run renderer on given node without any templates
-            if (!self.deferRendering && self.ownRenderer) {
-                self._runRenderer();
-            }
-        }
+        !shadowSupported && config.setStatic("useShadow", false);
+        config.get("useShadow") && config.setStatic("useComments", false);
 
-        if (self.ownRenderer && self.parentRenderer) {
-            self.parentRenderer.on("destroy",
-                self._onParentRendererDestroy,
-                self);
+        if (config.get("runRenderer") && self._parentRenderer) {
+            self._parentRenderer.on("destroy",
+                self._onParentRendererDestroy, self
+            );
         }
-
         self.scope.$on("destroy", self._onScopeDestroy, self);
+
+        self._collectInitialNodes(self.attachTo || self.replaceNode);
+        self.resolve();
+
+        if (!config.get("deferRendering")) {
+            self.render();
+        }
     };
+
 
     extend(Template.prototype, {
 
+        _rendering:         false,
         _renderer:          null,
+        _attached:          false,
         _initial:           true,
         _fragment:          null,
+        _template:          null,
+        _nodes:             null,
         _prevEl:            null,
         _nextEl:            null,
+        _attachTo:          null,
+        _attachBefore:      null,
         _shadowRoot:        null,
-        _shadowParent:      null,
+        _resolvePromise:    null,
+        _pubResolvePromise: null,
+        _parentRenderer:    null,
 
-        useShadow:          false,
+        /**
+         * @var {MetpahorJs.lib.Scope}
+         */
         scope:              null,
-        node:               null,
-        config:             null,
-        ownRenderer:        true,
-        childrenPromise:    null,
-        resolvePromise:     null,
-        parentRenderer:     null,
-        deferRendering:     false,
-        replace:            false,
-        animate:            false,
 
-        _createShadow: function() {
-            if (!this._shadowRoot) {
-                this._shadowParent = this.node;
-                this._shadowRoot = this.node.shadowRoot || 
-                                    this.node.attachShadow({mode: "open"});
-                this.node = this._shadowRoot;
+        /**
+         * @var {MetpahorJs.lib.Config}
+         */
+        config:             null,        
+
+        render: function() {
+
+            var self    = this;
+
+            if (self._rendering || !self._initial) {
+                return;
             }
 
+            self._rendering = true;
+            self.config.setStatic("deferRendering", false);
+
+            if (self.replaceNode) {
+                self.replace(self.replaceNode, self.attachTo);
+                delete self.replaceNode;
+                delete self.attachTo;
+            }
+            else if (self.attachTo) {
+                self.attach(self.attachTo, self.attachBefore);
+                delete self.attachTo;
+                delete self.attachBefore;
+            }
+
+            if (self.config.has("name") || 
+                self.config.has("html")) {
+                self.resolve()   
+                    .done(self._attach, self)
+                    .done(self._runRenderer, self);
+            }
+            else {
+                self._runRenderer();
+            }
+
+            self._initial = false;
+            self._rendering = false;
         },
 
-        _runRenderer: function() {
+        attach: function(parent, before) {
+
             var self = this;
-            if (!self._renderer) {
-                self._renderer   = new app_Renderer(
-                    self.node, 
-                    self.scope
-                );
-                observable.relayEvent(self._renderer, "reference", "reference-" + self.id);
-                observable.relayEvent(self._renderer, "first-node", "first-node-" + self.id);
-                observable.relayEvent(self._renderer, "rendered", "rendered-" + self.id);
-                self._renderer.process();
+
+            if (self._attachTo !== parent) {
+
+                self._attached && self.detach();
+                self._nextEl && self._removeComments();
+                self._shadowRoot && self._destroyShadow();
+
+                self._attachTo = parent;
+                self._attachBefore = before;  
+
+                if (self.config.has("name") || 
+                    self.config.has("html")) {
+                    self._prepareTranscludes();
+                }
+                self._createShadow();
+                self._createComments();
+
+                if (self._nodes) {
+                    self._attach();
+                }
             }
         },
+
+        replace: function(node, attachTo) {
+
+            var self = this;
+
+            self._attached && self.detach();
+            self._nextEl && self._removeComments();
+            self._shadowRoot && self._destroyShadow();
+
+            if (attachTo) {
+                self._attachTo = attachTo;
+                self._attachBefore = null;
+                self._replaceNodeWithNode(node, attachTo);
+                self._prepareTranscludes();
+                self._createShadow();
+            }   
+            else {
+                self._prepareTranscludes(node.parentNode, node);
+                self._replaceNodeWithComments(node);
+            }
+
+            if (self._nodes) {
+                self._attach();
+            }
+        },
+
+        isAttached: function() {
+            return this._attached;
+        },
+
+        detach: function() {
+            var self = this;
+
+            if (!self._attached) {
+                return;
+            }
+
+            self._attached = false;
+            self._nodes = self._clear();            
+        },
+
+        resolve: function(renew) {
+            var self    = this;
+
+            if (self._resolvePromise) {
+                if (renew) {
+                    self._resolvePromise.$destroy();
+                    self._resolvePromise = null;
+                    self._pubResolvePromise.$destroy();
+                    self._pubResolvePromise = null;
+                    self._nodes = null;
+                    self._template = null;
+                    self._fragment = null;
+                }
+                else {
+                    return self._pubResolvePromise;
+                }
+            }
+
+            self._pubResolvePromise = new MetaphorJs.lib.Promise;
+
+            if (self.config.has("name")) {
+                self._resolvePromise = self._resolveTemplate();
+            }
+            else if (self.config.has("html")) {
+                self._resolvePromise = self._resolveHtml();
+            }
+            else {
+                self._resolvePromise = lib_Promise.resolve();
+            }
+
+            return self._resolvePromise.done(self._onTemplateResolved, self);
+        },
+
+        _onTemplateResolved: function(fragment) {
+            var self = this;
+
+            if (self._attached) {
+                self._clear();
+            }
+
+            if (fragment) {
+                self._template = typeof fragment === "string" ? 
+                                dom_toFragment(fragment) :
+                                fragment;
+                self._fragment = dom_clone(self._template);
+                self._nodes = toArray(self._fragment.childNodes);
+            }           
+
+            self._pubResolvePromise.resolve();
+        },
+
+        _collectInitialNodes: function(parent) {
+            var self = this;
+            if (!self.config.has("name") && !self.config.has("html")) {
+                parent = parent || self._attachTo || self.attachTo;
+                parent && (self._nodes = toArray(parent.childNodes));
+            }
+        },
+
+
 
         createEvent: function(event, opt) {
             return observable.createEvent(event + "-" + this.id, opt);
@@ -12479,221 +12676,224 @@ var app_Template = MetaphorJs.app.Template = function() {
             return observable.un(event + "-" + this.id, fn, context);
         },
 
-        moveTo: function(parent, before) {
+
+        _prepareTranscludes: function(saveIn, takeFrom) {
+            var self = this;
+            saveIn = saveIn || self._attachTo;
+            takeFrom = takeFrom || self._attachTo;
+            if (saveIn && takeFrom && !self.config.get("useShadow") && 
+                takeFrom.firstChild && 
+                !dom_data(saveIn, "mjs-transclude")) {
+
+                dom_data(saveIn, "mjs-transclude", 
+                    dom_toFragment(takeFrom.childNodes));
+            }
+        },
+
+        _replaceNodeWithComments: function(node) {
             var self = this,
-                el,
-                moved = false,
-                els = [], i, l, j, jl;
-            self._prevEl && els.push(self._prevEl);
-            self.node && els.push(self.node);
-            self._nextEl && els.push(self._nextEl);
-
-            for (i = 0, l = els.length; i < l; i++) {
-                el = els[i];
-                if (isArray(el)) 
-                    for (j = -1, jl = el.length; ++j < jl;) {
-                        if (el[j].parentNode !== parent) {
-                            moved = true;
-                        }
-                        parent.insertBefore(el[j], before);
-                    }
-                else {
-                    if (parent instanceof window.HTMLSlotElement) {
-                        el.setAttribute("slot", parent.getAttribute("name"));
-                    }
-                    else {
-                        if (el.parentNode !== parent) {
-                            moved = true;
-                        }
-                        parent.insertBefore(el, before);
-                    }
-                } 
-            }
-
-            return moved;
+                cmts = dom_commentWrap(node, self.id);
+                node.parentNode && node.parentNode.removeChild(node);
+            self._prevEl = cmts[0];
+            self._nextEl = cmts[1];
         },
 
-        startRendering: function() {
-
-            var self    = this;
-            if (self.deferRendering) {
-                self.deferRendering = false;
-
-                if (self.useShadow) {
-                    self._createShadow();
-                }
-
-                if (self.config.has("name")) {
-                    self._resolveTemplate().done(self._applyTemplate, self);
-                }
-                else if (self.config.has("html")) {
-                    self._resolveHtml();
-                }
-                else {
-                    self._runRenderer();
-                }
-            }
-
-            return self.childrenPromise;
+        _replaceNodeWithNode: function(replacedNode, withNode) {
+            var frg = dom_toFragment(replacedNode.childNodes);
+            replacedNode.parentNode && 
+                replacedNode.parentNode.replaceChild(replacedNode, withNode);
+            withNode.appendChild(frg);
         },
 
-        _resolveTemplate: function(renew) {
+        _createComments: function() {
+            var self = this,
+                parent = self._attachTo,
+                before = self._attachBefore;
 
-            var self    = this;
-
-            if (self.resolvePromise) {
-                if (renew) {
-                    self.resolvePromise.$destroy();
-                    self.resolvePromise = null;
-                }
-                else {
-                    return self.resolvePromise;
-                }
+            if (!self._prevEl && self.config.get("useComments")) {
+                var cmts = [
+                        window.document.createComment("<" + self.id),
+                        window.document.createComment(self.id + ">")
+                    ];
+                parent.insertBefore(cmts[0], before);
+                parent.insertBefore(cmts[1], before);
+                self._prevEl = cmts[0];
+                self._nextEl = cmts[1];
             }
+        },
 
-            return self.resolvePromise = new lib_Promise(
+        _removeComments: function() {
+            var self = this,
+                next = self._nextEl,
+                prev = self._prevEl;
+
+            next.parentNode && next.parentNode.removeChild(next);
+            prev.parentNode && prev.parentNode.removeChild(next);
+            self._nextEl = null;
+            self._prevEl = null;
+        },
+
+        _createShadow: function() {
+            var self = this;
+            if (self._attachTo && !self._shadowRoot && 
+                self.config.get("useShadow")) {
+                self._shadowRoot = self._attachTo.shadowRoot || 
+                                    self._attachTo.attachShadow({mode: "open"});
+            }
+        },
+
+        _destroyShadow: function() {
+            this._shadowRoot = null;
+        },
+
+        _runRenderer: function() {
+            var self = this;
+
+            if (self.config.get("runRenderer")) {
+                if (self._renderer) {
+                    self._renderer.$destroy();
+                    self._renderer = null;
+                }
+
+                observable.trigger("before-render-" + self.id, self);
+
+                self._renderer   = new app_Renderer(self.scope);
+                observable.relayEvent(self._renderer, "reference", "reference-" + self.id);
+                observable.relayEvent(self._renderer, "rendered", "rendered-" + self.id);
+                self._renderer.process(self._nodes);
+            }
+        },
+
+        _resolveTemplate: function() {
+            var tpl = this.config.get("name");
+            
+            return new lib_Promise(
                 function(resolve, reject) {
-                    var tpl = self.config.get("name");
                     if (tpl) {
-                        resolve(getTemplate(tpl) || loadTemplate(tpl));
+                        tpl = getTemplate(tpl);
+                        tpl ? resolve(tpl) : reject();
                     }
-                    else {
-                        reject();
-                    }
+                    else reject();
                 }
             )
-            .done(function(fragment){
-                self._fragment = fragment;
-            })
-            .fail(self.childrenPromise.reject, self.childrenPromise);
+            
         },
 
         _resolveHtml: function() {
-            var self = this,
-                htmlVal = self.config.get("html");
-
-            if (htmlVal) {
-                self._fragment = dom_toFragment(htmlVal);
-                self._applyTemplate();
-            }
+            var html = this.config.get("html");
+            return new lib_Promise(
+                function(resolve, reject) {
+                    html ? resolve(html): reject();
+                }
+            )
         },
 
         _onHtmlChange: function() {
-            var self    = this;
-
-            if (self._renderer) {
-                self._renderer.$destroy();
-                self._renderer = null;
-            }
-
-            if (self.deferRendering) {
-                return;
-            }
-
-            self._resolveHtml();
-        },
-
-        _onChange: function() {
-
-            var self    = this;
-
-            if (self._renderer) {
-                self._renderer.$destroy();
-                self._renderer = null;
-            }
-
-            var tplVal = self.config.get("name");
-
-            if (tplVal) {
-                self._resolveTemplate(true)
-                    .done(self._applyTemplate, self);
-            }
-        },
-
-        _clearNode: function() {
             var self = this;
+            if (!self.config.get("deferRendering")) {
+                self.resolve(true)   
+                    .done(self._attach, self)
+                    .done(self._runRenderer, self);
+            }
+        },
 
-            if (!self.node) {
+        _onNameChange: function() {
+            var self = this;
+            if (!self.config.get("deferRendering")) {
+                self.resolve(true)   
+                    .done(self._attach, self)
+                    .done(self._runRenderer, self);
+            }
+        },
+
+        _collectBetweenComments: function() {
+            var next = this._nextEl,
+                prev = this._prevEl,
+                node = prev,
+                els = [];
+
+            if (prev && next) {
+                while (node && node.nextSibling && 
+                        node.nextSibling !== next) {
+                    els.push(node.nextSibling);
+                    node = node.nextSibling;
+                }
+            }
+
+            return els;
+        },
+
+        _attach: function() {
+            var self = this,
+                i, l, 
+                nodes = self._nodes,
+                child,
+                attached = false,
+                next = self._nextEl,
+                parent = self._shadowRoot || self._attachTo,
+                before = self._attachBefore;
+
+            if (!nodes || self._attached) {
                 return;
             }
 
-            if (self.replace) {
-                var next = self._nextEl, prev = self._prevEl;
-                while (prev && prev.parentNode && prev.nextSibling && 
-                        prev.nextSibling !== next) {
-                    prev.parentNode.removeChild(prev.nextSibling);
+            // without the fragment we're in no-template mode
+            // processing parent's children
+            if (self._fragment) {
+
+                for (i = 0, l = nodes.length; i < l; i++) {
+                    child = nodes[i];
+
+                    // between comments mode
+                    if (next) {
+                        next.parentNode.insertBefore(child, next);
+                        attached = true;
+                    }
+                    // shadow or normal parent
+                    else if (parent) {
+                        if (before) {
+                            parent.insertBefore(child, before);
+                        }
+                        else {
+                            parent.appendChild(child);
+                        }
+                        attached = true;
+                    }
                 }
             }
-            else {
-                var el = self.node;
-                while (el.firstChild) {
-                    el.removeChild(el.firstChild);
-                }
+            else attached = true;
+
+            self._attached = attached;
+            if (attached) {
+                observable.trigger("attached-" + self.id, self, nodes);
             }
         },
 
-        _doApplyTemplate: function() {
+        _clear: function() {
+            var self = this,
+                nodes = [], 
+                i, l, n, parent;
 
-            var self    = this,
-                el      = self.node,
-                frg,
-                children;
-
-            self._clearNode();
-
-            if (self.replace) {
-
-                frg = dom_clone(self._fragment);
-                children = toArray(frg.childNodes);
-
-                if (el && el.nodeType) {
-                    el.parentNode && el.parentNode.removeChild(el);
-                }
-
-                self._nextEl.parentNode.insertBefore(frg, self._nextEl);
-                self.node = children;
-                self.childrenPromise.resolve(children);
+            // remove all children between prev and next
+            if (self._nextEl) {
+                nodes = self._collectBetweenComments();
             }
             else {
-
-                if (el) {
-                    el.appendChild(dom_clone(self._fragment));
+                // remove all children of main node
+                var parent = self._shadowRoot || self._attachTo;
+                if (parent) {
+                    nodes = toArray(parent.childNodes);
                 }
-                else {
-                    self.node = el = dom_clone(self._fragment);
-                }
-
-                self.childrenPromise.resolve(el);
             }
 
-            observable.trigger("before-render-" + self.id, self);
-
-            if (self.ownRenderer) {
-                self._runRenderer();
-            }
-        },
-
-        _applyTemplate: function() {
-
-            var self        = this,
-                el          = self.node,
-                initial     = self._initial,
-                deferred    = new lib_Promise;
-
-            self._initial = false;
-
-            if (!initial && el && self.config.get("animate")) {
-                animate_animate(el, "leave")
-                    .done(self._doApplyTemplate, self)
-                    .done(deferred.resolve, deferred);
-                animate_animate(el, "enter");
-            }
-            else {
-                self._doApplyTemplate();
-                deferred.resolve();
+            for (i = 0, l = nodes.length; i < l; i++) {
+                n = nodes[i];
+                n.parentNode && n.parentNode.removeChild(n);
             }
 
-            return deferred;
+            self._attached = false;
+
+            return nodes;
         },
 
         _onParentRendererDestroy: function() {
@@ -12723,6 +12923,9 @@ var app_Template = MetaphorJs.app.Template = function() {
                 self._prevEl.parentNode.removeChild(self._prevEl);
             }
 
+            observable.destroyEvent("rendered-" + self.id);
+            observable.destroyEvent("attached-" + self.id);
+
             if (self.config) {
                 self.config.clear();
                 self.config = null;
@@ -12730,32 +12933,20 @@ var app_Template = MetaphorJs.app.Template = function() {
         }
     });
 
+
+    Template.load = loadTemplate;
     Template.cache = cache;
 
-    Template.prepareConfig = function(def, tplConfig) {
-        if (typeof def === 'string') {
-            tplConfig.setProperty("name", {
-                expression: def,
-                mode: lib_Config.MODE_STATIC
-            });
+    Template.add = function(name, tpl) {
+        Template.cache.add(name, tpl);
+    };
+
+    Template.prepareConfig = function(config, values) {
+        if (typeof values === 'string') {
+            config.setDefaultValue("name", values);
         }
-        else if (def) {
-            if (def.name || def.nameExpression || def.expression) {
-                tplConfig.setProperty("name", {
-                    expression: def.name || def.nameExpression || def.expression,
-                    mode: def.nameExpression || def.expression ? 
-                        lib_Config.MODE_DYNAMIC :
-                        lib_Config.MODE_STATIC
-                });
-            }
-            if (def.html || def.htmlExpression) {
-                tplConfig.setProperty("html", {
-                    expression: def.html || def.htmlExpression,
-                    mode: def.htmlExpression ? 
-                        lib_Config.MODE_DYNAMIC :
-                        lib_Config.MODE_STATIC
-                });
-            }
+        else if (values) {
+            config.addProperties(values, "defaultValue");
         }
     };
 
@@ -12909,41 +13100,35 @@ var htmlTags = MetaphorJs.dom.htmlTags = [
  */
 var app_Component = MetaphorJs.app.Component = cls({
 
-    $mixins: [mixin_Observable],
+    $mixins: [MetaphorJs.mixin.Observable],
     $mixinEvents: ["$initConfig"],
 
     /**
      * @access protected
-     * @var string
+     * @var {string}
      */
     id:             null,
 
     /**
-     * @access private
-     * @var bool
-     */
-    _originalId:    false,
-
-    /**
-     * @var Element
+     * @var {HtmlElement}
      * @access protected
      */
     node:           null,
 
     /**
-     * @var boolean
+     * @var {boolean}
      * @access protected
      */
-    keepCustomNode: false,
+    useShadowDOM:   false,
 
     /**
-     * @var boolean
-     * @access private
+     * @var {boolean}
+     * @access protected
      */
-    _nodeReplaced:  false,
+    replaceCustomNode: true,
 
     /**
-     * @var string|Element
+     * @var {string|HtmlElement}
      * @access protected
      */
     renderTo:       null,
@@ -12954,13 +13139,7 @@ var app_Component = MetaphorJs.app.Component = cls({
     autoRender:     false,
 
     /**
-     * @var bool
-     * @access protected
-     */
-    _rendered:       false,
-
-    /**
-     * @var bool
+     * @var {bool}
      * @access protected
      */
     destroyEl:      true,
@@ -12971,20 +13150,40 @@ var app_Component = MetaphorJs.app.Component = cls({
     destroyScope:   false,
 
     /**
-     * @var {Scope}
+     * @var {MetaphorJs.lib.Scope}
      */
     scope:          null,
+
+    /**
+     * @var {MetaphorJs.lib.Config}
+     */
+    config:         null,
 
     /**
      * @var {Template}
      */
     template:       null,
 
+
+
     /**
-     * @var bool
+     * @access private
+     * @var {boolean}
+     */
+    _originalId:    false,
+
+    /**
+     * @var {boolean}
      * @access private
      */
-    isWebComponent: false,
+    _nodeReplaced:  false,
+
+    /**
+     * @var {bool}
+     * @access protected
+     */
+    _rendered:       false,
+
 
     $constructor: function(cfg) {
         var self = this,
@@ -13006,40 +13205,44 @@ var app_Component = MetaphorJs.app.Component = cls({
      */
     $init: function(cfg) {
 
-        var self    = this;
+        var self    = this,
+            scope,
+            config;
 
         cfg = cfg || {};
 
         self.$super(cfg);
         extend(self, cfg, true, false);
 
-        self.scope = lib_Scope.$produce(self.scope);
+        scope = self.scope = lib_Scope.$produce(self.scope);
 
         // We initialize config with current scope or change config's scope
         // to current so that all new properties that come from _initConfig
         // are bound to local scope. 
         // All pre-existing properties are already bound to outer scope;
         // Also, each property configuration can have its scope specified
-        if (!self.config || !(self.config instanceof lib_Config)) {
-            self.config = new lib_Config(self.config, {
-                scope: self.scope
-            });
-        }
-        else {
-            self.config.setOption("scope", self.scope);
-        }
+        config = self.config = lib_Config.create(
+            self.config,
+            {scope: scope}, 
+            /*scalarAs: */"defaultValue"
+        )
+        config.setOption("scope", scope);
 
         self.$refs = {node: {}, cmp: {}};
-        self.scope.$cfg = {};
-        self.config.setTo(self.scope.$cfg);
+        scope.$cfg = {};
+        config.setTo(scope.$cfg);
         self._initConfig();
         self.$callMixins("$initConfig");
 
-        if (self.$view) {
-            self.scope.$view = self.$view;
+        if (config.has("init")) {
+            config.get("init")(scope);
         }
-        if (self.config.has("as")) {
-            self.scope[self.config.get("as")] = self;
+
+        if (self.$view) {
+            scope.$view = self.$view;
+        }
+        if (config.has("as")) {
+            scope[config.get("as")] = self;
         }
 
         if (self.node) {
@@ -13054,22 +13257,22 @@ var app_Component = MetaphorJs.app.Component = cls({
 
         self.id = self.id || "cmp-" + nextUid();
 
-        if (!self.node && self.config.has("tag")) {
-            self.node = window.document.createElement(self.config.get("tag"));
+        if (!self.node && config.has("tag")) {
+            self.node = window.document.createElement(config.get("tag"));
         }
 
         self.beforeInitComponent.apply(self, arguments);
         self.initComponent.apply(self, arguments);
 
-        if (self.scope.$app) {
-            self.scope.$app.registerCmp(self, self.scope, "id");
+        if (scope.$app) {
+            scope.$app.registerCmp(self, scope, "id");
         }
 
         if (self.parentRenderer) {
             self.parentRenderer.on("destroy", self._onParentRendererDestroy, self);
         }
 
-        if (self.node && !self.isWebComponent) {
+        if (self.node) {
             self._claimNode();
         }
 
@@ -13082,39 +13285,44 @@ var app_Component = MetaphorJs.app.Component = cls({
             tpl = self.template;
 
         if (self.node) {
-            self._nodeReplaced = !self.keepCustomNode && 
+            self._nodeReplaced = self.replaceCustomNode && 
                                     htmlTags.indexOf(
                                         self.node.tagName.toLowerCase()
                                     ) === -1;
         }
 
-        if (tpl instanceof app_Template) {
+        if (tpl instanceof MetaphorJs.app.Template) {
             // it may have just been created
-            self.template.node = self.node;
+            if (self.node) {
+                self._nodeReplaced ? 
+                    self.template.replace(self.node) :
+                    self.template.attach(self.node);
+            }
             self.template.on("reference", self._onChildReference, self);
             self.template.on("rendered", self._onRenderingFinished, self);
         }
         else {
 
-            var tplConfig = self.config.slice(["animate"], {
-                // component config's scope is from parent,
-                // template's scope must be the same as component's
-                scope: self.scope
-            });
-            app_Template.prepareConfig(tpl, tplConfig);
+            var tplConfig = new lib_Config({
+                deferRendering: !self.autoRender,
+                runRenderer: true,
+                useShadow: self.useShadowDOM,
+                useComments: self._nodeReplaced
+            }, {scope: self.scope});
+
+            app_Template.prepareConfig(tplConfig, tpl);
+
             self.template = tpl = new app_Template({
                 scope: self.scope,
-                node: self.node,
-                deferRendering: self._nodeReplaced || !self.autoRender,
-                ownRenderer: true,
-                useShadow: self.isWebComponent,
-                replace: self._nodeReplaced, // <some-custom-tag>
                 config: tplConfig,
+
+                attachTo: self._nodeReplaced ? null : self.node,
+                replaceNode: self._nodeReplaced ? self.node : null,
+
                 callback: {
                     context: self,
                     reference: self._onChildReference,
-                    rendered: self._onRenderingFinished,
-                    "first-node": self._onFirstNodeReported
+                    rendered: self._onRenderingFinished
                 }
             });
         }
@@ -13122,7 +13330,7 @@ var app_Component = MetaphorJs.app.Component = cls({
         self.afterInitComponent.apply(self, arguments);
 
         if (self.autoRender) {
-            tpl.childrenPromise.done(self.render, self);
+            tpl.resolve().done(self.render, self);
         }
     },
 
@@ -13131,6 +13339,8 @@ var app_Component = MetaphorJs.app.Component = cls({
             config = self.config,
             ctx;
 
+        config.setMode("scope", lib_Config.MODE_STATIC);
+        config.setMode("init", lib_Config.MODE_FUNC);
         config.setDefaultMode("tag", lib_Config.MODE_STATIC);
         config.setDefaultMode("as", lib_Config.MODE_STATIC);
 
@@ -13208,7 +13418,7 @@ var app_Component = MetaphorJs.app.Component = cls({
 
     _prepareDirectiveCfg: function(cfg) {
 
-        if (cfg instanceof lib_Config) {
+        if (cfg instanceof MetaphorJs.lib.Config) {
             return cfg;
         }
 
@@ -13265,7 +13475,7 @@ var app_Component = MetaphorJs.app.Component = cls({
         }
     },
 
-    _onFirstNodeReported: function(node) {
+    /*_onFirstNodeReported: function(node) {
         var self = this;
         if (self._nodeReplaced) {
             self._claimNode(node);
@@ -13275,7 +13485,7 @@ var app_Component = MetaphorJs.app.Component = cls({
             self.template.node = node;
             self._claimNode(node);
         }
-    },
+    },*/
 
     _onChildReference: function(type, ref, item) {
         var self = this;
@@ -13296,7 +13506,6 @@ var app_Component = MetaphorJs.app.Component = cls({
     _claimNode: function(node) {
         var self = this;
         node = node || self.node;
-        dom_setAttr(node, "cmp-id", self.id);
         if (!self._originalId) {
             dom_setAttr(node, "id", self.id);
         }
@@ -13305,7 +13514,6 @@ var app_Component = MetaphorJs.app.Component = cls({
 
     _releaseNode: function(node) {
         node = node || this.node;
-        dom_removeAttr(node, "cmp-id");
         if (!self._originalId) {
             dom_removeAttr(node, "id");
         }
@@ -13313,7 +13521,7 @@ var app_Component = MetaphorJs.app.Component = cls({
     },
 
     _replaceNodeWithTemplate: function() {
-        var self = this;
+        /*var self = this;
 
         if (self._nodeReplaced && self.node && self.node.parentNode) {
             dom_removeAttr(self.node, "id");
@@ -13322,13 +13530,13 @@ var app_Component = MetaphorJs.app.Component = cls({
         self.node = self.template.node;
 
         // document fragment
-        if (self.node.nodeType === 11 || isArray(self.node)) {
-            var ch = self.node.nodeType === 11 ?
+        if (self.node.nodeType === window.document.DOCUMENT_FRAGMENT_NODE) {
+            var ch = self.node.nodeType === window.document.DOCUMENT_FRAGMENT_NODE ?
                     self.node.childNodes :
                     self.node,
                 i, l;
             for (i = 0, l = ch.length; i < l; i++) {
-                if (ch[i].nodeType === 1) {
+                if (ch[i].nodeType === window.document.ELEMENT_NODE) {
                     self.node = ch[i];
                     break;
                 }
@@ -13337,7 +13545,7 @@ var app_Component = MetaphorJs.app.Component = cls({
 
         self.template.node = self.node;
 
-        self._claimNode();
+        self._claimNode();*/
     },
 
 
@@ -13351,25 +13559,27 @@ var app_Component = MetaphorJs.app.Component = cls({
 
         var self = this;
 
-        if (parent && parent.nodeType === 8) {
+        if (parent && parent.nodeType === window.document.COMMENT_NODE) {
             before = parent;
             parent = parent.parentNode;
         }
 
-        if (self._rendered) {
+        parent && self.attach(parent, before);
+
+        /*if (self._rendered) {
             parent && self.attach(parent, before);
             return;
         }
         else if (parent) {
             self.renderTo = parent;
             self.renderBefore = before;
-        }
+        }*/
 
         self.onBeforeRender();
         self.trigger('render', self);
 
         if (self.template) {
-            self.template.startRendering();
+            self.template.render();
         }
     },
 
@@ -13385,6 +13595,7 @@ var app_Component = MetaphorJs.app.Component = cls({
         if (!parent) {
             throw new Error("Parent node is required");
         }
+
         if (self.isAttached(parent)) {
             return;
         }
@@ -13392,11 +13603,7 @@ var app_Component = MetaphorJs.app.Component = cls({
         self.detach(true);
         self.renderTo = parent;
         self.renderBefore = before;
-
-        if (self.template.moveTo(parent, before)) {
-            self.afterAttached();
-            self.trigger('attached', self);
-        }
+        self.template.attach(parent, before);
     },
 
     detach: function(willAttach) {
@@ -13407,6 +13614,11 @@ var app_Component = MetaphorJs.app.Component = cls({
             self.trigger('detached', self, willAttach);
         }
     },
+
+    /*_onTemplateAttached: function() {
+        self.afterAttached();
+        self.trigger("attached", self);
+    },*/
 
     getRefEl: function(name) {
         return this.$refs['node'][name];
@@ -13419,7 +13631,7 @@ var app_Component = MetaphorJs.app.Component = cls({
     getRefCmpPromise: function(name) {
         var cmp = this.$refs['cmp'][name];
         if (!cmp) {
-            return this.$refs['cmp'][name] = new lib_Promise;
+            return this.$refs['cmp'][name] = new MetaphorJs.lib.Promise;
         }
         else if (isThenable(cmp)) {
             return cmp;
@@ -13436,11 +13648,6 @@ var app_Component = MetaphorJs.app.Component = cls({
     _onRenderingFinished: function() {
         var self = this;
 
-        if ((self._nodeReplaced && self.node !== self.template.node) ||
-            !self.node) {
-            self._replaceNodeWithTemplate();
-        }
-
         self._rendered   = true;
         self.afterRender();
         self.trigger('after-render', self);
@@ -13456,6 +13663,11 @@ var app_Component = MetaphorJs.app.Component = cls({
                 self.trigger('after-attached', self);
             }
             else if (self.renderTo && self.node.parentNode !== self.renderTo) {
+                self.attach(self.renderTo, self.renderBefore);
+            }
+        }
+        else {
+            if (self.renderTo) {
                 self.attach(self.renderTo, self.renderBefore);
             }
         }
@@ -13642,10 +13854,7 @@ var app_Component = MetaphorJs.app.Component = cls({
             for (i = 0, l = props.length; i < l; i++) {
                 name = props[i];
                 if (obj[name]) {
-                    if (isPrimitive(obj[name])) {
-                        config[name] = {defaultValue: obj[name]};    
-                    }
-                    else config[name] = obj[name];
+                    config[name] = obj[name];
                     delete obj[name];
                 }
             }
@@ -13737,7 +13946,7 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
 
         for (i in constr.resolve) {
             (function(name){
-                var d = new lib_Promise,
+                var d = new MetaphorJs.lib.Promise,
                     fn;
 
                 defers.push(d.done(function(value){
@@ -13771,35 +13980,26 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
 
     if (tpl) {
 
-        var tplConfig = new lib_Config(null, {
-            scope: scope
+        var tplConfig = new lib_Config(null, {scope: scope});
+        app_Template.prepareConfig(tplConfig, tpl);
+        tplConfig.addProperties({
+            deferRendering: true,
+            runRenderer: true
         });
-        if (config) {
-            tplConfig.setProperty("animate", config.copyProperty("animate"));
-        }
-        app_Template.prepareConfig(tpl, tplConfig);
 
         cfg.template = new app_Template({
             scope: scope,
             node: node,
-            deferRendering: true,
-            ownRenderer: true,
             config: tplConfig
         });
 
-        defers.push(cfg.template.childrenPromise);
-
-        /*if (node && node.firstChild) {
-            dom_data(
-                node, "mjs-transclude", 
-                dom_toFragment(node.childNodes));
-        }*/
+        defers.push(cfg.template.resolve());
     }
 
     var p;
 
     if (defers.length) {
-        p = new lib_Promise;
+        p = new MetaphorJs.lib.Promise;
         lib_Promise.all(defers)
             .done(function(values){
                 p.resolve(
@@ -13844,7 +14044,7 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
 /**
  * Check if given element matches selector
  * @function MetaphorJs.dom.is
- * @param {Element} el
+ * @param {HTMLElement} el
  * @param {string} selector
  * @returns {boolean}
  */
@@ -13937,7 +14137,7 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
             }
 
             def = null;
-            if (node.nodeType === 1) {
+            if (node.nodeType === window.document.ELEMENT_NODE) {
 
                 if (node[idkey]) {
                     continue;
@@ -13946,10 +14146,12 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
                 foundCmp = null;
                 foundPromise = null;
                 renderRef = null;
-                renderer = new app_Renderer(node, scope);
+                renderer = new app_Renderer(
+                    scope.$parent || scope
+                );
                 renderer.on("reference", refCallback);
                 renderer.on("reference-promise", promiseCallback);
-                renderer.process();
+                renderer.process(node);
 
                 if (foundCmp || foundPromise) {
                     if (!renderRef) {
@@ -14094,14 +14296,14 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
                     scope: self.scope.$new()
                 });
             }
-            else if (def instanceof app_Component) {
+            else if (def instanceof MetaphorJs.app.Component) {
                 item.component = def;
             }
             else if (def instanceof window.Node) {
                 item.type = "node";
                 item.node = def;
             }
-            else if (def instanceof app_Template) {
+            else if (def instanceof MetaphorJs.app.Template) {
                 item.component = new app_Component({
                     scope: self.scope,
                     template: def
@@ -14247,7 +14449,7 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
             delete cmp[idkey];
             delete self.itemsMap[itemid];
             inx = self.items.indexOf(item);
-            if (cmp instanceof app_Component) {
+            if (cmp instanceof MetaphorJs.app.Component) {
                 self._initChildEvents("un", cmp);
             }
             if (inx !== -1) {
@@ -14354,7 +14556,7 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
         }
 
         // comment
-        if (refnode.nodeType === 8) {
+        if (refnode.nodeType === window.document.COMMENT_NODE) {
             refnode.parentNode.insertBefore(item.placeholder, refnode);
         }
         else refnode.appendChild(item.placeholder);
@@ -14372,13 +14574,13 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
             if (refnode instanceof window.HTMLSlotElement) {
                 item.node.setAttribute("slot", refnode.getAttribute("name"));
             }
-            else if (refnode.nodeType === 8) {
+            else if (refnode.nodeType === window.document.COMMENT_NODE) {
                 refnode.parentNode.insertBefore(item.node, item.placeholder);
             }
             else refnode.insertBefore(item.node, item.placeholder);
         }
         else if (item.type === "component") {
-            if (refnode.nodeType === 8)
+            if (refnode.nodeType === window.document.COMMENT_NODE)
                 item.component.render(refnode.parentNode, item.placeholder);    
             else item.component.render(refnode, item.placeholder);
         }
@@ -14438,7 +14640,7 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
             return;
         }
 
-        if (cmp instanceof app_Component) {
+        if (cmp instanceof MetaphorJs.app.Component) {
             cmp.trigger("remove-from-container", cmp);
         }
 
@@ -14462,7 +14664,7 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
             return;
         }
 
-        if (cmp instanceof app_Component) {
+        if (cmp instanceof MetaphorJs.app.Component) {
             cmp.trigger("remove-from-container", cmp);
         }
         else {
@@ -15098,8 +15300,8 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
         scope.$getRawIndex = self.griDelegate;
 
         if (!item.renderer) {
-            item.renderer  = new app_Renderer(item.el, scope);
-            item.renderer.process();
+            item.renderer  = new app_Renderer(scope);
+            item.renderer.process(item.el);
             item.rendered = true;
         }
         else {
@@ -15718,7 +15920,7 @@ var regexp_location = MetaphorJs.regexp.location = /^(((([^:\/#\?]+:)?(?:(\/\/)(
 
 var browser_parseLocation = MetaphorJs.browser.parseLocation = function(url) {
 
-    var matches = url.match(regexp_location) || [],
+    var matches = url.match(MetaphorJs.regexp.location) || [],
         wl = (typeof window != "undefined" ? window.location : null) || {};
 
     return {
@@ -15787,7 +15989,7 @@ var lib_History = MetaphorJs.lib.History = function() {
     var win,
         history,
         location,
-        observable      = new lib_Observable,
+        observable      = new MetaphorJs.lib.Observable,
         api             = {},
         programId       = nextUid(),
         stateKeyId      = "$$" + programId,
@@ -16350,7 +16552,7 @@ var lib_UrlParam = MetaphorJs.lib.UrlParam = (function(){
      */
     var UrlParam = cls({
 
-        $mixins: [mixin_Observable],
+        $mixins: [MetaphorJs.mixin.Observable],
 
         id: null,
         name: null,
@@ -16526,7 +16728,7 @@ var lib_UrlParam = MetaphorJs.lib.UrlParam = (function(){
 /**
  * Stop ongoing animation for given element
  * @function MetaphorJs.animate.stop
- * @param {Element} el
+ * @param {HTMLElement} el
  */
 var animate_stop = MetaphorJs.animate.stop = function(el) {
 
@@ -16959,7 +17161,7 @@ Directive.registerAttribute("app", 100, appDirective);
 /**
  * Is given element a field
  * @function MetaphorJs.dom.isField
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @returns {boolean}
  */
 var dom_isField = MetaphorJs.dom.isField = function dom_isField(el) {
@@ -16979,7 +17181,7 @@ var dom_isField = MetaphorJs.dom.isField = function dom_isField(el) {
 
 /**
  * @function MetaphorJs.dom.getInputValue
- * @param {Element} elem
+ * @param {HTMLElement} elem
  * @returns {string}
  */
 var dom_getInputValue = MetaphorJs.dom.getInputValue = function(){
@@ -17075,7 +17277,7 @@ var dom_getInputValue = MetaphorJs.dom.getInputValue = function(){
 
 /**
  * @function MetaphorJs.dom.setInputValue
- * @param {Element} el
+ * @param {HTMLElement} el
  * @param {*} val
  */
 var dom_setInputValue = MetaphorJs.dom.setInputValue = function() {
@@ -17128,7 +17330,7 @@ var dom_setInputValue = MetaphorJs.dom.setInputValue = function() {
 
     return function(el, val) {
 
-        if (el.nodeType !== 1) {
+        if (el.nodeType !== window.document.ELEMENT_NODE) {
             return;
         }
 
@@ -17155,7 +17357,7 @@ var dom_setInputValue = MetaphorJs.dom.setInputValue = function() {
 /**
  * Remove listeners from element's events
  * @function MetaphorJs.dom.removeListener
- * @param {DomNode} el 
+ * @param {HTMLElement} el 
  * @param {string} eventName
  * @param {function} fn
  */
@@ -17280,7 +17482,7 @@ var browser_hasEvent = MetaphorJs.browser.hasEvent = function(){
 
 var lib_Input = MetaphorJs.lib.Input = function(){
 
-var observable = new lib_Observable,
+var observable = new MetaphorJs.lib.Observable,
     id = 0;
 
 var Input = function(el, changeFn, changeFnContext, cfg) {
@@ -17296,7 +17498,7 @@ var Input = function(el, changeFn, changeFnContext, cfg) {
 
     cfg = cfg || {};
 
-    //self.observable     = new lib_Observable;
+    //self.observable     = new MetaphorJs.lib.Observable;
     self.el             = el;
     self.id             = ++id;
     self.inputType      = el.type.toLowerCase();
@@ -17326,7 +17528,7 @@ extend(Input.prototype, {
         //self.observable.$destroy();
         observable.destroyEvent("change-" + self.id);
         observable.destroyEvent("key-" + self.id);
-        self._addOrRemoveListeners(dom_removeListener, true);
+        self._addOrRemoveListeners(MetaphorJs.dom.removeListener, true);
 
         self.el.$$input = null;
 
@@ -17381,7 +17583,7 @@ extend(Input.prototype, {
             self.initTextInput();
         }
 
-        self._addOrRemoveListeners(dom_addListener, false);
+        self._addOrRemoveListeners(MetaphorJs.dom.addListener, false);
 
         self.changeInitialized = true;
     },
@@ -17720,8 +17922,8 @@ Input.get = function(node, scope) {
     return new Input(node);
 };
 
-Input.getValue = dom_getInputValue;
-Input.setValue = dom_setInputValue;
+Input.getValue = MetaphorJs.dom.getInputValue;
+Input.setValue = MetaphorJs.dom.setInputValue;
 
 
 
@@ -17779,7 +17981,7 @@ Directive.registerAttribute("bind", 1000,
                 self.textRenderer.subscribe(self.onTextRendererChange, self);
                 self.onTextRendererChange();
 
-                if (scope instanceof lib_Scope) {
+                if (scope instanceof MetaphorJs.lib.Scope) {
                     scope.$on("destroy", self.onScopeDestroy, self);
                 }
             }
@@ -18096,13 +18298,7 @@ DO NOT put class="{}" when using class.name="{}"
         };
 
         if (MetaphorJs.directive.component[tag]) {
-            var ds = {}, k;
-            for(k in attrSet.directive) {
-                if (attrSet.directive.hasOwnProperty(k)) {
-                    ds[k] = attrSet.directive[k].config;
-                }
-            }
-            cfg.directives = ds;
+            cfg.directives = attrSet.directives;
         }
 
         var res = app_resolve(cmpName, cfg, newScope, node, [cfg])
@@ -18120,10 +18316,10 @@ DO NOT put class="{}" when using class.name="{}"
             cfg, attrSet
         );
 
-        return constr.$resumeRenderer || !!constr.$shadow;
+        attrSet.renderer.ignoreInside = true;
     };
 
-    cmpAttr.$breakScope = false;
+    //cmpAttr.$breakScope = false;
 
     Directive.registerAttribute("cmp", 200, cmpAttr);
 
@@ -18167,7 +18363,7 @@ DO NOT put class="{}" when using class.name="{}"
             expr = config.getExpression("value");
         }
 
-        var handler = detectModelType(expr, scope) || app_ListRenderer;
+        var handler = detectModelType(expr, scope) || MetaphorJs.app.ListRenderer;
 
         return new handler(scope, node, config, parentRenderer, attrSet);
     };
@@ -18183,7 +18379,7 @@ DO NOT put class="{}" when using class.name="{}"
         skip: true
     };
 
-    eachDirective.registerType(Array, app_ListRenderer);
+    eachDirective.registerType(Array, MetaphorJs.app.ListRenderer);
 
     Directive.registerAttribute("each", 100, eachDirective);
     Directive.registerTag("each", eachDirective);
@@ -18199,14 +18395,14 @@ DO NOT put class="{}" when using class.name="{}"
 /**
  * Get element's style object
  * @function MetaphorJs.dom.getStyle
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @returns {DomStyle}
  */
 
  /**
  * Get element's style property
  * @function MetaphorJs.dom.getStyle
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @param {string} prop
  * @param {boolean} numeric return as number
  * @returns {string|int}
@@ -18375,7 +18571,7 @@ var _dom_getDimensions = function(type, name) {
         }
 
         // Get document width or height
-        if (elem.nodeType === 9) {
+        if (elem.nodeType === window.document.DOCUMENT_NODE) {
             var doc = elem.documentElement;
 
             // Either scroll[Width/Height] or offset[Width/Height] or client[Width/Height],
@@ -18403,7 +18599,7 @@ var _dom_getDimensions = function(type, name) {
 /**
  * Get element width
  * @function MetaphorJs.dom.getWidth
- * @param {DomNode} el
+ * @param {HTMLElement} el
  * @returns {int}
  */
 var dom_getWidth = MetaphorJs.dom.getWidth = _dom_getDimensions("", "Width");
@@ -18414,7 +18610,7 @@ var dom_getWidth = MetaphorJs.dom.getWidth = _dom_getDimensions("", "Width");
 /**
  * Get element height
  * @function MetaphorJs.dom.getHeight
- * @param {DomNode} el
+ * @param {HTMLElement} el
  * @returns {int}
  */
 var dom_getHeight = MetaphorJs.dom.getHeight = _dom_getDimensions("", "Height");
@@ -18460,7 +18656,7 @@ var _getScrollTopOrLeft = function(vertical) {
         if (!node || node === window) {
             return ret(defaultST(), allowNegative);
         }
-        else if (node && node.nodeType == 1 &&
+        else if (node && node.nodeType == window.document.ELEMENT_NODE &&
             node !== body && node !== html) {
             return ret(node[sProp], allowNegative);
         }
@@ -18477,7 +18673,7 @@ var _getScrollTopOrLeft = function(vertical) {
 /**
  * Get element's vertical scroll position
  * @function MetaphorJs.dom.getScrollTop
- * @param {DomNode} element
+ * @param {HTMLElement} element
  * @returns {int}
  */
 var dom_getScrollTop = MetaphorJs.dom.getScrollTop = _getScrollTopOrLeft(true);
@@ -18489,7 +18685,7 @@ var dom_getScrollTop = MetaphorJs.dom.getScrollTop = _getScrollTopOrLeft(true);
 /**
  * Get element's horizontal scroll position
  * @function MetaphorJs.dom.getScrollLeft
- * @param {DomNode} element
+ * @param {HTMLElement} element
  * @returns {int}
  */
 var dom_getScrollLeft = MetaphorJs.dom.getScrollLeft = _getScrollTopOrLeft(false);
@@ -18519,7 +18715,7 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
     /**
      * @method EventBuffer
      * @constructor
-     * @param {DomNode} node 
+     * @param {HTMLElement} node 
      * @param {string} event Dom event name
      * @param {int} interval 
      */
@@ -18539,7 +18735,7 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
         self.watchers = {};
         self.node = node;
         self.event = event;
-        self.observable = new lib_Observable;
+        self.observable = new MetaphorJs.lib.Observable;
         self.interval = interval || 0;
         self.handlerDelegate = bind(self.handler, self);
         self.triggerDelegate = bind(self.trigger, self);
@@ -18600,7 +18796,7 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
          * @method
          */
         watchWidth: function() {
-            this.addWatcher("width", dom_getWidth);
+            this.addWatcher("width", MetaphorJs.dom.getWidth);
         },
 
         /**
@@ -18608,7 +18804,7 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
          * @method
          */
         watchHeight: function() {
-            this.addWatcher("width", dom_getHeight);
+            this.addWatcher("width", MetaphorJs.dom.getHeight);
         },
 
         /**
@@ -18616,7 +18812,7 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
          * @method
          */
         watchScrollTop: function() {
-            this.addWatcher("scrollTop", dom_getScrollTop);
+            this.addWatcher("scrollTop", MetaphorJs.dom.getScrollTop);
         },
 
         /**
@@ -18624,7 +18820,7 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
          * @method
          */
         watchScrollLeft: function() {
-            this.addWatcher("scrollLeft", dom_getScrollLeft);
+            this.addWatcher("scrollLeft", MetaphorJs.dom.getScrollLeft);
         },
 
         /**
@@ -18632,7 +18828,7 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
          * @method
          * @param {string} name Watcher name
          * @param {function} fn {
-         *  @param {DomNode} node
+         *  @param {HTMLElement} node
          * }
          * @param {object} context fn's context
          */
@@ -18844,7 +19040,7 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
      * Get existing event buffer
      * @method get
      * @static
-     * @param {DomNode} node 
+     * @param {HTMLElement} node 
      * @param {string} event 
      * @param {int} interval 
      * @returns {MetaphorJs.lib.EventBuffer}
@@ -18884,7 +19080,7 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
  * @constructor
  * @param {string} event Dom event name
  * @param {MetaphorJs.lib.Scope} scope 
- * @param {Node} node 
+ * @param {HTMLElement} node 
  * @param {MetaphorJs.lib.Config} cfg MetaphorJs.lib.Config
  */
 MetaphorJs.lib.EventHandler = function(event, scope, node, cfg) {
@@ -19321,16 +19517,14 @@ Directive.registerAttribute("include", 1100,
     config.setProperty("name", config.getProperty("value"));
     config.removeProperty("value");
     config.enableProperty("name");
-
     config.setType("asis", "bool", lib_Config.MODE_STATIC);
-    config.setType("animate", "bool", lib_Config.MODE_STATIC);
+    config.setDefaultValue("runRenderer", !config.get("asis"));
 
     var tpl = new app_Template({
         scope: scope,
-        node: node,
+        attachTo: node,
         parentRenderer: parentRenderer,
-        config: config,
-        ownRenderer: !config.get("asis") // do not render if asis=true
+        config: config
     });
 
     parentRenderer.on("destroy", function(){
@@ -19572,7 +19766,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             self.mo.setValue(val);
             self.inProg = true;
 
-            if (scope instanceof lib_Scope) {
+            if (scope instanceof MetaphorJs.lib.Scope) {
                 if (self.config.get("checkRoot")) {
                     scope.$root.$check();
                 }
@@ -19663,7 +19857,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 /**
  * Trigger DOM event on element
  * @function MetaphorJs.dom.triggerEvent
- * @param {DomNode} el
+ * @param {HTMLElement} el
  * @param {string} event
  */
 var dom_triggerEvent = MetaphorJs.dom.triggerEvent = function dom_triggerEvent(el, event) {
@@ -20139,7 +20333,7 @@ var dom_preloadImage = MetaphorJs.dom.preloadImage = function() {
         var doc = window.document,
             img = doc.createElement("img"),
             style = img.style,
-            deferred = new lib_Promise;
+            deferred = new MetaphorJs.lib.Promise;
 
         loading[src] = deferred;
 
@@ -20372,7 +20566,7 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
 /**
  * Remove specific style from element
  * @function MetaphorJs.dom.removeStyle
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @param {string} name Style property name
  */
 var dom_removeStyle = MetaphorJs.dom.removeStyle = (function() {
@@ -20495,13 +20689,14 @@ var dom_transclude = MetaphorJs.dom.transclude = function dom_transclude(node, r
         }
 
         var parent      = node.parentNode,
-            next        = node.nextSibling,
+            //next        = node.nextSibling,
             cloned      = dom_clone(contents),
             children    = toArray(cloned.childNodes);
 
         if (replace) {
-            parent.removeChild(node);
-            parent.insertBefore(cloned, next);
+            parent.replaceChild(node, cloned);
+            //parent.removeChild(node);
+            //parent.insertBefore(cloned, next);
         }
         else {
             node.appendChild(cloned);
@@ -20795,7 +20990,7 @@ var model_Model = MetaphorJs.model.Model = function(){
      */
     return cls({
 
-        $mixins:        [mixin_Observable],
+        $mixins:        [MetaphorJs.mixin.Observable],
 
         type:           null,
         fields:         null,
@@ -20880,7 +21075,7 @@ var model_Model = MetaphorJs.model.Model = function(){
          *      @type {object} ajax Various ajax settings from MetaphorJs.ajax module.
          *      @type {function} processRequest {
          *          Custom request processor.
-         *          @param {lib_Promise} returnPromise The promise 
+         *          @param {MetaphorJs.lib.Promise} returnPromise The promise 
          *                          that is returned from load()/save() etc. 
          *                          You can take control of this promise if needed.
          *          @param {int|string|null} id Record id (if applicable)
@@ -20897,7 +21092,7 @@ var model_Model = MetaphorJs.model.Model = function(){
          *          Custom request resolver
          *          @param {int|string|null} id Record id (if applicable)
          *          @param {object|string|null} data Payload
-         *          @returns {lib_Promise|*} If returned Promise, 
+         *          @returns {MetaphorJs.lib.Promise|*} If returned Promise, 
          *              this promise will be returned from the function making
          *              the request. If returned something else, 
          *              will return a new Promise resolved with this value. 
@@ -21159,7 +21354,7 @@ var model_Model = MetaphorJs.model.Model = function(){
 
             if (isFunction(cfg.url)) {
                 var df = cfg.url(ajaxCfg.data),
-                    promise = new lib_Promise;
+                    promise = new MetaphorJs.lib.Promise;
 
                 df.then(function(response){
                     if (what === "record") {
@@ -21314,7 +21509,7 @@ var model_Model = MetaphorJs.model.Model = function(){
         /**
          * @method
          * @param {string|number} id Record id
-         * @returns {lib_Promise}
+         * @returns {MetaphorJs.lib.Promise}
          */
         loadRecord: function(id) {
             return this._makeRequest("record", "load", id);
@@ -21326,7 +21521,7 @@ var model_Model = MetaphorJs.model.Model = function(){
          * @param {MetaphorJs.model.Record} rec
          * @param {array|null} keys
          * @param {object|null} extra
-         * @returns {lib_Promise}
+         * @returns {MetaphorJs.lib.Promise}
          */
         saveRecord: function(rec, keys, extra) {
             return this._makeRequest(
@@ -21341,7 +21536,7 @@ var model_Model = MetaphorJs.model.Model = function(){
          * Make a record/delete request.
          * @method
          * @param {MetaphorJs.model.Record} rec
-         * @returns {lib_Promise}
+         * @returns {MetaphorJs.lib.Promise}
          */
         deleteRecord: function(rec) {
             return this._makeRequest("record", "delete", rec.getId());
@@ -21352,7 +21547,7 @@ var model_Model = MetaphorJs.model.Model = function(){
          * @method
          * @param {MetaphorJs.model.Store} store
          * @param {object} params
-         * @returns {lib_Promise}
+         * @returns {MetaphorJs.lib.Promise}
          */
         loadStore: function(store, params) {
             return this._makeRequest("store", "load", null, params);
@@ -21363,7 +21558,7 @@ var model_Model = MetaphorJs.model.Model = function(){
          * @method
          * @param {MetaphorJs.model.Store} store
          * @param {object} recordData
-         * @returns {lib_Promise}
+         * @returns {MetaphorJs.lib.Promise}
          */
         saveStore: function(store, recordData) {
             return this._makeRequest("store", "save", null, recordData);
@@ -21374,7 +21569,7 @@ var model_Model = MetaphorJs.model.Model = function(){
          * @method
          * @param {MetaphorJs.model.Store} store
          * @param {array} ids
-         * @returns {lib_Promise}
+         * @returns {MetaphorJs.lib.Promise}
          */
         deleteRecords: function(store, ids) {
             return this._makeRequest("store", "delete", ids);
@@ -21646,7 +21841,7 @@ var model_Model = MetaphorJs.model.Model = function(){
 
 /**
  * @class MetaphorJs.model.Record
- * @mixes mixin_Observable
+ * @mixes MetaphorJs.mixin.Observable
  */
 var model_Record = MetaphorJs.model.Record = cls({
 
@@ -21727,7 +21922,7 @@ var model_Record = MetaphorJs.model.Record = cls({
      */
 
 
-    $mixins: [mixin_Observable],
+    $mixins: [MetaphorJs.mixin.Observable],
 
     id:             null,
     data:           null,
@@ -21747,7 +21942,7 @@ var model_Record = MetaphorJs.model.Record = cls({
      * @method $init
      * @param {*} id
      * @param {object} cfg {
-     *  @type {string|model_Model} model
+     *  @type {string|MetaphorJs.model.Model} model
      *  @type {boolean} autoLoad {
      *      Load record automatically when constructed
      *      @default true
@@ -21801,7 +21996,7 @@ var model_Record = MetaphorJs.model.Record = cls({
         if (isString(self.model)) {
             self.model  = model_Model.create(self.model);
         }
-        else if (!(self.model instanceof model_Model)) {
+        else if (!(self.model instanceof MetaphorJs.model.Model)) {
             self.model  = new model_Model(self.model);
         }
 
@@ -21857,7 +22052,7 @@ var model_Record = MetaphorJs.model.Record = cls({
 
     /**
      * @method
-     * @returns {model_Model}
+     * @returns {MetaphorJs.model.Model}
      */
     getModel: function() {
         return this.model;
@@ -22192,7 +22387,7 @@ var model_Store = MetaphorJs.model.Store = function(){
 
     /**
      * @class MetaphorJs.model.Store
-     * @mixes mixin_Observable
+     * @mixes MetaphorJs.mixin.Observable
      */
     return cls({
 
@@ -22200,7 +22395,7 @@ var model_Store = MetaphorJs.model.Store = function(){
          * @event update {
          *  Store contents got updated
          *  @param {MetaphorJs.model.Store} store
-         *  @param {model_Record|object} rec
+         *  @param {MetaphorJs.model.Record|object} rec
          * }
          */
         /**
@@ -22295,7 +22490,7 @@ var model_Store = MetaphorJs.model.Store = function(){
          * @event remove {
          *  Record got removed from the store
          *  @param {MetaphorJs.model.Store} store
-         *  @param {model_Record|object} rec
+         *  @param {MetaphorJs.model.Record|object} rec
          *  @param {string|int} id 
          * }
          */
@@ -22303,8 +22498,8 @@ var model_Store = MetaphorJs.model.Store = function(){
          * @event replace {
          *  A record was replaced
          *  @param {MetaphorJs.model.Store} store
-         *  @param {model_Record|object} old
-         *  @param {model_Record|object} rec
+         *  @param {MetaphorJs.model.Record|object} old
+         *  @param {MetaphorJs.model.Record|object} rec
          * }
          */
         /**
@@ -22315,7 +22510,7 @@ var model_Store = MetaphorJs.model.Store = function(){
          * }
          */
 
-            $mixins:        [mixin_Observable],
+            $mixins:        [MetaphorJs.mixin.Observable],
 
             id:             null,
             autoLoad:       false,
@@ -22368,7 +22563,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              *      On load, remove everything already added 
              *      @default true
              *  }
-             *  @type {string|object|model_Model} model
+             *  @type {string|object|MetaphorJs.model.Model} model
              *  @type {object} extraParams {
              *      Extra params to add to every request
              *  }
@@ -22445,7 +22640,7 @@ var model_Store = MetaphorJs.model.Store = function(){
 
             /**
              * Change store's model
-             * @param {model_Model} model 
+             * @param {MetaphorJs.model.Model} model 
              */
             setModel: function(model) {
                 this.model = model;
@@ -22459,7 +22654,7 @@ var model_Store = MetaphorJs.model.Store = function(){
                 if (isString(self.model)) {
                     self.model  = model_Model.create(self.model);
                 }
-                else if (!(self.model instanceof model_Model)) {
+                else if (!(self.model instanceof MetaphorJs.model.Model)) {
                     self.model  = new model_Model(self.model);
                 }
 
@@ -22710,7 +22905,7 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Get current model
              * @method
-             * @returns {model_Model}
+             * @returns {MetaphorJs.model.Model}
              */
             getModel: function() {
                 return this.model;
@@ -23079,7 +23274,7 @@ var model_Store = MetaphorJs.model.Store = function(){
                 for (i = 0, len = ids.length; i < len; i++){
                     rec = self.getById(ids[i]);
                     self.remove(rec, silent, skipUpdate);
-                    if (rec instanceof model_Record) {
+                    if (rec instanceof MetaphorJs.model.Record) {
                         rec.$destroy();
                     }
                 }
@@ -23137,7 +23332,7 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Delete record
              * @method
-             * @param {model_Record} rec
+             * @param {MetaphorJs.model.Record} rec
              * @param {boolean} silent
              * @param {boolean} skipUpdate
              * @returns {MetaphorJs.lib.Promise}
@@ -23300,11 +23495,11 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Extract id from a record
              * @method
-             * @param {model_Record|object} rec
+             * @param {MetaphorJs.model.Record|object} rec
              * @returns {int|string|null}
              */
             getRecordId: function(rec) {
-                if (rec instanceof model_Record) {
+                if (rec instanceof MetaphorJs.model.Record) {
                     return rec.getId();
                 }
                 else if (this.model) {
@@ -23318,7 +23513,7 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Get record data as plain object
              * @method
-             * @param {model_Record|object} rec
+             * @param {MetaphorJs.model.Record|object} rec
              * @returns {object}
              */
             getRecordData: function(rec) {
@@ -23329,14 +23524,14 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @ignore
              * @method
              * @access protected
-             * @param {model_Record|Object} item
-             * @returns model_Record|Object
+             * @param {MetaphorJs.model.Record|Object} item
+             * @returns MetaphorJs.model.Record|Object
              */
             processRawDataItem: function(item) {
 
                 var self    = this;
 
-                if (item instanceof model_Record) {
+                if (item instanceof MetaphorJs.model.Record) {
                     return item;
                 }
 
@@ -23368,8 +23563,8 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @ignore
              * @method
              * @param {string} mode on|un
-             * @param {model_Record} rec
-             * @returns {model_Record}
+             * @param {MetaphorJs.model.Record} rec
+             * @returns {MetaphorJs.model.Record}
              */
             bindRecord: function(mode, rec) {
                 var self = this;
@@ -23383,7 +23578,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @ignore
              * @method
              * @access protected
-             * @param {model_Record|Object} rec
+             * @param {MetaphorJs.model.Record|Object} rec
              */
             onRecordDirtyChange: function(rec) {
                 this.trigger("update", this, rec);
@@ -23393,7 +23588,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @ignore
              * @method
              * @access protected
-             * @param {model_Record|Object} rec
+             * @param {MetaphorJs.model.Record|Object} rec
              * @param {string} k
              * @param {string|int|bool} v
              * @param {string|int|bool} prev
@@ -23406,7 +23601,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @ignore
              * @method
              * @access protected
-             * @param {model_Record|Object} rec
+             * @param {MetaphorJs.model.Record|Object} rec
              */
             onRecordDestroy: function(rec) {
                 this.remove(rec);
@@ -23422,7 +23617,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
              * @param {boolean} unfiltered Execute on unfiltered set of records
-             * @returns {model_Record|Object|null}
+             * @returns {MetaphorJs.model.Record|Object|null}
              */
             shift: function(silent, skipUpdate, unfiltered) {
                 return this.removeAt(0, 1, silent, skipUpdate, unfiltered);
@@ -23431,10 +23626,10 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Insert record at the beginning. Works with unfiltered data
              * @method
-             * @param {object|model_Record} rec
+             * @param {object|MetaphorJs.model.Record} rec
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
-             * @returns {model_Record|object}
+             * @returns {MetaphorJs.model.Record|object}
              */
             unshift: function(rec, silent, skipUpdate) {
                 return this.insert(0, rec, silent, skipUpdate);
@@ -23446,7 +23641,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
              * @param {boolean} unfiltered Execute on unfiltered set of records
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              */
             pop: function(silent, skipUpdate, unfiltered) {
                 return this.removeAt(this.length - 1, 1, silent, skipUpdate, unfiltered);
@@ -23478,7 +23673,7 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Add one record to the store. Works with unfiltered data
              * @method
-             * @param {model_Record|object} rec
+             * @param {MetaphorJs.model.Record|object} rec
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
              */
@@ -23490,7 +23685,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * Override this method to catch when records are added
              * @method 
              * @param {int} index
-             * @param {model_Record|object} rec
+             * @param {MetaphorJs.model.Record|object} rec
              */
             onAdd: emptyFn,
 
@@ -23508,7 +23703,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
              * @param {boolean} unfiltered Execute on unfiltered set of records
-             * @returns {model_Record|object|undefined}
+             * @returns {MetaphorJs.model.Record|object|undefined}
              */
             removeAt: function(index, length, silent, skipUpdate, unfiltered) {
 
@@ -23559,7 +23754,7 @@ var model_Store = MetaphorJs.model.Store = function(){
                         self.trigger('remove', rec, id);
                     }
 
-                    if (rec instanceof model_Record) {
+                    if (rec instanceof MetaphorJs.model.Record) {
                         self.bindRecord("un", rec);
                         rec.detachStore(self);
 
@@ -23587,7 +23782,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
              * @param {boolean} unfiltered Execute on unfiltered set of records
-             * @returns {model_Record|object|undefined}
+             * @returns {MetaphorJs.model.Record|object|undefined}
              */
             removeRange: function(start, end, silent, skipUpdate, unfiltered) {
                 var l       = this.length;
@@ -23619,7 +23814,7 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Override this method to catch all record removals
              * @method
-             * @param {model_Record|object} rec
+             * @param {MetaphorJs.model.Record|object} rec
              * @param {int|string|null} id
              */
             onRemove: emptyFn,
@@ -23653,10 +23848,10 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @param {number} index {
              *  @required
              * }
-             * @param {model_Record|object} rec
+             * @param {MetaphorJs.model.Record|object} rec
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
-             * @returns {model_Record|object}
+             * @returns {MetaphorJs.model.Record|object}
              */
             insert: function(index, rec, silent, skipUpdate) {
 
@@ -23696,7 +23891,7 @@ var model_Store = MetaphorJs.model.Store = function(){
                     self.map[id] = rec;
                 }
 
-                if (rec instanceof model_Record) {
+                if (rec instanceof MetaphorJs.model.Record) {
                     rec.attachStore(self);
                     self.bindRecord("on", rec);
                 }
@@ -23717,11 +23912,11 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Replace one record with another
              * @method
-             * @param {model_Record|object} old Old record
-             * @param {model_Record|object} rec New record
+             * @param {MetaphorJs.model.Record|object} old Old record
+             * @param {MetaphorJs.model.Record|object} rec New record
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
-             * @returns {model_Record|object} new record
+             * @returns {MetaphorJs.model.Record|object} new record
              */
             replace: function(old, rec, silent, skipUpdate) {
                 var self    = this,
@@ -23750,10 +23945,10 @@ var model_Store = MetaphorJs.model.Store = function(){
              * Replace record with given id by another record
              * @method
              * @param {int|string} id Old record id
-             * @param {model_Record|object} rec New record
+             * @param {MetaphorJs.model.Record|object} rec New record
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
-             * @returns {model_Record|object} new record
+             * @returns {MetaphorJs.model.Record|object} new record
              */
             replaceId: function(id, rec, silent, skipUpdate) {
                 var self    = this,
@@ -23767,18 +23962,18 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Override this method to catch all record replacements
              * @method
-             * @param {model_Record|object} old Old record
-             * @param {model_Record|object} rec New record
+             * @param {MetaphorJs.model.Record|object} old Old record
+             * @param {MetaphorJs.model.Record|object} rec New record
              */
             onReplace: emptyFn,
 
             /**
              * Remove record from the store
              * @method
-             * @param {model_Record|object} rec
+             * @param {MetaphorJs.model.Record|object} rec
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              */
             remove: function(rec, silent, skipUpdate) {
                 var inx = this.indexOf(rec, true);
@@ -23794,7 +23989,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @param {string|int} id Record id
              * @param {boolean} silent Do not trigger events
              * @param {boolean} skipUpdate Do not run store updates
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              */
             removeId: function(id, silent, skipUpdate) {
                 var inx = this.indexOfId(id, true);
@@ -23808,7 +24003,7 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Does this store contains record
              * @method
-             * @param {model_Record|object} rec
+             * @param {MetaphorJs.model.Record|object} rec
              * @param {boolean} unfiltered Check unfiltered set
              * @returns {boolean}
              */
@@ -23873,7 +24068,7 @@ var model_Store = MetaphorJs.model.Store = function(){
                 if (!keepRecords) {
                     for (i = 0, len = self.items.length; i < len; i++) {
                         rec = self.items[i];
-                        if (rec instanceof model_Record) {
+                        if (rec instanceof MetaphorJs.model.Record) {
                             self.bindRecord("un", rec);
                             rec.detachStore(self);
                         }
@@ -23896,7 +24091,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @method
              * @param {int} index
              * @param {boolean} unfiltered Get from unfiltered set
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              */
             getAt: function(index, unfiltered) {
                 return unfiltered ?
@@ -23909,7 +24104,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @method
              * @param {string|int} id Record id
              * @param {boolean} unfiltered Get from unfiltered set
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              */
             getById: function(id, unfiltered) {
                 return unfiltered ?
@@ -23920,7 +24115,7 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Get index of record
              * @method
-             * @param {model_Record|object} rec
+             * @param {MetaphorJs.model.Record|object} rec
              * @param {boolean} unfiltered Lookup in unfiltered set
              * @returns {int} returns -1 if not found
              */
@@ -23945,7 +24140,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * Interate over store records
              * @method
              * @param {function} fn {
-             *      @param {model_Record|object} rec
+             *      @param {MetaphorJs.model.Record|object} rec
              *      @param {number} index
              *      @param {number} length
              *      @returns {boolean|null} return false to stop
@@ -24015,7 +24210,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * Get first record
              * @method
              * @param {boolean} unfiltered Get from unfiltered set
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              */
             first : function(unfiltered){
                 return unfiltered ? this.items[0] : 
@@ -24026,7 +24221,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * Get last record
              * @method
              * @param {boolean} unfiltered Get from unfiltered set
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              */
             last : function(unfiltered){
                 return unfiltered ? this.items[this.length-1] : 
@@ -24076,14 +24271,14 @@ var model_Store = MetaphorJs.model.Store = function(){
              * Find and return record matching custom filter
              * @method
              * @param {function} fn {
-             *      @param {model_Record|object} rec
+             *      @param {MetaphorJs.model.Record|object} rec
              *      @param {string|int} id
              *      @returns {boolean} Return true to accept record
              * }
              * @param {object} context fn's context
              * @param {number} start { @default 0 }
              * @param {boolean} unfiltered Look in unfiltered set
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              */
             findBy: function(fn, context, start, unfiltered) {
                 var inx = this.findIndexBy(fn, context, start, unfiltered);
@@ -24094,7 +24289,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * Find index of a record matching custom filter
              * @method
              * @param {function} fn {
-             *      @param {model_Record|object} rec
+             *      @param {MetaphorJs.model.Record|object} rec
              *      @param {string|int} id
              *      @returns {boolean} return true to accept record
              * }
@@ -24124,7 +24319,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @param {string|int|bool} value Value to compare to
              * @param {bool} exact Make a strict comparison
              * @param {boolean} unfiltered Look in unfiltered set
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              * @code store.find("name", "Jane");
              */
             find: function(property, value, exact, unfiltered) {
@@ -24156,7 +24351,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @param {string} property Record's field name
              * @param {string|int|bool} value Value to compare to
              * @param {boolean} unfiltered Look in unfiltered set
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              */
             findExact: function(property, value, unfiltered) {
                 return this.find(property, value, true, unfiltered);
@@ -24168,7 +24363,7 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @param {object} props A set of field:value pairs to match record against.
              * All fields must match for the record to be accepted.
              * @param {boolean} unfiltered Look in unfiltered set
-             * @returns {model_Record|object|null}
+             * @returns {MetaphorJs.model.Record|object|null}
              */
             findBySet: function(props, unfiltered) {
 
@@ -24297,8 +24492,8 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @method
              * @param {string|function} by {
              *  Either a field name to sort by, or a function 
-             *  @param {model_Record|object} a
-             *  @param {model_Record|object} b 
+             *  @param {MetaphorJs.model.Record|object} a
+             *  @param {MetaphorJs.model.Record|object} b 
              *  @returns {int} -1|0|1
              * }
              * @param {string} dir asc|desc
@@ -24386,7 +24581,7 @@ var model_Store = MetaphorJs.model.Store = function(){
 
 
 Directive.getDirective("attr", "each")
-    .registerType(model_Store, app_StoreRenderer);
+    .registerType(MetaphorJs.model.Store, MetaphorJs.app.StoreRenderer);
 
 
 
@@ -24916,20 +25111,9 @@ MetaphorJs.filter.uppercase = function(val){
 
 var app_init = MetaphorJs.app.init = function app_init(node, cls, data, autorun) {
 
-    var attrDirs = MetaphorJs.directive.attr;
-
-    var attrs = getAttrSet(node, function(name) {
-        return !!attrDirs[name];
-    });
-
-    var cfg = attrs.directive.app ? attrs.directive.app.config : {},
-        i, l;
-
-    if (attrs.names['app']) {
-        for (i = 0, l = attrs.names['app'].length; i < l; i++) {
-            dom_removeAttr(node, attrs.names[i]);
-        }
-    }
+    var attrs = getAttrSet(node);
+    var cfg = attrs.directives.app || {};
+    attrs.__remove("directive", node, "app")
 
     try {
         var p = app_resolve(
@@ -25093,7 +25277,7 @@ MetaphorJs.dom.webComponentWrapper = function(tagName, cls, parentCls, props) {
 
             if (!this.cmp) {
 
-                var scope = lib_Scope.$produce(this.getAttribute("scope")),
+                var scope = lib_Scope.$produce(this.getAttribute("$scope")),
                     attrSet = getAttrSet(this),
                     config = new MetaphorJs.lib.Config(
                         attrSet.config,
@@ -25107,9 +25291,10 @@ MetaphorJs.dom.webComponentWrapper = function(tagName, cls, parentCls, props) {
                     config: config,
                     node: this,
                     isWebComponent: true,
-                    keepCustomNode: true,
+                    useShadowDOM: true,
+                    replaceCustomNode: false,
                     autoRender: true,
-                    directives: this._simplifyDirectives(attrSet.directive)
+                    directives: attrSet.directives
                 });
 
                 window.document.addEventListener(
@@ -25117,17 +25302,6 @@ MetaphorJs.dom.webComponentWrapper = function(tagName, cls, parentCls, props) {
                     this._domeReadyDelegate
                 );
             }
-        }
-
-        _simplifyDirectives(ds) {
-            var directives = {},
-                name;
-
-            for (name in ds) {
-                directives[name] = ds.config;
-            }
-
-            return directives;
         }
 
         _callCmpEvent(event, args) {
@@ -25178,9 +25352,13 @@ var webc = (function(){
 
 
 
-var rootScope = new lib_Scope;
+var rootScope = new MetaphorJs.lib.Scope;
 rootScope.$registerPublic("root");
 rootScope.text = "Hello world!";
+rootScope.a = 1;
+
+var childScope = rootScope.$new();
+childScope.$registerPublic("child");
 
 MetaphorJs.MyComponent = app_Container.$extend({
     template: "my-component-tpl",

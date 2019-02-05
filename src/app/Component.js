@@ -90,12 +90,6 @@ module.exports = MetaphorJs.app.Component = cls({
      */
     template:       null,
 
-    /**
-     * @var bool
-     * @access private
-     */
-    isWebComponent: false,
-
 
 
     /**
@@ -204,7 +198,7 @@ module.exports = MetaphorJs.app.Component = cls({
             self.parentRenderer.on("destroy", self._onParentRendererDestroy, self);
         }
 
-        if (self.node && !self.isWebComponent) {
+        if (self.node) {
             self._claimNode();
         }
 
@@ -271,6 +265,7 @@ module.exports = MetaphorJs.app.Component = cls({
             config = self.config,
             ctx;
 
+        config.setMode("scope", MetaphorJs.lib.Config.MODE_STATIC);
         config.setMode("init", MetaphorJs.lib.Config.MODE_FUNC);
         config.setDefaultMode("tag", MetaphorJs.lib.Config.MODE_STATIC);
         config.setDefaultMode("as", MetaphorJs.lib.Config.MODE_STATIC);

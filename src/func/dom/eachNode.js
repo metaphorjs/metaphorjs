@@ -4,9 +4,9 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 /**
  * Walk dom tree
  * @function MetaphorJs.dom.eachNode
- * @param {DomNode} el
+ * @param {HTMLElement} el
  * @param {function} fn {
- *  @param {DomNode} el
+ *  @param {HTMLElement} el
  * }
  * @param {object} context fn's context
  */

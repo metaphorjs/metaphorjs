@@ -6,7 +6,7 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 /**
  * Remove element's attribute
  * @function MetaphorJs.dom.removeAttr
- * @param {DomNode} node 
+ * @param {HTMLElement} node 
  * @param {string} name
  */
 module.exports = MetaphorJs.dom.removeAttr = function dom_removeAttr(el, name) {

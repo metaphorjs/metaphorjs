@@ -41,7 +41,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             idkey = self._getIdKey(),
             renderRef, attrSet,
             foundCmp, foundPromise,
-            scope = self.config.getOption("scope"),
+            scope = self.scope,
             items = self.items || [],
             def,
 
@@ -82,7 +82,9 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                 foundCmp = null;
                 foundPromise = null;
                 renderRef = null;
-                renderer = new MetaphorJs.app.Renderer(scope);
+                renderer = new MetaphorJs.app.Renderer(
+                    scope.$parent || scope
+                );
                 renderer.on("reference", refCallback);
                 renderer.on("reference-promise", promiseCallback);
                 renderer.process(node);

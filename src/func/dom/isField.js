@@ -4,7 +4,7 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 /**
  * Is given element a field
  * @function MetaphorJs.dom.isField
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @returns {boolean}
  */
 module.exports = MetaphorJs.dom.isField = function dom_isField(el) {

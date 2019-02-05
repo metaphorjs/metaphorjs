@@ -6,7 +6,7 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 /**
  * Trigger DOM event on element
  * @function MetaphorJs.dom.triggerEvent
- * @param {DomNode} el
+ * @param {HTMLElement} el
  * @param {string} event
  */
 module.exports = MetaphorJs.dom.triggerEvent = function dom_triggerEvent(el, event) {

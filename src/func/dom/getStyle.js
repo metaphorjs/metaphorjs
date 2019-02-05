@@ -5,14 +5,14 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 /**
  * Get element's style object
  * @function MetaphorJs.dom.getStyle
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @returns {DomStyle}
  */
 
  /**
  * Get element's style property
  * @function MetaphorJs.dom.getStyle
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @param {string} prop
  * @param {boolean} numeric return as number
  * @returns {string|int}

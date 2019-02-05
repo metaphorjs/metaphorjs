@@ -9,7 +9,7 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 /**
  * Remove element's class
  * @function MetaphorJs.dom.removeClass
- * @param {DomNode} el
+ * @param {HTMLElement} el
  * @param {string} cls
  */
 module.exports = MetaphorJs.dom.removeClass = function(el, cls) {

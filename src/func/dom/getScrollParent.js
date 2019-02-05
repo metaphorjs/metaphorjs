@@ -7,8 +7,8 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 /**
  * Get element's scrolling parent
  * @function MetaphorJs.dom.getScrollParent
- * @param {DomNode} node
- * @returns {DomNode}
+ * @param {HTMLElement} node
+ * @returns {HTMLElement}
  */
 module.exports = MetaphorJs.dom.getScrollParent = function() {
 

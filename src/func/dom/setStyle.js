@@ -4,7 +4,7 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 /**
  * Set element's style
  * @function MetaphorJs.dom.setStyle
- * @param {DomNode} el
+ * @param {HTMLElement} el
  * @param {string} name
  * @param {*} value
  */

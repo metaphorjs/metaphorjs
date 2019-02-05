@@ -9,8 +9,8 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 /**
  * Get node position relative to offset parent or specific node
  * @function MetaphorJs.dom.getPosition
- * @param {DomNode} node 
- * @param {DomNode} to 
+ * @param {HTMLElement} node 
+ * @param {HTMLElement} to 
  * @return {object} {
  *  @type {int} top
  *  @type {int} left

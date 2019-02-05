@@ -4,7 +4,7 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 /**
  * Is node attached to DOM
  * @function MetaphorJs.dom.isAttached
- * @param {DomNode} node
+ * @param {HTMLElement} node
  * @returns {boolean}
  */
 module.exports = MetaphorJs.dom.isAttached = function dom_isAttached(node) {

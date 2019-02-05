@@ -26,7 +26,7 @@ module.exports = MetaphorJs.lib.EventBuffer = function(){
     /**
      * @method EventBuffer
      * @constructor
-     * @param {DomNode} node 
+     * @param {HTMLElement} node 
      * @param {string} event Dom event name
      * @param {int} interval 
      */
@@ -139,7 +139,7 @@ module.exports = MetaphorJs.lib.EventBuffer = function(){
          * @method
          * @param {string} name Watcher name
          * @param {function} fn {
-         *  @param {DomNode} node
+         *  @param {HTMLElement} node
          * }
          * @param {object} context fn's context
          */
@@ -351,7 +351,7 @@ module.exports = MetaphorJs.lib.EventBuffer = function(){
      * Get existing event buffer
      * @method get
      * @static
-     * @param {DomNode} node 
+     * @param {HTMLElement} node 
      * @param {string} event 
      * @param {int} interval 
      * @returns {MetaphorJs.lib.EventBuffer}
