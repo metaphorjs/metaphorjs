@@ -5,16 +5,20 @@ require("../../lib/Config.js");
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 MetaphorJs.app.Directive.registerAttribute("view", 200, 
-    function(scope, node, config, parentRenderer) {
+    function(scope, node, config, renderer) {
 
-    var cfg = {scope: scope, node: node, config: config};
+    MetaphorJs.app.Directive.resolveNode(node, "view", function(node){
+        if (!renderer.destroyed) {
+            var cfg = {scope: scope, node: node, config: config};
 
-    MetaphorJs.app.resolve(
-        "MetaphorJs.app.view.Component",
-        cfg,
-        scope, node,
-        [cfg]
-    );
+            MetaphorJs.app.resolve(
+                "MetaphorJs.app.view.Component",
+                cfg,
+                scope, node,
+                [cfg]
+            );
+        }
+    });
 
     return false;
 });

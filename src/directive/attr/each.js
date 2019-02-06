@@ -28,6 +28,11 @@ var Directive = require("../../app/Directive.js"),
     }
 
     var eachDirective = function eachDirective(scope, node, config, parentRenderer, attrSet) {
+
+        if (!(node instanceof window.Node)) {
+            throw new Error("'each' directive can only work with DOM nodes");
+        }
+
         config.disableProperty("value");
         var tagMode = node.nodeName.toLowerCase() === "mjs-each",
             expr;

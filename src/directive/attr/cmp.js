@@ -9,7 +9,11 @@ var Directive = require("../../app/Directive.js"),
 
 (function(){
 
-    var cmpAttr = function(scope, node, config, parentRenderer, attrSet) {
+    var cmpAttr = function(scope, node, config, renderer, attrSet) {
+
+        if (!(node instanceof window.Node)) {
+            throw new Error("cmp directive can only work with DOM nodes");
+        }
         
         var ms = MetaphorJs.lib.Config.MODE_STATIC;
 
@@ -49,7 +53,7 @@ var Directive = require("../../app/Directive.js"),
             scope: newScope,
             node: node,
             config: config,
-            parentRenderer: parentRenderer,
+            parentRenderer: renderer,
             destroyScope: !sameScope,
             autoRender: true
         };
@@ -60,14 +64,14 @@ var Directive = require("../../app/Directive.js"),
 
         var res = MetaphorJs.app.resolve(cmpName, cfg, newScope, node, [cfg])
             .done(function(cmp) {
-                parentRenderer.trigger(
+                renderer.trigger(
                     "reference", "cmp", 
                     config.get("ref") || cmp.id, cmp, 
                     cfg, attrSet
                 );
             });
 
-        parentRenderer.trigger(
+        renderer.trigger(
             "reference-promise", 
             res, cmpName, 
             cfg, attrSet
@@ -75,8 +79,6 @@ var Directive = require("../../app/Directive.js"),
 
         attrSet.renderer.ignoreInside = true;
     };
-
-    //cmpAttr.$breakScope = false;
 
     Directive.registerAttribute("cmp", 200, cmpAttr);
 

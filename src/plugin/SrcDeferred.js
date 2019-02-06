@@ -31,18 +31,19 @@ module.exports = cls({
 
         var self = this;
         self.directive = directive;
-        directive.$intercept("onChange", self.onChange, self, "instead");
+        directive.$intercept("onScopeChange", self.onScopeChange, self, "instead");
+        directive.$intercept("_initDirective", self.$_initDirective, self, "before");
         self.queue = 
             directive.queue || 
             new MetaphorJs.lib.Queue({auto: true, async: true, 
                             mode: MetaphorJs.lib.Queue.REPLACE, thenable: true});
     },
 
-    $beforeHostInit: function(scope, node) {
+    $_initDirective: function() {
 
         var self = this;
 
-        self.scrollEl = MetaphorJs.dom.getScrollParent(node);
+        self.scrollEl = MetaphorJs.dom.getScrollParent(self.directive.node);
         self.scrollDelegate = bind(self.onScroll, self);
         self.resizeDelegate = bind(self.onResize, self);
 
@@ -81,19 +82,19 @@ module.exports = cls({
 
     onScroll: function() {
         var self = this;
-        self.directive.queue.add(self.changeIfVisible, self);
+        self.queue.add(self.changeIfVisible, self);
     },
 
     onResize: function() {
         var self = this;
         self.position = null;
         self.sw = null;
-        self.directive.queue.add(self.changeIfVisible, self);
+        self.queue.add(self.changeIfVisible, self);
     },
 
-    onChange: function() {
+    onScopeChange: function() {
         var self = this;
-        self.directive.queue.add(self.changeIfVisible, self);
+        self.queue.add(self.changeIfVisible, self);
     },
 
     changeIfVisible: function() {

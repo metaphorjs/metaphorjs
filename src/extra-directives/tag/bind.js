@@ -11,8 +11,7 @@ Directive.registerTag("bind", function(scope, node) {
         text    = MetaphorJs.lib.Expression.get(expr, scope),
         frg     = window.document.createTextNode(text);
 
-    node.parentNode.insertBefore(frg, node);
-    node.parentNode.removeChild(node);
+    node.parentNode.replaceChild(node, frg);
 
     return [frg];
 });

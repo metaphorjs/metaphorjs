@@ -1,8 +1,6 @@
 require("../../lib/Scope.js");
 require("../../lib/Expression.js");
-require("../../func/dom/isField.js");
 require("../../lib/MutationObserver.js");
-require("../../lib/Input.js");
 require("../../lib/Config.js");
 require("../../func/dom/addListener.js");
 require("../../func/dom/removeListener.js");
@@ -20,17 +18,47 @@ var async = require("metaphorjs-shared/src/func/async.js"),
 Directive.registerAttribute("model", 1000, Directive.$extend({
 
     $class: "MetaphorJs.app.Directive.attr.Model",
-    inProg: false,
-    input: null,
-    binding: null,
-    updateRoot: false,
-    changeCb: null,
-    initial: false,
+    id: "model",
+    _apis: ["node", "input"],
 
-    autoOnChange: false,
+    _changeFn: null,
+    _binding: null,
+    _inProg: false,
+    _initial: false,
+    _autoOnChange: false,
 
-    $init: function(scope, node, config, renderer, attrSet) {
+    _initDirective: function() {
 
+        var self    = this;
+
+        self.input.onChange(self.onInputChange, self);
+
+        self.optionsChangeDelegate = bind(self.onOptionsChange, self);
+        MetaphorJs.dom.addListener(self.node, "optionschange", 
+                                    self.optionsChangeDelegate);
+
+        self.$super();
+
+        var inputValue      = self.input.getValue(),
+            scopeValue      = self.mo.getValue(),
+            binding         = self.config.get("binding");
+        
+        self._initial = true;
+
+        if (scopeValue !== inputValue) {
+            // scope value takes priority
+            if (binding !== "input" && scopeValue !== undf) {
+                self.onScopeChange(scopeValue);
+            }
+            else if (binding !== "scope" && inputValue !== undf) {
+                self.onInputChange(inputValue);
+            }
+        }
+
+        self._initial = false;
+    },
+
+    _initConfig: function(config) {
         var self    = this,
             expr    = config.getExpression("value"),
             descr   = MetaphorJs.lib.Expression.describeExpression(expr);
@@ -50,59 +78,27 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         });
 
         if (config.hasExpression("change")) {
-            self.changeFn   = MetaphorJs.lib.Expression.func(config.get("change"));
+            self._changeFn   = MetaphorJs.lib.Expression.func(config.get("change"));
         }
-
-        self.input          = MetaphorJs.dom.isField(node) ?
-                                 MetaphorJs.lib.Input.get(node, scope) :
-                                 node.getInputApi("model");
-        self.node           = node.getDomApi ? node.getDomApi("model") : node;
-        //self.binding        = config.get("binding");
         self.mo             = MetaphorJs.lib.MutationObserver.get(
-                                scope, expr, null, null, {
-                                    setter: true
-                                }
-                            );
-
-        self.mo.subscribe(self.onChange, self);
-        self.input.onChange(self.onInputChange, self);
-
-        self.optionsChangeDelegate = bind(self.onOptionsChange, self);
-        MetaphorJs.dom.addListener(self.node, "optionschange", 
-                                    self.optionsChangeDelegate);
-
-        self.$super(scope, node, config, renderer, attrSet);
-
-        var inputValue      = self.input.getValue(),
-            scopeValue      = self.mo.getValue(),
-            binding         = self.config.get("binding");
-        
-        self.initial = true;
-
-        if (scopeValue !== inputValue) {
-            // scope value takes priority
-            if (binding !== "input" && scopeValue !== undf) {
-                self.onChange(scopeValue);
+            self.scope, expr, null, null, {
+                setter: true
             }
-            else if (binding !== "scope" && inputValue !== undf) {
-                self.onInputChange(inputValue);
-            }
-        }
-
-        self.initial = false;
+        );
+        self.mo.subscribe(self.onScopeChange, self);
     },
 
-    initialSet: emptyFn,
+    _initChange: emptyFn,
 
     onOptionsChange: function() {
-        this.onChange();
+        this.onScopeChange();
     },
 
     onInputChange: function(val) {
 
         var self    = this,
             scope   = self.scope,
-            binding = self.binding || self.config.get("binding")
+            binding = self._binding || self.config.get("binding")
 
         if (binding !== "scope") {
 
@@ -115,7 +111,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             }
 
             self.mo.setValue(val);
-            self.inProg = true;
+            self._inProg = true;
 
             if (scope instanceof MetaphorJs.lib.Scope) {
                 if (self.config.get("checkRoot")) {
@@ -133,7 +129,43 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             else {
                 self.config.check("value");
             }
-            self.inProg = false;
+            self._inProg = false;
+        }
+    },
+
+
+    onScopeChange: function() {
+
+        var self    = this,
+            val     = self.mo.getValue(), //self.getterFn(self.scope),
+            binding = self._binding || self.config.get("binding"),
+            ie;
+
+        if (binding !== "input" && !self._inProg) {
+
+            // when scope value changed but this field
+            // is not in focus, it should try to
+            // change input's value, but not react
+            // to input's 'change' and 'input' events --
+            // fields like select or radio may not have
+            // this value in its options. that will change
+            // value to undefined and bubble back to scope
+            if (window.document.activeElement !== self.node) {
+                self._binding = "scope";
+            }
+
+            if ((ie = isIE()) && ie < 8) {
+                async(self.input.setValue, self.input, [val]);
+            }
+            else {
+                self.input.setValue(val);
+            }
+
+            self._binding = null;
+        }
+
+        if (self._changeFn && !self.initial) {
+            self._changeFn(self.scope);
         }
     },
 
@@ -149,47 +181,11 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         self.input = null;
 
         if (self.mo) {
-            self.mo.unsubscribe(self.onChange, self);
+            self.mo.unsubscribe(self.onScopeChange, self);
             self.mo.$destroy(true);
         }
 
         self.$super();
-    },
-
-
-    onChange: function() {
-
-        var self    = this,
-            val     = self.mo.getValue(), //self.getterFn(self.scope),
-            binding = self.binding || self.config.get("binding"),
-            ie;
-
-        if (binding !== "input" && !self.inProg) {
-
-            // when scope value changed but this field
-            // is not in focus, it should try to
-            // change input's value, but not react
-            // to input's 'change' and 'input' events --
-            // fields like select or radio may not have
-            // this value in its options. that will change
-            // value to undefined and bubble back to scope
-            if (window.document.activeElement !== self.node) {
-                self.binding = "scope";
-            }
-
-            if ((ie = isIE()) && ie < 8) {
-                async(self.input.setValue, self.input, [val]);
-            }
-            else {
-                self.input.setValue(val);
-            }
-
-            self.binding = null;
-        }
-
-        if (self.changeFn && !self.initial) {
-            self.changeFn(self.scope);
-        }
     }
 
 

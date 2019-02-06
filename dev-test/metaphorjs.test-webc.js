@@ -3961,7 +3961,17 @@ var lib_Promise = MetaphorJs.lib.Promise = function(){
         },
 
         /**
-         * Resolve this promise after <code>value</code> promise is resolved.
+         * Call resolve/reject handlers only after <code>value</code> 
+         * promise is resolved. <br>
+         * <code>
+         * var p = new MetaphorJs.lib.Promise;
+         * var p2 = new MetaphorJs.lib.Promise;
+         * p.done(function(){console.log('ok')})
+         * p.after(p2); // add as many promises as needed
+         * p.resolve(); // nothing
+         * p2.resolve(); // 'ok' !
+         * </code>
+         * Keep in mind, that current promise will not be auto resolved. 
          * @method
          * @param {*|Promise} value
          * @returns {Promise} self
@@ -5699,6 +5709,1822 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
 
 
 
+/**
+ * Is given element a field
+ * @function MetaphorJs.dom.isField
+ * @param {HTMLElement} node
+ * @returns {boolean}
+ */
+var dom_isField = MetaphorJs.dom.isField = function dom_isField(el) {
+    var tag	= el && el.nodeName ? el.nodeName.toLowerCase() : null,
+        type = el.type;
+    if (tag == 'input' || tag == 'textarea' || tag == 'select') {
+        if (type != "submit" && type != "reset" && type != "button") {
+            return true;
+        }
+    }
+    return false;
+};
+
+/**
+ * Check if given value is a null value
+ * @function isNull
+ * @param {*} value 
+ * @returns {boolean}
+ */
+function isNull(value) {
+    return value === null;
+};
+
+
+
+
+
+/**
+ * @function MetaphorJs.dom.getInputValue
+ * @param {HTMLElement} elem
+ * @returns {string}
+ */
+var dom_getInputValue = MetaphorJs.dom.getInputValue = function(){
+
+
+    var rreturn = /\r/,
+
+        hooks = {
+
+        option: function(elem) {
+            var val = elem.getAttribute("value") || elem.value;
+
+            return val !== undf ?
+                   val :
+                   ( elem.innerText || elem.textContent ).trim();
+        },
+
+        select: function(elem) {
+
+            var value, option,
+                options = elem.options,
+                index = elem.selectedIndex,
+                one = elem.type === "select-one" || index < 0,
+                values = one ? null : [],
+                max = one ? index + 1 : options.length,
+                disabled,
+                i = index < 0 ?
+                    max :
+                    one ? index : 0;
+
+            // Loop through all the selected options
+            for ( ; i < max; i++ ) {
+                option = options[ i ];
+
+                disabled = option.disabled ||
+                           option.parentNode.disabled;
+
+                // IE6-9 doesn't update selected after form reset (#2551)
+                if ((option.selected || i === index) && !disabled ) {
+                    // Get the specific value for the option
+                    value = MetaphorJs.dom.getInputValue(option);
+
+                    // We don't need an array for one selects
+                    if ( one ) {
+                        return value;
+                    }
+
+                    // Multi-Selects return an array
+                    values.push( value );
+                }
+            }
+
+            return values;
+        },
+
+        radio: function( elem ) {
+            return isNull(elem.getAttribute("value")) ? "on" : elem.value;
+        },
+
+        checkbox: function( elem ) {
+            return isNull(elem.getAttribute("value")) ? "on" : elem.value;
+        }
+    };
+
+    return function dom_getInputValue(elem) {
+
+        var hook, ret;
+
+        hook = hooks[elem.type] || hooks[elem.nodeName.toLowerCase()];
+
+        if (hook && (ret = hook(elem, "value")) !== undf) {
+            return ret;
+        }
+
+        ret = elem.value;
+
+        return isString(ret) ?
+            // Handle most common string cases
+               ret.replace(rreturn, "") :
+            // Handle cases where value is null/undef or number
+               ret == null ? "" : ret;
+
+    };
+}();
+
+
+
+
+/**
+ * Get node attribute value
+ * @function MetaphorJs.dom.getAttr
+ * @param {HTMLElement} node
+ * @returns {string}
+ */
+var dom_getAttr = MetaphorJs.dom.getAttr = function dom_getAttr(el, name) {
+    return el.getAttribute ? el.getAttribute(name) : null;
+};
+
+
+
+
+
+/**
+ * Remove element's attribute
+ * @function MetaphorJs.dom.removeAttr
+ * @param {HTMLElement} node 
+ * @param {string} name
+ */
+var dom_removeAttr = MetaphorJs.dom.removeAttr = function dom_removeAttr(el, name) {
+    return el.removeAttribute(name);
+};
+
+
+
+/**
+ * Check if given value is a number (not number-like)
+ * @function isNumber
+ * @param {*} value 
+ * @returns {boolean}
+ */
+function isNumber(value) {
+    return _varType(value) === 1;
+};
+
+
+
+
+
+
+
+
+
+/**
+ * @function MetaphorJs.dom.setInputValue
+ * @param {HTMLElement} el
+ * @param {*} val
+ */
+var dom_setInputValue = MetaphorJs.dom.setInputValue = function() {
+
+    var hooks = {
+        select:  function(elem, value) {
+
+            var optionSet, option,
+                options     = elem.options,
+                values      = toArray(value),
+                i           = options.length,
+                selected,
+                setIndex    = -1;
+
+            while ( i-- ) {
+                option      = options[i];
+                selected    = values.indexOf(option.value) !== -1;
+
+                if (selected) {
+                    dom_setAttr(option, "selected", "selected");
+                    option.selected = true;
+                    optionSet = true;
+                }
+                else {
+                    dom_removeAttr(option, "selected");
+                }
+
+                if (!selected && !isNull(dom_getAttr(option, "default-option"))) {
+                    setIndex = i;
+                }
+            }
+
+            // Force browsers to behave consistently when non-matching value is set
+            if (!optionSet) {
+                elem.selectedIndex = setIndex;
+            }
+
+            return values;
+        }
+    };
+
+    hooks["radio"] = hooks["checkbox"] = function(elem, value) {
+        if (isArray(value) ) {
+            return (elem.checked = value.indexOf(
+                dom_getInputValue(elem)
+                ) !== -1);
+        }
+    };
+
+
+    return function(el, val) {
+
+        if (el.nodeType !== window.document.ELEMENT_NODE) {
+            return;
+        }
+
+        // Treat null/undefined as ""; convert numbers to string
+        if (isNull(val)) {
+            val = "";
+        }
+        else if (isNumber(val)) {
+            val += "";
+        }
+
+        var hook = hooks[el.type] || hooks[el.nodeName.toLowerCase()];
+
+        // If set returns undefined, fall back to normal setting
+        if (!hook || hook(el, val, "value") === undf) {
+            el.value = val;
+        }
+    };
+}();
+
+/**
+ * Function that returns false
+ * @function returnFalse
+ * @returns {boolean}
+ */
+function returnFalse() {
+    return false;
+};
+
+/**
+ * Function that returns true
+ * @function returnTrue
+ * @returns {boolean}
+ */
+function returnTrue() {
+    return true;
+};
+
+
+
+// from jQuery
+
+/**
+ * Dom event wrapper.
+ * @class MetaphorJs.lib.DomEvent
+ */
+
+/**
+ * @method DomEvent
+ * @constructor
+ * @param {Event} src Native event
+ */
+var lib_DomEvent = MetaphorJs.lib.DomEvent = function(){
+
+var DomEvent = function DomEvent(src) {
+
+    if (src instanceof DomEvent) {
+        return src;
+    }
+
+    // Allow instantiation without the 'new' keyword
+    if (!(this instanceof DomEvent)) {
+        return new DomEvent(src);
+    }
+
+
+    var self    = this;
+
+    for (var i in src) {
+        if (!self[i]) {
+            try {
+                self[i] = src[i];
+            }
+            catch (thrownError){}
+        }
+    }
+
+
+    // Event object
+    self.originalEvent = src;
+    self.type = src.type;
+
+    if (!self.target && src.srcElement) {
+        self.target = src.srcElement;
+    }
+
+
+    var eventDoc, doc, body,
+        button = src.button;
+
+    // Calculate pageX/Y if missing and clientX/Y available
+    if (self.pageX === undf && !isNull(src.clientX)) {
+        eventDoc = self.target ? self.target.ownerDocument || window.document : window.document;
+        doc = eventDoc.documentElement;
+        body = eventDoc.body;
+
+        self.pageX = src.clientX +
+                      ( doc && doc.scrollLeft || body && body.scrollLeft || 0 ) -
+                      ( doc && doc.clientLeft || body && body.clientLeft || 0 );
+        self.pageY = src.clientY +
+                      ( doc && doc.scrollTop  || body && body.scrollTop  || 0 ) -
+                      ( doc && doc.clientTop  || body && body.clientTop  || 0 );
+    }
+
+    // Add which for click: 1 === left; 2 === middle; 3 === right
+    // Note: button is not normalized, so don't use it
+    if ( !self.which && button !== undf ) {
+        self.which = ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
+    }
+
+    // Events bubbling up the document may have been marked as prevented
+    // by a handler lower down the tree; reflect the correct value.
+    self.isDefaultPrevented = src.defaultPrevented ||
+                              src.defaultPrevented === undf &&
+                                  // Support: Android<4.0
+                              src.returnValue === false ?
+                              returnTrue :
+                              returnFalse;
+
+
+    // Create a timestamp if incoming event doesn't have one
+    self.timeStamp = src && src.timeStamp || (new Date).getTime();
+};
+
+// Event is based on DOM3 Events as specified by the ECMAScript Language Binding
+// http://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
+extend(DomEvent.prototype, {
+
+    /**
+     * @method isDefaultPrevented
+     * @returns {boolean}
+     */
+    isDefaultPrevented: returnFalse,
+
+    /**
+     * @method isPropagationStopped
+     * @returns {boolean}
+     */
+    isPropagationStopped: returnFalse,
+
+    /**
+     * @method isImmediatePropagationStopped
+     * @returns {boolean}
+     */
+    isImmediatePropagationStopped: returnFalse,
+
+    /**
+     * @method
+     */
+    preventDefault: function() {
+        var e = this.originalEvent;
+
+        this.isDefaultPrevented = returnTrue;
+        e.returnValue = false;
+
+        if ( e && e.preventDefault ) {
+            e.preventDefault();
+        }
+    },
+
+    /**
+     * @method
+     */
+    stopPropagation: function() {
+        var e = this.originalEvent;
+
+        this.isPropagationStopped = returnTrue;
+        e.cancelBubble = true;
+
+        if ( e && e.stopPropagation ) {
+            e.stopPropagation();
+        }
+    },
+
+    /**
+     * @method
+     */
+    stopImmediatePropagation: function() {
+        var e = this.originalEvent;
+
+        this.isImmediatePropagationStopped = returnTrue;
+
+        if ( e && e.stopImmediatePropagation ) {
+            e.stopImmediatePropagation();
+        }
+
+        this.stopPropagation();
+    }
+}, true, false);
+
+return DomEvent;
+
+}();
+
+
+
+
+
+var dom_normalizeEvent = MetaphorJs.dom.normalizeEvent = function(originalEvent) {
+    return new lib_DomEvent(originalEvent);
+};
+
+
+// from jquery.mousewheel plugin
+
+
+
+
+
+var _mousewheelHandler = function(e) {
+
+    function shouldAdjustOldDeltas(orgEvent, absDelta) {
+        // If this is an older event and the delta is divisable by 120,
+        // then we are assuming that the browser is treating this as an
+        // older mouse wheel event and that we should divide the deltas
+        // by 40 to try and get a more usable deltaFactor.
+        // Side note, this actually impacts the reported scroll distance
+        // in older browsers and can cause scrolling to be slower than native.
+        // Turn this off by setting $.event.special.mousewheel.settings.adjustOldDeltas to false.
+        return orgEvent.type === 'mousewheel' && absDelta % 120 === 0;
+    }
+
+    function nullLowestDelta() {
+        lowestDelta = null;
+    }
+
+    var nullLowestDeltaTimeout, lowestDelta;
+
+    var mousewheelHandler = function(fn) {
+
+        return function mousewheelHandler(e) {
+
+            var event = dom_normalizeEvent(e || window.event),
+                args = slice.call(arguments, 1),
+                delta = 0,
+                deltaX = 0,
+                deltaY = 0,
+                absDelta = 0,
+                offsetX = 0,
+                offsetY = 0;
+
+
+            event.type = 'mousewheel';
+
+            // Old school scrollwheel delta
+            if ('detail'      in event) { deltaY = event.detail * -1; }
+            if ('wheelDelta'  in event) { deltaY = event.wheelDelta; }
+            if ('wheelDeltaY' in event) { deltaY = event.wheelDeltaY; }
+            if ('wheelDeltaX' in event) { deltaX = event.wheelDeltaX * -1; }
+
+            // Firefox < 17 horizontal scrolling related to DOMMouseScroll event
+            if ('axis' in event && event.axis === event.HORIZONTAL_AXIS) {
+                deltaX = deltaY * -1;
+                deltaY = 0;
+            }
+
+            // Set delta to be deltaY or deltaX if deltaY is 0 for backwards compatabilitiy
+            delta = deltaY === 0 ? deltaX : deltaY;
+
+            // New school wheel delta (wheel event)
+            if ('deltaY' in event) {
+                deltaY = event.deltaY * -1;
+                delta = deltaY;
+            }
+            if ('deltaX' in event) {
+                deltaX = event.deltaX;
+                if (deltaY === 0) { delta = deltaX * -1; }
+            }
+
+            // No change actually happened, no reason to go any further
+            if (deltaY === 0 && deltaX === 0) { return; }
+
+            // Store lowest absolute delta to normalize the delta values
+            absDelta = Math.max(Math.abs(deltaY), Math.abs(deltaX));
+
+            if (!lowestDelta || absDelta < lowestDelta) {
+                lowestDelta = absDelta;
+
+                // Adjust older deltas if necessary
+                if (shouldAdjustOldDeltas(event, absDelta)) {
+                    lowestDelta /= 40;
+                }
+            }
+
+            // Adjust older deltas if necessary
+            if (shouldAdjustOldDeltas(event, absDelta)) {
+                // Divide all the things by 40!
+                delta /= 40;
+                deltaX /= 40;
+                deltaY /= 40;
+            }
+
+            // Get a whole, normalized value for the deltas
+            delta = Math[delta >= 1 ? 'floor' : 'ceil'](delta / lowestDelta);
+            deltaX = Math[deltaX >= 1 ? 'floor' : 'ceil'](deltaX / lowestDelta);
+            deltaY = Math[deltaY >= 1 ? 'floor' : 'ceil'](deltaY / lowestDelta);
+
+            // Normalise offsetX and offsetY properties
+            if (this.getBoundingClientRect) {
+                var boundingRect = this.getBoundingClientRect();
+                offsetX = event.clientX - boundingRect.left;
+                offsetY = event.clientY - boundingRect.top;
+            }
+
+            // Add information to the event object
+            event.deltaX = deltaX;
+            event.deltaY = deltaY;
+            event.deltaFactor = lowestDelta;
+            event.offsetX = offsetX;
+            event.offsetY = offsetY;
+            // Go ahead and set deltaMode to 0 since we converted to pixels
+            // Although this is a little odd since we overwrite the deltaX/Y
+            // properties with normalized deltas.
+            event.deltaMode = 0;
+
+            // Add event and delta to the front of the arguments
+            args.unshift(event, delta, deltaX, deltaY);
+
+            // Clearout lowestDelta after sometime to better
+            // handle multiple device types that give different
+            // a different lowestDelta
+            // Ex: trackpad = 3 and mouse wheel = 120
+            if (nullLowestDeltaTimeout) { clearTimeout(nullLowestDeltaTimeout); }
+            nullLowestDeltaTimeout = setTimeout(nullLowestDelta, 200);
+
+
+
+            return fn.apply(this, args);
+        }
+    };
+
+    mousewheelHandler.events = function() {
+        var doc = window.document;
+        return ( 'onwheel' in doc || doc.documentMode >= 9 ) ?
+               ['wheel'] : ['mousewheel', 'DomMouseScroll', 'MozMousePixelScroll'];
+    };
+
+    return mousewheelHandler;
+
+}();
+
+
+
+
+/**
+ * @function MetaphorJs.dom.addListener
+ * @param {HTMLElement} el
+ * @param {string} eventName
+ * @param {function} func {
+ *  @param {object} event
+ * }
+ */
+var dom_addListener = MetaphorJs.dom.addListener = function(){
+
+    var fn = null,
+        prefix = null;
+
+    return function dom_addListener(el, event, func) {
+
+        if (fn === null) {
+            if (el.addEventListener) {
+                fn = "addEventListener";
+                prefix = "";
+            }
+            else {
+                fn = "attachEvent";
+                prefix = "on";
+            }
+            //fn = el.attachEvent ? "attachEvent" : "addEventListener";
+            //prefix = el.attachEvent ? "on" : "";
+        }
+
+
+        if (event == "mousewheel") {
+            func = _mousewheelHandler(func);
+            var events = _mousewheelHandler.events(),
+                i, l;
+            for (i = 0, l = events.length; i < l; i++) {
+                el[fn](prefix + events[i], func, false);
+            }
+        }
+        else {
+            el[fn](prefix + event, func, false);
+        }
+
+        return func;
+    }
+
+}();
+
+
+
+
+/**
+ * Remove listeners from element's events
+ * @function MetaphorJs.dom.removeListener
+ * @param {HTMLElement} el 
+ * @param {string} eventName
+ * @param {function} fn
+ */
+var dom_removeListener = MetaphorJs.dom.removeListener = function(){
+
+    var fn = null,
+        prefix = null;
+
+    return function dom_removeListener(el, event, func) {
+
+        if (fn === null) {
+            if (el.removeEventListener) {
+                fn = "removeEventListener";
+                prefix = "";
+            }
+            else {
+                fn = "detachEvent";
+                prefix = "on";
+            }
+            //fn = el.detachEvent ? "detachEvent" : "removeEventListener";
+            //prefix = el.detachEvent ? "on" : "";
+        }
+
+        el[fn](prefix + event, func);
+    }
+}();
+
+
+
+/**
+ * Is node attached to DOM
+ * @function MetaphorJs.dom.isAttached
+ * @param {HTMLElement} node
+ * @returns {boolean}
+ */
+var dom_isAttached = MetaphorJs.dom.isAttached = function dom_isAttached(node) {
+
+    if (node === window) {
+        return true;
+    }
+    if (node.nodeType == window.document.TEXT_NODE) {
+        if (node.parentElement) {
+            return dom_isAttached(node.parentElement);
+        }
+        else {
+            return true;
+        }
+    }
+
+    var html = window.document.documentElement;
+
+    return node === html ? true : html.contains(node);
+};
+
+
+
+
+MetaphorJs.browser = MetaphorJs.browser || {};
+
+
+
+
+
+var browser_isAndroid = MetaphorJs.browser.isAndroid = function(){
+
+    var android = null;
+
+    return function browser_isAndroid() {
+
+        if (android === null) {
+            android = parseInt((/android (\d+)/i.exec(navigator.userAgent) || [])[1], 10) || false;
+        }
+
+        return android;
+    };
+
+}();
+
+
+
+
+var isIE = MetaphorJs.browser.isIE = function(){
+
+    var msie;
+
+    return function browser_isIE() {
+
+        if (msie === null) {
+            var ua = navigator.userAgent;
+            msie = parseInt((/msie (\d+)/i.exec(ua) || [])[1], 10);
+            if (isNaN(msie)) {
+                msie = parseInt((/trident\/.*; rv:(\d+)/i.exec(ua) || [])[1], 10) || false;
+            }
+        }
+
+        return msie;
+    };
+}();
+
+
+
+
+
+
+/**
+ * Check if current browser supports event
+ * @function MetaphorJs.browser.hasEvent
+ * @param {string} event
+ * @return {boolean}
+ */
+var browser_hasEvent = MetaphorJs.browser.hasEvent = function(){
+
+    var eventSupport = {},
+        divElm;
+
+    return function browser_hasEvent(event) {
+        // IE9 implements 'input' event it's so fubared that we rather pretend that it doesn't have
+        // it. In particular the event is not fired when backspace or delete key are pressed or
+        // when cut operation is performed.
+
+        if (eventSupport[event] === undf) {
+
+            if (event === 'input' && isIE() == 9) {
+                return eventSupport[event] = false;
+            }
+            if (!divElm) {
+                divElm = window.document.createElement('div');
+            }
+
+            eventSupport[event] = !!('on' + event in divElm);
+        }
+
+        return eventSupport[event];
+    };
+}();
+
+
+
+
+
+
+/**
+ * Modified version of YASS (http://yass.webo.in)
+ */
+
+/**
+ * Returns array of nodes or an empty array
+ * @function MetaphorJs.dom.select
+ * @param {string} selector
+ * @param {HTMLElement} root to look into
+ */
+var dom_select = MetaphorJs.dom.select = function() {
+
+    var rGeneric    = /^[\w[:#.][\w\]*^|=!]*$/,
+        rQuote      = /=([^\]]+)/,
+        rGrpSplit   = / *, */,
+        rRepPlus    = /(\([^)]*)\+/,
+        rRepTild    = /(\[[^\]]+)~/,
+        rRepAll     = /(~|>|\+)/,
+        rSplitPlus  = / +/,
+        rSingleMatch= /([^[:.#]+)?(?:#([^[:.#]+))?(?:\.([^[:.]+))?(?:\[([^!&^*|$[:=]+)([!$^*|&]?=)?([^:\]]+)?\])?(?::([^(]+)(?:\(([^)]+)\))?)?/,
+        rNthNum     = /(?:(-?\d*)n)?(?:(%|-)(\d*))?/,
+        rNonDig     = /\D/,
+        rRepPrnth   = /[^(]*\(([^)]*)\)/,
+        rRepAftPrn  = /\(.*/,
+        rGetSquare  = /\[([^!~^*|$ [:=]+)([$^*|]?=)?([^ :\]]+)?\]/,
+
+        elemNodeType= window.document.ELEMENT_NODE,
+
+        doc         = window.document,
+        bcn         = !!doc.getElementsByClassName,
+        qsa         = !!doc.querySelectorAll,
+
+        /*
+         function calls for CSS2/3 modificatos. Specification taken from
+         http://www.w3.org/TR/2005/WD-css3-selectors-20051215/
+         on success return negative result.
+         */
+        mods        = {
+            /* W3C: "an E element, first child of its parent" */
+            'first-child': function (child) {
+                /* implementation was taken from jQuery.1.2.6, line 1394 */
+                return child.parentNode.getElementsByTagName('*')[0] !== child;
+            },
+            /* W3C: "an E element, last child of its parent" */
+            'last-child': function (child) {
+                var brother = child;
+                /* loop in lastChilds while nodeType isn't element */
+                while ((brother = brother.nextSibling) && brother.nodeType !== elemNodeType) {}
+                /* Check for node's existence */
+                return !!brother;
+            },
+            /* W3C: "an E element, root of the document" */
+            root: function (child) {
+                return child.nodeName.toLowerCase() !== 'html';
+            },
+            /* W3C: "an E element, the n-th child of its parent" */
+            'nth-child': function (child, ind) {
+                var i = child.nodeIndex || 0,
+                    a = ind[3] = ind[3] ? (ind[2] === '%' ? -1 : 1) * ind[3] : 0,
+                    b = ind[1];
+                /* check if we have already looked into siblings, using exando - very bad */
+                if (i) {
+                    return !( (i + a) % b);
+                } else {
+                    /* in the other case just reverse logic for n and loop siblings */
+                    var brother = child.parentNode.firstChild;
+                    i++;
+                    /* looping in child to find if nth expression is correct */
+                    do {
+                        /* nodeIndex expando used from Peppy / Sizzle/ jQuery */
+                        if (brother.nodeType === elemNodeType && (brother.nodeIndex = ++i) && child === brother && ((i + a) % b)) {
+                            return 0;
+                        }
+                    } while (brother = brother.nextSibling);
+                    return 1;
+                }
+            },
+            /*
+             W3C: "an E element, the n-th child of its parent,
+             counting from the last one"
+             */
+            'nth-last-child': function (child, ind) {
+                /* almost the same as the previous one */
+                var i = child.nodeIndexLast || 0,
+                    a = ind[3] ? (ind[2] === '%' ? -1 : 1) * ind[3] : 0,
+                    b = ind[1];
+                if (i) {
+                    return !( (i + a) % b);
+                } else {
+                    var brother = child.parentNode.lastChild;
+                    i++;
+                    do {
+                        if (brother.nodeType === elemNodeType && (brother.nodeLastIndex = i++) && child === brother && ((i + a) % b)) {
+                            return 0;
+                        }
+                    } while (brother = brother.previousSibling);
+                    return 1;
+                }
+            },
+            /*
+             Rrom w3.org: "an E element that has no children (including text nodes)".
+             Thx to John, from Sizzle, 2008-12-05, line 416
+             */
+            empty: function (child) {
+                return !!child.firstChild;
+            },
+            /* thx to John, stolen from Sizzle, 2008-12-05, line 413 */
+            parent: function (child) {
+                return !child.firstChild;
+            },
+            /* W3C: "an E element, only child of its parent" */
+            'only-child': function (child) {
+                return child.parentNode.getElementsByTagName('*').length !== 1;
+            },
+            /*
+             W3C: "a user interface element E which is checked
+             (for instance a radio-button or checkbox)"
+             */
+            checked: function (child) {
+                return !child.checked;
+            },
+            /*
+             W3C: "an element of type E in language "fr"
+             (the document language specifies how language is determined)"
+             */
+            lang: function (child, ind) {
+                return child.lang !== ind && doc.documentElement.lang !== ind;
+            },
+            /* thx to John, from Sizzle, 2008-12-05, line 398 */
+            enabled: function (child) {
+                return child.disabled || child.type === 'hidden';
+            },
+            /* thx to John, from Sizzle, 2008-12-05, line 401 */
+            disabled: function (child) {
+                return !child.disabled;
+            },
+            /* thx to John, from Sizzle, 2008-12-05, line 407 */
+            selected: function(elem){
+                /*
+                 Accessing this property makes selected-by-default
+                 options in Safari work properly.
+                 */
+                var tmp = elem.parentNode.selectedIndex;
+                return !elem.selected;
+            }
+        },
+
+        attrRegCache = {},
+
+        getAttrReg  = function(value) {
+            return attrRegCache[value] || (attrRegCache[value] = new RegExp('(^| +)' + value + '($| +)'));
+        },
+
+        attrMods    = {
+            /* W3C "an E element with a "attr" attribute" */
+            '': function (child, name) {
+                return dom_getAttr(child, name) !== null;
+            },
+            /*
+             W3C "an E element whose "attr" attribute value is
+             exactly equal to "value"
+             */
+            '=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = dom_getAttr(child, name)) && attrValue === value;
+            },
+            /*
+             from w3.prg "an E element whose "attr" attribute value is
+             a list of space-separated values, one of which is exactly
+             equal to "value"
+             */
+            '&=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = dom_getAttr(child, name)) && getAttrReg(value).test(attrValue);
+            },
+            /*
+             from w3.prg "an E element whose "attr" attribute value
+             begins exactly with the string "value"
+             */
+            '^=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = dom_getAttr(child, name) + '') && !attrValue.indexOf(value);
+            },
+            /*
+             W3C "an E element whose "attr" attribute value
+             ends exactly with the string "value"
+             */
+            '$=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = dom_getAttr(child, name) + '') &&
+                       attrValue.indexOf(value) === attrValue.length - value.length;
+            },
+            /*
+             W3C "an E element whose "attr" attribute value
+             contains the substring "value"
+             */
+            '*=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = dom_getAttr(child, name) + '') && attrValue.indexOf(value) !== -1;
+            },
+            /*
+             W3C "an E element whose "attr" attribute has
+             a hyphen-separated list of values beginning (from the
+             left) with "value"
+             */
+            '|=': function (child, name, value) {
+                var attrValue;
+                return (attrValue = dom_getAttr(child, name) + '') &&
+                       (attrValue === value || !!attrValue.indexOf(value + '-'));
+            },
+            /* attr doesn't contain given value */
+            '!=': function (child, name, value) {
+                var attrValue;
+                return !(attrValue = dom_getAttr(child, name)) || !getAttrReg(value).test(attrValue);
+            }
+        };
+
+
+    return function(selector, root, noNative) {
+
+        /* clean root with document */
+        root = root || doc;
+
+        /* sets of nodes, to handle comma-separated selectors */
+        var sets    = [],
+            qsaErr  = null,
+            idx, cls, nodes,
+            i, node, ind, mod,
+            attrs, attrName, eql, value;
+
+        if (qsa && root.querySelectorAll && !noNative) {
+            /* replace not quoted args with quoted one -- Safari doesn't understand either */
+            try {
+                sets = toArray(root.querySelectorAll(selector.replace(rQuote, '="$1"')));
+            }
+            catch (thrownError) {
+                error(thrownError);
+                qsaErr = true;
+            }
+        }
+
+        if (!qsa || qsaErr || noNative) {
+
+            /* quick return or generic call, missed ~ in attributes selector */
+            if (rGeneric.test(selector)) {
+
+                /*
+                 some simple cases - only ID or only CLASS for the very first occurence
+                 - don't need additional checks. Switch works as a hash.
+                 */
+                idx = 0;
+
+                /* the only call -- no cache, thx to GreLI */
+                switch (selector.charAt(0)) {
+
+                    case '#':
+                        idx = selector.slice(1);
+                        sets = doc.getElementById(idx);
+
+                        /*
+                         workaround with IE bug about returning element by name not by ID.
+                         Solution completely changed, thx to deerua.
+                         Get all matching elements with this id
+                         */
+                        if (sets.id !== idx) {
+                            sets = doc.all[idx];
+                        }
+
+                        sets = sets ? [sets] : [];
+                        break;
+
+                    case '.':
+
+                        cls = selector.slice(1);
+
+                        if (bcn) {
+
+                            sets = toArray((idx = (sets = root.getElementsByClassName(cls)).length) ? sets : []);
+
+                        } else {
+
+                            /* no RegExp, thx to DenVdmj */
+                            cls = ' ' + cls + ' ';
+
+                            nodes = root.getElementsByTagName('*');
+                            i = 0;
+
+                            while (node = nodes[i++]) {
+                                if ((' ' + node.className + ' ').indexOf(cls) !== -1) {
+                                    sets[idx++] = node;
+                                }
+
+                            }
+                            sets = idx ? sets : [];
+                        }
+                        break;
+
+                    case ':':
+
+                        nodes   = root.getElementsByTagName('*');
+                        i       = 0;
+                        ind     = selector.replace(rRepPrnth,"$1");
+                        mod     = selector.replace(rRepAftPrn,'');
+
+                        while (node = nodes[i++]) {
+                            if (mods[mod] && !mods[mod](node, ind)) {
+                                sets[idx++] = node;
+                            }
+                        }
+                        sets = idx ? sets : [];
+                        break;
+
+                    case '[':
+
+                        nodes   = root.getElementsByTagName('*');
+                        i       = 0;
+                        attrs   = rGetSquare.exec(selector);
+                        attrName    = attrs[1];
+                        eql     = attrs[2] || '';
+                        value   = attrs[3];
+
+                        while (node = nodes[i++]) {
+                            /* check either attr is defined for given node or it's equal to given value */
+                            if (attrMods[eql] && (attrMods[eql](node, attrName, value) ||
+                                                  (attrName === 'class' && attrMods[eql](node, 'className', value)))) {
+                                sets[idx++] = node;
+                            }
+                        }
+                        sets = idx ? sets : [];
+                        break;
+
+                    default:
+                        sets = toArray((idx = (sets = root.getElementsByTagName(selector)).length) ? sets : []);
+                        break;
+                }
+
+            } else {
+
+                /* number of groups to merge or not result arrays */
+                /*
+                 groups of selectors separated by commas.
+                 Split by RegExp, thx to tenshi.
+                 */
+                var groups  = selector.split(rGrpSplit),
+                    gl      = groups.length - 1, /* group counter */
+                    concat  = !!gl, /* if we need to concat several groups */
+                    group,
+                    singles,
+                    singles_length,
+                    single, /* to handle RegExp for single selector */
+                    ancestor, /* to remember ancestor call for next childs, default is " " */
+                /* for inner looping */
+                    tag, id, klass, newNodes, J, child, last, childs, item, h;
+
+                /* loop in groups, maybe the fastest way */
+                while (group = groups[gl--]) {
+
+                    /*
+                     Split selectors by space - to form single group tag-id-class,
+                     or to get heredity operator. Replace + in child modificators
+                     to % to avoid collisions. Additional replace is required for IE.
+                     Replace ~ in attributes to & to avoid collisions.
+                     */
+                    singles_length = (singles = group
+                        .replace(rRepPlus,"$1%")
+                        .replace(rRepTild,"$1&")
+                        .replace(rRepAll," $1 ").split(rSplitPlus)).length;
+
+                    i = 0;
+                    ancestor = ' ';
+                    /* is cleanded up with DOM root */
+                    if (root instanceof DocumentFragment) {
+                        nodes = root.children;
+                    }
+                    else {
+                        nodes = [root];
+                    }
+
+                    /*
+                     John's Resig fast replace works a bit slower than
+                     simple exec. Thx to GreLI for 'greed' RegExp
+                     */
+                    while (single = singles[i++]) {
+
+                        /* simple comparison is faster than hash */
+                        if (single !== ' ' && single !== '>' &&
+                            single !== '~' && single !== '+' && nodes) {
+
+                            single = single.match(rSingleMatch);
+
+                            /*
+                             Get all required matches from exec:
+                             tag, id, class, attribute, value, modificator, index.
+                             */
+                            tag     = single[1] || '*';
+                            id      = single[2];
+                            klass   = single[3] ? ' ' + single[3] + ' ' : '';
+                            attrName    = single[4];
+                            eql     = single[5] || '';
+                            mod     = single[7];
+
+                            /*
+                             for nth-childs modificator already transformed into array.
+                             Example used from Sizzle, rev. 2008-12-05, line 362.
+                             */
+                            ind = mod === 'nth-child' ||
+                                    mod === 'nth-last-child' ?
+                                  rNthNum.exec(
+                                      single[8] === 'even' && '2n' ||
+                                      single[8] === 'odd' && '2n%1' ||
+                                      !rNonDig.test(single[8]) && '0n%' + single[8] ||
+                                      single[8]
+                                  ) :
+                                  single[8];
+
+                            /* new nodes array */
+                            newNodes = [];
+
+                            /*
+                             cached length of new nodes array
+                             and length of root nodes
+                             */
+                            idx = J = 0;
+
+                            /* if we need to mark node with expando yeasss */
+                            last = i === singles_length;
+
+                            /* loop in all root nodes */
+                            while (child = nodes[J++]) {
+                                /*
+                                 find all TAGs or just return all possible neibours.
+                                 Find correct 'children' for given node. They can be
+                                 direct childs, neighbours or something else.
+                                 */
+                                switch (ancestor) {
+                                    case ' ':
+                                        if (child.getElementsByTagName) {
+                                            childs = child.getElementsByTagName(tag);
+                                            h = 0;
+                                            while (item = childs[h++]) {
+                                                /*
+                                                check them for ID or Class. Also check for expando 'yeasss'
+                                                to filter non-selected elements. Typeof 'string' not added -
+                                                if we get element with name="id" it won't be equal to given ID string.
+                                                Also check for given attributes selector.
+                                                Modificator is either not set in the selector, or just has been nulled
+                                                by modificator functions hash.
+                                                */
+                                                if ((!id || item.id === id) &&
+                                                    (!klass || (' ' + item.className + ' ').indexOf(klass) != -1) &&
+                                                    (!attrName || (attrMods[eql] &&
+                                                            (attrMods[eql](item, attrName, single[6]) ||
+                                                                (attrName === 'class' &&
+                                                                attrMods[eql](item, 'className', single[6]))))) &&
+                                                    !item.yeasss && !(mods[mod] ? mods[mod](item, ind) : mod)) {
+
+                                                    /*
+                                                    Need to define expando property to true for the last step.
+                                                    Then mark selected element with expando
+                                                    */
+                                                    if (last) {
+                                                        item.yeasss = 1;
+                                                    }
+                                                    newNodes[idx++] = item;
+                                                }
+                                            }
+                                        }
+                                        break;
+                                    /* W3C: "an F element preceded by an E element" */
+                                    case '~':
+
+                                        tag = tag.toLowerCase();
+
+                                        /* don't touch already selected elements */
+                                        while ((child = child.nextSibling) && !child.yeasss) {
+                                            if (child.nodeType === elemNodeType &&
+                                                (tag === '*' || child.nodeName.toLowerCase() === tag) &&
+                                                (!id || child.id === id) &&
+                                                (!klass || (' ' + child.className + ' ').indexOf(klass) !== -1) &&
+                                                (!attrName || (attrMods[eql] &&
+                                                           (attrMods[eql](item, attrName, single[6]) ||
+                                                            (attrName === 'class' &&
+                                                             attrMods[eql](item, 'className', single[6]))))) &&
+                                                !child.yeasss &&
+                                                !(mods[mod] ? mods[mod](child, ind) : mod)) {
+
+                                                if (last) {
+                                                    child.yeasss = 1;
+                                                }
+                                                newNodes[idx++] = child;
+                                            }
+                                        }
+                                        break;
+
+                                    /* W3C: "an F element immediately preceded by an E element" */
+                                    case '+':
+                                        while ((child = child.nextSibling) && child.nodeType !== elemNodeType) {}
+                                        if (child &&
+                                            (child.nodeName.toLowerCase() === tag.toLowerCase() || tag === '*') &&
+                                            (!id || child.id === id) &&
+                                            (!klass || (' ' + item.className + ' ').indexOf(klass) !== -1) &&
+                                            (!attrName ||
+                                             (attrMods[eql] && (attrMods[eql](item, attrName, single[6]) ||
+                                                                (attrName === 'class' &&
+                                                                 attrMods[eql](item, 'className', single[6]))))) &&
+                                            !child.yeasss && !(mods[mod] ? mods[mod](child, ind) : mod)) {
+
+                                            if (last) {
+                                                child.yeasss = 1;
+                                            }
+                                            newNodes[idx++] = child;
+                                        }
+                                        break;
+
+                                    /* W3C: "an F element child of an E element" */
+                                    case '>':
+                                        if (child.getElementsByTagName) {
+                                            childs = child.getElementsByTagName(tag);
+                                            i = 0;
+                                            while (item = childs[i++]) {
+                                                if (item.parentNode === child &&
+                                                    (!id || item.id === id) &&
+                                                    (!klass || (' ' + item.className + ' ').indexOf(klass) != -1) &&
+                                                    (!attrName || (attrMods[eql] &&
+                                                            (attrMods[eql](item, attrName, single[6]) ||
+                                                                (attrName === 'class' &&
+                                                                attrMods[eql](item, 'className', single[6]))))) &&
+                                                    !item.yeasss &&
+                                                    !(mods[mod] ? mods[mod](item, ind) : mod)) {
+
+                                                    if (last) {
+                                                        item.yeasss = 1;
+                                                    }
+                                                    newNodes[idx++] = item;
+                                                }
+                                            }
+                                        }
+                                        break;
+                                }
+                            }
+
+                            /* put selected nodes in local nodes' set */
+                            nodes = newNodes;
+
+                        } else {
+
+                            /* switch ancestor ( , > , ~ , +) */
+                            ancestor = single;
+                        }
+                    }
+
+                    if (concat) {
+                        /* if sets isn't an array - create new one */
+                        if (!nodes.concat) {
+                            newNodes = [];
+                            h = 0;
+                            while (item = nodes[h]) {
+                                newNodes[h++] = item;
+                            }
+                            nodes = newNodes;
+                            /* concat is faster than simple looping */
+                        }
+                        sets = nodes.concat(sets.length === 1 ? sets[0] : sets);
+
+                    } else {
+
+                        /* inialize sets with nodes */
+                        sets = nodes;
+                    }
+                }
+
+                /* define sets length to clean up expando */
+                idx = sets.length;
+
+                /*
+                 Need this looping as far as we also have expando 'yeasss'
+                 that must be nulled. Need this only to generic case
+                 */
+                while (idx--) {
+                    sets[idx].yeasss = sets[idx].nodeIndex = sets[idx].nodeIndexLast = null;
+                }
+            }
+        }
+
+        /* return and cache results */
+        return sets;
+    };
+}();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var lib_Input = MetaphorJs.lib.Input = function(){
+
+var observable = new MetaphorJs.lib.Observable,
+    id = 0;
+
+var Input = function(el, changeFn, changeFnContext, cfg) {
+
+    if (el.$$input) {
+        if (changeFn) {
+            el.$$input.on("change", changeFn, changeFnContext);
+        }
+        return el.$$input;
+    }
+
+    var self    = this;
+
+    cfg = cfg || {};
+
+    //self.observable     = new MetaphorJs.lib.Observable;
+    self.el             = el;
+    self.id             = ++id;
+    self.inputType      = el.type.toLowerCase();
+    self.dataType       = cfg.type || dom_getAttr(el, "data-type") || self.inputType;
+    self.listeners      = [];
+
+    if (changeFn) {
+        self.on("change", changeFn, changeFnContext);
+    }
+};
+
+extend(Input.prototype, {
+
+    el: null,
+    inputType: null,
+    dataType: null,
+    listeners: null,
+    radio: null,
+    keydownDelegate: null,
+    changeInitialized: false,
+
+    $destroy: function() {
+
+        var self        = this,
+            i;
+
+        //self.observable.$destroy();
+        observable.destroyEvent("change-" + self.id);
+        observable.destroyEvent("key-" + self.id);
+        self._addOrRemoveListeners(MetaphorJs.dom.removeListener, true);
+
+        self.el.$$input = null;
+
+        for (i in self) {
+            if (self.hasOwnProperty(i)) {
+                self[i] = null;
+            }
+        }
+    },
+
+    _addOrRemoveListeners: function(fn, onlyUsed) {
+
+        var self        = this,
+            type        = self.inputType,
+            listeners   = self.listeners,
+            radio       = self.radio,
+            el          = self.el,
+            used,
+            i, ilen,
+            j, jlen;
+
+        for (i = 0, ilen = listeners.length; i < ilen; i++) {
+
+            used = !!listeners[i][2];
+
+            if (used === onlyUsed) {
+                if (type === "radio") {
+                    for (j = 0, jlen = radio.length; j < jlen; j++) {
+                        fn(radio[j], listeners[i][0], listeners[i][1]);
+                    }
+                }
+                else {
+                    fn(el, listeners[i][0], listeners[i][1]);
+                }
+                listeners[i][2] = !onlyUsed;
+            }
+        }
+    },
+
+    initInputChange: function() {
+
+        var self = this,
+            type = self.inputType;
+
+        if (type === "radio") {
+            self.initRadioInput();
+        }
+        else if (type === "checkbox") {
+            self.initCheckboxInput();
+        }
+        else {
+            self.initTextInput();
+        }
+
+        self._addOrRemoveListeners(MetaphorJs.dom.addListener, false);
+
+        self.changeInitialized = true;
+    },
+
+    initRadioInput: function() {
+
+        var self    = this,
+            el      = self.el,
+            name    = el.name,
+            parent;
+
+        if (dom_isAttached(el)) {
+            parent  = el.ownerDocument;
+        }
+        else {
+            parent = el;
+            while (parent.parentNode) {
+                parent = parent.parentNode;
+            }
+        }
+
+        self.radio  = dom_select("input[name="+name+"]", parent);
+
+        self.onRadioInputChangeDelegate = bind(self.onRadioInputChange, self);
+        self.listeners.push(["click", self.onRadioInputChangeDelegate, false]);
+    },
+
+    initCheckboxInput: function() {
+
+        var self    = this;
+
+        self.clicked = false;
+
+        self.onCheckboxInputChangeDelegate = bind(self.onCheckboxInputChange, self);
+        self.onCheckboxInputClickDelegate = bind(self.onCheckboxInputClick, self);
+        self.listeners.push(["click", self.onCheckboxInputClickDelegate, false]);
+        self.listeners.push(["change", self.onCheckboxInputChangeDelegate, false]);
+    },
+
+    initTextInput: function() {
+
+        var composing   = false,
+            self        = this,
+            listeners   = self.listeners,
+            timeout;
+
+        // In composition mode, users are still inputing intermediate text buffer,
+        // hold the listener until composition is done.
+        // More about composition events:
+        // https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent
+        if (!browser_isAndroid()) {
+
+            var compositionStart    = function() {
+                composing = true;
+            };
+
+            var compositionEnd  = function() {
+                composing = false;
+                listener();
+            };
+
+            listeners.push(["compositionstart", compositionStart, false]);
+            listeners.push(["compositionend", compositionEnd, false]);
+        }
+
+        var listener = self.onTextInputChangeDelegate = function(ev) {
+            if (composing) {
+                return;
+            }
+            self.onTextInputChange(ev);
+        };
+
+        var deferListener = function(ev) {
+            if (!timeout) {
+                timeout = setTimeout(function() {
+                    listener(ev);
+                    timeout = null;
+                }, 0);
+            }
+        };
+
+        var keydown = function(event) {
+            event = event || window.event;
+            var key = event.keyCode;
+
+            // ignore
+            //    command            modifiers                   arrows
+            if (key === 91 || (15 < key && key < 19) || (37 <= key && key <= 40)) {
+                return;
+            }
+
+            deferListener(event);
+        };
+
+        // if the browser does support "input" event, we are fine - except on
+        // IE9 which doesn't fire the
+        // input event on backspace, delete or cut
+        if (browser_hasEvent('input')) {
+
+            listeners.push(["input", listener, false]);
+
+        } else {
+
+            listeners.push(["keydown", keydown, false]);
+
+            // if user modifies input value using context menu in IE,
+            // we need "paste" and "cut" events to catch it
+            if (browser_hasEvent('paste')) {
+                listeners.push(["paste", deferListener, false]);
+                listeners.push(["cut", deferListener, false]);
+            }
+        }
+
+
+        // if user paste into input using mouse on older browser
+        // or form autocomplete on newer browser, we need "change" event to catch it
+
+        listeners.push(["change", listener, false]);
+    },
+
+    processValue: function(val) {
+
+        switch (this.dataType) {
+            case "number":
+            case "float":
+            case "double":
+                if (val === "" || isNaN(val = parseFloat(val))) {
+                    val = undf;
+                }
+                break;
+            case "int":
+            case "integer":
+                if (val === "" || isNaN(val = parseInt(val, 10))) {
+                    val = undf;
+                }
+                break;
+            case "bool":
+            case "boolean":
+                return !(val === "false" || val === "0" || val === 0 ||
+                        val === "off" || val === false || val === "");
+
+        }
+
+        return val;
+    },
+
+    onTextInputChange: function(ev) {
+
+        var self    = this,
+            val     = self.getValue();
+
+        observable.trigger("change-"+self.id, self.processValue(val));
+    },
+
+
+    _checkboxChange: function() {
+        var self    = this,
+            node    = self.el;
+
+        observable.trigger("change-"+self.id, self.processValue(
+            node.checked ? (dom_getAttr(node, "value") || true) : false)
+        );
+    },
+
+    onCheckboxInputChange: function() {
+        if (!this.clicked) {
+            this._checkboxChange();
+        }
+        this.clicked = false;
+    },
+
+    onCheckboxInputClick: function() {
+        this._checkboxChange();
+        this.clicked = true;
+    },
+
+    onRadioInputChange: function(e) {
+
+        e = e || window.event;
+
+        var self    = this,
+            trg     = e.target || e.srcElement;
+
+        observable.trigger("change-"+self.id, self.processValue(trg.value));
+    },
+
+    setValue: function(val) {
+
+        var self    = this,
+            type    = self.inputType,
+            radio,
+            i, len;
+
+        val = self.processValue(val);
+
+        if (type === "radio") {
+
+            radio = self.radio;
+
+            for (i = 0, len = radio.length; i < len; i++) {
+                radio[i].checked = self.processValue(radio[i].value) == val;
+            }
+        }
+        else if (type === "checkbox") {
+            var node        = self.el;
+            node.checked    = val === true || val == self.processValue(node.value);
+        }
+        else {
+
+            if (val === undf) {
+                val = "";
+            }
+
+            dom_setInputValue(self.el, val);
+        }
+
+        self.triggerChange();
+    },
+
+    getValue: function() {
+
+        var self    = this,
+            type    = self.inputType,
+            radio,
+            i, l;
+
+        if (type === "radio") {
+            radio = self.radio;
+            for (i = 0, l = radio.length; i < l; i++) {
+                if (radio[i].checked) {
+                    return self.processValue(radio[i].value);
+                }
+            }
+            return null;
+        }
+        else if (type === "checkbox") {
+            return self.processValue(self.el.checked ? (dom_getAttr(self.el, "value") || true) : false);
+        }
+        else {
+            return self.processValue(dom_getInputValue(self.el));
+        }
+    },
+
+
+    on: function(event, fn, ctx, opt) {
+        var self = this;
+        if (event === "change" && !self.changeInitialized) {
+            self.initInputChange();
+        }
+        else if (event === "key" && !self.keydownDelegate) {
+            self.keydownDelegate = bind(self.keyHandler, self);
+            self.listeners.push(["keydown", self.keydownDelegate, false]);
+            dom_addListener(self.el, "keydown", self.keydownDelegate);
+            observable.createEvent("key-"+self.id, {
+                returnResult: false,
+                triggerFilter: self.keyEventFilter
+            });
+        }
+        return observable.on(event+"-"+self.id, fn, ctx, opt);
+    },
+
+    un: function(event, fn, ctx) {
+        return observable.un(event+"-"+this.id, fn, ctx);
+    },
+
+    onChange: function(fn, context) {
+        return this.on("change", fn, context);
+    },
+
+    unChange: function(fn, context) {
+        return this.un("change", fn, context);
+    },
+
+    onKey: function(key, fn, context, args) {
+        return this.on("key", fn, context, {
+            key: key,
+            prepend: args
+        });
+    },
+
+    unKey: function(key, fn, context) {
+        this.un("key", fn, context);
+    },
+
+    keyEventFilter: function(l, args) {
+
+        var key = l.key,
+            e = args[0];
+
+        if (typeof key !== "object") {
+            return key === e.keyCode;
+        }
+        else {
+            if (key.ctrlKey !== undf && key.ctrlKey !== e.ctrlKey) {
+                return false;
+            }
+            if (key.shiftKey !== undf && key.shiftKey !== e.shiftKey) {
+                return false;
+            }
+            return !(key.keyCode !== undf && key.keyCode !== e.keyCode);
+        }
+    },
+
+    keyHandler: function(event) {
+        observable.trigger(
+            "key-"+this.id, 
+            dom_normalizeEvent(event || window.event)
+        );
+    },
+
+    triggerChange: function() {
+        if ("createEvent" in document) {
+            var evt = document.createEvent("HTMLEvents");
+            evt.initEvent("change", false, true);
+            this.el.dispatchEvent(evt);
+        }
+        else {
+            this.el.fireEvent("onchange");
+        }
+    }
+
+
+}, true, false);
+
+
+Input.get = function(node, scope) {
+    if (node.$$input) {
+        return node.$$input;
+    }
+    if (scope && scope.$app && !node.type) {
+        var cmp = scope.$app.getParentCmp(node, true);
+        if (cmp && cmp.getInputApi) {
+            return cmp.getInputApi();
+        }
+    }
+    return new Input(node);
+};
+
+Input.getValue = MetaphorJs.dom.getInputValue;
+Input.setValue = MetaphorJs.dom.setInputValue;
+
+
+
+return Input;
+
+}();
+
+
+
 
 var lib_Cache = MetaphorJs.lib.Cache = (function(){
 
@@ -6954,6 +8780,9 @@ var cls = classManagerFactory(ns);
 
 
 
+
+
+
 var Directive = MetaphorJs.app.Directive = (function() {
 
     var attr = {},
@@ -6973,47 +8802,121 @@ var Directive = MetaphorJs.app.Directive = (function() {
 
     return cls({
 
-        watcher: null,
-        stateFn: null,
         scope: null,
         node: null,
-        mods: null,
+        component: null,
+        attrSet: null,
+        renderer: null,
         wrapperOpen: null,
         wrapperClose: null,
-        autoOnChange: true,
+
+        _apis: ["node"],
+        _autoOnChange: true,
+        _stateFn: null,
+        _initPromise: null,
+        _nodeAttr: null,
+        _initial: true,
 
         $init: function(scope, node, config, renderer, attrSet) {
 
             var self        = this;
 
-            config.setDefaultMode("saveState", lib_Config.MODE_SETTER);
-
-            self.config     = config;
-            self.node       = node;
             self.scope      = scope;
+            self.config     = config;
+            self.renderer   = renderer;
+            self.attrSet    = attrSet;
+            self._nodeAttr  = node;
 
-            if (config.hasExpression("saveState")) {
-                self.stateFn = config.get("saveSate");
+            self._initConfig(config);
+            self._initScope(scope);
+            self._initNodeAttr(node);
+
+            self._initPromise ? 
+                self._initPromise.done(self._initDirective, self) :
+                self._initDirective();
+        },
+
+        _initNodeAttr: function(node) {
+            var self = this;
+
+            if (node instanceof window.Node) {
+                self.node = node;
+                self._initNode(node);
+                self._initPromise && self._initPromise.resolve();
             }
+            else if (node.$is && node.$is("MetaphorJs.app.Component")) {
+                self.component = node;
+                self._initComponent(node);
+                self._initPromise && self._initPromise.resolve();
+            }
+            else if (isThenable(node)) {
+                self._initPromise = new MetaphorJs.lib.Promise;
+                node.done(self._initNodeAttr, self);
+            }
+        },
 
+        _initConfig: function(config) {
+            config.setDefaultMode("saveState", lib_Config.MODE_SETTER);
+            if (config.has("saveState")) {
+                self._stateFn = config.get("saveSate");
+            }
+        },
+
+        _initScope: function(scope) {
+            var self = this;
             scope.$on("destroy", self.onScopeDestroy, self);
             scope.$on("reset", self.onScopeReset, self);
-
-            self.initialSet();
         },
 
-        initialSet: function() {
+        _initComponent: function(component) {
             var self = this,
-                val;
-            self.config.on("value", self.onChange, self);
-            if (self.autoOnChange && (val = self.config.get("value")) !== undf) {
-                self.onChange(val, undf);
+                apis = self._apis,
+                i, l, res;
+            for (i = 0, l = apis.length; i < l; i++) {
+                res = self._initApi(component, apis[i]);
+                if (isThenable(res)) {
+                    !self._initPromise && 
+                        (self._initPromise = new MetaphorJs.lib.Promise);
+                    self._initPromise.after(res);
+                }
             }
         },
 
-        getChildren: function() {
-            return null;
+        _initNode: function(node) {
+            if (this._apis.indexOf("input") !== -1 && 
+                dom_isField(node)) {
+                this.input = lib_Input.get(node, this.scope);
+            }
         },
+
+        _initApi: function(component, apiType) {
+            var self = this,
+                api = component.getApi(apiType, self.id);
+            if (isThenable(api)) {
+                return api.done(function(api){
+                    self._onApiResolved(apiType, api);
+                });
+            }
+            else self._onApiResolved(apiType, api);
+        },
+
+        _onApiResolved: function(apiType, api) {
+            this[apiType] = api;
+        },
+
+        _initDirective: function() {
+            this._initChange();
+        },
+
+        _initChange: function() {
+            var self = this,
+                val;
+            self.config.on("value", self.onScopeChange, self);
+            if (self._autoOnChange && (val = self.config.get("value")) !== undf) {
+                self.onScopeChange(val, undf);
+            }
+        },
+
 
         createCommentWrap: function(node, name) {
             var cmts = dom_commentWrap(node, name || this.$class);
@@ -7027,37 +8930,36 @@ var Directive = MetaphorJs.app.Directive = (function() {
 
         onScopeReset: function() {},
 
-        onChange: function(val) {
+        onScopeChange: function(val) {
             this.saveStateOnChange(val);
         },
 
         saveStateOnChange: function(val) {
-            if (this.stateFn) {
-                this.stateFn(this.scope, val);
+            if (this._stateFn) {
+                this._stateFn(this.scope, val);
             }
         },
 
         onDestroy: function() {
             var self    = this;
 
+            if (isThenable(self.node)) {
+                self.node.$destroy();
+            }
+
             if (self.scope) {
                 self.scope.$un("destroy", self.onScopeDestroy, self);
                 self.scope.$un("reset", self.onScopeReset, self);
-            }
-
-            if (self.watcher) {
-                self.watcher.unsubscribe(self.onChange, self);
-                self.watcher.$destroy(true);
             }
 
             if (self.config) {
                 self.config.$destroy();
             }
 
-            if (self.wrapperOpen) {
+            if (self.wrapperOpen && self.wrapperOpen.parentNode) {
                 self.wrapperOpen.parentNode.removeChild(self.wrapperOpen);
             }
-            if (self.wrapperClose) {
+            if (self.wrapperClose && self.wrapperClose.parentNode) {
                 self.wrapperClose.parentNode.removeChild(self.wrapperClose);
             }
 
@@ -7136,24 +9038,37 @@ var Directive = MetaphorJs.app.Directive = (function() {
             if (!component[name]) {
                 component[name] = cmp;
             }
+        },
+
+        /**
+         * Resolve received something into a dom node.
+         * @param {Promise|Node|Component} node 
+         * @param {string} directive Directive name
+         * @param {function} cb {
+         *  @param {Node} node
+         *  @param {MetaphorJs.app.Component} cmp
+         * }
+         */
+        resolveNode: function(node, directive, cb) {
+            if (node instanceof window.Node){
+                cb(node);
+            }
+            else if (node.getApi) {
+                var cmp = node;
+                node = node.getApi("node", directive);
+                if (isThenable(node)) {
+                    node.done(function(node){
+                        cb(node, cmp);
+                    });
+                }
+                else if (node) {
+                    cb(node, cmp);
+                }
+            }
         }
     });
 }());
 
-
-
-
-
-
-/**
- * Remove element's attribute
- * @function MetaphorJs.dom.removeAttr
- * @param {HTMLElement} node 
- * @param {string} name
- */
-var dom_removeAttr = MetaphorJs.dom.removeAttr = function dom_removeAttr(el, name) {
-    return el.removeAttribute(name);
-};
 
 
 /**
@@ -7609,10 +9524,6 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                 return false;
             }
 
-            if (inst && inst.getChildren) {
-                return inst.getChildren();
-            }
-
             return inst;
         },
 
@@ -7644,8 +9555,7 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
         scope: null,
         texts: null,
         parent: null,
-        passedAttrs: null,
-        reportFirstNode: true,
+        destroyed: false,
 
         on: function(event, fn, context, opt) {
             return observer.on(event + '-' + this.id, fn, context, opt);
@@ -7885,33 +9795,6 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                     return deferred;
                 }
 
-                /*if (defers.length && !attrs.config.ignoreInside) {
-                    var deferred = new MetaphorJs.lib.Promise;
-                    lib_Promise.all(defers).done(function(values){
-                        collectNodes(nodes, values);
-                        deferred.resolve(nodes);
-                    });
-                    return deferred;
-                }
-
-                // this is a plain attribute
-                for (i in attrs['attributes']) {
-                    self._processAttribute(node, i, attrs);
-                }
-
-                if (attrs.config.ignoreInside) {
-                    if (defers.length) {
-                        var deferred = new MetaphorJs.lib.Promise;
-                        lib_Promise.all(defers).done(function(){
-                            return deferred.resolve(false);
-                        });
-                        return deferred;
-                    }
-                    else {
-                        return false;
-                    }
-                }*/
-
                 return nodes.length ? nodes : true;
             }
 
@@ -7982,6 +9865,10 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                 texts   = self.texts,
                 i, len;
 
+            if (self.destroyed) {
+                return;
+            }
+
             for (i = -1, len = texts.length; ++i < len; texts[i].tr.$destroy()) {}
 
             if (self.parent) {
@@ -7989,6 +9876,19 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
             }
 
             observer.trigger("destroy-" + self.id);
+
+            observer.destroyEvent("destroy-" + self.id);
+            observer.destroyEvent("rendered-" + self.id);
+            observer.destroyEvent("reference-" + self.id);
+            observer.destroyEvent("reference-promise-" + self.id);
+
+            for (var k in self) {
+                if (self.hasOwnProperty(k)) {
+                    self[k] = null;
+                }
+            }
+
+            self.destroyed = true;
         }
 
     });
@@ -8004,19 +9904,6 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
 }();
 
 
-
-
-
-
-/**
- * Get node attribute value
- * @function MetaphorJs.dom.getAttr
- * @param {HTMLElement} node
- * @returns {string}
- */
-var dom_getAttr = MetaphorJs.dom.getAttr = function dom_getAttr(el, name) {
-    return el.getAttribute ? el.getAttribute(name) : null;
-};
 
 
 
@@ -8965,34 +10852,6 @@ MetaphorJs.app.App = cls({
 
 
 
-/**
- * Is node attached to DOM
- * @function MetaphorJs.dom.isAttached
- * @param {HTMLElement} node
- * @returns {boolean}
- */
-var dom_isAttached = MetaphorJs.dom.isAttached = function dom_isAttached(node) {
-
-    if (node === window) {
-        return true;
-    }
-    if (node.nodeType == window.document.TEXT_NODE) {
-        if (node.parentElement) {
-            return dom_isAttached(node.parentElement);
-        }
-        else {
-            return true;
-        }
-    }
-
-    var html = window.document.documentElement;
-
-    return node === html ? true : html.contains(node);
-};
-
-
-
-
 
 
 /**
@@ -9821,600 +11680,6 @@ var animate_animate = MetaphorJs.animate.animate = function(){
 
 
 
-
-
-
-/**
- * Modified version of YASS (http://yass.webo.in)
- */
-
-/**
- * Returns array of nodes or an empty array
- * @function MetaphorJs.dom.select
- * @param {string} selector
- * @param {HTMLElement} root to look into
- */
-var dom_select = MetaphorJs.dom.select = function() {
-
-    var rGeneric    = /^[\w[:#.][\w\]*^|=!]*$/,
-        rQuote      = /=([^\]]+)/,
-        rGrpSplit   = / *, */,
-        rRepPlus    = /(\([^)]*)\+/,
-        rRepTild    = /(\[[^\]]+)~/,
-        rRepAll     = /(~|>|\+)/,
-        rSplitPlus  = / +/,
-        rSingleMatch= /([^[:.#]+)?(?:#([^[:.#]+))?(?:\.([^[:.]+))?(?:\[([^!&^*|$[:=]+)([!$^*|&]?=)?([^:\]]+)?\])?(?::([^(]+)(?:\(([^)]+)\))?)?/,
-        rNthNum     = /(?:(-?\d*)n)?(?:(%|-)(\d*))?/,
-        rNonDig     = /\D/,
-        rRepPrnth   = /[^(]*\(([^)]*)\)/,
-        rRepAftPrn  = /\(.*/,
-        rGetSquare  = /\[([^!~^*|$ [:=]+)([$^*|]?=)?([^ :\]]+)?\]/,
-
-        elemNodeType= window.document.ELEMENT_NODE,
-
-        doc         = window.document,
-        bcn         = !!doc.getElementsByClassName,
-        qsa         = !!doc.querySelectorAll,
-
-        /*
-         function calls for CSS2/3 modificatos. Specification taken from
-         http://www.w3.org/TR/2005/WD-css3-selectors-20051215/
-         on success return negative result.
-         */
-        mods        = {
-            /* W3C: "an E element, first child of its parent" */
-            'first-child': function (child) {
-                /* implementation was taken from jQuery.1.2.6, line 1394 */
-                return child.parentNode.getElementsByTagName('*')[0] !== child;
-            },
-            /* W3C: "an E element, last child of its parent" */
-            'last-child': function (child) {
-                var brother = child;
-                /* loop in lastChilds while nodeType isn't element */
-                while ((brother = brother.nextSibling) && brother.nodeType !== elemNodeType) {}
-                /* Check for node's existence */
-                return !!brother;
-            },
-            /* W3C: "an E element, root of the document" */
-            root: function (child) {
-                return child.nodeName.toLowerCase() !== 'html';
-            },
-            /* W3C: "an E element, the n-th child of its parent" */
-            'nth-child': function (child, ind) {
-                var i = child.nodeIndex || 0,
-                    a = ind[3] = ind[3] ? (ind[2] === '%' ? -1 : 1) * ind[3] : 0,
-                    b = ind[1];
-                /* check if we have already looked into siblings, using exando - very bad */
-                if (i) {
-                    return !( (i + a) % b);
-                } else {
-                    /* in the other case just reverse logic for n and loop siblings */
-                    var brother = child.parentNode.firstChild;
-                    i++;
-                    /* looping in child to find if nth expression is correct */
-                    do {
-                        /* nodeIndex expando used from Peppy / Sizzle/ jQuery */
-                        if (brother.nodeType === elemNodeType && (brother.nodeIndex = ++i) && child === brother && ((i + a) % b)) {
-                            return 0;
-                        }
-                    } while (brother = brother.nextSibling);
-                    return 1;
-                }
-            },
-            /*
-             W3C: "an E element, the n-th child of its parent,
-             counting from the last one"
-             */
-            'nth-last-child': function (child, ind) {
-                /* almost the same as the previous one */
-                var i = child.nodeIndexLast || 0,
-                    a = ind[3] ? (ind[2] === '%' ? -1 : 1) * ind[3] : 0,
-                    b = ind[1];
-                if (i) {
-                    return !( (i + a) % b);
-                } else {
-                    var brother = child.parentNode.lastChild;
-                    i++;
-                    do {
-                        if (brother.nodeType === elemNodeType && (brother.nodeLastIndex = i++) && child === brother && ((i + a) % b)) {
-                            return 0;
-                        }
-                    } while (brother = brother.previousSibling);
-                    return 1;
-                }
-            },
-            /*
-             Rrom w3.org: "an E element that has no children (including text nodes)".
-             Thx to John, from Sizzle, 2008-12-05, line 416
-             */
-            empty: function (child) {
-                return !!child.firstChild;
-            },
-            /* thx to John, stolen from Sizzle, 2008-12-05, line 413 */
-            parent: function (child) {
-                return !child.firstChild;
-            },
-            /* W3C: "an E element, only child of its parent" */
-            'only-child': function (child) {
-                return child.parentNode.getElementsByTagName('*').length !== 1;
-            },
-            /*
-             W3C: "a user interface element E which is checked
-             (for instance a radio-button or checkbox)"
-             */
-            checked: function (child) {
-                return !child.checked;
-            },
-            /*
-             W3C: "an element of type E in language "fr"
-             (the document language specifies how language is determined)"
-             */
-            lang: function (child, ind) {
-                return child.lang !== ind && doc.documentElement.lang !== ind;
-            },
-            /* thx to John, from Sizzle, 2008-12-05, line 398 */
-            enabled: function (child) {
-                return child.disabled || child.type === 'hidden';
-            },
-            /* thx to John, from Sizzle, 2008-12-05, line 401 */
-            disabled: function (child) {
-                return !child.disabled;
-            },
-            /* thx to John, from Sizzle, 2008-12-05, line 407 */
-            selected: function(elem){
-                /*
-                 Accessing this property makes selected-by-default
-                 options in Safari work properly.
-                 */
-                var tmp = elem.parentNode.selectedIndex;
-                return !elem.selected;
-            }
-        },
-
-        attrRegCache = {},
-
-        getAttrReg  = function(value) {
-            return attrRegCache[value] || (attrRegCache[value] = new RegExp('(^| +)' + value + '($| +)'));
-        },
-
-        attrMods    = {
-            /* W3C "an E element with a "attr" attribute" */
-            '': function (child, name) {
-                return dom_getAttr(child, name) !== null;
-            },
-            /*
-             W3C "an E element whose "attr" attribute value is
-             exactly equal to "value"
-             */
-            '=': function (child, name, value) {
-                var attrValue;
-                return (attrValue = dom_getAttr(child, name)) && attrValue === value;
-            },
-            /*
-             from w3.prg "an E element whose "attr" attribute value is
-             a list of space-separated values, one of which is exactly
-             equal to "value"
-             */
-            '&=': function (child, name, value) {
-                var attrValue;
-                return (attrValue = dom_getAttr(child, name)) && getAttrReg(value).test(attrValue);
-            },
-            /*
-             from w3.prg "an E element whose "attr" attribute value
-             begins exactly with the string "value"
-             */
-            '^=': function (child, name, value) {
-                var attrValue;
-                return (attrValue = dom_getAttr(child, name) + '') && !attrValue.indexOf(value);
-            },
-            /*
-             W3C "an E element whose "attr" attribute value
-             ends exactly with the string "value"
-             */
-            '$=': function (child, name, value) {
-                var attrValue;
-                return (attrValue = dom_getAttr(child, name) + '') &&
-                       attrValue.indexOf(value) === attrValue.length - value.length;
-            },
-            /*
-             W3C "an E element whose "attr" attribute value
-             contains the substring "value"
-             */
-            '*=': function (child, name, value) {
-                var attrValue;
-                return (attrValue = dom_getAttr(child, name) + '') && attrValue.indexOf(value) !== -1;
-            },
-            /*
-             W3C "an E element whose "attr" attribute has
-             a hyphen-separated list of values beginning (from the
-             left) with "value"
-             */
-            '|=': function (child, name, value) {
-                var attrValue;
-                return (attrValue = dom_getAttr(child, name) + '') &&
-                       (attrValue === value || !!attrValue.indexOf(value + '-'));
-            },
-            /* attr doesn't contain given value */
-            '!=': function (child, name, value) {
-                var attrValue;
-                return !(attrValue = dom_getAttr(child, name)) || !getAttrReg(value).test(attrValue);
-            }
-        };
-
-
-    return function(selector, root, noNative) {
-
-        /* clean root with document */
-        root = root || doc;
-
-        /* sets of nodes, to handle comma-separated selectors */
-        var sets    = [],
-            qsaErr  = null,
-            idx, cls, nodes,
-            i, node, ind, mod,
-            attrs, attrName, eql, value;
-
-        if (qsa && root.querySelectorAll && !noNative) {
-            /* replace not quoted args with quoted one -- Safari doesn't understand either */
-            try {
-                sets = toArray(root.querySelectorAll(selector.replace(rQuote, '="$1"')));
-            }
-            catch (thrownError) {
-                error(thrownError);
-                qsaErr = true;
-            }
-        }
-
-        if (!qsa || qsaErr || noNative) {
-
-            /* quick return or generic call, missed ~ in attributes selector */
-            if (rGeneric.test(selector)) {
-
-                /*
-                 some simple cases - only ID or only CLASS for the very first occurence
-                 - don't need additional checks. Switch works as a hash.
-                 */
-                idx = 0;
-
-                /* the only call -- no cache, thx to GreLI */
-                switch (selector.charAt(0)) {
-
-                    case '#':
-                        idx = selector.slice(1);
-                        sets = doc.getElementById(idx);
-
-                        /*
-                         workaround with IE bug about returning element by name not by ID.
-                         Solution completely changed, thx to deerua.
-                         Get all matching elements with this id
-                         */
-                        if (sets.id !== idx) {
-                            sets = doc.all[idx];
-                        }
-
-                        sets = sets ? [sets] : [];
-                        break;
-
-                    case '.':
-
-                        cls = selector.slice(1);
-
-                        if (bcn) {
-
-                            sets = toArray((idx = (sets = root.getElementsByClassName(cls)).length) ? sets : []);
-
-                        } else {
-
-                            /* no RegExp, thx to DenVdmj */
-                            cls = ' ' + cls + ' ';
-
-                            nodes = root.getElementsByTagName('*');
-                            i = 0;
-
-                            while (node = nodes[i++]) {
-                                if ((' ' + node.className + ' ').indexOf(cls) !== -1) {
-                                    sets[idx++] = node;
-                                }
-
-                            }
-                            sets = idx ? sets : [];
-                        }
-                        break;
-
-                    case ':':
-
-                        nodes   = root.getElementsByTagName('*');
-                        i       = 0;
-                        ind     = selector.replace(rRepPrnth,"$1");
-                        mod     = selector.replace(rRepAftPrn,'');
-
-                        while (node = nodes[i++]) {
-                            if (mods[mod] && !mods[mod](node, ind)) {
-                                sets[idx++] = node;
-                            }
-                        }
-                        sets = idx ? sets : [];
-                        break;
-
-                    case '[':
-
-                        nodes   = root.getElementsByTagName('*');
-                        i       = 0;
-                        attrs   = rGetSquare.exec(selector);
-                        attrName    = attrs[1];
-                        eql     = attrs[2] || '';
-                        value   = attrs[3];
-
-                        while (node = nodes[i++]) {
-                            /* check either attr is defined for given node or it's equal to given value */
-                            if (attrMods[eql] && (attrMods[eql](node, attrName, value) ||
-                                                  (attrName === 'class' && attrMods[eql](node, 'className', value)))) {
-                                sets[idx++] = node;
-                            }
-                        }
-                        sets = idx ? sets : [];
-                        break;
-
-                    default:
-                        sets = toArray((idx = (sets = root.getElementsByTagName(selector)).length) ? sets : []);
-                        break;
-                }
-
-            } else {
-
-                /* number of groups to merge or not result arrays */
-                /*
-                 groups of selectors separated by commas.
-                 Split by RegExp, thx to tenshi.
-                 */
-                var groups  = selector.split(rGrpSplit),
-                    gl      = groups.length - 1, /* group counter */
-                    concat  = !!gl, /* if we need to concat several groups */
-                    group,
-                    singles,
-                    singles_length,
-                    single, /* to handle RegExp for single selector */
-                    ancestor, /* to remember ancestor call for next childs, default is " " */
-                /* for inner looping */
-                    tag, id, klass, newNodes, J, child, last, childs, item, h;
-
-                /* loop in groups, maybe the fastest way */
-                while (group = groups[gl--]) {
-
-                    /*
-                     Split selectors by space - to form single group tag-id-class,
-                     or to get heredity operator. Replace + in child modificators
-                     to % to avoid collisions. Additional replace is required for IE.
-                     Replace ~ in attributes to & to avoid collisions.
-                     */
-                    singles_length = (singles = group
-                        .replace(rRepPlus,"$1%")
-                        .replace(rRepTild,"$1&")
-                        .replace(rRepAll," $1 ").split(rSplitPlus)).length;
-
-                    i = 0;
-                    ancestor = ' ';
-                    /* is cleanded up with DOM root */
-                    if (root instanceof DocumentFragment) {
-                        nodes = root.children;
-                    }
-                    else {
-                        nodes = [root];
-                    }
-
-                    /*
-                     John's Resig fast replace works a bit slower than
-                     simple exec. Thx to GreLI for 'greed' RegExp
-                     */
-                    while (single = singles[i++]) {
-
-                        /* simple comparison is faster than hash */
-                        if (single !== ' ' && single !== '>' &&
-                            single !== '~' && single !== '+' && nodes) {
-
-                            single = single.match(rSingleMatch);
-
-                            /*
-                             Get all required matches from exec:
-                             tag, id, class, attribute, value, modificator, index.
-                             */
-                            tag     = single[1] || '*';
-                            id      = single[2];
-                            klass   = single[3] ? ' ' + single[3] + ' ' : '';
-                            attrName    = single[4];
-                            eql     = single[5] || '';
-                            mod     = single[7];
-
-                            /*
-                             for nth-childs modificator already transformed into array.
-                             Example used from Sizzle, rev. 2008-12-05, line 362.
-                             */
-                            ind = mod === 'nth-child' ||
-                                    mod === 'nth-last-child' ?
-                                  rNthNum.exec(
-                                      single[8] === 'even' && '2n' ||
-                                      single[8] === 'odd' && '2n%1' ||
-                                      !rNonDig.test(single[8]) && '0n%' + single[8] ||
-                                      single[8]
-                                  ) :
-                                  single[8];
-
-                            /* new nodes array */
-                            newNodes = [];
-
-                            /*
-                             cached length of new nodes array
-                             and length of root nodes
-                             */
-                            idx = J = 0;
-
-                            /* if we need to mark node with expando yeasss */
-                            last = i === singles_length;
-
-                            /* loop in all root nodes */
-                            while (child = nodes[J++]) {
-                                /*
-                                 find all TAGs or just return all possible neibours.
-                                 Find correct 'children' for given node. They can be
-                                 direct childs, neighbours or something else.
-                                 */
-                                switch (ancestor) {
-                                    case ' ':
-                                        if (child.getElementsByTagName) {
-                                            childs = child.getElementsByTagName(tag);
-                                            h = 0;
-                                            while (item = childs[h++]) {
-                                                /*
-                                                check them for ID or Class. Also check for expando 'yeasss'
-                                                to filter non-selected elements. Typeof 'string' not added -
-                                                if we get element with name="id" it won't be equal to given ID string.
-                                                Also check for given attributes selector.
-                                                Modificator is either not set in the selector, or just has been nulled
-                                                by modificator functions hash.
-                                                */
-                                                if ((!id || item.id === id) &&
-                                                    (!klass || (' ' + item.className + ' ').indexOf(klass) != -1) &&
-                                                    (!attrName || (attrMods[eql] &&
-                                                            (attrMods[eql](item, attrName, single[6]) ||
-                                                                (attrName === 'class' &&
-                                                                attrMods[eql](item, 'className', single[6]))))) &&
-                                                    !item.yeasss && !(mods[mod] ? mods[mod](item, ind) : mod)) {
-
-                                                    /*
-                                                    Need to define expando property to true for the last step.
-                                                    Then mark selected element with expando
-                                                    */
-                                                    if (last) {
-                                                        item.yeasss = 1;
-                                                    }
-                                                    newNodes[idx++] = item;
-                                                }
-                                            }
-                                        }
-                                        break;
-                                    /* W3C: "an F element preceded by an E element" */
-                                    case '~':
-
-                                        tag = tag.toLowerCase();
-
-                                        /* don't touch already selected elements */
-                                        while ((child = child.nextSibling) && !child.yeasss) {
-                                            if (child.nodeType === elemNodeType &&
-                                                (tag === '*' || child.nodeName.toLowerCase() === tag) &&
-                                                (!id || child.id === id) &&
-                                                (!klass || (' ' + child.className + ' ').indexOf(klass) !== -1) &&
-                                                (!attrName || (attrMods[eql] &&
-                                                           (attrMods[eql](item, attrName, single[6]) ||
-                                                            (attrName === 'class' &&
-                                                             attrMods[eql](item, 'className', single[6]))))) &&
-                                                !child.yeasss &&
-                                                !(mods[mod] ? mods[mod](child, ind) : mod)) {
-
-                                                if (last) {
-                                                    child.yeasss = 1;
-                                                }
-                                                newNodes[idx++] = child;
-                                            }
-                                        }
-                                        break;
-
-                                    /* W3C: "an F element immediately preceded by an E element" */
-                                    case '+':
-                                        while ((child = child.nextSibling) && child.nodeType !== elemNodeType) {}
-                                        if (child &&
-                                            (child.nodeName.toLowerCase() === tag.toLowerCase() || tag === '*') &&
-                                            (!id || child.id === id) &&
-                                            (!klass || (' ' + item.className + ' ').indexOf(klass) !== -1) &&
-                                            (!attrName ||
-                                             (attrMods[eql] && (attrMods[eql](item, attrName, single[6]) ||
-                                                                (attrName === 'class' &&
-                                                                 attrMods[eql](item, 'className', single[6]))))) &&
-                                            !child.yeasss && !(mods[mod] ? mods[mod](child, ind) : mod)) {
-
-                                            if (last) {
-                                                child.yeasss = 1;
-                                            }
-                                            newNodes[idx++] = child;
-                                        }
-                                        break;
-
-                                    /* W3C: "an F element child of an E element" */
-                                    case '>':
-                                        if (child.getElementsByTagName) {
-                                            childs = child.getElementsByTagName(tag);
-                                            i = 0;
-                                            while (item = childs[i++]) {
-                                                if (item.parentNode === child &&
-                                                    (!id || item.id === id) &&
-                                                    (!klass || (' ' + item.className + ' ').indexOf(klass) != -1) &&
-                                                    (!attrName || (attrMods[eql] &&
-                                                            (attrMods[eql](item, attrName, single[6]) ||
-                                                                (attrName === 'class' &&
-                                                                attrMods[eql](item, 'className', single[6]))))) &&
-                                                    !item.yeasss &&
-                                                    !(mods[mod] ? mods[mod](item, ind) : mod)) {
-
-                                                    if (last) {
-                                                        item.yeasss = 1;
-                                                    }
-                                                    newNodes[idx++] = item;
-                                                }
-                                            }
-                                        }
-                                        break;
-                                }
-                            }
-
-                            /* put selected nodes in local nodes' set */
-                            nodes = newNodes;
-
-                        } else {
-
-                            /* switch ancestor ( , > , ~ , +) */
-                            ancestor = single;
-                        }
-                    }
-
-                    if (concat) {
-                        /* if sets isn't an array - create new one */
-                        if (!nodes.concat) {
-                            newNodes = [];
-                            h = 0;
-                            while (item = nodes[h]) {
-                                newNodes[h++] = item;
-                            }
-                            nodes = newNodes;
-                            /* concat is faster than simple looping */
-                        }
-                        sets = nodes.concat(sets.length === 1 ? sets[0] : sets);
-
-                    } else {
-
-                        /* inialize sets with nodes */
-                        sets = nodes;
-                    }
-                }
-
-                /* define sets length to clean up expando */
-                idx = sets.length;
-
-                /*
-                 Need this looping as far as we also have expando 'yeasss'
-                 that must be nulled. Need this only to generic case
-                 */
-                while (idx--) {
-                    sets[idx].yeasss = sets[idx].nodeIndex = sets[idx].nodeIndexLast = null;
-                }
-            }
-        }
-
-        /* return and cache results */
-        return sets;
-    };
-}();
-
-
-
 /**
  * Transform xml into a document
  * @function parseXML
@@ -10762,386 +12027,6 @@ var ajax_transport_XHR = MetaphorJs.ajax.transport.XHR = (function(){
 
 
 
-
-/**
- * Function that returns false
- * @function returnFalse
- * @returns {boolean}
- */
-function returnFalse() {
-    return false;
-};
-
-/**
- * Function that returns true
- * @function returnTrue
- * @returns {boolean}
- */
-function returnTrue() {
-    return true;
-};
-
-/**
- * Check if given value is a null value
- * @function isNull
- * @param {*} value 
- * @returns {boolean}
- */
-function isNull(value) {
-    return value === null;
-};
-
-
-
-// from jQuery
-
-/**
- * Dom event wrapper.
- * @class MetaphorJs.lib.DomEvent
- */
-
-/**
- * @method DomEvent
- * @constructor
- * @param {Event} src Native event
- */
-var lib_DomEvent = MetaphorJs.lib.DomEvent = function(){
-
-var DomEvent = function DomEvent(src) {
-
-    if (src instanceof DomEvent) {
-        return src;
-    }
-
-    // Allow instantiation without the 'new' keyword
-    if (!(this instanceof DomEvent)) {
-        return new DomEvent(src);
-    }
-
-
-    var self    = this;
-
-    for (var i in src) {
-        if (!self[i]) {
-            try {
-                self[i] = src[i];
-            }
-            catch (thrownError){}
-        }
-    }
-
-
-    // Event object
-    self.originalEvent = src;
-    self.type = src.type;
-
-    if (!self.target && src.srcElement) {
-        self.target = src.srcElement;
-    }
-
-
-    var eventDoc, doc, body,
-        button = src.button;
-
-    // Calculate pageX/Y if missing and clientX/Y available
-    if (self.pageX === undf && !isNull(src.clientX)) {
-        eventDoc = self.target ? self.target.ownerDocument || window.document : window.document;
-        doc = eventDoc.documentElement;
-        body = eventDoc.body;
-
-        self.pageX = src.clientX +
-                      ( doc && doc.scrollLeft || body && body.scrollLeft || 0 ) -
-                      ( doc && doc.clientLeft || body && body.clientLeft || 0 );
-        self.pageY = src.clientY +
-                      ( doc && doc.scrollTop  || body && body.scrollTop  || 0 ) -
-                      ( doc && doc.clientTop  || body && body.clientTop  || 0 );
-    }
-
-    // Add which for click: 1 === left; 2 === middle; 3 === right
-    // Note: button is not normalized, so don't use it
-    if ( !self.which && button !== undf ) {
-        self.which = ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
-    }
-
-    // Events bubbling up the document may have been marked as prevented
-    // by a handler lower down the tree; reflect the correct value.
-    self.isDefaultPrevented = src.defaultPrevented ||
-                              src.defaultPrevented === undf &&
-                                  // Support: Android<4.0
-                              src.returnValue === false ?
-                              returnTrue :
-                              returnFalse;
-
-
-    // Create a timestamp if incoming event doesn't have one
-    self.timeStamp = src && src.timeStamp || (new Date).getTime();
-};
-
-// Event is based on DOM3 Events as specified by the ECMAScript Language Binding
-// http://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
-extend(DomEvent.prototype, {
-
-    /**
-     * @method isDefaultPrevented
-     * @returns {boolean}
-     */
-    isDefaultPrevented: returnFalse,
-
-    /**
-     * @method isPropagationStopped
-     * @returns {boolean}
-     */
-    isPropagationStopped: returnFalse,
-
-    /**
-     * @method isImmediatePropagationStopped
-     * @returns {boolean}
-     */
-    isImmediatePropagationStopped: returnFalse,
-
-    /**
-     * @method
-     */
-    preventDefault: function() {
-        var e = this.originalEvent;
-
-        this.isDefaultPrevented = returnTrue;
-        e.returnValue = false;
-
-        if ( e && e.preventDefault ) {
-            e.preventDefault();
-        }
-    },
-
-    /**
-     * @method
-     */
-    stopPropagation: function() {
-        var e = this.originalEvent;
-
-        this.isPropagationStopped = returnTrue;
-        e.cancelBubble = true;
-
-        if ( e && e.stopPropagation ) {
-            e.stopPropagation();
-        }
-    },
-
-    /**
-     * @method
-     */
-    stopImmediatePropagation: function() {
-        var e = this.originalEvent;
-
-        this.isImmediatePropagationStopped = returnTrue;
-
-        if ( e && e.stopImmediatePropagation ) {
-            e.stopImmediatePropagation();
-        }
-
-        this.stopPropagation();
-    }
-}, true, false);
-
-return DomEvent;
-
-}();
-
-
-
-
-
-var dom_normalizeEvent = MetaphorJs.dom.normalizeEvent = function(originalEvent) {
-    return new lib_DomEvent(originalEvent);
-};
-
-
-// from jquery.mousewheel plugin
-
-
-
-
-
-var _mousewheelHandler = function(e) {
-
-    function shouldAdjustOldDeltas(orgEvent, absDelta) {
-        // If this is an older event and the delta is divisable by 120,
-        // then we are assuming that the browser is treating this as an
-        // older mouse wheel event and that we should divide the deltas
-        // by 40 to try and get a more usable deltaFactor.
-        // Side note, this actually impacts the reported scroll distance
-        // in older browsers and can cause scrolling to be slower than native.
-        // Turn this off by setting $.event.special.mousewheel.settings.adjustOldDeltas to false.
-        return orgEvent.type === 'mousewheel' && absDelta % 120 === 0;
-    }
-
-    function nullLowestDelta() {
-        lowestDelta = null;
-    }
-
-    var nullLowestDeltaTimeout, lowestDelta;
-
-    var mousewheelHandler = function(fn) {
-
-        return function mousewheelHandler(e) {
-
-            var event = dom_normalizeEvent(e || window.event),
-                args = slice.call(arguments, 1),
-                delta = 0,
-                deltaX = 0,
-                deltaY = 0,
-                absDelta = 0,
-                offsetX = 0,
-                offsetY = 0;
-
-
-            event.type = 'mousewheel';
-
-            // Old school scrollwheel delta
-            if ('detail'      in event) { deltaY = event.detail * -1; }
-            if ('wheelDelta'  in event) { deltaY = event.wheelDelta; }
-            if ('wheelDeltaY' in event) { deltaY = event.wheelDeltaY; }
-            if ('wheelDeltaX' in event) { deltaX = event.wheelDeltaX * -1; }
-
-            // Firefox < 17 horizontal scrolling related to DOMMouseScroll event
-            if ('axis' in event && event.axis === event.HORIZONTAL_AXIS) {
-                deltaX = deltaY * -1;
-                deltaY = 0;
-            }
-
-            // Set delta to be deltaY or deltaX if deltaY is 0 for backwards compatabilitiy
-            delta = deltaY === 0 ? deltaX : deltaY;
-
-            // New school wheel delta (wheel event)
-            if ('deltaY' in event) {
-                deltaY = event.deltaY * -1;
-                delta = deltaY;
-            }
-            if ('deltaX' in event) {
-                deltaX = event.deltaX;
-                if (deltaY === 0) { delta = deltaX * -1; }
-            }
-
-            // No change actually happened, no reason to go any further
-            if (deltaY === 0 && deltaX === 0) { return; }
-
-            // Store lowest absolute delta to normalize the delta values
-            absDelta = Math.max(Math.abs(deltaY), Math.abs(deltaX));
-
-            if (!lowestDelta || absDelta < lowestDelta) {
-                lowestDelta = absDelta;
-
-                // Adjust older deltas if necessary
-                if (shouldAdjustOldDeltas(event, absDelta)) {
-                    lowestDelta /= 40;
-                }
-            }
-
-            // Adjust older deltas if necessary
-            if (shouldAdjustOldDeltas(event, absDelta)) {
-                // Divide all the things by 40!
-                delta /= 40;
-                deltaX /= 40;
-                deltaY /= 40;
-            }
-
-            // Get a whole, normalized value for the deltas
-            delta = Math[delta >= 1 ? 'floor' : 'ceil'](delta / lowestDelta);
-            deltaX = Math[deltaX >= 1 ? 'floor' : 'ceil'](deltaX / lowestDelta);
-            deltaY = Math[deltaY >= 1 ? 'floor' : 'ceil'](deltaY / lowestDelta);
-
-            // Normalise offsetX and offsetY properties
-            if (this.getBoundingClientRect) {
-                var boundingRect = this.getBoundingClientRect();
-                offsetX = event.clientX - boundingRect.left;
-                offsetY = event.clientY - boundingRect.top;
-            }
-
-            // Add information to the event object
-            event.deltaX = deltaX;
-            event.deltaY = deltaY;
-            event.deltaFactor = lowestDelta;
-            event.offsetX = offsetX;
-            event.offsetY = offsetY;
-            // Go ahead and set deltaMode to 0 since we converted to pixels
-            // Although this is a little odd since we overwrite the deltaX/Y
-            // properties with normalized deltas.
-            event.deltaMode = 0;
-
-            // Add event and delta to the front of the arguments
-            args.unshift(event, delta, deltaX, deltaY);
-
-            // Clearout lowestDelta after sometime to better
-            // handle multiple device types that give different
-            // a different lowestDelta
-            // Ex: trackpad = 3 and mouse wheel = 120
-            if (nullLowestDeltaTimeout) { clearTimeout(nullLowestDeltaTimeout); }
-            nullLowestDeltaTimeout = setTimeout(nullLowestDelta, 200);
-
-
-
-            return fn.apply(this, args);
-        }
-    };
-
-    mousewheelHandler.events = function() {
-        var doc = window.document;
-        return ( 'onwheel' in doc || doc.documentMode >= 9 ) ?
-               ['wheel'] : ['mousewheel', 'DomMouseScroll', 'MozMousePixelScroll'];
-    };
-
-    return mousewheelHandler;
-
-}();
-
-
-
-
-/**
- * @function MetaphorJs.dom.addListener
- * @param {HTMLElement} el
- * @param {string} eventName
- * @param {function} func {
- *  @param {object} event
- * }
- */
-var dom_addListener = MetaphorJs.dom.addListener = function(){
-
-    var fn = null,
-        prefix = null;
-
-    return function dom_addListener(el, event, func) {
-
-        if (fn === null) {
-            if (el.addEventListener) {
-                fn = "addEventListener";
-                prefix = "";
-            }
-            else {
-                fn = "attachEvent";
-                prefix = "on";
-            }
-            //fn = el.attachEvent ? "attachEvent" : "addEventListener";
-            //prefix = el.attachEvent ? "on" : "";
-        }
-
-
-        if (event == "mousewheel") {
-            func = _mousewheelHandler(func);
-            var events = _mousewheelHandler.events(),
-                i, l;
-            for (i = 0, l = events.length; i < l; i++) {
-                el[fn](prefix + events[i], func, false);
-            }
-        }
-        else {
-            el[fn](prefix + event, func, false);
-        }
-
-        return func;
-    }
-
-}();
 
 
 
@@ -13029,9 +13914,9 @@ var app_Template = MetaphorJs.app.Template = function() {
         _onParentRendererDestroy: function() {
             var self = this;
 
-            if (!self.$destroyed && self._renderer &&
-                !self._renderer.$destroyed) {
-                self._renderer.$destroy();
+            if (!self.$destroyed && self._parentRenderer &&
+                !self._parentRenderer.$destroyed) {
+                self._parentRenderer.$destroy();
             }
 
             self.$destroy();
@@ -13874,6 +14759,19 @@ var app_Component = MetaphorJs.app.Component = cls({
             return this.node;
         }
         return this.$refs.node[sup[directive]];
+    },
+
+    getInputApi: function() {
+        return null;
+    },
+
+    getApi: function(type, directive) {
+        if (type === "node") {
+            return this.getDomApi(directive);
+        }
+        else if (type === "input") {
+            return this.getInputApi();
+        }
     },
 
     /**
@@ -14845,18 +15743,6 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
     wrapper: null
 
 });
-
-
-
-/**
- * Check if given value is a number (not number-like)
- * @function isNumber
- * @param {*} value 
- * @returns {boolean}
- */
-function isNumber(value) {
-    return _varType(value) === 1;
-};
 
 
 
@@ -17306,781 +18192,6 @@ Directive.registerAttribute("app", 100, appDirective);
 
 
 
-/**
- * Is given element a field
- * @function MetaphorJs.dom.isField
- * @param {HTMLElement} node
- * @returns {boolean}
- */
-var dom_isField = MetaphorJs.dom.isField = function dom_isField(el) {
-    var tag	= el && el.nodeName ? el.nodeName.toLowerCase() : null,
-        type = el.type;
-    if (tag == 'input' || tag == 'textarea' || tag == 'select') {
-        if (type != "submit" && type != "reset" && type != "button") {
-            return true;
-        }
-    }
-    return false;
-};
-
-
-
-
-
-/**
- * @function MetaphorJs.dom.getInputValue
- * @param {HTMLElement} elem
- * @returns {string}
- */
-var dom_getInputValue = MetaphorJs.dom.getInputValue = function(){
-
-
-    var rreturn = /\r/,
-
-        hooks = {
-
-        option: function(elem) {
-            var val = elem.getAttribute("value") || elem.value;
-
-            return val !== undf ?
-                   val :
-                   ( elem.innerText || elem.textContent ).trim();
-        },
-
-        select: function(elem) {
-
-            var value, option,
-                options = elem.options,
-                index = elem.selectedIndex,
-                one = elem.type === "select-one" || index < 0,
-                values = one ? null : [],
-                max = one ? index + 1 : options.length,
-                disabled,
-                i = index < 0 ?
-                    max :
-                    one ? index : 0;
-
-            // Loop through all the selected options
-            for ( ; i < max; i++ ) {
-                option = options[ i ];
-
-                disabled = option.disabled ||
-                           option.parentNode.disabled;
-
-                // IE6-9 doesn't update selected after form reset (#2551)
-                if ((option.selected || i === index) && !disabled ) {
-                    // Get the specific value for the option
-                    value = MetaphorJs.dom.getInputValue(option);
-
-                    // We don't need an array for one selects
-                    if ( one ) {
-                        return value;
-                    }
-
-                    // Multi-Selects return an array
-                    values.push( value );
-                }
-            }
-
-            return values;
-        },
-
-        radio: function( elem ) {
-            return isNull(elem.getAttribute("value")) ? "on" : elem.value;
-        },
-
-        checkbox: function( elem ) {
-            return isNull(elem.getAttribute("value")) ? "on" : elem.value;
-        }
-    };
-
-    return function dom_getInputValue(elem) {
-
-        var hook, ret;
-
-        hook = hooks[elem.type] || hooks[elem.nodeName.toLowerCase()];
-
-        if (hook && (ret = hook(elem, "value")) !== undf) {
-            return ret;
-        }
-
-        ret = elem.value;
-
-        return isString(ret) ?
-            // Handle most common string cases
-               ret.replace(rreturn, "") :
-            // Handle cases where value is null/undef or number
-               ret == null ? "" : ret;
-
-    };
-}();
-
-
-
-
-
-
-
-
-
-/**
- * @function MetaphorJs.dom.setInputValue
- * @param {HTMLElement} el
- * @param {*} val
- */
-var dom_setInputValue = MetaphorJs.dom.setInputValue = function() {
-
-    var hooks = {
-        select:  function(elem, value) {
-
-            var optionSet, option,
-                options     = elem.options,
-                values      = toArray(value),
-                i           = options.length,
-                selected,
-                setIndex    = -1;
-
-            while ( i-- ) {
-                option      = options[i];
-                selected    = values.indexOf(option.value) !== -1;
-
-                if (selected) {
-                    dom_setAttr(option, "selected", "selected");
-                    option.selected = true;
-                    optionSet = true;
-                }
-                else {
-                    dom_removeAttr(option, "selected");
-                }
-
-                if (!selected && !isNull(dom_getAttr(option, "default-option"))) {
-                    setIndex = i;
-                }
-            }
-
-            // Force browsers to behave consistently when non-matching value is set
-            if (!optionSet) {
-                elem.selectedIndex = setIndex;
-            }
-
-            return values;
-        }
-    };
-
-    hooks["radio"] = hooks["checkbox"] = function(elem, value) {
-        if (isArray(value) ) {
-            return (elem.checked = value.indexOf(
-                dom_getInputValue(elem)
-                ) !== -1);
-        }
-    };
-
-
-    return function(el, val) {
-
-        if (el.nodeType !== window.document.ELEMENT_NODE) {
-            return;
-        }
-
-        // Treat null/undefined as ""; convert numbers to string
-        if (isNull(val)) {
-            val = "";
-        }
-        else if (isNumber(val)) {
-            val += "";
-        }
-
-        var hook = hooks[el.type] || hooks[el.nodeName.toLowerCase()];
-
-        // If set returns undefined, fall back to normal setting
-        if (!hook || hook(el, val, "value") === undf) {
-            el.value = val;
-        }
-    };
-}();
-
-
-
-
-/**
- * Remove listeners from element's events
- * @function MetaphorJs.dom.removeListener
- * @param {HTMLElement} el 
- * @param {string} eventName
- * @param {function} fn
- */
-var dom_removeListener = MetaphorJs.dom.removeListener = function(){
-
-    var fn = null,
-        prefix = null;
-
-    return function dom_removeListener(el, event, func) {
-
-        if (fn === null) {
-            if (el.removeEventListener) {
-                fn = "removeEventListener";
-                prefix = "";
-            }
-            else {
-                fn = "detachEvent";
-                prefix = "on";
-            }
-            //fn = el.detachEvent ? "detachEvent" : "removeEventListener";
-            //prefix = el.detachEvent ? "on" : "";
-        }
-
-        el[fn](prefix + event, func);
-    }
-}();
-
-
-
-MetaphorJs.browser = MetaphorJs.browser || {};
-
-
-
-
-
-var browser_isAndroid = MetaphorJs.browser.isAndroid = function(){
-
-    var android = null;
-
-    return function browser_isAndroid() {
-
-        if (android === null) {
-            android = parseInt((/android (\d+)/i.exec(navigator.userAgent) || [])[1], 10) || false;
-        }
-
-        return android;
-    };
-
-}();
-
-
-
-
-var isIE = MetaphorJs.browser.isIE = function(){
-
-    var msie;
-
-    return function browser_isIE() {
-
-        if (msie === null) {
-            var ua = navigator.userAgent;
-            msie = parseInt((/msie (\d+)/i.exec(ua) || [])[1], 10);
-            if (isNaN(msie)) {
-                msie = parseInt((/trident\/.*; rv:(\d+)/i.exec(ua) || [])[1], 10) || false;
-            }
-        }
-
-        return msie;
-    };
-}();
-
-
-
-
-
-
-/**
- * Check if current browser supports event
- * @function MetaphorJs.browser.hasEvent
- * @param {string} event
- * @return {boolean}
- */
-var browser_hasEvent = MetaphorJs.browser.hasEvent = function(){
-
-    var eventSupport = {},
-        divElm;
-
-    return function browser_hasEvent(event) {
-        // IE9 implements 'input' event it's so fubared that we rather pretend that it doesn't have
-        // it. In particular the event is not fired when backspace or delete key are pressed or
-        // when cut operation is performed.
-
-        if (eventSupport[event] === undf) {
-
-            if (event === 'input' && isIE() == 9) {
-                return eventSupport[event] = false;
-            }
-            if (!divElm) {
-                divElm = window.document.createElement('div');
-            }
-
-            eventSupport[event] = !!('on' + event in divElm);
-        }
-
-        return eventSupport[event];
-    };
-}();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-var lib_Input = MetaphorJs.lib.Input = function(){
-
-var observable = new MetaphorJs.lib.Observable,
-    id = 0;
-
-var Input = function(el, changeFn, changeFnContext, cfg) {
-
-    if (el.$$input) {
-        if (changeFn) {
-            el.$$input.on("change", changeFn, changeFnContext);
-        }
-        return el.$$input;
-    }
-
-    var self    = this;
-
-    cfg = cfg || {};
-
-    //self.observable     = new MetaphorJs.lib.Observable;
-    self.el             = el;
-    self.id             = ++id;
-    self.inputType      = el.type.toLowerCase();
-    self.dataType       = cfg.type || dom_getAttr(el, "data-type") || self.inputType;
-    self.listeners      = [];
-
-    if (changeFn) {
-        self.on("change", changeFn, changeFnContext);
-    }
-};
-
-extend(Input.prototype, {
-
-    el: null,
-    inputType: null,
-    dataType: null,
-    listeners: null,
-    radio: null,
-    keydownDelegate: null,
-    changeInitialized: false,
-
-    $destroy: function() {
-
-        var self        = this,
-            i;
-
-        //self.observable.$destroy();
-        observable.destroyEvent("change-" + self.id);
-        observable.destroyEvent("key-" + self.id);
-        self._addOrRemoveListeners(MetaphorJs.dom.removeListener, true);
-
-        self.el.$$input = null;
-
-        for (i in self) {
-            if (self.hasOwnProperty(i)) {
-                self[i] = null;
-            }
-        }
-    },
-
-    _addOrRemoveListeners: function(fn, onlyUsed) {
-
-        var self        = this,
-            type        = self.inputType,
-            listeners   = self.listeners,
-            radio       = self.radio,
-            el          = self.el,
-            used,
-            i, ilen,
-            j, jlen;
-
-        for (i = 0, ilen = listeners.length; i < ilen; i++) {
-
-            used = !!listeners[i][2];
-
-            if (used === onlyUsed) {
-                if (type === "radio") {
-                    for (j = 0, jlen = radio.length; j < jlen; j++) {
-                        fn(radio[j], listeners[i][0], listeners[i][1]);
-                    }
-                }
-                else {
-                    fn(el, listeners[i][0], listeners[i][1]);
-                }
-                listeners[i][2] = !onlyUsed;
-            }
-        }
-    },
-
-    initInputChange: function() {
-
-        var self = this,
-            type = self.inputType;
-
-        if (type === "radio") {
-            self.initRadioInput();
-        }
-        else if (type === "checkbox") {
-            self.initCheckboxInput();
-        }
-        else {
-            self.initTextInput();
-        }
-
-        self._addOrRemoveListeners(MetaphorJs.dom.addListener, false);
-
-        self.changeInitialized = true;
-    },
-
-    initRadioInput: function() {
-
-        var self    = this,
-            el      = self.el,
-            name    = el.name,
-            parent;
-
-        if (dom_isAttached(el)) {
-            parent  = el.ownerDocument;
-        }
-        else {
-            parent = el;
-            while (parent.parentNode) {
-                parent = parent.parentNode;
-            }
-        }
-
-        self.radio  = dom_select("input[name="+name+"]", parent);
-
-        self.onRadioInputChangeDelegate = bind(self.onRadioInputChange, self);
-        self.listeners.push(["click", self.onRadioInputChangeDelegate, false]);
-    },
-
-    initCheckboxInput: function() {
-
-        var self    = this;
-
-        self.clicked = false;
-
-        self.onCheckboxInputChangeDelegate = bind(self.onCheckboxInputChange, self);
-        self.onCheckboxInputClickDelegate = bind(self.onCheckboxInputClick, self);
-        self.listeners.push(["click", self.onCheckboxInputClickDelegate, false]);
-        self.listeners.push(["change", self.onCheckboxInputChangeDelegate, false]);
-    },
-
-    initTextInput: function() {
-
-        var composing   = false,
-            self        = this,
-            listeners   = self.listeners,
-            timeout;
-
-        // In composition mode, users are still inputing intermediate text buffer,
-        // hold the listener until composition is done.
-        // More about composition events:
-        // https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent
-        if (!browser_isAndroid()) {
-
-            var compositionStart    = function() {
-                composing = true;
-            };
-
-            var compositionEnd  = function() {
-                composing = false;
-                listener();
-            };
-
-            listeners.push(["compositionstart", compositionStart, false]);
-            listeners.push(["compositionend", compositionEnd, false]);
-        }
-
-        var listener = self.onTextInputChangeDelegate = function(ev) {
-            if (composing) {
-                return;
-            }
-            self.onTextInputChange(ev);
-        };
-
-        var deferListener = function(ev) {
-            if (!timeout) {
-                timeout = setTimeout(function() {
-                    listener(ev);
-                    timeout = null;
-                }, 0);
-            }
-        };
-
-        var keydown = function(event) {
-            event = event || window.event;
-            var key = event.keyCode;
-
-            // ignore
-            //    command            modifiers                   arrows
-            if (key === 91 || (15 < key && key < 19) || (37 <= key && key <= 40)) {
-                return;
-            }
-
-            deferListener(event);
-        };
-
-        // if the browser does support "input" event, we are fine - except on
-        // IE9 which doesn't fire the
-        // input event on backspace, delete or cut
-        if (browser_hasEvent('input')) {
-
-            listeners.push(["input", listener, false]);
-
-        } else {
-
-            listeners.push(["keydown", keydown, false]);
-
-            // if user modifies input value using context menu in IE,
-            // we need "paste" and "cut" events to catch it
-            if (browser_hasEvent('paste')) {
-                listeners.push(["paste", deferListener, false]);
-                listeners.push(["cut", deferListener, false]);
-            }
-        }
-
-
-        // if user paste into input using mouse on older browser
-        // or form autocomplete on newer browser, we need "change" event to catch it
-
-        listeners.push(["change", listener, false]);
-    },
-
-    processValue: function(val) {
-
-        switch (this.dataType) {
-            case "number":
-            case "float":
-            case "double":
-                if (val === "" || isNaN(val = parseFloat(val))) {
-                    val = undf;
-                }
-                break;
-            case "int":
-            case "integer":
-                if (val === "" || isNaN(val = parseInt(val, 10))) {
-                    val = undf;
-                }
-                break;
-            case "bool":
-            case "boolean":
-                return !(val === "false" || val === "0" || val === 0 ||
-                        val === "off" || val === false || val === "");
-
-        }
-
-        return val;
-    },
-
-    onTextInputChange: function(ev) {
-
-        var self    = this,
-            val     = self.getValue();
-
-        observable.trigger("change-"+self.id, self.processValue(val));
-    },
-
-
-    _checkboxChange: function() {
-        var self    = this,
-            node    = self.el;
-
-        observable.trigger("change-"+self.id, self.processValue(
-            node.checked ? (dom_getAttr(node, "value") || true) : false)
-        );
-    },
-
-    onCheckboxInputChange: function() {
-        if (!this.clicked) {
-            this._checkboxChange();
-        }
-        this.clicked = false;
-    },
-
-    onCheckboxInputClick: function() {
-        this._checkboxChange();
-        this.clicked = true;
-    },
-
-    onRadioInputChange: function(e) {
-
-        e = e || window.event;
-
-        var self    = this,
-            trg     = e.target || e.srcElement;
-
-        observable.trigger("change-"+self.id, self.processValue(trg.value));
-    },
-
-    setValue: function(val) {
-
-        var self    = this,
-            type    = self.inputType,
-            radio,
-            i, len;
-
-        val = self.processValue(val);
-
-        if (type === "radio") {
-
-            radio = self.radio;
-
-            for (i = 0, len = radio.length; i < len; i++) {
-                radio[i].checked = self.processValue(radio[i].value) == val;
-            }
-        }
-        else if (type === "checkbox") {
-            var node        = self.el;
-            node.checked    = val === true || val == self.processValue(node.value);
-        }
-        else {
-
-            if (val === undf) {
-                val = "";
-            }
-
-            dom_setInputValue(self.el, val);
-        }
-
-        self.triggerChange();
-    },
-
-    getValue: function() {
-
-        var self    = this,
-            type    = self.inputType,
-            radio,
-            i, l;
-
-        if (type === "radio") {
-            radio = self.radio;
-            for (i = 0, l = radio.length; i < l; i++) {
-                if (radio[i].checked) {
-                    return self.processValue(radio[i].value);
-                }
-            }
-            return null;
-        }
-        else if (type === "checkbox") {
-            return self.processValue(self.el.checked ? (dom_getAttr(self.el, "value") || true) : false);
-        }
-        else {
-            return self.processValue(dom_getInputValue(self.el));
-        }
-    },
-
-
-    on: function(event, fn, ctx, opt) {
-        var self = this;
-        if (event === "change" && !self.changeInitialized) {
-            self.initInputChange();
-        }
-        else if (event === "key" && !self.keydownDelegate) {
-            self.keydownDelegate = bind(self.keyHandler, self);
-            self.listeners.push(["keydown", self.keydownDelegate, false]);
-            dom_addListener(self.el, "keydown", self.keydownDelegate);
-            observable.createEvent("key-"+self.id, {
-                returnResult: false,
-                triggerFilter: self.keyEventFilter
-            });
-        }
-        return observable.on(event+"-"+self.id, fn, ctx, opt);
-    },
-
-    un: function(event, fn, ctx) {
-        return observable.un(event+"-"+this.id, fn, ctx);
-    },
-
-    onChange: function(fn, context) {
-        return this.on("change", fn, context);
-    },
-
-    unChange: function(fn, context) {
-        return this.un("change", fn, context);
-    },
-
-    onKey: function(key, fn, context, args) {
-        return this.on("key", fn, context, {
-            key: key,
-            prepend: args
-        });
-    },
-
-    unKey: function(key, fn, context) {
-        this.un("key", fn, context);
-    },
-
-    keyEventFilter: function(l, args) {
-
-        var key = l.key,
-            e = args[0];
-
-        if (typeof key !== "object") {
-            return key === e.keyCode;
-        }
-        else {
-            if (key.ctrlKey !== undf && key.ctrlKey !== e.ctrlKey) {
-                return false;
-            }
-            if (key.shiftKey !== undf && key.shiftKey !== e.shiftKey) {
-                return false;
-            }
-            return !(key.keyCode !== undf && key.keyCode !== e.keyCode);
-        }
-    },
-
-    keyHandler: function(event) {
-        observable.trigger(
-            "key-"+this.id, 
-            dom_normalizeEvent(event || window.event)
-        );
-    },
-
-    triggerChange: function() {
-        if ("createEvent" in document) {
-            var evt = document.createEvent("HTMLEvents");
-            evt.initEvent("change", false, true);
-            this.el.dispatchEvent(evt);
-        }
-        else {
-            this.el.fireEvent("onchange");
-        }
-    }
-
-
-}, true, false);
-
-
-Input.get = function(node, scope) {
-    if (node.$$input) {
-        return node.$$input;
-    }
-    if (scope && scope.$app && !node.type) {
-        var cmp = scope.$app.getParentCmp(node, true);
-        if (cmp && cmp.getInputApi) {
-            return cmp.getInputApi();
-        }
-    }
-    return new Input(node);
-};
-
-Input.getValue = MetaphorJs.dom.getInputValue;
-Input.setValue = MetaphorJs.dom.setInputValue;
-
-
-
-return Input;
-
-}();
-
-
-
 
 
 
@@ -18091,25 +18202,21 @@ return Input;
 Directive.registerAttribute("bind", 1000, 
     Directive.$extend({
         $class: "MetaphorJs.app.Directive.attr.Bind",
-        isInput: false,
+        id: "bind",
+        
+        _apis: ["node", "input"],
         input: null,
         textRenderer: null,
-        observers: null,
 
-        $init: function(scope, node, config, renderer) {
+        _initDirective: function() {
 
-            var self    = this;
+            var self    = this,
+                config  = self.config;
 
-            config.setType("recursive", "bool");
-            config.setType("once", "bool", lib_Config.MODE_STATIC);
-            config.setType("locked", "bool");
+            if (self.input) {
+                self.input.onChange(self.onInputChange, self);
+            }
 
-            self.scope      = scope;
-            self.node       = node;
-            self.config     = config;
-
-            self._initNode(node);
-            
             self.optionsChangeDelegate = bind(self.onOptionsChange, self);
             dom_addListener(self.node, "optionschange", 
                                     self.optionsChangeDelegate);
@@ -18118,7 +18225,7 @@ Directive.registerAttribute("bind", 1000,
                 config.disableProperty("value");
                 config.disableProperty("recursive");
                 self.textRenderer = new lib_Text(
-                    scope, 
+                    self.scope, 
                     config.getExpression("value"), 
                     {
                         recursive: true, 
@@ -18128,50 +18235,50 @@ Directive.registerAttribute("bind", 1000,
                 );
                 self.textRenderer.subscribe(self.onTextRendererChange, self);
                 self.onTextRendererChange();
-
-                if (scope instanceof MetaphorJs.lib.Scope) {
-                    scope.$on("destroy", self.onScopeDestroy, self);
-                }
             }
             else {
-                self.$super(scope, self.node, config);
+                self.$super();
             }
+        },
+
+        _initConfig: function(config) {
+            this.$super(config);
+            config.setType("recursive", "bool");
+            config.setType("once", "bool", lib_Config.MODE_STATIC);
+            config.setType("locked", "bool");
         },
 
         _initNode: function(node) {
             var self = this;
-            if (node.getDomApi) {
-                self.node = node.getDomApi("bind");
-            }
             if (dom_isField(node)) {
                 self.input = lib_Input.get(node);
             }
-            else if (node.getInputApi) {
-                self.input = node.getInputApi("bind");
-            }
-            if (self.input) {
-                self.input.onChange(self.onInputChange, self);
-            }
         },
 
+
+        
         onInputChange: function(val) {
             var self = this,
                 cfgVal = self.config.get("value") || null;
             val = val || null;
             if (self.config.get("locked") && val != cfgVal) {
-                self.onChange(cfgVal);
+                self.onScopeChange(cfgVal);
             }
         },
 
         onTextRendererChange: function() {
-            this.onChange(this.textRenderer.getString());
+            this.onScopeChange(this.textRenderer.getString());
         },
 
         onOptionsChange: function() {
-            this.onChange();
+            this.onScopeChange(
+                this.textRenderer ? 
+                    this.textRenderer.getString() :
+                    this.config.get("value")
+            );
         },
 
-        onChange: function(text) {
+        onScopeChange: function(text) {
             this.updateElement(text);
         },
 
@@ -18216,11 +18323,9 @@ Directive.registerAttribute("bind", 1000,
 Directive.registerAttribute("bind-html", 1000, 
     Directive.attr.Bind.$extend({
         $class: "MetaphorJs.app.Directive.attr.BindHtml",
-        _initNode: function(node) {
-            if (node.getDomApi) {
-                this.node = node.getDomApi("bind-html");
-            }
-        },
+        id: "bind-html",
+        _apis: ["node"],
+
         updateElement: function(val) {
             this.node.innerHTML = val;
         }
@@ -18316,25 +18421,26 @@ DO NOT put class="{}" when using class.name="{}"
     Directive.registerAttribute("class", 1000, Directive.$extend({
 
         $class: "MetaphorJs.app.Directive.attr.Class",
-        initial: true,
-        prev: null,
+        id: "class",
+        
+        _initial: true,
+        _prev: null,
 
-        $init: function(scope, node, config, renderer, attrSet) {
-
+        _initConfig: function(config) {
             var self = this;
             config.setType("animate", "bool");
             config.eachProperty(function(k) {
                 if (k === 'value' || k.indexOf("value.") === 0) {
-                    config.on(k, self.onChange, self);
+                    config.on(k, self.onScopeChange, self);
                 }
             });
-            self.$super(scope, node, config, renderer, attrSet);
+            self.$super(config);
         },
 
-        initialSet: function() {
+        _initChange: function() {
             var self = this;
-            if (self.autoOnChange) {
-                self.onChange();
+            if (self._autoOnChange) {
+                self.onScopeChange();
             }
         },
 
@@ -18351,19 +18457,13 @@ DO NOT put class="{}" when using class.name="{}"
             return flatten(values);
         },
 
-        onChange: function() {
+        onScopeChange: function() {
 
             var self    = this,
                 node    = self.node,
                 clss    = self.getCurrentValue(),
-                prev    = self.prev,
+                prev    = self._prev,
                 i;
-
-            node = node.getDomApi ? node.getDomApi("class") : node;
-
-            if (!node) {
-                return;
-            }
 
             animate_stop(node);
 
@@ -18380,13 +18480,13 @@ DO NOT put class="{}" when using class.name="{}"
             for (i in clss) {
                 if (clss.hasOwnProperty(i)) {
                     toggleClass(node, i, !!clss[i], 
-                        !self.initial && 
+                        !self._initial && 
                         self.config.get("animate"));
                 }
             }
 
-            self.prev = clss;
-            self.initial = false;
+            self._prev = clss;
+            self._initial = false;
         }
     }));
 
@@ -18400,7 +18500,11 @@ DO NOT put class="{}" when using class.name="{}"
 
 (function(){
 
-    var cmpAttr = function(scope, node, config, parentRenderer, attrSet) {
+    var cmpAttr = function(scope, node, config, renderer, attrSet) {
+
+        if (!(node instanceof window.Node)) {
+            throw new Error("cmp directive can only work with DOM nodes");
+        }
         
         var ms = lib_Config.MODE_STATIC;
 
@@ -18440,7 +18544,7 @@ DO NOT put class="{}" when using class.name="{}"
             scope: newScope,
             node: node,
             config: config,
-            parentRenderer: parentRenderer,
+            parentRenderer: renderer,
             destroyScope: !sameScope,
             autoRender: true
         };
@@ -18451,14 +18555,14 @@ DO NOT put class="{}" when using class.name="{}"
 
         var res = app_resolve(cmpName, cfg, newScope, node, [cfg])
             .done(function(cmp) {
-                parentRenderer.trigger(
+                renderer.trigger(
                     "reference", "cmp", 
                     config.get("ref") || cmp.id, cmp, 
                     cfg, attrSet
                 );
             });
 
-        parentRenderer.trigger(
+        renderer.trigger(
             "reference-promise", 
             res, cmpName, 
             cfg, attrSet
@@ -18466,8 +18570,6 @@ DO NOT put class="{}" when using class.name="{}"
 
         attrSet.renderer.ignoreInside = true;
     };
-
-    //cmpAttr.$breakScope = false;
 
     Directive.registerAttribute("cmp", 200, cmpAttr);
 
@@ -18501,6 +18603,11 @@ DO NOT put class="{}" when using class.name="{}"
     }
 
     var eachDirective = function eachDirective(scope, node, config, parentRenderer, attrSet) {
+
+        if (!(node instanceof window.Node)) {
+            throw new Error("'each' directive can only work with DOM nodes");
+        }
+
         config.disableProperty("value");
         var tagMode = node.nodeName.toLowerCase() === "mjs-each",
             expr;
@@ -19422,6 +19529,24 @@ var lib_EventHandler = MetaphorJs.lib.EventHandler;
         return config;
     };
 
+    var createHandler = function(name, scope, node, config) {
+        return new lib_EventHandler(
+            name, scope, node, prepareConfig(config)
+        );
+    };
+
+    var getNode = function(node, config, directive, cb) {
+        Directive.resolveNode(node, directive, function(node, cmp){
+            if(cmp) {
+                config.setProperty("targetComponent", {
+                    mode: lib_Config.MODE_STATIC,
+                    value: cmp
+                });
+            }
+            cb(node);
+        });
+    };
+
     for (i = 0, len = events.length; i < len; i++) {
 
         (function(name){
@@ -19429,24 +19554,21 @@ var lib_EventHandler = MetaphorJs.lib.EventHandler;
             Directive.registerAttribute(name, 1000,
                 function(scope, node, config, renderer, attrSet) {
 
-                if (node.getDomApi) {
-                    config.setProperty("targetComponent", {
-                        mode: lib_Config.MODE_STATIC,
-                        value: node
-                    });
-                    node = node.getDomApi(name);
-                    if (!node) {
-                        return null;
-                    }
-                }
+                var eh,
+                    destroyed = false;
 
-                var eh = new lib_EventHandler(
-                    name, scope, node, prepareConfig(config)
-                );
+                getNode(node, config, name, function(node){
+                    if (!destroyed) {
+                        eh = createHandler(name, scope, node, config);
+                    }
+                });
 
                 return function(){
-                    eh.$destroy();
-                    eh = null;
+                    destroyed = true;
+                    if (eh) {
+                        eh.$destroy();
+                        eh = null;
+                    }
                 };
             });
 
@@ -19461,12 +19583,20 @@ var lib_EventHandler = MetaphorJs.lib.EventHandler;
             handler = function(){
                 fn(scope);
                 config.checkScope("value")
-            };
+            },
+            resolvedNode;
 
-        lib_Input.get(node).onKey(13, handler);
+        getNode(node, config, "submit", function(node) {
+            if (handler) {
+                resolvedNode = node;
+                lib_Input.get(node).onKey(13, handler);
+            }
+        });
 
         return function() {
-            lib_Input.get(node).unKey(13, handler);
+            if (resolvedNode) {
+                lib_Input.get(resolvedNode).unKey(13, handler);
+            }
             handler = null;
             fn = null;
         };
@@ -19487,14 +19617,16 @@ var lib_EventHandler = MetaphorJs.lib.EventHandler;
 Directive.registerAttribute("show", 500, Directive.$extend({
 
     $class: "MetaphorJs.app.Directive.attr.Show",
-    initial: true,
+    id: "show",
 
-    initialSet: function() {
-        this.config.setType("display", 
+    _initial: true,
+
+    _initConfig: function(config) {
+        config.setType("display", 
             "string", lib_Config.MODE_STATIC, "");
-        this.config.setType("animate", 
+        config.setType("animate", 
             "bool", lib_Config.MODE_STATIC, false);
-        this.$super();
+        this.$super(config);
     },
 
     runAnimation: function(show) {
@@ -19510,7 +19642,7 @@ Directive.registerAttribute("show", 500, Directive.$extend({
                 }
             };
 
-        self.initial || !self.config.get("animate") ? done() : animate_animate(
+        self._initial || !self.config.get("animate") ? done() : animate_animate(
             self.node,
             show ? "show" : "hide",
             function() {
@@ -19526,10 +19658,10 @@ Directive.registerAttribute("show", 500, Directive.$extend({
             .done(done);
     },
 
-    onChange: function(val) {
+    onScopeChange: function(val) {
         var self    = this;
         self.runAnimation(val);
-        self.initial = false;
+        self._initial = false;
         self.$super(val);
     }
 }));
@@ -19543,11 +19675,12 @@ Directive.registerAttribute("show", 500, Directive.$extend({
 Directive.registerAttribute("hide", 500, Directive.attr.Show.$extend({
 
     $class: "MetaphorJs.app.Directive.attr.Hide",
+    id: "hide",
 
-    onChange: function(val) {
+    onScopeChange: function(val) {
         var self    = this;
         self.runAnimation(!val);
-        self.initial = false;
+        self._initial = false;
         self.saveStateOnChange(val);
     }
 }));
@@ -19561,32 +19694,24 @@ Directive.registerAttribute("hide", 500, Directive.attr.Show.$extend({
 Directive.registerAttribute("if", 500, Directive.$extend({
 
     $class: "MetaphorJs.app.Directive.attr.If",
-    parentEl: null,
-    prevEl: null,
-    nextEl: null,
-    el: null,
-    initial: true,
-    cfg: null,
-    animate: false,
+    id: "if",
 
-    $init: function(scope, node, config, renderer, attrSet) {
-
-        var self    = this;
+    _initial: true,
+    
+    _initConfig: function(config) {
+        config.setType("animate", "bool", lib_Config.MODE_STATIC)
         config.setType("value", "bool");
         config.setType("once", "bool", lib_Config.MODE_STATIC);
-        self.createCommentWrap(node, "if");
-        self.$super(scope, node, config, renderer, attrSet);
+        this.$super(config);
     },
-
-    onScopeDestroy: function() {
-
-        var self    = this;
-        self.wrapperOpen = null;
-        self.wrapperClose = null;
-        self.$super();
+    
+    _initDirective: function() {
+        this.createCommentWrap(this.node, "if");
+        this.$super();
     },
+    
 
-    onChange: function() {
+    onScopeChange: function() {
         var self    = this,
             val     = self.config.get("value"),
             parent  = self.wrapperOpen.parentNode,
@@ -19601,20 +19726,20 @@ Directive.registerAttribute("if", 500, Directive.$extend({
         };
 
         if (val) {
-            self.initial || !self.config.get("animate") ?
+            self._initial || !self.config.get("animate") ?
                 show() : animate_animate(node, "enter", show);
         }
         else {
             if (node.parentNode) {
-                self.initial || !self.config.get("animate") ?
+                self._initial || !self.config.get("animate") ?
                     hide() : animate_animate(node, "leave").done(hide);
             }
         }
 
         self.$super(val);
 
-        if (self.initial) {
-            self.initial = false;
+        if (self._initial) {
+            self._initial = false;
         }
         else {
             if (self.config.get("once")) {
@@ -19631,20 +19756,14 @@ Directive.registerAttribute("if", 500, Directive.$extend({
 Directive.registerAttribute("in-focus", 500, Directive.$extend({
 
     $class: "MetaphorJs.app.Directive.attr.InFocus",
+    id: "in-focus",
 
-    $init: function(scope, node) {
-        if (node.getDomApi) {
-            arguments[1] = node.getDomApi();
-        }
-        this.$super.apply(this, arguments);
+    _initConfig: function(config) {
+        config.setType("value", "bool");
+        this.$super(config);
     },
 
-    initialSet: function() {
-        this.config.setType("value", "bool");
-        this.$super();
-    },
-
-    onChange: function(val) {
+    onScopeChange: function(val) {
         var self    = this;
         if (val) {
             async(self.node.focus, self.node, [], 300);
@@ -19659,7 +19778,11 @@ Directive.registerAttribute("in-focus", 500, Directive.$extend({
 
 
 Directive.registerAttribute("include", 1100,
-    function(scope, node, config, parentRenderer, attrSet){
+    function(scope, node, config, renderer, attrSet){
+
+    if (!(node instanceof window.Node)) {
+        throw new Error("'include' directive can only work with Node");
+    }
 
     config.disableProperty("value");
     config.setProperty("name", config.getProperty("value"));
@@ -19671,11 +19794,11 @@ Directive.registerAttribute("include", 1100,
     var tpl = new app_Template({
         scope: scope,
         attachTo: node,
-        parentRenderer: parentRenderer,
+        renderer: renderer,
         config: config
     });
 
-    parentRenderer.on("destroy", function(){
+    renderer.on("destroy", function(){
         tpl.$destroy();
         tpl = null;
     });
@@ -19688,7 +19811,8 @@ Directive.registerAttribute("include", 1100,
 
 
 
-Directive.registerAttribute("init", 250, function(){
+Directive.registerAttribute("init", 250, function() {
+    
     var initDir = function(scope, node, config) {
         config.eachProperty(function(k, prop) {
             if (k === 'value' || k.indexOf('value.') === 0) {
@@ -19741,6 +19865,19 @@ or
 
  */
 
+var getNode = function(node, config, cb) {
+    Directive.resolveNode(node, "key", function(node, cmp){
+        if (cmp) {
+            config.setProperty("targetComponent", {
+                mode: lib_Config.MODE_STATIC,
+                value: cmp
+            });
+        }
+        cb(node);
+    });
+};
+
+
 Directive.registerAttribute("key", 1000, function(scope, node, config, renderer, attrSet){
 
     config.disableProperty("value");
@@ -19752,7 +19889,7 @@ Directive.registerAttribute("key", 1000, function(scope, node, config, renderer,
         }
     });
 
-    var createHandler = function(name, cfg) {
+    var createHandler = function(node, name, cfg) {
 
         if (typeof cfg === "function") {
             cfg = {handler: cfg};
@@ -19770,8 +19907,10 @@ Directive.registerAttribute("key", 1000, function(scope, node, config, renderer,
 
         var handler = function(e) {
             scope.$event = e;
+            scope.$targetComponent = config.get("targetComponent");
             h(scope);
             scope.$event = null;
+            scope.$targetComponent = null;
             scope.$check();
         };
         
@@ -19785,12 +19924,16 @@ Directive.registerAttribute("key", 1000, function(scope, node, config, renderer,
     var cfgs = config.getAllValues(),
         name,
         uninstall = [];
-    
-    for (name in cfgs) {
-        if (cfgs.hasOwnProperty(name) && cfgs[name]) {
-            uninstall.push(createHandler(name, cfgs[name]));
+
+    getNode(node, config, function(node){
+        if (cfgs) {
+            for (name in cfgs) {
+                if (cfgs.hasOwnProperty(name) && cfgs[name]) {
+                    uninstall.push(createHandler(node, name, cfgs[name]));
+                }
+            }
         }
-    }
+    });
 
     return function() {
         var i, l;
@@ -19812,22 +19955,50 @@ Directive.registerAttribute("key", 1000, function(scope, node, config, renderer,
 
 
 
-
-
 Directive.registerAttribute("model", 1000, Directive.$extend({
 
     $class: "MetaphorJs.app.Directive.attr.Model",
-    inProg: false,
-    input: null,
-    binding: null,
-    updateRoot: false,
-    changeCb: null,
-    initial: false,
+    id: "model",
+    _apis: ["node", "input"],
 
-    autoOnChange: false,
+    _changeFn: null,
+    _binding: null,
+    _inProg: false,
+    _initial: false,
+    _autoOnChange: false,
 
-    $init: function(scope, node, config, renderer, attrSet) {
+    _initDirective: function() {
 
+        var self    = this;
+
+        self.input.onChange(self.onInputChange, self);
+
+        self.optionsChangeDelegate = bind(self.onOptionsChange, self);
+        dom_addListener(self.node, "optionschange", 
+                                    self.optionsChangeDelegate);
+
+        self.$super();
+
+        var inputValue      = self.input.getValue(),
+            scopeValue      = self.mo.getValue(),
+            binding         = self.config.get("binding");
+        
+        self._initial = true;
+
+        if (scopeValue !== inputValue) {
+            // scope value takes priority
+            if (binding !== "input" && scopeValue !== undf) {
+                self.onScopeChange(scopeValue);
+            }
+            else if (binding !== "scope" && inputValue !== undf) {
+                self.onInputChange(inputValue);
+            }
+        }
+
+        self._initial = false;
+    },
+
+    _initConfig: function(config) {
         var self    = this,
             expr    = config.getExpression("value"),
             descr   = lib_Expression.describeExpression(expr);
@@ -19847,59 +20018,27 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         });
 
         if (config.hasExpression("change")) {
-            self.changeFn   = lib_Expression.func(config.get("change"));
+            self._changeFn   = lib_Expression.func(config.get("change"));
         }
-
-        self.input          = dom_isField(node) ?
-                                 lib_Input.get(node, scope) :
-                                 node.getInputApi("model");
-        self.node           = node.getDomApi ? node.getDomApi("model") : node;
-        //self.binding        = config.get("binding");
         self.mo             = lib_MutationObserver.get(
-                                scope, expr, null, null, {
-                                    setter: true
-                                }
-                            );
-
-        self.mo.subscribe(self.onChange, self);
-        self.input.onChange(self.onInputChange, self);
-
-        self.optionsChangeDelegate = bind(self.onOptionsChange, self);
-        dom_addListener(self.node, "optionschange", 
-                                    self.optionsChangeDelegate);
-
-        self.$super(scope, node, config, renderer, attrSet);
-
-        var inputValue      = self.input.getValue(),
-            scopeValue      = self.mo.getValue(),
-            binding         = self.config.get("binding");
-        
-        self.initial = true;
-
-        if (scopeValue !== inputValue) {
-            // scope value takes priority
-            if (binding !== "input" && scopeValue !== undf) {
-                self.onChange(scopeValue);
+            self.scope, expr, null, null, {
+                setter: true
             }
-            else if (binding !== "scope" && inputValue !== undf) {
-                self.onInputChange(inputValue);
-            }
-        }
-
-        self.initial = false;
+        );
+        self.mo.subscribe(self.onScopeChange, self);
     },
 
-    initialSet: emptyFn,
+    _initChange: emptyFn,
 
     onOptionsChange: function() {
-        this.onChange();
+        this.onScopeChange();
     },
 
     onInputChange: function(val) {
 
         var self    = this,
             scope   = self.scope,
-            binding = self.binding || self.config.get("binding")
+            binding = self._binding || self.config.get("binding")
 
         if (binding !== "scope") {
 
@@ -19912,7 +20051,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             }
 
             self.mo.setValue(val);
-            self.inProg = true;
+            self._inProg = true;
 
             if (scope instanceof MetaphorJs.lib.Scope) {
                 if (self.config.get("checkRoot")) {
@@ -19930,7 +20069,43 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             else {
                 self.config.check("value");
             }
-            self.inProg = false;
+            self._inProg = false;
+        }
+    },
+
+
+    onScopeChange: function() {
+
+        var self    = this,
+            val     = self.mo.getValue(), //self.getterFn(self.scope),
+            binding = self._binding || self.config.get("binding"),
+            ie;
+
+        if (binding !== "input" && !self._inProg) {
+
+            // when scope value changed but this field
+            // is not in focus, it should try to
+            // change input's value, but not react
+            // to input's 'change' and 'input' events --
+            // fields like select or radio may not have
+            // this value in its options. that will change
+            // value to undefined and bubble back to scope
+            if (window.document.activeElement !== self.node) {
+                self._binding = "scope";
+            }
+
+            if ((ie = isIE()) && ie < 8) {
+                async(self.input.setValue, self.input, [val]);
+            }
+            else {
+                self.input.setValue(val);
+            }
+
+            self._binding = null;
+        }
+
+        if (self._changeFn && !self.initial) {
+            self._changeFn(self.scope);
         }
     },
 
@@ -19946,47 +20121,11 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         self.input = null;
 
         if (self.mo) {
-            self.mo.unsubscribe(self.onChange, self);
+            self.mo.unsubscribe(self.onScopeChange, self);
             self.mo.$destroy(true);
         }
 
         self.$super();
-    },
-
-
-    onChange: function() {
-
-        var self    = this,
-            val     = self.mo.getValue(), //self.getterFn(self.scope),
-            binding = self.binding || self.config.get("binding"),
-            ie;
-
-        if (binding !== "input" && !self.inProg) {
-
-            // when scope value changed but this field
-            // is not in focus, it should try to
-            // change input's value, but not react
-            // to input's 'change' and 'input' events --
-            // fields like select or radio may not have
-            // this value in its options. that will change
-            // value to undefined and bubble back to scope
-            if (window.document.activeElement !== self.node) {
-                self.binding = "scope";
-            }
-
-            if ((ie = isIE()) && ie < 8) {
-                async(self.input.setValue, self.input, [val]);
-            }
-            else {
-                self.input.setValue(val);
-            }
-
-            self.binding = null;
-        }
-
-        if (self.changeFn && !self.initial) {
-            self.changeFn(self.scope);
-        }
     }
 
 
@@ -20044,44 +20183,58 @@ var dom_triggerEvent = MetaphorJs.dom.triggerEvent = function dom_triggerEvent(e
 Directive.registerAttribute("options", 100, Directive.$extend({
 
     $class: "MetaphorJs.app.Directive.attr.Options",
+    id: "options",
 
     model: null,
     store: null,
-    getterFn: null,
-    defOption: null,
-    prevGroup: null,
-    groupEl: null,
-    fragment: null,
-    initial: false,
 
-    $init: function(scope, node, config) {
+    _getterFn: null,
+    _defOption: null,
+    _prevGroup: null,
+    _groupEl: null,
+    _fragment: null,
+    _initial: false,
+    _defaultOptionTpl: null,
+
+    $init: function(scope, node, config, renderer, attrSet) {
+        if (!(node instanceof window.HTMLSelectElement)) {
+            throw new Error("'options' directive can only work with <select>");
+        }
+        this.$super(scope, node, config, renderer, attrSet);
+    },
+
+    _initConfig: function(config) {
+        var self    = this,
+            expr;
 
         config.disableProperty("value");
-
-        var self    = this,
-            expr    = config.getExpression("value");
+        expr = config.getExpression("value");
 
         self.parseExpr(expr);
+        self.$super(config);
+    },
 
-        self.config     = config;
-        self.node       = node;
-        self.scope      = scope;
-        self.defOption  = node.options.length ? node.options[0] : null;
+    _initDirective: function() {
+
+        var self    = this,
+            node    = self.node;
+        
+        self._defOption  = node.options.length ? node.options[0] : null;
 
         while (node.firstChild) {
             node.removeChild(node.firstChild);
         }
 
-        self.defOption && dom_setAttr(self.defOption, "default-option", "");
+        self._defOption && dom_setAttr(self._defOption, "default-option", "");
 
         try {
-            var value = lib_Expression.get(self.model, scope);
+            var value = lib_Expression.get(self.model, self.scope);
             if (cls.isInstanceOf(value, "MetaphorJs.model.Store")) {
                 self.bindStore(value, "on");
             }
             else {
                 self.watcher = lib_MutationObserver.get(
-                    scope, self.model, self.onChange, self);
+                    self.scope, self.model, self.onScopeChange, self);
             }
         }
         catch (thrownError) {
@@ -20113,23 +20266,23 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         this.dispatchOptionsChange();
     },
 
-    onChange: function() {
+    onScopeChange: function() {
         var self = this;
         self.renderAll();
     },
 
     dispatchOptionsChange: function() {
         var self = this;
-        if (!self.initial && self.node.dispatchEvent) {
+        if (!self._initial && self.node.dispatchEvent) {
             dom_triggerEvent(self.node, "optionschange");
         }
-        self.initial = false;
+        self._initial = false;
     },
 
     renderOption: function(item, index, scope) {
 
         var self        = this,
-            parent      = self.groupEl || self.fragment,
+            parent      = self._groupEl || self._fragment,
             msie        = isIE(),
             config,
             option;
@@ -20137,11 +20290,11 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         scope.item      = item;
         scope.$index    = index;
 
-        if (self.defaultOptionTpl && isPlainObject(item)) {
+        if (self._defaultOptionTpl && isPlainObject(item)) {
             config      = item;
         }
         else {
-            config      = self.getterFn(scope);
+            config      = self._getterFn(scope);
         }
 
         config.group    !== undf && (config.group = ""+config.group);
@@ -20149,7 +20302,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         if (config.group !== self.prevGroup) {
 
             if (config.group){
-                self.groupEl = parent = window.document.createElement("optgroup");
+                self._groupEl = parent = window.document.createElement("optgroup");
                 dom_setAttr(parent, "label", config.group);
                 if (config.disabledGroup) {
                     dom_setAttr(parent, "disabled", "disabled");
@@ -20157,11 +20310,12 @@ Directive.registerAttribute("options", 100, Directive.$extend({
                 self.fragment.appendChild(parent);
             }
             else {
-                parent = self.fragment;
-                self.groupEl = null;
+                parent = self._fragment;
+                self._groupEl = null;
             }
         }
-        self.prevGroup  = config.group;
+
+        self._prevGroup  = config.group;
 
         option  = window.document.createElement("option");
         dom_setAttr(option, "value", config.value || "");
@@ -20182,13 +20336,13 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         var self        = this,
             node        = self.node,
             value       = dom_getInputValue(node),
-            def         = self.defOption,
+            def         = self._defOption,
             tmpScope    = self.scope.$new(),
             msie        = isIE(),
             parent, next,
             i, len;
 
-        self.fragment   = window.document.createDocumentFragment();
+        self._fragment   = window.document.createDocumentFragment();
         self.prevGroup  = null;
         self.groupEl    = null;
 
@@ -20216,8 +20370,8 @@ Directive.registerAttribute("options", 100, Directive.$extend({
             parent.removeChild(node);
         }
 
-        node.appendChild(self.fragment);
-        self.fragment = null;
+        node.appendChild(self._fragment);
+        self._fragment = null;
 
         if (msie && msie < 8) {
             parent.insertBefore(node, next);
@@ -20235,16 +20389,16 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         if (splitIndex === -1) {
             model   = expr;
             item    = '{name: this.item, value: this.$index}';
-            this.defaultOptionTpl = true;
+            this._defaultOptionTpl = true;
         }
         else {
             model   = expr.substr(splitIndex + 4);
             item    = expr.substr(0, splitIndex);
-            this.defaultOptionTpl = false;
+            this._defaultOptionTpl = false;
         }
 
         this.model = model;
-        this.getterFn = lib_Expression.getter(item);
+        this._getterFn = lib_Expression.getter(item);
     },
 
     onDestroy: function() {
@@ -20253,6 +20407,10 @@ Directive.registerAttribute("options", 100, Directive.$extend({
 
         if (self.store){
             self.bindStore(self.store, "un");
+        }
+        if (self.watcher) {
+            self.watcher.unsubscribe(self.onScopeChange, self);
+            self.watcher.$destroy(true);
         }
 
         self.$super();
@@ -20281,17 +20439,19 @@ Directive.registerAttribute("options", 100, Directive.$extend({
 
     var PropertyDirective = Directive.$extend({
 
-        propName: null,
-
-        $init: function(scope, node, config, propName) {
-            this.propName = propName;
-            config.setType("value", "bool");
-            this.$super(scope, node, config);
+        $init: function(name, scope, node, config, renderer, attrSet) {
+            this.id = name;
+            this.$super(scope, node, config, renderer, attrSet);
         },
 
-        onChange: function(val) {
+        _initConfig: function(config) {
+            this.$super(config);
+            config.setType("value", "bool");
+        },
 
-            var name = this.propName;
+        onScopeChange: function(val) {
+
+            var name = this.id;
 
             val = !!val;
 
@@ -20306,8 +20466,8 @@ Directive.registerAttribute("options", 100, Directive.$extend({
 
     for (i = 0, l = booleanAttrs.length; i < l; i++) {
         (function(name){
-            Directive.registerAttribute("" + name, 1000, function(scope, node, config){
-                return new PropertyDirective(scope, node, config, name);
+            Directive.registerAttribute("" + name, 1000, function(scope, node, config, renderer, attrSet){
+                return new PropertyDirective(name, scope, node, config, renderer, attrSet);
             });
         }(booleanAttrs[i]));
     }
@@ -20320,7 +20480,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
 
 
 Directive.registerAttribute("router", 200, 
-    function(scope, node, config, parentRenderer) {
+    function(scope, node, config, renderer, attrSet) {
 
     config.setProperty("value", {
         defaultMode: lib_Config.MODE_STATIC,
@@ -20339,18 +20499,22 @@ Directive.registerAttribute("router", 200,
         }
     });
 
-    var cfg = {scope: scope, node: node, config: config};
+    Directive.resolveNode(node, "router", function(node){
+        if (!renderer.$destroyed) {
+            var cfg = {scope: scope, node: node, config: config};
 
-    if (routes.length !== 0) {
-        cfg['route'] = routes;
-    }
-
-    app_resolve(
-        config.get("value"),
-        cfg,
-        scope, node,
-        [cfg]
-    );
+            if (routes.length !== 0) {
+                cfg['route'] = routes;
+            }
+        
+            app_resolve(
+                config.get("value"),
+                cfg,
+                scope, node,
+                [cfg]
+            );
+        }
+    });
 
     return false;
 });
@@ -20364,18 +20528,20 @@ Directive.registerAttribute("router", 200,
 Directive.registerAttribute("source-src", 1000, Directive.$extend({
 
     $class: "MetaphorJs.app.Directive.attr.SourceSrc",
+    id: "source-src",
 
     usePreload: true,
     attr: null,
-
     lastPromise: null,
     src: null,
 
     $constructor: function(scope, node, config, renderer, attrSet) {
 
-        config.setType("deferred", "bool", lib_Config.MODE_STATIC);
-        config.setType("noCache", "bool", lib_Config.MODE_STATIC);
-        config.setDefaultMode("plugin", lib_Config.MODE_STATIC);
+        var ms = lib_Config.MODE_STATIC;
+
+        config.setType("deferred", "bool", ms);
+        config.setType("noCache", "bool", ms);
+        config.setDefaultMode("plugin", ms);
 
         var self = this;
 
@@ -20391,11 +20557,11 @@ Directive.registerAttribute("source-src", 1000, Directive.$extend({
             }
         }
 
-        self.$super(scope, node, config);
+        self.$super(scope, node, config, renderer, attrSet);
     },
 
 
-    onChange: function() {
+    onScopeChange: function() {
         this.doChange();
     },
 
@@ -20418,10 +20584,8 @@ Directive.registerAttribute("source-src", 1000, Directive.$extend({
             src += (src.indexOf("?") !== -1 ? "&amp;" : "?") + "_" + (new Date).getTime();
         }
 
-        if (self.node) {
-            self.doChangeSource(src);
-            self.onSrcChanged();
-        }
+        self.doChangeSource(src);
+        self.onSrcChanged();
     },
 
     doChangeSource: function(src) {
@@ -20573,11 +20737,13 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
 
     $constructor: function(scope, node, config, renderer, attrSet) {
 
-        config.setType("deferred", "bool", lib_Config.MODE_STATIC);
-        config.setType("noCache", "bool", lib_Config.MODE_STATIC);
-        config.setType("noPreload", "bool", lib_Config.MODE_STATIC);
-        config.setDefaultMode("preloadSize", lib_Config.MODE_STATIC);
-        config.setDefaultMode("plugin", lib_Config.MODE_STATIC);
+        var ms = lib_Config.MODE_STATIC;
+
+        config.setType("deferred", "bool", ms);
+        config.setType("noCache", "bool", ms);
+        config.setType("noPreload", "bool", ms);
+        config.setDefaultMode("preloadSize", ms);
+        config.setDefaultMode("plugin", ms);
 
         var self = this;
 
@@ -20598,7 +20764,7 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
         self.$super(scope, node, config);
     },
 
-    $init: function(scope, node, config, renderer, attrSet) {
+    _initDirective: function(scope, node, config, renderer, attrSet) {
 
         var self = this;
 
@@ -20610,11 +20776,12 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
 
         self.queue = new lib_Queue({auto: true, async: true, 
                                     mode: lib_Queue.REPLACE, thenable: true});
+
         self.$super(scope, node, config, renderer, attrSet);
     },
 
 
-    onChange: function() {
+    onScopeChange: function() {
         var self = this;
         self.cancelPrevious();
         if (self.usePreload) {
@@ -20746,17 +20913,20 @@ DO NOT MIX style="{}" with style.prop="expression".
 Directive.registerAttribute("style", 1000, Directive.$extend({
 
     $class: "MetaphorJs.app.Directive.attr.Style",
-    $init: function(scope, node, config, renderer, attrSet) {
+    id: "style",
 
-        var self = this;
+    _initDirective: function() {
+
+        var self = this,
+            config = self.config;
 
         config.eachProperty(function(k){
             if (k.indexOf("value.") === 0) {
-                config.on(k, self.onChange, self);
+                config.on(k, self.onScopeChange, self);
             }
         });
 
-        this.$super(scope, node, config);
+        this.$super();
     },
 
     getCurrentValue: function() {
@@ -20770,7 +20940,7 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
         return style;
     },
 
-    onChange: function() {
+    onScopeChange: function() {
 
         var self    = this,
             node    = self.node,
@@ -20778,12 +20948,6 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
             props   = self.getCurrentValue(),
             prev    = self.prev,
             k, trg;
-
-        node = node.getDomApi ? node.getDomApi("style") : node;
-
-        if (!node) {
-            return;
-        }
 
         for (k in prev) {
             if (!props || props[k] === undf) {
@@ -20862,19 +21026,19 @@ var dom_transclude = MetaphorJs.dom.transclude = function dom_transclude(node, r
 Directive.registerAttribute("transclude", 1000, 
     function(scope, node, config, renderer, attrSet) {
 
+        if (!(node instanceof window.Node)) {
+            throw new Error("'transclude' directive can only work with Node");
+        }
+
         var onAttached = function(to) {
             renderer.process(dom_transclude(node));
         };
     
         renderer.on("attached", onAttached); 
+        onAttached();
 
-        return {
-            $destroy: function() {
-                renderer.un("attached", onAttached);
-            },
-            getChildren: function() {
-                return dom_transclude(node);
-            }
+        return function() {
+            renderer.un("attached", onAttached);
         };
 });
 
@@ -20920,16 +21084,20 @@ Directive.registerAttribute("update-on", 1000,
 
 
 Directive.registerAttribute("view", 200, 
-    function(scope, node, config, parentRenderer) {
+    function(scope, node, config, renderer) {
 
-    var cfg = {scope: scope, node: node, config: config};
+    Directive.resolveNode(node, "view", function(node){
+        if (!renderer.$destroyed) {
+            var cfg = {scope: scope, node: node, config: config};
 
-    app_resolve(
-        "MetaphorJs.app.view.Component",
-        cfg,
-        scope, node,
-        [cfg]
-    );
+            app_resolve(
+                "MetaphorJs.app.view.Component",
+                cfg,
+                scope, node,
+                [cfg]
+            );
+        }
+    });
 
     return false;
 });
@@ -24749,7 +24917,7 @@ Directive.getDirective("attr", "each")
 
 
 
-Directive.registerTag("transclude", function(scope, node) {
+Directive.registerTag("transclude", function(scope, node, config, renderer) {
     return dom_transclude(node, true);
 });
 
@@ -25459,8 +25627,6 @@ MetaphorJs.dom.webComponentWrapper = function(tagName, cls, parentCls, props) {
                     autoRender: true,
                     directives: attrSet.directives
                 });
-
-                console.log(this.cmp)
 
                 window.document.addEventListener(
                     "DOMContentLoaded",

@@ -15,17 +15,20 @@ DO NOT MIX style="{}" with style.prop="expression".
 Directive.registerAttribute("style", 1000, Directive.$extend({
 
     $class: "MetaphorJs.app.Directive.attr.Style",
-    $init: function(scope, node, config, renderer, attrSet) {
+    id: "style",
 
-        var self = this;
+    _initDirective: function() {
+
+        var self = this,
+            config = self.config;
 
         config.eachProperty(function(k){
             if (k.indexOf("value.") === 0) {
-                config.on(k, self.onChange, self);
+                config.on(k, self.onScopeChange, self);
             }
         });
 
-        this.$super(scope, node, config);
+        this.$super();
     },
 
     getCurrentValue: function() {
@@ -39,7 +42,7 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
         return style;
     },
 
-    onChange: function() {
+    onScopeChange: function() {
 
         var self    = this,
             node    = self.node,
@@ -47,12 +50,6 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
             props   = self.getCurrentValue(),
             prev    = self.prev,
             k, trg;
-
-        node = node.getDomApi ? node.getDomApi("style") : node;
-
-        if (!node) {
-            return;
-        }
 
         for (k in prev) {
             if (!props || props[k] === undf) {

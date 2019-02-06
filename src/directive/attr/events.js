@@ -31,6 +31,24 @@ var Directive = require("../../app/Directive.js"),
         return config;
     };
 
+    var createHandler = function(name, scope, node, config) {
+        return new MetaphorJs.lib.EventHandler(
+            name, scope, node, prepareConfig(config)
+        );
+    };
+
+    var getNode = function(node, config, directive, cb) {
+        Directive.resolveNode(node, directive, function(node, cmp){
+            if(cmp) {
+                config.setProperty("targetComponent", {
+                    mode: MetaphorJs.lib.Config.MODE_STATIC,
+                    value: cmp
+                });
+            }
+            cb(node);
+        });
+    };
+
     for (i = 0, len = events.length; i < len; i++) {
 
         (function(name){
@@ -38,24 +56,21 @@ var Directive = require("../../app/Directive.js"),
             Directive.registerAttribute(name, 1000,
                 function(scope, node, config, renderer, attrSet) {
 
-                if (node.getDomApi) {
-                    config.setProperty("targetComponent", {
-                        mode: MetaphorJs.lib.Config.MODE_STATIC,
-                        value: node
-                    });
-                    node = node.getDomApi(name);
-                    if (!node) {
-                        return null;
-                    }
-                }
+                var eh,
+                    destroyed = false;
 
-                var eh = new MetaphorJs.lib.EventHandler(
-                    name, scope, node, prepareConfig(config)
-                );
+                getNode(node, config, name, function(node){
+                    if (!destroyed) {
+                        eh = createHandler(name, scope, node, config);
+                    }
+                });
 
                 return function(){
-                    eh.$destroy();
-                    eh = null;
+                    destroyed = true;
+                    if (eh) {
+                        eh.$destroy();
+                        eh = null;
+                    }
                 };
             });
 
@@ -70,12 +85,20 @@ var Directive = require("../../app/Directive.js"),
             handler = function(){
                 fn(scope);
                 config.checkScope("value")
-            };
+            },
+            resolvedNode;
 
-        MetaphorJs.lib.Input.get(node).onKey(13, handler);
+        getNode(node, config, "submit", function(node) {
+            if (handler) {
+                resolvedNode = node;
+                MetaphorJs.lib.Input.get(node).onKey(13, handler);
+            }
+        });
 
         return function() {
-            MetaphorJs.lib.Input.get(node).unKey(13, handler);
+            if (resolvedNode) {
+                MetaphorJs.lib.Input.get(resolvedNode).unKey(13, handler);
+            }
             handler = null;
             fn = null;
         };

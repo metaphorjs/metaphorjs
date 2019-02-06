@@ -5,7 +5,7 @@ require("../../lib/Config.js");
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 MetaphorJs.app.Directive.registerAttribute("router", 200, 
-    function(scope, node, config, parentRenderer) {
+    function(scope, node, config, renderer, attrSet) {
 
     config.setProperty("value", {
         defaultMode: MetaphorJs.lib.Config.MODE_STATIC,
@@ -24,18 +24,22 @@ MetaphorJs.app.Directive.registerAttribute("router", 200,
         }
     });
 
-    var cfg = {scope: scope, node: node, config: config};
+    MetaphorJs.app.Directive.resolveNode(node, "router", function(node){
+        if (!renderer.destroyed) {
+            var cfg = {scope: scope, node: node, config: config};
 
-    if (routes.length !== 0) {
-        cfg['route'] = routes;
-    }
-
-    MetaphorJs.app.resolve(
-        config.get("value"),
-        cfg,
-        scope, node,
-        [cfg]
-    );
+            if (routes.length !== 0) {
+                cfg['route'] = routes;
+            }
+        
+            MetaphorJs.app.resolve(
+                config.get("value"),
+                cfg,
+                scope, node,
+                [cfg]
+            );
+        }
+    });
 
     return false;
 });

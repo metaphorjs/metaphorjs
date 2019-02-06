@@ -176,10 +176,6 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 return false;
             }
 
-            if (inst && inst.getChildren) {
-                return inst.getChildren();
-            }
-
             return inst;
         },
 
@@ -211,8 +207,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
         scope: null,
         texts: null,
         parent: null,
-        passedAttrs: null,
-        reportFirstNode: true,
+        destroyed: false,
 
         on: function(event, fn, context, opt) {
             return observer.on(event + '-' + this.id, fn, context, opt);
@@ -293,7 +288,9 @@ module.exports = MetaphorJs.app.Renderer = function() {
 
             self.on("destroy", config.$destroy, config);
 
-            return applyDirective(directive, self.scope, node, config, attrs, self);
+            return applyDirective(
+                directive, self.scope, node, 
+                config, attrs, self) || false;
         },
 
         _processTag: function(directive, node, attrs) {
@@ -452,33 +449,6 @@ module.exports = MetaphorJs.app.Renderer = function() {
                     return deferred;
                 }
 
-                /*if (defers.length && !attrs.config.ignoreInside) {
-                    var deferred = new MetaphorJs.lib.Promise;
-                    MetaphorJs.lib.Promise.all(defers).done(function(values){
-                        collectNodes(nodes, values);
-                        deferred.resolve(nodes);
-                    });
-                    return deferred;
-                }
-
-                // this is a plain attribute
-                for (i in attrs['attributes']) {
-                    self._processAttribute(node, i, attrs);
-                }
-
-                if (attrs.config.ignoreInside) {
-                    if (defers.length) {
-                        var deferred = new MetaphorJs.lib.Promise;
-                        MetaphorJs.lib.Promise.all(defers).done(function(){
-                            return deferred.resolve(false);
-                        });
-                        return deferred;
-                    }
-                    else {
-                        return false;
-                    }
-                }*/
-
                 return nodes.length ? nodes : true;
             }
 
@@ -522,6 +492,10 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 res         = text.tr.getString(),
                 attrName    = text.attr;
 
+            if (res === undf || res === null) {
+                res = "";
+            }
+
             if (attrName) {
 
                 if (attrName === "value") {
@@ -549,6 +523,10 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 texts   = self.texts,
                 i, len;
 
+            if (self.destroyed) {
+                return;
+            }
+
             for (i = -1, len = texts.length; ++i < len; texts[i].tr.$destroy()) {}
 
             if (self.parent) {
@@ -556,6 +534,19 @@ module.exports = MetaphorJs.app.Renderer = function() {
             }
 
             observer.trigger("destroy-" + self.id);
+
+            observer.destroyEvent("destroy-" + self.id);
+            observer.destroyEvent("rendered-" + self.id);
+            observer.destroyEvent("reference-" + self.id);
+            observer.destroyEvent("reference-promise-" + self.id);
+
+            for (var k in self) {
+                if (self.hasOwnProperty(k)) {
+                    self[k] = null;
+                }
+            }
+
+            self.destroyed = true;
         }
 
     });

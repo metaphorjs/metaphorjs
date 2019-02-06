@@ -1,11 +1,15 @@
 
+require("metaphorjs-promise/src/lib/Promise.js");
 require("../lib/Expression.js");
 require("../lib/MutationObserver.js");
 require("../func/dom/commentWrap.js");
 require("../lib/Config.js");
+require("../func/dom/isField.js");
+require("../lib/Input.js");
 
 var undf = require("metaphorjs-shared/src/var/undf.js"),
     isString = require("metaphorjs-shared/src/func/isString.js"),
+    isThenable = require("metaphorjs-shared/src/func/isThenable.js"),
     cls = require("metaphorjs-class/src/cls.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js");
@@ -30,47 +34,121 @@ module.exports = MetaphorJs.app.Directive = (function() {
 
     return cls({
 
-        watcher: null,
-        stateFn: null,
         scope: null,
         node: null,
-        mods: null,
+        component: null,
+        attrSet: null,
+        renderer: null,
         wrapperOpen: null,
         wrapperClose: null,
-        autoOnChange: true,
+
+        _apis: ["node"],
+        _autoOnChange: true,
+        _stateFn: null,
+        _initPromise: null,
+        _nodeAttr: null,
+        _initial: true,
 
         $init: function(scope, node, config, renderer, attrSet) {
 
             var self        = this;
 
-            config.setDefaultMode("saveState", MetaphorJs.lib.Config.MODE_SETTER);
-
-            self.config     = config;
-            self.node       = node;
             self.scope      = scope;
+            self.config     = config;
+            self.renderer   = renderer;
+            self.attrSet    = attrSet;
+            self._nodeAttr  = node;
 
-            if (config.hasExpression("saveState")) {
-                self.stateFn = config.get("saveSate");
+            self._initConfig(config);
+            self._initScope(scope);
+            self._initNodeAttr(node);
+
+            self._initPromise ? 
+                self._initPromise.done(self._initDirective, self) :
+                self._initDirective();
+        },
+
+        _initNodeAttr: function(node) {
+            var self = this;
+
+            if (node instanceof window.Node) {
+                self.node = node;
+                self._initNode(node);
+                self._initPromise && self._initPromise.resolve();
             }
+            else if (node.$is && node.$is("MetaphorJs.app.Component")) {
+                self.component = node;
+                self._initComponent(node);
+                self._initPromise && self._initPromise.resolve();
+            }
+            else if (isThenable(node)) {
+                self._initPromise = new MetaphorJs.lib.Promise;
+                node.done(self._initNodeAttr, self);
+            }
+        },
 
+        _initConfig: function(config) {
+            config.setDefaultMode("saveState", MetaphorJs.lib.Config.MODE_SETTER);
+            if (config.has("saveState")) {
+                self._stateFn = config.get("saveSate");
+            }
+        },
+
+        _initScope: function(scope) {
+            var self = this;
             scope.$on("destroy", self.onScopeDestroy, self);
             scope.$on("reset", self.onScopeReset, self);
-
-            self.initialSet();
         },
 
-        initialSet: function() {
+        _initComponent: function(component) {
             var self = this,
-                val;
-            self.config.on("value", self.onChange, self);
-            if (self.autoOnChange && (val = self.config.get("value")) !== undf) {
-                self.onChange(val, undf);
+                apis = self._apis,
+                i, l, res;
+            for (i = 0, l = apis.length; i < l; i++) {
+                res = self._initApi(component, apis[i]);
+                if (isThenable(res)) {
+                    !self._initPromise && 
+                        (self._initPromise = new MetaphorJs.lib.Promise);
+                    self._initPromise.after(res);
+                }
             }
         },
 
-        getChildren: function() {
-            return null;
+        _initNode: function(node) {
+            if (this._apis.indexOf("input") !== -1 && 
+                MetaphorJs.dom.isField(node)) {
+                this.input = MetaphorJs.lib.Input.get(node, this.scope);
+            }
         },
+
+        _initApi: function(component, apiType) {
+            var self = this,
+                api = component.getApi(apiType, self.id);
+            if (isThenable(api)) {
+                return api.done(function(api){
+                    self._onApiResolved(apiType, api);
+                });
+            }
+            else self._onApiResolved(apiType, api);
+        },
+
+        _onApiResolved: function(apiType, api) {
+            this[apiType] = api;
+        },
+
+        _initDirective: function() {
+            this._initChange();
+        },
+
+        _initChange: function() {
+            var self = this,
+                val;
+            self.config.on("value", self.onScopeChange, self);
+            if (self._autoOnChange && (val = self.config.get("value")) !== undf) {
+                self.onScopeChange(val, undf);
+            }
+        },
+
 
         createCommentWrap: function(node, name) {
             var cmts = MetaphorJs.dom.commentWrap(node, name || this.$class);
@@ -84,37 +162,36 @@ module.exports = MetaphorJs.app.Directive = (function() {
 
         onScopeReset: function() {},
 
-        onChange: function(val) {
+        onScopeChange: function(val) {
             this.saveStateOnChange(val);
         },
 
         saveStateOnChange: function(val) {
-            if (this.stateFn) {
-                this.stateFn(this.scope, val);
+            if (this._stateFn) {
+                this._stateFn(this.scope, val);
             }
         },
 
         onDestroy: function() {
             var self    = this;
 
+            if (isThenable(self.node)) {
+                self.node.$destroy();
+            }
+
             if (self.scope) {
                 self.scope.$un("destroy", self.onScopeDestroy, self);
                 self.scope.$un("reset", self.onScopeReset, self);
-            }
-
-            if (self.watcher) {
-                self.watcher.unsubscribe(self.onChange, self);
-                self.watcher.$destroy(true);
             }
 
             if (self.config) {
                 self.config.$destroy();
             }
 
-            if (self.wrapperOpen) {
+            if (self.wrapperOpen && self.wrapperOpen.parentNode) {
                 self.wrapperOpen.parentNode.removeChild(self.wrapperOpen);
             }
-            if (self.wrapperClose) {
+            if (self.wrapperClose && self.wrapperClose.parentNode) {
                 self.wrapperClose.parentNode.removeChild(self.wrapperClose);
             }
 
@@ -192,6 +269,37 @@ module.exports = MetaphorJs.app.Directive = (function() {
             }
             if (!component[name]) {
                 component[name] = cmp;
+            }
+        },
+
+        /**
+         * Resolve received something into a dom node.
+         * @param {Promise|Node|Component} node 
+         * @param {string} directive Directive name
+         * @param {function} cb {
+         *  @param {Node} node
+         *  @param {MetaphorJs.app.Component} cmp
+         * }
+         * @param {string} apiType {
+         *  node|input|...
+         *  @default resolveNode
+         * }
+         */
+        resolveNode: function(node, directive, cb, apiType) {
+            if (node instanceof window.Node){
+                cb(node);
+            }
+            else if (node.getApi) {
+                var cmp = node;
+                node = node.getApi(apiType || "node", directive);
+                if (isThenable(node)) {
+                    node.done(function(node){
+                        cb(node, cmp);
+                    });
+                }
+                else if (node) {
+                    cb(node, cmp);
+                }
             }
         }
     });

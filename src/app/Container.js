@@ -30,7 +30,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             self._prepareDeclaredItems(toArray(self.node.childNodes));
         }
 
-        self._initItems();
+        this._initItems();
     },
 
     _initTplConfig: function(tplConfig) {
@@ -83,6 +83,9 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                 if (node[idkey]) {
                     continue;
                 }
+
+                // detach node
+                node.parentNode && node.parentNode.removeChild(node);
 
                 foundCmp = null;
                 foundPromise = null;
@@ -189,11 +192,12 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
     },
 
     _createDefaultItemDef: function() {
+        var id = nextUid();
         return {
             __containerItemDef: true,
             type: "component",
-            placeholder: window.document.createComment("***"),
-            id: nextUid(),
+            placeholder: window.document.createComment("*" + this.id + "*" + id + "*"),
+            id: id,
             resolved: true,
             processed: false
         };
@@ -469,9 +473,9 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         self.$super();
 
         // empty container without template or content
-        if (self.node && !self.node.firstChild) {
-            self.$refs.node.body = self.node;
-        }
+        //if (self.node && !self.node.firstChild) {
+        //    self.$refs.node.body = self.node;
+        //}
 
         // insert all placeholders, but
         // attach only resolved items

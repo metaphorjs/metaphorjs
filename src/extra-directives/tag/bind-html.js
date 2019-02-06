@@ -14,8 +14,7 @@ Directive.registerTag("bind-html", function(scope, node) {
         frg     = MetaphorJs.dom.toFragment(text),
         nodes   = toArray(frg.childNodes);
 
-    node.parentNode.insertBefore(frg, node);
-    node.parentNode.removeChild(node);
+    node.parentNode.replaceChild(node, frg);
 
     return nodes;
 });

@@ -8,32 +8,24 @@ var Directive = require("../../app/Directive.js");
 Directive.registerAttribute("if", 500, Directive.$extend({
 
     $class: "MetaphorJs.app.Directive.attr.If",
-    parentEl: null,
-    prevEl: null,
-    nextEl: null,
-    el: null,
-    initial: true,
-    cfg: null,
-    animate: false,
+    id: "if",
 
-    $init: function(scope, node, config, renderer, attrSet) {
-
-        var self    = this;
+    _initial: true,
+    
+    _initConfig: function(config) {
+        config.setType("animate", "bool", MetaphorJs.lib.Config.MODE_STATIC)
         config.setType("value", "bool");
         config.setType("once", "bool", MetaphorJs.lib.Config.MODE_STATIC);
-        self.createCommentWrap(node, "if");
-        self.$super(scope, node, config, renderer, attrSet);
+        this.$super(config);
     },
-
-    onScopeDestroy: function() {
-
-        var self    = this;
-        self.wrapperOpen = null;
-        self.wrapperClose = null;
-        self.$super();
+    
+    _initDirective: function() {
+        this.createCommentWrap(this.node, "if");
+        this.$super();
     },
+    
 
-    onChange: function() {
+    onScopeChange: function() {
         var self    = this,
             val     = self.config.get("value"),
             parent  = self.wrapperOpen.parentNode,
@@ -48,20 +40,20 @@ Directive.registerAttribute("if", 500, Directive.$extend({
         };
 
         if (val) {
-            self.initial || !self.config.get("animate") ?
+            self._initial || !self.config.get("animate") ?
                 show() : MetaphorJs.animate.animate(node, "enter", show);
         }
         else {
             if (node.parentNode) {
-                self.initial || !self.config.get("animate") ?
+                self._initial || !self.config.get("animate") ?
                     hide() : MetaphorJs.animate.animate(node, "leave").done(hide);
             }
         }
 
         self.$super(val);
 
-        if (self.initial) {
-            self.initial = false;
+        if (self._initial) {
+            self._initial = false;
         }
         else {
             if (self.config.get("once")) {

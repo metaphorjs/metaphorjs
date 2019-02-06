@@ -22,11 +22,13 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
 
     $constructor: function(scope, node, config, renderer, attrSet) {
 
-        config.setType("deferred", "bool", MetaphorJs.lib.Config.MODE_STATIC);
-        config.setType("noCache", "bool", MetaphorJs.lib.Config.MODE_STATIC);
-        config.setType("noPreload", "bool", MetaphorJs.lib.Config.MODE_STATIC);
-        config.setDefaultMode("preloadSize", MetaphorJs.lib.Config.MODE_STATIC);
-        config.setDefaultMode("plugin", MetaphorJs.lib.Config.MODE_STATIC);
+        var ms = MetaphorJs.lib.Config.MODE_STATIC;
+
+        config.setType("deferred", "bool", ms);
+        config.setType("noCache", "bool", ms);
+        config.setType("noPreload", "bool", ms);
+        config.setDefaultMode("preloadSize", ms);
+        config.setDefaultMode("plugin", ms);
 
         var self = this;
 
@@ -47,7 +49,7 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
         self.$super(scope, node, config);
     },
 
-    $init: function(scope, node, config, renderer, attrSet) {
+    _initDirective: function(scope, node, config, renderer, attrSet) {
 
         var self = this;
 
@@ -59,11 +61,12 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
 
         self.queue = new MetaphorJs.lib.Queue({auto: true, async: true, 
                                     mode: MetaphorJs.lib.Queue.REPLACE, thenable: true});
+
         self.$super(scope, node, config, renderer, attrSet);
     },
 
 
-    onChange: function() {
+    onScopeChange: function() {
         var self = this;
         self.cancelPrevious();
         if (self.usePreload) {

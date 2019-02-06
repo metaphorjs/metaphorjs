@@ -92,25 +92,26 @@ DO NOT put class="{}" when using class.name="{}"
     Directive.registerAttribute("class", 1000, Directive.$extend({
 
         $class: "MetaphorJs.app.Directive.attr.Class",
-        initial: true,
-        prev: null,
+        id: "class",
+        
+        _initial: true,
+        _prev: null,
 
-        $init: function(scope, node, config, renderer, attrSet) {
-
+        _initConfig: function(config) {
             var self = this;
             config.setType("animate", "bool");
             config.eachProperty(function(k) {
                 if (k === 'value' || k.indexOf("value.") === 0) {
-                    config.on(k, self.onChange, self);
+                    config.on(k, self.onScopeChange, self);
                 }
             });
-            self.$super(scope, node, config, renderer, attrSet);
+            self.$super(config);
         },
 
-        initialSet: function() {
+        _initChange: function() {
             var self = this;
-            if (self.autoOnChange) {
-                self.onChange();
+            if (self._autoOnChange) {
+                self.onScopeChange();
             }
         },
 
@@ -127,19 +128,13 @@ DO NOT put class="{}" when using class.name="{}"
             return flatten(values);
         },
 
-        onChange: function() {
+        onScopeChange: function() {
 
             var self    = this,
                 node    = self.node,
                 clss    = self.getCurrentValue(),
-                prev    = self.prev,
+                prev    = self._prev,
                 i;
-
-            node = node.getDomApi ? node.getDomApi("class") : node;
-
-            if (!node) {
-                return;
-            }
 
             MetaphorJs.animate.stop(node);
 
@@ -156,13 +151,13 @@ DO NOT put class="{}" when using class.name="{}"
             for (i in clss) {
                 if (clss.hasOwnProperty(i)) {
                     toggleClass(node, i, !!clss[i], 
-                        !self.initial && 
+                        !self._initial && 
                         self.config.get("animate"));
                 }
             }
 
-            self.prev = clss;
-            self.initial = false;
+            self._prev = clss;
+            self._initial = false;
         }
     }));
 

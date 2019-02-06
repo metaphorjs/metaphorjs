@@ -21,12 +21,15 @@ module.exports = cls({
         var self = this;
         self.directive = directive;
 
+        directive.$intercept("_initDirective", self.$_initDirective, self, "after");
         self.origOnChange = directive.$intercept("onSrcChanged", self.onSrcChanged, self, "after");
     },
 
-    $afterHostInit: function(scope, node) {
+    $_initDirective: function() {
 
         var attr    = self.directive.attr,
+            node    = self.directive.node,
+            scope   = self.directive.scope,
             cfg     = attr ? attr.config : {},
             size    = cfg.preloadSize,
             style   = node.style;

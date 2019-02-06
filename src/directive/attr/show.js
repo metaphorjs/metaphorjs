@@ -10,14 +10,16 @@ var raf = require("metaphorjs-animate/src/func/raf.js"),
 Directive.registerAttribute("show", 500, Directive.$extend({
 
     $class: "MetaphorJs.app.Directive.attr.Show",
-    initial: true,
+    id: "show",
 
-    initialSet: function() {
-        this.config.setType("display", 
+    _initial: true,
+
+    _initConfig: function(config) {
+        config.setType("display", 
             "string", MetaphorJs.lib.Config.MODE_STATIC, "");
-        this.config.setType("animate", 
+        config.setType("animate", 
             "bool", MetaphorJs.lib.Config.MODE_STATIC, false);
-        this.$super();
+        this.$super(config);
     },
 
     runAnimation: function(show) {
@@ -33,7 +35,7 @@ Directive.registerAttribute("show", 500, Directive.$extend({
                 }
             };
 
-        self.initial || !self.config.get("animate") ? done() : MetaphorJs.animate.animate(
+        self._initial || !self.config.get("animate") ? done() : MetaphorJs.animate.animate(
             self.node,
             show ? "show" : "hide",
             function() {
@@ -49,10 +51,10 @@ Directive.registerAttribute("show", 500, Directive.$extend({
             .done(done);
     },
 
-    onChange: function(val) {
+    onScopeChange: function(val) {
         var self    = this;
         self.runAnimation(val);
-        self.initial = false;
+        self._initial = false;
         self.$super(val);
     }
 }));

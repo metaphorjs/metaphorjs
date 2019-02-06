@@ -13,25 +13,21 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
 Directive.registerAttribute("bind", 1000, 
     Directive.$extend({
         $class: "MetaphorJs.app.Directive.attr.Bind",
-        isInput: false,
+        id: "bind",
+        
+        _apis: ["node", "input"],
         input: null,
         textRenderer: null,
-        observers: null,
 
-        $init: function(scope, node, config, renderer) {
+        _initDirective: function() {
 
-            var self    = this;
+            var self    = this,
+                config  = self.config;
 
-            config.setType("recursive", "bool");
-            config.setType("once", "bool", MetaphorJs.lib.Config.MODE_STATIC);
-            config.setType("locked", "bool");
+            if (self.input) {
+                self.input.onChange(self.onInputChange, self);
+            }
 
-            self.scope      = scope;
-            self.node       = node;
-            self.config     = config;
-
-            self._initNode(node);
-            
             self.optionsChangeDelegate = bind(self.onOptionsChange, self);
             MetaphorJs.dom.addListener(self.node, "optionschange", 
                                     self.optionsChangeDelegate);
@@ -40,7 +36,7 @@ Directive.registerAttribute("bind", 1000,
                 config.disableProperty("value");
                 config.disableProperty("recursive");
                 self.textRenderer = new MetaphorJs.lib.Text(
-                    scope, 
+                    self.scope, 
                     config.getExpression("value"), 
                     {
                         recursive: true, 
@@ -50,50 +46,50 @@ Directive.registerAttribute("bind", 1000,
                 );
                 self.textRenderer.subscribe(self.onTextRendererChange, self);
                 self.onTextRendererChange();
-
-                if (scope instanceof MetaphorJs.lib.Scope) {
-                    scope.$on("destroy", self.onScopeDestroy, self);
-                }
             }
             else {
-                self.$super(scope, self.node, config);
+                self.$super();
             }
+        },
+
+        _initConfig: function(config) {
+            this.$super(config);
+            config.setType("recursive", "bool");
+            config.setType("once", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+            config.setType("locked", "bool");
         },
 
         _initNode: function(node) {
             var self = this;
-            if (node.getDomApi) {
-                self.node = node.getDomApi("bind");
-            }
             if (MetaphorJs.dom.isField(node)) {
                 self.input = MetaphorJs.lib.Input.get(node);
             }
-            else if (node.getInputApi) {
-                self.input = node.getInputApi("bind");
-            }
-            if (self.input) {
-                self.input.onChange(self.onInputChange, self);
-            }
         },
 
+
+        
         onInputChange: function(val) {
             var self = this,
                 cfgVal = self.config.get("value") || null;
             val = val || null;
             if (self.config.get("locked") && val != cfgVal) {
-                self.onChange(cfgVal);
+                self.onScopeChange(cfgVal);
             }
         },
 
         onTextRendererChange: function() {
-            this.onChange(this.textRenderer.getString());
+            this.onScopeChange(this.textRenderer.getString());
         },
 
         onOptionsChange: function() {
-            this.onChange();
+            this.onScopeChange(
+                this.textRenderer ? 
+                    this.textRenderer.getString() :
+                    this.config.get("value")
+            );
         },
 
-        onChange: function(text) {
+        onScopeChange: function(text) {
             this.updateElement(text);
         },
 

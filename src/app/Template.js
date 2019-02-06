@@ -723,9 +723,9 @@ module.exports = MetaphorJs.app.Template = function() {
         _onParentRendererDestroy: function() {
             var self = this;
 
-            if (!self.$destroyed && self._renderer &&
-                !self._renderer.$destroyed) {
-                self._renderer.$destroy();
+            if (!self.$destroyed && self._parentRenderer &&
+                !self._parentRenderer.destroyed) {
+                self._parentRenderer.$destroy();
             }
 
             self.$destroy();

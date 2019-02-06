@@ -18,44 +18,58 @@ var cls = require("metaphorjs-class/src/cls.js"),
 Directive.registerAttribute("options", 100, Directive.$extend({
 
     $class: "MetaphorJs.app.Directive.attr.Options",
+    id: "options",
 
     model: null,
     store: null,
-    getterFn: null,
-    defOption: null,
-    prevGroup: null,
-    groupEl: null,
-    fragment: null,
-    initial: false,
 
-    $init: function(scope, node, config) {
+    _getterFn: null,
+    _defOption: null,
+    _prevGroup: null,
+    _groupEl: null,
+    _fragment: null,
+    _initial: false,
+    _defaultOptionTpl: null,
+
+    $init: function(scope, node, config, renderer, attrSet) {
+        if (!(node instanceof window.HTMLSelectElement)) {
+            throw new Error("'options' directive can only work with <select>");
+        }
+        this.$super(scope, node, config, renderer, attrSet);
+    },
+
+    _initConfig: function(config) {
+        var self    = this,
+            expr;
 
         config.disableProperty("value");
-
-        var self    = this,
-            expr    = config.getExpression("value");
+        expr = config.getExpression("value");
 
         self.parseExpr(expr);
+        self.$super(config);
+    },
 
-        self.config     = config;
-        self.node       = node;
-        self.scope      = scope;
-        self.defOption  = node.options.length ? node.options[0] : null;
+    _initDirective: function() {
+
+        var self    = this,
+            node    = self.node;
+        
+        self._defOption  = node.options.length ? node.options[0] : null;
 
         while (node.firstChild) {
             node.removeChild(node.firstChild);
         }
 
-        self.defOption && MetaphorJs.dom.setAttr(self.defOption, "default-option", "");
+        self._defOption && MetaphorJs.dom.setAttr(self._defOption, "default-option", "");
 
         try {
-            var value = MetaphorJs.lib.Expression.get(self.model, scope);
+            var value = MetaphorJs.lib.Expression.get(self.model, self.scope);
             if (cls.isInstanceOf(value, "MetaphorJs.model.Store")) {
                 self.bindStore(value, "on");
             }
             else {
                 self.watcher = MetaphorJs.lib.MutationObserver.get(
-                    scope, self.model, self.onChange, self);
+                    self.scope, self.model, self.onScopeChange, self);
             }
         }
         catch (thrownError) {
@@ -87,23 +101,23 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         this.dispatchOptionsChange();
     },
 
-    onChange: function() {
+    onScopeChange: function() {
         var self = this;
         self.renderAll();
     },
 
     dispatchOptionsChange: function() {
         var self = this;
-        if (!self.initial && self.node.dispatchEvent) {
+        if (!self._initial && self.node.dispatchEvent) {
             MetaphorJs.dom.triggerEvent(self.node, "optionschange");
         }
-        self.initial = false;
+        self._initial = false;
     },
 
     renderOption: function(item, index, scope) {
 
         var self        = this,
-            parent      = self.groupEl || self.fragment,
+            parent      = self._groupEl || self._fragment,
             msie        = MetaphorJs.browser.isIE(),
             config,
             option;
@@ -111,11 +125,11 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         scope.item      = item;
         scope.$index    = index;
 
-        if (self.defaultOptionTpl && isPlainObject(item)) {
+        if (self._defaultOptionTpl && isPlainObject(item)) {
             config      = item;
         }
         else {
-            config      = self.getterFn(scope);
+            config      = self._getterFn(scope);
         }
 
         config.group    !== undf && (config.group = ""+config.group);
@@ -123,7 +137,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         if (config.group !== self.prevGroup) {
 
             if (config.group){
-                self.groupEl = parent = window.document.createElement("optgroup");
+                self._groupEl = parent = window.document.createElement("optgroup");
                 MetaphorJs.dom.setAttr(parent, "label", config.group);
                 if (config.disabledGroup) {
                     MetaphorJs.dom.setAttr(parent, "disabled", "disabled");
@@ -131,11 +145,12 @@ Directive.registerAttribute("options", 100, Directive.$extend({
                 self.fragment.appendChild(parent);
             }
             else {
-                parent = self.fragment;
-                self.groupEl = null;
+                parent = self._fragment;
+                self._groupEl = null;
             }
         }
-        self.prevGroup  = config.group;
+
+        self._prevGroup  = config.group;
 
         option  = window.document.createElement("option");
         MetaphorJs.dom.setAttr(option, "value", config.value || "");
@@ -156,13 +171,13 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         var self        = this,
             node        = self.node,
             value       = MetaphorJs.dom.getInputValue(node),
-            def         = self.defOption,
+            def         = self._defOption,
             tmpScope    = self.scope.$new(),
             msie        = MetaphorJs.browser.isIE(),
             parent, next,
             i, len;
 
-        self.fragment   = window.document.createDocumentFragment();
+        self._fragment   = window.document.createDocumentFragment();
         self.prevGroup  = null;
         self.groupEl    = null;
 
@@ -190,8 +205,8 @@ Directive.registerAttribute("options", 100, Directive.$extend({
             parent.removeChild(node);
         }
 
-        node.appendChild(self.fragment);
-        self.fragment = null;
+        node.appendChild(self._fragment);
+        self._fragment = null;
 
         if (msie && msie < 8) {
             parent.insertBefore(node, next);
@@ -209,16 +224,16 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         if (splitIndex === -1) {
             model   = expr;
             item    = '{name: this.item, value: this.$index}';
-            this.defaultOptionTpl = true;
+            this._defaultOptionTpl = true;
         }
         else {
             model   = expr.substr(splitIndex + 4);
             item    = expr.substr(0, splitIndex);
-            this.defaultOptionTpl = false;
+            this._defaultOptionTpl = false;
         }
 
         this.model = model;
-        this.getterFn = MetaphorJs.lib.Expression.getter(item);
+        this._getterFn = MetaphorJs.lib.Expression.getter(item);
     },
 
     onDestroy: function() {
@@ -227,6 +242,10 @@ Directive.registerAttribute("options", 100, Directive.$extend({
 
         if (self.store){
             self.bindStore(self.store, "un");
+        }
+        if (self.watcher) {
+            self.watcher.unsubscribe(self.onScopeChange, self);
+            self.watcher.$destroy(true);
         }
 
         self.$super();

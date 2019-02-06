@@ -6,20 +6,14 @@ var Directive = require("../../app/Directive.js"),
 Directive.registerAttribute("in-focus", 500, Directive.$extend({
 
     $class: "MetaphorJs.app.Directive.attr.InFocus",
+    id: "in-focus",
 
-    $init: function(scope, node) {
-        if (node.getDomApi) {
-            arguments[1] = node.getDomApi();
-        }
-        this.$super.apply(this, arguments);
+    _initConfig: function(config) {
+        config.setType("value", "bool");
+        this.$super(config);
     },
 
-    initialSet: function() {
-        this.config.setType("value", "bool");
-        this.$super();
-    },
-
-    onChange: function(val) {
+    onScopeChange: function(val) {
         var self    = this;
         if (val) {
             async(self.node.focus, self.node, [], 300);

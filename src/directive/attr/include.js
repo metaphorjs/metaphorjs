@@ -6,7 +6,11 @@ var Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 Directive.registerAttribute("include", 1100,
-    function(scope, node, config, parentRenderer, attrSet){
+    function(scope, node, config, renderer, attrSet){
+
+    if (!(node instanceof window.Node)) {
+        throw new Error("'include' directive can only work with Node");
+    }
 
     config.disableProperty("value");
     config.setProperty("name", config.getProperty("value"));
@@ -18,11 +22,11 @@ Directive.registerAttribute("include", 1100,
     var tpl = new MetaphorJs.app.Template({
         scope: scope,
         attachTo: node,
-        parentRenderer: parentRenderer,
+        renderer: renderer,
         config: config
     });
 
-    parentRenderer.on("destroy", function(){
+    renderer.on("destroy", function(){
         tpl.$destroy();
         tpl = null;
     });

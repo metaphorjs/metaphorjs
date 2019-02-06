@@ -577,7 +577,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
             i, len;
 
         for (i = 0, len = renderers.length; i < len; i++) {
-            if (renderers[i].renderer && !renderers[i].renderer.$destroyed) {
+            if (renderers[i].renderer && !renderers[i].renderer.destroyed) {
                 renderers[i].renderer.$destroy();
             }
         }

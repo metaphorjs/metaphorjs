@@ -11,7 +11,7 @@ var Directive = require("../../app/Directive.js"),
 
 Directive.registerTag("if", Directive.attr.If.$extend({
     $class: "MetaphorJs.app.Directive.tag.If",
-    autoOnChange: false,
+    _autoOnChange: false,
     children: null,
     childrenFrag: null,
 

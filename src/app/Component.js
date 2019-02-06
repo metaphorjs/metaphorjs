@@ -65,6 +65,11 @@ module.exports = MetaphorJs.app.Component = cls({
     autoRender:     false,
 
     /**
+     * @var {boolean}
+     */
+    autoAttach:     false,
+
+    /**
      * @var {bool}
      * @access protected
      */
@@ -186,12 +191,14 @@ module.exports = MetaphorJs.app.Component = cls({
                     self.id = nodeId;
                 }
             }
+            self.$refs.node.main = self.node;
         }
 
         self.id = self.id || "cmp-" + nextUid();
 
         if (!self.node && config.has("tag")) {
             self.node = window.document.createElement(config.get("tag"));
+            self.$refs.node.main = node;
             self._nodeCreated = true;
         }
 
@@ -223,6 +230,9 @@ module.exports = MetaphorJs.app.Component = cls({
                                     htmlTags.indexOf(
                                         self.node.tagName.toLowerCase()
                                     ) === -1;
+            if (self._nodeReplaced) {
+                self.$refs.node.main = null;
+            }
         }
 
         var tplConfig = new MetaphorJs.lib.Config({
@@ -409,25 +419,23 @@ module.exports = MetaphorJs.app.Component = cls({
         }
     },
 
-    /*_onFirstNodeReported: function(node) {
-        var self = this;
-        if (self._nodeReplaced) {
-            self._claimNode(node);
-        }
-        else if (!self.node) {
-            self.node = node;
-            self.template.node = node;
-            self._claimNode(node);
-        }
-    },*/
-
     _onChildReference: function(type, ref, item) {
         var self = this;
+
         if (!self.$refs[type]) {
             self.$refs[type] = {};
         }
 
         var th = self.$refs[type][ref];
+
+        if (!th || isThenable(th)) {
+            // change comment's reference name so
+            // that it won't get referenced twice
+            if (item && item.nodeType && 
+                item.nodeType === window.document.COMMENT_NODE) {
+                item.textContent = "*" + self.id + "*" + ref + "*";
+            }
+        }
 
         if (!th) {
             self.$refs[type][ref] = item;
@@ -454,33 +462,6 @@ module.exports = MetaphorJs.app.Component = cls({
         node.$$cmpId = null;
     },
 
-    _replaceNodeWithTemplate: function() {
-        /*var self = this;
-
-        if (self._nodeReplaced && self.node && self.node.parentNode) {
-            MetaphorJs.dom.removeAttr(self.node, "id");
-        }
-
-        self.node = self.template.node;
-
-        // document fragment
-        if (self.node.nodeType === window.document.DOCUMENT_FRAGMENT_NODE) {
-            var ch = self.node.nodeType === window.document.DOCUMENT_FRAGMENT_NODE ?
-                    self.node.childNodes :
-                    self.node,
-                i, l;
-            for (i = 0, l = ch.length; i < l; i++) {
-                if (ch[i].nodeType === window.document.ELEMENT_NODE) {
-                    self.node = ch[i];
-                    break;
-                }
-            }
-        }
-
-        self.template.node = self.node;
-
-        self._claimNode();*/
-    },
 
 
 
@@ -516,9 +497,6 @@ module.exports = MetaphorJs.app.Component = cls({
 
     isAttached: function(parent) {
         return this.template.isAttached(parent);
-        /*if (!this.node || !this.node.parentNode) 
-            return false;
-        return parent ? this.node.parentNode === parent : true;*/
     },
 
     attach: function(parent, before) {
@@ -528,14 +506,6 @@ module.exports = MetaphorJs.app.Component = cls({
             throw new Error("Parent node is required");
         }
 
-        /*if (self.isAttached(parent)) {
-            console.log("is attached", self.node, parent)
-            return;
-        }*/
-
-        //self.detach(true);
-        //self.renderTo = parent;
-        //self.renderBefore = before;
         self.template.attach(parent, before);
     },
 
@@ -543,16 +513,8 @@ module.exports = MetaphorJs.app.Component = cls({
         var self = this;
         if (self.template.isAttached()) {
             self.template.detach();
-            //self.node.parentNode.removeChild(self.node);
-            //self.afterDetached(willAttach);
-            //self.trigger('detached', self, willAttach);
         }
     },
-
-    /*_onTemplateAttached: function() {
-        self.afterAttached();
-        self.trigger("attached", self);
-    },*/
 
     getRefEl: function(name) {
         return this.$refs['node'][name];
@@ -562,17 +524,26 @@ module.exports = MetaphorJs.app.Component = cls({
         return this.$refs['cmp'][name];
     },
 
-    getRefCmpPromise: function(name) {
-        var cmp = this.$refs['cmp'][name];
-        if (!cmp) {
-            return this.$refs['cmp'][name] = new MetaphorJs.lib.Promise;
+
+    _getRefPromise: function(type, name) {
+        var ref = this.$refs[type][name];
+        if (!ref) {
+            return this.$refs[type][name] = new MetaphorJs.lib.Promise;
         }
-        else if (isThenable(cmp)) {
-            return cmp;
+        else if (isThenable(ref)) {
+            return ref;
         }
         else {
-            return MetaphorJs.lib.Promise.resolve(cmp);
+            return MetaphorJs.lib.Promise.resolve(ref);
         }
+    },
+
+    getRefElPromise: function(name) {
+        return this._getRefPromise("node", name);
+    },
+
+    getRefCmpPromise: function(name) {
+        return this._getRefPromise("cmp", name);
     },
 
     onBeforeRender: function() {
@@ -663,13 +634,24 @@ module.exports = MetaphorJs.app.Component = cls({
      */
     getDomApi: function(directive) {
         var sup = this.$self.supportsDirectives;
-        if (!sup) {
+        if (!sup || !sup[directive]) {
             return null;
         }
-        if (sup[directive] === true) {
-            return this.node;
+        var ref = sup[directive] === true ? "main" : sup[directive];
+        return this.getRefEl(ref) || this.getRefElPromise(ref);
+    },
+
+    getInputApi: function() {
+        return null;
+    },
+
+    getApi: function(type, directive) {
+        if (type === "node") {
+            return this.getDomApi(directive);
         }
-        return this.$refs.node[sup[directive]];
+        else if (type === "input") {
+            return this.getInputApi();
+        }
     },
 
     /**

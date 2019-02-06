@@ -14,17 +14,19 @@ var Directive = require("../../app/Directive.js"),
 
     var PropertyDirective = Directive.$extend({
 
-        propName: null,
-
-        $init: function(scope, node, config, propName) {
-            this.propName = propName;
-            config.setType("value", "bool");
-            this.$super(scope, node, config);
+        $init: function(name, scope, node, config, renderer, attrSet) {
+            this.id = name;
+            this.$super(scope, node, config, renderer, attrSet);
         },
 
-        onChange: function(val) {
+        _initConfig: function(config) {
+            this.$super(config);
+            config.setType("value", "bool");
+        },
 
-            var name = this.propName;
+        onScopeChange: function(val) {
+
+            var name = this.id;
 
             val = !!val;
 
@@ -39,8 +41,8 @@ var Directive = require("../../app/Directive.js"),
 
     for (i = 0, l = booleanAttrs.length; i < l; i++) {
         (function(name){
-            Directive.registerAttribute("" + name, 1000, function(scope, node, config){
-                return new PropertyDirective(scope, node, config, name);
+            Directive.registerAttribute("" + name, 1000, function(scope, node, config, renderer, attrSet){
+                return new PropertyDirective(name, scope, node, config, renderer, attrSet);
             });
         }(booleanAttrs[i]));
     }

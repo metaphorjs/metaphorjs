@@ -34,6 +34,19 @@ or
 
  */
 
+var getNode = function(node, config, cb) {
+    Directive.resolveNode(node, "key", function(node, cmp){
+        if (cmp) {
+            config.setProperty("targetComponent", {
+                mode: MetaphorJs.lib.Config.MODE_STATIC,
+                value: cmp
+            });
+        }
+        cb(node);
+    });
+};
+
+
 Directive.registerAttribute("key", 1000, function(scope, node, config, renderer, attrSet){
 
     config.disableProperty("value");
@@ -45,7 +58,7 @@ Directive.registerAttribute("key", 1000, function(scope, node, config, renderer,
         }
     });
 
-    var createHandler = function(name, cfg) {
+    var createHandler = function(node, name, cfg) {
 
         if (typeof cfg === "function") {
             cfg = {handler: cfg};
@@ -63,8 +76,10 @@ Directive.registerAttribute("key", 1000, function(scope, node, config, renderer,
 
         var handler = function(e) {
             scope.$event = e;
+            scope.$targetComponent = config.get("targetComponent");
             h(scope);
             scope.$event = null;
+            scope.$targetComponent = null;
             scope.$check();
         };
         
@@ -78,12 +93,16 @@ Directive.registerAttribute("key", 1000, function(scope, node, config, renderer,
     var cfgs = config.getAllValues(),
         name,
         uninstall = [];
-    
-    for (name in cfgs) {
-        if (cfgs.hasOwnProperty(name) && cfgs[name]) {
-            uninstall.push(createHandler(name, cfgs[name]));
+
+    getNode(node, config, function(node){
+        if (cfgs) {
+            for (name in cfgs) {
+                if (cfgs.hasOwnProperty(name) && cfgs[name]) {
+                    uninstall.push(createHandler(node, name, cfgs[name]));
+                }
+            }
         }
-    }
+    });
 
     return function() {
         var i, l;

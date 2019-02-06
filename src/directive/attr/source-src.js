@@ -8,18 +8,20 @@ var Directive = require("../../app/Directive.js"),
 Directive.registerAttribute("source-src", 1000, Directive.$extend({
 
     $class: "MetaphorJs.app.Directive.attr.SourceSrc",
+    id: "source-src",
 
     usePreload: true,
     attr: null,
-
     lastPromise: null,
     src: null,
 
     $constructor: function(scope, node, config, renderer, attrSet) {
 
-        config.setType("deferred", "bool", MetaphorJs.lib.Config.MODE_STATIC);
-        config.setType("noCache", "bool", MetaphorJs.lib.Config.MODE_STATIC);
-        config.setDefaultMode("plugin", MetaphorJs.lib.Config.MODE_STATIC);
+        var ms = MetaphorJs.lib.Config.MODE_STATIC;
+
+        config.setType("deferred", "bool", ms);
+        config.setType("noCache", "bool", ms);
+        config.setDefaultMode("plugin", ms);
 
         var self = this;
 
@@ -35,11 +37,11 @@ Directive.registerAttribute("source-src", 1000, Directive.$extend({
             }
         }
 
-        self.$super(scope, node, config);
+        self.$super(scope, node, config, renderer, attrSet);
     },
 
 
-    onChange: function() {
+    onScopeChange: function() {
         this.doChange();
     },
 
@@ -62,10 +64,8 @@ Directive.registerAttribute("source-src", 1000, Directive.$extend({
             src += (src.indexOf("?") !== -1 ? "&amp;" : "?") + "_" + (new Date).getTime();
         }
 
-        if (self.node) {
-            self.doChangeSource(src);
-            self.onSrcChanged();
-        }
+        self.doChangeSource(src);
+        self.onSrcChanged();
     },
 
     doChangeSource: function(src) {

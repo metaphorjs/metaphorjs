@@ -316,10 +316,8 @@
                        (click)="this.list.push({bool: false, txt: this.newItem}); this.newItem = '';"
                        value="Add item"/>
 
-                <ul {show}="this.bool" {show.$animate}>
-                    <li {each}="item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy"
-                        {each.$animate}
-                        {each.$animate-move}>
+                <ul {show}="this.bool">
+                    <li {each}="item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy">
                         <label {class}="{cls3: this.item.bool}">
                             <input type="checkbox" 
                                     {model}="this.item.bool"/>
