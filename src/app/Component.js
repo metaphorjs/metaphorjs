@@ -221,6 +221,7 @@ module.exports = MetaphorJs.app.Component = cls({
             tpl = self.template,
             rootNode = null,
             replaceNode = null,
+            attachTo = null,
             config = self.config;
 
         if (self.node) {
@@ -233,6 +234,9 @@ module.exports = MetaphorJs.app.Component = cls({
                 self.node = null;
                 self.$refs.node.main = null;
             }
+            else {
+                attachTo = self.node;
+            }
         }
 
         if (!self.node && config.has("tag")) {
@@ -240,6 +244,11 @@ module.exports = MetaphorJs.app.Component = cls({
             self.node = rootNode;
             self.$refs.node.main = rootNode;
             self._nodeCreated = true;
+            if (self._nodeReplaced && replaceNode.parentNode) {
+                replaceNode.parentNode.replaceChild(replaceNode, rootNode);
+                rootNode = null;
+                attachTo = self.node;
+            }
         }
 
         var tplConfig = new MetaphorJs.lib.Config({
@@ -249,6 +258,7 @@ module.exports = MetaphorJs.app.Component = cls({
             makeTranscludes: config.copyProperty("makeTranscludes")
         }, {scope: self.scope});
 
+        attachTo && tplConfig.setStatic("useComments", false);
         MetaphorJs.app.Template.prepareConfig(tplConfig, tpl);
 
         self._initTplConfig(tplConfig);
@@ -257,9 +267,9 @@ module.exports = MetaphorJs.app.Component = cls({
             scope: self.scope,
             config: tplConfig,
 
-            rootNode: self._nodeCreated ? rootNode : null,
-            attachTo: self._nodeReplaced || self._nodeCreated ? null : self.node,
-            replaceNode: self._nodeReplaced ? replaceNode : null,
+            rootNode: rootNode,
+            attachTo: attachTo,
+            replaceNode: replaceNode,
 
             callback: {
                 context: self,

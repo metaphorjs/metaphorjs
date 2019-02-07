@@ -3326,8 +3326,16 @@ Scope.$produce = function(name) {
         return def ? def.$new() : new Scope;
     }
     else {
+        var child = false;
+        if (name[name.length - 1] === "*") {
+            name = name.substring(0, name.length - 1);
+            child = true;
+        }
         var scope = this.$get(name);
-        return scope ? scope : new Scope;
+        if (!scope) {
+            throw new Error("Scope with name " + name + " not found");
+        }
+        return child ? scope.$new() : scope;
     }
 };
 
@@ -13229,7 +13237,7 @@ var app_Template = MetaphorJs.app.Template = function() {
     var observable      = new MetaphorJs.lib.Observable,
         cache           = new MetaphorJs.lib.Cache,
         options         = {},
-        shadowSupported = !!document.head.attachShadow,
+        shadowSupported = !!(window.document.head && window.document.head.attachShadow),
         pblt,
         pbltOpt,
 
@@ -14474,6 +14482,7 @@ var app_Component = MetaphorJs.app.Component = cls({
             tpl = self.template,
             rootNode = null,
             replaceNode = null,
+            attachTo = null,
             config = self.config;
 
         if (self.node) {
@@ -14486,6 +14495,9 @@ var app_Component = MetaphorJs.app.Component = cls({
                 self.node = null;
                 self.$refs.node.main = null;
             }
+            else {
+                attachTo = self.node;
+            }
         }
 
         if (!self.node && config.has("tag")) {
@@ -14493,6 +14505,11 @@ var app_Component = MetaphorJs.app.Component = cls({
             self.node = rootNode;
             self.$refs.node.main = rootNode;
             self._nodeCreated = true;
+            if (self._nodeReplaced && replaceNode.parentNode) {
+                replaceNode.parentNode.replaceChild(replaceNode, rootNode);
+                rootNode = null;
+                attachTo = self.node;
+            }
         }
 
         var tplConfig = new lib_Config({
@@ -14502,6 +14519,7 @@ var app_Component = MetaphorJs.app.Component = cls({
             makeTranscludes: config.copyProperty("makeTranscludes")
         }, {scope: self.scope});
 
+        attachTo && tplConfig.setStatic("useComments", false);
         app_Template.prepareConfig(tplConfig, tpl);
 
         self._initTplConfig(tplConfig);
@@ -14510,9 +14528,9 @@ var app_Component = MetaphorJs.app.Component = cls({
             scope: self.scope,
             config: tplConfig,
 
-            rootNode: self._nodeCreated ? rootNode : null,
-            attachTo: self._nodeReplaced || self._nodeCreated ? null : self.node,
-            replaceNode: self._nodeReplaced ? replaceNode : null,
+            rootNode: rootNode,
+            attachTo: attachTo,
+            replaceNode: replaceNode,
 
             callback: {
                 context: self,
@@ -35329,7 +35347,6 @@ var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
     dialog: null,
     dialogPreset: null,
     dialogCfg: null,
-
     dialogNode: null,
 
     hidden: true,
@@ -35347,21 +35364,12 @@ var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
         }
 
         self.$super(cfg);
+        this._createDialog();
     },
 
-    initComponent: function() {
-
-        var self    = this;
-
-        self.$super();
-        self._createDialog();
+    _initConfig: function() {
+        this.config.set("tag", "div");
     },
-
-    _initTemplate: function() {
-        this._nodeCreated = false;
-        this.$super();
-    },
-
 
     _getDialogCfg: function() {
 
@@ -35397,6 +35405,9 @@ var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
         self._rendered   = true;
         self.afterRender();
         self.trigger('after-render', self);
+        if (self.directives) {
+            self._initDirectives();
+        }
     },
 
     show: function(e) {
@@ -35423,13 +35434,11 @@ var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
             self.render();
         }
 
-        //self.template.config.set("animate", true);
         self.hidden = false;
     },
 
     onDialogShow: function() {
         var self = this;
-        //self.onShow();
         self.trigger("show", self);
     },
 
@@ -35438,10 +35447,7 @@ var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
     onDialogHide: function() {
         var self = this;
         if (!self.$destroyed) {
-            //self.template.config.set("animate", false);
-            //self.template.setAnimation(false);
             self.hidden = true;
-            //self.onHide();
             self.trigger("hide", self);
         }
     },
@@ -35663,8 +35669,7 @@ cls({
                     }
                 },
                 config: {
-                    as: "dlg",
-                    tag: "div"
+                    as: "dlg"
                 },
                 scope: this.scope,
                 template: {

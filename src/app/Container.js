@@ -86,7 +86,8 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                 }
 
                 // detach node
-                node.parentNode && node.parentNode.removeChild(node);
+                node.parentNode && !node.hasAttribute("slot") && 
+                    node.parentNode.removeChild(node);
 
                 foundCmp = null;
                 foundPromise = null;

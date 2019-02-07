@@ -193,8 +193,7 @@ cls({
                     }
                 },
                 config: {
-                    as: "dlg",
-                    tag: "div"
+                    as: "dlg"
                 },
                 scope: this.scope,
                 template: {
