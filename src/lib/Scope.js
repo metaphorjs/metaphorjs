@@ -460,8 +460,16 @@ Scope.$produce = function(name) {
         return def ? def.$new() : new Scope;
     }
     else {
+        var child = false;
+        if (name[name.length - 1] === "*") {
+            name = name.substring(0, name.length - 1);
+            child = true;
+        }
         var scope = this.$get(name);
-        return scope ? scope : new Scope;
+        if (!scope) {
+            throw new Error("Scope with name " + name + " not found");
+        }
+        return child ? scope.$new() : scope;
     }
 };
 

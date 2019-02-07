@@ -12,9 +12,6 @@ describe("MetaphorJs.lib.Scope", function(){
         var scope = new MetaphorJs.lib.Scope();
         scope.a = 1;
 
-        var fn = scope.$parseExpression("this.a");
-        assert.strictEqual(1, fn());
-
         scope.$watch("this.a");
         var changed = false;
         scope.$on("changed", function(){
@@ -38,8 +35,21 @@ describe("MetaphorJs.lib.Scope", function(){
         scope.a = 3;
         scope.$check();
 
-        assert.strictEqual(13, child.$parseExpression("this.b + this.$parent.a")());
         assert.strictEqual(true, childChanged, "Child scope should change");
 
+        var publicScope = new MetaphorJs.lib.Scope();
+        publicScope.a = 1;
+        publicScope.$registerPublic("public");
+
+        var defaultScope = new MetaphorJs.lib.Scope();
+        defaultScope.a = 2;
+        defaultScope.$makePublicDefault();
+
+        var s1 = MetaphorJs.lib.Scope.$produce("public");
+        assert.strictEqual(true, s1 === publicScope);
+        var s2 = MetaphorJs.lib.Scope.$produce("public*");
+        assert.strictEqual(true, s2.$parent === publicScope);
+        var s3 = MetaphorJs.lib.Scope.$produce();
+        assert.strictEqual(true, s3.$parent === defaultScope);
     });
 });
