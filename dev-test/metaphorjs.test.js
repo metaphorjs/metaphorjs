@@ -9048,14 +9048,18 @@ var Directive = MetaphorJs.app.Directive = (function() {
          *  @param {Node} node
          *  @param {MetaphorJs.app.Component} cmp
          * }
+         * @param {string} apiType {
+         *  node|input|...
+         *  @default resolveNode
+         * }
          */
-        resolveNode: function(node, directive, cb) {
+        resolveNode: function(node, directive, cb, apiType) {
             if (node instanceof window.Node){
                 cb(node);
             }
             else if (node.getApi) {
                 var cmp = node;
-                node = node.getApi("node", directive);
+                node = node.getApi(apiType || "node", directive);
                 if (isThenable(node)) {
                     node.done(function(node){
                         cb(node, cmp);
@@ -9581,11 +9585,9 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
         _processCommentNode: function(node) {
             var cmtData = node.textContent || node.data;
             if (cmtData.substring(0,2) === '##') {
-                observer.trigger(
-                    "reference-" + this.id, 
-                    "node",
-                    cmtData.substring(2),
-                    node
+                this.trigger(
+                    "reference", "node",
+                    cmtData.substring(2), node
                 );
             }
         },
@@ -9614,8 +9616,8 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
 
         // skip <slot> but reference it same way as ##ref
         _processSlotNode: function(node) {
-            observer.trigger(
-                "reference-" + this.id, "node",
+            this.trigger(
+                "reference", "node",
                 node.getAttribute("name"), node
             );
             return false;
@@ -9636,7 +9638,9 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
 
             self.on("destroy", config.$destroy, config);
 
-            return applyDirective(directive, self.scope, node, config, attrs, self);
+            return applyDirective(
+                directive, self.scope, node, 
+                config, attrs, self) || false;
         },
 
         _processTag: function(directive, node, attrs) {
@@ -9669,12 +9673,7 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
             for (i = 0, len = attrs.references.length; i < len; i++) {
                 ref = attrs.references[i];
                 if (ref[0] === '#') {
-                    observer.trigger(
-                        "reference-" + self.id, 
-                        "node",
-                        ref.substring(1),
-                        node
-                    );
+                    self.trigger("reference", "node", ref.substring(1), node);
                 }
                 else {
                     self.scope[ref] = node;
@@ -9711,9 +9710,14 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
          * along with this node's children<br>
          * Return a Promise resolving in any of the above
          * @param {Node} node 
+         * @param {object} attrSet {
+         *  Usually you don't pass this one. If skipped, attrSet will be taken directly 
+         *  from the node which is the default behavior. This param is used
+         *  for virtual nodes.
+         * }
          * @returns {boolean|array|Promise|Node}
          */
-        processNode: function(node) {
+        processNode: function(node, attrs) {
 
             var self        = this,
                 nodeType    = node.nodeType;
@@ -9732,10 +9736,11 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                     component,
                     directive,
                     i, len,
-                    attrs = dom_getAttrSet(node),
                     name,
                     res;
-                
+
+                attrs = attrs || dom_getAttrSet(node);
+
                 if (tag.substr(0, 4) === "mjs-") {
                     tag = tag.substr(4);
                 }
@@ -9837,6 +9842,10 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                 text        = self.texts[inx],
                 res         = text.tr.getString(),
                 attrName    = text.attr;
+
+            if (res === undf || res === null) {
+                res = "";
+            }
 
             if (attrName) {
 
@@ -13214,6 +13223,7 @@ var ajax = function(){
 
 
 
+
 var app_Template = MetaphorJs.app.Template = function() {
 
     var observable      = new MetaphorJs.lib.Observable,
@@ -13376,6 +13386,8 @@ var app_Template = MetaphorJs.app.Template = function() {
             delete self.parentRenderer;
         }
         self.id = nextUid();
+        self._virtualSets = {};
+        self._namedNodes = {};
         observable.createEvent("rendered-" + self.id, {
             returnResult: false,
             autoTrigger: true
@@ -13402,9 +13414,11 @@ var app_Template = MetaphorJs.app.Template = function() {
         config.setType("useShadow", "bool", sm);
         config.setType("deferRendering", "bool", sm);
         config.setType("makeTranscludes", "bool", sm);
+        config.setType("passReferences", "bool", sm);
 
         config.setProperty("useComments", "defaultValue", true, /*override: */false);
         config.setProperty("makeTranscludes", "defaultValue", true, /*override: */false);
+        config.setProperty("passReferences", "defaultValue", false, /*override: */false);
 
         !shadowSupported && config.setStatic("useShadow", false);
         config.get("useShadow") && config.setStatic("useComments", false);
@@ -13444,6 +13458,8 @@ var app_Template = MetaphorJs.app.Template = function() {
         _resolvePromise:    null,
         _pubResolvePromise: null,
         _parentRenderer:    null,
+        _virtualSets:       null,
+        _namedNodes:      null,
 
         attachTo:           null,
         attachBefore:       null,
@@ -13616,6 +13632,69 @@ var app_Template = MetaphorJs.app.Template = function() {
             return self._resolvePromise.done(self._onTemplateResolved, self);
         },
 
+        getVirtualSet: function(ref) {
+            return this._virtualSets[ref] ? copy(this._virtualSets[ref]) : null;
+        },
+
+        setNamedNode: function(ref, node) {
+            var self = this,
+                nodes = self._namedNodes[ref];
+
+            if (node['__namedRenderer'] && node['__namedRenderer'][ref]) {
+                return;
+            }
+
+            if (!nodes) {
+                nodes = self._namedNodes[ref] = [];
+            }
+
+            if (node && nodes.indexOf(node) === -1) {
+                nodes.push(node);
+                if (self._renderer && self._virtualSets[ref]) {
+                    self._renderer.processNode(node, self.getVirtualSet(ref));
+                }
+            }
+        },
+
+        removeNamedNode: function(ref, node) {
+            var nodes = this._namedNodes[ref],
+                inx;
+            if (!nodes || (inx = nodes.indexOf(node)) !== -1) {
+                nodes.splice(inx, 1);
+            }
+        },
+
+
+        _extractVirtualSets: function(frag) {
+            var self = this,
+                node = frag.firstChild,
+                cmtType = window.document.COMMENT_NODE,
+                data, next;
+            while (node) {
+                next = node.nextSibling;
+                if (node.nodeType === cmtType) {
+                    data = node.textContent || node.data;
+                    if (data.substring(0,1) === '<' && 
+                        data.substring(data.length-1) === '>') {
+                        self._processVirtualSet(data);
+                        frag.removeChild(node);
+                    }
+                }
+                node = next;
+            }
+        },
+
+        _processVirtualSet: function(data) {
+            var div = window.document.createElement("div");
+            div.innerHTML = data;
+            var node = div.firstChild;
+            if (node) {
+                var ref = node.tagName.toLowerCase(),
+                    attrSet = dom_getAttrSet(node);
+                this._virtualSets[ref] = attrSet;
+            }
+        },
+
         _onTemplateResolved: function(fragment) {
             var self = this,
                 root = self.rootNode;
@@ -13629,6 +13708,7 @@ var app_Template = MetaphorJs.app.Template = function() {
                                 dom_toFragment(fragment) :
                                 fragment;
                 self._fragment = dom_clone(self._template);
+                self._extractVirtualSets(self._fragment);
 
                 if (root) {
                     while (root.firstChild) {
@@ -13756,23 +13836,97 @@ var app_Template = MetaphorJs.app.Template = function() {
             var self = this;
 
             if (self.config.get("runRenderer")) {
-                if (self._renderer) {
-                    self._renderer.$destroy();
-                    self._renderer = null;
-                }
+                
+                self._destroyRenderer();
 
                 observable.trigger("before-render-" + self.id, self);
 
                 self._renderer   = new app_Renderer(self.scope);
-                observable.relayEvent(self._renderer, "reference", "reference-" + self.id);
+
+                if (self.config.get("passReferences") && self._parentRenderer) {
+                    self._renderer.on(
+                        "reference", 
+                        self._parentRenderer.trigger,
+                        self._parentRenderer,
+                        {
+                            prepend: ["reference"]
+                        }
+                    );
+                }
+
+                // after renderer had its course, the list of nodes may have changed.
+                // we need to reflect this in _nodes before attaching stuff
+                self._renderer.on("rendered", self._collectedNodesAfterRendered, self);
+                // then we apply directives to all named nodes we have at the moment
+                self._renderer.on("rendered", self._processNamedNodes, self);
+                // then send the 'rendered' signal up the chain
                 observable.relayEvent(self._renderer, "rendered", "rendered-" + self.id);
+
+                observable.relayEvent(self._renderer, "reference", "reference-" + self.id);
                 self._renderer.process(self._nodes);
+            }
+        },
+
+
+        _collectedNodesAfterRendered: function() {
+            var self = this;
+            if (self._fragment) {
+                this._nodes = toArray(self._fragment.childNodes);
+            }
+        },
+
+        _processNamedNodes: function() {
+            var self = this,
+                vnodes = self._namedNodes,
+                vsets = self._virtualSets,
+                ref, i, l,
+                node, nr, attrSet,
+                attr;
+
+            for (ref in vnodes) {
+                if (vsets[ref]) {
+                    for (i = 0, l = vnodes[ref].length; i < l; i++) {
+                        node = vnodes[ref][i];
+                        nr = node['__namedRenderer'] || {};
+                        nr[ref] = self._renderer.id;
+                        node['__namedRenderer'] = nr;
+                        attrSet = self.getVirtualSet(ref);
+
+                        if (attrSet.rest && node.nodeType === window.document.ELEMENT_NODE) {
+                            for (attr in attrSet.rest) {
+                                node.setAttribute(attr, attrSet.rest[attr]);
+                            }
+                        }
+                        self._renderer.processNode(node, attrSet);
+                    }
+                }
+            }
+        },
+
+        _destroyRenderer: function() {
+            var self = this;
+
+            if (self._renderer) {
+                var id = self._renderer.id,
+                    vnodes = self._namedNodes,
+                    ref, i, l,
+                    node, nr;
+                self._renderer.$destroy();
+                self._renderer = null;
+
+                for (ref in vnodes) {
+                    for (i = 0, l = vnodes[ref].length; i < l; i++) {
+                        node = vnodes[ref][i];
+                        nr = node['__namedRenderer'];
+                        nr && nr[ref] === id && (nr[ref] = null);
+                    }
+                }
+                self._namedNodes = {};
             }
         },
 
         _resolveTemplate: function() {
             var tpl = this.config.get("name");
-            
             return new lib_Promise(
                 function(resolve, reject) {
                     if (tpl) {
@@ -13879,10 +14033,9 @@ var app_Template = MetaphorJs.app.Template = function() {
             }
         },
 
-        _clear: function() {
+        _collectNodes: function() {
             var self = this,
-                nodes = [], 
-                i, l, n, parent;
+                nodes = [], parent;
 
             // remove all children between prev and next
             if (self._nextEl) {
@@ -13895,6 +14048,14 @@ var app_Template = MetaphorJs.app.Template = function() {
                     nodes = toArray(parent.childNodes);
                 }
             }
+
+            return nodes;
+        },
+
+        _clear: function() {
+            var self = this,
+                nodes = self._collectNodes(), 
+                i, l, n;
 
             for (i = 0, l = nodes.length; i < l; i++) {
                 n = nodes[i];
@@ -13915,7 +14076,7 @@ var app_Template = MetaphorJs.app.Template = function() {
             var self = this;
 
             if (!self.$destroyed && self._parentRenderer &&
-                !self._parentRenderer.$destroyed) {
+                !self._parentRenderer.destroyed) {
                 self._parentRenderer.$destroy();
             }
 
@@ -13961,6 +14122,9 @@ var app_Template = MetaphorJs.app.Template = function() {
             config.setDefaultValue("name", values);
         }
         else if (values) {
+            if (!values.name && !values.html && values.expression) {
+                values.name = {expression: values.expression};
+            }
             config.addProperties(values, "defaultValue");
         }
     };
@@ -14154,6 +14318,11 @@ var app_Component = MetaphorJs.app.Component = cls({
     autoRender:     false,
 
     /**
+     * @var {boolean}
+     */
+    autoAttach:     false,
+
+    /**
      * @var {bool}
      * @access protected
      */
@@ -14275,14 +14444,10 @@ var app_Component = MetaphorJs.app.Component = cls({
                     self.id = nodeId;
                 }
             }
+            self.$refs.node.main = self.node;
         }
 
         self.id = self.id || "cmp-" + nextUid();
-
-        if (!self.node && config.has("tag")) {
-            self.node = window.document.createElement(config.get("tag"));
-            self._nodeCreated = true;
-        }
 
         self.beforeInitComponent.apply(self, arguments);
         self.initComponent.apply(self, arguments);
@@ -14299,26 +14464,42 @@ var app_Component = MetaphorJs.app.Component = cls({
             self._claimNode();
         }
 
+        self.config.getAll();
         self._initTemplate();
     },
 
     _initTemplate: function() {
 
         var self = this,
-            tpl = self.template;
+            tpl = self.template,
+            rootNode = null,
+            replaceNode = null,
+            config = self.config;
 
         if (self.node) {
             self._nodeReplaced = self.replaceCustomNode && 
                                     htmlTags.indexOf(
                                         self.node.tagName.toLowerCase()
                                     ) === -1;
+            if (self._nodeReplaced) {
+                replaceNode = self.node;
+                self.node = null;
+                self.$refs.node.main = null;
+            }
+        }
+
+        if (!self.node && config.has("tag")) {
+            rootNode = window.document.createElement(config.get("tag"));
+            self.node = rootNode;
+            self.$refs.node.main = rootNode;
+            self._nodeCreated = true;
         }
 
         var tplConfig = new lib_Config({
-            deferRendering: !self.autoRender,
+            deferRendering: true,
             runRenderer: true,
-            useShadow: self.config.copyProperty("useShadow"),
-            makeTranscludes: self.config.copyProperty("makeTranscludes")
+            useShadow: config.copyProperty("useShadow"),
+            makeTranscludes: config.copyProperty("makeTranscludes")
         }, {scope: self.scope});
 
         app_Template.prepareConfig(tplConfig, tpl);
@@ -14329,9 +14510,9 @@ var app_Component = MetaphorJs.app.Component = cls({
             scope: self.scope,
             config: tplConfig,
 
-            rootNode: self._nodeCreated ? self.node : null,
-            attachTo: self._nodeReplaced ? null : self.node,
-            replaceNode: self._nodeReplaced ? self.node : null,
+            rootNode: self._nodeCreated ? rootNode : null,
+            attachTo: self._nodeReplaced || self._nodeCreated ? null : self.node,
+            replaceNode: self._nodeReplaced ? replaceNode : null,
 
             callback: {
                 context: self,
@@ -14340,10 +14521,16 @@ var app_Component = MetaphorJs.app.Component = cls({
             }
         });
 
+        if (self._nodeCreated) {
+            self.template.setNamedNode("main", self.node);
+        }
+
         self.afterInitComponent.apply(self, arguments);
 
         if (self.autoRender) {
-            tpl.resolve().done(self.render, self);
+            tpl.resolve()
+                .done(tpl.render, tpl)
+                .done(self.render, self);
         }
     },
 
@@ -14498,25 +14685,32 @@ var app_Component = MetaphorJs.app.Component = cls({
         }
     },
 
-    /*_onFirstNodeReported: function(node) {
-        var self = this;
-        if (self._nodeReplaced) {
-            self._claimNode(node);
-        }
-        else if (!self.node) {
-            self.node = node;
-            self.template.node = node;
-            self._claimNode(node);
-        }
-    },*/
-
     _onChildReference: function(type, ref, item) {
         var self = this;
+
         if (!self.$refs[type]) {
             self.$refs[type] = {};
         }
 
         var th = self.$refs[type][ref];
+
+        // change comment's reference name so
+        // that it won't get referenced twice
+        if (item) {
+            if (item.nodeType && 
+                item.nodeType === window.document.COMMENT_NODE) {
+                item.textContent = "*" + self.id + "*" + ref + "*";
+            }
+            else {
+                if (!self.node && type === "node" && ref === "main") {
+                    self.node = item;
+                    self._claimNode();
+                }
+                if (self.template instanceof MetaphorJs.app.Template) {
+                    self.template.setNamedNode(ref, item);
+                }
+            }
+        }    
 
         if (!th) {
             self.$refs[type][ref] = item;
@@ -14543,33 +14737,6 @@ var app_Component = MetaphorJs.app.Component = cls({
         node.$$cmpId = null;
     },
 
-    _replaceNodeWithTemplate: function() {
-        /*var self = this;
-
-        if (self._nodeReplaced && self.node && self.node.parentNode) {
-            dom_removeAttr(self.node, "id");
-        }
-
-        self.node = self.template.node;
-
-        // document fragment
-        if (self.node.nodeType === window.document.DOCUMENT_FRAGMENT_NODE) {
-            var ch = self.node.nodeType === window.document.DOCUMENT_FRAGMENT_NODE ?
-                    self.node.childNodes :
-                    self.node,
-                i, l;
-            for (i = 0, l = ch.length; i < l; i++) {
-                if (ch[i].nodeType === window.document.ELEMENT_NODE) {
-                    self.node = ch[i];
-                    break;
-                }
-            }
-        }
-
-        self.template.node = self.node;
-
-        self._claimNode();*/
-    },
 
 
 
@@ -14605,9 +14772,6 @@ var app_Component = MetaphorJs.app.Component = cls({
 
     isAttached: function(parent) {
         return this.template.isAttached(parent);
-        /*if (!this.node || !this.node.parentNode) 
-            return false;
-        return parent ? this.node.parentNode === parent : true;*/
     },
 
     attach: function(parent, before) {
@@ -14617,14 +14781,6 @@ var app_Component = MetaphorJs.app.Component = cls({
             throw new Error("Parent node is required");
         }
 
-        /*if (self.isAttached(parent)) {
-            console.log("is attached", self.node, parent)
-            return;
-        }*/
-
-        //self.detach(true);
-        //self.renderTo = parent;
-        //self.renderBefore = before;
         self.template.attach(parent, before);
     },
 
@@ -14632,16 +14788,8 @@ var app_Component = MetaphorJs.app.Component = cls({
         var self = this;
         if (self.template.isAttached()) {
             self.template.detach();
-            //self.node.parentNode.removeChild(self.node);
-            //self.afterDetached(willAttach);
-            //self.trigger('detached', self, willAttach);
         }
     },
-
-    /*_onTemplateAttached: function() {
-        self.afterAttached();
-        self.trigger("attached", self);
-    },*/
 
     getRefEl: function(name) {
         return this.$refs['node'][name];
@@ -14651,21 +14799,29 @@ var app_Component = MetaphorJs.app.Component = cls({
         return this.$refs['cmp'][name];
     },
 
-    getRefCmpPromise: function(name) {
-        var cmp = this.$refs['cmp'][name];
-        if (!cmp) {
-            return this.$refs['cmp'][name] = new MetaphorJs.lib.Promise;
+
+    _getRefPromise: function(type, name) {
+        var ref = this.$refs[type][name];
+        if (!ref) {
+            return this.$refs[type][name] = new MetaphorJs.lib.Promise;
         }
-        else if (isThenable(cmp)) {
-            return cmp;
+        else if (isThenable(ref)) {
+            return ref;
         }
         else {
-            return lib_Promise.resolve(cmp);
+            return lib_Promise.resolve(ref);
         }
     },
 
+    getRefElPromise: function(name) {
+        return this._getRefPromise("node", name);
+    },
+
+    getRefCmpPromise: function(name) {
+        return this._getRefPromise("cmp", name);
+    },
+
     onBeforeRender: function() {
-        this.config.getAll(); // calc all props and put into scope.$cfg
     },
 
     _onRenderingFinished: function() {
@@ -14752,13 +14908,11 @@ var app_Component = MetaphorJs.app.Component = cls({
      */
     getDomApi: function(directive) {
         var sup = this.$self.supportsDirectives;
-        if (!sup) {
+        if (!sup || !sup[directive]) {
             return null;
         }
-        if (sup[directive] === true) {
-            return this.node;
-        }
-        return this.$refs.node[sup[directive]];
+        var ref = sup[directive] === true ? "main" : sup[directive];
+        return this.getRefEl(ref) || this.getRefElPromise(ref);
     },
 
     getInputApi: function() {
@@ -15120,6 +15274,7 @@ MetaphorJs.app.Container = app_Component.$extend({
 
     $mixinEvents: ["$initChildItem"],
     _itemsInitialized: false,
+    defaultAddTo: "main",
 
     initComponent: function() {
         var self = this;
@@ -15130,7 +15285,7 @@ MetaphorJs.app.Container = app_Component.$extend({
             self._prepareDeclaredItems(toArray(self.node.childNodes));
         }
 
-        self._initItems();
+        this._initItems();
     },
 
     _initTplConfig: function(tplConfig) {
@@ -15184,6 +15339,9 @@ MetaphorJs.app.Container = app_Component.$extend({
                     continue;
                 }
 
+                // detach node
+                node.parentNode && node.parentNode.removeChild(node);
+
                 foundCmp = null;
                 foundPromise = null;
                 renderRef = null;
@@ -15196,7 +15354,7 @@ MetaphorJs.app.Container = app_Component.$extend({
 
                 if (foundCmp || foundPromise) {
                     if (!renderRef) {
-                        renderRef = "body";
+                        renderRef = self.defaultAddTo;
                     }
                     def = extend({
                         type: "component",
@@ -15209,7 +15367,7 @@ MetaphorJs.app.Container = app_Component.$extend({
                 }
                 else {
                     attrSet = dom_getAttrSet(node);
-                    renderRef = attrSet.at || attrSet.rest.slot || "body";
+                    renderRef = attrSet.at || attrSet.rest.slot || self.defaultAddTo;
                     def = extend({
                         type: "node",
                         renderRef: renderRef,
@@ -15289,13 +15447,15 @@ MetaphorJs.app.Container = app_Component.$extend({
     },
 
     _createDefaultItemDef: function() {
+        var id = nextUid();
         return {
             __containerItemDef: true,
             type: "component",
-            placeholder: window.document.createComment("***"),
-            id: nextUid(),
+            placeholder: window.document.createComment("*" + this.id + "*" + id + "*"),
+            id: id,
             resolved: true,
-            processed: false
+            processed: false,
+            attached: false
         };
     },
 
@@ -15520,10 +15680,7 @@ MetaphorJs.app.Container = app_Component.$extend({
             self._initChildEvents("on", cmp);
 
             if (self._rendered) {
-                if (item.placeholder && !item.placeholder.parentNode) {
-                    self._preparePlaceholder(item);
-                }
-                self._attachChildItem(item);
+                self._putItemInPlace(item);
             }
         }
     },
@@ -15568,18 +15725,23 @@ MetaphorJs.app.Container = app_Component.$extend({
         var self = this, i, l, items = self.items;
         self.$super();
 
-        // empty container without template or content
-        if (self.node && !self.node.firstChild) {
-            self.$refs.node.body = self.node;
-        }
-
         // insert all placeholders, but
         // attach only resolved items
         for (i = -1, l = items.length; ++i < l;){
-            self._preparePlaceholder(items[i]);
-            if (items[i].resolved) {
-                self._attachChildItem(items[i]);
+            self._putItemInPlace(items[i]);
+        }
+    },
+
+    _putItemInPlace: function(item) {
+        var self = this;
+        if (item.placeholder && !item.placeholder.parentNode) {
+            self._preparePlaceholder(item);
+        }
+        if (item.resolved) {
+            if (item.renderRef) {
+                self.template.setNamedNode(item.renderRef, item.node || item.component);
             }
+            self._attachChildItem(item);
         }
     },
 
@@ -15613,8 +15775,13 @@ MetaphorJs.app.Container = app_Component.$extend({
         var self = this,
             refnode = self.getRefEl(item.renderRef);
 
+        if (item.attached) {
+            return;
+        }
+
         if (item.type === "node") {
             if (item.node.hasAttribute("slot")) {
+                item.attached = true;
                 return;
             }
             if (refnode instanceof window.HTMLSlotElement) {
@@ -15630,9 +15797,14 @@ MetaphorJs.app.Container = app_Component.$extend({
                 item.component.render(refnode.parentNode, item.placeholder);    
             else item.component.render(refnode, item.placeholder);
         }
+
+        item.attached = true;
     },
 
     _detachChildItem: function(item) {
+        if (!item.attached) {
+            return;
+        }
         if (item.type === "node") {
             item.node.parentNode && item.node.parentNode.removeChild(item.node);
         }
@@ -15641,6 +15813,7 @@ MetaphorJs.app.Container = app_Component.$extend({
             item.placeholder.parentNode && 
                 item.placeholder.parentNode.removeChild(item.placeholder);
         }
+        item.attached = false;
     },
 
     hasItem: function(cmp) {
@@ -15691,15 +15864,13 @@ MetaphorJs.app.Container = app_Component.$extend({
         }
 
         item = self._processItemDef(cmp, {
-            renderRef: to || "body"
+            renderRef: to || self.defaultAddTo
         });
         self.items.push(item);
 
+        // component item got attached via onChildResolved
         if (item.type === "node" && self._rendered) {
-            if (item.placeholder && !item.placeholder.parentNode) {
-                self._preparePlaceholder(item);
-            }
-            self._attachChildItem(item);
+            self._putItemInPlace(item);
         }
     },
 
@@ -16668,7 +16839,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
             i, len;
 
         for (i = 0, len = renderers.length; i < len; i++) {
-            if (renderers[i].renderer && !renderers[i].renderer.$destroyed) {
+            if (renderers[i].renderer && !renderers[i].renderer.destroyed) {
                 renderers[i].renderer.$destroy();
             }
         }
@@ -19790,11 +19961,12 @@ Directive.registerAttribute("include", 1100,
     config.enableProperty("name");
     config.setType("asis", "bool", lib_Config.MODE_STATIC);
     config.setDefaultValue("runRenderer", !config.get("asis"));
+    config.set("passReferences", true);
 
     var tpl = new app_Template({
         scope: scope,
         attachTo: node,
-        renderer: renderer,
+        parentRenderer: renderer,
         config: config
     });
 
@@ -20500,7 +20672,7 @@ Directive.registerAttribute("router", 200,
     });
 
     Directive.resolveNode(node, "router", function(node){
-        if (!renderer.$destroyed) {
+        if (!renderer.destroyed) {
             var cfg = {scope: scope, node: node, config: config};
 
             if (routes.length !== 0) {
@@ -21087,7 +21259,7 @@ Directive.registerAttribute("view", 200,
     function(scope, node, config, renderer) {
 
     Directive.resolveNode(node, "view", function(node){
-        if (!renderer.$destroyed) {
+        if (!renderer.destroyed) {
             var cfg = {scope: scope, node: node, config: config};
 
             app_resolve(
@@ -29088,18 +29260,24 @@ var validator_Validator = MetaphorJs.validator.Validator = (function(){
 
 
 
-Directive.registerAttribute("field", 200, function(scope, node, config) { 
+Directive.registerAttribute("field", 200, function(scope, node, config, renderer) { 
 
-    var id = dom_getAttr(node, "name") ||
-                dom_getAttr(node, "id"),
-        v = validator_Validator.getValidator(node),
-        f = v ? v.getField(id) : null;
+    Directive.resolveNode(node, "field", function(node){
 
-    if (f) {
-        f.setConfigRules(config);
-    }
+        if (!renderer.destroyed) {
+            var id = dom_getAttr(node, "name") ||
+                    dom_getAttr(node, "id"),
+            v = validator_Validator.getValidator(node),
+            f = v ? v.getField(id) : null;
 
-    config.clear();
+            if (f) {
+                f.setConfigRules(config);
+            }
+
+            config.clear();
+        }
+    });
+    
 });
 
 
@@ -29363,17 +29541,19 @@ Directive.registerAttribute("validate", 250,
     });
     config.setMode("submit", lib_Config.MODE_FUNC);
 
-    
-
     var cls     = config.get("value"),
         constr  = ns.get(cls);
-
 
     if (!constr) {
         error(new Error("Class '"+cls+"' not found"));
     }
     else {
-        return new constr(node, scope, renderer, config);
+        Directive.resolveNode(node, "validate", function(node){
+            if (!renderer.destroyed) {
+                var v = new constr(node, scope, renderer, config);
+                renderer.on("destroy", v.$destroy, v);
+            }
+        });
     }
 });
 
@@ -30619,12 +30799,13 @@ Directive.registerTag("include", function(scope, node, config, renderer) {
     config.setType("asis", "bool", lib_Config.MODE_STATIC);
     config.setDefaultValue("runRenderer", !config.get("asis"));
     config.set("useComments", true);
+    config.set("passReferences", true);
 
     var tpl = new app_Template({
         scope: scope,
         replaceNode: node,
         config: config,
-        renderer: renderer
+        parentRenderer: renderer
     });
 
     renderer.on("destroy", function(){

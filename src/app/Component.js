@@ -196,12 +196,6 @@ module.exports = MetaphorJs.app.Component = cls({
 
         self.id = self.id || "cmp-" + nextUid();
 
-        if (!self.node && config.has("tag")) {
-            self.node = window.document.createElement(config.get("tag"));
-            self.$refs.node.main = node;
-            self._nodeCreated = true;
-        }
-
         self.beforeInitComponent.apply(self, arguments);
         self.initComponent.apply(self, arguments);
 
@@ -217,13 +211,17 @@ module.exports = MetaphorJs.app.Component = cls({
             self._claimNode();
         }
 
+        self.config.getAll();
         self._initTemplate();
     },
 
     _initTemplate: function() {
 
         var self = this,
-            tpl = self.template;
+            tpl = self.template,
+            rootNode = null,
+            replaceNode = null,
+            config = self.config;
 
         if (self.node) {
             self._nodeReplaced = self.replaceCustomNode && 
@@ -231,15 +229,24 @@ module.exports = MetaphorJs.app.Component = cls({
                                         self.node.tagName.toLowerCase()
                                     ) === -1;
             if (self._nodeReplaced) {
+                replaceNode = self.node;
+                self.node = null;
                 self.$refs.node.main = null;
             }
         }
 
+        if (!self.node && config.has("tag")) {
+            rootNode = window.document.createElement(config.get("tag"));
+            self.node = rootNode;
+            self.$refs.node.main = rootNode;
+            self._nodeCreated = true;
+        }
+
         var tplConfig = new MetaphorJs.lib.Config({
-            deferRendering: !self.autoRender,
+            deferRendering: true,
             runRenderer: true,
-            useShadow: self.config.copyProperty("useShadow"),
-            makeTranscludes: self.config.copyProperty("makeTranscludes")
+            useShadow: config.copyProperty("useShadow"),
+            makeTranscludes: config.copyProperty("makeTranscludes")
         }, {scope: self.scope});
 
         MetaphorJs.app.Template.prepareConfig(tplConfig, tpl);
@@ -250,9 +257,9 @@ module.exports = MetaphorJs.app.Component = cls({
             scope: self.scope,
             config: tplConfig,
 
-            rootNode: self._nodeCreated ? self.node : null,
-            attachTo: self._nodeReplaced ? null : self.node,
-            replaceNode: self._nodeReplaced ? self.node : null,
+            rootNode: self._nodeCreated ? rootNode : null,
+            attachTo: self._nodeReplaced || self._nodeCreated ? null : self.node,
+            replaceNode: self._nodeReplaced ? replaceNode : null,
 
             callback: {
                 context: self,
@@ -261,10 +268,16 @@ module.exports = MetaphorJs.app.Component = cls({
             }
         });
 
+        if (self._nodeCreated) {
+            self.template.setNamedNode("main", self.node);
+        }
+
         self.afterInitComponent.apply(self, arguments);
 
         if (self.autoRender) {
-            tpl.resolve().done(self.render, self);
+            tpl.resolve()
+                .done(tpl.render, tpl)
+                .done(self.render, self);
         }
     },
 
@@ -428,14 +441,23 @@ module.exports = MetaphorJs.app.Component = cls({
 
         var th = self.$refs[type][ref];
 
-        if (!th || isThenable(th)) {
-            // change comment's reference name so
-            // that it won't get referenced twice
-            if (item && item.nodeType && 
+        // change comment's reference name so
+        // that it won't get referenced twice
+        if (item) {
+            if (item.nodeType && 
                 item.nodeType === window.document.COMMENT_NODE) {
                 item.textContent = "*" + self.id + "*" + ref + "*";
             }
-        }
+            else {
+                if (!self.node && type === "node" && ref === "main") {
+                    self.node = item;
+                    self._claimNode();
+                }
+                if (self.template instanceof MetaphorJs.app.Template) {
+                    self.template.setNamedNode(ref, item);
+                }
+            }
+        }    
 
         if (!th) {
             self.$refs[type][ref] = item;
@@ -547,7 +569,6 @@ module.exports = MetaphorJs.app.Component = cls({
     },
 
     onBeforeRender: function() {
-        this.config.getAll(); // calc all props and put into scope.$cfg
     },
 
     _onRenderingFinished: function() {

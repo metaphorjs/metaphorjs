@@ -233,11 +233,9 @@ module.exports = MetaphorJs.app.Renderer = function() {
         _processCommentNode: function(node) {
             var cmtData = node.textContent || node.data;
             if (cmtData.substring(0,2) === '##') {
-                observer.trigger(
-                    "reference-" + this.id, 
-                    "node",
-                    cmtData.substring(2),
-                    node
+                this.trigger(
+                    "reference", "node",
+                    cmtData.substring(2), node
                 );
             }
         },
@@ -266,8 +264,8 @@ module.exports = MetaphorJs.app.Renderer = function() {
 
         // skip <slot> but reference it same way as ##ref
         _processSlotNode: function(node) {
-            observer.trigger(
-                "reference-" + this.id, "node",
+            this.trigger(
+                "reference", "node",
                 node.getAttribute("name"), node
             );
             return false;
@@ -323,12 +321,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
             for (i = 0, len = attrs.references.length; i < len; i++) {
                 ref = attrs.references[i];
                 if (ref[0] === '#') {
-                    observer.trigger(
-                        "reference-" + self.id, 
-                        "node",
-                        ref.substring(1),
-                        node
-                    );
+                    self.trigger("reference", "node", ref.substring(1), node);
                 }
                 else {
                     self.scope[ref] = node;
@@ -365,9 +358,14 @@ module.exports = MetaphorJs.app.Renderer = function() {
          * along with this node's children<br>
          * Return a Promise resolving in any of the above
          * @param {Node} node 
+         * @param {object} attrSet {
+         *  Usually you don't pass this one. If skipped, attrSet will be taken directly 
+         *  from the node which is the default behavior. This param is used
+         *  for virtual nodes.
+         * }
          * @returns {boolean|array|Promise|Node}
          */
-        processNode: function(node) {
+        processNode: function(node, attrs) {
 
             var self        = this,
                 nodeType    = node.nodeType;
@@ -386,10 +384,11 @@ module.exports = MetaphorJs.app.Renderer = function() {
                     component,
                     directive,
                     i, len,
-                    attrs = MetaphorJs.dom.getAttrSet(node),
                     name,
                     res;
-                
+
+                attrs = attrs || MetaphorJs.dom.getAttrSet(node);
+
                 if (tag.substr(0, 4) === "mjs-") {
                     tag = tag.substr(4);
                 }

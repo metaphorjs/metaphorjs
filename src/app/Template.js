@@ -3,7 +3,8 @@ require("../func/dom/data.js");
 require("../func/dom/toFragment.js");
 require("../func/dom/clone.js");
 require("metaphorjs-animate/src/animate/animate.js");
-require("metaphorjs/src/func/dom/select.js");
+require("../func/dom/select.js");
+require("../func/dom/getAttrSet.js");
 require("../func/dom/getAttr.js");
 require("../func/dom/setAttr.js");
 require("metaphorjs-promise/src/lib/Promise.js");
@@ -20,6 +21,7 @@ require("metaphorjs-observable/src/lib/Observable.js");
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
+    copy = require("metaphorjs-shared/src/func/copy.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     ajax = require("metaphorjs-ajax/src/func/ajax.js");
 
@@ -185,6 +187,8 @@ module.exports = MetaphorJs.app.Template = function() {
             delete self.parentRenderer;
         }
         self.id = nextUid();
+        self._virtualSets = {};
+        self._namedNodes = {};
         observable.createEvent("rendered-" + self.id, {
             returnResult: false,
             autoTrigger: true
@@ -211,9 +215,11 @@ module.exports = MetaphorJs.app.Template = function() {
         config.setType("useShadow", "bool", sm);
         config.setType("deferRendering", "bool", sm);
         config.setType("makeTranscludes", "bool", sm);
+        config.setType("passReferences", "bool", sm);
 
         config.setProperty("useComments", "defaultValue", true, /*override: */false);
         config.setProperty("makeTranscludes", "defaultValue", true, /*override: */false);
+        config.setProperty("passReferences", "defaultValue", false, /*override: */false);
 
         !shadowSupported && config.setStatic("useShadow", false);
         config.get("useShadow") && config.setStatic("useComments", false);
@@ -253,6 +259,8 @@ module.exports = MetaphorJs.app.Template = function() {
         _resolvePromise:    null,
         _pubResolvePromise: null,
         _parentRenderer:    null,
+        _virtualSets:       null,
+        _namedNodes:      null,
 
         attachTo:           null,
         attachBefore:       null,
@@ -425,6 +433,69 @@ module.exports = MetaphorJs.app.Template = function() {
             return self._resolvePromise.done(self._onTemplateResolved, self);
         },
 
+        getVirtualSet: function(ref) {
+            return this._virtualSets[ref] ? copy(this._virtualSets[ref]) : null;
+        },
+
+        setNamedNode: function(ref, node) {
+            var self = this,
+                nodes = self._namedNodes[ref];
+
+            if (node['__namedRenderer'] && node['__namedRenderer'][ref]) {
+                return;
+            }
+
+            if (!nodes) {
+                nodes = self._namedNodes[ref] = [];
+            }
+
+            if (node && nodes.indexOf(node) === -1) {
+                nodes.push(node);
+                if (self._renderer && self._virtualSets[ref]) {
+                    self._renderer.processNode(node, self.getVirtualSet(ref));
+                }
+            }
+        },
+
+        removeNamedNode: function(ref, node) {
+            var nodes = this._namedNodes[ref],
+                inx;
+            if (!nodes || (inx = nodes.indexOf(node)) !== -1) {
+                nodes.splice(inx, 1);
+            }
+        },
+
+
+        _extractVirtualSets: function(frag) {
+            var self = this,
+                node = frag.firstChild,
+                cmtType = window.document.COMMENT_NODE,
+                data, next;
+            while (node) {
+                next = node.nextSibling;
+                if (node.nodeType === cmtType) {
+                    data = node.textContent || node.data;
+                    if (data.substring(0,1) === '<' && 
+                        data.substring(data.length-1) === '>') {
+                        self._processVirtualSet(data);
+                        frag.removeChild(node);
+                    }
+                }
+                node = next;
+            }
+        },
+
+        _processVirtualSet: function(data) {
+            var div = window.document.createElement("div");
+            div.innerHTML = data;
+            var node = div.firstChild;
+            if (node) {
+                var ref = node.tagName.toLowerCase(),
+                    attrSet = MetaphorJs.dom.getAttrSet(node);
+                this._virtualSets[ref] = attrSet;
+            }
+        },
+
         _onTemplateResolved: function(fragment) {
             var self = this,
                 root = self.rootNode;
@@ -438,6 +509,7 @@ module.exports = MetaphorJs.app.Template = function() {
                                 MetaphorJs.dom.toFragment(fragment) :
                                 fragment;
                 self._fragment = MetaphorJs.dom.clone(self._template);
+                self._extractVirtualSets(self._fragment);
 
                 if (root) {
                     while (root.firstChild) {
@@ -565,23 +637,97 @@ module.exports = MetaphorJs.app.Template = function() {
             var self = this;
 
             if (self.config.get("runRenderer")) {
-                if (self._renderer) {
-                    self._renderer.$destroy();
-                    self._renderer = null;
-                }
+                
+                self._destroyRenderer();
 
                 observable.trigger("before-render-" + self.id, self);
 
                 self._renderer   = new MetaphorJs.app.Renderer(self.scope);
-                observable.relayEvent(self._renderer, "reference", "reference-" + self.id);
+
+                if (self.config.get("passReferences") && self._parentRenderer) {
+                    self._renderer.on(
+                        "reference", 
+                        self._parentRenderer.trigger,
+                        self._parentRenderer,
+                        {
+                            prepend: ["reference"]
+                        }
+                    );
+                }
+
+                // after renderer had its course, the list of nodes may have changed.
+                // we need to reflect this in _nodes before attaching stuff
+                self._renderer.on("rendered", self._collectedNodesAfterRendered, self);
+                // then we apply directives to all named nodes we have at the moment
+                self._renderer.on("rendered", self._processNamedNodes, self);
+                // then send the 'rendered' signal up the chain
                 observable.relayEvent(self._renderer, "rendered", "rendered-" + self.id);
+
+                observable.relayEvent(self._renderer, "reference", "reference-" + self.id);
                 self._renderer.process(self._nodes);
+            }
+        },
+
+
+        _collectedNodesAfterRendered: function() {
+            var self = this;
+            if (self._fragment) {
+                this._nodes = toArray(self._fragment.childNodes);
+            }
+        },
+
+        _processNamedNodes: function() {
+            var self = this,
+                vnodes = self._namedNodes,
+                vsets = self._virtualSets,
+                ref, i, l,
+                node, nr, attrSet,
+                attr;
+
+            for (ref in vnodes) {
+                if (vsets[ref]) {
+                    for (i = 0, l = vnodes[ref].length; i < l; i++) {
+                        node = vnodes[ref][i];
+                        nr = node['__namedRenderer'] || {};
+                        nr[ref] = self._renderer.id;
+                        node['__namedRenderer'] = nr;
+                        attrSet = self.getVirtualSet(ref);
+
+                        if (attrSet.rest && node.nodeType === window.document.ELEMENT_NODE) {
+                            for (attr in attrSet.rest) {
+                                node.setAttribute(attr, attrSet.rest[attr]);
+                            }
+                        }
+                        self._renderer.processNode(node, attrSet);
+                    }
+                }
+            }
+        },
+
+        _destroyRenderer: function() {
+            var self = this;
+
+            if (self._renderer) {
+                var id = self._renderer.id,
+                    vnodes = self._namedNodes,
+                    ref, i, l,
+                    node, nr;
+                self._renderer.$destroy();
+                self._renderer = null;
+
+                for (ref in vnodes) {
+                    for (i = 0, l = vnodes[ref].length; i < l; i++) {
+                        node = vnodes[ref][i];
+                        nr = node['__namedRenderer'];
+                        nr && nr[ref] === id && (nr[ref] = null);
+                    }
+                }
+                self._namedNodes = {};
             }
         },
 
         _resolveTemplate: function() {
             var tpl = this.config.get("name");
-            
             return new MetaphorJs.lib.Promise(
                 function(resolve, reject) {
                     if (tpl) {
@@ -688,10 +834,9 @@ module.exports = MetaphorJs.app.Template = function() {
             }
         },
 
-        _clear: function() {
+        _collectNodes: function() {
             var self = this,
-                nodes = [], 
-                i, l, n, parent;
+                nodes = [], parent;
 
             // remove all children between prev and next
             if (self._nextEl) {
@@ -704,6 +849,14 @@ module.exports = MetaphorJs.app.Template = function() {
                     nodes = toArray(parent.childNodes);
                 }
             }
+
+            return nodes;
+        },
+
+        _clear: function() {
+            var self = this,
+                nodes = self._collectNodes(), 
+                i, l, n;
 
             for (i = 0, l = nodes.length; i < l; i++) {
                 n = nodes[i];
@@ -770,6 +923,9 @@ module.exports = MetaphorJs.app.Template = function() {
             config.setDefaultValue("name", values);
         }
         else if (values) {
+            if (!values.name && !values.html && values.expression) {
+                values.name = {expression: values.expression};
+            }
             config.addProperties(values, "defaultValue");
         }
     };

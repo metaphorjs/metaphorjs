@@ -18,11 +18,12 @@ Directive.registerAttribute("include", 1100,
     config.enableProperty("name");
     config.setType("asis", "bool", MetaphorJs.lib.Config.MODE_STATIC);
     config.setDefaultValue("runRenderer", !config.get("asis"));
+    config.set("passReferences", true);
 
     var tpl = new MetaphorJs.app.Template({
         scope: scope,
         attachTo: node,
-        renderer: renderer,
+        parentRenderer: renderer,
         config: config
     });
 

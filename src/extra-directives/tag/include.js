@@ -10,12 +10,13 @@ Directive.registerTag("include", function(scope, node, config, renderer) {
     config.setType("asis", "bool", MetaphorJs.lib.Config.MODE_STATIC);
     config.setDefaultValue("runRenderer", !config.get("asis"));
     config.set("useComments", true);
+    config.set("passReferences", true);
 
     var tpl = new MetaphorJs.app.Template({
         scope: scope,
         replaceNode: node,
         config: config,
-        renderer: renderer
+        parentRenderer: renderer
     });
 
     renderer.on("destroy", function(){

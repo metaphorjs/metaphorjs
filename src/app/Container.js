@@ -20,6 +20,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
     $mixinEvents: ["$initChildItem"],
     _itemsInitialized: false,
+    defaultAddTo: "main",
 
     initComponent: function() {
         var self = this;
@@ -99,7 +100,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
                 if (foundCmp || foundPromise) {
                     if (!renderRef) {
-                        renderRef = "body";
+                        renderRef = self.defaultAddTo;
                     }
                     def = extend({
                         type: "component",
@@ -112,7 +113,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                 }
                 else {
                     attrSet = MetaphorJs.dom.getAttrSet(node);
-                    renderRef = attrSet.at || attrSet.rest.slot || "body";
+                    renderRef = attrSet.at || attrSet.rest.slot || self.defaultAddTo;
                     def = extend({
                         type: "node",
                         renderRef: renderRef,
@@ -199,7 +200,8 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             placeholder: window.document.createComment("*" + this.id + "*" + id + "*"),
             id: id,
             resolved: true,
-            processed: false
+            processed: false,
+            attached: false
         };
     },
 
@@ -424,10 +426,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             self._initChildEvents("on", cmp);
 
             if (self._rendered) {
-                if (item.placeholder && !item.placeholder.parentNode) {
-                    self._preparePlaceholder(item);
-                }
-                self._attachChildItem(item);
+                self._putItemInPlace(item);
             }
         }
     },
@@ -472,18 +471,23 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         var self = this, i, l, items = self.items;
         self.$super();
 
-        // empty container without template or content
-        //if (self.node && !self.node.firstChild) {
-        //    self.$refs.node.body = self.node;
-        //}
-
         // insert all placeholders, but
         // attach only resolved items
         for (i = -1, l = items.length; ++i < l;){
-            self._preparePlaceholder(items[i]);
-            if (items[i].resolved) {
-                self._attachChildItem(items[i]);
+            self._putItemInPlace(items[i]);
+        }
+    },
+
+    _putItemInPlace: function(item) {
+        var self = this;
+        if (item.placeholder && !item.placeholder.parentNode) {
+            self._preparePlaceholder(item);
+        }
+        if (item.resolved) {
+            if (item.renderRef) {
+                self.template.setNamedNode(item.renderRef, item.node || item.component);
             }
+            self._attachChildItem(item);
         }
     },
 
@@ -517,8 +521,13 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         var self = this,
             refnode = self.getRefEl(item.renderRef);
 
+        if (item.attached) {
+            return;
+        }
+
         if (item.type === "node") {
             if (item.node.hasAttribute("slot")) {
+                item.attached = true;
                 return;
             }
             if (refnode instanceof window.HTMLSlotElement) {
@@ -534,9 +543,14 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                 item.component.render(refnode.parentNode, item.placeholder);    
             else item.component.render(refnode, item.placeholder);
         }
+
+        item.attached = true;
     },
 
     _detachChildItem: function(item) {
+        if (!item.attached) {
+            return;
+        }
         if (item.type === "node") {
             item.node.parentNode && item.node.parentNode.removeChild(item.node);
         }
@@ -545,6 +559,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             item.placeholder.parentNode && 
                 item.placeholder.parentNode.removeChild(item.placeholder);
         }
+        item.attached = false;
     },
 
     hasItem: function(cmp) {
@@ -595,15 +610,13 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         }
 
         item = self._processItemDef(cmp, {
-            renderRef: to || "body"
+            renderRef: to || self.defaultAddTo
         });
         self.items.push(item);
 
+        // component item got attached via onChildResolved
         if (item.type === "node" && self._rendered) {
-            if (item.placeholder && !item.placeholder.parentNode) {
-                self._preparePlaceholder(item);
-            }
-            self._attachChildItem(item);
+            self._putItemInPlace(item);
         }
     },
 
