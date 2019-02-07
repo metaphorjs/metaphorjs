@@ -30,7 +30,7 @@ module.exports = MetaphorJs.app.Template = function() {
     var observable      = new MetaphorJs.lib.Observable,
         cache           = new MetaphorJs.lib.Cache,
         options         = {},
-        shadowSupported = !!document.head.attachShadow,
+        shadowSupported = !!(window.document.head && window.document.head.attachShadow),
         pblt,
         pbltOpt,
 
