@@ -16,7 +16,16 @@ MetaphorJs.app.Directive.registerAttribute("view", 200,
                 cfg,
                 scope, node,
                 [cfg]
-            );
+            )
+            .done(function(view){
+                if (renderer.$destroyed || scope.$$destroyed) {
+                    view.$destroy();
+                }
+                else {
+                    renderer.on("destroy", view.$destroy, view);
+                    scope.$on("destroy", view.$destroy, view);
+                }
+            });
         }
     });
 

@@ -63,12 +63,18 @@ var Directive = require("../../app/Directive.js"),
         }
 
         var res = MetaphorJs.app.resolve(cmpName, cfg, newScope, node, [cfg])
-            .done(function(cmp) {
-                renderer.trigger(
-                    "reference", "cmp", 
-                    config.get("ref") || cmp.id, cmp, 
-                    cfg, attrSet
-                );
+            .done(function(cmp){
+                if (renderer.$destroyed || newScope.$$destroyed) {
+                    cmp.$destroy();
+                }
+                else {
+                    renderer.on("destroy", view.$destroy, view);
+                    renderer.trigger(
+                        "reference", "cmp", 
+                        config.get("ref") || cmp.id, cmp, 
+                        cfg, attrSet
+                    );
+                }
             });
 
         renderer.trigger(

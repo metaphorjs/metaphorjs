@@ -70,6 +70,10 @@ module.exports = MetaphorJs.app.view.Router = MetaphorJs.app.view.Base.$extend({
 
     onLocationChange: function() {
 
+        if (this.$destroyed) {
+            return;
+        }
+
         var self        = this,
             url         = MetaphorJs.lib.History.current(),
             loc         = MetaphorJs.browser.parseLocation(url),
@@ -115,6 +119,9 @@ module.exports = MetaphorJs.app.view.Router = MetaphorJs.app.view.Base.$extend({
 
     finishOnLocationChange: function(def) {
         var self = this;
+        if (self.$destroyed) {
+            return;
+        }
         if (def) {
             self.resolveRoute(def);
         }
@@ -178,6 +185,10 @@ module.exports = MetaphorJs.app.view.Router = MetaphorJs.app.view.Base.$extend({
             node    = self.node,
             params  = route.params,
             cview   = self.currentView || {};
+
+        if (self.$destroyed) {
+            return;
+        }
 
         if (route.id === cview.id) {
             if (self.currentComponent && self.currentComponent.onViewRepeat) {
@@ -281,6 +292,10 @@ module.exports = MetaphorJs.app.view.Router = MetaphorJs.app.view.Base.$extend({
             node    = self.node,
             cview   = self.currentView || {};
 
+        if (self.$destroyed) {
+            return;
+        }
+
         if (self.currentCls) {
             MetaphorJs.dom.removeClass(self.node, self.currentCls);
         }
@@ -330,6 +345,10 @@ module.exports = MetaphorJs.app.view.Router = MetaphorJs.app.view.Base.$extend({
             id = currentView.id;
         route.ttlTmt = null;
 
+        if (self.$destroyed) {
+            return;
+        }
+
         if (self.cmpCache[id]) {
             self.cmpCache[id].$destroy();
             delete self.cmpCache[id];
@@ -341,6 +360,10 @@ module.exports = MetaphorJs.app.view.Router = MetaphorJs.app.view.Base.$extend({
 
         var self = this,
             id = cmp[self.id];
+
+        if (self.$destroyed) {
+            return;
+        }
 
         if (id && self.cmpCache[id]) {
             delete self.cmpCache[id];
