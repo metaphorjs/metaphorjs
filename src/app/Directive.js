@@ -10,6 +10,7 @@ require("../lib/Input.js");
 var undf = require("metaphorjs-shared/src/var/undf.js"),
     isString = require("metaphorjs-shared/src/func/isString.js"),
     isThenable = require("metaphorjs-shared/src/func/isThenable.js"),
+    async = require("metaphorjs-shared/src/func/async.js"),
     cls = require("metaphorjs-class/src/cls.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js");
@@ -48,6 +49,7 @@ module.exports = MetaphorJs.app.Directive = (function() {
         _initPromise: null,
         _nodeAttr: null,
         _initial: true,
+        _asyncInit: false,
 
         $init: function(scope, node, config, renderer, attrSet) {
 
@@ -61,11 +63,26 @@ module.exports = MetaphorJs.app.Directive = (function() {
 
             self._initConfig(config);
             self._initScope(scope);
+
+            self._asyncInit && self._initAsyncInit();
             self._initNodeAttr(node);
 
             self._initPromise ? 
                 self._initPromise.done(self._initDirective, self) :
                 self._initDirective();
+        },
+
+        _initAsyncInit: function() {
+            var self = this;
+            self._initPromise = new MetaphorJs.lib.Promise;
+            var asnc = new MetaphorJs.lib.Promise;
+            self._initPromise.after(asnc);
+
+            async(function(){
+                if (!self.$destroyed) {
+                    asnc.resolve();
+                }
+            });
         },
 
         _initNodeAttr: function(node) {
@@ -82,7 +99,6 @@ module.exports = MetaphorJs.app.Directive = (function() {
                 self._initPromise && self._initPromise.resolve();
             }
             else if (isThenable(node)) {
-                self._initPromise = new MetaphorJs.lib.Promise;
                 node.done(self._initNodeAttr, self);
             }
         },
@@ -177,6 +193,10 @@ module.exports = MetaphorJs.app.Directive = (function() {
 
             if (isThenable(self.node)) {
                 self.node.$destroy();
+            }
+
+            if (self._initPromise) {
+                self._initPromise.$destroy();   
             }
 
             if (self.scope) {
