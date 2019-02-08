@@ -333,8 +333,10 @@
                 </ul>
 
                 <input {model}="this.listFilter" placeholder="Search"/>
-                <a href="#" (click)="this.sortBy='asc'">asc</a>
-                <a href="#" (click)="this.sortBy='desc'">desc</a>
+                <a href="#" (click)="this.sortBy='asc'" 
+                            (click.log)="console.log(this.sortBy)">asc</a>
+                <a href="#" (click)="this.sortBy='desc'"
+                            (click.log)="console.log(this.sortBy)">desc</a>
 
             </div>
 

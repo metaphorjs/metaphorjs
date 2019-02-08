@@ -70,7 +70,7 @@ module.exports = MetaphorJs.app.view.Router = MetaphorJs.app.view.Base.$extend({
 
     onLocationChange: function() {
 
-        if (this.$destroyed) {
+        if (this.$destroyed || this.$destroying) {
             return;
         }
 
@@ -119,7 +119,7 @@ module.exports = MetaphorJs.app.view.Router = MetaphorJs.app.view.Base.$extend({
 
     finishOnLocationChange: function(def) {
         var self = this;
-        if (self.$destroyed) {
+        if (self.$destroyed || self.$destroying) {
             return;
         }
         if (def) {
@@ -186,7 +186,7 @@ module.exports = MetaphorJs.app.view.Router = MetaphorJs.app.view.Base.$extend({
             params  = route.params,
             cview   = self.currentView || {};
 
-        if (self.$destroyed) {
+        if (self.$destroyed || self.$destroying) {
             return;
         }
 
@@ -292,7 +292,7 @@ module.exports = MetaphorJs.app.view.Router = MetaphorJs.app.view.Base.$extend({
             node    = self.node,
             cview   = self.currentView || {};
 
-        if (self.$destroyed) {
+        if (self.$destroyed || self.$destroying) {
             return;
         }
 
@@ -345,7 +345,7 @@ module.exports = MetaphorJs.app.view.Router = MetaphorJs.app.view.Base.$extend({
             id = currentView.id;
         route.ttlTmt = null;
 
-        if (self.$destroyed) {
+        if (self.$destroyed || self.$destroying) {
             return;
         }
 
@@ -361,7 +361,7 @@ module.exports = MetaphorJs.app.view.Router = MetaphorJs.app.view.Base.$extend({
         var self = this,
             id = cmp[self.id];
 
-        if (self.$destroyed) {
+        if (self.$destroyed || self.$destroying) {
             return;
         }
 

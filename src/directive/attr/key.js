@@ -76,10 +76,10 @@ Directive.registerAttribute("key", 1000, function(scope, node, config, renderer,
 
         var handler = function(e) {
             scope.$event = e;
-            scope.$targetComponent = config.get("targetComponent");
+            scope.$eventCmp = config.get("targetComponent");
             h(scope);
             scope.$event = null;
-            scope.$targetComponent = null;
+            scope.$eventCmp = null;
             scope.$check();
         };
         

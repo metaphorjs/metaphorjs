@@ -55,6 +55,7 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
 
         var self        = this,
             scope       = self.scope,
+            config      = self.config,
             asnc;
 
         var handler = function(e) {
@@ -68,8 +69,17 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
                 returnValue = undf,
                 stopPropagation = false,
                 res,
-                cfg = self.config.getAll(),
-                handler = self.config.get("value");
+                cfg = config.getAll(),
+                handlers = [],
+                names = [],
+                handler, i, l;
+
+            config.eachProperty(function(name){
+                if (name.indexOf("value") === 0) {
+                    handlers.push(config.get(name));
+                    names.push(name);
+                }
+            });
 
             cfg.preventDefault !== undf && (preventDefault = cfg.preventDefault);
             cfg.stopPropagation !== undf && (stopPropagation = cfg.stopPropagation);
@@ -90,15 +100,21 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
             scope.$event = e;
             scope.$eventNode = self.node;
             scope.$prevEvent = self.prevEvent[e.type];
-            scope.$eventCmp = self.config.get("targetComponent");
+            scope.$eventCmp = config.get("targetComponent");
 
-            if (handler) {
-                res = handler.call(cfg.context || null, scope);
+            if (handlers.length > 0) {
+                for (i = 0, l = handlers.length; i < l; i++) {
+                    handler = handlers[i];
+                    res = handler.call(cfg.context || null, scope);
 
-                if (res && isPlainObject(res)) {
-                    res.preventDefault !== undf && (preventDefault = res.preventDefault);
-                    res.stopPropagation !== undf && (stopPropagation = res.stopPropagation);
-                    res.returnValue !== undf && (returnValue = res.returnValue);
+                    if (res && isPlainObject(res)) {
+                        res.preventDefault !== undf && 
+                            (preventDefault = res.preventDefault);
+                        res.stopPropagation !== undf && 
+                            (stopPropagation = res.stopPropagation);
+                        res.returnValue !== undf && 
+                            (returnValue = res.returnValue);
+                    }
                 }
             }
 
@@ -114,7 +130,9 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
 
             self.prevEvent[e.type] = e;
 
-            self.config.checkScope("value");
+            for (i = 0, l = names.length; i < l; i++) {
+                config.checkScope(names[i]);
+            }
 
             if (returnValue !== undf) {
                 return returnValue;

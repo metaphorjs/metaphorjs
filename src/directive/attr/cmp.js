@@ -68,7 +68,7 @@ var Directive = require("../../app/Directive.js"),
                     cmp.$destroy();
                 }
                 else {
-                    renderer.on("destroy", view.$destroy, view);
+                    renderer.on("destroy", cmp.$destroy, cmp);
                     renderer.trigger(
                         "reference", "cmp", 
                         config.get("ref") || cmp.id, cmp, 

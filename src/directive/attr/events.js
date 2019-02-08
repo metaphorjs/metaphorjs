@@ -65,7 +65,7 @@ var Directive = require("../../app/Directive.js"),
                     }
                 });
 
-                return function(){
+                return function() {
                     destroyed = true;
                     if (eh) {
                         eh.$destroy();
