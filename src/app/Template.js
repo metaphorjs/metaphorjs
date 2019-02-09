@@ -320,12 +320,22 @@ module.exports = MetaphorJs.app.Template = function() {
                 self._attachTo = parent;
                 self._attachBefore = before;  
 
-                self._createShadow();
-                self._createComments();
-
-                if (self._nodes) {
-                    self._attach();
+                if (window.requestAnimationFrame) {
+                    requestAnimationFrame(function(){
+                        self._rafAttach();
+                    });
                 }
+                else self._rafAttach();
+            }
+        },
+
+        _rafAttach: function() {
+            var self = this;
+            self._createShadow();
+            self._createComments();
+
+            if (self._nodes) {
+                self._attach();   
             }
         },
 
@@ -785,6 +795,7 @@ module.exports = MetaphorJs.app.Template = function() {
         },
 
         _attach: function() {
+            
             var self = this,
                 i, l, 
                 nodes = self._nodes,

@@ -398,9 +398,11 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 if (tag === "slot") {
                     return this._processSlotNode(node);
                 }
-
                 if (attrs.renderer.ignore) {
                     return false;
+                }
+                if (attrs.__plain && !dirs.component[tag] && !dirs.tag[tag]) {
+                    return;
                 }
 
                 // this tag represents component

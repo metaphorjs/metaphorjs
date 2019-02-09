@@ -119,6 +119,7 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
             renderer: {},
             at: null,
 
+            __plain: true,
             __directives: {},
             __attributes: {},
             __config: [],
@@ -145,6 +146,7 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
             match, parts,
             ds = set.directives, 
             __ds = set.__directives, 
+            plain = true,
             mode,
             subname,
             prop, execMode,
@@ -174,6 +176,7 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
             match = name.match(reg);
 
             if (match) {
+                plain = false;
                 name = match[2];
                 mode = match[1];
                 execMode = execModes[match[3]];
@@ -306,6 +309,7 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
 
         set.directives = ds;
         set.__directives = __ds;
+        set.__plain = plain;
         
 
         return set;
