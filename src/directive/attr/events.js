@@ -4,7 +4,8 @@ require("../../lib/Input.js");
 require("../../lib/Config.js");
 
 var Directive = require("../../app/Directive.js"),
-    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+    async = require("metaphorjs-shared/src/func/async.js");
 
 (function(){
 
@@ -57,13 +58,15 @@ var Directive = require("../../app/Directive.js"),
                 function(scope, node, config, renderer, attrSet) {
 
                 var eh,
-                    destroyed = false;
+                    destroyed = false,
+                    init = function(node) {
+                        if (!destroyed) {
+                            eh = createHandler(name, scope, node, config);
+                        }
+                    };
 
-                getNode(node, config, name, function(node){
-                    if (!destroyed) {
-                        eh = createHandler(name, scope, node, config);
-                    }
-                });
+                async(getNode, null, [node, config, name, init]);
+                //getNode(node, config, name, init);
 
                 return function() {
                     destroyed = true;
@@ -86,14 +89,15 @@ var Directive = require("../../app/Directive.js"),
                 fn(scope);
                 config.checkScope("value")
             },
-            resolvedNode;
+            resolvedNode,
+            init = function(node) {
+                if (handler) {
+                    resolvedNode = node;
+                    MetaphorJs.lib.Input.get(node).onKey(13, handler);
+                }
+            };
 
-        getNode(node, config, "submit", function(node) {
-            if (handler) {
-                resolvedNode = node;
-                MetaphorJs.lib.Input.get(node).onKey(13, handler);
-            }
-        });
+        async(getNode, null, [node, config, "submit", init]);
 
         return function() {
             if (resolvedNode) {

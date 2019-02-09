@@ -4,7 +4,8 @@ require("../../lib/Input.js");
 require("../../lib/Config.js");
 
 var Directive = require("../../app/Directive.js"),
-    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+    async = require("metaphorjs-shared/src/func/async.js");
 
 (function(){
 
@@ -92,17 +93,18 @@ Directive.registerAttribute("key", 1000, function(scope, node, config, renderer,
 
     var cfgs = config.getAllValues(),
         name,
-        uninstall = [];
-
-    getNode(node, config, function(node){
-        if (cfgs) {
-            for (name in cfgs) {
-                if (cfgs.hasOwnProperty(name) && cfgs[name]) {
-                    uninstall.push(createHandler(node, name, cfgs[name]));
+        uninstall = [],
+        init = function(node) {
+            if (cfgs) {
+                for (name in cfgs) {
+                    if (cfgs.hasOwnProperty(name) && cfgs[name]) {
+                        uninstall.push(createHandler(node, name, cfgs[name]));
+                    }
                 }
             }
-        }
-    });
+        };
+
+    async(getNode, null, [node, config, init]);
 
     return function() {
         var i, l;

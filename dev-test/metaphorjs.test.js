@@ -19876,13 +19876,15 @@ var lib_EventHandler = MetaphorJs.lib.EventHandler;
                 function(scope, node, config, renderer, attrSet) {
 
                 var eh,
-                    destroyed = false;
+                    destroyed = false,
+                    init = function(node) {
+                        if (!destroyed) {
+                            eh = createHandler(name, scope, node, config);
+                        }
+                    };
 
-                getNode(node, config, name, function(node){
-                    if (!destroyed) {
-                        eh = createHandler(name, scope, node, config);
-                    }
-                });
+                async(getNode, null, [node, config, name, init], 100);
+                //getNode(node, config, name, init);
 
                 return function() {
                     destroyed = true;
@@ -20245,17 +20247,18 @@ Directive.registerAttribute("key", 1000, function(scope, node, config, renderer,
 
     var cfgs = config.getAllValues(),
         name,
-        uninstall = [];
-
-    getNode(node, config, function(node){
-        if (cfgs) {
-            for (name in cfgs) {
-                if (cfgs.hasOwnProperty(name) && cfgs[name]) {
-                    uninstall.push(createHandler(node, name, cfgs[name]));
+        uninstall = [],
+        init = function(node) {
+            if (cfgs) {
+                for (name in cfgs) {
+                    if (cfgs.hasOwnProperty(name) && cfgs[name]) {
+                        uninstall.push(createHandler(node, name, cfgs[name]));
+                    }
                 }
             }
-        }
-    });
+        };
+
+    async(getNode, null, [node, config, init], 100);
 
     return function() {
         var i, l;
