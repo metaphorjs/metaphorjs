@@ -2,6 +2,8 @@ require("../../lib/EventHandler.js");
 require("../../lib/Expression.js");
 require("../../lib/Input.js");
 require("../../lib/Config.js");
+require("../../func/dom/addListener.js");
+require("../../func/dom/removeListener.js");
 
 var Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
@@ -65,8 +67,14 @@ var Directive = require("../../app/Directive.js"),
                         }
                     };
 
-                async(getNode, null, [node, config, name, init]);
+                //async(getNode, null, [node, config, name, init]);
                 //getNode(node, config, name, init);
+                if (window.document.readyState === "complete") {
+                    getNode(node, config, name, init);
+                }
+                MetaphorJs.dom.addListener(window, "load", function(){
+                    getNode(node, config, name, init);
+                });
 
                 return function() {
                     destroyed = true;
@@ -97,7 +105,13 @@ var Directive = require("../../app/Directive.js"),
                 }
             };
 
-        async(getNode, null, [node, config, "submit", init]);
+        //async(getNode, null, [node, config, "submit", init]);
+        if (window.document.readyState === "complete") {
+            getNode(node, config, "submit", init);
+        }
+        MetaphorJs.dom.addListener(window, "load", function(){
+            getNode(node, config, "submit", init);
+        });
 
         return function() {
             if (resolvedNode) {

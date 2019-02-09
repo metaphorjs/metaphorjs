@@ -198,6 +198,7 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
                 if (name.substr(0, 4) === "mjs-") {
                     name = name.substr(4);
                     mode = '{';
+                    plain = false;
                 }
                 else {
                     set['rest'][name] = value;

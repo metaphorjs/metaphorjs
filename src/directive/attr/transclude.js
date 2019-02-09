@@ -10,14 +10,15 @@ Directive.registerAttribute("transclude", 1000,
             throw new Error("'transclude' directive can only work with Node");
         }
 
-        var onAttached = function(to) {
-            renderer.process(MetaphorJs.dom.transclude(node));
-        };
-    
-        renderer.on("attached", onAttached); 
-        onAttached();
+        /*renderer.process(
+            MetaphorJs.dom.transclude(
+                node, null, 
+                renderer.trigger("transclude-sources")
+            )
+        );*/
 
-        return function() {
-            renderer.un("attached", onAttached);
-        };
+        return MetaphorJs.dom.transclude(
+            node, null, 
+            renderer.trigger("transclude-sources")
+        )
 });

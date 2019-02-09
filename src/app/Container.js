@@ -426,7 +426,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
             self._initChildEvents("on", cmp);
 
-            if (self._rendered) {
+            if (self._attached) {
                 self._putItemInPlace(item);
             }
         }
@@ -469,14 +469,19 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
     },
 
     _onRenderingFinished: function() {
+        this.$super();  
+    },
+
+    _onTemplateAttached: function() {
         var self = this, i, l, items = self.items;
-        self.$super();
 
         // insert all placeholders, but
         // attach only resolved items
         for (i = -1, l = items.length; ++i < l;){
             self._putItemInPlace(items[i]);
         }
+
+        self.$super();
     },
 
     _putItemInPlace: function(item) {
@@ -484,7 +489,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         if (item.placeholder && !item.placeholder.parentNode) {
             self._preparePlaceholder(item);
         }
-        if (item.resolved) {
+        if (item.resolved && !item.attached) {
             if (item.renderRef) {
                 self.template.setNamedNode(item.renderRef, item.node || item.component);
             }
@@ -537,7 +542,9 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             else if (refnode.nodeType === window.document.COMMENT_NODE) {
                 refnode.parentNode.insertBefore(item.node, item.placeholder);
             }
-            else refnode.insertBefore(item.node, item.placeholder);
+            else {
+                refnode.insertBefore(item.node, item.placeholder);
+            }
         }
         else if (item.type === "component") {
             if (refnode.nodeType === window.document.COMMENT_NODE)
@@ -616,7 +623,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         self.items.push(item);
 
         // component item got attached via onChildResolved
-        if (item.type === "node" && self._rendered) {
+        if (item.type === "node" && self._attached) {
             self._putItemInPlace(item);
         }
     },

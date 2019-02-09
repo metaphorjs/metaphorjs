@@ -2,12 +2,14 @@
 require("../../lib/Expression.js");
 require("../../lib/Input.js");
 require("../../lib/Config.js");
+require("../../func/dom/addListener.js");
+require("../../func/dom/removeListener.js");
 
 var Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     async = require("metaphorjs-shared/src/func/async.js");
 
-(function(){
+(function() {
 
 var keys = {
     "enter": 13,
@@ -104,7 +106,13 @@ Directive.registerAttribute("key", 1000, function(scope, node, config, renderer,
             }
         };
 
-    async(getNode, null, [node, config, init]);
+    if (window.document.readyState === "complete") {
+        getNode(node, config, init);
+    }
+    MetaphorJs.dom.addListener(window, "load", function(){
+        getNode(node, config, init);
+    });
+    //async(getNode, null, [node, config, init]);
 
     return function() {
         var i, l;

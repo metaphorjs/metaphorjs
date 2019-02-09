@@ -119,7 +119,13 @@ module.exports = MetaphorJs.app.Component = cls({
      * @var {bool}
      * @access protected
      */
-    _rendered:       false,
+    _rendered:      false,
+
+    /**
+     * @var {bool}
+     * @access protected
+     */
+    _attached:      false,
 
 
     $constructor: function(cfg) {
@@ -274,7 +280,8 @@ module.exports = MetaphorJs.app.Component = cls({
             callback: {
                 context: self,
                 reference: self._onChildReference,
-                rendered: self._onRenderingFinished
+                rendered: self._onRenderingFinished,
+                attached: self._onTemplateAttached
             }
         });
 
@@ -598,27 +605,21 @@ module.exports = MetaphorJs.app.Component = cls({
         self.afterRender();
         self.trigger('after-render', self);
 
+        if (self.renderTo) {
+            self.template.attach(self.renderTo, self.renderBefore);
+        }
+
         if (self.directives) {
             self._initDirectives();
         }
-
-        if (self.node) {
-
-            if (MetaphorJs.dom.isAttached(self.node)) {
-                self.afterAttached();
-                self.trigger('after-attached', self);
-            }
-            else if (self.renderTo && self.node.parentNode !== self.renderTo) {
-                self.attach(self.renderTo, self.renderBefore);
-            }
-        }
-        else {
-            if (self.renderTo) {
-                self.attach(self.renderTo, self.renderBefore);
-            }
-        }
     },
 
+
+    _onTemplateAttached: function() {
+        this._attached = true;
+        this.afterAttached();
+        this.trigger('after-attached', this);
+    },
 
 
 

@@ -9,41 +9,58 @@ var toArray = require("metaphorjs-shared/src/func/toArray.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     undf = require("metaphorjs-shared/src/var/undf.js");
 
-module.exports = MetaphorJs.dom.transclude = function dom_transclude(node, replace) {
+module.exports = MetaphorJs.dom.transclude = (function(){
 
-    var parent = node.parentNode,
-        contents;
-
-    while (parent) {
-        contents = MetaphorJs.dom.data(parent, 'mjs-transclude');
-        if (contents !== undf) {
-            break;
+    var getTranscludeFrom = function(parent) {
+        var contents;
+        while (parent) {
+            contents = MetaphorJs.dom.data(parent, 'mjs-transclude');
+            if (contents !== undf) {
+                return contents;
+            }
+            parent  = parent.parentNode;
         }
-        parent  = parent.parentNode;
-    }
+        return undf;
+    };
 
-    if (contents) {
+    return function dom_transclude(node, replace, parents) {
 
-        if (node.firstChild) {
-            MetaphorJs.dom.data(node, "mjs-transclude", MetaphorJs.dom.toFragment(node.childNodes));
+        parents = parents || [];
+        parents.unshift(node.parentNode);
+
+        var i, l,
+            contents;
+    
+        for (i = 0, l = parents.length; i < l; i++) {
+            contents = getTranscludeFrom(parents[i]);
+            if (contents) {
+                break;
+            }
         }
-
-        var parent      = node.parentNode,
-            //next        = node.nextSibling,
-            cloned      = MetaphorJs.dom.clone(contents),
-            children    = toArray(cloned.childNodes);
-
-        if (replace) {
-            parent.replaceChild(node, cloned);
-            //parent.removeChild(node);
-            //parent.insertBefore(cloned, next);
+    
+        if (contents) {
+    
+            if (node.firstChild) {
+                MetaphorJs.dom.data(node, "mjs-transclude", MetaphorJs.dom.toFragment(node.childNodes));
+            }
+    
+            var parent      = node.parentNode,
+                //next        = node.nextSibling,
+                cloned      = MetaphorJs.dom.clone(contents),
+                children    = toArray(cloned.childNodes);
+    
+            if (replace) {
+                parent.replaceChild(node, cloned);
+                //parent.removeChild(node);
+                //parent.insertBefore(cloned, next);
+            }
+            else {
+                node.appendChild(cloned);
+            }
+    
+            return children;
         }
-        else {
-            node.appendChild(cloned);
-        }
-
-        return children;
-    }
-
-    return null;
-};
+    
+        return null;
+    };
+}());

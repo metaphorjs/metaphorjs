@@ -190,6 +190,8 @@ module.exports = MetaphorJs.app.Renderer = function() {
         self.texts          = [];
         self.parent         = parent;
 
+        observer.createEvent("transclude-sources-"+self.id, "all");
+
         if (scope instanceof MetaphorJs.lib.Scope) {
             scope.$on("destroy", self.$destroy, self);
         }
@@ -409,6 +411,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 // we just pass it to attr.cmp directive
                 // by adding it to the attr map
                 if (component = dirs.component[tag]) {
+                    attrs.__remove(node, "config");
                     res = self._processComponent(component, node, attrs);
                     if (res === false) return false;
                     isThenable(res) ? defers.push(res) : collectNodes(nodes, res);
@@ -547,10 +550,12 @@ module.exports = MetaphorJs.app.Renderer = function() {
 
             observer.trigger("destroy-" + self.id);
 
+            observer.destroyEvent("transclude-sources-"+self.id);
             observer.destroyEvent("destroy-" + self.id);
             observer.destroyEvent("rendered-" + self.id);
             observer.destroyEvent("reference-" + self.id);
             observer.destroyEvent("reference-promise-" + self.id);
+            observer.destroyEvent("attached-" + self.id);
 
             for (var k in self) {
                 if (self.hasOwnProperty(k)) {

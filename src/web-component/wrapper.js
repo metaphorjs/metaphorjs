@@ -35,6 +35,7 @@ module.exports = MetaphorJs.dom.webComponentWrapper = function(tagName, cls, par
                         }
                     );
 
+                attrSet.__remove(this, "config");
                 config.setStatic("useShadow", true);
                 config.setFinal("useShadow");
 
