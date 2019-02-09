@@ -21,15 +21,20 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
     var reg = /^([\[({#$@!])([^)\]}"':\*!]+)[\])}]?([:\*!]?)$/;
 
     var removeDirective = function removeDirective(node, directive) {
-        var ds = this.__directives;
+        var ds = this.__directives,
+            i, l, d, j, jl, ns;
+
         if (!this.inflated && ds[directive]) {
-            if (ds[directive].original) {
-                MetaphorJs.dom.removeAttr(node, ds[directive].original);
-            }
-            if (ds[directive].names) {
-                var i, l, ns = ds[directive].names;
-                for (i = 0, l = ns.length; i < l; i++) {
-                    MetaphorJs.dom.removeAttr(node, ns[i]);
+
+            for (i = 0, l = ds[directive].length; i < l; i++) {
+                d = ds[directive][i];
+                if (d.original) {
+                    MetaphorJs.dom.removeAttr(node, d.original);
+                }
+                if (ns = d.names) {
+                    for (j = 0, jl = ns.length; j < jl; j++) {
+                        MetaphorJs.dom.removeAttr(node, ns[j]);
+                    }
                 }
             }
         }
@@ -136,6 +141,7 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
         var set = getEmpty(),
             i, l, 
             name, value,
+            indexName,
             match, parts,
             ds = set.directives, 
             __ds = set.__directives, 
@@ -160,6 +166,7 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
 
         for (i = 0, l = attrs.length; i < l; i++) {
 
+            indexName = null;
             name = attrs[i].name;
             value = attrs[i].value;
             mode = null;
@@ -264,6 +271,42 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
                 set.__attributes[name] = attrs[i].name;
             }
         }
+
+        for (name in ds) {
+            if (name.indexOf('|') !== -1) {
+                parts = name.split('|');
+                indexName = parts[1];
+            }
+
+            if (name !== indexName && indexName) {
+
+                if (ds[indexName]) {
+                    if (!isArray(ds[indexName])) {
+                        ds[indexName] = [ds[indexName]]
+                        __ds[indexName] = [__ds[indexName]]
+                    }
+                }
+                else {
+                    ds[indexName] = [];
+                    __ds[indexName] = [];
+                }
+
+                if (isArray(ds[indexName])) {
+                    ds[indexName].push(ds[name])
+                    __ds[indexName].push(__ds[name])
+                    delete ds[name];
+                    delete __ds[name];
+                }
+            }
+            else if (!isArray(ds[name])) {
+                ds[name] = [ds[name]]
+                __ds[name] = [__ds[name]]
+            }
+        }
+
+        set.directives = ds;
+        set.__directives = __ds;
+        
 
         return set;
     }

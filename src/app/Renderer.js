@@ -303,15 +303,17 @@ module.exports = MetaphorJs.app.Renderer = function() {
             return applyDirective(directive, self.scope, node, config, attrs, self);
         },
 
-        _processDirAttribute: function(node, directive, name, attrs) {
+        _processDirAttribute: function(node, directive, name, dcfg, attrs) {
+
             var self = this,
                 config = new MetaphorJs.lib.Config(
-                    attrs.directives[name], 
+                    dcfg, // attrs.directives[name], 
                     {scope: self.scope}
                 );
             self.on("destroy", config.$destroy, config);
-            attrs.__remove(node, "directive", name);
-            attrs.__directives[name].handled = true;
+
+            //attrs.__remove(node, "directive", name);
+            //attrs.__directives[name].handled = true;
 
             return applyDirective(directive, self.scope, node, config, attrs, self);
         },
@@ -384,7 +386,8 @@ module.exports = MetaphorJs.app.Renderer = function() {
                     component,
                     directive,
                     i, len,
-                    name,
+                    name, ds,
+                    j, jlen,
                     res;
 
                 attrs = attrs || MetaphorJs.dom.getAttrSet(node);
@@ -420,14 +423,22 @@ module.exports = MetaphorJs.app.Renderer = function() {
 
                 // this is an attribute directive
                 for (i = 0, len = handlers.length; i < len; i++) {
+                    
                     name = handlers[i].name;
-                    if (attrs['directives'][name] !== undf &&
+
+                    if ((ds = attrs['directives'][name]) !== undf &&
                         !attrs['__directives'][name].handled) {
-                        res = self._processDirAttribute(
-                            node, handlers[i].handler, name, attrs
-                        );
-                        if (res === false) return false;
-                        isThenable(res) ? defers.push(res) : collectNodes(nodes, res);
+
+                        attrs.__remove(node, "directive", name);
+                        attrs.__directives[name].handled = true;
+
+                        for (j = 0, jlen = ds.length; j < jlen; j++) {
+                            res = self._processDirAttribute(
+                                node, handlers[i].handler, name, ds[j], attrs
+                            );
+                            if (res === false) return false;
+                            isThenable(res) ? defers.push(res) : collectNodes(nodes, res);
+                        }
                     }
                 }
 

@@ -372,7 +372,10 @@ module.exports = MetaphorJs.app.Component = cls({
                 self.directives = {};
             }
             if (!self.directives[name]) {
-                self.directives[name] = cfg;
+                self.directives[name] = [cfg];
+            }
+            else {
+                self.directives[name].push(cfg);
             }
         }
     },
@@ -416,9 +419,10 @@ module.exports = MetaphorJs.app.Component = cls({
         var self = this,
             dirs = self.directives,
             support = self.$self.supportsDirectives,
-            dirCfg,
+            dirCfg, ds,
             handlers = MetaphorJs.app.Directive.getAttributes(),
-            i, len, name;
+            i, len, name,
+            j, jlen;
 
         if (!support) {
             return;
@@ -431,13 +435,19 @@ module.exports = MetaphorJs.app.Component = cls({
                 continue;
             }
 
-            if ((dirCfg = dirs[name]) !== undf) {
-                MetaphorJs.app.Renderer.applyDirective(
-                    handlers[i].handler, 
-                    self._getDirectiveScope(), 
-                    self, 
-                    self._prepareDirectiveCfg(dirCfg)
-                );
+            if ((ds = dirs[name]) !== undf) {
+
+                !isArray(ds) && (ds = [ds]);
+
+                for (j = 0, jlen = ds.length; j < jlen; j++) {
+
+                    MetaphorJs.app.Renderer.applyDirective(
+                        handlers[i].handler, 
+                        self._getDirectiveScope(), 
+                        self, 
+                        self._prepareDirectiveCfg(ds[j])
+                    );
+                }
             }
         }
     },
