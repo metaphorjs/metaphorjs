@@ -255,7 +255,9 @@ module.exports = MetaphorJs.lib.History = function() {
                 onLocationPush(url);
             };
 
-            replaceState(getCurrentUrl());
+            async(function(){
+                replaceState(getCurrentUrl());
+            });
         }
         else {
 

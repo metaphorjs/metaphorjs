@@ -16971,7 +16971,10 @@ var lib_History = MetaphorJs.lib.History = function() {
                 onLocationPush(url);
             };
 
-            replaceState(getCurrentUrl());
+            async(function(){
+                replaceState(getCurrentUrl());
+            })
+            
         }
         else {
 
