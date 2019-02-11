@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MetaphorJs main feature test</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="metaphorjs.test.js"></script>
+</head>
+<body>
+<div class="cases" mjs-app>
+
+        
+        <div class="case double" 
+                {init}="this.list = [
+                            {id: 1, bool: true, txt: 'item 1'},
+                            {id: 2, bool: false, txt: 'item 2'},
+                            {id: 3, bool: false, txt: 'item 3'}
+                        ];
+                        window.mainScope = ____;
+                        this.trackBy = function(item) {return item.id}; 
+                        this.ids = 4;
+                        this.newItem = '';
+                        this.listFilter = '';
+                        this.sortBy = 'asc'">
+
+            <h4>mjs-each (attr)</h4>
+            <input {model}="this.newItem" 
+                    (key.enter)="if (this.newItem) {
+                                    this.list.push({bool: false, txt: this.newItem, id: this.ids}); 
+                                    this.newItem = '';
+                                    this.ids++;
+                                }"/>
+            <input type="button"
+                    {disabled}="!this.newItem"
+                    (click)="this.list.push({bool: false, txt: this.newItem}); this.newItem = '';"
+                    value="Add item"/>
+
+            <ul>
+                <li {each}="item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy"
+                    {each.$track-by}:="id"
+                    {each.$animate-move}>
+                    <label {class}="{cls3: this.item.bool}">
+                        <input type="checkbox" 
+                                {model}="this.item.bool"/>
+                        {{ this.$index }} -
+                        {{ this.item.txt }} -
+                        {{ this.$first ? "first" : "" }} -
+                        {{ this.$last ? "last" : "" }} -
+                        {{ this.$even ? "even" : "" }} -
+                        {{ this.$odd ? "odd" : "" }}
+                    </label>
+                    <a href="#" (click)="this.$parent.list.splice(this.$getRawIndex(this.$trackId),1);">x</a>
+                </li>
+            </ul>
+
+            <input {model}="this.listFilter" placeholder="Search"/>
+            <a href="#" (click)="this.sortBy='asc'">asc</a>
+            <a href="#" (click)="this.sortBy='desc'">desc</a>
+
+        </div>
+
+        <div class="case double">
+            <h4>mjs-each (tag)</h4>
+
+            <mjs-each 
+                value="item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy"
+                $track-by:="id">
+                <div>
+                    <label {class}="{cls3: this.item.bool}">
+                        <input type="checkbox" 
+                                {model}="this.item.bool"/>
+                        {{ this.$index }} -
+                        {{ this.item.txt }} -
+                        {{ this.$first ? "first" : "" }} -
+                        {{ this.$last ? "last" : "" }} -
+                        {{ this.$even ? "even" : "" }} -
+                        {{ this.$odd ? "odd" : "" }}
+                    </label>
+                    <a href="#" (click)="this.$parent.list.splice(this.$getRawIndex(this.$trackId),1);">x</a>
+                </div>
+            </mjs-each>
+        </div>
+    </div>
+
+</body>
+</html>

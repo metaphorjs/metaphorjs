@@ -54,7 +54,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
 
         var self    = this, 
             cfg     = config.getAll();
-
+            
         self.cfg            = config;
         self.scope          = scope;
 
@@ -85,7 +85,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
             self.$plugins.push(cfg['plugin']);
         }
 
-        if (config.get('trackby') === false) {
+        if (config.get('trackBy') === false) {
             self.trackBy = false;
         }
     },
@@ -133,13 +133,13 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
 
         self.watcher    = MetaphorJs.lib.MutationObserver.get(scope, self.model, self.onChange, self);
         self.trackBy    = cfg.get("trackBy"); // lowercase from attributes
-        
-        if (self.trackBy !== false) {
-            if (self.trackBy && self.trackBy !== '$') {
-                self.trackByWatcher = MetaphorJs.lib.MutationObserver.get(scope, self.trackBy, self.onChangeTrackBy, self);
+
+        if (self.trackBy !== false && typeof self.trackBy !== "function") {
+            if (cfg.getProperty("trackBy").mode !== MetaphorJs.lib.Config.MODE_STATIC) {
+                cfg.on("trackBy", self.onChangeTrackBy, self);
             }
-            else if (self.trackBy !== '$' && !self.watcher.hasInputPipes()) {
-                self.trackBy    = '$$'+self.watcher.id;
+            else if (!self.trackBy && !self.watcher.hasInputPipes()) {
+                self.trackBy = '$$'+self.watcher.id;
             }
         }
 
@@ -506,7 +506,14 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
             }
             else {
                 self.trackByFn = function(item){
-                    return item && !isPrimitive(item) ? item[trackBy] : undf;
+                    if (item && !isPrimitive(item)) {
+                        if (!item[trackBy]) {
+                            item[trackBy] = nextUid();
+                        }
+                        return item[trackBy];
+                    }
+                    else return undf;
+                    //return item && !isPrimitive(item) ? item[trackBy] : undf;
                 };
             }
         }

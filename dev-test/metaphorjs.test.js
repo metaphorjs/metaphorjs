@@ -1651,17 +1651,21 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
                 if (isArray(filters)) {
                     filters = filters.concat(filterSources);
                 }
-                else if (filters.hasOwnProperty(name)) {
+                else if (filters.hasOwnProperty(name) && 
+                    typeof(filters[name]) === "function") {
                     return filters[name];
+                }
+                else {
+                    filters = filterSources;    
                 }
             }
             else {
                 filters = filterSources;
             }
-            var i, l = filterSources.length;
+            var i, l = filters.length;
             for (i = 0; i < l; i++) {
-                if (filterSources[i] && filterSources[i].hasOwnProperty(name)) {
-                    return filterSources[i][name];
+                if (filters[i] && filters[i].hasOwnProperty(name)) {
+                    return filters[i][name];
                 }
             }
 
@@ -1913,7 +1917,6 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
         },
 
         runThroughPipes     = function(val, pipes, dataObj) {
-
             var j,
                 args,
                 pipe,
@@ -15825,7 +15828,7 @@ function levenshteinMove(a1, a2, prs, getKey) {
         index;
 
     for (i = 0, l = a1.length; i < l; i++) {
-        k = getKey(a1[i]);
+        k = getKey(a1[i], i);
         if (k) {
             map1[k] = i;
         }
@@ -15842,7 +15845,7 @@ function levenshteinMove(a1, a2, prs, getKey) {
             continue;
         }
 
-        k = getKey(a2[a2i]);
+        k = getKey(a2[a2i], a2i);
 
         if (k !== undf && used[k] !== true && (index = map1[k]) !== undf) {
             newPrs.push(index);
@@ -15900,7 +15903,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
 
         var self    = this, 
             cfg     = config.getAll();
-
+            
         self.cfg            = config;
         self.scope          = scope;
 
@@ -15931,7 +15934,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
             self.$plugins.push(cfg['plugin']);
         }
 
-        if (config.get('trackby') === false) {
+        if (config.get('trackBy') === false) {
             self.trackBy = false;
         }
     },
@@ -15940,6 +15943,8 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
 
         var self = this,
             expr;
+
+        window.listScope = scope;
 
         if (self.tagMode) {
             expr = dom_getAttr(node, "value");
@@ -15979,13 +15984,13 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
 
         self.watcher    = lib_MutationObserver.get(scope, self.model, self.onChange, self);
         self.trackBy    = cfg.get("trackBy"); // lowercase from attributes
-        
-        if (self.trackBy !== false) {
-            if (self.trackBy && self.trackBy !== '$') {
-                self.trackByWatcher = lib_MutationObserver.get(scope, self.trackBy, self.onChangeTrackBy, self);
+
+        if (self.trackBy !== false && typeof self.trackBy !== "function") {
+            if (cfg.getProperty("trackBy").mode !== lib_Config.MODE_STATIC) {
+                cfg.on("trackBy", self.onChangeTrackBy, self);
             }
-            else if (self.trackBy !== '$' && !self.watcher.hasInputPipes()) {
-                self.trackBy    = '$$'+self.watcher.id;
+            else if (!self.trackBy && !self.watcher.hasInputPipes()) {
+                self.trackBy = '$$'+self.watcher.id;
             }
         }
 
@@ -16169,7 +16174,9 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
         else {
 
             var prs = levenshteinDiff(prevList, list);
+            console.log("diff", prs.prescription)
             prs = levenshteinMove(prevList, list, prs.prescription, self.getTrackByFunction());
+            console.log("move", prs)
 
             // redefine renderers
             for (i = 0, len = prs.length; i < len; i++) {
@@ -16352,7 +16359,14 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
             }
             else {
                 self.trackByFn = function(item){
-                    return item && !isPrimitive(item) ? item[trackBy] : undf;
+                    if (item && !isPrimitive(item)) {
+                        if (!item[trackBy]) {
+                            item[trackBy] = nextUid();
+                        }
+                        return item[trackBy];
+                    }
+                    else return undf;
+                    //return item && !isPrimitive(item) ? item[trackBy] : undf;
                 };
             }
         }
