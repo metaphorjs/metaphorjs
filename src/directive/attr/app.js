@@ -5,8 +5,8 @@ require("../../lib/Config.js");
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
-var appDirective = function() {
-    return false;
+var appDirective = function(scope, node, config, renderer) {
+    renderer && renderer.flowControl("stop", true);
 };
 
 appDirective.$prebuild = {

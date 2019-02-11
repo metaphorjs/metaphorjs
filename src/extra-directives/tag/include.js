@@ -19,10 +19,12 @@ Directive.registerTag("include", function(scope, node, config, renderer) {
         parentRenderer: renderer
     });
 
-    renderer.on("destroy", function(){
-        tpl.$destroy();
-        tpl = null;
-    });
+    if (renderer) {
+        renderer.on("destroy", function(){
+            tpl.$destroy();
+            tpl = null;
+        });
 
-    return false; // stop renderer
+        renderer.flowControl("ignoreInside", true);
+    }
 });

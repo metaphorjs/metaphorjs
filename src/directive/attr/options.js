@@ -142,7 +142,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
                 if (config.disabledGroup) {
                     MetaphorJs.dom.setAttr(parent, "disabled", "disabled");
                 }
-                self.fragment.appendChild(parent);
+                self._fragment.appendChild(parent);
             }
             else {
                 parent = self._fragment;

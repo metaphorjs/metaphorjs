@@ -6,8 +6,7 @@ require("../../func/dom/addListener.js");
 require("../../func/dom/removeListener.js");
 
 var Directive = require("../../app/Directive.js"),
-    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
-    async = require("metaphorjs-shared/src/func/async.js");
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 (function(){
 
@@ -67,8 +66,6 @@ var Directive = require("../../app/Directive.js"),
                         }
                     };
 
-                //async(getNode, null, [node, config, name, init]);
-                //getNode(node, config, name, init);
                 if (window.document.readyState === "complete") {
                     getNode(node, config, name, init);
                 }
@@ -105,7 +102,6 @@ var Directive = require("../../app/Directive.js"),
                 }
             };
 
-        //async(getNode, null, [node, config, "submit", init]);
         if (window.document.readyState === "complete") {
             getNode(node, config, "submit", init);
         }

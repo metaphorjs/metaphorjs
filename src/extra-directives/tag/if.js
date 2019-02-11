@@ -22,6 +22,8 @@ Directive.registerTag("if", Directive.attr.If.$extend({
         self.children = toArray(node.childNodes);
         self.childrenFrag = MetaphorJs.dom.toFragment(self.children);
 
+        renderer && renderer.flowControl("nodes", self.children);
+
         config.setType("once", "bool", MetaphorJs.lib.Config.MODE_STATIC);
         config.setProperty("value", {
             expression: MetaphorJs.dom.getAttr(node, "value"),
@@ -37,10 +39,6 @@ Directive.registerTag("if", Directive.attr.If.$extend({
 
         var val = config.get("value");
         self.onChange(val || false, undf);
-    },
-
-    getChildren: function() {
-        return this.children;
     },
 
     onChange: function() {

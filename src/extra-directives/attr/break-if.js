@@ -1,7 +1,7 @@
 
 var Directive = require("../../app/Directive.js");
 
-Directive.registerAttribute("break-if", 500, function(scope, node, config) {
+Directive.registerAttribute("break-if", 500, function(scope, node, config, renderer) {
 
     config.setType("value", "bool");
 
@@ -11,5 +11,5 @@ Directive.registerAttribute("break-if", 500, function(scope, node, config) {
         node.parentNode.removeChild(node);
     }
 
-    return !res;
+    renderer && renderer.flowControl("stop", !!res);
 });

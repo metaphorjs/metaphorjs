@@ -27,11 +27,13 @@ var Directive = require("../../app/Directive.js"),
         return null;
     }
 
-    var eachDirective = function eachDirective(scope, node, config, parentRenderer, attrSet) {
+    var eachDirective = function eachDirective(scope, node, config, renderer, attrSet) {
 
         if (!(node instanceof window.Node)) {
             throw new Error("'each' directive can only work with DOM nodes");
         }
+
+        renderer && renderer.flowControl("stop", true);
 
         config.disableProperty("value");
         var tagMode = node.nodeName.toLowerCase() === "mjs-each",
@@ -45,7 +47,7 @@ var Directive = require("../../app/Directive.js"),
 
         var handler = detectModelType(expr, scope) || MetaphorJs.app.ListRenderer;
 
-        return new handler(scope, node, config, parentRenderer, attrSet);
+        return new handler(scope, node, config, renderer, attrSet);
     };
 
 
@@ -53,8 +55,6 @@ var Directive = require("../../app/Directive.js"),
         types.push([objectClass, handlerClass]);
     };
 
-    eachDirective.$stopRenderer = true;
-    eachDirective.$registerBy = "id";
     eachDirective.$prebuild = {
         skip: true
     };

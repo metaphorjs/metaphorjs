@@ -34,15 +34,11 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
     }
 
     if (config) {
-
         if (isPlainObject(config)) {
             config = new MetaphorJs.lib.Config(config, {
                 scope: scope
-            });
+            }, /*scalarAs: */"defaultValue");
         }
-
-        config.setType("cloak", "bool", MetaphorJs.lib.Config.MODE_STATIC);
-        config.setType("animate", "bool", MetaphorJs.lib.Config.MODE_STATIC);
     }
 
     var constr      = isString(cmp) ? ns.get(cmp) : cmp;
@@ -57,7 +53,7 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
         gProvider   = MetaphorJs.lib.Provider.global(),
         injectFn    = app ? app.inject : gProvider.inject,
         injectCt    = app ? app : gProvider,
-        cloak       = config ? config.get("cloak") : null,
+        cloak       = config && config.has("cloak") ? config.get("cloak") : null,
         inject      = {
             $node: node || null,
             $scope: scope || null,
@@ -100,24 +96,6 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
             }(i));
         }
     }
-
-    /*if (tpl) {
-
-        var tplConfig = new MetaphorJs.lib.Config(null, {scope: scope});
-        MetaphorJs.app.Template.prepareConfig(tplConfig, tpl);
-        tplConfig.addProperties({
-            deferRendering: true,
-            runRenderer: true
-        });
-
-        cfg.template = new MetaphorJs.app.Template({
-            scope: scope,
-            node: node,
-            config: tplConfig
-        });
-
-        defers.push(cfg.template.resolve());
-    }*/
 
     var p;
 

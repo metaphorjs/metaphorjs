@@ -50,5 +50,5 @@ MetaphorJs.app.Directive.registerAttribute("router", 200,
         }
     });
 
-    return false;
+    renderer.flowControl("ignoreInside", true);
 });

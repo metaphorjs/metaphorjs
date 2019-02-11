@@ -10,15 +10,9 @@ Directive.registerAttribute("transclude", 1000,
             throw new Error("'transclude' directive can only work with Node");
         }
 
-        /*renderer.process(
-            MetaphorJs.dom.transclude(
-                node, null, 
-                renderer.trigger("transclude-sources")
-            )
-        );*/
-
-        return MetaphorJs.dom.transclude(
+        renderer.flowControl("nodes", MetaphorJs.dom.transclude(
             node, null, 
             renderer.trigger("transclude-sources")
-        )
+        ));
+
 });

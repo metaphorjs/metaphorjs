@@ -57,7 +57,6 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
             
         self.cfg            = config;
         self.scope          = scope;
-
         self.tagMode        = node.nodeName.toLowerCase() === "mjs-each";
         self.animateMove    = !self.tagMode && 
                                 !cfg['buffered'] &&
@@ -67,6 +66,8 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
                                 !cfg['buffered'] && 
                                 cfg["animate"];
         self.id             = cfg['id'] || nextUid();
+
+        scope.$app.registerCmp(self, "id");
 
         if (self.animate) {
             self.$plugins.push(cfg['animatePlugin'] || "MetaphorJs.plugin.ListAnimated");
@@ -599,7 +600,4 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
         }
     }
 
-}, {
-    $stopRenderer: true,
-    $registerBy: "id"
 });

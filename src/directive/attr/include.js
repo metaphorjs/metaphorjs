@@ -32,5 +32,5 @@ Directive.registerAttribute("include", 1100,
         tpl = null;
     });
 
-    return false; // stop renderer
+    renderer.flowControl("ignoreInside", true);
 });

@@ -6,7 +6,7 @@ var Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
-Directive.registerTag("tag", function directive_tag_tag(scope, node) {
+Directive.registerTag("tag", function directive_tag_tag(scope, node, config, renderer) {
 
     var expr = getAttr(node, "value"),
         tag = MetaphorJs.lib.Expression.get(expr, scope),
@@ -14,7 +14,7 @@ Directive.registerTag("tag", function directive_tag_tag(scope, node) {
 
     if (!tag) {
         node.parentNode.removeChild(node);
-        return false;
+        renderer && renderer.flowControl("stop", true);
     }
     else {
         var el = window.document.createElement(tag),
@@ -35,7 +35,7 @@ Directive.registerTag("tag", function directive_tag_tag(scope, node) {
         node.parentNode.insertBefore(el, next);
         node.parentNode.removeChild(node);
 
-        return [el];
+        renderer && renderer.flowControl("nodes", [el]);
     }
 
 });

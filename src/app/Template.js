@@ -225,11 +225,11 @@ module.exports = MetaphorJs.app.Template = function() {
         config.get("useShadow") && config.setStatic("useComments", false);
         config.get("useShadow") && config.setStatic("makeTranscludes", false);
 
-        if (config.get("runRenderer") && self._parentRenderer) {
+        /*if (config.get("runRenderer") && self._parentRenderer) {
             self._parentRenderer.on("destroy",
                 self._onParentRendererDestroy, self
             );
-        }
+        }*/
         self.scope.$on("destroy", self._onScopeDestroy, self);
 
         self._collectInitialNodes(self.attachTo || self.replaceNode);
@@ -914,16 +914,16 @@ module.exports = MetaphorJs.app.Template = function() {
             return nodes;
         },
 
-        _onParentRendererDestroy: function() {
-            var self = this;
+        /*_onParentRendererDestroy: function() {
+            //var self = this;
 
-            if (!self.$destroyed && self._parentRenderer &&
-                !self._parentRenderer.destroyed) {
-                self._parentRenderer.$destroy();
+            if (!self.$destroyed && self._renderer &&
+                !self._renderer.destroyed) {
+                self._renderer.$destroy();
             }
 
-            self.$destroy();
-        },
+            this.$destroy();
+        },*/
 
         _onScopeDestroy: function() {
             this.$destroy();

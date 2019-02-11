@@ -285,6 +285,12 @@ module.exports = MetaphorJs.app.view.Router = MetaphorJs.app.view.Base.$extend({
         });
     },
 
+    currentIs: function(cls) {
+        if (this.currentView && this.currentView.id == cls) {
+            return true;
+        }
+        return this.$super(cls);
+    },
 
 
     clearComponent: function() {

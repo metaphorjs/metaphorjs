@@ -7,6 +7,7 @@ require("../../func/dom/removeClass.js");
 require("metaphorjs-animate/src/animate/animate.js");
 require("../../lib/Config.js");
 require("../../func/app/resolve.js");
+require("metaphorjs-observable/src/mixin/Observable.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
@@ -15,6 +16,8 @@ var cls = require("metaphorjs-class/src/cls.js"),
     isString = require("metaphorjs-shared/src/func/isString.js");
 
 module.exports = MetaphorJs.app.view.Base = cls({
+
+    $mixins: [MetaphorJs.mixin.Observable],
 
     $init: function(cfg)  {
 
@@ -38,7 +41,7 @@ module.exports = MetaphorJs.app.view.Base = cls({
         }
 
         if (!self.id) {
-            self.id = nextUid();
+            self.id = self.config.get("id") || nextUid();
         }
 
         self.scope.$app.registerCmp(self, self.scope, "id");        
@@ -48,9 +51,11 @@ module.exports = MetaphorJs.app.view.Base = cls({
     initView: function() {},
 
     initConfig: function() {
-        var config = this.config;
-        config.setType("scrollOnChange", "bool", MetaphorJs.lib.Config.MODE_STATIC);
-        config.setDefaultMode("defaultCmp", MetaphorJs.lib.Config.MODE_STATIC);
+        var config = this.config,
+            s = MetaphorJs.lib.Config.MODE_STATIC;
+        config.setType("scrollOnChange", "bool", s);
+        config.setDefaultMode("defaultCmp", s);
+        config.setDefaultMode("id", s);
     },
 
 
@@ -105,10 +110,15 @@ module.exports = MetaphorJs.app.view.Base = cls({
         });
     },
 
+    currentIs: function(cls) {
+        return this.currentComponent && this.currentComponent.$is(cls);
+    },
+
     beforeCmpChange: function(cmpCls) {},
 
     afterCmpChange: function() {
         var self = this;
+        self.trigger("change", self);
         if (self.config.get("scrollOnChange")) {
             raf(function () {
                 self.node.scrollTop = 0;

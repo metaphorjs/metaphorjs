@@ -124,9 +124,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
 
             var scope   = config.has("scope") ? 
                             MetaphorJs.lib.Scope.$produce(config.get("scope")) :
-                            dir.$breakScope  ?
-                                parentScope.$new() :
-                                parentScope,
+                            parentScope,
                 app     = parentScope.$app,
                 inject  = {
                     $scope: scope,
@@ -150,17 +148,6 @@ module.exports = MetaphorJs.app.Renderer = function() {
             }
             else {
                 inst = dir.apply(null, args);
-            }
-
-            if (app && dir.$registerBy && inst) {
-                if (isThenable(inst)) {
-                    inst.done(function(cmp){
-                        app.registerCmp(cmp, parentScope, dir.$registerBy);
-                    });
-                }
-                else {
-                    app.registerCmp(inst, parentScope, dir.$registerBy);
-                }
             }
 
             if (inst && inst.$destroy) {
@@ -189,6 +176,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
         self.scope          = scope;
         self.texts          = [];
         self.parent         = parent;
+        self._flowControlState = {};
 
         observer.createEvent("transclude-sources-"+self.id, "all");
 
@@ -230,6 +218,18 @@ module.exports = MetaphorJs.app.Renderer = function() {
 
         detached: function() {
             this.trigger("detached", this);
+        },
+
+        flowControl: function(key, value) {
+            this._flowControlState[key] = value;
+        },
+
+        _resetFlowControl: function() {
+            var fc = this._flowControlState;
+            fc.waitFor = null;
+            fc.nodes = null;
+            fc.stop = false;
+            fc.ignoreInside = false;
         },
 
         _processCommentNode: function(node) {
@@ -288,9 +288,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
 
             self.on("destroy", config.$destroy, config);
 
-            return applyDirective(
-                directive, self.scope, node, 
-                config, attrs, self) || false;
+            return applyDirective(directive, self.scope, node, config, attrs, self);
         },
 
         _processTag: function(directive, node, attrs) {
@@ -382,17 +380,21 @@ module.exports = MetaphorJs.app.Renderer = function() {
             }
             else if (nodeType === nodeElem) {
 
+                self._resetFlowControl();
+
                 var tag     = node.tagName.toLowerCase(),
                     defers  = [],
                     nodes   = [],
+                    fc = self._flowControlState,
                     component,
                     directive,
                     i, len,
                     name, ds,
                     j, jlen,
-                    res;
+                    ii;
 
                 attrs = attrs || MetaphorJs.dom.getAttrSet(node);
+                ii = attrs.renderer.ignoreInside;
 
                 if (tag.substr(0, 4) === "mjs-") {
                     tag = tag.substr(4);
@@ -412,15 +414,17 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 // by adding it to the attr map
                 if (component = dirs.component[tag]) {
                     attrs.__remove(node, "config");
-                    res = self._processComponent(component, node, attrs);
-                    if (res === false) return false;
-                    isThenable(res) ? defers.push(res) : collectNodes(nodes, res);
+                    self._processComponent(component, node, attrs);
                 }
                 else if (directive = dirs.tag[tag]) {
-                    res = self._processTag(directive, node, attrs);
-                    if (res === false) return false;
-                    isThenable(res) ? defers.push(res) : collectNodes(nodes, res);
+                    self._processTag(directive, node, attrs);
                 }
+
+                if (fc.stop) return false;
+                fc.waitFor && defers.push(fc.waitFor);
+                fc.nodes && collectNodes(nodes, fc.nodes);
+                !ii && (ii = fc.ignoreInside);
+                self._resetFlowControl();
 
                 if (attrs.references && attrs.references.length) {
                     self._processReferences(node, attrs);
@@ -438,11 +442,15 @@ module.exports = MetaphorJs.app.Renderer = function() {
                         attrs.__directives[name].handled = true;
 
                         for (j = 0, jlen = ds.length; j < jlen; j++) {
-                            res = self._processDirAttribute(
+                            self._processDirAttribute(
                                 node, handlers[i].handler, name, ds[j], attrs
                             );
-                            if (res === false) return false;
-                            isThenable(res) ? defers.push(res) : collectNodes(nodes, res);
+                            
+                            if (fc.stop) return false;
+                            fc.waitFor && defers.push(fc.waitFor);
+                            fc.nodes && collectNodes(nodes, fc.nodes);
+                            !ii && (ii = fc.ignoreInside);
+                            self._resetFlowControl();
                         }
                     }
                 }
@@ -451,7 +459,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
                     self._processAttribute(node, i, attrs);
                 }
 
-                if (attrs.renderer.ignoreInside) {
+                if (ii) {
                     return false;
                 }
 

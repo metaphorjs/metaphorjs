@@ -79,11 +79,6 @@ module.exports = MetaphorJs.app.StoreRenderer = MetaphorJs.app.ListRenderer.$ext
         self.$super();
     }
 
-},
-{
-    $stopRenderer: true,
-    $registerBy: "id"
-}
-);
+});
 
 

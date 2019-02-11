@@ -29,5 +29,5 @@ MetaphorJs.app.Directive.registerAttribute("view", 200,
         }
     });
 
-    return false;
+    renderer.flowControl("ignoreInside", true);
 });

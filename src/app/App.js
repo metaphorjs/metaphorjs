@@ -169,30 +169,30 @@ module.exports = MetaphorJs.app.App = cls({
 
     /**
      * Register callback for when component becomes available
-     * @param {string} cmpId 
+     * @param {string} id 
      * @param {function} fn 
      * @param {object} context 
      * @returns {MetaphorJs.lib.Promise}
      */
-    onAvailable: function(cmpId, fn, context) {
+    onAvailable: function(id, fn, context) {
 
         var self = this,
             cmpListeners = self.cmpListeners,
             components = self.components;
 
-        if (!cmpListeners[cmpId]) {
-            cmpListeners[cmpId] = new MetaphorJs.lib.Promise;
+        if (!cmpListeners[id]) {
+            cmpListeners[id] = new MetaphorJs.lib.Promise;
         }
 
         if (fn) {
-            cmpListeners[cmpId].done(fn, context);
+            cmpListeners[id].done(fn, context);
         }
 
-        if (components[cmpId]) {
-            cmpListeners[cmpId].resolve(components[cmpId])
+        if (components[id]) {
+            cmpListeners[id].resolve(components[id])
         }
 
-        return cmpListeners[cmpId];
+        return cmpListeners[id];
     },
 
     /**
@@ -207,10 +207,9 @@ module.exports = MetaphorJs.app.App = cls({
     /**
      * Register component
      * @param {MetaphorJs.app.Component} cmp 
-     * @param {MetaphorJs.lib.Scope} scope 
      * @param {string} byKey 
      */
-    registerCmp: function(cmp, scope, byKey) {
+    registerCmp: function(cmp, byKey) {
         var self = this,
             id = cmp[byKey],
             deregister = function() {
@@ -227,7 +226,6 @@ module.exports = MetaphorJs.app.App = cls({
         if (cmp.on) {
             cmp.on("destroy", deregister);
         }
-        scope.$on("destroy", deregister);
     },
 
     onDestroy: function() {

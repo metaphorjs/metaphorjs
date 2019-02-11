@@ -23,6 +23,8 @@ var Directive = require("../../app/Directive.js"),
         config.setDefaultMode("as", ms);
         config.setDefaultMode("ref", ms);
         config.setMode("into", ms);
+        config.setType("cloak", "bool", ms);
+        //config.setType("animate", "bool", ms);
 
         var cmpName = config.get("value"),
             constr  = typeof cmpName === "string" ?
@@ -60,6 +62,7 @@ var Directive = require("../../app/Directive.js"),
 
         if (MetaphorJs.directive.component[tag]) {
             cfg.directives = attrSet.directives;
+            renderer.flowControl("stop", true);
         }
 
         var res = MetaphorJs.app.resolve(cmpName, cfg, newScope, node, [cfg])
@@ -83,7 +86,7 @@ var Directive = require("../../app/Directive.js"),
             cfg, attrSet
         );
 
-        attrSet.renderer.ignoreInside = true;
+        renderer.flowControl("ignoreInside", true);
     };
 
     Directive.registerAttribute("cmp", 200, cmpAttr);
