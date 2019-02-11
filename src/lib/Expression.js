@@ -78,17 +78,21 @@ module.exports = MetaphorJs.lib.Expression = (function() {
                 if (isArray(filters)) {
                     filters = filters.concat(filterSources);
                 }
-                else if (filters.hasOwnProperty(name)) {
+                else if (filters.hasOwnProperty(name) && 
+                    typeof(filters[name]) === "function") {
                     return filters[name];
+                }
+                else {
+                    filters = filterSources;    
                 }
             }
             else {
                 filters = filterSources;
             }
-            var i, l = filterSources.length;
+            var i, l = filters.length;
             for (i = 0; i < l; i++) {
-                if (filterSources[i] && filterSources[i].hasOwnProperty(name)) {
-                    return filterSources[i][name];
+                if (filters[i] && filters[i].hasOwnProperty(name)) {
+                    return filters[i][name];
                 }
             }
 
@@ -340,7 +344,6 @@ module.exports = MetaphorJs.lib.Expression = (function() {
         },
 
         runThroughPipes     = function(val, pipes, dataObj) {
-
             var j,
                 args,
                 pipe,

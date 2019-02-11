@@ -1,5 +1,6 @@
 
 require("../dev/env.js");
+require("../src/lib/MutationObserver.js");
 var expression = require("../src/lib/Expression.js");
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     assert = require("assert");
@@ -87,4 +88,38 @@ describe("Expression tester", function(){
         assert.equal(2, res, "result value of filters"); // -7 - 1 + 10 = 2
 
     });
+
+    it("should handle multiple output pipes", function(){
+
+        var dataObj = {
+            a: [1,2,2,3],
+            b: 2,
+            srt: 'desc',
+            f1: function(inputValue, dataObj, prop) {
+                prop = parseInt(prop)
+                return inputValue.filter(function(item){
+                    return item == prop || item == prop + 1;
+                })
+            },
+            f2: function(inputValue, dataObj, prop) {
+                if (prop === 'desc') {
+                    return inputValue.sort().reverse();
+                }
+                return inputValue.sort();
+            }
+        };
+
+        var mo = MetaphorJs.lib.MutationObserver.get(
+            dataObj, 
+            "this.a | f1:this.b:3 | f2:this.srt:5"
+        );
+
+        var res = mo.getValue();
+        assert.deepEqual([3,2,2], res);
+
+        dataObj.srt = "asc";
+        dataObj.$$mo.$checkAll();
+        res = mo.getValue();
+        assert.deepEqual([2,2,3], res);
+    })
 });
