@@ -4,8 +4,7 @@ require("../../lib/Config.js");
 require("../../lib/Scope.js");
 
 var Directive = require("../../app/Directive.js"),
-    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
-    ns = require("metaphorjs-namespace/src/var/ns.js");
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 (function(){
 
@@ -19,6 +18,13 @@ var Directive = require("../../app/Directive.js"),
         var ctrlName = config.get("value");
 
         config.removeProperty("value");
+
+        // if there is instructions regarding controller's scope
+        // we set this scope for all children of current node
+        if (config.has("scope")) {
+            console.log(scope)
+            renderer.flowControl("newScope", scope);
+        }
 
         var cfg = {
             scope: scope,

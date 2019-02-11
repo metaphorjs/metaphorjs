@@ -96,13 +96,6 @@ module.exports = MetaphorJs.app.Component = cls({
     template:       null,
 
 
-
-    /**
-     * @access private
-     * @var {boolean}
-     */
-    _originalId:    false,
-
     /**
      * @var {boolean}
      * @access private
@@ -162,6 +155,7 @@ module.exports = MetaphorJs.app.Component = cls({
                             self.scope.indexOf(":new") !== -1)) {
             self.destroyScope = true;
         }
+
         scope = self.scope = MetaphorJs.lib.Scope.$produce(self.scope);
 
         // We initialize config with current scope or change config's scope
@@ -194,13 +188,6 @@ module.exports = MetaphorJs.app.Component = cls({
         }
 
         if (self.node) {
-            var nodeId = MetaphorJs.dom.getAttr(self.node, "id");
-            if (nodeId) {
-                self._originalId = true;
-                if (!self.id) {
-                    self.id = nodeId;
-                }
-            }
             self.$refs.node.main = self.node;
         }
 
@@ -314,7 +301,6 @@ module.exports = MetaphorJs.app.Component = cls({
 
         config.setType("makeTranscludes", "bool", mst, false);
         config.setType("useShadow", "bool", mst, false);
-        config.setMode("scope", mst);
         config.setMode("init", MetaphorJs.lib.Config.MODE_FUNC);
         config.setDefaultMode("tag", mst);
         config.setDefaultMode("as", mst);
@@ -501,17 +487,11 @@ module.exports = MetaphorJs.app.Component = cls({
     _claimNode: function(node) {
         var self = this;
         node = node || self.node;
-        if (!self._originalId) {
-            MetaphorJs.dom.setAttr(node, "id", self.id);
-        }
         node.$$cmpId = self.id;
     },
 
     _releaseNode: function(node) {
         node = node || this.node;
-        if (!self._originalId) {
-            MetaphorJs.dom.removeAttr(node, "id");
-        }
         node.$$cmpId = null;
     },
 
@@ -757,10 +737,6 @@ module.exports = MetaphorJs.app.Component = cls({
                 }
             }
             else {
-                if (!self._originalId) {
-                    MetaphorJs.dom.removeAttr(self.node, "id");
-                }
-
                 self._releaseNode();
             }
         }

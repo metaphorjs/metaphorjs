@@ -110,7 +110,6 @@ module.exports = MetaphorJs.app.Controller = cls({
             msl = MetaphorJs.lib.Config.MODE_LISTENER,
             ctx;
 
-        config.setMode("scope", mst);
         config.setMode("init", MetaphorJs.lib.Config.MODE_FUNC);
         config.setDefaultMode("as", mst);
 

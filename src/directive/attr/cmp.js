@@ -4,8 +4,7 @@ require("../../lib/Config.js");
 require("../../lib/Scope.js");
 
 var Directive = require("../../app/Directive.js"),
-    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
-    ns = require("metaphorjs-namespace/src/var/ns.js");
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 (function(){
 
@@ -15,11 +14,12 @@ var Directive = require("../../app/Directive.js"),
             throw new Error("cmp directive can only work with DOM nodes");
         }
 
-        // if there 
+        // if there is no instructions regarding component's scope,
+        // we create a new child scope by default
         if (!config.has("scope")) {
             scope = scope.$new();
         }
-        
+
         var ms = MetaphorJs.lib.Config.MODE_STATIC;
 
         config.setDefaultMode("value", ms);
