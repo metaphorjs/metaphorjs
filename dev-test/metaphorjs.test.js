@@ -15892,7 +15892,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
     griDelegate: null,
     tagMode: false,
 
-    queue: null,
+    renderQueue: null,
 
     buffered: false,
     bufferPlugin: null,
@@ -15944,8 +15944,6 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
         var self = this,
             expr;
 
-        window.listScope = scope;
-
         if (self.tagMode) {
             expr = dom_getAttr(node, "value");
         }
@@ -15965,16 +15963,20 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
         self.parentEl   = node.parentNode;
         self.node       = null; //node;
 
-        self.queue      = new lib_Queue({
+        self.renderQueue      = new lib_Queue({
             async: false, auto: true, thenable: true,
             stack: false, context: self, mode: lib_Queue.ONCE
         });
+        /*self.attachQueue      = new lib_Queue({
+            async: "raf", auto: true, thenable: true,
+            stack: false, context: self, mode: lib_Queue.ONCE
+        });*/
 
         self.parentEl.removeChild(node);
 
         self.afterInit(scope, node, config, parentRenderer, attrSet);
 
-        self.queue.add(self.render, self, [toArray(self.watcher.getValue())]);
+        self.renderQueue.add(self.render, self, [toArray(self.watcher.getValue())]);
     },
 
     afterInit: function(scope, node) {
@@ -16015,6 +16017,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
         }
 
         self.doRender();
+        //self.attachQueue.add(self.doRender, self);
     },
 
     doRender: function() {
@@ -16139,7 +16142,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
 
     onChange: function(current, prev) {
         var self = this;
-        self.queue.prepend(self.applyChanges, self, [prev], 
+        self.renderQueue.prepend(self.applyChanges, self, [prev], 
                             lib_Queue.REPLACE);
     },
 
@@ -16174,9 +16177,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
         else {
 
             var prs = levenshteinDiff(prevList, list);
-            console.log("diff", prs.prescription)
             prs = levenshteinMove(prevList, list, prs.prescription, self.getTrackByFunction());
-            console.log("move", prs)
 
             // redefine renderers
             for (i = 0, len = prs.length; i < len; i++) {
@@ -16265,19 +16266,11 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
         var self        = this,
             rs          = self.renderers,
             parent      = self.parentEl,
-            prevEl      = self.prevEl,
             tm          = self.tagMode,
             nc          = self.nextEl,
             next,
             i, l, el, r,
             j;
-
-        /*if (nc && nc.parentNode !== parent) {
-            nc = null;
-        }
-        //if (!nc && prevEl && prevEl.parentNode === parent) {
-        //    nc = prevEl.nextSibling;
-        //}*/
 
         for (i = 0, l = rs.length; i < l; i++) {
             r = rs[i];
@@ -16447,7 +16440,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
             self.trackByWatcher.$destroy(true);
         }
 
-        self.queue.$destroy();
+        self.renderQueue.$destroy();
 
         if (self.watcher) {
             self.watcher.unsubscribe(self.onChange, self);

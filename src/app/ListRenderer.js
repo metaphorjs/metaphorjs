@@ -43,7 +43,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
     griDelegate: null,
     tagMode: false,
 
-    queue: null,
+    renderQueue: null,
 
     buffered: false,
     bufferPlugin: null,
@@ -114,16 +114,20 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
         self.parentEl   = node.parentNode;
         self.node       = null; //node;
 
-        self.queue      = new MetaphorJs.lib.Queue({
+        self.renderQueue      = new MetaphorJs.lib.Queue({
             async: false, auto: true, thenable: true,
             stack: false, context: self, mode: MetaphorJs.lib.Queue.ONCE
         });
+        /*self.attachQueue      = new MetaphorJs.lib.Queue({
+            async: "raf", auto: true, thenable: true,
+            stack: false, context: self, mode: MetaphorJs.lib.Queue.ONCE
+        });*/
 
         self.parentEl.removeChild(node);
 
         self.afterInit(scope, node, config, parentRenderer, attrSet);
 
-        self.queue.add(self.render, self, [toArray(self.watcher.getValue())]);
+        self.renderQueue.add(self.render, self, [toArray(self.watcher.getValue())]);
     },
 
     afterInit: function(scope, node) {
@@ -164,6 +168,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
         }
 
         self.doRender();
+        //self.attachQueue.add(self.doRender, self);
     },
 
     doRender: function() {
@@ -288,7 +293,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
 
     onChange: function(current, prev) {
         var self = this;
-        self.queue.prepend(self.applyChanges, self, [prev], 
+        self.renderQueue.prepend(self.applyChanges, self, [prev], 
                             MetaphorJs.lib.Queue.REPLACE);
     },
 
@@ -412,19 +417,11 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
         var self        = this,
             rs          = self.renderers,
             parent      = self.parentEl,
-            prevEl      = self.prevEl,
             tm          = self.tagMode,
             nc          = self.nextEl,
             next,
             i, l, el, r,
             j;
-
-        /*if (nc && nc.parentNode !== parent) {
-            nc = null;
-        }
-        //if (!nc && prevEl && prevEl.parentNode === parent) {
-        //    nc = prevEl.nextSibling;
-        //}*/
 
         for (i = 0, l = rs.length; i < l; i++) {
             r = rs[i];
@@ -594,7 +591,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
             self.trackByWatcher.$destroy(true);
         }
 
-        self.queue.$destroy();
+        self.renderQueue.$destroy();
 
         if (self.watcher) {
             self.watcher.unsubscribe(self.onChange, self);

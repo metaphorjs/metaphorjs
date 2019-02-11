@@ -1651,17 +1651,21 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
                 if (isArray(filters)) {
                     filters = filters.concat(filterSources);
                 }
-                else if (filters.hasOwnProperty(name)) {
+                else if (filters.hasOwnProperty(name) && 
+                    typeof(filters[name]) === "function") {
                     return filters[name];
+                }
+                else {
+                    filters = filterSources;    
                 }
             }
             else {
                 filters = filterSources;
             }
-            var i, l = filterSources.length;
+            var i, l = filters.length;
             for (i = 0; i < l; i++) {
-                if (filterSources[i] && filterSources[i].hasOwnProperty(name)) {
-                    return filterSources[i][name];
+                if (filters[i] && filters[i].hasOwnProperty(name)) {
+                    return filters[i][name];
                 }
             }
 
@@ -1913,7 +1917,6 @@ var lib_Expression = MetaphorJs.lib.Expression = (function() {
         },
 
         runThroughPipes     = function(val, pipes, dataObj) {
-
             var j,
                 args,
                 pipe,
@@ -15825,7 +15828,7 @@ function levenshteinMove(a1, a2, prs, getKey) {
         index;
 
     for (i = 0, l = a1.length; i < l; i++) {
-        k = getKey(a1[i]);
+        k = getKey(a1[i], i);
         if (k) {
             map1[k] = i;
         }
@@ -15842,7 +15845,7 @@ function levenshteinMove(a1, a2, prs, getKey) {
             continue;
         }
 
-        k = getKey(a2[a2i]);
+        k = getKey(a2[a2i], a2i);
 
         if (k !== undf && used[k] !== true && (index = map1[k]) !== undf) {
             newPrs.push(index);
@@ -15889,7 +15892,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
     griDelegate: null,
     tagMode: false,
 
-    queue: null,
+    renderQueue: null,
 
     buffered: false,
     bufferPlugin: null,
@@ -15900,7 +15903,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
 
         var self    = this, 
             cfg     = config.getAll();
-
+            
         self.cfg            = config;
         self.scope          = scope;
 
@@ -15931,7 +15934,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
             self.$plugins.push(cfg['plugin']);
         }
 
-        if (config.get('trackby') === false) {
+        if (config.get('trackBy') === false) {
             self.trackBy = false;
         }
     },
@@ -15960,16 +15963,20 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
         self.parentEl   = node.parentNode;
         self.node       = null; //node;
 
-        self.queue      = new lib_Queue({
+        self.renderQueue      = new lib_Queue({
             async: false, auto: true, thenable: true,
             stack: false, context: self, mode: lib_Queue.ONCE
         });
+        /*self.attachQueue      = new lib_Queue({
+            async: "raf", auto: true, thenable: true,
+            stack: false, context: self, mode: lib_Queue.ONCE
+        });*/
 
         self.parentEl.removeChild(node);
 
         self.afterInit(scope, node, config, parentRenderer, attrSet);
 
-        self.queue.add(self.render, self, [toArray(self.watcher.getValue())]);
+        self.renderQueue.add(self.render, self, [toArray(self.watcher.getValue())]);
     },
 
     afterInit: function(scope, node) {
@@ -15979,13 +15986,13 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
 
         self.watcher    = lib_MutationObserver.get(scope, self.model, self.onChange, self);
         self.trackBy    = cfg.get("trackBy"); // lowercase from attributes
-        
-        if (self.trackBy !== false) {
-            if (self.trackBy && self.trackBy !== '$') {
-                self.trackByWatcher = lib_MutationObserver.get(scope, self.trackBy, self.onChangeTrackBy, self);
+
+        if (self.trackBy !== false && typeof self.trackBy !== "function") {
+            if (cfg.getProperty("trackBy").mode !== lib_Config.MODE_STATIC) {
+                cfg.on("trackBy", self.onChangeTrackBy, self);
             }
-            else if (self.trackBy !== '$' && !self.watcher.hasInputPipes()) {
-                self.trackBy    = '$$'+self.watcher.id;
+            else if (!self.trackBy && !self.watcher.hasInputPipes()) {
+                self.trackBy = '$$'+self.watcher.id;
             }
         }
 
@@ -16010,6 +16017,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
         }
 
         self.doRender();
+        //self.attachQueue.add(self.doRender, self);
     },
 
     doRender: function() {
@@ -16134,7 +16142,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
 
     onChange: function(current, prev) {
         var self = this;
-        self.queue.prepend(self.applyChanges, self, [prev], 
+        self.renderQueue.prepend(self.applyChanges, self, [prev], 
                             lib_Queue.REPLACE);
     },
 
@@ -16258,19 +16266,11 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
         var self        = this,
             rs          = self.renderers,
             parent      = self.parentEl,
-            prevEl      = self.prevEl,
             tm          = self.tagMode,
             nc          = self.nextEl,
             next,
             i, l, el, r,
             j;
-
-        /*if (nc && nc.parentNode !== parent) {
-            nc = null;
-        }
-        //if (!nc && prevEl && prevEl.parentNode === parent) {
-        //    nc = prevEl.nextSibling;
-        //}*/
 
         for (i = 0, l = rs.length; i < l; i++) {
             r = rs[i];
@@ -16352,7 +16352,14 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
             }
             else {
                 self.trackByFn = function(item){
-                    return item && !isPrimitive(item) ? item[trackBy] : undf;
+                    if (item && !isPrimitive(item)) {
+                        if (!item[trackBy]) {
+                            item[trackBy] = nextUid();
+                        }
+                        return item[trackBy];
+                    }
+                    else return undf;
+                    //return item && !isPrimitive(item) ? item[trackBy] : undf;
                 };
             }
         }
@@ -16433,7 +16440,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
             self.trackByWatcher.$destroy(true);
         }
 
-        self.queue.$destroy();
+        self.renderQueue.$destroy();
 
         if (self.watcher) {
             self.watcher.unsubscribe(self.onChange, self);
