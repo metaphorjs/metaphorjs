@@ -92,7 +92,7 @@ module.exports = MetaphorJs.app.Controller = cls({
         self._initController.apply(self, arguments);
 
         if (scope.$app) {
-            scope.$app.registerCmp(self, scope, "id");
+            scope.$app.registerCmp(self, "id");
         }
 
         if (self.parentRenderer) {

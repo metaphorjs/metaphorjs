@@ -259,7 +259,6 @@ module.exports = MetaphorJs.app.view.Router = MetaphorJs.app.view.Base.$extend({
                     return MetaphorJs.app.resolve(
                         route.cmp || "MetaphorJs.app.Component",
                         cfg,
-                        cfg.scope,
                         node,
                         args
                     )

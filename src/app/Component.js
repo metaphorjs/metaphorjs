@@ -158,6 +158,10 @@ module.exports = MetaphorJs.app.Component = cls({
         self.$super(cfg);
         extend(self, cfg, true, false);
 
+        if (!self.scope || (typeof(self.scope) === "string" && 
+                            self.scope.indexOf(":new") !== -1)) {
+            self.destroyScope = true;
+        }
         scope = self.scope = MetaphorJs.lib.Scope.$produce(self.scope);
 
         // We initialize config with current scope or change config's scope
@@ -206,7 +210,7 @@ module.exports = MetaphorJs.app.Component = cls({
         self.initComponent.apply(self, arguments);
 
         if (scope.$app) {
-            scope.$app.registerCmp(self, scope, "id");
+            scope.$app.registerCmp(self, "id");
         }
 
         if (self.parentRenderer) {

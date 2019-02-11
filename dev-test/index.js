@@ -162,15 +162,18 @@ cls({
 
         createNew: function() {
             var node    = document.getElementById("newComponent");
-            MetaphorJs.app.resolve("Test.DynamicComponent", {autoRender: true}, this.scope, node);
+            MetaphorJs.app.resolve(
+                "Test.DynamicComponent", 
+                {autoRender: true, scope: this.scope}, 
+                node
+            );
         },
 
         createRender: function() {
             var to  = document.getElementById("renderToComponent");
             MetaphorJs.app.resolve(
                 "Test.DynamicComponent", 
-                {autoRender: false}, 
-                this.scope
+                {autoRender: false, scope: this.scope}
             )
             .done(function(cmp){
                 cmp.render(to)

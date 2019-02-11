@@ -121,21 +121,22 @@ module.exports = MetaphorJs.app.Renderer = function() {
         applyDirective = function(dir, parentScope, node, config, attrs, renderer) {
 
             config.setDefaultMode("scope", MetaphorJs.lib.Config.MODE_STATIC);
+            //config.setDefaultValue("scope", ":new", /*override: */false);
 
             var scope   = config.has("scope") ? 
-                            MetaphorJs.lib.Scope.$produce(config.get("scope")) :
+                            MetaphorJs.lib.Scope.$produce(config.get("scope"), parentScope) :
                             parentScope,
-                app     = parentScope.$app,
+                app     = parentScope.$app || scope.$app,
                 inject  = {
                     $scope: scope,
                     $node: node,
-                    $nodeConfig: config,
+                    $config: config,
                     $attrSet: attrs,
                     $renderer: renderer
                 },
                 args    = [scope, node, config, renderer, attrs],
                 inst;
-            
+
             if (config.has("scope")) {
                 config.setOption("scope", scope);
             }
@@ -157,10 +158,6 @@ module.exports = MetaphorJs.app.Renderer = function() {
             else if (typeof inst === "function") {
                 renderer && renderer.on("destroy", inst);
                 !renderer && parentScope.$on("destroy", inst);
-            }
-
-            if (dir.$stopRenderer) {
-                return false;
             }
 
             return inst;

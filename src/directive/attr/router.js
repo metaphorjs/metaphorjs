@@ -35,7 +35,7 @@ MetaphorJs.app.Directive.registerAttribute("router", 200,
             MetaphorJs.app.resolve(
                 config.get("value"),
                 cfg,
-                scope, node,
+                node,
                 [cfg]
             )
             .done(function(view){

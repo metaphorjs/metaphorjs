@@ -447,29 +447,52 @@ Scope.$get = function(name) {
  * @param {string|MetaphorJs.lib.Scope} name {
  *  @optional
  * }
+ * @param {MetaphorJs.lib.Scope} parent {
+ *  @optional
+ * }
  * @returns MetaphorJs.lib.Scope
  */
-Scope.$produce = function(name) {
+Scope.$produce = function(name, parent) {
 
     if (name instanceof Scope) {
         return name;
     }
 
     if (!name) {
+        if (parent) {
+            return parent;
+        }
         var def = publicScopes['__default'];
         return def ? def.$new() : new Scope;
     }
     else {
-        var child = false;
-        if (name[name.length - 1] === "*") {
-            name = name.substring(0, name.length - 1);
-            child = true;
+        var action = "self";
+
+        if (name.indexOf(":") !== -1) {
+            var parts = name.split(":");
+            name = parts[0];
+            action = parts[1] || "self";
         }
-        var scope = this.$get(name);
-        if (!scope) {
-            throw new Error("Scope with name " + name + " not found");
+
+        if (name) {
+            parent = this.$get(name);
+            if (!parent) {
+                throw new Error("Scope with name " + name + " not found");
+            }
         }
-        return child ? scope.$new() : scope;
+
+        switch (action) {
+            case "self":
+                return parent;
+            case "new":
+                return parent.$new();
+            case "parent":
+                return parent.$parent || parent.$root;
+            case "root":
+                return parent.$root;
+            default:
+                throw new Error("Unknown scope action: " + action);
+        }
     }
 };
 

@@ -44,7 +44,7 @@ module.exports = MetaphorJs.app.view.Base = cls({
             self.id = self.config.get("id") || nextUid();
         }
 
-        self.scope.$app.registerCmp(self, self.scope, "id");        
+        self.scope.$app.registerCmp(self, "id");        
         self.initView();
     },
 
@@ -101,8 +101,9 @@ module.exports = MetaphorJs.app.view.Base = cls({
 
             cfg.destroyEl = false;
             cfg.autoRender = true;
+            cfg.scope = scope;
 
-            return MetaphorJs.app.resolve(cls, cfg, scope, node, [cfg]).done(function(newCmp){
+            return MetaphorJs.app.resolve(cls, cfg, node, [cfg]).done(function(newCmp){
                 newCmp.on("destroy", self.onCmpDestroy, self);
                 self.currentComponent = newCmp;
                 self.afterCmpChange();

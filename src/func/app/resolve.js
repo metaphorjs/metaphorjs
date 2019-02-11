@@ -13,16 +13,15 @@ var extend = require("metaphorjs-shared/src/func/extend.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js"),
     isString = require("metaphorjs-shared/src/func/isString.js"),
     isFunction = require("metaphorjs-shared/src/func/isFunction.js"),
-    isPlainObject = require("metaphorjs-shared/src/func/isPlainObject.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, node, args) {
+module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, node, args) {
 
     cfg         = cfg || {};
     args        = args || [];
 
-    scope       = scope || cfg.scope; // || new Scope;
     node        = node || cfg.node;
+    var scope   = cfg.scope; 
     var config  = cfg.config || null;
 
     cfg.config  = config;
@@ -34,7 +33,7 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
     }
 
     if (config) {
-        if (isPlainObject(config)) {
+        if (!(config instanceof MetaphorJs.lib.Config)) {
             config = new MetaphorJs.lib.Config(config, {
                 scope: scope
             }, /*scalarAs: */"defaultValue");
@@ -48,7 +47,6 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, 
 
     var i,
         defers      = [],
-        //tpl         = constr.template || cfg.template || null,
         app         = scope ? scope.$app : null,
         gProvider   = MetaphorJs.lib.Provider.global(),
         injectFn    = app ? app.inject : gProvider.inject,

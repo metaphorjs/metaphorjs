@@ -14,7 +14,7 @@ MetaphorJs.app.Directive.registerAttribute("view", 200,
             MetaphorJs.app.resolve(
                 "MetaphorJs.app.view.Component",
                 cfg,
-                scope, node,
+                node,
                 [cfg]
             )
             .done(function(view){

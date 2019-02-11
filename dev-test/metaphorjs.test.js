@@ -3316,29 +3316,52 @@ Scope.$get = function(name) {
  * @param {string|MetaphorJs.lib.Scope} name {
  *  @optional
  * }
+ * @param {MetaphorJs.lib.Scope} parent {
+ *  @optional
+ * }
  * @returns MetaphorJs.lib.Scope
  */
-Scope.$produce = function(name) {
+Scope.$produce = function(name, parent) {
 
     if (name instanceof Scope) {
         return name;
     }
 
     if (!name) {
+        if (parent) {
+            return parent;
+        }
         var def = publicScopes['__default'];
         return def ? def.$new() : new Scope;
     }
     else {
-        var child = false;
-        if (name[name.length - 1] === "*") {
-            name = name.substring(0, name.length - 1);
-            child = true;
+        var action = "self";
+
+        if (name.indexOf(":") !== -1) {
+            var parts = name.split(":");
+            name = parts[0];
+            action = parts[1] || "self";
         }
-        var scope = this.$get(name);
-        if (!scope) {
-            throw new Error("Scope with name " + name + " not found");
+
+        if (name) {
+            parent = this.$get(name);
+            if (!parent) {
+                throw new Error("Scope with name " + name + " not found");
+            }
         }
-        return child ? scope.$new() : scope;
+
+        switch (action) {
+            case "self":
+                return parent;
+            case "new":
+                return parent.$new();
+            case "parent":
+                return parent.$parent || parent.$root;
+            case "root":
+                return parent.$root;
+            default:
+                throw new Error("Unknown scope action: " + action);
+        }
     }
 };
 
@@ -8972,21 +8995,22 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
         applyDirective = function(dir, parentScope, node, config, attrs, renderer) {
 
             config.setDefaultMode("scope", lib_Config.MODE_STATIC);
+            //config.setDefaultValue("scope", ":new", /*override: */false);
 
             var scope   = config.has("scope") ? 
-                            lib_Scope.$produce(config.get("scope")) :
+                            lib_Scope.$produce(config.get("scope"), parentScope) :
                             parentScope,
-                app     = parentScope.$app,
+                app     = parentScope.$app || scope.$app,
                 inject  = {
                     $scope: scope,
                     $node: node,
-                    $nodeConfig: config,
+                    $config: config,
                     $attrSet: attrs,
                     $renderer: renderer
                 },
                 args    = [scope, node, config, renderer, attrs],
                 inst;
-            
+
             if (config.has("scope")) {
                 config.setOption("scope", scope);
             }
@@ -9008,10 +9032,6 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
             else if (typeof inst === "function") {
                 renderer && renderer.on("destroy", inst);
                 !renderer && parentScope.$on("destroy", inst);
-            }
-
-            if (dir.$stopRenderer) {
-                return false;
             }
 
             return inst;
@@ -13975,6 +13995,10 @@ var app_Component = MetaphorJs.app.Component = cls({
         self.$super(cfg);
         extend(self, cfg, true, false);
 
+        if (!self.scope || (typeof(self.scope) === "string" && 
+                            self.scope.indexOf(":new") !== -1)) {
+            self.destroyScope = true;
+        }
         scope = self.scope = lib_Scope.$produce(self.scope);
 
         // We initialize config with current scope or change config's scope
@@ -14023,7 +14047,7 @@ var app_Component = MetaphorJs.app.Component = cls({
         self.initComponent.apply(self, arguments);
 
         if (scope.$app) {
-            scope.$app.registerCmp(self, scope, "id");
+            scope.$app.registerCmp(self, "id");
         }
 
         if (self.parentRenderer) {
@@ -14668,13 +14692,13 @@ MetaphorJs.app = MetaphorJs.app || {};
 
 
 
-var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope, node, args) {
+var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, node, args) {
 
     cfg         = cfg || {};
     args        = args || [];
 
-    scope       = scope || cfg.scope; // || new Scope;
     node        = node || cfg.node;
+    var scope   = cfg.scope; 
     var config  = cfg.config || null;
 
     cfg.config  = config;
@@ -14686,7 +14710,7 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
     }
 
     if (config) {
-        if (isPlainObject(config)) {
+        if (!(config instanceof MetaphorJs.lib.Config)) {
             config = new lib_Config(config, {
                 scope: scope
             }, /*scalarAs: */"defaultValue");
@@ -14700,7 +14724,6 @@ var app_resolve = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, scope,
 
     var i,
         defers      = [],
-        //tpl         = constr.template || cfg.template || null,
         app         = scope ? scope.$app : null,
         gProvider   = lib_Provider.global(),
         injectFn    = app ? app.inject : gProvider.inject,
@@ -15575,7 +15598,7 @@ MetaphorJs.app.Controller = cls({
         self._initController.apply(self, arguments);
 
         if (scope.$app) {
-            scope.$app.registerCmp(self, scope, "id");
+            scope.$app.registerCmp(self, "id");
         }
 
         if (self.parentRenderer) {
@@ -16750,7 +16773,7 @@ var app_view_Base = MetaphorJs.app.view.Base = cls({
             self.id = self.config.get("id") || nextUid();
         }
 
-        self.scope.$app.registerCmp(self, self.scope, "id");        
+        self.scope.$app.registerCmp(self, "id");        
         self.initView();
     },
 
@@ -16807,8 +16830,9 @@ var app_view_Base = MetaphorJs.app.view.Base = cls({
 
             cfg.destroyEl = false;
             cfg.autoRender = true;
+            cfg.scope = scope;
 
-            return app_resolve(cls, cfg, scope, node, [cfg]).done(function(newCmp){
+            return app_resolve(cls, cfg, node, [cfg]).done(function(newCmp){
                 newCmp.on("destroy", self.onCmpDestroy, self);
                 self.currentComponent = newCmp;
                 self.afterCmpChange();
@@ -17993,7 +18017,6 @@ var app_view_Router = MetaphorJs.app.view.Router = app_view_Base.$extend({
                     return app_resolve(
                         route.cmp || "MetaphorJs.app.Component",
                         cfg,
-                        cfg.scope,
                         node,
                         args
                     )
@@ -18474,77 +18497,53 @@ DO NOT put class="{}" when using class.name="{}"
         if (!(node instanceof window.Node)) {
             throw new Error("cmp directive can only work with DOM nodes");
         }
+
+        // if there 
+        if (!config.has("scope")) {
+            scope = scope.$new();
+        }
         
         var ms = lib_Config.MODE_STATIC;
 
         config.setDefaultMode("value", ms);
-        config.setType("sameScope", "bool", ms);
-        config.setType("publicScope", "string", ms);
         config.setDefaultMode("as", ms);
         config.setDefaultMode("ref", ms);
         config.setMode("into", ms);
         config.setType("cloak", "bool", ms);
-        //config.setType("animate", "bool", ms);
 
         var cmpName = config.get("value"),
-            constr  = typeof cmpName === "string" ?
-                        ns.get(cmpName, true) : cmpName,
-            tag     = node.tagName.toLowerCase(),
-            newScope;
-
-        if (!constr) {
-            throw new Error("Component " + cmpName + " not found");
-        }
-
-        var sameScope   = config.get("sameScope") || constr.$sameScope;
-        var publicScope = config.get("publicScope");
-
-        if (publicScope) {
-            newScope    =  lib_Scope.$get(publicScope);
-            if (!newScope) {
-                throw new Error("Public scope " + publicScope + " not found");
-            }
-        }
-        else {
-            newScope    = sameScope ? scope : scope.$new();
-        }
+            tag     = node.tagName.toLowerCase();
 
         config.removeProperty("value");
 
         var cfg = {
-            scope: newScope,
+            scope: scope,
             node: node,
             config: config,
             parentRenderer: renderer,
-            destroyScope: !sameScope,
             autoRender: true
         };
 
         if (MetaphorJs.directive.component[tag]) {
             cfg.directives = attrSet.directives;
+            renderer.flowControl("stop", true);
         }
 
-        var res = app_resolve(cmpName, cfg, newScope, node, [cfg])
+        var promise = app_resolve(cmpName, cfg, node, [cfg])
             .done(function(cmp){
-                if (renderer.$destroyed || newScope.$$destroyed) {
+                if (renderer.$destroyed || scope.$$destroyed) {
                     cmp.$destroy();
                 }
                 else {
                     renderer.on("destroy", cmp.$destroy, cmp);
                     renderer.trigger(
-                        "reference", "cmp", 
-                        config.get("ref") || cmp.id, cmp, 
-                        cfg, attrSet
+                        "reference", "cmp", config.get("ref") || cmp.id, 
+                        cmp, cfg, attrSet
                     );
                 }
             });
 
-        renderer.trigger(
-            "reference-promise", 
-            res, cmpName, 
-            cfg, attrSet
-        );
-
+        renderer.trigger("reference-promise", promise, cmpName, cfg, attrSet);
         renderer.flowControl("ignoreInside", true);
     };
 
@@ -18565,45 +18564,23 @@ DO NOT put class="{}" when using class.name="{}"
         var ms = lib_Config.MODE_STATIC;
 
         config.setDefaultMode("value", ms);
-        config.setType("sameScope", "bool", ms);
-        config.setType("publicScope", "string", ms);
         config.setDefaultMode("as", ms);
 
-        var ctrlName = config.get("value"),
-            constr  = typeof ctrlName === "string" ?
-                        ns.get(ctrlName) : ctrlName,
-            newScope;
-
-        if (!constr) {
-            throw new Error("Controller " + ctrlName + " not found");
-        }
-
-        var sameScope   = config.get("sameScope") || constr.$sameScope;
-        var publicScope = config.get("publicScope");
-
-        if (publicScope) {
-            newScope    =  lib_Scope.$get(publicScope);
-            if (!newScope) {
-                throw new Error("Public scope " + publicScope + " not found");
-            }
-        }
-        else {
-            newScope    = sameScope ? scope : scope.$new();
-        }
+        var ctrlName = config.get("value");
 
         config.removeProperty("value");
 
         var cfg = {
-            scope: newScope,
+            scope: scope,
             node: node,
             config: config,
             parentRenderer: renderer,
             attrSet: attrSet
         };
 
-        app_resolve(ctrlName, cfg, newScope, node, [cfg])
-            .done(function(ctrl){
-                if (renderer.$destroyed || newScope.$$destroyed) {
+        app_resolve(ctrlName, cfg, node, [cfg])
+            .done(function(ctrl) {
+                if (renderer.$destroyed || scope.$$destroyed) {
                     ctrl.$destroy();
                 }
                 else {
@@ -20592,7 +20569,7 @@ Directive.registerAttribute("router", 200,
             app_resolve(
                 config.get("value"),
                 cfg,
-                scope, node,
+                node,
                 [cfg]
             )
             .done(function(view){
@@ -21196,7 +21173,7 @@ Directive.registerAttribute("view", 200,
             app_resolve(
                 "MetaphorJs.app.view.Component",
                 cfg,
-                scope, node,
+                node,
                 [cfg]
             )
             .done(function(view){
@@ -25560,8 +25537,7 @@ var app_init = MetaphorJs.app.init = function app_init(node, cls, data, autorun)
     try {
         var p = app_resolve(
                     cls || "MetaphorJs.app.App", 
-                    extend({}, cfg), 
-                    data, 
+                    extend({scope: data}, cfg), 
                     node, 
                     [node, data]
                 );
@@ -35551,15 +35527,18 @@ cls({
 
         createNew: function() {
             var node    = document.getElementById("newComponent");
-            app_resolve("Test.DynamicComponent", {autoRender: true}, this.scope, node);
+            app_resolve(
+                "Test.DynamicComponent", 
+                {autoRender: true, scope: this.scope}, 
+                node
+            );
         },
 
         createRender: function() {
             var to  = document.getElementById("renderToComponent");
             app_resolve(
                 "Test.DynamicComponent", 
-                {autoRender: false}, 
-                this.scope
+                {autoRender: false, scope: this.scope}
             )
             .done(function(cmp){
                 cmp.render(to)

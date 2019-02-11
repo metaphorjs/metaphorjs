@@ -14,49 +14,30 @@ var Directive = require("../../app/Directive.js"),
         if (!(node instanceof window.Node)) {
             throw new Error("cmp directive can only work with DOM nodes");
         }
+
+        // if there 
+        if (!config.has("scope")) {
+            scope = scope.$new();
+        }
         
         var ms = MetaphorJs.lib.Config.MODE_STATIC;
 
         config.setDefaultMode("value", ms);
-        config.setType("sameScope", "bool", ms);
-        config.setType("publicScope", "string", ms);
         config.setDefaultMode("as", ms);
         config.setDefaultMode("ref", ms);
         config.setMode("into", ms);
         config.setType("cloak", "bool", ms);
-        //config.setType("animate", "bool", ms);
 
         var cmpName = config.get("value"),
-            constr  = typeof cmpName === "string" ?
-                        ns.get(cmpName, true) : cmpName,
-            tag     = node.tagName.toLowerCase(),
-            newScope;
-
-        if (!constr) {
-            throw new Error("Component " + cmpName + " not found");
-        }
-
-        var sameScope   = config.get("sameScope") || constr.$sameScope;
-        var publicScope = config.get("publicScope");
-
-        if (publicScope) {
-            newScope    =  MetaphorJs.lib.Scope.$get(publicScope);
-            if (!newScope) {
-                throw new Error("Public scope " + publicScope + " not found");
-            }
-        }
-        else {
-            newScope    = sameScope ? scope : scope.$new();
-        }
+            tag     = node.tagName.toLowerCase();
 
         config.removeProperty("value");
 
         var cfg = {
-            scope: newScope,
+            scope: scope,
             node: node,
             config: config,
             parentRenderer: renderer,
-            destroyScope: !sameScope,
             autoRender: true
         };
 
@@ -65,27 +46,21 @@ var Directive = require("../../app/Directive.js"),
             renderer.flowControl("stop", true);
         }
 
-        var res = MetaphorJs.app.resolve(cmpName, cfg, newScope, node, [cfg])
+        var promise = MetaphorJs.app.resolve(cmpName, cfg, node, [cfg])
             .done(function(cmp){
-                if (renderer.$destroyed || newScope.$$destroyed) {
+                if (renderer.$destroyed || scope.$$destroyed) {
                     cmp.$destroy();
                 }
                 else {
                     renderer.on("destroy", cmp.$destroy, cmp);
                     renderer.trigger(
-                        "reference", "cmp", 
-                        config.get("ref") || cmp.id, cmp, 
-                        cfg, attrSet
+                        "reference", "cmp", config.get("ref") || cmp.id, 
+                        cmp, cfg, attrSet
                     );
                 }
             });
 
-        renderer.trigger(
-            "reference-promise", 
-            res, cmpName, 
-            cfg, attrSet
-        );
-
+        renderer.trigger("reference-promise", promise, cmpName, cfg, attrSet);
         renderer.flowControl("ignoreInside", true);
     };
 
