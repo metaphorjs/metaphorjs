@@ -490,6 +490,11 @@ Scope.$produce = function(name, parent) {
                 return parent.$parent || parent.$root;
             case "root":
                 return parent.$root;
+            case "app":
+                if (!parent.$app) {
+                    throw new Error("App not found in scope");
+                }
+                return parent.$app.scope;
             default:
                 throw new Error("Unknown scope action: " + action);
         }

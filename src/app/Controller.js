@@ -36,6 +36,11 @@ module.exports = MetaphorJs.app.Controller = cls({
     scope:          null,
 
     /**
+     * @var {MetaphorJs.app.Renderer}
+     */
+    parentRenderer: null,
+
+    /**
      * @var {MetaphorJs.lib.Config}
      */
     config:         null,
@@ -97,6 +102,7 @@ module.exports = MetaphorJs.app.Controller = cls({
 
         if (self.parentRenderer) {
             self.parentRenderer.on("destroy", self._onParentRendererDestroy, self);
+            //self.parentRenderer.on("reference", self._onChildReference, self);
         }
 
         self._claimNode();

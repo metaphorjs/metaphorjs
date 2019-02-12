@@ -2,6 +2,7 @@
 require("../func/dom/addListener.js");
 require("../func/dom/removeListener.js");
 require("../func/dom/normalizeEvent.js");
+require("../func/dom/is.js");
 require("./EventBuffer.js");
 require("./Expression.js");
 require("./MutationObserver.js");
@@ -10,6 +11,7 @@ var undf = require("metaphorjs-shared/src/var/undf.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     async = require("metaphorjs-shared/src/func/async.js"),
     isPlainObject = require("metaphorjs-shared/src/func/isPlainObject.js"),
+    isArray = require("metaphorjs-shared/src/func/isArray.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
@@ -70,8 +72,10 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
                 stopPropagation = false,
                 res,
                 cfg = config.getAll(),
+                not = cfg.not,
                 handlers = [],
                 names = [],
+                skipHandler = false,
                 handler, i, l;
 
             config.eachProperty(function(name){
@@ -88,6 +92,24 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
 
             e = MetaphorJs.dom.normalizeEvent(e || window.event);
 
+            if (not) {
+                if (!isArray(not)) {
+                    not = [not];
+                }
+                var prnt;
+                nt:
+                for (i = 0, l = not.length; i < l; i++) {
+                    prnt = e.target;
+                    while (prnt && prnt !== self.node) {
+                        if (MetaphorJs.dom.is(prnt, not[i])) {
+                            skipHandler = true;
+                            break nt;
+                        }
+                        prnt = prnt.parentNode;
+                    }
+                }
+            }
+
             if (keyCode) {
                 if (typeof keyCode === "number" && keyCode !== e.keyCode) {
                     return null;
@@ -102,7 +124,7 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
             scope.$prevEvent = self.prevEvent[e.type];
             scope.$eventCmp = config.get("targetComponent");
 
-            if (handlers.length > 0) {
+            if (!skipHandler && handlers.length > 0) {
                 for (i = 0, l = handlers.length; i < l; i++) {
                     handler = handlers[i];
                     res = handler.call(cfg.context || null, scope);
@@ -127,6 +149,7 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
 
             scope.$event = null;
             scope.$eventNode = null;
+            scope.$eventCmp = null;
 
             self.prevEvent[e.type] = e;
 

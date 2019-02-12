@@ -18,13 +18,15 @@ var Directive = require("../../app/Directive.js"),
         i, len;
 
     var prepareConfig = function(config) {
+        var ms = MetaphorJs.lib.Config.MODE_STATIC;
         config.setProperty("preventDefault", {
             type: "bool", 
             defaultValue: true,
-            defaultMode: MetaphorJs.lib.Config.MODE_STATIC
+            defaultMode: ms
         });
-        config.setType("stopPropagation", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setType("stopPropagation", "bool", ms);
         config.setType("if", "bool");
+        config.setType("not", "string", ms);
         config.eachProperty(function(k){
             if (k === 'value' || k.indexOf('value.') === 0) {
                 config.setMode(k, MetaphorJs.lib.Config.MODE_FUNC);
