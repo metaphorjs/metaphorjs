@@ -26,129 +26,135 @@ var cls = require("metaphorjs-class/src/cls.js"),
 module.exports = MetaphorJs.app.ListRenderer = cls({
 
     id: null,
+    config: null,
+    scope: null,
+    listSourceExpr: null,
+    itemScopeName: null,
 
-    cfg: null,
-    model: null,
-    itemName: null,
-    tpl: null,
-    renderers: null,
-    parentEl: null,
-    prevEl: null,
-    nextEl: null,
-    trackBy: null,
-    trackByWatcher: null,
-    animateMove: false,
-    animate: false,
-    trackByFn: null,
-    griDelegate: null,
-    tagMode: false,
-
-    renderQueue: null,
-
-    buffered: false,
-    bufferPlugin: null,
+    _tagMode: false,
+    _animateMove: false,
+    _animate: false,
+    _buffered: false,
+    _trackBy: null,
+    _parentRenderer: null,
+    _template: null,
+    _items: null,
+    _prevEl: null,
+    _nextEl: null,
+    _renderQueue: null,
+    _attachQueue: null,
+    _mo: null,
+    _trackByFn: null,
+    _localTrack: false,
+    _griDelegate: null,
 
     $constructor: function(scope, node, config, parentRenderer, attrSet) {
 
-        config.setDefaultMode("trackBy", MetaphorJs.lib.Config.MODE_STATIC);
+        var self = this;
 
-        var self    = this, 
-            cfg     = config.getAll();
-            
-        self.cfg            = config;
+        self.config         = config;
         self.scope          = scope;
-        self.tagMode        = node.nodeName.toLowerCase() === "mjs-each";
-        self.animateMove    = !self.tagMode && 
-                                !cfg['buffered'] &&
-                                cfg["animateMove"] && 
+        self.initConfig();
+
+        self._tagMode       = node.nodeName.toLowerCase() === "mjs-each";
+        self._animateMove   = !self._tagMode && 
+                                !config.hasValue("buffered") &&
+                                config.get("animateMove") && 
                                 MetaphorJs.animate.isCssSupported();
-        self.animate        = !self.tagMode && 
-                                !cfg['buffered'] && 
-                                cfg["animate"];
-        self.id             = cfg['id'] || nextUid();
 
-        scope.$app.registerCmp(self, "id");
+        self._animate       = !self._tagMode && 
+                                !config.hasValue("buffered") && 
+                                config.get("animate");
 
-        if (self.animate) {
-            self.$plugins.push(cfg['animatePlugin'] || "MetaphorJs.plugin.ListAnimated");
+        if (self._animate) {
+            self.$plugins.push(config.get("animatePlugin"));
         }
 
-        if (cfg['observable']) {
-            self.$plugins.push(cfg['observable'] || "MetaphorJs.plugin.Observable");
+        if (config.hasValue("observable")) {
+            self.$plugins.push("MetaphorJs.plugin.Observable");
         }
 
-        if (cfg['buffered'] && !self.tagMode) {
-            self.buffered = true;
-            self.$plugins.push(cfg['buffered'] || "MetaphorJs.plugin.ListBuffered");
+        if (config.hasValue("buffered") && !self._tagMode) {
+            self._buffered = true;
+            var buff = config.get("buffered");
+            buff === true && (buff = config.getProperty("buffered").defaultValue);
+            self.$plugins.push(buff);
         }
 
-        if (cfg['plugin']) {
-            self.$plugins.push(cfg['plugin']);
+        if (config.has('plugin')) {
+            self.$plugins.push(config.get("plugin"));
         }
 
-        if (config.get('trackBy') === false) {
-            self.trackBy = false;
-        }
+        self._trackBy = config.get("trackBy");
     },
 
     $init: function(scope, node, config, parentRenderer, attrSet) {
 
-        var self = this,
-            expr;
+        var self = this;
 
-        if (self.tagMode) {
-            expr = MetaphorJs.dom.getAttr(node, "value");
+        self._parseExpr(self._tagMode ? 
+                        MetaphorJs.dom.getAttr(node, "value") : 
+                        config.getExpression("value"));
+
+        self._template  = self._tagMode ? 
+                            MetaphorJs.dom.toFragment(node.childNodes) : 
+                            node;
+        self._items     = [];
+        self.id         = config.has('id') ? config.get('id') : nextUid();
+
+        if (!self._trackBy && self._trackBy !== false) {
+            self._localTrack = true;
         }
-        else {
-            expr = config.getExpression("value");
-        }
 
-        self.parseExpr(expr);
+        var cmts = MetaphorJs.dom.commentWrap(node,  "list-" + self.id);
+        self._prevEl    = cmts[0];
+        self._nextEl    = cmts[1];
 
-        self.tpl        = self.tagMode ? MetaphorJs.dom.toFragment(node.childNodes) : node;
-        self.renderers  = [];
-
-        var cmts = MetaphorJs.dom.commentWrap(node,  "list -" + self.id);
-
-        self.prevEl     = cmts[0];
-        self.nextEl     = cmts[1];
-        self.parentEl   = node.parentNode;
-        self.node       = null; //node;
-
-        self.renderQueue      = new MetaphorJs.lib.Queue({
+        self._parentRenderer    = parentRenderer;
+        self._renderQueue       = new MetaphorJs.lib.Queue({
             async: false, auto: true, thenable: true,
             stack: false, context: self, mode: MetaphorJs.lib.Queue.ONCE
         });
-        /*self.attachQueue      = new MetaphorJs.lib.Queue({
+        self._attachQueue       = new MetaphorJs.lib.Queue({
             async: "raf", auto: true, thenable: true,
             stack: false, context: self, mode: MetaphorJs.lib.Queue.ONCE
-        });*/
+        });
 
-        self.parentEl.removeChild(node);
+        node.parentNode.removeChild(node);
 
-        self.afterInit(scope, node, config, parentRenderer, attrSet);
+        self.initDataSource();
+        self.scope.$app.registerCmp(self, "id");
 
-        self.renderQueue.add(self.render, self, [toArray(self.watcher.getValue())]);
+        self._renderQueue.add(self.render, self, [toArray(self._mo.getValue())]);
     },
 
-    afterInit: function(scope, node) {
+    initConfig: function() {
+        var config = this.config,
+            ms = MetaphorJs.lib.Config.MODE_STATIC;
+        config.setType("animate", "bool", ms, false);
+        config.setType("animateMove", "bool", ms, false);
+        config.setDefaultMode("trackBy", ms);
+        config.setDefaultMode("id", ms);
+        config.setDefaultMode("plugin", ms);
+        config.setType("observable", "bool", ms, false);
+        config.setDefaultValue("buffered", "MetaphorJs.plugin.ListBuffered");
+        config.setType("animatePlugin", null, ms, "MetaphorJs.plugin.ListAnimated");
+    },
 
-        var self        = this,
-            cfg         = self.cfg;
+    initDataSource: function() {
 
-        self.watcher    = MetaphorJs.lib.MutationObserver.get(scope, self.model, self.onChange, self);
-        self.trackBy    = cfg.get("trackBy"); // lowercase from attributes
-
-        if (self.trackBy !== false && typeof self.trackBy !== "function") {
-            if (cfg.getProperty("trackBy").mode !== MetaphorJs.lib.Config.MODE_STATIC) {
-                cfg.on("trackBy", self.onChangeTrackBy, self);
-            }
-            else if (!self.trackBy && !self.watcher.hasInputPipes()) {
-                self.trackBy = '$$'+self.watcher.id;
-            }
+        var self        = this;
+        self._mo        = MetaphorJs.lib.MutationObserver.get(
+                            self.scope, self.listSourceExpr, 
+                            self.onChange, self,
+                            {
+                                localFilter: bind(self.localTracklistFilter, self)
+                            }
+                        );
+        if (self._localTrack && !self._trackBy) {
+            self._trackBy = "$$" + self._mo.id;
         }
-
-        self.griDelegate = bind(self.scopeGetRawIndex, self);
+        self._griDelegate = bind(self.scopeGetRawIndex, self);
     },
 
     trigger: emptyFn,
@@ -160,53 +166,77 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
     render: function(list) {
 
         var self        = this,
-            renderers   = self.renderers,
-            tpl         = self.tpl,
+            items       = self._items,
+            tpl         = self._template,
             i, len;
 
         for (i = 0, len = list.length; i < len; i++) {
-            renderers.push(self.createItem(tpl.cloneNode(true), list, i));
+            items.push(self.createItem(tpl.cloneNode(true), list, i));
         }
 
-        self.doRender();
-        //self.attachQueue.add(self.doRender, self);
+        self.renderOrUpdate();
+        self._attachQueue.add(self.attachAllItems, self);
     },
 
-    doRender: function() {
+    createItem: function(el, list, index) {
+
+        var self        = this,
+            iname       = self.itemScopeName,
+            itemScope   = self.scope.$new(),
+            tm          = self._tagMode;
+
+        itemScope.$on("changed", self.scope.$check, self.scope);
+
+        itemScope[iname]    = self.getListItem(list, index);
+        el = tm ? toArray(el.childNodes) : el;
+
+        return {
+            index: index,
+            action: "enter",
+            el: el,
+            placeholder: window.document.createComment("*list*" + index + "*"),
+            scope: itemScope,
+            attached: false,
+            rendered: false,
+            hidden: false
+        };
+    },
+
+    attachAllItems: function() {
 
         var self        = this,
             fragment    = window.document.createDocumentFragment(),
-            renderers   = self.renderers,
-            tm          = self.tagMode,
+            items       = self._items,
+            tm          = self._tagMode,
             i, len;
 
-        for (i = 0, len = renderers.length; i < len; i++) {
+        for (i = 0, len = items.length; i < len; i++) {
 
-            if (!renderers[i].hidden) {
+            if (!items[i].hidden) {
                 if (tm) {
-                    fragment.appendChild(MetaphorJs.dom.toFragment(renderers[i].el));
+                    fragment.appendChild(MetaphorJs.dom.toFragment(items[i].el));
                 }
                 else {
-                    fragment.appendChild(renderers[i].el);
+                    fragment.appendChild(items[i].el);
                 }
-                renderers[i].attached = true;
+                items[i].attached = true;
+                fragment.appendChild(items[i].placeholder);
             }
         }
 
-        self.parentEl.insertBefore(fragment, self.nextEl);
-        self.doUpdate();
-
-        self.trigger("render", self);
+        self._nextEl.parentNode && 
+            self._nextEl.parentNode.insertBefore(fragment, self._nextEl);
+        self.trigger("attached", self);
     },
 
-    doUpdate: function(start, end, action, renderOnly) {
+    renderOrUpdate: function(start, end, action, renderOnly) {
 
         var self        = this,
-            renderers   = self.renderers,
+            items       = self._items,
             index       = start || 0,
-            cnt         = renderers.length,
+            cnt         = items.length,
             x           = end || cnt - 1,
-            list        = self.watcher.getValue(),
+            list        = self._mo.getValue(),
             trackByFn   = self.getTrackByFunction();
 
         if (x > cnt - 1) {
@@ -215,25 +245,25 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
 
         for (; index <= x; index++) {
 
-            if (action && renderers[index].action !== action) {
+            if (action && items[index].action !== action) {
                 continue;
             }
 
-            self.renderItem(index, renderers, list, trackByFn, renderOnly);
+            self.renderItem(index, items, list, trackByFn, renderOnly);
         }
     },
 
-    renderItem: function(index, rs, list, trackByFn, renderOnly) {
+    renderItem: function(index, items, list, trackByFn, renderOnly) {
 
         var self = this;
 
-        list = list || self.watcher.getValue();
-        rs = rs || self.renderers;
+        list = list || self._mo.getValue();
+        items = items || self._items;
         trackByFn = trackByFn || self.getTrackByFunction();
 
-        var item        = rs[index],
+        var item        = items[index],
             scope       = item.scope,
-            last        = rs.length - 1,
+            last        = items.length - 1,
             even        = !(index % 2);
 
         if (renderOnly && item.rendered) {
@@ -259,30 +289,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
     },
 
 
-    createItem: function(el, list, index) {
-
-        var self        = this,
-            iname       = self.itemName,
-            itemScope   = self.scope.$new(),
-            tm          = self.tagMode;
-
-        itemScope.$on("changed", self.scope.$check, self.scope);
-
-        itemScope[iname]    = self.getListItem(list, index);
-        el = tm ? toArray(el.childNodes) : el;
-
-        return {
-            index: index,
-            action: "enter",
-            el: el,
-            firstEl: tm ? el[0] : el,
-            lastEl: tm ? el[el.length - 1] : el,
-            scope: itemScope,
-            attached: false,
-            rendered: false,
-            hidden: false
-        };
-    },
+    
 
     /*
      * render and re-render -->
@@ -294,157 +301,179 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
 
     onChange: function(current, prev) {
         var self = this;
-        self.renderQueue.prepend(self.applyChanges, self, [prev], 
-                            MetaphorJs.lib.Queue.REPLACE);
+        self._renderQueue.prepend(self.applyChanges, self, [prev], 
+                                    MetaphorJs.lib.Queue.REPLACE);
     },
 
     applyChanges: function(prevList) {
 
+        
+
         var self        = this,
-            renderers   = self.renderers,
-            tpl         = self.tpl,
+            items       = self._items,
+            tpl         = self._template,
             index       = 0,
-            list        = toArray(self.watcher.getValue()),
+            list        = toArray(self._mo.getValue()),
             updateStart = null,
-            animateMove = self.animateMove,
-            newrs       = [],
-            iname       = self.itemName,
-            origrs      = renderers.slice(),
+            animateMove = self._animateMove,
+            newItems    = [],
+            iname       = self.itemScopeName,
+            origItems   = items.slice(),
             doesMove    = false,
-            prevr,
-            prevrInx,
+            prevItem,
+            prevItemInx,
             i, len,
-            r,
+            item,
             action;
 
-        if (self.trackBy === false) {
-            renderers = self.renderers.slice();
+        // if we don't track items, we just re-render the whole list
+        if (!self._trackBy) {
+            items = self._items.slice();
             updateStart = 0;
             doesMove = false;
             for (i = 0, len = list.length; i < len; i++) {
-                r = self.createItem(tpl.cloneNode(true), list, i);
-                newrs.push(r);
+                item = self.createItem(tpl.cloneNode(true), list, i);
+                newItems.push(item);
             }
         }
+        // if items are tracked
         else {
+            // we generate a move prescription
+            // by finding an array difference.
+            // But we don't compare original arrays, 
+            // we only compare list of ids - 
+            // since we only care about position change.
+            var prevTrackList = self.getTrackList(prevList),
+                trackList = self.getTrackList(list),
+                prs = levenshteinDiff(prevTrackList, trackList),
+                movePrs = levenshteinMove(
+                    prevTrackList, trackList, 
+                    prs.prescription, 
+                    function(item) { return item }
+                );
 
-            var prs = levenshteinDiff(prevList, list);
-            prs = levenshteinMove(prevList, list, prs.prescription, self.getTrackByFunction());
+            // move prescription is a list of instructions
+            // of the same length as new list of items.
+            // it either contains number - index of 
+            // item in the old list, or something else
+            // which basically means - create a new item
+            for (i = 0, len = movePrs.length; i < len; i++) {
 
-            // redefine renderers
-            for (i = 0, len = prs.length; i < len; i++) {
+                action = movePrs[i];
 
-                action = prs[i];
-
+                // int entry is a position of old item
+                // in the new order of things.
                 if (isNumber(action)) {
-                    prevrInx    = action;
-                    prevr       = renderers[prevrInx];
+                    prevItemInx = action;
+                    prevItem    = items[prevItemInx];
 
-                    if (prevrInx !== index && isNull(updateStart)) {
+                    if (prevItemInx !== index && isNull(updateStart)) {
                         updateStart = i;
                     }
 
-                    prevr.action = "move";
-                    prevr.scope[iname] = self.getListItem(list, i);
+                    prevItem.action = "move";
+                    prevItem.scope[iname] = self.getListItem(list, i);
                     doesMove = animateMove;
 
-                    newrs.push(prevr);
-                    renderers[prevrInx] = null;
+                    newItems.push(prevItem);
+                    items[prevItemInx] = null;
                     index++;
                 }
                 else {
                     if (isNull(updateStart)) {
                         updateStart = i;
                     }
-                    r = self.createItem(tpl.cloneNode(true), list, i);
-                    newrs.push(r);
+                    item = self.createItem(tpl.cloneNode(true), list, i);
+                    newItems.push(item);
                     // add new elements to old renderers
                     // so that we could correctly determine positions
                 }
             }
         }
 
-        self.renderers  = newrs;
-        self.reflectChanges({
-            oldRenderers:   renderers,
+        self._items  = newItems;
+
+        self._attachQueue.add(self.reflectChanges, self, [{
+            oldItems:       items,
             updateStart:    updateStart,
-            newRenderers:   newrs,
-            origRenderers:  origrs,
+            newItems:       newItems,
+            origItems:      origItems,
             doesMove:       doesMove
-        });
+        }]);
     },
 
 
     reflectChanges: function(vars) {
         var self = this;
-        self.applyDomPositions(vars.oldRenderers);
-        self.doUpdate(vars.updateStart || 0);
-        self.removeOldElements(vars.oldRenderers);
+        self.applyDomPositions(vars.oldItems);
+        self.renderOrUpdate(vars.updateStart || 0);
+        self.removeOldElements(vars.oldItems);
         self.trigger("change", self);
     },
 
 
 
-    removeOldElements: function(rs) {
-        var i, len, r,
+    removeOldElements: function(items) {
+        var i, len, item,
             j, jl,
-            self    = this,
-            parent  = self.parentEl;
+            self = this,
+            tm = self._tagMode;
 
-        for (i = 0, len = rs.length; i < len; i++) {
-            r = rs[i];
-            if (r && r.attached) {
-                r.attached = false;
-                if (!self.tagMode && r.el.parentNode) {
-                    r.el.parentNode.removeChild(r.el);
+        for (i = 0, len = items.length; i < len; i++) {
+            item = items[i];
+            if (item && item.attached) {
+                item.attached = false;
+                if (!tm) {
+                    item.el.parentNode && item.el.parentNode.removeChild(item.el);
                 }
                 else {
-                    for (j = 0, jl = r.el.length; j < jl; j++) {
-                        if (r.el[j].parentNode) {
-                            r.el[j].parentNode.removeChild(r.el[j]);
+                    for (j = 0, jl = item.el.length; j < jl; j++) {
+                        if (item.el[j].parentNode) {
+                            item.el[j].parentNode.removeChild(item.el[j]);
                         }
                     }
                 }
+                item.placeholder.parentNode && 
+                    item.placeholder.parentNode.removeChild(item.placeholder);
             }
-            if (r && r.scope) {
-                r.scope.$destroy();
+            if (item && item.scope) {
+                item.scope.$destroy();
+                item.rendered = false;
             }
         }
     },
 
 
-    applyDomPositions: function(oldrs) {
+    applyDomPositions: function() {
 
         var self        = this,
-            rs          = self.renderers,
-            parent      = self.parentEl,
-            tm          = self.tagMode,
-            nc          = self.nextEl,
-            next,
-            i, l, el, r,
-            j;
+            items       = self._items,
+            tm          = self._tagMode,
+            nc          = self._nextEl,
+            next, parent,
+            i, j, l, el, item, first;
 
-        for (i = 0, l = rs.length; i < l; i++) {
-            r = rs[i];
-            el = r.el;
+        for (i = 0, l = items.length; i < l; i++) {
+            item = items[i];
+            el = item.el;
             next = null;
 
-            if (r.hidden) {
-                if (el.parentNode) {
-                    if (tm) {
-                        el.parentNode.removeChild(MetaphorJs.dom.toFragment(el));
-                    }
-                    else {
-                        el.parentNode.removeChild(el);
-                    }
-                    r.attached = false;
+            if (item.hidden) {
+                if (tm) {
+                    MetaphorJs.dom.toFragment(el);
                 }
+                else if (el.parentNode) { 
+                    el.parentNode.removeChild(el);
+                }
+                item.placeholder.parentNode && 
+                    item.placeholder.parentNode.removeChild(item.placeholder);
+                item.attached = false;
                 continue;
             }
 
             for (j = Math.max(i - 1, 0); j >= 0; j--) {
-                if (rs[j].attached) {
-                    next = rs[j].lastEl.nextSibling;
+                if (items[j].attached) {
+                    next = items[j].placeholder.nextSibling;
                     break;
                 }
             }
@@ -453,16 +482,21 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
                 next = nc;
             }
 
-            if (r.firstEl !== next) {
-                if (next && r.lastEl.nextSibling !== next) {
+            first = tm ? el[0] : el;
+            parent = next.parentNode;
+
+            if (first !== next) {
+                if (next && item.placeholder.nextSibling !== next) {
                     parent.insertBefore(tm ? MetaphorJs.dom.toFragment(el) : el, next);
+                    parent.insertBefore(item.placeholder, next);
                 }
                 else if (!next) {
                     parent.appendChild(tm ? MetaphorJs.dom.toFragment(el) : el);
+                    parent.appendChild(item.placeholder);
                 }
             }
 
-            r.attached = true;
+            item.attached = true;
         }
     },
 
@@ -480,32 +514,27 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
         return list[index];
     },
 
-    onChangeTrackBy: function(val) {
-        this.trackByFn = null;
-        this.trackBy = val;
-    },
-
     getTrackByFunction: function() {
 
         var self = this,
             trackBy;
 
-        if (!self.trackByFn) {
+        if (!self._trackByFn) {
 
-            trackBy = self.trackBy;
+            trackBy = self._trackBy;
 
             if (!trackBy || trackBy === '$') {
-                self.trackByFn = function(item) {
+                self._trackByFn = function(item) {
                     return isPrimitive(item) ? item : undf;
                 };
             }
             else if (isFunction(trackBy)) {
-                self.trackByFn = trackBy;
+                self._trackByFn = trackBy;
             }
             else {
-                self.trackByFn = function(item){
+                self._trackByFn = function(item) {
                     if (item && !isPrimitive(item)) {
-                        if (!item[trackBy]) {
+                        if (self._localTrack && !item[trackBy]) {
                             item[trackBy] = nextUid();
                         }
                         return item[trackBy];
@@ -516,7 +545,28 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
             }
         }
 
-        return self.trackByFn;
+        return self._trackByFn;
+    },
+
+    localTracklistFilter: function(rawList, mo) {
+        var self = this;
+        if (self._trackBy !== false && self._localTrack) {
+            if (!self._trackBy) {
+                self._trackBy = "$$" + mo.id;
+            }
+
+            self.getTrackList(rawList);
+        }
+        return rawList;
+    },
+
+    getTrackList: function(list) {
+        var trackByFn = this.getTrackByFunction(),
+            trackList = [],
+            i, l;
+        for (i = -1, l = list.length; ++i < l; 
+            trackList.push(trackByFn(list[i]))){}
+        return trackList;
     },
 
 
@@ -527,7 +577,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
         }
 
         var self        = this,
-            list        = self.watcher.getValue(),
+            list        = self._mo.getValue(),
             trackByFn   = self.getTrackByFunction(),
             i, l;
 
@@ -546,7 +596,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
 
 
 
-    parseExpr: function(expr) {
+    _parseExpr: function(expr) {
 
         var tmp = expr.split(" "),
             i, len,
@@ -570,33 +620,29 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
             }
         }
 
-        this.model = model;
-        this.itemName = name || "item";
+        this.listSourceExpr = model;
+        this.itemScopeName = name || "item";
     },
 
 
     onDestroy: function() {
 
         var self        = this,
-            renderers   = self.renderers,
+            items       = self._items,
             i, len;
 
-        for (i = 0, len = renderers.length; i < len; i++) {
-            if (renderers[i].renderer && !renderers[i].renderer.destroyed) {
-                renderers[i].renderer.$destroy();
+        for (i = 0, len = items.length; i < len; i++) {
+            if (items[i].renderer && !items[i].renderer.$destroyed) {
+                items[i].renderer.$destroy();
             }
         }
 
-        if (self.trackByWatcher) {
-            self.trackByWatcher.unsubscribe(self.onChangeTrackBy, self);
-            self.trackByWatcher.$destroy(true);
-        }
+        self._renderQueue.$destroy();
+        self._attachQueue.$destroy();
 
-        self.renderQueue.$destroy();
-
-        if (self.watcher) {
-            self.watcher.unsubscribe(self.onChange, self);
-            self.watcher.$destroy(true);
+        if (self._mo) {
+            self._mo.unsubscribe(self.onChange, self);
+            self._mo.$destroy(true);
         }
     }
 

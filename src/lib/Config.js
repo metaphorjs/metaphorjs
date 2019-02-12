@@ -519,6 +519,15 @@ module.exports = MetaphorJs.lib.Config = (function(){
         },
 
         /**
+         * Does this config has a value for given key
+         * @param {string} name 
+         * @returns {bool}
+         */
+        hasValue: function(name) {
+            return this.values[name] !== undf;
+        },
+
+        /**
          * Does this config has an expression to calc value or 
          * already calculated value or default value
          * @method

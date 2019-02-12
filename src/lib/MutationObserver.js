@@ -77,6 +77,7 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
         self.getterFn = null;
         self.exprStruct = null;
         self.sub = [];
+        self.localFilter = opt.localFilter || null;
 
         // only plain getters
         if (MetaphorJs.lib.Expression.isPrebuiltKey(expr)) {
@@ -214,7 +215,9 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
         },
 
         _getValue: function() {
-            return this.getterFn(this.dataObj);
+            var self = this,
+                val = self.getterFn(self.dataObj);
+            return self.localFilter ? self.localFilter(val, self) : val;
         },
 
         _onSubChange: function() {

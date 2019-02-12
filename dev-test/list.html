@@ -15,8 +15,7 @@
                             {id: 2, bool: false, txt: 'item 2'},
                             {id: 3, bool: false, txt: 'item 3'}
                         ];
-                        window.mainScope = ____;
-                        this.trackBy = function(item) {return item.id}; 
+                        window.mainScope = ____; 
                         this.ids = 4;
                         this.newItem = '';
                         this.listFilter = '';
@@ -36,7 +35,6 @@
 
             <ul>
                 <li {each}="item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy"
-                    {each.$track-by}:="id"
                     {each.$animate-move}>
                     <label {class}="{cls3: this.item.bool}">
                         <input type="checkbox" 
@@ -62,8 +60,7 @@
             <h4>mjs-each (tag)</h4>
 
             <mjs-each 
-                value="item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy"
-                $track-by:="id">
+                value="item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy">
                 <div>
                     <label {class}="{cls3: this.item.bool}">
                         <input type="checkbox" 
