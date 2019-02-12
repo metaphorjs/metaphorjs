@@ -11,7 +11,7 @@ module.exports = (function(){
 
 
     var methods = {
-        getNodePositions: function(tmp, rs, oldrs) {
+        getNodePositions: function(tmp, items, oldItems) {
 
             var nodes = [],
                 i, l, el, r,
@@ -21,18 +21,18 @@ module.exports = (function(){
             while(tmp.firstChild) {
                 tmp.removeChild(tmp.firstChild);
             }
-            for (i = 0, l = rs.length; i < l; i++) {
-                if (oldrs && oldrs[i]) {
-                    tmpNode = oldrs[i].el.cloneNode(true);
+            for (i = 0, l = items.length; i < l; i++) {
+                if (oldItems && oldItems[i]) {
+                    tmpNode = oldItems[i].el.cloneNode(true);
                     tmp.appendChild(tmpNode);
                 }
-                tmpNode = rs[i].el.cloneNode(true);
+                tmpNode = items[i].el.cloneNode(true);
                 tmp.appendChild(tmpNode);
                 nodes.push(tmpNode);
             }
             for (i = 0, l = nodes.length; i < l; i++) {
                 el = nodes[i];
-                r = rs[i].renderer;
+                r = items[i].renderer;
                 if (r) {
                     positions[r.id] = {left: el.offsetLeft, top: el.offsetTop};
                 }
@@ -45,7 +45,7 @@ module.exports = (function(){
         calculateTranslates: function(newRenderers, origRenderers, withDeletes) {
 
             var self        = this,
-                parent      = self.parentEl,
+                parent      = self._nextEl.parentNode,
                 pp          = parent.parentNode,
                 tmp         = parent.cloneNode(true),
                 ofsW        = parent.offsetWidth,
@@ -133,15 +133,16 @@ module.exports = (function(){
         reflectChanges: function(vars) {
 
             var self            = this,
-                oldRenderers    = vars.oldRenderers,
-                newRenderers    = vars.newRenderers,
+                oldRenderers    = vars.oldItems,
+                newRenderers    = vars.newItems,
                 translates,
                 i, len, r;
 
-            self.doUpdate(vars.updateStart, null, "enter");
+            self.renderOrUpdate();
+            //self.renderOrUpdate(vars.updateStart, null, "enter");
 
             if (vars.doesMove) {
-                translates = self.calculateTranslates(vars.newRenderers, vars.origRenderers, vars.oldRenderers);
+                translates = self.calculateTranslates(vars.newItems, vars.origItems, vars.oldItems);
             }
 
             var animPromises    = [],
@@ -190,7 +191,7 @@ module.exports = (function(){
                     applyFrom.resolve();
                     self.applyDomPositions(oldRenderers);
                     if (!vars.doesMove) {
-                        self.doUpdate(vars.updateStart, null, "move");
+                        self.renderOrUpdate(vars.updateStart, null, "move");
                     }
                     raf(function(){
                         startAnimation.resolve();
@@ -202,10 +203,10 @@ module.exports = (function(){
             MetaphorJs.lib.Promise.all(animPromises).always(function(){
                 raf(function(){
                     var prefixes = MetaphorJs.animate.getPrefixes();
-                    self.doUpdate(vars.updateStart || 0);
+                    self.renderOrUpdate(vars.updateStart || 0);
                     self.removeOldElements(oldRenderers);
                     if (vars.doesMove) {
-                        self.doUpdate(vars.updateStart, null, "move");
+                        self.renderOrUpdate(vars.updateStart, null, "move");
                         for (i = 0, len = newRenderers.length; i < len; i++) {
                             r = newRenderers[i];
                             r.el.style[prefixes.transform] = null;

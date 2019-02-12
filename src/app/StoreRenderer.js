@@ -1,5 +1,6 @@
 
 require("../lib/Expression.js");
+require("../lib/Config.js");
 require("../lib/MutationObserver.js");
 require("../app/ListRenderer.js")
 
@@ -12,35 +13,39 @@ module.exports = MetaphorJs.app.StoreRenderer = MetaphorJs.app.ListRenderer.$ext
 
     $constructor: function(scope, node, config, parentRenderer, attrSet) {
 
-        var cfg = config.getAll();
+        config.setDefaultMode("pullNext", MetaphorJs.lib.Config.MODE_STATIC);
 
-        if (cfg.pullNext) {
-            if (cfg.buffered) {
-                cfg.bufferedPullNext = true;
-                cfg.buffered = false;
+        if (config.hasValue("pullNext") && config.get("pullNext")) {
+            if (config.hasValue("buffered")) {
+                config.setStatic("bufferedPullNext", true);
+                config.setStatic("buffered", false);
             }
 
+            var plg = config.get("pullNext");
             this.$plugins.push(
-                typeof cfg.pullNext === "string" ?
-                    cfg.pullNext : "MetaphorJs.plugin.ListPullNext");
+                typeof plg === "string" ? plg : "MetaphorJs.plugin.ListPullNext");
         }
 
         this.$super(scope, node, config, parentRenderer, attrSet);
     },
 
-    afterInit: function(scope, node, config, parentRenderer, attrSet) {
+    initDataSource: function() {
 
         var self            = this,
             store;
 
-        self.store          = store = MetaphorJs.lib.Expression.get(self.model, scope);
-        self.watcher        = MetaphorJs.lib.MutationObserver.get(store, "this.current", self.onChange, self);
-        
-        if (self.trackByFn !== false) {
-            self.trackByFn      = bind(store.getRecordId, store);
+        self.store          = store = MetaphorJs.lib.Expression.get(
+                                    self.listSourceExpr, 
+                                    self.scope
+                                );
+        if (self._trackBy !== false) {
+            self._trackByFn = bind(store.getRecordId, store);
         }
-        
-        self.griDelegate    = bind(store.indexOfId, store);
+
+        self._mo            = MetaphorJs.lib.MutationObserver.get(
+                                store, "this.current", 
+                                self.onChange, self);
+        self._griDelegate   = bind(store.indexOfId, store);
         self.bindStore(store, "on");
     },
 
@@ -54,7 +59,7 @@ module.exports = MetaphorJs.app.StoreRenderer = MetaphorJs.app.ListRenderer.$ext
     },
 
     onStoreUpdate: function() {
-        this.watcher.check();
+        this._mo.check();
     },
 
     getListItem: function(list, index) {
@@ -63,11 +68,11 @@ module.exports = MetaphorJs.app.StoreRenderer = MetaphorJs.app.ListRenderer.$ext
 
     onStoreDestroy: function() {
         var self = this;
-        if (self.watcher) {
+        if (self._mo) {
             self.onStoreUpdate();
-            self.watcher.unsubscribe(self.onChange, self);
-            self.watcher.$destroy(true);
-            self.watcher = null;
+            self._mo.unsubscribe(self.onChange, self);
+            self._mo.$destroy(true);
+            self._mo = null;
         }
     },
 

@@ -139,6 +139,11 @@ label.case-label {
     -moz-transform: translateY(0);
     transform: translateY(0);
 }
+.mjs-move {
+    -webkit-transform: translate(0,0);
+    -moz-transform: translate(0,0);
+    transform: translate(0,0);
+}
 .mjs-enter-active {
     opacity: 1;
     -webkit-transform: translateY(0);

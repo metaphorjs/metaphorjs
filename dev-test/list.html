@@ -35,6 +35,7 @@
 
             <ul>
                 <li {each}="item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy"
+                    {each.$animate}
                     {each.$animate-move}>
                     <label {class}="{cls3: this.item.bool}">
                         <input type="checkbox" 

@@ -319,7 +319,9 @@
                        value="Add item"/>
 
                 <ul {show}="this.bool">
-                    <li {each}="item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy">
+                    <li {each}="item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy"
+                        {each.$animate}
+                        {each.$animate-move}>
                         <label {class}="{cls3: this.item.bool}">
                             <input type="checkbox" 
                                     {model}="this.item.bool"/>

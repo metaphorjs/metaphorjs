@@ -14,6 +14,7 @@ var cls = require("metaphorjs-class/src/cls.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
     isNull = require("metaphorjs-shared/src/func/isNull.js"),
+    isArray = require("metaphorjs-shared/src/func/isArray.js"),
     isNumber = require("metaphorjs-shared/src/func/isNumber.js"),
     isPrimitive = require("metaphorjs-shared/src/func/isPrimitive.js"),
     bind = require("metaphorjs-shared/src/func/bind.js"),
@@ -393,20 +394,20 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
 
         self._items  = newItems;
 
-        self._attachQueue.add(self.reflectChanges, self, [{
+        self.reflectChanges({
             oldItems:       items,
             updateStart:    updateStart,
             newItems:       newItems,
             origItems:      origItems,
             doesMove:       doesMove
-        }]);
+        });
     },
 
 
     reflectChanges: function(vars) {
         var self = this;
+        self.renderOrUpdate();
         self.applyDomPositions(vars.oldItems);
-        self.renderOrUpdate(vars.updateStart || 0);
         self.removeOldElements(vars.oldItems);
         self.trigger("change", self);
     },
@@ -549,6 +550,12 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
     },
 
     localTracklistFilter: function(rawList, mo) {
+        if (!rawList) {
+            return [];
+        }
+        if (!isArray(rawList)) {
+            rawList = [rawList];
+        }
         var self = this;
         if (self._trackBy !== false && self._localTrack) {
             if (!self._trackBy) {
