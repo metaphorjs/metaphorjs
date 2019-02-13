@@ -115,7 +115,7 @@ module.exports = MetaphorJs.lib.EventBuffer = function(){
          * @method
          */
         watchHeight: function() {
-            this.addWatcher("width", MetaphorJs.dom.getHeight);
+            this.addWatcher("height", MetaphorJs.dom.getHeight);
         },
 
         /**

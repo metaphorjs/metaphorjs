@@ -165,7 +165,6 @@ module.exports = MetaphorJs.app.Directive = (function() {
             }
         },
 
-
         createCommentWrap: function(node, name) {
             var cmts = MetaphorJs.dom.commentWrap(node, name || this.$class);
             this.wrapperOpen = cmts[0];

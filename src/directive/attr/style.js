@@ -22,6 +22,7 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
         var self = this,
             config = self.config;
 
+        config.on("value", self.onScopeChange, self);
         config.eachProperty(function(k){
             if (k.indexOf("value.") === 0) {
                 config.on(k, self.onScopeChange, self);
@@ -29,6 +30,10 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
         });
 
         this.$super();
+    },
+
+    _initChange: function() {
+        this.onScopeChange();
     },
 
     getCurrentValue: function() {
