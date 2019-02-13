@@ -477,7 +477,7 @@ module.exports = MetaphorJs.app.Template = function() {
             if (node && nodes.indexOf(node) === -1) {
                 nodes.push(node);
                 if (self._renderer && self._virtualSets[ref]) {
-                    self._renderer.processNode(node, self.getVirtualSet(ref));
+                    self._renderer.processNode(node, self.scope, self.getVirtualSet(ref));
                 }
             }
         },
@@ -666,7 +666,7 @@ module.exports = MetaphorJs.app.Template = function() {
 
                 observable.trigger("before-render-" + self.id, self);
 
-                self._renderer   = new MetaphorJs.app.Renderer(self.scope);
+                self._renderer   = new MetaphorJs.app.Renderer;
 
                 if (self.config.get("passReferences") && self._parentRenderer) {
                     self._renderer.on(
@@ -689,7 +689,7 @@ module.exports = MetaphorJs.app.Template = function() {
                 observable.relayEvent(self._renderer, "rendered", "rendered-" + self.id);
 
                 observable.relayEvent(self._renderer, "reference", "reference-" + self.id);
-                self._renderer.process(self._nodes);
+                self._renderer.process(self._nodes, self.scope);
             }
         },
 
@@ -728,7 +728,7 @@ module.exports = MetaphorJs.app.Template = function() {
                                 node.setAttribute(attr, attrSet.rest[attr]);
                             }
                         }
-                        self._renderer.processNode(node, attrSet);
+                        self._renderer.processNode(node, self.scope, attrSet);
                     }
                 }
             }
@@ -918,7 +918,7 @@ module.exports = MetaphorJs.app.Template = function() {
             //var self = this;
 
             if (!self.$destroyed && self._renderer &&
-                !self._renderer.destroyed) {
+                !self._renderer.$destroyed) {
                 self._renderer.$destroy();
             }
 
@@ -939,6 +939,10 @@ module.exports = MetaphorJs.app.Template = function() {
 
             if (self._prevEl && self._prevEl.parentNode) {
                 self._prevEl.parentNode.removeChild(self._prevEl);
+            }
+
+            if (self._renderer) {
+                self._renderer.$destroy();
             }
 
             observable.destroyEvent("rendered-" + self.id);

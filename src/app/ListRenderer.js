@@ -280,8 +280,9 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
         scope.$getRawIndex = self.griDelegate;
 
         if (!item.renderer) {
-            item.renderer  = new MetaphorJs.app.Renderer(scope);
-            item.renderer.process(item.el);
+            item.renderer  = new MetaphorJs.app.Renderer;
+            scope.$on("destroy", item.renderer.$destroy, item.renderer);
+            item.renderer.process(item.el, scope);
             item.rendered = true;
         }
         else {

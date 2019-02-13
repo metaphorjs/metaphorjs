@@ -20,9 +20,9 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
     $mixinEvents: ["$initChildItem"],
     _itemsInitialized: false,
-    defaultAddTo: "main",
+    _defaultAddTo: "main",
 
-    initComponent: function() {
+    _initComponent: function() {
         var self = this;
 
         self.$super.apply(self, arguments);
@@ -31,7 +31,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             self._prepareDeclaredItems(toArray(self.node.childNodes));
         }
 
-        this._initItems();
+        self._initItems();
     },
 
     _initTplConfig: function(tplConfig) {
@@ -92,16 +92,15 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                 foundCmp = null;
                 foundPromise = null;
                 renderRef = null;
-                renderer = new MetaphorJs.app.Renderer(
-                    scope.$parent || scope
-                );
+                renderer = new MetaphorJs.app.Renderer;
+                scope.$on("destroy", renderer.$destroy, renderer);
                 renderer.on("reference", refCallback);
                 renderer.on("reference-promise", promiseCallback);
-                renderer.process(node);
+                renderer.process(node, scope);
 
                 if (foundCmp || foundPromise) {
                     if (!renderRef) {
-                        renderRef = self.defaultAddTo;
+                        renderRef = self._defaultAddTo;
                     }
                     def = extend({
                         type: "component",
@@ -114,7 +113,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                 }
                 else {
                     attrSet = MetaphorJs.dom.getAttrSet(node);
-                    renderRef = attrSet.at || attrSet.rest.slot || self.defaultAddTo;
+                    renderRef = attrSet.at || attrSet.rest.slot || self._defaultAddTo;
                     def = extend({
                         type: "node",
                         renderRef: renderRef,
@@ -618,7 +617,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         }
 
         item = self._processItemDef(cmp, {
-            renderRef: to || self.defaultAddTo
+            renderRef: to || self._defaultAddTo
         });
         self.items.push(item);
 

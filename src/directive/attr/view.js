@@ -8,7 +8,7 @@ MetaphorJs.app.Directive.registerAttribute("view", 200,
     function(scope, node, config, renderer) {
 
     MetaphorJs.app.Directive.resolveNode(node, "view", function(node){
-        if (!renderer.destroyed) {
+        if (!renderer.$destroyed) {
             var cfg = {scope: scope, node: node, config: config};
 
             MetaphorJs.app.resolve(

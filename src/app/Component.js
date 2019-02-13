@@ -12,34 +12,16 @@ require("../lib/Scope.js");
 require("../lib/Config.js");
 require("metaphorjs-observable/src/mixin/Observable.js");
 require("metaphorjs-promise/src/lib/Promise.js");
+require("./Controller.js");
 
-var cls = require("metaphorjs-class/src/cls.js"),
-    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
-    nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
-    extend = require("metaphorjs-shared/src/func/extend.js"),
-    isThenable = require("metaphorjs-shared/src/func/isThenable.js"),
     htmlTags = require("../var/dom/htmlTags");
 
 /**
  * @class MetaphorJs.app.Component
  */
-module.exports = MetaphorJs.app.Component = cls({
-
-    $mixins: [MetaphorJs.mixin.Observable],
-    $mixinEvents: ["$initConfig"],
-
-    /**
-     * @access protected
-     * @var {string}
-     */
-    id:             null,
-
-    /**
-     * @var {HtmlElement}
-     * @access protected
-     */
-    node:           null,
+module.exports = MetaphorJs.app.Component = MetaphorJs.app.Controller.$extend({
 
     /**
      * @var {boolean}
@@ -76,21 +58,6 @@ module.exports = MetaphorJs.app.Component = cls({
     destroyEl:      true,
 
     /**
-     * @var {bool}
-     */
-    destroyScope:   false,
-
-    /**
-     * @var {MetaphorJs.lib.Scope}
-     */
-    scope:          null,
-
-    /**
-     * @var {MetaphorJs.lib.Config}
-     */
-    config:         null,
-
-    /**
      * @var {Template}
      */
     template:       null,
@@ -121,95 +88,42 @@ module.exports = MetaphorJs.app.Component = cls({
     _attached:      false,
 
 
+    __nodeId:       "$$cmpId",
+    __idPfx:        "cmp-",
+    __initInstance: "_initComponent",
+
+
     $constructor: function(cfg) {
         var self = this,
             viewCls = self.$view || (cfg ? cfg.$view : null);
 
+        // see MetaphorJs.app.component.View
         viewCls && self.$plugins.push(viewCls);
         self.$super();
     },
 
     /**
      * @constructor
-     * @param {object} cfg {
-     *      @type string id Element id
-     *      @type string|Element el
-     *      @type string|Element renderTo
-     *      @type bool hidden
-     *      @type bool destroyEl
-     * }
+     * @param {object} cfg
      */
-    $init: function(cfg) {
+    $init: function() {
 
-        var self    = this,
-            scope,
-            config;
+        var self    = this;
+        self.$super.apply(self, arguments);
 
-        cfg = cfg || {};
-
-        self._protoCfg = self.config;
-        self.$super(cfg);
-        extend(self, cfg, true, false);
-
-        if (!self.scope || (typeof(self.scope) === "string" && 
-                            self.scope.indexOf(":new") !== -1)) {
-            self.destroyScope = true;
-        }
-
-        scope = self.scope = MetaphorJs.lib.Scope.$produce(self.scope);
-
-        // We initialize config with current scope or change config's scope
-        // to current so that all new properties that come from _initConfig
-        // are bound to local scope. 
-        // All pre-existing properties are already bound to outer scope;
-        // Also, each property configuration can have its scope specified
-        config = self.config = MetaphorJs.lib.Config.create(
-            self.config,
-            {scope: scope}, 
-            /*scalarAs: */"defaultValue"
-        )
-        config.setOption("scope", scope);
-
-        self.$refs = {node: {}, cmp: {}};
-        scope.$cfg = {};
-        config.setTo(scope.$cfg);
-        self._initConfig(config);
-        self.$callMixins("$initConfig", config);
-
-        if (config.has("init")) {
-            config.get("init")(scope);
-        }
-
-        if (self.$view) {
-            scope.$view = self.$view;
-        }
-        if (config.has("as")) {
-            scope[config.get("as")] = self;
-        }
-
-        if (self.node) {
-            self.$refs.node.main = self.node;
-        }
-
-        self.id = self.id || "cmp-" + nextUid();
-
-        self.beforeInitComponent.apply(self, arguments);
-        self.initComponent.apply(self, arguments);
-
-        if (scope.$app) {
-            scope.$app.registerCmp(self, "id");
-        }
-
-        if (self.parentRenderer) {
-            self.parentRenderer.on("destroy", self._onParentRendererDestroy, self);
-        }
-
-        if (self.node) {
-            self._claimNode();
-        }
-
-        self.config.getAll();
+        self.config.getAll(); // calc all values into $cfg
         self._initTemplate();
+    },
+
+    // this gets called inside parent's $init
+    _initComponent: function() {
+        var self = this;
+
+        if (self.$view) {   
+            self.scope.$view = self.$view;
+        }
+
+        self.initComponent.apply(self, arguments);
     },
 
     _initTemplate: function() {
@@ -293,45 +207,14 @@ module.exports = MetaphorJs.app.Component = cls({
 
     _initConfig: function() {
         var self = this,
-            scope = self.scope,
             config = self.config,
-            mst = MetaphorJs.lib.Config.MODE_STATIC,
-            msl = MetaphorJs.lib.Config.MODE_LISTENER,
-            ctx;
+            mst = MetaphorJs.lib.Config.MODE_STATIC;
+
+        self.$super();
 
         config.setType("makeTranscludes", "bool", mst, false);
         config.setType("useShadow", "bool", mst, false);
-        config.setMode("init", MetaphorJs.lib.Config.MODE_FUNC);
         config.setDefaultMode("tag", mst);
-        config.setDefaultMode("as", mst);
-
-        if (self.as) {
-            config.setDefaultValue("as", self.as);
-        }
-
-        config.setDefaultMode("callbackContext", MetaphorJs.lib.Config.MODE_SINGLE);
-        config.eachProperty(function(name) {
-            if (name.substring(0,4) === 'on--') {
-                config.setMode(name, msl);
-                if (!ctx) {
-                    if (scope.$app)
-                        ctx = config.get("callbackContext") ||
-                                scope.$app.getParentCmp(self.node) ||
-                                scope.$app ||
-                                scope;
-                    else 
-                        ctx = config.get("callbackContext") || scope;
-                }
-                self.on(name.substring(4), config.get(name), ctx);
-            }
-        });
-
-        if (self._protoCfg) {
-            config.addProperties(
-                self._protoCfg, 
-                /*scalarAs: */"defaultValue"
-            );
-        }
     },
 
     hasDirective: function(name) {
@@ -452,12 +335,6 @@ module.exports = MetaphorJs.app.Component = cls({
     _onChildReference: function(type, ref, item) {
         var self = this;
 
-        if (!self.$refs[type]) {
-            self.$refs[type] = {};
-        }
-
-        var th = self.$refs[type][ref];
-
         // change comment's reference name so
         // that it won't get referenced twice
         if (item) {
@@ -476,23 +353,7 @@ module.exports = MetaphorJs.app.Component = cls({
             }
         }    
 
-        if (!th) {
-            self.$refs[type][ref] = item;
-        }
-        if (isThenable(th)) {
-            th.resolve(item);
-        }
-    },
-
-    _claimNode: function(node) {
-        var self = this;
-        node = node || self.node;
-        node.$$cmpId = self.id;
-    },
-
-    _releaseNode: function(node) {
-        node = node || this.node;
-        node.$$cmpId = null;
+        self.$super.apply(self, arguments);
     },
 
 
@@ -549,36 +410,6 @@ module.exports = MetaphorJs.app.Component = cls({
         }
     },
 
-    getRefEl: function(name) {
-        return this.$refs['node'][name];
-    },
-
-    getRefCmp: function(name) {
-        return this.$refs['cmp'][name];
-    },
-
-
-    _getRefPromise: function(type, name) {
-        var ref = this.$refs[type][name];
-        if (!ref) {
-            return this.$refs[type][name] = new MetaphorJs.lib.Promise;
-        }
-        else if (isThenable(ref)) {
-            return ref;
-        }
-        else {
-            return MetaphorJs.lib.Promise.resolve(ref);
-        }
-    },
-
-    getRefElPromise: function(name) {
-        return this._getRefPromise("node", name);
-    },
-
-    getRefCmpPromise: function(name) {
-        return this._getRefPromise("cmp", name);
-    },
-
     onBeforeRender: function() {
     },
 
@@ -609,23 +440,6 @@ module.exports = MetaphorJs.app.Component = cls({
 
 
 
-    freeze: function() {
-        var self = this;
-        self._releaseNode();
-        self.scope.$freeze();
-        self.trigger("freeze", self);
-    },
-
-    unfreeze: function() {
-        var self = this;
-        self._claimNode();
-        self.scope.$unfreeze();
-        self.trigger("unfreeze", self);
-        self.scope.$check();
-    },
-
-
-
 
 
 
@@ -642,15 +456,7 @@ module.exports = MetaphorJs.app.Component = cls({
      * @return bool
      */
     isDestroyed: function() {
-        return this.destroyed;
-    },
-
-    /**
-     * @access public
-     * @return Element
-     */
-    getEl: function() {
-        return this.node;
+        return this.$destroyed;
     },
 
     /**
@@ -718,10 +524,6 @@ module.exports = MetaphorJs.app.Component = cls({
 
 
     
-    _onParentRendererDestroy: function() {
-        this.$destroy();
-    },
-
     onDestroy:      function() {
 
         var self    = this;
@@ -739,12 +541,6 @@ module.exports = MetaphorJs.app.Component = cls({
             else {
                 self._releaseNode();
             }
-        }
-
-        self.config.$destroy();
-
-        if (self.destroyScope && self.scope) {
-            self.scope.$destroy();
         }
 
         self.$super();

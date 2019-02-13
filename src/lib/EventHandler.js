@@ -48,6 +48,8 @@ MetaphorJs.lib.EventHandler = function(event, scope, node, cfg) {
 
 extend(MetaphorJs.lib.EventHandler.prototype, {
 
+    $destroyed: false,
+    $destroying: false,
 
     onIfChange: function(val) {
         this[val?"up":"down"]();
@@ -219,8 +221,14 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
      */
     $destroy: function() {
         var self = this;
+        if (self.$destroyed || self.$destroying) {
+            return;
+        }
+        self.$destroying = true;
         self.down();
         self.config.clear();
+        self.$destroying = false;
+        self.$destroyed = true;
     }
 });
 

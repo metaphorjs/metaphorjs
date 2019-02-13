@@ -60,7 +60,7 @@ module.exports = MetaphorJs.app.App = cls({
         self.value('$lang', self.lang);
         self.value('$locale', self.lang);
 
-        self.renderer       = new MetaphorJs.app.Renderer(scope);
+        self.renderer       = new MetaphorJs.app.Renderer;
         self.renderer.on("rendered", self.afterRender, self);
         self.renderer.on("reference", self._onChildReference, self);
 
@@ -88,7 +88,7 @@ module.exports = MetaphorJs.app.App = cls({
      * @method
      */
     run: function() {
-        this.renderer.process(this.node);
+        this.renderer.process(this.node, this.scope);
     },
 
     /**

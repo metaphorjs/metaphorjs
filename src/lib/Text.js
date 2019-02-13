@@ -119,7 +119,7 @@ module.exports = MetaphorJs.lib.Text = (function(){
         self.origin     = text;
         self.text       = "";
         self.scope      = scope;
-        self.destroyed  = false;
+        self.$destroyed  = false;
         self.fullExpr   = false;
         self.recursive  = false;
         self.once       = false;
@@ -144,7 +144,7 @@ module.exports = MetaphorJs.lib.Text = (function(){
 
         _process: function(initial) {
 
-            if (this.destroyed) {
+            if (this.$destroyed) {
                 return;
             }
 
@@ -233,7 +233,7 @@ module.exports = MetaphorJs.lib.Text = (function(){
          */
         $destroy: function() {
             var self = this;
-            self.destroyed  = true;
+            self.$destroyed  = true;
             events.destroyEvent(self.id);
             self._observeData(self.observers, "unsubscribe");
             self._destroyObservers(self.observers);

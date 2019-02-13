@@ -25,7 +25,7 @@ MetaphorJs.app.Directive.registerAttribute("router", 200,
     });
 
     MetaphorJs.app.Directive.resolveNode(node, "router", function(node){
-        if (!renderer.destroyed) {
+        if (!renderer.$destroyed) {
             var cfg = {scope: scope, node: node, config: config};
 
             if (routes.length !== 0) {

@@ -22,7 +22,6 @@ var Directive = require("../../app/Directive.js"),
         // if there is instructions regarding controller's scope
         // we set this scope for all children of current node
         if (config.has("scope")) {
-            console.log(scope)
             renderer.flowControl("newScope", scope);
         }
 

@@ -364,13 +364,16 @@ var ObservableEvent = function(name, options) {
     self.suspended      = false;
     self.lid            = 0; // listener id
     self.fid            = 0; // function id (same function can be different listeners)
-
+    //self.limit          = 0;
+    
     if (typeof options === "object" && options !== null) {
         extend(self, options, true, false);
     }
     else {
         self.returnResult = options;
     }
+
+    self.triggered      = 0;
 };
 
 
@@ -384,6 +387,8 @@ extend(ObservableEvent.prototype, {
     suspended: false,
     lid: null,
     fid: null,
+    limit: 0,
+    triggered: 0,
     returnResult: null,
     autoTrigger: null,
     lastTrigger: null,
@@ -684,6 +689,10 @@ extend(ObservableEvent.prototype, {
         if (self.suspended) {
             return null;
         }
+        if (self.limit > 0 && self.triggered >= self.limit) {
+            return null;
+        }
+        self.triggered++;
 
         if (self.autoTrigger) {
             self.lastTrigger = origArgs.slice();
@@ -3362,6 +3371,11 @@ Scope.$produce = function(name, parent) {
                 return parent.$parent || parent.$root;
             case "root":
                 return parent.$root;
+            case "app":
+                if (!parent.$app) {
+                    throw new Error("App not found in scope");
+                }
+                return parent.$app.scope;
             default:
                 throw new Error("Unknown scope action: " + action);
         }
@@ -4491,7 +4505,7 @@ var lib_Text = MetaphorJs.lib.Text = (function(){
         self.origin     = text;
         self.text       = "";
         self.scope      = scope;
-        self.destroyed  = false;
+        self.$destroyed  = false;
         self.fullExpr   = false;
         self.recursive  = false;
         self.once       = false;
@@ -4516,7 +4530,7 @@ var lib_Text = MetaphorJs.lib.Text = (function(){
 
         _process: function(initial) {
 
-            if (this.destroyed) {
+            if (this.$destroyed) {
                 return;
             }
 
@@ -4605,7 +4619,7 @@ var lib_Text = MetaphorJs.lib.Text = (function(){
          */
         $destroy: function() {
             var self = this;
-            self.destroyed  = true;
+            self.$destroyed  = true;
             events.destroyEvent(self.id);
             self._observeData(self.observers, "unsubscribe");
             self._destroyObservers(self.observers);
@@ -8907,43 +8921,11 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
 
     var handlers                = null,
         dirs                    = MetaphorJs.directive,
-
         nodeCmt                 = window.document.COMMENT_NODE,
         nodeText                = window.document.TEXT_NODE,
         nodeElem                = window.document.ELEMENT_NODE,
 
-        nodeChildren = function(res, el, fn, context, finish, opt) {
-
-            var children = [],
-                i, len;
-
-            if (res && res !== true) {
-                if (res.nodeType) {
-                    opt.countdown += 1;
-                    eachNode(res, fn, context, finish, opt);
-                    return;
-                }
-                else {
-                    children = res.slice();
-                }
-            }
-
-            if (!children.length) {
-                children = toArray(el.childNodes || el);
-            }
-
-            len = children.length;
-
-            opt.countdown += len;
-
-            for(i = -1;
-                ++i < len;
-                eachNode(children[i], fn, context, finish, opt)){}
-        },
-
-
         collectNodes    = function(coll, add) {
-
             if (add) {
                 if (add.nodeType) {
                     coll.push(add);
@@ -8962,64 +8944,9 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
             "link": true
         },
 
-        eachNode = function(el, fn, context, finish, opt) {
-
-            if (!el) {
-                return;
-            }
-
-            var res,
-                tag = el.nodeName,
-                prevScope;
-
-            !opt && (opt = {});
-            opt.countdown === undf && (opt.countdown = 1);
-
-            prevScope = opt.scope;
-
-            if (tag && skipMap[tag.toLowerCase()]) { //tag.match(rSkipTag)) {
-                --opt.countdown === 0 && finish && finish.call(context);
-                return;
-            }
-
-            res = fn.call(context, el, opt);
-
-            if (res !== false) {
-
-                if (opt.newScope) {
-                    opt.scope = opt.newScope;
-                    delete opt.newScope;
-                }
-
-                if (isThenable(res)) {
-
-                    res.done(function(response) {
-
-                        if (response !== false) {
-                            nodeChildren(response, el, fn, context, finish, opt);
-                        }
-
-                        --opt.countdown === 0 && finish && finish.call(context);
-                    });
-                    return; // prevent countdown
-                }
-                else {
-                    nodeChildren(res, el, fn, context, finish, opt);
-                }
-
-                if (prevScope) {
-                    opt.scope = prevScope;
-                }
-            }
-
-            delete opt.newScope;
-            --opt.countdown === 0 && finish && finish.call(context);
-        },
-
         applyDirective = function(dir, parentScope, node, config, attrs, renderer) {
 
             config.setDefaultMode("scope", lib_Config.MODE_STATIC);
-            //config.setDefaultValue("scope", ":new", /*override: */false);
 
             var scope   = config.has("scope") ? 
                             lib_Scope.$produce(config.get("scope"), parentScope) :
@@ -9033,51 +8960,66 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                     $renderer: renderer
                 },
                 args    = [scope, node, config, renderer, attrs],
-                inst;
+                res,
+                processRes = function(res) {
+                
+                    if (res && res.$destroy) {
+                        if (renderer) {
+                            if (renderer.$destroyed) res.$destroy();
+                            else renderer.on("destroy", res.$destroy, res);
+                        }
+                        else parentScope.$on("destroy", res.$destroy, res);
+                    }
+                    else if (typeof res === "function") {
+                        if (renderer) {
+                            if (renderer.$destroyed) res();
+                            else renderer.on("destroy", res);
+                        }
+                        else parentScope.$on("destroy", res);
+                    }
+                };
 
             if (config.has("scope")) {
                 config.setOption("scope", scope);
             }
 
             if (app) {
-                inst = app.inject(dir, null, inject, args);
+                res = app.inject(dir, null, inject, args);
             }
             else if (dir.$instantiate) {
-                inst = dir.$instantiate.apply(dir, args);
+                res = dir.$instantiate.apply(dir, args);
             }
             else {
-                inst = dir.apply(null, args);
+                res = dir.apply(null, args);
             }
 
-            if (inst && inst.$destroy) {
-                renderer && renderer.on("destroy", inst.$destroy, inst);
-                !renderer && parentScope.$on("destroy", inst.$destroy, inst);
+            if (isThenable(res)) {
+                res.done(processRes);
             }
-            else if (typeof inst === "function") {
-                renderer && renderer.on("destroy", inst);
-                !renderer && parentScope.$on("destroy", inst);
-            }
+            else processRes(res);
 
-            return inst;
+            return res;
         },
 
         observer = new MetaphorJs.lib.Observable;
 
-    var Renderer = function(scope, parent) {
+    var Renderer = function(parent) {
 
         var self            = this;
 
         self.id             = nextUid();
-        self.scope          = scope;
-        self.texts          = [];
         self.parent         = parent;
-        self._flowControlState = {};
 
-        observer.createEvent("transclude-sources-"+self.id, "all");
+        self._texts             = [];
+        self._flowControlState  = {};
+        self._treeState = {
+            countdown: 0
+        };
 
-        if (scope instanceof MetaphorJs.lib.Scope) {
-            scope.$on("destroy", self.$destroy, self);
-        }
+        observer.createEvent("transclude-sources-" + self.id, "all");
+        observer.createEvent("rendered-" + self.id, {
+            limit: 1
+        });
 
         if (parent) {
             parent.on("destroy", self.$destroy, self);
@@ -9088,11 +9030,12 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
     extend(Renderer.prototype, {
 
         id: null,
-        el: null,
-        scope: null,
-        texts: null,
         parent: null,
-        destroyed: false,
+
+        _flowControlState: null,
+        _treeState: null,
+        _texts: null,
+        $destroyed: false,
 
         on: function(event, fn, context, opt) {
             return observer.on(event + '-' + this.id, fn, context, opt);
@@ -9119,7 +9062,7 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
             this._flowControlState[key] = value;
         },
 
-        _resetFlowControl: function() {
+        _resetFC: function() {
             var fc = this._flowControlState;
             fc.waitFor = null;
             fc.nodes = null;
@@ -9128,7 +9071,20 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
             fc.newScope = null;
         },
 
-        _processCommentNode: function(node, treeOpt) {
+        _checkFCState: function(defers, nodes, attrs) {
+            var fc = this._flowControlState;
+            fc.waitFor && defers && defers.push(fc.waitFor);
+            fc.nodes && nodes && collectNodes(nodes, fc.nodes);
+            fc.ignoreInside && attrs && (attrs.renderer.ignoreInside = true);
+            fc.newScope && (this._treeState.newScope = fc.newScope);
+            this._resetFC();
+        },
+
+
+
+
+
+        _processCommentNode: function(node) {
             var cmtData = node.textContent || node.data;
             if (cmtData.substring(0,2) === '##') {
                 this.trigger(
@@ -9138,22 +9094,22 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
             }
         },
 
-        _processTextNode: function(node, treeOpt) {
+        _processTextNode: function(node) {
             var self    = this,
-                texts   = self.texts,
+                texts   = self._texts,
                 textStr = node.textContent || node.nodeValue,
                 textRenderer;
 
             if (lib_Text.applicable(textStr)) {
                 textRenderer = new lib_Text(
-                    treeOpt.scope || self.scope,
+                    self._treeState.scope,
                     textStr
                 );
-                textRenderer.subscribe(self.onTextChange, self, {
+                textRenderer.subscribe(self._onTextChange, self, {
                     append: [texts.length]
                 });
                 texts.push({node: node, tr: textRenderer});
-                self.renderText(texts.length - 1);
+                self._renderText(texts.length - 1);
             }
         },
 
@@ -9166,11 +9122,11 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
             return false;
         },
 
-        _processComponent: function(component, node, attrs, treeOpt) {
+        _processComponent: function(component, node, attrs) {
             var self = this,
                 config = new lib_Config(
                     attrs.config, 
-                    {scope: treeOpt.scope || self.scope}
+                    {scope: self._treeState.scope}
                 );
     
             var directive = Directive.getDirective("attr", "cmp");
@@ -9181,39 +9137,39 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
 
             self.on("destroy", config.$destroy, config);
 
-            return applyDirective(directive, treeOpt.scope || self.scope, 
+            return applyDirective(directive, self._treeState.scope, 
                                     node, config, attrs, self);
         },
 
-        _processTag: function(directive, node, attrs, treeOpt) {
+        _processTag: function(directive, node, attrs) {
 
             var self = this,
                 config = new lib_Config(
                     attrs.config, 
-                    {scope: treeOpt.scope || self.scope}
+                    {scope: self._treeState.scope}
                 );
             self.on("destroy", config.$destroy, config);
 
-            return applyDirective(directive, treeOpt.scope || self.scope, 
+            return applyDirective(directive, self._treeState.scope, 
                                     node, config, attrs, self);
         },
 
-        _processDirAttribute: function(node, directive, name, dcfg, attrs, treeOpt) {
+        _processDirAttribute: function(node, directive, name, dcfg, attrs) {
 
             var self = this,
                 config = new lib_Config(
                     dcfg,
-                    {scope: treeOpt.scope || self.scope}
+                    {scope: self._treeState.scope}
                 );
             self.on("destroy", config.$destroy, config);
 
-            return applyDirective(directive, treeOpt.scope || self.scope, 
+            return applyDirective(directive, self._treeState.scope, 
                                     node, config, attrs, self);
         },
 
-        _processReferences: function(node, attrs, treeOpt) {
+        _processReferences: function(node, attrs) {
             var self = this, i, len, ref,
-                scope = treeOpt.scope || self.scope;
+                scope = self._treeState.scope;
             for (i = 0, len = attrs.references.length; i < len; i++) {
                 ref = attrs.references[i];
                 if (ref[0] === '#') {
@@ -9226,21 +9182,21 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
             }
         },
 
-        _processAttribute: function(node, name, attrs, treeOpt) {
+        _processAttribute: function(node, name, attrs) {
             var self = this,
-                texts = self.texts,
+                texts = self._texts,
                 textStr = attrs['attributes'][name],
                 textRenderer = new lib_Text(
-                    treeOpt.scope || self.scope, 
+                    self._treeState.scope, 
                     textStr, 
                     {
-                        //recursive: !!attrs.config.recursive,
+                        recursive: !!attrs.renderer.recursive,
                         fullExpr: !lib_Text.applicable(textStr)
                     }
                 );
 
             dom_removeAttr(node, attrs['__attributes'][name]);
-            textRenderer.subscribe(self.onTextChange, self, {
+            textRenderer.subscribe(self._onTextChange, self, {
                 append: [texts.length]
             });
             texts.push({
@@ -9248,42 +9204,29 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                 attr: name,
                 tr: textRenderer
             });
-            self.renderText(texts.length - 1);
+            self._renderText(texts.length - 1);
         },
 
 
-        _onFlowControl: function(defers, nodes, treeOpt, attrs) {
-            var fc = this._flowControlState;
-            fc.waitFor && defers.push(fc.waitFor);
-            fc.nodes && collectNodes(nodes, fc.nodes);
-            fc.ignoreInside && (attrs.renderer.ignoreInside = true);
-            fc.newScope && (treeOpt.newScope = fc.newScope);
-            this._resetFlowControl();
-        },
 
-        /**
-         * Processes one signle node and gives glues on there to go next.<br>
-         * Return false to skip this branch. Do not go inside this node.<br>
-         * Return a Node or array of Nodes to add to processing list
-         * along with this node's children<br>
-         * Return a Promise resolving in any of the above
-         * @param {Node} node 
-         * @returns {boolean|array|Promise|Node}
-         */
-        processNode: function(node, treeOpt) {
+
+
+        
+
+        _processNode: function(node, _attrs) {
 
             var self        = this,
                 nodeType    = node.nodeType;
 
             if (nodeType === nodeCmt) {
-                self._processCommentNode(node, treeOpt);
+                self._processCommentNode(node);
             }
             else if (nodeType === nodeText) {
-                self._processTextNode(node, treeOpt);
+                self._processTextNode(node);
             }
             else if (nodeType === nodeElem) {
 
-                self._resetFlowControl();
+                self._resetFC();
 
                 var tag     = node.tagName.toLowerCase(),
                     defers  = [],
@@ -9293,7 +9236,7 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                     name, ds,
                     i, len,
                     j, jlen,
-                    attrs = dom_getAttrSet(node);
+                    attrs = _attrs || dom_getAttrSet(node);
 
                 if (tag.substr(0, 4) === "mjs-") {
                     tag = tag.substr(4);
@@ -9313,22 +9256,22 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                 // by adding it to the attr map
                 if (component = dirs.component[tag]) {
                     attrs.__remove(node, "config");
-                    self._processComponent(component, node, attrs, treeOpt);
+                    self._processComponent(component, node, attrs);
                 }
                 else if (directive = dirs.tag[tag]) {
-                    self._processTag(directive, node, attrs, treeOpt);
+                    self._processTag(directive, node, attrs);
                 }
 
                 if (fc.stop) return false;
-                self._onFlowControl(defers, nodes, treeOpt, attrs);
+                self._checkFCState(defers, nodes, attrs);
 
                 if (attrs.references && attrs.references.length) {
-                    self._processReferences(node, attrs, treeOpt);
+                    self._processReferences(node, attrs);
                 }
 
                 // this is an attribute directive
                 for (i = 0, len = handlers.length; i < len; i++) {
-                    
+
                     name = handlers[i].name;
 
                     if ((ds = attrs['directives'][name]) !== undf &&
@@ -9340,17 +9283,17 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                         for (j = 0, jlen = ds.length; j < jlen; j++) {
                             self._processDirAttribute(
                                 node, handlers[i].handler, name, 
-                                ds[j], attrs, treeOpt
+                                ds[j], attrs
                             );
-                            
+
                             if (fc.stop) return false;
-                            self._onFlowControl(defers, nodes, treeOpt, attrs);
+                            self._checkFCState(defers, nodes, attrs);
                         }
                     }
                 }
 
                 for (i in attrs['attributes']) {
-                    self._processAttribute(node, i, attrs, treeOpt);
+                    self._processAttribute(node, i, attrs);
                 }
 
                 if (attrs.renderer.ignoreInside) {
@@ -9372,42 +9315,141 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
             return true;
         },
 
-        process: function(node) {
+        /**
+         * Processes one single node and gives glues on there to go next.<br>
+         * Return false to skip this branch. Do not go inside this node.<br>
+         * Return a Node or array of Nodes to add to processing list
+         * along with this node's children<br>
+         * Return a Promise resolving in any of the above
+         * @param {Node} node 
+         * @param {MetaphorJs.lib.Scope} scope
+         * @returns {boolean|array|Promise|Node}
+         */
+        processNode: function(node, scope, /*system private attr */_attrs) {
+            var self = this;
+            self._treeState.scope = scope;
+            self._processNode(node, _attrs);
+        },
+
+        process: function(smth, scope) {
             var self    = this;
 
             if (!handlers) {
                 handlers = Directive.getAttributes();
             }
-            if (!node) {
+            if (!smth) {
                 return;
             }
 
-            if (node.nodeType) {
-                eachNode(node, self.processNode, self,
-                    self.onProcessingFinished, 
-                    {countdown: 1, scope: self.scope});
+            self._treeState.scope = scope;
+
+            if (smth.nodeType) {
+                self._treeState.countdown++;
+                self._eachNode(smth);
             }
             else {
-                nodeChildren(
-                    null, node, self.processNode,
-                    self, self.onProcessingFinished, 
-                    {countdown: 0, scope: self.scope});
+                self._nodeChildren(null, smth);
             }
         },
 
-        onProcessingFinished: function() {
+
+
+        _nodeChildren: function(res, el) {
+
+            var children = [],
+                i, len,
+                ts = this._treeState;
+
+            if (res && res !== true) {
+                if (res.nodeType) {
+                    ts.countdown += 1;
+                    this._eachNode(res);
+                    return;
+                }
+                else {
+                    children = res.slice();
+                }
+            }
+
+            if (!children.length) {
+                children = toArray(el.childNodes || el);
+            }
+
+            len = children.length;
+            ts.countdown += len;
+
+            for(i = -1;
+                ++i < len;
+                this._eachNode(children[i])){}
+        },
+
+        _eachNode: function(el) {
+
+            if (!el) {
+                return;
+            }
+
+            var res,
+                self = this,
+                tag = el.nodeName,
+                subState = {
+                    thisLevelScope: null,
+                    childLevelScope: null
+                },
+                ts = self._treeState;
+
+            if (tag && skipMap[tag.toLowerCase()]) {
+                --ts.countdown === 0 && self._onProcessingFinished();
+                return;
+            }
+
+            res = self._processNode(el);
+
+            if (ts.newScope) {
+                subState.thisLevelScope = ts.scope;
+                subState.childLevelScope = ts.newScope;
+                delete ts.newScope;
+            }
+
+            isThenable(res) ?
+                res.done(function(res) {
+                    self._eachNodeRun(res, el, subState);
+                }) :
+                self._eachNodeRun(res, el, subState);
+        },
+
+        _eachNodeRun: function(res, el, sub) {
+            var self = this,
+                ts = self._treeState;
+    
+            if (res !== false) {
+                sub.childLevelScope && (ts.scope = sub.childLevelScope);
+                self._nodeChildren(res, el);
+                sub.thisLevelScope && (ts.scope = sub.thisLevelScope);
+            }
+
+            --ts.countdown === 0 && self._onProcessingFinished();
+        },
+
+        _onProcessingFinished: function() {
             observer.trigger("rendered-" + this.id, this);
         },
 
 
-        onTextChange: function(textRenderer, inx) {
-            this.renderText(inx);
+
+
+
+
+
+
+        _onTextChange: function(textRenderer, inx) {
+            this._renderText(inx);
         },
 
-        renderText: function(inx) {
+        _renderText: function(inx) {
 
             var self        = this,
-                text        = self.texts[inx],
+                text        = self._texts[inx],
                 res         = text.tr.getString(),
                 attrName    = text.attr;
 
@@ -9439,10 +9481,10 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
         $destroy: function() {
 
             var self    = this,
-                texts   = self.texts,
+                texts   = self._texts,
                 i, len;
 
-            if (self.destroyed) {
+            if (self.$destroyed) {
                 return;
             }
 
@@ -9467,7 +9509,7 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                 }
             }
 
-            self.destroyed = true;
+            self.$destroyed = true;
         }
 
     });
@@ -10244,7 +10286,7 @@ var app_App = MetaphorJs.app.App = cls({
         self.value('$lang', self.lang);
         self.value('$locale', self.lang);
 
-        self.renderer       = new app_Renderer(scope);
+        self.renderer       = new MetaphorJs.app.Renderer;
         self.renderer.on("rendered", self.afterRender, self);
         self.renderer.on("reference", self._onChildReference, self);
 
@@ -10272,7 +10314,7 @@ var app_App = MetaphorJs.app.App = cls({
      * @method
      */
     run: function() {
-        this.renderer.process(this.node);
+        this.renderer.process(this.node, this.scope);
     },
 
     /**
@@ -13244,7 +13286,7 @@ var app_Template = MetaphorJs.app.Template = function() {
             if (node && nodes.indexOf(node) === -1) {
                 nodes.push(node);
                 if (self._renderer && self._virtualSets[ref]) {
-                    self._renderer.processNode(node, self.getVirtualSet(ref));
+                    self._renderer.processNode(node, self.scope, self.getVirtualSet(ref));
                 }
             }
         },
@@ -13433,7 +13475,7 @@ var app_Template = MetaphorJs.app.Template = function() {
 
                 observable.trigger("before-render-" + self.id, self);
 
-                self._renderer   = new app_Renderer(self.scope);
+                self._renderer   = new MetaphorJs.app.Renderer;
 
                 if (self.config.get("passReferences") && self._parentRenderer) {
                     self._renderer.on(
@@ -13456,7 +13498,7 @@ var app_Template = MetaphorJs.app.Template = function() {
                 observable.relayEvent(self._renderer, "rendered", "rendered-" + self.id);
 
                 observable.relayEvent(self._renderer, "reference", "reference-" + self.id);
-                self._renderer.process(self._nodes);
+                self._renderer.process(self._nodes, self.scope);
             }
         },
 
@@ -13495,7 +13537,7 @@ var app_Template = MetaphorJs.app.Template = function() {
                                 node.setAttribute(attr, attrSet.rest[attr]);
                             }
                         }
-                        self._renderer.processNode(node, attrSet);
+                        self._renderer.processNode(node, self.scope, attrSet);
                     }
                 }
             }
@@ -13685,7 +13727,7 @@ var app_Template = MetaphorJs.app.Template = function() {
             //var self = this;
 
             if (!self.$destroyed && self._renderer &&
-                !self._renderer.destroyed) {
+                !self._renderer.$destroyed) {
                 self._renderer.$destroy();
             }
 
@@ -13706,6 +13748,10 @@ var app_Template = MetaphorJs.app.Template = function() {
 
             if (self._prevEl && self._prevEl.parentNode) {
                 self._prevEl.parentNode.removeChild(self._prevEl);
+            }
+
+            if (self._renderer) {
+                self._renderer.$destroy();
             }
 
             observable.destroyEvent("rendered-" + self.id);
@@ -13741,6 +13787,275 @@ var app_Template = MetaphorJs.app.Template = function() {
     return Template;
 }();
 
+
+
+
+
+
+
+
+
+
+/**
+ * @class MetaphorJs.app.Controller
+ */
+var app_Controller = MetaphorJs.app.Controller = cls({
+
+    $mixins: [MetaphorJs.mixin.Observable],
+    $mixinEvents: ["$initConfig"],
+
+    /**
+     * @access protected
+     * @var {string}
+     */
+    id:             null,
+
+    /**
+     * @var {HtmlElement}
+     * @access protected
+     */
+    node:           null,
+
+    /**
+     * @var {MetaphorJs.lib.Scope}
+     */
+    scope:          null,
+
+    /**
+     * @var {MetaphorJs.app.Renderer}
+     */
+    parentRenderer: null,
+
+    /**
+     * @var {MetaphorJs.lib.Config}
+     */
+    config:         null,
+
+    /**
+     * @var {bool}
+     */
+    destroyScope:   false,
+
+
+    __nodeId:       "$$ctrlId",
+    __idPfx:        "ctrl-",
+    __initInstance: "initController",
+
+
+    /**
+     * @constructor
+     * @param {object} cfg
+     */
+    $init: function(cfg) {
+
+        var self    = this,
+            scope,
+            config;
+
+        cfg = cfg || {};
+
+        self._protoCfg = self.config;
+        self.config = null;
+        self.$super(cfg);
+        extend(self, cfg, true, false);
+
+        if (!self.scope || (typeof(self.scope) === "string" && 
+                            self.scope.indexOf(":new") !== -1)) {
+            self.destroyScope = true;
+        }
+        scope = self.scope = lib_Scope.$produce(self.scope);
+
+        // We initialize config with current scope or change config's scope
+        // to current so that all new properties that come from _initConfig
+        // are bound to local scope. 
+        // All pre-existing properties are already bound to outer scope;
+        // Also, each property configuration can have its own scope specified
+        config = self.config = lib_Config.create(
+            self.config,
+            {scope: scope}, 
+            /*scalarAs: */"defaultValue"
+        )
+        config.setOption("scope", scope);
+        scope.$cfg = {};
+        config.setTo(scope.$cfg);
+        self._initConfig();
+        self.$callMixins("$initConfig", config);
+        if (self._protoCfg) {
+            config.addProperties(
+                self._protoCfg, 
+                /*scalarAs: */"defaultValue"
+            );
+        }
+
+        self.id = config.get("id");
+        self.$refs = {node: {}, cmp: {}};
+        if (self.node) {
+            self.$refs.node.main = self.node;
+        }
+
+        if (config.has("init")) {
+            config.get("init")(scope);
+        }
+        if (config.has("as")) {
+            scope[config.get("as")] = self;
+        }        
+
+        self[self.__initInstance].apply(self, arguments);
+
+        if (scope.$app) {
+            scope.$app.registerCmp(self, "id");
+        }
+
+        if (self.parentRenderer) {
+            self.parentRenderer.on("destroy", self._onParentRendererDestroy, self);
+        }
+
+        self._claimNode();
+    },
+
+    _initConfig: function() {
+        var self = this,
+            scope = self.scope,
+            config = self.config,
+            mst = lib_Config.MODE_STATIC,
+            msl = lib_Config.MODE_LISTENER,
+            ctx;
+
+        config.setType("id", "string", mst, self.id || self.__idPfx + nextUid())
+        config.setMode("init", lib_Config.MODE_FUNC);
+        config.setDefaultMode("as", mst);
+        config.setDefaultMode("scope", mst);
+
+        if (self.as) {
+            config.setDefaultValue("as", self.as);
+        }
+
+        config.setDefaultMode("callbackContext", lib_Config.MODE_SINGLE);
+        config.eachProperty(function(name) {
+            if (name.substring(0,4) === 'on--') {
+                config.setMode(name, msl);
+                if (!ctx) {
+                    if (scope.$app)
+                        ctx = config.get("callbackContext") ||
+                                scope.$app.getParentCmp(self.node) ||
+                                scope.$app ||
+                                scope;
+                    else 
+                        ctx = config.get("callbackContext") || scope;
+                }
+                self.on(name.substring(4), config.get(name), ctx);
+            }
+        });
+    },
+
+    _claimNode: function() {
+        var self = this;
+        self.node && (self.node[self.__nodeId] = self.id);
+    },
+
+    _releaseNode: function() {
+        var self = this;
+        self.node && (self.node[self.__nodeId] = null);
+    },
+
+    _onChildReference: function(type, ref, item) {
+        var self = this;
+
+        if (!self.$refs[type]) {
+            self.$refs[type] = {};
+        }
+
+        var th = self.$refs[type][ref];
+
+        if (!th) {
+            self.$refs[type][ref] = item;
+        }
+        if (isThenable(th)) {
+            th.resolve(item);
+        }
+    },
+
+
+    getRefEl: function(name) {
+        return this.$refs['node'][name];
+    },
+
+    getRefCmp: function(name) {
+        return this.$refs['cmp'][name];
+    },
+
+
+    _getRefPromise: function(type, name) {
+        var ref = this.$refs[type][name];
+        if (!ref) {
+            return this.$refs[type][name] = new MetaphorJs.lib.Promise;
+        }
+        else if (isThenable(ref)) {
+            return ref;
+        }
+        else {
+            return MetaphorJs.lib.Promise.resolve(ref);
+        }
+    },
+
+    getRefElPromise: function(name) {
+        return this._getRefPromise("node", name);
+    },
+
+    getRefCmpPromise: function(name) {
+        return this._getRefPromise("cmp", name);
+    },
+
+    /**
+     * @access public
+     * @return Element
+     */
+    getEl: function() {
+        return this.node;
+    },
+
+
+    /**
+     * @access public
+     * @return bool
+     */
+    isDestroyed: function() {
+        return this.$$destroyed;
+    },
+
+    /**
+     * @access public
+     * @return Element
+     */
+    getEl: function() {
+        return this.node;
+    },
+
+    /**
+     * @method
+     * @access protected
+     */
+    initController:  emptyFn,
+
+    
+    _onParentRendererDestroy: function() {
+        this.$destroy();
+    },
+
+    onDestroy:      function() {
+
+        var self    = this;
+
+        if (self.destroyScope && self.scope) {
+            self.scope.$destroy();
+        }
+
+        self._releaseNode();
+        self.config.$destroy();
+        self.$super();
+    }
+
+});
 
 
 
@@ -13883,25 +14198,11 @@ var htmlTags = MetaphorJs.dom.htmlTags = [
 
 
 
+
 /**
  * @class MetaphorJs.app.Component
  */
-var app_Component = MetaphorJs.app.Component = cls({
-
-    $mixins: [MetaphorJs.mixin.Observable],
-    $mixinEvents: ["$initConfig"],
-
-    /**
-     * @access protected
-     * @var {string}
-     */
-    id:             null,
-
-    /**
-     * @var {HtmlElement}
-     * @access protected
-     */
-    node:           null,
+var app_Component = MetaphorJs.app.Component = app_Controller.$extend({
 
     /**
      * @var {boolean}
@@ -13938,21 +14239,6 @@ var app_Component = MetaphorJs.app.Component = cls({
     destroyEl:      true,
 
     /**
-     * @var {bool}
-     */
-    destroyScope:   false,
-
-    /**
-     * @var {MetaphorJs.lib.Scope}
-     */
-    scope:          null,
-
-    /**
-     * @var {MetaphorJs.lib.Config}
-     */
-    config:         null,
-
-    /**
      * @var {Template}
      */
     template:       null,
@@ -13983,95 +14269,42 @@ var app_Component = MetaphorJs.app.Component = cls({
     _attached:      false,
 
 
+    __nodeId:       "$$cmpId",
+    __idPfx:        "cmp-",
+    __initInstance: "_initComponent",
+
+
     $constructor: function(cfg) {
         var self = this,
             viewCls = self.$view || (cfg ? cfg.$view : null);
 
+        // see MetaphorJs.app.component.View
         viewCls && self.$plugins.push(viewCls);
         self.$super();
     },
 
     /**
      * @constructor
-     * @param {object} cfg {
-     *      @type string id Element id
-     *      @type string|Element el
-     *      @type string|Element renderTo
-     *      @type bool hidden
-     *      @type bool destroyEl
-     * }
+     * @param {object} cfg
      */
-    $init: function(cfg) {
+    $init: function() {
 
-        var self    = this,
-            scope,
-            config;
+        var self    = this;
+        self.$super.apply(self, arguments);
 
-        cfg = cfg || {};
-
-        self._protoCfg = self.config;
-        self.$super(cfg);
-        extend(self, cfg, true, false);
-
-        if (!self.scope || (typeof(self.scope) === "string" && 
-                            self.scope.indexOf(":new") !== -1)) {
-            self.destroyScope = true;
-        }
-
-        scope = self.scope = lib_Scope.$produce(self.scope);
-
-        // We initialize config with current scope or change config's scope
-        // to current so that all new properties that come from _initConfig
-        // are bound to local scope. 
-        // All pre-existing properties are already bound to outer scope;
-        // Also, each property configuration can have its scope specified
-        config = self.config = lib_Config.create(
-            self.config,
-            {scope: scope}, 
-            /*scalarAs: */"defaultValue"
-        )
-        config.setOption("scope", scope);
-
-        self.$refs = {node: {}, cmp: {}};
-        scope.$cfg = {};
-        config.setTo(scope.$cfg);
-        self._initConfig(config);
-        self.$callMixins("$initConfig", config);
-
-        if (config.has("init")) {
-            config.get("init")(scope);
-        }
-
-        if (self.$view) {
-            scope.$view = self.$view;
-        }
-        if (config.has("as")) {
-            scope[config.get("as")] = self;
-        }
-
-        if (self.node) {
-            self.$refs.node.main = self.node;
-        }
-
-        self.id = self.id || "cmp-" + nextUid();
-
-        self.beforeInitComponent.apply(self, arguments);
-        self.initComponent.apply(self, arguments);
-
-        if (scope.$app) {
-            scope.$app.registerCmp(self, "id");
-        }
-
-        if (self.parentRenderer) {
-            self.parentRenderer.on("destroy", self._onParentRendererDestroy, self);
-        }
-
-        if (self.node) {
-            self._claimNode();
-        }
-
-        self.config.getAll();
+        self.config.getAll(); // calc all values into $cfg
         self._initTemplate();
+    },
+
+    // this gets called inside parent's $init
+    _initComponent: function() {
+        var self = this;
+
+        if (self.$view) {   
+            self.scope.$view = self.$view;
+        }
+
+        self.initComponent.apply(self, arguments);
     },
 
     _initTemplate: function() {
@@ -14155,45 +14388,14 @@ var app_Component = MetaphorJs.app.Component = cls({
 
     _initConfig: function() {
         var self = this,
-            scope = self.scope,
             config = self.config,
-            mst = lib_Config.MODE_STATIC,
-            msl = lib_Config.MODE_LISTENER,
-            ctx;
+            mst = lib_Config.MODE_STATIC;
+
+        self.$super();
 
         config.setType("makeTranscludes", "bool", mst, false);
         config.setType("useShadow", "bool", mst, false);
-        config.setMode("init", lib_Config.MODE_FUNC);
         config.setDefaultMode("tag", mst);
-        config.setDefaultMode("as", mst);
-
-        if (self.as) {
-            config.setDefaultValue("as", self.as);
-        }
-
-        config.setDefaultMode("callbackContext", lib_Config.MODE_SINGLE);
-        config.eachProperty(function(name) {
-            if (name.substring(0,4) === 'on--') {
-                config.setMode(name, msl);
-                if (!ctx) {
-                    if (scope.$app)
-                        ctx = config.get("callbackContext") ||
-                                scope.$app.getParentCmp(self.node) ||
-                                scope.$app ||
-                                scope;
-                    else 
-                        ctx = config.get("callbackContext") || scope;
-                }
-                self.on(name.substring(4), config.get(name), ctx);
-            }
-        });
-
-        if (self._protoCfg) {
-            config.addProperties(
-                self._protoCfg, 
-                /*scalarAs: */"defaultValue"
-            );
-        }
     },
 
     hasDirective: function(name) {
@@ -14314,12 +14516,6 @@ var app_Component = MetaphorJs.app.Component = cls({
     _onChildReference: function(type, ref, item) {
         var self = this;
 
-        if (!self.$refs[type]) {
-            self.$refs[type] = {};
-        }
-
-        var th = self.$refs[type][ref];
-
         // change comment's reference name so
         // that it won't get referenced twice
         if (item) {
@@ -14338,23 +14534,7 @@ var app_Component = MetaphorJs.app.Component = cls({
             }
         }    
 
-        if (!th) {
-            self.$refs[type][ref] = item;
-        }
-        if (isThenable(th)) {
-            th.resolve(item);
-        }
-    },
-
-    _claimNode: function(node) {
-        var self = this;
-        node = node || self.node;
-        node.$$cmpId = self.id;
-    },
-
-    _releaseNode: function(node) {
-        node = node || this.node;
-        node.$$cmpId = null;
+        self.$super.apply(self, arguments);
     },
 
 
@@ -14411,36 +14591,6 @@ var app_Component = MetaphorJs.app.Component = cls({
         }
     },
 
-    getRefEl: function(name) {
-        return this.$refs['node'][name];
-    },
-
-    getRefCmp: function(name) {
-        return this.$refs['cmp'][name];
-    },
-
-
-    _getRefPromise: function(type, name) {
-        var ref = this.$refs[type][name];
-        if (!ref) {
-            return this.$refs[type][name] = new MetaphorJs.lib.Promise;
-        }
-        else if (isThenable(ref)) {
-            return ref;
-        }
-        else {
-            return lib_Promise.resolve(ref);
-        }
-    },
-
-    getRefElPromise: function(name) {
-        return this._getRefPromise("node", name);
-    },
-
-    getRefCmpPromise: function(name) {
-        return this._getRefPromise("cmp", name);
-    },
-
     onBeforeRender: function() {
     },
 
@@ -14471,23 +14621,6 @@ var app_Component = MetaphorJs.app.Component = cls({
 
 
 
-    freeze: function() {
-        var self = this;
-        self._releaseNode();
-        self.scope.$freeze();
-        self.trigger("freeze", self);
-    },
-
-    unfreeze: function() {
-        var self = this;
-        self._claimNode();
-        self.scope.$unfreeze();
-        self.trigger("unfreeze", self);
-        self.scope.$check();
-    },
-
-
-
 
 
 
@@ -14504,15 +14637,7 @@ var app_Component = MetaphorJs.app.Component = cls({
      * @return bool
      */
     isDestroyed: function() {
-        return this.destroyed;
-    },
-
-    /**
-     * @access public
-     * @return Element
-     */
-    getEl: function() {
-        return this.node;
+        return this.$destroyed;
     },
 
     /**
@@ -14580,10 +14705,6 @@ var app_Component = MetaphorJs.app.Component = cls({
 
 
     
-    _onParentRendererDestroy: function() {
-        this.$destroy();
-    },
-
     onDestroy:      function() {
 
         var self    = this;
@@ -14601,12 +14722,6 @@ var app_Component = MetaphorJs.app.Component = cls({
             else {
                 self._releaseNode();
             }
-        }
-
-        self.config.$destroy();
-
-        if (self.destroyScope && self.scope) {
-            self.scope.$destroy();
         }
 
         self.$super();
@@ -14861,9 +14976,9 @@ MetaphorJs.app.Container = app_Component.$extend({
 
     $mixinEvents: ["$initChildItem"],
     _itemsInitialized: false,
-    defaultAddTo: "main",
+    _defaultAddTo: "main",
 
-    initComponent: function() {
+    _initComponent: function() {
         var self = this;
 
         self.$super.apply(self, arguments);
@@ -14872,7 +14987,7 @@ MetaphorJs.app.Container = app_Component.$extend({
             self._prepareDeclaredItems(toArray(self.node.childNodes));
         }
 
-        this._initItems();
+        self._initItems();
     },
 
     _initTplConfig: function(tplConfig) {
@@ -14933,16 +15048,15 @@ MetaphorJs.app.Container = app_Component.$extend({
                 foundCmp = null;
                 foundPromise = null;
                 renderRef = null;
-                renderer = new app_Renderer(
-                    scope.$parent || scope
-                );
+                renderer = new MetaphorJs.app.Renderer;
+                scope.$on("destroy", renderer.$destroy, renderer);
                 renderer.on("reference", refCallback);
                 renderer.on("reference-promise", promiseCallback);
-                renderer.process(node);
+                renderer.process(node, scope);
 
                 if (foundCmp || foundPromise) {
                     if (!renderRef) {
-                        renderRef = self.defaultAddTo;
+                        renderRef = self._defaultAddTo;
                     }
                     def = extend({
                         type: "component",
@@ -14955,7 +15069,7 @@ MetaphorJs.app.Container = app_Component.$extend({
                 }
                 else {
                     attrSet = dom_getAttrSet(node);
-                    renderRef = attrSet.at || attrSet.rest.slot || self.defaultAddTo;
+                    renderRef = attrSet.at || attrSet.rest.slot || self._defaultAddTo;
                     def = extend({
                         type: "node",
                         renderRef: renderRef,
@@ -15459,7 +15573,7 @@ MetaphorJs.app.Container = app_Component.$extend({
         }
 
         item = self._processItemDef(cmp, {
-            renderRef: to || self.defaultAddTo
+            renderRef: to || self._defaultAddTo
         });
         self.items.push(item);
 
@@ -15509,194 +15623,6 @@ MetaphorJs.app.Container = app_Component.$extend({
     wrapper: null
 
 });
-
-
-
-
-
-
-
-
-/**
- * @class MetaphorJs.app.Controller
- */
-MetaphorJs.app.Controller = cls({
-
-    $mixins: [MetaphorJs.mixin.Observable],
-    $mixinEvents: ["$initConfig"],
-
-    /**
-     * @access protected
-     * @var {string}
-     */
-    id:             null,
-
-    /**
-     * @var {HtmlElement}
-     * @access protected
-     */
-    node:           null,
-
-    /**
-     * @var {MetaphorJs.lib.Scope}
-     */
-    scope:          null,
-
-    /**
-     * @var {MetaphorJs.lib.Config}
-     */
-    config:         null,
-
-
-
-    /**
-     * @constructor
-     * @param {object} cfg {
-     *      @type string id Element id
-     *      @type string|Element el
-     *      @type string|Element renderTo
-     *      @type bool hidden
-     *      @type bool destroyEl
-     * }
-     */
-    $init: function(cfg) {
-
-        var self    = this,
-            scope,
-            config;
-
-        cfg = cfg || {};
-
-        self._protoCfg = self.config;
-        self.$super(cfg);
-        extend(self, cfg, true, false);
-
-        scope = self.scope = lib_Scope.$produce(self.scope);
-
-        // We initialize config with current scope or change config's scope
-        // to current so that all new properties that come from _initConfig
-        // are bound to local scope. 
-        // All pre-existing properties are already bound to outer scope;
-        // Also, each property configuration can have its scope specified
-        config = self.config = lib_Config.create(
-            self.config,
-            {scope: scope}, 
-            /*scalarAs: */"defaultValue"
-        )
-        config.setOption("scope", scope);
-        self._initConfig(config);
-        self.$callMixins("$initConfig", config);
-
-        if (config.has("init")) {
-            config.get("init")(scope);
-        }
-        if (config.has("as")) {
-            scope[config.get("as")] = self;
-        }
-
-        self.id = config.has("id") ? config.get("id") : "ctrl-" + nextUid();
-
-        self._initController.apply(self, arguments);
-
-        if (scope.$app) {
-            scope.$app.registerCmp(self, "id");
-        }
-
-        if (self.parentRenderer) {
-            self.parentRenderer.on("destroy", self._onParentRendererDestroy, self);
-        }
-
-        self._claimNode();
-    },
-
-    _initConfig: function() {
-        var self = this,
-            scope = self.scope,
-            config = self.config,
-            mst = lib_Config.MODE_STATIC,
-            msl = lib_Config.MODE_LISTENER,
-            ctx;
-
-        config.setMode("init", lib_Config.MODE_FUNC);
-        config.setDefaultMode("as", mst);
-
-        if (self.as) {
-            config.setDefaultValue("as", self.as);
-        }
-
-        config.setDefaultMode("callbackContext", lib_Config.MODE_SINGLE);
-        config.eachProperty(function(name) {
-            if (name.substring(0,4) === 'on--') {
-                config.setMode(name, msl);
-                if (!ctx) {
-                    if (scope.$app)
-                        ctx = config.get("callbackContext") ||
-                                scope.$app.getParentCmp(self.node) ||
-                                scope.$app ||
-                                scope;
-                    else 
-                        ctx = config.get("callbackContext") || scope;
-                }
-                self.on(name.substring(4), config.get(name), ctx);
-            }
-        });
-
-        if (self._protoCfg) {
-            config.addProperties(
-                self._protoCfg, 
-                /*scalarAs: */"defaultValue"
-            );
-        }
-    },
-
-    _claimNode: function() {
-        var self = this;
-        self.node.$$ctrlId = self.id;
-    },
-
-    _releaseNode: function(node) {
-        this.node.$$ctrlId = null;
-    },
-
-
-    /**
-     * @access public
-     * @return bool
-     */
-    isDestroyed: function() {
-        return this.$$destroyed;
-    },
-
-    /**
-     * @access public
-     * @return Element
-     */
-    getEl: function() {
-        return this.node;
-    },
-
-    /**
-     * @method
-     * @access protected
-     */
-    _initController:  emptyFn,
-
-    
-    _onParentRendererDestroy: function() {
-        this.$destroy();
-    },
-
-    onDestroy:      function() {
-
-        var self    = this;
-
-        self._releaseNode();
-        self.config.$destroy();
-        self.$super();
-    }
-
-});
-
 
 
 
@@ -16324,8 +16250,9 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
         scope.$getRawIndex = self.griDelegate;
 
         if (!item.renderer) {
-            item.renderer  = new app_Renderer(scope);
-            item.renderer.process(item.el);
+            item.renderer  = new MetaphorJs.app.Renderer;
+            scope.$on("destroy", item.renderer.$destroy, item.renderer);
+            item.renderer.process(item.el, scope);
             item.rendered = true;
         }
         else {
@@ -18631,7 +18558,6 @@ DO NOT put class="{}" when using class.name="{}"
         // if there is instructions regarding controller's scope
         // we set this scope for all children of current node
         if (config.has("scope")) {
-            console.log(scope)
             renderer.flowControl("newScope", scope);
         }
 
@@ -19408,6 +19334,7 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
 
 
 
+
 /**
  * Handles events as they come defined in html templates
  * @class MetaphorJs.lib.EventHandler
@@ -19442,6 +19369,8 @@ MetaphorJs.lib.EventHandler = function(event, scope, node, cfg) {
 
 extend(MetaphorJs.lib.EventHandler.prototype, {
 
+    $destroyed: false,
+    $destroying: false,
 
     onIfChange: function(val) {
         this[val?"up":"down"]();
@@ -19466,8 +19395,10 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
                 stopPropagation = false,
                 res,
                 cfg = config.getAll(),
+                not = cfg.not,
                 handlers = [],
                 names = [],
+                skipHandler = false,
                 handler, i, l;
 
             config.eachProperty(function(name){
@@ -19484,6 +19415,24 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
 
             e = dom_normalizeEvent(e || window.event);
 
+            if (not) {
+                if (!isArray(not)) {
+                    not = [not];
+                }
+                var prnt;
+                nt:
+                for (i = 0, l = not.length; i < l; i++) {
+                    prnt = e.target;
+                    while (prnt && prnt !== self.node) {
+                        if (dom_is(prnt, not[i])) {
+                            skipHandler = true;
+                            break nt;
+                        }
+                        prnt = prnt.parentNode;
+                    }
+                }
+            }
+
             if (keyCode) {
                 if (typeof keyCode === "number" && keyCode !== e.keyCode) {
                     return null;
@@ -19498,7 +19447,7 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
             scope.$prevEvent = self.prevEvent[e.type];
             scope.$eventCmp = config.get("targetComponent");
 
-            if (handlers.length > 0) {
+            if (!skipHandler && handlers.length > 0) {
                 for (i = 0, l = handlers.length; i < l; i++) {
                     handler = handlers[i];
                     res = handler.call(cfg.context || null, scope);
@@ -19523,6 +19472,7 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
 
             scope.$event = null;
             scope.$eventNode = null;
+            scope.$eventCmp = null;
 
             self.prevEvent[e.type] = e;
 
@@ -19592,8 +19542,14 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
      */
     $destroy: function() {
         var self = this;
+        if (self.$destroyed || self.$destroying) {
+            return;
+        }
+        self.$destroying = true;
         self.down();
         self.config.clear();
+        self.$destroying = false;
+        self.$destroyed = true;
     }
 });
 
@@ -19617,13 +19573,15 @@ var lib_EventHandler = MetaphorJs.lib.EventHandler;
         i, len;
 
     var prepareConfig = function(config) {
+        var ms = lib_Config.MODE_STATIC;
         config.setProperty("preventDefault", {
             type: "bool", 
             defaultValue: true,
-            defaultMode: lib_Config.MODE_STATIC
+            defaultMode: ms
         });
-        config.setType("stopPropagation", "bool", lib_Config.MODE_STATIC);
+        config.setType("stopPropagation", "bool", ms);
         config.setType("if", "bool");
+        config.setType("not", "string", ms);
         config.eachProperty(function(k){
             if (k === 'value' || k.indexOf('value.') === 0) {
                 config.setMode(k, lib_Config.MODE_FUNC);
@@ -20624,7 +20582,7 @@ Directive.registerAttribute("router", 200,
     });
 
     Directive.resolveNode(node, "router", function(node){
-        if (!renderer.destroyed) {
+        if (!renderer.$destroyed) {
             var cfg = {scope: scope, node: node, config: config};
 
             if (routes.length !== 0) {
@@ -21249,7 +21207,7 @@ Directive.registerAttribute("view", 200,
     function(scope, node, config, renderer) {
 
     Directive.resolveNode(node, "view", function(node){
-        if (!renderer.destroyed) {
+        if (!renderer.$destroyed) {
             var cfg = {scope: scope, node: node, config: config};
 
             app_resolve(
@@ -29262,7 +29220,7 @@ Directive.registerAttribute("field", 200, function(scope, node, config, renderer
 
     Directive.resolveNode(node, "field", function(node){
 
-        if (!renderer.destroyed) {
+        if (!renderer.$destroyed) {
             var id = dom_getAttr(node, "name") ||
                     dom_getAttr(node, "id"),
             v = validator_Validator.getValidator(node),
@@ -29547,7 +29505,7 @@ Directive.registerAttribute("validate", 250,
     }
     else {
         Directive.resolveNode(node, "validate", function(node){
-            if (!renderer.destroyed) {
+            if (!renderer.$destroyed) {
                 var v = new constr(node, scope, renderer, config);
                 renderer.on("destroy", v.$destroy, v);
             }
@@ -29673,8 +29631,6 @@ Directive.registerAttribute("validate", 250,
                     style[prefixes.transform] = "translateX("+from.left+"px) translateY("+from.top+"px)";
                 }
             });
-
-            console.log("do move animation")
 
             return animate_animate(
                 el,
