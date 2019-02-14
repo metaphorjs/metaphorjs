@@ -5,6 +5,7 @@ require("./MutationObserver.js");
 var extend = require("metaphorjs-shared/src/func/extend.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     toBool = require("metaphorjs-shared/src/func/toBool.js"),
+    toArray = require("metaphorjs-shared/src/func/toArray.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
     isPrimitive = require("metaphorjs-shared/src/func/isPrimitive.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
@@ -147,6 +148,10 @@ module.exports = MetaphorJs.lib.Config = (function(){
                     }
                     else {
                         value = MetaphorJs.lib.Expression.func(prop.expression);
+                        value = self._wrapListener(
+                                    value, 
+                                    prop.scope || self.cfg.scope
+                                );
                     }
                 }
             }
@@ -164,6 +169,20 @@ module.exports = MetaphorJs.lib.Config = (function(){
             }
 
             return value;
+        },
+
+        _wrapListener: function(ls, scope) {
+            return function() {
+                var args = toArray(arguments),
+                    i, l;
+                for (i = 1, l = args.length; i <= l; i++) {
+                    scope["$" + i] = args[i];
+                }
+                ls(scope);
+                for (i = 1, l = args.length; i <= l; i++) {
+                    delete scope["$" + i];
+                }
+            };
         },
 
 

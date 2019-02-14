@@ -64,4 +64,37 @@ describe("MetaphorJs.lib.Config", function(){
         assert.strictEqual(1, slicedCfg.get("static"));
         assert.strictEqual(4, slicedCfg.get("undef"));
     });
+
+    it("check onchange event", function(){
+
+        var changes = 0;
+        var dataObj = {
+            a: 1
+        };
+        var config = new MetaphorJs.lib.Config(
+            {
+                a: {
+                    expression: "this.a"
+                }
+            },
+            {
+                scope: dataObj
+            }
+        );
+        config.on("a", function(){
+            changes++;
+        });
+
+        assert.strictEqual(1, config.get("a"));
+        assert.strictEqual(0, changes);
+
+        dataObj.a = 2;
+        config.check("a");
+        assert.strictEqual(2, config.get("a"));
+        assert.strictEqual(1, changes);
+
+        config.setStatic('a', 3);
+        assert.strictEqual(3, config.get("a"));
+        assert.strictEqual(2, changes);
+    });
 });
