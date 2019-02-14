@@ -455,6 +455,8 @@ module.exports = MetaphorJs.app.Template = function() {
                 self._resolvePromise = MetaphorJs.lib.Promise.resolve();
             }
 
+            self._resolvePromise.fail(self._onTemplateNotFound, self);
+
             return self._resolvePromise.done(self._onTemplateResolved, self);
         },
 
@@ -555,6 +557,10 @@ module.exports = MetaphorJs.app.Template = function() {
             }
 
             self._pubResolvePromise.resolve();
+        },
+
+        _onTemplateNotFound: function() {
+            throw new Error("Template " + this.config.get("name") + " not found");
         },
 
         _collectInitialNodes: function(parent) {
