@@ -492,7 +492,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
         getAll: function() {
             var self = this, k, vs = {};
             for (k in self.properties) {
-                if (self.values[k] === undf) {
+                if (self.values[k] === undf || isNaN(self.values[k])) {
                     vs[k] = self._calcProperty(k);
                 }
                 else vs[k] = self.values[k];
@@ -554,8 +554,9 @@ module.exports = MetaphorJs.lib.Config = (function(){
          * @returns {boolean}
          */
         has: function(name) {
-            var self = this;
-            return self.values[name] !== undf || (
+            var self = this,
+                v = self.values[name];
+            return (v !== undf && v !== null && !isNaN(v)) || (
                 self.properties[name] && 
                 (self.properties[name].defaultValue !== undf ||
                  self.properties[name].expression !== undf)
@@ -819,7 +820,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
          * @returns {*}
          */
         get: function(name) {
-            if (this.values[name] === undf) {
+            if (this.values[name] === undf || isNaN(this.values[name])) {
                 this._calcProperty(name);
             }
             return this.values[name];
