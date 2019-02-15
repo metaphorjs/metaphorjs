@@ -25,6 +25,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     _binding: null,
     _inProg: false,
     _initial: false,
+    _focus: false,
     _autoOnChange: false,
 
     _initDirective: function() {
@@ -32,6 +33,13 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         var self    = this;
 
         self.input.onChange(self.onInputChange, self);
+
+        if (self.config.get("focusOnly")) {
+            self.focusDelegate = bind(self.onInputFocus, self);
+            self.blurDelegate = bind(self.onInputBlur, self);
+            MetaphorJs.dom.addListener(self.node, "focus", self.focusDelegate);
+            MetaphorJs.dom.addListener(self.node, "blur", self.blurDelegate);
+        }
 
         self.optionsChangeDelegate = bind(self.onOptionsChange, self);
         MetaphorJs.dom.addListener(self.node, "optionschange", 
@@ -50,7 +58,8 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             if (binding !== "input" && scopeValue !== undf) {
                 self.onScopeChange(scopeValue);
             }
-            else if (binding !== "scope" && inputValue !== undf) {
+            else if (binding !== "scope" && inputValue !== undf && 
+                    !self.config.get("focusOnly")) {
                 self.onInputChange(inputValue);
             }
         }
@@ -76,6 +85,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             defaultValue: "both",
             defaultMode: MetaphorJs.lib.Config.MODE_STATIC
         });
+        config.setType("focusOnly", "bool", null, false);
 
         if (config.hasExpression("change")) {
             self._changeFn   = MetaphorJs.lib.Expression.func(config.get("change"));
@@ -90,6 +100,14 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
     _initChange: emptyFn,
 
+    onInputFocus: function() {
+        this._focus = true;
+    },
+
+    onInputBlur: function() {
+        this._focus = false;
+    },
+
     onOptionsChange: function() {
         this.onScopeChange();
     },
@@ -98,9 +116,13 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
         var self    = this,
             scope   = self.scope,
-            binding = self._binding || self.config.get("binding")
+            binding = self._binding || self.config.get("binding");
 
         if (binding !== "scope") {
+
+            if (self.config.get("focusOnly") && !self._focus) {
+                return;
+            }
 
             if (val && isString(val) && val.indexOf('\\{') !== -1) {
                 val = val.replace(/\\{/g, '{');
