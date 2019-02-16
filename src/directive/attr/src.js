@@ -49,7 +49,7 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
         self.$super(scope, node, config);
     },
 
-    _initDirective: function(scope, node, config, renderer, attrSet) {
+    initDirective: function(scope, node, config, renderer, attrSet) {
 
         var self = this;
 

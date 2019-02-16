@@ -19,7 +19,7 @@ Directive.registerAttribute("input", 1000, Directive.$extend({
     _inProg: false,
     _prev: null,
 
-    _initDirective: function() {
+    initDirective: function() {
 
         var self    = this;
 
@@ -28,14 +28,14 @@ Directive.registerAttribute("input", 1000, Directive.$extend({
         self.$super();
     },
 
-    _initChange: function(){},
+    initChange: function(){},
 
-    _initConfig: function() {
+    initConfig: function() {
         this.config.setType("if", "bool");
         this.config.setMode("value", MetaphorJs.lib.Config.MODE_FUNC);
     },
 
-    _initChange: emptyFn,
+    initChange: emptyFn,
 
     onOptionsChange: function() {
         this.onScopeChange();

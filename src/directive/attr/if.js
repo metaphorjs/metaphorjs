@@ -12,7 +12,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
 
     _initial: true,
     
-    _initConfig: function() {
+    initConfig: function() {
         var config = this.config;
         config.setType("animate", "bool", MetaphorJs.lib.Config.MODE_STATIC)
         config.setType("value", "bool");
@@ -20,7 +20,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
         this.$super();
     },
     
-    _initDirective: function() {
+    initDirective: function() {
         this.createCommentWrap(this.node, "if");
         this.$super();
     },

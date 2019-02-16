@@ -205,7 +205,7 @@ module.exports = MetaphorJs.app.Component = MetaphorJs.app.Controller.$extend({
 
     _initTplConfig: function(config) {},
 
-    _initConfig: function() {
+    initConfig: function() {
         var self = this,
             config = self.config,
             mst = MetaphorJs.lib.Config.MODE_STATIC;

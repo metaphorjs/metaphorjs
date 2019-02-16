@@ -24,7 +24,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     _binding: null,
     _inProg: false,
 
-    _initDirective: function() {
+    initDirective: function() {
 
         var self    = this,
             expr    = self.config.getExpression("value")
@@ -58,7 +58,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         }
     },
 
-    _initConfig: function() {
+    initConfig: function() {
         var config  = this.config;
 
         config.setMode("value", MetaphorJs.lib.Config.MODE_FNSET);
@@ -69,7 +69,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         });
     },
 
-    _initChange: emptyFn,
+    initChange: emptyFn,
 
     onOptionsChange: function() {
         this.onScopeChange();

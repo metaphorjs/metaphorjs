@@ -4875,6 +4875,10 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                     }
                     else {
                         value = lib_Expression.func(prop.expression);
+                        value = self._wrapListener(
+                                    value, 
+                                    prop.scope || self.cfg.scope
+                                );
                     }
                 }
             }
@@ -4883,15 +4887,32 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                 value = prop.defaultValue;
             }
 
-            value = self._prepareValue(value, prop);
-            self.values[name] = value;
+            var retValue = self._prepareValue(value, prop);
+
+            if (value !== undf) {
+                self.values[name] = retValue;
+            }
 
             setTo = self.cfg.setTo || prop.setTo;
             if (setTo) {
-                setTo[name] = value;
+                setTo[name] = retValue;
             }
 
-            return value;
+            return retValue;
+        },
+
+        _wrapListener: function(ls, scope) {
+            return function() {
+                var args = toArray(arguments),
+                    i, l;
+                for (i = 1, l = args.length; i <= l; i++) {
+                    scope["$" + i] = args[i];
+                }
+                ls(scope);
+                for (i = 1, l = args.length; i <= l; i++) {
+                    delete scope["$" + i];
+                }
+            };
         },
 
 
@@ -5201,7 +5222,7 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
         getAll: function() {
             var self = this, k, vs = {};
             for (k in self.properties) {
-                if (self.values[k] === undf) {
+                if (self.values[k] === undf || isNaN(self.values[k])) {
                     vs[k] = self._calcProperty(k);
                 }
                 else vs[k] = self.values[k];
@@ -5263,12 +5284,19 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
          * @returns {boolean}
          */
         has: function(name) {
-            var self = this;
-            return self.values[name] !== undf || (
-                self.properties[name] && 
-                (self.properties[name].defaultValue !== undf ||
-                 self.properties[name].expression !== undf)
-            );
+            var self = this,
+                v = self.values[name];
+            return (
+                    v !== undf && 
+                    v !== null && 
+                    !(typeof v === "number" && isNaN(v))
+                ) || (
+                    self.properties[name] && 
+                    (
+                        self.properties[name].defaultValue !== undf ||
+                        self.properties[name].expression !== undf
+                    )
+                );
         },
 
         _toggleProperty: function(name, val) {
@@ -5528,8 +5556,8 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
          * @returns {*}
          */
         get: function(name) {
-            if (this.values[name] === undf) {
-                this._calcProperty(name);
+            if (this.values[name] === undf || isNaN(this.values[name])) {
+                return this._calcProperty(name);
             }
             return this.values[name];
         },
@@ -5684,11 +5712,13 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
          */
         checkScope: function(propName) {
 
-            if (!this.cfg) {
+            var prop = this.properties[propName];
+
+            if (!prop) {
                 return;
             }
 
-            var scope = this.cfg.scope,
+            var scope = prop.scope || this.cfg.scope,
                 descr = lib_Expression.describeExpression(
                     this.getExpression(propName)
                 );
@@ -8309,18 +8339,18 @@ var Directive = MetaphorJs.app.Directive = (function() {
             self.attrSet    = attrSet;
             self._nodeAttr  = node;
 
-            self._initConfig(config);
-            self._initScope(scope);
+            self.initConfig();
+            self.initScope();
 
-            self._asyncInit && self._initAsyncInit();
-            self._initNodeAttr(node);
+            self._asyncInit && self.initAsyncInit();
+            self.initNodeAttr();
 
             self._initPromise ? 
-                self._initPromise.done(self._initDirective, self) :
-                self._initDirective();
+                self._initPromise.done(self.initDirective, self) :
+                self.initDirective();
         },
 
-        _initAsyncInit: function() {
+        initAsyncInit: function() {
             var self = this;
             self._initPromise = new MetaphorJs.lib.Promise;
             var asnc = new MetaphorJs.lib.Promise;
@@ -8333,43 +8363,47 @@ var Directive = MetaphorJs.app.Directive = (function() {
             });
         },
 
-        _initNodeAttr: function(node) {
-            var self = this;
+        initNodeAttr: function() {
+            var self = this,
+                node = self._nodeAttr;
 
             if (node instanceof window.Node) {
                 self.node = node;
-                self._initNode(node);
+                self.initNode(node);
                 self._initPromise && self._initPromise.resolve();
             }
             else if (node.$is && node.$is("MetaphorJs.app.Component")) {
                 self.component = node;
-                self._initComponent(node);
+                self.initComponent(node);
                 self._initPromise && self._initPromise.resolve();
             }
             else if (isThenable(node)) {
-                node.done(self._initNodeAttr, self);
+                node.done(function(node){ self._nodeAttr = node })
+                    .done(self.initNodeAttr, self);
             }
         },
 
-        _initConfig: function(config) {
+        initConfig: function() {
+            var config = this.config;
             config.setDefaultMode("saveState", lib_Config.MODE_SETTER);
             if (config.has("saveState")) {
                 self._stateFn = config.get("saveSate");
             }
         },
 
-        _initScope: function(scope) {
-            var self = this;
+        initScope: function() {
+            var self = this,
+                scope = self.scope;
             scope.$on("destroy", self.onScopeDestroy, self);
             scope.$on("reset", self.onScopeReset, self);
         },
 
-        _initComponent: function(component) {
+        initComponent: function(component) {
             var self = this,
                 apis = self._apis,
                 i, l, res;
             for (i = 0, l = apis.length; i < l; i++) {
-                res = self._initApi(component, apis[i]);
+                res = self.initApi(component, apis[i]);
                 if (isThenable(res)) {
                     !self._initPromise && 
                         (self._initPromise = new MetaphorJs.lib.Promise);
@@ -8378,14 +8412,14 @@ var Directive = MetaphorJs.app.Directive = (function() {
             }
         },
 
-        _initNode: function(node) {
+        initNode: function(node) {
             if (this._apis.indexOf("input") !== -1 && 
                 dom_isField(node)) {
                 this.input = lib_Input.get(node, this.scope);
             }
         },
 
-        _initApi: function(component, apiType) {
+        initApi: function(component, apiType) {
             var self = this,
                 api = component.getApi(apiType, self.id);
             if (isThenable(api)) {
@@ -8400,11 +8434,11 @@ var Directive = MetaphorJs.app.Directive = (function() {
             this[apiType] = api;
         },
 
-        _initDirective: function() {
-            this._initChange();
+        initDirective: function() {
+            this.initChange();
         },
 
-        _initChange: function() {
+        initChange: function() {
             var self = this,
                 val;
             self.config.on("value", self.onScopeChange, self);
@@ -8412,7 +8446,6 @@ var Directive = MetaphorJs.app.Directive = (function() {
                 self.onScopeChange(val, undf);
             }
         },
-
 
         createCommentWrap: function(node, name) {
             var cmts = dom_commentWrap(node, name || this.$class);
@@ -9271,7 +9304,7 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
 
                 // this is an attribute directive
                 for (i = 0, len = handlers.length; i < len; i++) {
-                    
+
                     name = handlers[i].name;
 
                     if ((ds = attrs['directives'][name]) !== undf &&
@@ -9328,7 +9361,6 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
         processNode: function(node, scope, /*system private attr */_attrs) {
             var self = this;
             self._treeState.scope = scope;
-            self._treeState.countdown++;
             self._processNode(node, _attrs);
         },
 
@@ -13265,6 +13297,8 @@ var app_Template = MetaphorJs.app.Template = function() {
                 self._resolvePromise = lib_Promise.resolve();
             }
 
+            self._resolvePromise.fail(self._onTemplateNotFound, self);
+
             return self._resolvePromise.done(self._onTemplateResolved, self);
         },
 
@@ -13344,6 +13378,7 @@ var app_Template = MetaphorJs.app.Template = function() {
                                 dom_toFragment(fragment) :
                                 fragment;
                 self._fragment = dom_clone(self._template);
+
                 self._extractVirtualSets(self._fragment);
 
                 if (root) {
@@ -13365,6 +13400,10 @@ var app_Template = MetaphorJs.app.Template = function() {
             }
 
             self._pubResolvePromise.resolve();
+        },
+
+        _onTemplateNotFound: function() {
+            throw new Error("Template " + this.config.get("name") + " not found");
         },
 
         _collectInitialNodes: function(parent) {
@@ -13751,6 +13790,10 @@ var app_Template = MetaphorJs.app.Template = function() {
                 self._prevEl.parentNode.removeChild(self._prevEl);
             }
 
+            if (self._renderer) {
+                self._renderer.$destroy();
+            }
+
             observable.destroyEvent("rendered-" + self.id);
             observable.destroyEvent("attached-" + self.id);
 
@@ -13863,7 +13906,7 @@ var app_Controller = MetaphorJs.app.Controller = cls({
         scope = self.scope = lib_Scope.$produce(self.scope);
 
         // We initialize config with current scope or change config's scope
-        // to current so that all new properties that come from _initConfig
+        // to current so that all new properties that come from initConfig
         // are bound to local scope. 
         // All pre-existing properties are already bound to outer scope;
         // Also, each property configuration can have its own scope specified
@@ -13875,7 +13918,7 @@ var app_Controller = MetaphorJs.app.Controller = cls({
         config.setOption("scope", scope);
         scope.$cfg = {};
         config.setTo(scope.$cfg);
-        self._initConfig();
+        self.initConfig();
         self.$callMixins("$initConfig", config);
         if (self._protoCfg) {
             config.addProperties(
@@ -13910,7 +13953,7 @@ var app_Controller = MetaphorJs.app.Controller = cls({
         self._claimNode();
     },
 
-    _initConfig: function() {
+    initConfig: function() {
         var self = this,
             scope = self.scope,
             config = self.config,
@@ -14383,7 +14426,7 @@ var app_Component = MetaphorJs.app.Component = app_Controller.$extend({
 
     _initTplConfig: function(config) {},
 
-    _initConfig: function() {
+    initConfig: function() {
         var self = this,
             config = self.config,
             mst = lib_Config.MODE_STATIC;
@@ -15046,6 +15089,7 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
                 foundPromise = null;
                 renderRef = null;
                 renderer = new MetaphorJs.app.Renderer;
+                scope.$on("destroy", renderer.$destroy, renderer);
                 renderer.on("reference", refCallback);
                 renderer.on("reference-promise", promiseCallback);
                 renderer.process(node, scope);
@@ -16247,6 +16291,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
 
         if (!item.renderer) {
             item.renderer  = new MetaphorJs.app.Renderer;
+            scope.$on("destroy", item.renderer.$destroy, item.renderer);
             item.renderer.process(item.el, scope);
             item.rendered = true;
         }
@@ -18164,6 +18209,45 @@ Directive.registerAttribute("app", 100, appDirective);
 
 
 
+Directive.registerAttribute("in-focus", 500, Directive.$extend({
+
+    $class: "MetaphorJs.app.Directive.attr.Autofocus",
+    id: "autofocus",
+
+    initConfig: function() {
+        this.config.setType("value");
+        this.$super();
+    },
+
+    initChange: function(){},
+
+    initDirective: function() {
+
+        var self = this,
+            val = self.config.get("value");
+
+        if (""+parseInt(val) === val) {
+            val = parseInt(val);
+        }
+        else {
+            if (val === "false") val = false;
+            else val = !!val;
+        }
+
+        if (val) {
+            var set = function() {
+                self.node.focus();
+                self.$destroy();
+            };
+            async(set, null, [], val === true ? 300 : val);
+        }
+    }
+}));
+
+
+
+
+
 
 
 
@@ -18179,7 +18263,7 @@ Directive.registerAttribute("bind", 1000,
         input: null,
         textRenderer: null,
 
-        _initDirective: function() {
+        initDirective: function() {
 
             var self    = this,
                 config  = self.config;
@@ -18212,45 +18296,55 @@ Directive.registerAttribute("bind", 1000,
             }
         },
 
-        _initConfig: function(config) {
-            this.$super(config);
+        initConfig: function() {
+            this.$super();
+            var config = this.config;
+            config.setType("if", "bool");
             config.setType("recursive", "bool");
             config.setType("once", "bool", lib_Config.MODE_STATIC);
             config.setType("locked", "bool");
         },
 
-        _initNode: function(node) {
+        initNode: function(node) {
             var self = this;
             if (dom_isField(node)) {
                 self.input = lib_Input.get(node);
             }
         },
 
+        onInputChange: function() {
 
-        
-        onInputChange: function(val) {
             var self = this,
-                cfgVal = self.config.get("value") || null;
-            val = val || null;
-            if (self.config.get("locked") && val != cfgVal) {
-                self.onScopeChange(cfgVal);
+                config = self.config,
+                scopeVal,
+                inputVal;
+
+            if (config.has("locked") && config.get("locked")) {
+                scopeVal = self.config.get("value") || null;
+                inputVal = self.input.getValue() || null;
+                if (scopeVal != inputVal) {
+                    self.onScopeChange();
+                }
             }
         },
 
         onTextRendererChange: function() {
-            this.onScopeChange(this.textRenderer.getString());
+            this.onScopeChange();
         },
 
         onOptionsChange: function() {
-            this.onScopeChange(
-                this.textRenderer ? 
-                    this.textRenderer.getString() :
-                    this.config.get("value")
-            );
+            this.onScopeChange();
         },
 
-        onScopeChange: function(text) {
-            this.updateElement(text);
+        onScopeChange: function() {
+            var config = this.config;
+            if (config.has("if") && !config.get("if")) {
+                return;
+            }
+            var val = this.textRenderer ? 
+                        this.textRenderer.getString() :
+                        this.config.get("value")
+            this.updateElement(val);
         },
 
         updateElement: function(val) {
@@ -18397,18 +18491,19 @@ DO NOT put class="{}" when using class.name="{}"
         _initial: true,
         _prev: null,
 
-        _initConfig: function(config) {
-            var self = this;
+        initConfig: function() {
+            var self = this,
+                config = self.config;
             config.setType("animate", "bool");
             config.eachProperty(function(k) {
                 if (k === 'value' || k.indexOf("value.") === 0) {
                     config.on(k, self.onScopeChange, self);
                 }
             });
-            self.$super(config);
+            self.$super();
         },
 
-        _initChange: function() {
+        initChange: function() {
             var self = this;
             if (self._autoOnChange) {
                 self.onScopeChange();
@@ -19063,7 +19158,7 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
          * @method
          */
         watchHeight: function() {
-            this.addWatcher("width", MetaphorJs.dom.getHeight);
+            this.addWatcher("height", MetaphorJs.dom.getHeight);
         },
 
         /**
@@ -19364,6 +19459,8 @@ MetaphorJs.lib.EventHandler = function(event, scope, node, cfg) {
 
 extend(MetaphorJs.lib.EventHandler.prototype, {
 
+    $destroyed: false,
+    $destroying: false,
 
     onIfChange: function(val) {
         this[val?"up":"down"]();
@@ -19535,8 +19632,14 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
      */
     $destroy: function() {
         var self = this;
+        if (self.$destroyed || self.$destroying) {
+            return;
+        }
+        self.$destroying = true;
         self.down();
         self.config.clear();
+        self.$destroying = false;
+        self.$destroyed = true;
     }
 });
 
@@ -19674,6 +19777,49 @@ var lib_EventHandler = MetaphorJs.lib.EventHandler;
 
 
 
+Directive.registerAttribute("focused", 600, Directive.$extend({
+
+    $class: "MetaphorJs.app.Directive.attr.InFocus",
+    id: "focused",
+
+    initConfig: function() {
+        this.config.setMode("value", lib_Config.MODE_SETTER);
+        this.$super();
+    },
+
+    initChange: function() {},
+
+    initDirective: function() {
+
+        this.focusDelegate = bind(this.onInputFocus, this);
+        this.blurDelegate = bind(this.onInputBlur, this);
+
+        dom_addListener(this.node, "focus", this.focusDelegate);
+        dom_addListener(this.node, "blur", this.blurDelegate);
+    },
+
+    onInputFocus: function() {
+        this.config.get("value")(this.scope, true);
+    },
+    onInputBlur: function() {
+        this.config.get("value")(this.scope, false);
+    },
+
+    onDestroy: function(){
+        dom_removeListener(this.node, "focus", this.focusDelegate);
+        dom_removeListener(this.node, "blur", this.blurDelegate);
+        this.$super();
+    }
+}));
+
+
+
+
+
+
+
+
+
 Directive.registerAttribute("show", 500, Directive.$extend({
 
     $class: "MetaphorJs.app.Directive.attr.Show",
@@ -19681,12 +19827,13 @@ Directive.registerAttribute("show", 500, Directive.$extend({
 
     _initial: true,
 
-    _initConfig: function(config) {
+    initConfig: function() {
+        var config = this.config;
         config.setType("display", 
             "string", lib_Config.MODE_STATIC, "");
         config.setType("animate", 
             "bool", lib_Config.MODE_STATIC, false);
-        this.$super(config);
+        this.$super();
     },
 
     runAnimation: function(show) {
@@ -19758,14 +19905,15 @@ Directive.registerAttribute("if", 500, Directive.$extend({
 
     _initial: true,
     
-    _initConfig: function(config) {
+    initConfig: function() {
+        var config = this.config;
         config.setType("animate", "bool", lib_Config.MODE_STATIC)
         config.setType("value", "bool");
         config.setType("once", "bool", lib_Config.MODE_STATIC);
-        this.$super(config);
+        this.$super();
     },
     
-    _initDirective: function() {
+    initDirective: function() {
         this.createCommentWrap(this.node, "if");
         this.$super();
     },
@@ -19805,28 +19953,6 @@ Directive.registerAttribute("if", 500, Directive.$extend({
             if (self.config.get("once")) {
                 self.$destroy();
             }
-        }
-    }
-}));
-
-
-
-
-
-Directive.registerAttribute("in-focus", 500, Directive.$extend({
-
-    $class: "MetaphorJs.app.Directive.attr.InFocus",
-    id: "in-focus",
-
-    _initConfig: function(config) {
-        config.setType("value", "bool");
-        this.$super(config);
-    },
-
-    onScopeChange: function(val) {
-        var self    = this;
-        if (val) {
-            async(self.node.focus, self.node, [], 300);
         }
     }
 }));
@@ -19891,6 +20017,92 @@ Directive.registerAttribute("init", 250, function() {
 
     return initDir;
 }());
+
+
+
+
+
+
+
+
+
+
+Directive.registerAttribute("input", 1000, Directive.$extend({
+
+    $class: "MetaphorJs.app.Directive.attr.Model",
+    id: "input",
+    _apis: ["node", "input"],
+
+    _inProg: false,
+    _prev: null,
+
+    initDirective: function() {
+
+        var self    = this;
+
+        self.input.onChange(self.onInputChange, self);
+        self._prev = self.input.getValue();
+        self.$super();
+    },
+
+    initChange: function(){},
+
+    initConfig: function() {
+        this.config.setType("if", "bool");
+        this.config.setMode("value", lib_Config.MODE_FUNC);
+    },
+
+    initChange: emptyFn,
+
+    onOptionsChange: function() {
+        this.onScopeChange();
+    },
+
+    onInputChange: function(val) {
+
+        var self    = this,
+            scope   = self.scope,
+            config  = self.config;
+
+        if (config.has("if") && !config.get("if")) {
+            return;
+        }
+        if (self._prev == val || self._inProg) {
+            return;
+        }
+
+        self._inProg = true;
+
+        var fn = config.get("value");
+        scope.$prev = self._prev;
+        scope.$value = val;
+        fn(scope);
+        scope.$prev = null;
+        scope.$value = null;
+
+        config.checkScope("value");
+        self._prev = val;
+        self._inProg = false;
+    },
+
+    onDestroy: function() {
+        var self        = this;
+
+        self.input.unChange(self.onInputChange, self);
+        self.input.$destroy();
+        self.input = null;
+
+        self.$super();
+    }
+
+
+}, {
+
+    $prebuild: {
+        skip: true
+    }
+
+}));
 
 
 
@@ -20030,16 +20242,20 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     id: "model",
     _apis: ["node", "input"],
 
-    _changeFn: null,
     _binding: null,
     _inProg: false,
-    _initial: false,
-    _autoOnChange: false,
 
-    _initDirective: function() {
+    initDirective: function() {
 
-        var self    = this;
+        var self    = this,
+            expr    = self.config.getExpression("value")
 
+        self.mo = lib_MutationObserver.get(
+            self.scope, expr, null, null, {
+                setter: true
+            }
+        );
+        self.mo.subscribe(self.onScopeChange, self);
         self.input.onChange(self.onInputChange, self);
 
         self.optionsChangeDelegate = bind(self.onOptionsChange, self);
@@ -20051,8 +20267,6 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         var inputValue      = self.input.getValue(),
             scopeValue      = self.mo.getValue(),
             binding         = self.config.get("binding");
-        
-        self._initial = true;
 
         if (scopeValue !== inputValue) {
             // scope value takes priority
@@ -20063,41 +20277,20 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
                 self.onInputChange(inputValue);
             }
         }
-
-        self._initial = false;
     },
 
-    _initConfig: function(config) {
-        var self    = this,
-            expr    = config.getExpression("value"),
-            descr   = lib_Expression.describeExpression(expr);
+    initConfig: function() {
+        var config  = this.config;
 
         config.setMode("value", lib_Config.MODE_FNSET);
-        config.setProperty("checkRoot", {
-            type: 'bool',
-            defaultValue: descr.indexOf('r') !== -1
-        });
-        config.setProperty("checkParent", {
-            type: 'bool',
-            defaultValue: descr.indexOf('p') !== -1
-        });
+        config.setType("if", "bool");
         config.setProperty("binding", {
             defaultValue: "both",
             defaultMode: lib_Config.MODE_STATIC
         });
-
-        if (config.hasExpression("change")) {
-            self._changeFn   = lib_Expression.func(config.get("change"));
-        }
-        self.mo             = lib_MutationObserver.get(
-            self.scope, expr, null, null, {
-                setter: true
-            }
-        );
-        self.mo.subscribe(self.onScopeChange, self);
     },
 
-    _initChange: emptyFn,
+    initChange: emptyFn,
 
     onOptionsChange: function() {
         this.onScopeChange();
@@ -20106,10 +20299,14 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     onInputChange: function(val) {
 
         var self    = this,
-            scope   = self.scope,
-            binding = self._binding || self.config.get("binding")
+            config  = self.config,
+            binding = self._binding || config.get("binding");
 
         if (binding !== "scope") {
+
+            if (config.has("if") && !config.get("if")) {
+                return;
+            }
 
             if (val && isString(val) && val.indexOf('\\{') !== -1) {
                 val = val.replace(/\\{/g, '{');
@@ -20120,24 +20317,9 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             }
 
             self.mo.setValue(val);
-            self._inProg = true;
 
-            if (scope instanceof MetaphorJs.lib.Scope) {
-                if (self.config.get("checkRoot")) {
-                    scope.$root.$check();
-                }
-                else if (self.config.get("checkParent")) {
-                    scope.$parent ? 
-                        scope.$parent.$check() : 
-                        scope.$root.$check();
-                }
-                else {
-                    scope.$check();
-                }
-            }
-            else {
-                self.config.check("value");
-            }
+            self._inProg = true;
+            self.config.checkScope("value");
             self._inProg = false;
         }
     },
@@ -20146,11 +20328,16 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     onScopeChange: function() {
 
         var self    = this,
-            val     = self.mo.getValue(), //self.getterFn(self.scope),
-            binding = self._binding || self.config.get("binding"),
+            config  = self.config,
+            val     = self.mo.getValue(), 
+            binding = self._binding || config.get("binding"),
             ie;
 
         if (binding !== "input" && !self._inProg) {
+
+            if (config.has("if") && !config.get("if")) {
+                return;
+            }
 
             // when scope value changed but this field
             // is not in focus, it should try to
@@ -20171,10 +20358,6 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             }
 
             self._binding = null;
-        }
-
-        if (self._changeFn && !self.initial) {
-            self._changeFn(self.scope);
         }
     },
 
@@ -20272,18 +20455,19 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         this.$super(scope, node, config, renderer, attrSet);
     },
 
-    _initConfig: function(config) {
+    initConfig: function() {
         var self    = this,
+            config  = self.config,
             expr;
 
         config.disableProperty("value");
         expr = config.getExpression("value");
 
         self.parseExpr(expr);
-        self.$super(config);
+        self.$super();
     },
 
-    _initDirective: function() {
+    initDirective: function() {
 
         var self    = this,
             node    = self.node;
@@ -20513,9 +20697,9 @@ Directive.registerAttribute("options", 100, Directive.$extend({
             this.$super(scope, node, config, renderer, attrSet);
         },
 
-        _initConfig: function(config) {
-            this.$super(config);
-            config.setType("value", "bool");
+        initConfig: function() {
+            this.$super();
+            this.config.setType("value", "bool");
         },
 
         onScopeChange: function(val) {
@@ -20859,7 +21043,7 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
         self.$super(scope, node, config);
     },
 
-    _initDirective: function(scope, node, config, renderer, attrSet) {
+    initDirective: function(scope, node, config, renderer, attrSet) {
 
         var self = this;
 
@@ -21010,11 +21194,12 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
     $class: "MetaphorJs.app.Directive.attr.Style",
     id: "style",
 
-    _initDirective: function() {
+    initDirective: function() {
 
         var self = this,
             config = self.config;
 
+        config.on("value", self.onScopeChange, self);
         config.eachProperty(function(k){
             if (k.indexOf("value.") === 0) {
                 config.on(k, self.onScopeChange, self);
@@ -21022,6 +21207,10 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
         });
 
         this.$super();
+    },
+
+    initChange: function() {
+        this.onScopeChange();
     },
 
     getCurrentValue: function() {
@@ -25718,7 +25907,7 @@ MetaphorJs.dom.webComponentWrapper = function(tagName, cls, parentCls, props) {
             return cls.observedAttributes || []; 
         }
 
-        _initComponent() {
+        initComponent() {
 
             if (!this.cmp) {
 
@@ -25766,7 +25955,7 @@ MetaphorJs.dom.webComponentWrapper = function(tagName, cls, parentCls, props) {
         }
 
         connectedCallback() {
-            this._initComponent();
+            this.initComponent();
             this._callCmpEvent("webc-connected", toArray(arguments));
         }
 

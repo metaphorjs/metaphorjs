@@ -19,7 +19,7 @@ Directive.registerAttribute("bind", 1000,
         input: null,
         textRenderer: null,
 
-        _initDirective: function() {
+        initDirective: function() {
 
             var self    = this,
                 config  = self.config;
@@ -52,7 +52,7 @@ Directive.registerAttribute("bind", 1000,
             }
         },
 
-        _initConfig: function() {
+        initConfig: function() {
             this.$super();
             var config = this.config;
             config.setType("if", "bool");
@@ -61,7 +61,7 @@ Directive.registerAttribute("bind", 1000,
             config.setType("locked", "bool");
         },
 
-        _initNode: function(node) {
+        initNode: function(node) {
             var self = this;
             if (MetaphorJs.dom.isField(node)) {
                 self.input = MetaphorJs.lib.Input.get(node);

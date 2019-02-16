@@ -97,7 +97,7 @@ DO NOT put class="{}" when using class.name="{}"
         _initial: true,
         _prev: null,
 
-        _initConfig: function() {
+        initConfig: function() {
             var self = this,
                 config = self.config;
             config.setType("animate", "bool");
@@ -109,7 +109,7 @@ DO NOT put class="{}" when using class.name="{}"
             self.$super();
         },
 
-        _initChange: function() {
+        initChange: function() {
             var self = this;
             if (self._autoOnChange) {
                 self.onScopeChange();

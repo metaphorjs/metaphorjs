@@ -22,7 +22,7 @@ module.exports = MetaphorJs.dom.webComponentWrapper = function(tagName, cls, par
             return cls.observedAttributes || []; 
         }
 
-        _initComponent() {
+        initComponent() {
 
             if (!this.cmp) {
 
@@ -70,7 +70,7 @@ module.exports = MetaphorJs.dom.webComponentWrapper = function(tagName, cls, par
         }
 
         connectedCallback() {
-            this._initComponent();
+            this.initComponent();
             this._callCmpEvent("webc-connected", toArray(arguments));
         }
 

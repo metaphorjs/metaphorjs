@@ -8,14 +8,14 @@ Directive.registerAttribute("in-focus", 500, Directive.$extend({
     $class: "MetaphorJs.app.Directive.attr.Autofocus",
     id: "autofocus",
 
-    _initConfig: function() {
+    initConfig: function() {
         this.config.setType("value");
         this.$super();
     },
 
-    _initChange: function(){},
+    initChange: function(){},
 
-    _initDirective: function() {
+    initDirective: function() {
 
         var self = this,
             val = self.config.get("value");

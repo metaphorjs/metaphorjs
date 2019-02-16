@@ -80,7 +80,7 @@ module.exports = MetaphorJs.app.Controller = cls({
         scope = self.scope = MetaphorJs.lib.Scope.$produce(self.scope);
 
         // We initialize config with current scope or change config's scope
-        // to current so that all new properties that come from _initConfig
+        // to current so that all new properties that come from initConfig
         // are bound to local scope. 
         // All pre-existing properties are already bound to outer scope;
         // Also, each property configuration can have its own scope specified
@@ -92,7 +92,7 @@ module.exports = MetaphorJs.app.Controller = cls({
         config.setOption("scope", scope);
         scope.$cfg = {};
         config.setTo(scope.$cfg);
-        self._initConfig();
+        self.initConfig();
         self.$callMixins("$initConfig", config);
         if (self._protoCfg) {
             config.addProperties(
@@ -127,7 +127,7 @@ module.exports = MetaphorJs.app.Controller = cls({
         self._claimNode();
     },
 
-    _initConfig: function() {
+    initConfig: function() {
         var self = this,
             scope = self.scope,
             config = self.config,

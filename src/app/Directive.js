@@ -61,18 +61,18 @@ module.exports = MetaphorJs.app.Directive = (function() {
             self.attrSet    = attrSet;
             self._nodeAttr  = node;
 
-            self._initConfig();
-            self._initScope();
+            self.initConfig();
+            self.initScope();
 
-            self._asyncInit && self._initAsyncInit();
-            self._initNodeAttr(node);
+            self._asyncInit && self.initAsyncInit();
+            self.initNodeAttr();
 
             self._initPromise ? 
-                self._initPromise.done(self._initDirective, self) :
-                self._initDirective();
+                self._initPromise.done(self.initDirective, self) :
+                self.initDirective();
         },
 
-        _initAsyncInit: function() {
+        initAsyncInit: function() {
             var self = this;
             self._initPromise = new MetaphorJs.lib.Promise;
             var asnc = new MetaphorJs.lib.Promise;
@@ -85,25 +85,27 @@ module.exports = MetaphorJs.app.Directive = (function() {
             });
         },
 
-        _initNodeAttr: function(node) {
-            var self = this;
+        initNodeAttr: function() {
+            var self = this,
+                node = self._nodeAttr;
 
             if (node instanceof window.Node) {
                 self.node = node;
-                self._initNode(node);
+                self.initNode(node);
                 self._initPromise && self._initPromise.resolve();
             }
             else if (node.$is && node.$is("MetaphorJs.app.Component")) {
                 self.component = node;
-                self._initComponent(node);
+                self.initComponent(node);
                 self._initPromise && self._initPromise.resolve();
             }
             else if (isThenable(node)) {
-                node.done(self._initNodeAttr, self);
+                node.done(function(node){ self._nodeAttr = node })
+                    .done(self.initNodeAttr, self);
             }
         },
 
-        _initConfig: function() {
+        initConfig: function() {
             var config = this.config;
             config.setDefaultMode("saveState", MetaphorJs.lib.Config.MODE_SETTER);
             if (config.has("saveState")) {
@@ -111,19 +113,19 @@ module.exports = MetaphorJs.app.Directive = (function() {
             }
         },
 
-        _initScope: function() {
+        initScope: function() {
             var self = this,
                 scope = self.scope;
             scope.$on("destroy", self.onScopeDestroy, self);
             scope.$on("reset", self.onScopeReset, self);
         },
 
-        _initComponent: function(component) {
+        initComponent: function(component) {
             var self = this,
                 apis = self._apis,
                 i, l, res;
             for (i = 0, l = apis.length; i < l; i++) {
-                res = self._initApi(component, apis[i]);
+                res = self.initApi(component, apis[i]);
                 if (isThenable(res)) {
                     !self._initPromise && 
                         (self._initPromise = new MetaphorJs.lib.Promise);
@@ -132,14 +134,14 @@ module.exports = MetaphorJs.app.Directive = (function() {
             }
         },
 
-        _initNode: function(node) {
+        initNode: function(node) {
             if (this._apis.indexOf("input") !== -1 && 
                 MetaphorJs.dom.isField(node)) {
                 this.input = MetaphorJs.lib.Input.get(node, this.scope);
             }
         },
 
-        _initApi: function(component, apiType) {
+        initApi: function(component, apiType) {
             var self = this,
                 api = component.getApi(apiType, self.id);
             if (isThenable(api)) {
@@ -154,11 +156,11 @@ module.exports = MetaphorJs.app.Directive = (function() {
             this[apiType] = api;
         },
 
-        _initDirective: function() {
-            this._initChange();
+        initDirective: function() {
+            this.initChange();
         },
 
-        _initChange: function() {
+        initChange: function() {
             var self = this,
                 val;
             self.config.on("value", self.onScopeChange, self);

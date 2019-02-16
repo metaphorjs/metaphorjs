@@ -8339,18 +8339,18 @@ var Directive = MetaphorJs.app.Directive = (function() {
             self.attrSet    = attrSet;
             self._nodeAttr  = node;
 
-            self._initConfig();
-            self._initScope();
+            self.initConfig();
+            self.initScope();
 
-            self._asyncInit && self._initAsyncInit();
-            self._initNodeAttr(node);
+            self._asyncInit && self.initAsyncInit();
+            self.initNodeAttr();
 
             self._initPromise ? 
-                self._initPromise.done(self._initDirective, self) :
-                self._initDirective();
+                self._initPromise.done(self.initDirective, self) :
+                self.initDirective();
         },
 
-        _initAsyncInit: function() {
+        initAsyncInit: function() {
             var self = this;
             self._initPromise = new MetaphorJs.lib.Promise;
             var asnc = new MetaphorJs.lib.Promise;
@@ -8363,25 +8363,27 @@ var Directive = MetaphorJs.app.Directive = (function() {
             });
         },
 
-        _initNodeAttr: function(node) {
-            var self = this;
+        initNodeAttr: function() {
+            var self = this,
+                node = self._nodeAttr;
 
             if (node instanceof window.Node) {
                 self.node = node;
-                self._initNode(node);
+                self.initNode(node);
                 self._initPromise && self._initPromise.resolve();
             }
             else if (node.$is && node.$is("MetaphorJs.app.Component")) {
                 self.component = node;
-                self._initComponent(node);
+                self.initComponent(node);
                 self._initPromise && self._initPromise.resolve();
             }
             else if (isThenable(node)) {
-                node.done(self._initNodeAttr, self);
+                node.done(function(node){ self._nodeAttr = node })
+                    .done(self.initNodeAttr, self);
             }
         },
 
-        _initConfig: function() {
+        initConfig: function() {
             var config = this.config;
             config.setDefaultMode("saveState", lib_Config.MODE_SETTER);
             if (config.has("saveState")) {
@@ -8389,19 +8391,19 @@ var Directive = MetaphorJs.app.Directive = (function() {
             }
         },
 
-        _initScope: function() {
+        initScope: function() {
             var self = this,
                 scope = self.scope;
             scope.$on("destroy", self.onScopeDestroy, self);
             scope.$on("reset", self.onScopeReset, self);
         },
 
-        _initComponent: function(component) {
+        initComponent: function(component) {
             var self = this,
                 apis = self._apis,
                 i, l, res;
             for (i = 0, l = apis.length; i < l; i++) {
-                res = self._initApi(component, apis[i]);
+                res = self.initApi(component, apis[i]);
                 if (isThenable(res)) {
                     !self._initPromise && 
                         (self._initPromise = new MetaphorJs.lib.Promise);
@@ -8410,14 +8412,14 @@ var Directive = MetaphorJs.app.Directive = (function() {
             }
         },
 
-        _initNode: function(node) {
+        initNode: function(node) {
             if (this._apis.indexOf("input") !== -1 && 
                 dom_isField(node)) {
                 this.input = lib_Input.get(node, this.scope);
             }
         },
 
-        _initApi: function(component, apiType) {
+        initApi: function(component, apiType) {
             var self = this,
                 api = component.getApi(apiType, self.id);
             if (isThenable(api)) {
@@ -8432,11 +8434,11 @@ var Directive = MetaphorJs.app.Directive = (function() {
             this[apiType] = api;
         },
 
-        _initDirective: function() {
-            this._initChange();
+        initDirective: function() {
+            this.initChange();
         },
 
-        _initChange: function() {
+        initChange: function() {
             var self = this,
                 val;
             self.config.on("value", self.onScopeChange, self);
@@ -13904,7 +13906,7 @@ var app_Controller = MetaphorJs.app.Controller = cls({
         scope = self.scope = lib_Scope.$produce(self.scope);
 
         // We initialize config with current scope or change config's scope
-        // to current so that all new properties that come from _initConfig
+        // to current so that all new properties that come from initConfig
         // are bound to local scope. 
         // All pre-existing properties are already bound to outer scope;
         // Also, each property configuration can have its own scope specified
@@ -13916,7 +13918,7 @@ var app_Controller = MetaphorJs.app.Controller = cls({
         config.setOption("scope", scope);
         scope.$cfg = {};
         config.setTo(scope.$cfg);
-        self._initConfig();
+        self.initConfig();
         self.$callMixins("$initConfig", config);
         if (self._protoCfg) {
             config.addProperties(
@@ -13951,7 +13953,7 @@ var app_Controller = MetaphorJs.app.Controller = cls({
         self._claimNode();
     },
 
-    _initConfig: function() {
+    initConfig: function() {
         var self = this,
             scope = self.scope,
             config = self.config,
@@ -14424,7 +14426,7 @@ var app_Component = MetaphorJs.app.Component = app_Controller.$extend({
 
     _initTplConfig: function(config) {},
 
-    _initConfig: function() {
+    initConfig: function() {
         var self = this,
             config = self.config,
             mst = lib_Config.MODE_STATIC;
@@ -18212,14 +18214,14 @@ Directive.registerAttribute("in-focus", 500, Directive.$extend({
     $class: "MetaphorJs.app.Directive.attr.Autofocus",
     id: "autofocus",
 
-    _initConfig: function() {
+    initConfig: function() {
         this.config.setType("value");
         this.$super();
     },
 
-    _initChange: function(){},
+    initChange: function(){},
 
-    _initDirective: function() {
+    initDirective: function() {
 
         var self = this,
             val = self.config.get("value");
@@ -18261,7 +18263,7 @@ Directive.registerAttribute("bind", 1000,
         input: null,
         textRenderer: null,
 
-        _initDirective: function() {
+        initDirective: function() {
 
             var self    = this,
                 config  = self.config;
@@ -18294,7 +18296,7 @@ Directive.registerAttribute("bind", 1000,
             }
         },
 
-        _initConfig: function() {
+        initConfig: function() {
             this.$super();
             var config = this.config;
             config.setType("if", "bool");
@@ -18303,7 +18305,7 @@ Directive.registerAttribute("bind", 1000,
             config.setType("locked", "bool");
         },
 
-        _initNode: function(node) {
+        initNode: function(node) {
             var self = this;
             if (dom_isField(node)) {
                 self.input = lib_Input.get(node);
@@ -18489,7 +18491,7 @@ DO NOT put class="{}" when using class.name="{}"
         _initial: true,
         _prev: null,
 
-        _initConfig: function() {
+        initConfig: function() {
             var self = this,
                 config = self.config;
             config.setType("animate", "bool");
@@ -18501,7 +18503,7 @@ DO NOT put class="{}" when using class.name="{}"
             self.$super();
         },
 
-        _initChange: function() {
+        initChange: function() {
             var self = this;
             if (self._autoOnChange) {
                 self.onScopeChange();
@@ -19780,14 +19782,14 @@ Directive.registerAttribute("focused", 600, Directive.$extend({
     $class: "MetaphorJs.app.Directive.attr.InFocus",
     id: "focused",
 
-    _initConfig: function() {
+    initConfig: function() {
         this.config.setMode("value", lib_Config.MODE_SETTER);
         this.$super();
     },
 
-    _initChange: function() {},
+    initChange: function() {},
 
-    _initDirective: function() {
+    initDirective: function() {
 
         this.focusDelegate = bind(this.onInputFocus, this);
         this.blurDelegate = bind(this.onInputBlur, this);
@@ -19825,7 +19827,7 @@ Directive.registerAttribute("show", 500, Directive.$extend({
 
     _initial: true,
 
-    _initConfig: function() {
+    initConfig: function() {
         var config = this.config;
         config.setType("display", 
             "string", lib_Config.MODE_STATIC, "");
@@ -19903,7 +19905,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
 
     _initial: true,
     
-    _initConfig: function() {
+    initConfig: function() {
         var config = this.config;
         config.setType("animate", "bool", lib_Config.MODE_STATIC)
         config.setType("value", "bool");
@@ -19911,7 +19913,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
         this.$super();
     },
     
-    _initDirective: function() {
+    initDirective: function() {
         this.createCommentWrap(this.node, "if");
         this.$super();
     },
@@ -20034,7 +20036,7 @@ Directive.registerAttribute("input", 1000, Directive.$extend({
     _inProg: false,
     _prev: null,
 
-    _initDirective: function() {
+    initDirective: function() {
 
         var self    = this;
 
@@ -20043,14 +20045,14 @@ Directive.registerAttribute("input", 1000, Directive.$extend({
         self.$super();
     },
 
-    _initChange: function(){},
+    initChange: function(){},
 
-    _initConfig: function() {
+    initConfig: function() {
         this.config.setType("if", "bool");
         this.config.setMode("value", lib_Config.MODE_FUNC);
     },
 
-    _initChange: emptyFn,
+    initChange: emptyFn,
 
     onOptionsChange: function() {
         this.onScopeChange();
@@ -20243,7 +20245,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     _binding: null,
     _inProg: false,
 
-    _initDirective: function() {
+    initDirective: function() {
 
         var self    = this,
             expr    = self.config.getExpression("value")
@@ -20277,7 +20279,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         }
     },
 
-    _initConfig: function() {
+    initConfig: function() {
         var config  = this.config;
 
         config.setMode("value", lib_Config.MODE_FNSET);
@@ -20288,7 +20290,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         });
     },
 
-    _initChange: emptyFn,
+    initChange: emptyFn,
 
     onOptionsChange: function() {
         this.onScopeChange();
@@ -20453,7 +20455,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         this.$super(scope, node, config, renderer, attrSet);
     },
 
-    _initConfig: function() {
+    initConfig: function() {
         var self    = this,
             config  = self.config,
             expr;
@@ -20465,7 +20467,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         self.$super();
     },
 
-    _initDirective: function() {
+    initDirective: function() {
 
         var self    = this,
             node    = self.node;
@@ -20695,7 +20697,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
             this.$super(scope, node, config, renderer, attrSet);
         },
 
-        _initConfig: function() {
+        initConfig: function() {
             this.$super();
             this.config.setType("value", "bool");
         },
@@ -21041,7 +21043,7 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
         self.$super(scope, node, config);
     },
 
-    _initDirective: function(scope, node, config, renderer, attrSet) {
+    initDirective: function(scope, node, config, renderer, attrSet) {
 
         var self = this;
 
@@ -21192,7 +21194,7 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
     $class: "MetaphorJs.app.Directive.attr.Style",
     id: "style",
 
-    _initDirective: function() {
+    initDirective: function() {
 
         var self = this,
             config = self.config;
@@ -21207,7 +21209,7 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
         this.$super();
     },
 
-    _initChange: function() {
+    initChange: function() {
         this.onScopeChange();
     },
 
@@ -30601,14 +30603,14 @@ cls({
         var self = this;
         self.directive = directive;
         directive.$intercept("onScopeChange", self.onScopeChange, self, "instead");
-        directive.$intercept("_initDirective", self.$_initDirective, self, "before");
+        directive.$intercept("initDirective", self.$initDirective, self, "before");
         self.queue = 
             directive.queue || 
             new lib_Queue({auto: true, async: true, 
                             mode: lib_Queue.REPLACE, thenable: true});
     },
 
-    $_initDirective: function() {
+    $initDirective: function() {
 
         var self = this;
 
@@ -30713,11 +30715,11 @@ cls({
         var self = this;
         self.directive = directive;
 
-        directive.$intercept("_initDirective", self.$_initDirective, self, "after");
+        directive.$intercept("initDirective", self.$initDirective, self, "after");
         self.origOnChange = directive.$intercept("onSrcChanged", self.onSrcChanged, self, "after");
     },
 
-    $_initDirective: function() {
+    $initDirective: function() {
 
         var attr    = self.directive.attr,
             node    = self.directive.node,
@@ -35471,7 +35473,7 @@ var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
         this._createDialog();
     },
 
-    _initConfig: function() {
+    initConfig: function() {
         this.$super();
         this.config.set("tag", "div");
     },

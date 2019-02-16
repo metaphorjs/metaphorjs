@@ -12,14 +12,14 @@ Directive.registerAttribute("focused", 600, Directive.$extend({
     $class: "MetaphorJs.app.Directive.attr.InFocus",
     id: "focused",
 
-    _initConfig: function() {
+    initConfig: function() {
         this.config.setMode("value", MetaphorJs.lib.Config.MODE_SETTER);
         this.$super();
     },
 
-    _initChange: function() {},
+    initChange: function() {},
 
-    _initDirective: function() {
+    initDirective: function() {
 
         this.focusDelegate = bind(this.onInputFocus, this);
         this.blurDelegate = bind(this.onInputBlur, this);

@@ -495,12 +495,18 @@ module.exports = MetaphorJs.lib.Config = (function(){
         getAll: function() {
             var self = this, k, vs = {};
             for (k in self.properties) {
-                if (self.values[k] === undf || isNaN(self.values[k])) {
+                if (!self._isValue(self.values[k])) {
                     vs[k] = self._calcProperty(k);
                 }
                 else vs[k] = self.values[k];
             }
             return vs;
+        },
+
+        _isValue: function(v) {
+            return v !== undf && 
+                    v !== null && 
+                    !(typeof v === "number" && isNaN(v));
         },
 
         /**
@@ -557,13 +563,8 @@ module.exports = MetaphorJs.lib.Config = (function(){
          * @returns {boolean}
          */
         has: function(name) {
-            var self = this,
-                v = self.values[name];
-            return (
-                    v !== undf && 
-                    v !== null && 
-                    !(typeof v === "number" && isNaN(v))
-                ) || (
+            var self = this;
+            return (self._isValue(self.values[name])) || (
                     self.properties[name] && 
                     (
                         self.properties[name].defaultValue !== undf ||
@@ -829,7 +830,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
          * @returns {*}
          */
         get: function(name) {
-            if (this.values[name] === undf || isNaN(this.values[name])) {
+            if (!this._isValue(this.values[name])) {
                 return this._calcProperty(name);
             }
             return this.values[name];

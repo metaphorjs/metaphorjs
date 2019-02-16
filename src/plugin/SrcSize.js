@@ -21,11 +21,11 @@ module.exports = cls({
         var self = this;
         self.directive = directive;
 
-        directive.$intercept("_initDirective", self.$_initDirective, self, "after");
+        directive.$intercept("initDirective", self.$initDirective, self, "after");
         self.origOnChange = directive.$intercept("onSrcChanged", self.onSrcChanged, self, "after");
     },
 
-    $_initDirective: function() {
+    $initDirective: function() {
 
         var attr    = self.directive.attr,
             node    = self.directive.node,

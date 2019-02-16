@@ -19,7 +19,7 @@ var Directive = require("../../app/Directive.js"),
             this.$super(scope, node, config, renderer, attrSet);
         },
 
-        _initConfig: function() {
+        initConfig: function() {
             this.$super();
             this.config.setType("value", "bool");
         },

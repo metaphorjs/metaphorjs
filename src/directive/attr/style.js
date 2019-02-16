@@ -17,7 +17,7 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
     $class: "MetaphorJs.app.Directive.attr.Style",
     id: "style",
 
-    _initDirective: function() {
+    initDirective: function() {
 
         var self = this,
             config = self.config;
@@ -32,7 +32,7 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
         this.$super();
     },
 
-    _initChange: function() {
+    initChange: function() {
         this.onScopeChange();
     },
 

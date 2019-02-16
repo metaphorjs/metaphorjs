@@ -32,14 +32,14 @@ module.exports = cls({
         var self = this;
         self.directive = directive;
         directive.$intercept("onScopeChange", self.onScopeChange, self, "instead");
-        directive.$intercept("_initDirective", self.$_initDirective, self, "before");
+        directive.$intercept("initDirective", self.$initDirective, self, "before");
         self.queue = 
             directive.queue || 
             new MetaphorJs.lib.Queue({auto: true, async: true, 
                             mode: MetaphorJs.lib.Queue.REPLACE, thenable: true});
     },
 
-    $_initDirective: function() {
+    $initDirective: function() {
 
         var self = this;
 

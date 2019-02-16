@@ -38,7 +38,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         this.$super(scope, node, config, renderer, attrSet);
     },
 
-    _initConfig: function() {
+    initConfig: function() {
         var self    = this,
             config  = self.config,
             expr;
@@ -50,7 +50,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         self.$super();
     },
 
-    _initDirective: function() {
+    initDirective: function() {
 
         var self    = this,
             node    = self.node;
