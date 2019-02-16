@@ -61,8 +61,8 @@ module.exports = MetaphorJs.app.Directive = (function() {
             self.attrSet    = attrSet;
             self._nodeAttr  = node;
 
-            self._initConfig(config);
-            self._initScope(scope);
+            self._initConfig();
+            self._initScope();
 
             self._asyncInit && self._initAsyncInit();
             self._initNodeAttr(node);
@@ -103,15 +103,17 @@ module.exports = MetaphorJs.app.Directive = (function() {
             }
         },
 
-        _initConfig: function(config) {
+        _initConfig: function() {
+            var config = this.config;
             config.setDefaultMode("saveState", MetaphorJs.lib.Config.MODE_SETTER);
             if (config.has("saveState")) {
                 self._stateFn = config.get("saveSate");
             }
         },
 
-        _initScope: function(scope) {
-            var self = this;
+        _initScope: function() {
+            var self = this,
+                scope = self.scope;
             scope.$on("destroy", self.onScopeDestroy, self);
             scope.$on("reset", self.onScopeReset, self);
         },

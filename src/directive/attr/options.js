@@ -38,15 +38,16 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         this.$super(scope, node, config, renderer, attrSet);
     },
 
-    _initConfig: function(config) {
+    _initConfig: function() {
         var self    = this,
+            config  = self.config,
             expr;
 
         config.disableProperty("value");
         expr = config.getExpression("value");
 
         self.parseExpr(expr);
-        self.$super(config);
+        self.$super();
     },
 
     _initDirective: function() {

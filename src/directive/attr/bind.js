@@ -16,7 +16,6 @@ Directive.registerAttribute("bind", 1000,
         id: "bind",
         
         _apis: ["node", "input"],
-        _focus: false,
         input: null,
         textRenderer: null,
 
@@ -27,12 +26,6 @@ Directive.registerAttribute("bind", 1000,
 
             if (self.input) {
                 self.input.onChange(self.onInputChange, self);
-                if (config.get("preserveInput")) {
-                    self.focusDelegate = bind(self.onInputFocus, self);
-                    self.blurDelegate = bind(self.onInputBlur, self);
-                    MetaphorJs.dom.addListener(self.node, "focus", self.focusDelegate);
-                    MetaphorJs.dom.addListener(self.node, "blur", self.blurDelegate);
-                }
             }
 
             self.optionsChangeDelegate = bind(self.onOptionsChange, self);
@@ -59,12 +52,13 @@ Directive.registerAttribute("bind", 1000,
             }
         },
 
-        _initConfig: function(config) {
-            this.$super(config);
+        _initConfig: function() {
+            this.$super();
+            var config = this.config;
+            config.setType("if", "bool");
             config.setType("recursive", "bool");
             config.setType("once", "bool", MetaphorJs.lib.Config.MODE_STATIC);
             config.setType("locked", "bool");
-            config.setType("preserveInput", "bool");
         },
 
         _initNode: function(node) {
@@ -74,39 +68,39 @@ Directive.registerAttribute("bind", 1000,
             }
         },
 
+        onInputChange: function() {
 
-        onInputFocus: function() {
-            this._focus = true;
-        },
-
-        onInputBlur: function() {
-            this._focus = false;
-        },
-
-        
-        onInputChange: function(val) {
             var self = this,
-                cfgVal = self.config.get("value") || null;
-            val = val || null;
-            if (self.config.get("locked") && val != cfgVal) {
-                self.onScopeChange(cfgVal);
+                config = self.config,
+                scopeVal,
+                inputVal;
+
+            if (config.has("locked") && config.get("locked")) {
+                scopeVal = self.config.get("value") || null;
+                inputVal = self.input.getValue() || null;
+                if (scopeVal != inputVal) {
+                    self.onScopeChange();
+                }
             }
         },
 
         onTextRendererChange: function() {
-            this.onScopeChange(this.textRenderer.getString());
+            this.onScopeChange();
         },
 
         onOptionsChange: function() {
-            this.onScopeChange(
-                this.textRenderer ? 
-                    this.textRenderer.getString() :
-                    this.config.get("value")
-            );
+            this.onScopeChange();
         },
 
-        onScopeChange: function(text) {
-            this.updateElement(text);
+        onScopeChange: function() {
+            var config = this.config;
+            if (config.has("if") && !config.get("if")) {
+                return;
+            }
+            var val = this.textRenderer ? 
+                        this.textRenderer.getString() :
+                        this.config.get("value")
+            this.updateElement(val);
         },
 
         updateElement: function(val) {
@@ -114,9 +108,7 @@ Directive.registerAttribute("bind", 1000,
             var self = this;
 
             if (self.input) {
-                if (!self._focus) {
-                    self.input.setValue(val);
-                }
+                self.input.setValue(val);
             }
             else {
                 self.node[typeof self.node.textContent === "string" ? "textContent" : "innerText"] = val;
@@ -140,13 +132,6 @@ Directive.registerAttribute("bind", 1000,
                 self.inputApi.unChange(self.onInputChange, self);
                 self.input.$destroy();
                 self.input = null;
-
-                if (config.get("preserveInput")) {
-                    self.focusDelegate = bind(self.onInputFocus, self);
-                    self.blurDelegate = bind(self.onInputBlur, self);
-                    MetaphorJs.dom.removeListener(self.node, "focus", self.focusDelegate);
-                    MetaphorJs.dom.removeListener(self.node, "blur", self.blurDelegate);
-                }
             }
 
             self.$super();

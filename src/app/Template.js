@@ -536,6 +536,7 @@ module.exports = MetaphorJs.app.Template = function() {
                                 MetaphorJs.dom.toFragment(fragment) :
                                 fragment;
                 self._fragment = MetaphorJs.dom.clone(self._template);
+
                 self._extractVirtualSets(self._fragment);
 
                 if (root) {

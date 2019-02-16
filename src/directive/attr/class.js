@@ -97,15 +97,16 @@ DO NOT put class="{}" when using class.name="{}"
         _initial: true,
         _prev: null,
 
-        _initConfig: function(config) {
-            var self = this;
+        _initConfig: function() {
+            var self = this,
+                config = self.config;
             config.setType("animate", "bool");
             config.eachProperty(function(k) {
                 if (k === 'value' || k.indexOf("value.") === 0) {
                     config.on(k, self.onScopeChange, self);
                 }
             });
-            self.$super(config);
+            self.$super();
         },
 
         _initChange: function() {

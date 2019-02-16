@@ -12,11 +12,12 @@ Directive.registerAttribute("if", 500, Directive.$extend({
 
     _initial: true,
     
-    _initConfig: function(config) {
+    _initConfig: function() {
+        var config = this.config;
         config.setType("animate", "bool", MetaphorJs.lib.Config.MODE_STATIC)
         config.setType("value", "bool");
         config.setType("once", "bool", MetaphorJs.lib.Config.MODE_STATIC);
-        this.$super(config);
+        this.$super();
     },
     
     _initDirective: function() {

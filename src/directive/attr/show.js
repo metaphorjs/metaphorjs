@@ -14,12 +14,13 @@ Directive.registerAttribute("show", 500, Directive.$extend({
 
     _initial: true,
 
-    _initConfig: function(config) {
+    _initConfig: function() {
+        var config = this.config;
         config.setType("display", 
             "string", MetaphorJs.lib.Config.MODE_STATIC, "");
         config.setType("animate", 
             "bool", MetaphorJs.lib.Config.MODE_STATIC, false);
-        this.$super(config);
+        this.$super();
     },
 
     runAnimation: function(show) {

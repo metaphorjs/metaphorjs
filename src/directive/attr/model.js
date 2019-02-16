@@ -21,25 +21,21 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     id: "model",
     _apis: ["node", "input"],
 
-    _changeFn: null,
     _binding: null,
     _inProg: false,
-    _initial: false,
-    _focus: false,
-    _autoOnChange: false,
 
     _initDirective: function() {
 
-        var self    = this;
+        var self    = this,
+            expr    = self.config.getExpression("value")
 
+        self.mo = MetaphorJs.lib.MutationObserver.get(
+            self.scope, expr, null, null, {
+                setter: true
+            }
+        );
+        self.mo.subscribe(self.onScopeChange, self);
         self.input.onChange(self.onInputChange, self);
-
-        if (self.config.get("focusOnly")) {
-            self.focusDelegate = bind(self.onInputFocus, self);
-            self.blurDelegate = bind(self.onInputBlur, self);
-            MetaphorJs.dom.addListener(self.node, "focus", self.focusDelegate);
-            MetaphorJs.dom.addListener(self.node, "blur", self.blurDelegate);
-        }
 
         self.optionsChangeDelegate = bind(self.onOptionsChange, self);
         MetaphorJs.dom.addListener(self.node, "optionschange", 
@@ -50,63 +46,30 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         var inputValue      = self.input.getValue(),
             scopeValue      = self.mo.getValue(),
             binding         = self.config.get("binding");
-        
-        self._initial = true;
 
         if (scopeValue !== inputValue) {
             // scope value takes priority
             if (binding !== "input" && scopeValue !== undf) {
                 self.onScopeChange(scopeValue);
             }
-            else if (binding !== "scope" && inputValue !== undf && 
-                    !self.config.get("focusOnly")) {
+            else if (binding !== "scope" && inputValue !== undf) {
                 self.onInputChange(inputValue);
             }
         }
-
-        self._initial = false;
     },
 
-    _initConfig: function(config) {
-        var self    = this,
-            expr    = config.getExpression("value"),
-            descr   = MetaphorJs.lib.Expression.describeExpression(expr);
+    _initConfig: function() {
+        var config  = this.config;
 
         config.setMode("value", MetaphorJs.lib.Config.MODE_FNSET);
-        config.setProperty("checkRoot", {
-            type: 'bool',
-            defaultValue: descr.indexOf('r') !== -1
-        });
-        config.setProperty("checkParent", {
-            type: 'bool',
-            defaultValue: descr.indexOf('p') !== -1
-        });
+        config.setType("if", "bool");
         config.setProperty("binding", {
             defaultValue: "both",
             defaultMode: MetaphorJs.lib.Config.MODE_STATIC
         });
-        config.setType("focusOnly", "bool", null, false);
-
-        if (config.hasExpression("change")) {
-            self._changeFn   = MetaphorJs.lib.Expression.func(config.get("change"));
-        }
-        self.mo             = MetaphorJs.lib.MutationObserver.get(
-            self.scope, expr, null, null, {
-                setter: true
-            }
-        );
-        self.mo.subscribe(self.onScopeChange, self);
     },
 
     _initChange: emptyFn,
-
-    onInputFocus: function() {
-        this._focus = true;
-    },
-
-    onInputBlur: function() {
-        this._focus = false;
-    },
 
     onOptionsChange: function() {
         this.onScopeChange();
@@ -115,12 +78,12 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     onInputChange: function(val) {
 
         var self    = this,
-            scope   = self.scope,
-            binding = self._binding || self.config.get("binding");
+            config  = self.config,
+            binding = self._binding || config.get("binding");
 
         if (binding !== "scope") {
 
-            if (self.config.get("focusOnly") && !self._focus) {
+            if (config.has("if") && !config.get("if")) {
                 return;
             }
 
@@ -133,24 +96,9 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             }
 
             self.mo.setValue(val);
-            self._inProg = true;
 
-            if (scope instanceof MetaphorJs.lib.Scope) {
-                if (self.config.get("checkRoot")) {
-                    scope.$root.$check();
-                }
-                else if (self.config.get("checkParent")) {
-                    scope.$parent ? 
-                        scope.$parent.$check() : 
-                        scope.$root.$check();
-                }
-                else {
-                    scope.$check();
-                }
-            }
-            else {
-                self.config.check("value");
-            }
+            self._inProg = true;
+            self.config.checkScope("value");
             self._inProg = false;
         }
     },
@@ -159,11 +107,16 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     onScopeChange: function() {
 
         var self    = this,
-            val     = self.mo.getValue(), //self.getterFn(self.scope),
-            binding = self._binding || self.config.get("binding"),
+            config  = self.config,
+            val     = self.mo.getValue(), 
+            binding = self._binding || config.get("binding"),
             ie;
 
         if (binding !== "input" && !self._inProg) {
+
+            if (config.has("if") && !config.get("if")) {
+                return;
+            }
 
             // when scope value changed but this field
             // is not in focus, it should try to
@@ -184,10 +137,6 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             }
 
             self._binding = null;
-        }
-
-        if (self._changeFn && !self.initial) {
-            self._changeFn(self.scope);
         }
     },
 

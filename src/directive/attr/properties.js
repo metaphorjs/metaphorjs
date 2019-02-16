@@ -19,9 +19,9 @@ var Directive = require("../../app/Directive.js"),
             this.$super(scope, node, config, renderer, attrSet);
         },
 
-        _initConfig: function(config) {
-            this.$super(config);
-            config.setType("value", "bool");
+        _initConfig: function() {
+            this.$super();
+            this.config.setType("value", "bool");
         },
 
         onScopeChange: function(val) {
