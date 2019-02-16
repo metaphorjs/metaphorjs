@@ -160,15 +160,18 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 value = prop.defaultValue;
             }
 
-            value = self._prepareValue(value, prop);
-            self.values[name] = value;
+            var retValue = self._prepareValue(value, prop);
+
+            if (value !== undf) {
+                self.values[name] = retValue;
+            }
 
             setTo = self.cfg.setTo || prop.setTo;
             if (setTo) {
-                setTo[name] = value;
+                setTo[name] = retValue;
             }
 
-            return value;
+            return retValue;
         },
 
         _wrapListener: function(ls, scope) {
@@ -556,11 +559,17 @@ module.exports = MetaphorJs.lib.Config = (function(){
         has: function(name) {
             var self = this,
                 v = self.values[name];
-            return (v !== undf && v !== null && !isNaN(v)) || (
-                self.properties[name] && 
-                (self.properties[name].defaultValue !== undf ||
-                 self.properties[name].expression !== undf)
-            );
+            return (
+                    v !== undf && 
+                    v !== null && 
+                    !(typeof v === "number" && isNaN(v))
+                ) || (
+                    self.properties[name] && 
+                    (
+                        self.properties[name].defaultValue !== undf ||
+                        self.properties[name].expression !== undf
+                    )
+                );
         },
 
         _toggleProperty: function(name, val) {
@@ -821,7 +830,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
          */
         get: function(name) {
             if (this.values[name] === undf || isNaN(this.values[name])) {
-                this._calcProperty(name);
+                return this._calcProperty(name);
             }
             return this.values[name];
         },
@@ -976,11 +985,13 @@ module.exports = MetaphorJs.lib.Config = (function(){
          */
         checkScope: function(propName) {
 
-            if (!this.cfg) {
+            var prop = this.properties[propName];
+
+            if (!prop) {
                 return;
             }
 
-            var scope = this.cfg.scope,
+            var scope = prop.scope || this.cfg.scope,
                 descr = MetaphorJs.lib.Expression.describeExpression(
                     this.getExpression(propName)
                 );
