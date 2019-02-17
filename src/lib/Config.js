@@ -111,7 +111,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 else if (prop.mode === MODE_SINGLE) {
                     value = MetaphorJs.lib.Expression.get(
                         prop.expression, 
-                        self.cfg.scope
+                        prop.scope || self.cfg.scope
                     );
                 }
                 else if (prop.mode === MODE_DYNAMIC) {
@@ -143,7 +143,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                         prop.expression.indexOf('=') === -1) {
                         value = MetaphorJs.lib.Expression.get(
                             prop.expression, 
-                            self.cfg.scope
+                            prop.scope || self.cfg.scope
                         );
                     }
                     else {
