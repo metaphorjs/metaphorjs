@@ -32,6 +32,10 @@ Directive.registerAttribute("bind", 1000,
             MetaphorJs.dom.addListener(self.node, "optionschange", 
                                     self.optionsChangeDelegate);
 
+            if (config.has("if")) {
+                config.on("if", self.onIfChange, self);
+            }
+
             if (config.get("recursive")) {
                 config.disableProperty("value");
                 config.disableProperty("recursive");
@@ -90,6 +94,12 @@ Directive.registerAttribute("bind", 1000,
 
         onOptionsChange: function() {
             this.onScopeChange();
+        },
+
+        onIfChange: function(val) {
+            if (this.config.get("if")) {
+                this.onScopeChange();
+            }
         },
 
         onScopeChange: function() {
