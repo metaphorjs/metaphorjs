@@ -157,9 +157,9 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         self.itemsMap = {};
 
         if (isArray(items)) {
-            items = {
-                body: items
-            }
+            var tmp = {};
+            tmp[self._defaultAddTo] = items;
+            items = tmp;
         }
 
         if (p2i) {
@@ -467,9 +467,6 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         self.$super.apply(self, arguments);
     },
 
-    _onRenderingFinished: function() {
-        this.$super();  
-    },
 
     _onTemplateAttached: function() {
         var self = this, i, l, items = self.items;

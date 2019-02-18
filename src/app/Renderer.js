@@ -448,7 +448,10 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 self._eachNode(smth);
             }
             else {
-                self._nodeChildren(null, smth);
+                if (self._nodeChildren(null, smth) === 0 && 
+                    self._treeState.countdown === 0) {
+                    self._onProcessingFinished();
+                }
             }
         },
 
@@ -464,7 +467,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 if (res.nodeType) {
                     ts.countdown += 1;
                     this._eachNode(res);
-                    return;
+                    return 1;
                 }
                 else {
                     children = res.slice();
@@ -481,6 +484,8 @@ module.exports = MetaphorJs.app.Renderer = function() {
             for(i = -1;
                 ++i < len;
                 this._eachNode(children[i])){}
+
+            return len;
         },
 
         _eachNode: function(el) {

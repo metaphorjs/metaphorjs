@@ -17,6 +17,7 @@ require("../lib/Config.js");
 require("./Renderer.js");
 require("../func/dom/commentWrap.js");
 require("metaphorjs-observable/src/lib/Observable.js");
+require("../func/dom/isAttached.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
@@ -322,12 +323,15 @@ module.exports = MetaphorJs.app.Template = function() {
                 self._attachBefore = before;  
 
                 if (self._rendered) {
-                    if (window.requestAnimationFrame) {
+                    if (window.requestAnimationFrame && 
+                        MetaphorJs.dom.isAttached(self._attachTo)) {
                         requestAnimationFrame(function(){
                             self._rafAttach();
                         });
                     }
-                    else self._rafAttach();
+                    else {
+                        self._rafAttach();
+                    }
                 }
             }
         },
@@ -339,6 +343,9 @@ module.exports = MetaphorJs.app.Template = function() {
 
             if (self._nodes) {
                 self._doAttach();   
+            }
+            else {
+                self._setAttached();
             }
         },
 
@@ -390,6 +397,7 @@ module.exports = MetaphorJs.app.Template = function() {
             if (self._nodes) {
                 self._doAttach();
             }
+            else self._setAttached();
         },
 
         attachOrReplace: function() {
@@ -402,8 +410,12 @@ module.exports = MetaphorJs.app.Template = function() {
                 self.replace(self.replaceNode, self.attachTo);
             }
             // new attachment via append
-            else if (self.attachTo && self.attachTo.parentNode) {
-                self.attach(self.attachTo, self.attachBefore);
+            else if (self.attachTo) {
+                if (self.attachBefore) {
+                    self.attachBefore.parentNode && 
+                        self.attach(self.attachTo, self.attachBefore);
+                }
+                else self.attach(self.attachTo);
             }
             // reattaching to previous
             else if (self._nextEl || self._attachTo || self._shadowRoot) {
@@ -696,7 +708,13 @@ module.exports = MetaphorJs.app.Template = function() {
                 observable.relayEvent(self._renderer, "rendered", "rendered-" + self.id);
 
                 observable.relayEvent(self._renderer, "reference", "reference-" + self.id);
-                self._renderer.process(self._nodes, self.scope);
+                
+                if (self._nodes) {
+                    self._renderer.process(self._nodes, self.scope);
+                }
+                else {
+                    self._renderer.trigger("rendered", self._renderer);
+                }
             }
         },
 
@@ -874,11 +892,16 @@ module.exports = MetaphorJs.app.Template = function() {
 
             self._attached = attached;
             if (attached) {
-                observable.trigger("attached-" + self.id, self, nodes);
+                self._setAttached(nodes);
+            }
+        },
 
-                if (self._renderer) {
-                    self._renderer.attached(self._attachTo);
-                }
+        _setAttached: function(nodes) {
+            var self = this;
+            self._attached = true;
+            observable.trigger("attached-" + self.id, self, nodes);
+            if (self._renderer) {
+                self._renderer.attached(self._attachTo);
             }
         },
 

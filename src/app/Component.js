@@ -299,7 +299,7 @@ module.exports = MetaphorJs.app.Component = MetaphorJs.app.Controller.$extend({
         var self = this,
             dirs = self.directives,
             support = self.$self.supportsDirectives,
-            dirCfg, ds,
+            ds,
             handlers = MetaphorJs.app.Directive.getAttributes(),
             i, len, name,
             j, jlen;
@@ -403,7 +403,7 @@ module.exports = MetaphorJs.app.Component = MetaphorJs.app.Controller.$extend({
         self.template.attach(parent, before);
     },
 
-    detach: function(willAttach) {
+    detach: function() {
         var self = this;
         if (self.template.isAttached()) {
             self.template.detach();
