@@ -46,6 +46,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
     _attachQueue: null,
     _mo: null,
     _trackByFn: null,
+    _filterFn: null,
     _localTrack: false,
     _griDelegate: null,
 
@@ -84,6 +85,13 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
 
         if (config.has('plugin')) {
             self.$plugins.push(config.get("plugin"));
+        }
+
+        if (config.has("filter")) {
+            self._filterFn = config.get("filter");
+            if (typeof self._filterFn !== "function") {
+                throw new Error("{each.$filter} must be a function");
+            }
         }
 
         self._trackBy = config.get("trackBy");
@@ -126,7 +134,23 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
         self.initDataSource();
         self.scope.$app.registerCmp(self, "id");
 
-        self._renderQueue.add(self.render, self, [toArray(self._mo.getValue())]);
+        self._renderQueue.add(self.render, self, [self.getList()]);
+    },
+
+    getList: function() {
+        var list = toArray(this._mo.getValue()),
+            i, l, filter = this._filterFn;
+
+        if (filter) {
+            var all = list;
+            list = [];
+            for (i = 0, l = all.length; i < l; i++) {
+                if (filter(all[i])) {
+                    list.push(all[i]);
+                }
+            }
+        }
+        return list;
     },
 
     initConfig: function() {
@@ -237,7 +261,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
             index       = start || 0,
             cnt         = items.length,
             x           = end || cnt - 1,
-            list        = self._mo.getValue(),
+            list        = self.getList(),
             trackByFn   = self.getTrackByFunction();
 
         if (x > cnt - 1) {
@@ -258,7 +282,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
 
         var self = this;
 
-        list = list || self._mo.getValue();
+        list = list || self.getList();
         items = items || self._items;
         trackByFn = trackByFn || self.getTrackByFunction();
 
@@ -315,7 +339,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
             items       = self._items,
             tpl         = self._template,
             index       = 0,
-            list        = toArray(self._mo.getValue()),
+            list        = self.getList(),
             updateStart = null,
             animateMove = self._animateMove,
             newItems    = [],
@@ -585,7 +609,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
         }
 
         var self        = this,
-            list        = self._mo.getValue(),
+            list        = self.getList(),
             trackByFn   = self.getTrackByFunction(),
             i, l;
 
