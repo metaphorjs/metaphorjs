@@ -2,7 +2,8 @@
 require("metaphorjs-animate/src/animate/animate.js");
 require("../../lib/Config.js");
 
-var Directive = require("../../app/Directive.js");
+var Directive = require("../../app/Directive.js"),
+    raf = require("metaphorjs-animate/src/func/raf.js");
 
 
 Directive.registerAttribute("if", 500, Directive.$extend({
@@ -17,6 +18,8 @@ Directive.registerAttribute("if", 500, Directive.$extend({
         config.setType("animate", "bool", MetaphorJs.lib.Config.MODE_STATIC)
         config.setType("value", "bool");
         config.setType("once", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setType("onShow", null, MetaphorJs.lib.Config.MODE_FUNC);
+        config.setType("onHide", null, MetaphorJs.lib.Config.MODE_FUNC);
         this.$super();
     },
     
@@ -28,26 +31,36 @@ Directive.registerAttribute("if", 500, Directive.$extend({
 
     onScopeChange: function() {
         var self    = this,
-            val     = self.config.get("value"),
+            config  = self.config,
+            val     = config.get("value"),
             parent  = self.wrapperOpen.parentNode,
-            node    = self.node;
+            node    = self.node,
+            initial = self._initial,
 
-        var show    = function(){
-            parent.insertBefore(node, self.wrapperClose);
-        };
+            show    = function(){
+                parent.insertBefore(node, self.wrapperClose);
+                if (!initial) {
+                    raf(self.trigger, self, ["show", node]);
+                }
+            },
 
-        var hide    = function() {
-            parent.removeChild(node);
-        };
+            hide    = function() {
+                parent.removeChild(node);
+                if (!initial) {
+                    raf(self.trigger, self, ["hide", node]);
+                }
+            };
 
         if (val) {
-            self._initial || !self.config.get("animate") ?
-                show() : MetaphorJs.animate.animate(node, "enter", show);
+            initial || !self.config.get("animate") ?
+                (initial ? show() : raf(show)) : 
+                MetaphorJs.animate.animate(node, "enter", show);
         }
         else {
             if (node.parentNode) {
-                self._initial || !self.config.get("animate") ?
-                    hide() : MetaphorJs.animate.animate(node, "leave").done(hide);
+                initial || !self.config.get("animate") ?
+                    (initial ? hide() : raf(hide)) : 
+                    MetaphorJs.animate.animate(node, "leave").done(hide);
             }
         }
 

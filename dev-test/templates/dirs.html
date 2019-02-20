@@ -47,7 +47,7 @@
          {show}="!this.searchQuery && !this.field.hasSelection() &&
                     !!this.field.emptyText"
          {show.$display}="inline-block"
-         {show.$save-state}="this.emptyShown"
+         {show.$on--change}="this.emptyShown = this.$1"
          {bind}="this.field.emptyText"></div>
 
     <div class="text"
@@ -55,7 +55,7 @@
          (click)="this.field.onValueTextClick(this.$event)"
          {class.default}="this.focused && this.searchQuery == ''"
          {show}="!this.searchQuery && !this.field.multiple && this.field.hasSelection()"
-         {show.$save-state}="this.selectedShown"
+         {show.$on--chage}="this.selectedShown = this.$1"
          {show.$display}="inline-block"
          {bind}="this.field.getSelectedName()"></div>
 

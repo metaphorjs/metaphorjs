@@ -6,11 +6,14 @@ require("../func/dom/commentWrap.js");
 require("../lib/Config.js");
 require("../func/dom/isField.js");
 require("../lib/Input.js");
+require("metaphorjs-observable/src/lib/Observable.js");
+require("metaphorjs-observable/src/mixin/Observable.js");
 
 var undf = require("metaphorjs-shared/src/var/undf.js"),
     isString = require("metaphorjs-shared/src/func/isString.js"),
     isThenable = require("metaphorjs-shared/src/func/isThenable.js"),
     async = require("metaphorjs-shared/src/func/async.js"),
+    undf = require("metaphorjs-shared/src/var/undf.js"),
     cls = require("metaphorjs-class/src/cls.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js");
@@ -35,6 +38,8 @@ module.exports = MetaphorJs.app.Directive = (function() {
 
     return cls({
 
+        $mixins: [MetaphorJs.mixin.Observable],
+
         scope: null,
         node: null,
         component: null,
@@ -45,7 +50,6 @@ module.exports = MetaphorJs.app.Directive = (function() {
 
         _apis: ["node"],
         _autoOnChange: true,
-        _stateFn: null,
         _initPromise: null,
         _nodeAttr: null,
         _initial: true,
@@ -107,10 +111,7 @@ module.exports = MetaphorJs.app.Directive = (function() {
 
         initConfig: function() {
             var config = this.config;
-            config.setDefaultMode("saveState", MetaphorJs.lib.Config.MODE_SETTER);
-            if (config.has("saveState")) {
-                self._stateFn = config.get("saveSate");
-            }
+            MetaphorJs.lib.Observable.$initHostConfig(this, config, this.scope);
         },
 
         initScope: function() {
@@ -186,9 +187,10 @@ module.exports = MetaphorJs.app.Directive = (function() {
         },
 
         saveStateOnChange: function(val) {
-            if (this._stateFn) {
-                this._stateFn(this.scope, val);
+            if (this._prevState !== undf) {
+                this.trigger("change", val, this._prevState);
             }
+            this._prevState = val;
         },
 
         onDestroy: function() {

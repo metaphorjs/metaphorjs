@@ -4838,7 +4838,7 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                 else if (prop.mode === MODE_SINGLE) {
                     value = lib_Expression.get(
                         prop.expression, 
-                        self.cfg.scope
+                        prop.scope || self.cfg.scope
                     );
                 }
                 else if (prop.mode === MODE_DYNAMIC) {
@@ -4870,7 +4870,7 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                         prop.expression.indexOf('=') === -1) {
                         value = lib_Expression.get(
                             prop.expression, 
-                            self.cfg.scope
+                            prop.scope || self.cfg.scope
                         );
                     }
                     else {
@@ -5222,12 +5222,18 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
         getAll: function() {
             var self = this, k, vs = {};
             for (k in self.properties) {
-                if (self.values[k] === undf || isNaN(self.values[k])) {
+                if (!self._isValue(self.values[k])) {
                     vs[k] = self._calcProperty(k);
                 }
                 else vs[k] = self.values[k];
             }
             return vs;
+        },
+
+        _isValue: function(v) {
+            return v !== undf && 
+                    v !== null && 
+                    !(typeof v === "number" && isNaN(v));
         },
 
         /**
@@ -5284,13 +5290,8 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
          * @returns {boolean}
          */
         has: function(name) {
-            var self = this,
-                v = self.values[name];
-            return (
-                    v !== undf && 
-                    v !== null && 
-                    !(typeof v === "number" && isNaN(v))
-                ) || (
+            var self = this;
+            return (self._isValue(self.values[name])) || (
                     self.properties[name] && 
                     (
                         self.properties[name].defaultValue !== undf ||
@@ -5556,7 +5557,7 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
          * @returns {*}
          */
         get: function(name) {
-            if (this.values[name] === undf || isNaN(this.values[name])) {
+            if (!this._isValue(this.values[name])) {
                 return this._calcProperty(name);
             }
             return this.values[name];
@@ -9381,7 +9382,10 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                 self._eachNode(smth);
             }
             else {
-                self._nodeChildren(null, smth);
+                if (self._nodeChildren(null, smth) === 0 && 
+                    self._treeState.countdown === 0) {
+                    self._onProcessingFinished();
+                }
             }
         },
 
@@ -9397,7 +9401,7 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                 if (res.nodeType) {
                     ts.countdown += 1;
                     this._eachNode(res);
-                    return;
+                    return 1;
                 }
                 else {
                     children = res.slice();
@@ -9414,6 +9418,8 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
             for(i = -1;
                 ++i < len;
                 this._eachNode(children[i])){}
+
+            return len;
         },
 
         _eachNode: function(el) {
@@ -12867,6 +12873,7 @@ var ajax = function(){
 
 
 
+
 var app_Template = MetaphorJs.app.Template = function() {
 
     var observable      = new MetaphorJs.lib.Observable,
@@ -13164,12 +13171,15 @@ var app_Template = MetaphorJs.app.Template = function() {
                 self._attachBefore = before;  
 
                 if (self._rendered) {
-                    if (window.requestAnimationFrame) {
+                    if (window.requestAnimationFrame && 
+                        isAttached(self._attachTo)) {
                         requestAnimationFrame(function(){
                             self._rafAttach();
                         });
                     }
-                    else self._rafAttach();
+                    else {
+                        self._rafAttach();
+                    }
                 }
             }
         },
@@ -13181,6 +13191,9 @@ var app_Template = MetaphorJs.app.Template = function() {
 
             if (self._nodes) {
                 self._doAttach();   
+            }
+            else {
+                self._setAttached();
             }
         },
 
@@ -13232,6 +13245,7 @@ var app_Template = MetaphorJs.app.Template = function() {
             if (self._nodes) {
                 self._doAttach();
             }
+            else self._setAttached();
         },
 
         attachOrReplace: function() {
@@ -13244,8 +13258,12 @@ var app_Template = MetaphorJs.app.Template = function() {
                 self.replace(self.replaceNode, self.attachTo);
             }
             // new attachment via append
-            else if (self.attachTo && self.attachTo.parentNode) {
-                self.attach(self.attachTo, self.attachBefore);
+            else if (self.attachTo) {
+                if (self.attachBefore) {
+                    self.attachBefore.parentNode && 
+                        self.attach(self.attachTo, self.attachBefore);
+                }
+                else self.attach(self.attachTo);
             }
             // reattaching to previous
             else if (self._nextEl || self._attachTo || self._shadowRoot) {
@@ -13538,7 +13556,13 @@ var app_Template = MetaphorJs.app.Template = function() {
                 observable.relayEvent(self._renderer, "rendered", "rendered-" + self.id);
 
                 observable.relayEvent(self._renderer, "reference", "reference-" + self.id);
-                self._renderer.process(self._nodes, self.scope);
+                
+                if (self._nodes) {
+                    self._renderer.process(self._nodes, self.scope);
+                }
+                else {
+                    self._renderer.trigger("rendered", self._renderer);
+                }
             }
         },
 
@@ -13716,11 +13740,16 @@ var app_Template = MetaphorJs.app.Template = function() {
 
             self._attached = attached;
             if (attached) {
-                observable.trigger("attached-" + self.id, self, nodes);
+                self._setAttached(nodes);
+            }
+        },
 
-                if (self._renderer) {
-                    self._renderer.attached(self._attachTo);
-                }
+        _setAttached: function(nodes) {
+            var self = this;
+            self._attached = true;
+            observable.trigger("attached-" + self.id, self, nodes);
+            if (self._renderer) {
+                self._renderer.attached(self._attachTo);
             }
         },
 
@@ -14520,7 +14549,7 @@ var app_Component = MetaphorJs.app.Component = app_Controller.$extend({
         var self = this,
             dirs = self.directives,
             support = self.$self.supportsDirectives,
-            dirCfg, ds,
+            ds,
             handlers = Directive.getAttributes(),
             i, len, name,
             j, jlen;
@@ -14624,7 +14653,7 @@ var app_Component = MetaphorJs.app.Component = app_Controller.$extend({
         self.template.attach(parent, before);
     },
 
-    detach: function(willAttach) {
+    detach: function() {
         var self = this;
         if (self.template.isAttached()) {
             self.template.detach();
@@ -15012,11 +15041,11 @@ var dom_is = MetaphorJs.dom.is = function(el, selector) {
 
 
 
-MetaphorJs.app.Container = app_Component.$extend({
+var app_Container = MetaphorJs.app.Container = app_Component.$extend({
 
     $mixinEvents: ["$initChildItem"],
     _itemsInitialized: false,
-    _defaultAddTo: "main",
+    defaultAddTo: "main",
 
     _initComponent: function() {
         var self = this;
@@ -15096,7 +15125,7 @@ MetaphorJs.app.Container = app_Component.$extend({
 
                 if (foundCmp || foundPromise) {
                     if (!renderRef) {
-                        renderRef = self._defaultAddTo;
+                        renderRef = self.defaultAddTo;
                     }
                     def = extend({
                         type: "component",
@@ -15109,7 +15138,7 @@ MetaphorJs.app.Container = app_Component.$extend({
                 }
                 else {
                     attrSet = dom_getAttrSet(node);
-                    renderRef = attrSet.at || attrSet.rest.slot || self._defaultAddTo;
+                    renderRef = attrSet.at || attrSet.rest.slot || self.defaultAddTo;
                     def = extend({
                         type: "node",
                         renderRef: renderRef,
@@ -15153,9 +15182,9 @@ MetaphorJs.app.Container = app_Component.$extend({
         self.itemsMap = {};
 
         if (isArray(items)) {
-            items = {
-                body: items
-            }
+            var tmp = {};
+            tmp[self.defaultAddTo] = items;
+            items = tmp;
         }
 
         if (p2i) {
@@ -15463,9 +15492,6 @@ MetaphorJs.app.Container = app_Component.$extend({
         self.$super.apply(self, arguments);
     },
 
-    _onRenderingFinished: function() {
-        this.$super();  
-    },
 
     _onTemplateAttached: function() {
         var self = this, i, l, items = self.items;
@@ -15613,7 +15639,7 @@ MetaphorJs.app.Container = app_Component.$extend({
         }
 
         item = self._processItemDef(cmp, {
-            renderRef: to || self._defaultAddTo
+            renderRef: to || self.defaultAddTo
         });
         self.items.push(item);
 
@@ -18276,6 +18302,10 @@ Directive.registerAttribute("bind", 1000,
             dom_addListener(self.node, "optionschange", 
                                     self.optionsChangeDelegate);
 
+            if (config.has("if")) {
+                config.on("if", self.onIfChange, self);
+            }
+
             if (config.get("recursive")) {
                 config.disableProperty("value");
                 config.disableProperty("recursive");
@@ -18334,6 +18364,12 @@ Directive.registerAttribute("bind", 1000,
 
         onOptionsChange: function() {
             this.onScopeChange();
+        },
+
+        onIfChange: function(val) {
+            if (this.config.get("if")) {
+                this.onScopeChange();
+            }
         },
 
         onScopeChange: function() {
@@ -19800,9 +19836,11 @@ Directive.registerAttribute("focused", 600, Directive.$extend({
 
     onInputFocus: function() {
         this.config.get("value")(this.scope, true);
+        this.scope.$check();
     },
     onInputBlur: function() {
         this.config.get("value")(this.scope, false);
+        this.scope.$check();
     },
 
     onDestroy: function(){
@@ -35448,14 +35486,14 @@ var dialog_Dialog = MetaphorJs.dialog.Dialog = (function(){
 
 
 
-var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
+var dialog_Container = MetaphorJs.dialog.Container = app_Container.$extend({
 
     dialog: null,
     dialogPreset: null,
     dialogCfg: null,
-    dialogNode: null,
 
-    hidden: true,
+    _hidden: true,
+    autoRender: true,
 
     target: null,
     isTooltip: false,
@@ -35464,18 +35502,13 @@ var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
 
         var self = this;
 
-        if (self.isTooltip) {
-            self.target = cfg.node;
-            cfg.node = null;
+        if ((!cfg || !cfg.node) && 
+            !self.template && 
+            (!cfg || !cfg.template)) {
+            self.node = window.document.createElement("div");
         }
 
         self.$super(cfg);
-        this._createDialog();
-    },
-
-    initConfig: function() {
-        this.$super();
-        this.config.set("tag", "div");
     },
 
     _getDialogCfg: function() {
@@ -35485,11 +35518,24 @@ var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
         return extend({}, self.dialogCfg, {
             preset: self.dialogPreset,
             render: {
-                el: self.dialogNode || self.node,
+                el: self.getRefEl("main"),
                 keepInDOM: true
             }
         }, true, true);
     },
+
+    _onRenderingFinished: function() {
+        var self = this, i, l, items = self.items
+        self.$super();
+        // insert all placeholders, but
+        // attach only resolved items
+        for (i = -1, l = items.length; ++i < l;){
+            self._putItemInPlace(items[i]);
+        }
+
+        this._createDialog();  
+    },
+
 
     _createDialog: function() {
 
@@ -35500,38 +35546,37 @@ var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
         self.dialog.on("before-show", self.onBeforeDialogShow, self);
         self.dialog.on("before-hide", self.onBeforeDialogHide, self);
         self.dialog.on("destroy", self.onDialogDestroy, self);
+
+        if (!self._hidden) {
+            self.show();
+        }
     },
 
     getDialog: function() {
         return this.dialog;
     },
 
-    // skips the append part
-    _onRenderingFinished: function() {
-        var self = this;
-        self._rendered   = true;
-        self.afterRender();
-        self.trigger('after-render', self);
-        if (self.directives) {
-            self._initDirectives();
-        }
-    },
 
     show: function(e) {
         if (e && !(e instanceof MetaphorJs.lib.DomEvent)) {
             e = null;
         }
 
-        this.dialog.show(e);
+        if (this.dialog) {
+            this.dialog.show(e);
+        }
+        else this._hidden = false;
     },
 
     hide: function(e) {
-
         if (e && !(e instanceof MetaphorJs.lib.DomEvent)) {
             e = null;
         }
 
-        this.dialog.hide(e);
+        if (this.dialog) {
+            this.dialog.hide(e);
+        }
+        else this._hidden = true;
     },
 
     onBeforeDialogShow: function() {
@@ -35541,7 +35586,7 @@ var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
             self.render();
         }
 
-        self.hidden = false;
+        self._hidden = false;
     },
 
     onDialogShow: function() {
@@ -35554,7 +35599,7 @@ var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
     onDialogHide: function() {
         var self = this;
         if (!self.$destroyed) {
-            self.hidden = true;
+            self._hidden = true;
             self.trigger("hide", self);
         }
     },
@@ -35765,7 +35810,8 @@ cls({
 
         createDialog: function() {
 
-            var dialog = new dialog_Component({
+            var dialog = new dialog_Container({
+                id: "small-dialog",
                 dialogCfg: {
                     cls: {
                         dialog: "dialog"
@@ -35779,8 +35825,10 @@ cls({
                     }
                 },
                 config: {
+                    tag: "div",
                     as: "dlg"
                 },
+                renderTo: window.document.body,
                 scope: this.scope,
                 template: {
                     html: '<p>This is a dialog. <a href="#" (click)="this.dlg.hide()">close</a></p>'

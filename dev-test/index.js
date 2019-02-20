@@ -9,7 +9,7 @@ require("../src/func/dom/onReady.js");
 require("metaphorjs-model/src/model/Model.js");
 require("metaphorjs-model/src/model/Record.js");
 require("metaphorjs-model/src/model/Store.js");
-require("metaphorjs-dialog/src/dialog/Component.js");
+require("metaphorjs-dialog/src/dialog/Container.js");
 require("metaphorjs-promise/src/lib/Promise.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
@@ -182,7 +182,8 @@ cls({
 
         createDialog: function() {
 
-            var dialog = new MetaphorJs.dialog.Component({
+            var dialog = new MetaphorJs.dialog.Container({
+                id: "small-dialog",
                 dialogCfg: {
                     cls: {
                         dialog: "dialog"
@@ -196,8 +197,10 @@ cls({
                     }
                 },
                 config: {
+                    tag: "div",
                     as: "dlg"
                 },
+                renderTo: window.document.body,
                 scope: this.scope,
                 template: {
                     html: '<p>This is a dialog. <a href="#" (click)="this.dlg.hide()">close</a></p>'

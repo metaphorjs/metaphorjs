@@ -27,6 +27,7 @@ Directive.registerAttribute("show", 500, Directive.$extend({
 
         var self    = this,
             style   = self.node.style,
+            initial = this._initial,
             done    = function() {
                 if (!show) {
                     style.display = "none";
@@ -34,21 +35,27 @@ Directive.registerAttribute("show", 500, Directive.$extend({
                 else {
                     style.display = self.config.get("display");
                 }
+                if (!initial) {
+                    self.trigger(show?"show" : "hide", self.node);
+                }
             };
 
-        self._initial || !self.config.get("animate") ? done() : MetaphorJs.animate.animate(
-            self.node,
-            show ? "show" : "hide",
-            function() {
-                if (show) {
-                    return new MetaphorJs.lib.Promise(function(resolve){
-                        raf(function(){
-                            style.display = self.config.get("display");
-                            resolve();
+        initial || !self.config.get("animate") ? 
+            (initial ? done() : raf(done)) : 
+            MetaphorJs.animate.animate(
+                self.node,
+                show ? "show" : "hide",
+                function() {
+                    if (show) {
+                        return new MetaphorJs.lib.Promise(function(resolve){
+                            raf(function(){
+                                style.display = self.config.get("display");
+                                resolve();
+                            });
                         });
-                    });
+                    }
                 }
-            })
+            )
             .done(done);
     },
 

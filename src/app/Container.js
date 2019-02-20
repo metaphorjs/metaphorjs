@@ -20,7 +20,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
     $mixinEvents: ["$initChildItem"],
     _itemsInitialized: false,
-    _defaultAddTo: "main",
+    defaultAddTo: "main",
 
     _initComponent: function() {
         var self = this;
@@ -100,7 +100,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
                 if (foundCmp || foundPromise) {
                     if (!renderRef) {
-                        renderRef = self._defaultAddTo;
+                        renderRef = self.defaultAddTo;
                     }
                     def = extend({
                         type: "component",
@@ -113,7 +113,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                 }
                 else {
                     attrSet = MetaphorJs.dom.getAttrSet(node);
-                    renderRef = attrSet.at || attrSet.rest.slot || self._defaultAddTo;
+                    renderRef = attrSet.at || attrSet.rest.slot || self.defaultAddTo;
                     def = extend({
                         type: "node",
                         renderRef: renderRef,
@@ -158,7 +158,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
         if (isArray(items)) {
             var tmp = {};
-            tmp[self._defaultAddTo] = items;
+            tmp[self.defaultAddTo] = items;
             items = tmp;
         }
 
@@ -614,7 +614,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
         }
 
         item = self._processItemDef(cmp, {
-            renderRef: to || self._defaultAddTo
+            renderRef: to || self.defaultAddTo
         });
         self.items.push(item);
 

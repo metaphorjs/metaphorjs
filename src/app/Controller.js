@@ -144,22 +144,7 @@ module.exports = MetaphorJs.app.Controller = cls({
             config.setDefaultValue("as", self.as);
         }
 
-        config.setDefaultMode("callbackContext", MetaphorJs.lib.Config.MODE_SINGLE);
-        config.eachProperty(function(name) {
-            if (name.substring(0,4) === 'on--') {
-                config.setMode(name, msl);
-                if (!ctx) {
-                    if (scope.$app)
-                        ctx = config.get("callbackContext") ||
-                                scope.$app.getParentCmp(self.node) ||
-                                scope.$app ||
-                                scope;
-                    else 
-                        ctx = config.get("callbackContext") || scope;
-                }
-                self.on(name.substring(4), config.get(name), ctx);
-            }
-        });
+        MetaphorJs.lib.Observable.$initHostConfig(self, config, scope, self.node);
     },
 
     _claimNode: function() {

@@ -178,12 +178,12 @@ module.exports = MetaphorJs.lib.Config = (function(){
             return function() {
                 var args = toArray(arguments),
                     i, l;
-                for (i = 1, l = args.length; i <= l; i++) {
-                    scope["$" + i] = args[i];
+                for (i = 0, l = args.length; i < l; i++) {
+                    scope["$" + (i+1)] = args[i];
                 }
                 ls(scope);
-                for (i = 1, l = args.length; i <= l; i++) {
-                    delete scope["$" + i];
+                for (i = 0, l = args.length; i < l; i++) {
+                    delete scope["$" + (i+1)];
                 }
             };
         },

@@ -139,7 +139,7 @@ Directive.registerAttribute("bind", 1000,
             }
 
             if (self.input) {
-                self.inputApi.unChange(self.onInputChange, self);
+                self.input.unChange(self.onInputChange, self);
                 self.input.$destroy();
                 self.input = null;
             }
