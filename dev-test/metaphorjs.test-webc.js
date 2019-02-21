@@ -1323,6 +1323,27 @@ Observable.$initHost = function(host, hostCfg, observable)  {
     }
 };
 
+Observable.$initHostConfig = function(host, config, scope, node) {
+    var msl = MetaphorJs.lib.Config.MODE_LISTENER,
+        ctx;
+    config.setDefaultMode("callbackContext", MetaphorJs.lib.Config.MODE_SINGLE);
+    config.eachProperty(function(name) {
+        if (name.substring(0,4) === 'on--') {
+            config.setMode(name, msl);
+            if (!ctx) {
+                if (scope.$app)
+                    ctx = config.get("callbackContext") ||
+                            (node ? scope.$app.getParentCmp(node) : null) ||
+                            scope.$app ||
+                            scope;
+                else 
+                    ctx = config.get("callbackContext") || scope;
+            }
+            host.on(name.substring(4), config.get(name), ctx);
+        }
+    });
+};
+
 
 return Observable;
 }());
@@ -4905,12 +4926,12 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
             return function() {
                 var args = toArray(arguments),
                     i, l;
-                for (i = 1, l = args.length; i <= l; i++) {
-                    scope["$" + i] = args[i];
+                for (i = 0, l = args.length; i < l; i++) {
+                    scope["$" + (i+1)] = args[i];
                 }
                 ls(scope);
-                for (i = 1, l = args.length; i <= l; i++) {
-                    delete scope["$" + i];
+                for (i = 0, l = args.length; i < l; i++) {
+                    delete scope["$" + (i+1)];
                 }
             };
         },
@@ -7038,6 +7059,130 @@ return Input;
 
 
 
+/**
+ * @mixin MetaphorJs.mixin.Observable
+ * @description Mixin adds observable features to the host object.
+ *              It adds 'callback' option to the host config. See $beforeInit.
+ *              Mixin is designed for MetaphorJs class system.
+ * @code src-docs/examples/mixin.js
+ */
+var mixin_Observable = MetaphorJs.mixin.Observable = {
+
+    /**
+     * @private
+     * @type {Observable}
+     * @description You can use this instance in your $init function
+     */
+    $$observable: null,
+
+    /**
+     * @private
+     * @type {object}
+     */
+    $$callbackContext: null,
+
+    /**
+     * @protected
+     * @type {object} {
+     *      Override this to define event properties. 
+     *      Object's key is event name, value - either returnResult or 
+     *      options object. See {@link class:lib_Observable.createEvent}
+     * }
+     */
+    $$events: null,
+
+    /**
+     * @method
+     * @private
+     * @param {object} cfg {
+     *      This is a config that was passed to the host object's constructor.
+     *      It is being passed to mixin's $beforeInit automatically.
+     *      @type {object} callback {
+     *          Here, except for 'context', '$context' and 'scope', 
+     *          keys are event names and values are listeners. 
+     *          @type {object} context All given listeners context
+     *          @type {object} scope The same
+     *      }
+     * }
+     */
+    $beforeInit: function(cfg) {
+        var self = this;
+        self.$$observable = new MetaphorJs.lib.Observable;
+        self.$initObservable(cfg);
+    },
+
+    /**
+     * @method
+     * @private
+     * @ignore
+     * @param {object} cfg
+     */
+    $initObservable: function(cfg) {
+        lib_Observable.$initHost(this, cfg, this.$$observable);
+    },
+
+    /**
+     * @method
+     * @see {@link class:Observable.on}
+     */
+    on: function() {
+        var o = this.$$observable;
+        return o ? o.on.apply(o, arguments) : null;
+    },
+
+    /**
+     * @method
+     * @see {@link class:Observable.un}
+     */
+    un: function() {
+        var o = this.$$observable;
+        return o ? o.un.apply(o, arguments) : null;
+    },
+
+    /**
+     * @method
+     * @see {@link class:Observable.once}
+     */
+    once: function() {
+        var o = this.$$observable;
+        return o ? o.once.apply(o, arguments) : null;
+    },
+
+    /**
+     * @method
+     * @see {@link class:Observable.trigger}
+     */
+    trigger: function() {
+        var o = this.$$observable;
+        return o ? o.trigger.apply(o, arguments) : null;
+    },
+
+    /**
+     * @method
+     * @private
+     * @ignore
+     */
+    $beforeDestroy: function() {
+        this.$$observable.trigger("before-destroy", this);
+    },
+
+    /**
+     * @method
+     * @private
+     * @ignore
+     */
+    $afterDestroy: function() {
+        var self = this;
+        self.$$observable.trigger("destroy", self);
+        self.$$observable.$destroy();
+        self.$$observable = null;
+    }
+};
+
+
+
+
+
 var lib_Cache = MetaphorJs.lib.Cache = (function(){
 
     var globalCache;
@@ -8295,6 +8440,8 @@ var cls = classManagerFactory(ns);
 
 
 
+
+
 var Directive = MetaphorJs.app.Directive = (function() {
 
     var attr = {},
@@ -8314,6 +8461,8 @@ var Directive = MetaphorJs.app.Directive = (function() {
 
     return cls({
 
+        $mixins: [MetaphorJs.mixin.Observable],
+
         scope: null,
         node: null,
         component: null,
@@ -8324,7 +8473,6 @@ var Directive = MetaphorJs.app.Directive = (function() {
 
         _apis: ["node"],
         _autoOnChange: true,
-        _stateFn: null,
         _initPromise: null,
         _nodeAttr: null,
         _initial: true,
@@ -8386,10 +8534,7 @@ var Directive = MetaphorJs.app.Directive = (function() {
 
         initConfig: function() {
             var config = this.config;
-            config.setDefaultMode("saveState", lib_Config.MODE_SETTER);
-            if (config.has("saveState")) {
-                self._stateFn = config.get("saveSate");
-            }
+            lib_Observable.$initHostConfig(this, config, this.scope);
         },
 
         initScope: function() {
@@ -8465,9 +8610,10 @@ var Directive = MetaphorJs.app.Directive = (function() {
         },
 
         saveStateOnChange: function(val) {
-            if (this._stateFn) {
-                this._stateFn(this.scope, val);
+            if (this._prevState !== undf) {
+                this.trigger("change", val, this._prevState);
             }
+            this._prevState = val;
         },
 
         onDestroy: function() {
@@ -10142,130 +10288,6 @@ var mixin_Provider = MetaphorJs.mixin.Provider = {
 
     }
 };
-
-
-
-
-/**
- * @mixin MetaphorJs.mixin.Observable
- * @description Mixin adds observable features to the host object.
- *              It adds 'callback' option to the host config. See $beforeInit.
- *              Mixin is designed for MetaphorJs class system.
- * @code src-docs/examples/mixin.js
- */
-var mixin_Observable = MetaphorJs.mixin.Observable = {
-
-    /**
-     * @private
-     * @type {Observable}
-     * @description You can use this instance in your $init function
-     */
-    $$observable: null,
-
-    /**
-     * @private
-     * @type {object}
-     */
-    $$callbackContext: null,
-
-    /**
-     * @protected
-     * @type {object} {
-     *      Override this to define event properties. 
-     *      Object's key is event name, value - either returnResult or 
-     *      options object. See {@link class:lib_Observable.createEvent}
-     * }
-     */
-    $$events: null,
-
-    /**
-     * @method
-     * @private
-     * @param {object} cfg {
-     *      This is a config that was passed to the host object's constructor.
-     *      It is being passed to mixin's $beforeInit automatically.
-     *      @type {object} callback {
-     *          Here, except for 'context', '$context' and 'scope', 
-     *          keys are event names and values are listeners. 
-     *          @type {object} context All given listeners context
-     *          @type {object} scope The same
-     *      }
-     * }
-     */
-    $beforeInit: function(cfg) {
-        var self = this;
-        self.$$observable = new MetaphorJs.lib.Observable;
-        self.$initObservable(cfg);
-    },
-
-    /**
-     * @method
-     * @private
-     * @ignore
-     * @param {object} cfg
-     */
-    $initObservable: function(cfg) {
-        lib_Observable.$initHost(this, cfg, this.$$observable);
-    },
-
-    /**
-     * @method
-     * @see {@link class:Observable.on}
-     */
-    on: function() {
-        var o = this.$$observable;
-        return o ? o.on.apply(o, arguments) : null;
-    },
-
-    /**
-     * @method
-     * @see {@link class:Observable.un}
-     */
-    un: function() {
-        var o = this.$$observable;
-        return o ? o.un.apply(o, arguments) : null;
-    },
-
-    /**
-     * @method
-     * @see {@link class:Observable.once}
-     */
-    once: function() {
-        var o = this.$$observable;
-        return o ? o.once.apply(o, arguments) : null;
-    },
-
-    /**
-     * @method
-     * @see {@link class:Observable.trigger}
-     */
-    trigger: function() {
-        var o = this.$$observable;
-        return o ? o.trigger.apply(o, arguments) : null;
-    },
-
-    /**
-     * @method
-     * @private
-     * @ignore
-     */
-    $beforeDestroy: function() {
-        this.$$observable.trigger("before-destroy", this);
-    },
-
-    /**
-     * @method
-     * @private
-     * @ignore
-     */
-    $afterDestroy: function() {
-        var self = this;
-        self.$$observable.trigger("destroy", self);
-        self.$$observable.$destroy();
-        self.$$observable = null;
-    }
-};
-
 
 
 
@@ -13269,6 +13291,10 @@ var app_Template = MetaphorJs.app.Template = function() {
             else if (self._nextEl || self._attachTo || self._shadowRoot) {
                 self._doAttach();
             }
+            else if (self._nodes && self._nodes.length && 
+                    dom_isAttached(self._nodes[0])) {
+                self._setAttached();
+            }
         },
 
         isAttached: function() {
@@ -13999,22 +14025,7 @@ var app_Controller = MetaphorJs.app.Controller = cls({
             config.setDefaultValue("as", self.as);
         }
 
-        config.setDefaultMode("callbackContext", lib_Config.MODE_SINGLE);
-        config.eachProperty(function(name) {
-            if (name.substring(0,4) === 'on--') {
-                config.setMode(name, msl);
-                if (!ctx) {
-                    if (scope.$app)
-                        ctx = config.get("callbackContext") ||
-                                scope.$app.getParentCmp(self.node) ||
-                                scope.$app ||
-                                scope;
-                    else 
-                        ctx = config.get("callbackContext") || scope;
-                }
-                self.on(name.substring(4), config.get(name), ctx);
-            }
-        });
+        MetaphorJs.lib.Observable.$initHostConfig(self, config, scope, self.node);
     },
 
     _claimNode: function() {
@@ -15450,7 +15461,8 @@ var app_Container = MetaphorJs.app.Container = app_Component.$extend({
 
             self._initChildEvents("on", cmp);
 
-            if (self._attached) {
+            if (self._rendered) {
+                item.component.render();
                 self._putItemInPlace(item);
             }
         }
@@ -16082,6 +16094,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
     _attachQueue: null,
     _mo: null,
     _trackByFn: null,
+    _filterFn: null,
     _localTrack: false,
     _griDelegate: null,
 
@@ -16120,6 +16133,13 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
 
         if (config.has('plugin')) {
             self.$plugins.push(config.get("plugin"));
+        }
+
+        if (config.has("filter")) {
+            self._filterFn = config.get("filter");
+            if (typeof self._filterFn !== "function") {
+                throw new Error("{each.$filter} must be a function");
+            }
         }
 
         self._trackBy = config.get("trackBy");
@@ -16162,7 +16182,23 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
         self.initDataSource();
         self.scope.$app.registerCmp(self, "id");
 
-        self._renderQueue.add(self.render, self, [toArray(self._mo.getValue())]);
+        self._renderQueue.add(self.render, self, [self.getList()]);
+    },
+
+    getList: function() {
+        var list = toArray(this._mo.getValue()),
+            i, l, filter = this._filterFn;
+
+        if (filter) {
+            var all = list;
+            list = [];
+            for (i = 0, l = all.length; i < l; i++) {
+                if (filter(all[i])) {
+                    list.push(all[i]);
+                }
+            }
+        }
+        return list;
     },
 
     initConfig: function() {
@@ -16273,7 +16309,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
             index       = start || 0,
             cnt         = items.length,
             x           = end || cnt - 1,
-            list        = self._mo.getValue(),
+            list        = self.getList(),
             trackByFn   = self.getTrackByFunction();
 
         if (x > cnt - 1) {
@@ -16294,7 +16330,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
 
         var self = this;
 
-        list = list || self._mo.getValue();
+        list = list || self.getList();
         items = items || self._items;
         trackByFn = trackByFn || self.getTrackByFunction();
 
@@ -16351,7 +16387,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
             items       = self._items,
             tpl         = self._template,
             index       = 0,
-            list        = toArray(self._mo.getValue()),
+            list        = self.getList(),
             updateStart = null,
             animateMove = self._animateMove,
             newItems    = [],
@@ -16621,7 +16657,7 @@ var app_ListRenderer = MetaphorJs.app.ListRenderer = cls({
         }
 
         var self        = this,
-            list        = self._mo.getValue(),
+            list        = self.getList(),
             trackByFn   = self.getTrackByFunction(),
             i, l;
 
@@ -18409,7 +18445,7 @@ Directive.registerAttribute("bind", 1000,
             }
 
             if (self.input) {
-                self.inputApi.unChange(self.onInputChange, self);
+                self.input.unChange(self.onInputChange, self);
                 self.input.$destroy();
                 self.input = null;
             }
@@ -19878,6 +19914,7 @@ Directive.registerAttribute("show", 500, Directive.$extend({
 
         var self    = this,
             style   = self.node.style,
+            initial = this._initial,
             done    = function() {
                 if (!show) {
                     style.display = "none";
@@ -19885,21 +19922,27 @@ Directive.registerAttribute("show", 500, Directive.$extend({
                 else {
                     style.display = self.config.get("display");
                 }
+                if (!initial) {
+                    self.trigger(show?"show" : "hide", self.node);
+                }
             };
 
-        self._initial || !self.config.get("animate") ? done() : animate_animate(
-            self.node,
-            show ? "show" : "hide",
-            function() {
-                if (show) {
-                    return new lib_Promise(function(resolve){
-                        raf(function(){
-                            style.display = self.config.get("display");
-                            resolve();
+        initial || !self.config.get("animate") ? 
+            (initial ? done() : raf(done)) : 
+            animate_animate(
+                self.node,
+                show ? "show" : "hide",
+                function() {
+                    if (show) {
+                        return new lib_Promise(function(resolve){
+                            raf(function(){
+                                style.display = self.config.get("display");
+                                resolve();
+                            });
                         });
-                    });
+                    }
                 }
-            })
+            )
             .done(done);
     },
 
@@ -19948,6 +19991,8 @@ Directive.registerAttribute("if", 500, Directive.$extend({
         config.setType("animate", "bool", lib_Config.MODE_STATIC)
         config.setType("value", "bool");
         config.setType("once", "bool", lib_Config.MODE_STATIC);
+        config.setType("onShow", null, lib_Config.MODE_FUNC);
+        config.setType("onHide", null, lib_Config.MODE_FUNC);
         this.$super();
     },
     
@@ -19959,26 +20004,36 @@ Directive.registerAttribute("if", 500, Directive.$extend({
 
     onScopeChange: function() {
         var self    = this,
-            val     = self.config.get("value"),
+            config  = self.config,
+            val     = config.get("value"),
             parent  = self.wrapperOpen.parentNode,
-            node    = self.node;
+            node    = self.node,
+            initial = self._initial,
 
-        var show    = function(){
-            parent.insertBefore(node, self.wrapperClose);
-        };
+            show    = function(){
+                parent.insertBefore(node, self.wrapperClose);
+                if (!initial) {
+                    raf(self.trigger, self, ["show", node]);
+                }
+            },
 
-        var hide    = function() {
-            parent.removeChild(node);
-        };
+            hide    = function() {
+                parent.removeChild(node);
+                if (!initial) {
+                    raf(self.trigger, self, ["hide", node]);
+                }
+            };
 
         if (val) {
-            self._initial || !self.config.get("animate") ?
-                show() : animate_animate(node, "enter", show);
+            initial || !self.config.get("animate") ?
+                (initial ? show() : raf(show)) : 
+                animate_animate(node, "enter", show);
         }
         else {
             if (node.parentNode) {
-                self._initial || !self.config.get("animate") ?
-                    hide() : animate_animate(node, "leave").done(hide);
+                initial || !self.config.get("animate") ?
+                    (initial ? hide() : raf(hide)) : 
+                    animate_animate(node, "leave").done(hide);
             }
         }
 

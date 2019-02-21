@@ -421,6 +421,10 @@ module.exports = MetaphorJs.app.Template = function() {
             else if (self._nextEl || self._attachTo || self._shadowRoot) {
                 self._doAttach();
             }
+            else if (self._nodes && self._nodes.length && 
+                    MetaphorJs.dom.isAttached(self._nodes[0])) {
+                self._setAttached();
+            }
         },
 
         isAttached: function() {

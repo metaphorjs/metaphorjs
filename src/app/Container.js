@@ -425,7 +425,8 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
             self._initChildEvents("on", cmp);
 
-            if (self._attached) {
+            if (self._rendered) {
+                item.component.render();
                 self._putItemInPlace(item);
             }
         }
