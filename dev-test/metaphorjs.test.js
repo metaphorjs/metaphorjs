@@ -7847,9 +7847,6 @@ var classManagerFactory = function(){
                         if (plugin.$beforeHostInit) {
                             before.push([plugin.$beforeHostInit, plugin]);
                         }
-                        if (plugin.$afterHostInit) {
-                            after.push([plugin.$afterHostInit, plugin]);
-                        }
 
                         plugins[i] = plugin;
                     }
@@ -7862,9 +7859,20 @@ var classManagerFactory = function(){
                     self.$init.apply(self, args);
                 }
 
+                // we look for $afterHostInit in a separate loop
+                // for plugins can be added inside $beforeHostInit
+                // or in $init
+                if (plugins && plugins.length) {
+                    for (i = 0, l = plugins.length; i < l; i++) {
+                        plugin = plugins[i];
+                        if (plugin.$afterHostInit) {
+                            after.push([plugin.$afterHostInit, plugin]);
+                        }
+                    }
+                }
+
                 for (i = -1, l = after.length; ++i < l;
                      after[i][0].apply(after[i][1], args)){}
-
             };
         };
 
@@ -7984,6 +7992,36 @@ var classManagerFactory = function(){
                 if ($self && $self.$parent) {
                     preparePrototype(this, methods, $self.$parent, true);
                 }
+            },
+
+            /**
+             * Add a plugin to class instance
+             * @param {string|function} plugin 
+             */
+            $addPlugin: function(plugin) {
+
+                var plCls, 
+                    self = this,
+                    pmap = self.$pluginMap;
+
+                if (isString(plugin)) {
+                    plCls = plugin;
+                    plugin = ns ? ns.get(plugin) : null;
+                    if (!plugin) {
+                        throw plCls + " not found";
+                    }
+                }
+                else {
+                    plCls = plugin.$class;
+                }
+
+                if (pmap[plCls]) {
+                    throw plCls + " already initialized on this instance";
+                }
+
+                plugin = new plugin(self);
+                pmap[plCls] = plugin;
+                self.$plugins.push(plugin);
             },
 
             /**
@@ -15052,7 +15090,7 @@ var dom_is = MetaphorJs.dom.is = function(el, selector) {
 
 
 
-var app_Container = MetaphorJs.app.Container = app_Component.$extend({
+MetaphorJs.app.Container = app_Component.$extend({
 
     $mixinEvents: ["$initChildItem"],
     _itemsInitialized: false,
@@ -35634,8 +35672,7 @@ var dialog_Dialog = MetaphorJs.dialog.Dialog = (function(){
 
 
 
-var dialog_Container = MetaphorJs.dialog.Container = app_Container.$extend({
-
+var mixin_Dialog = MetaphorJs.mixin.Dialog = {
     dialog: null,
     dialogPreset: null,
     dialogCfg: null,
@@ -35646,9 +35683,11 @@ var dialog_Container = MetaphorJs.dialog.Container = app_Container.$extend({
     target: null,
     isTooltip: false,
 
-    $init: function(cfg) {
+    $beforeInit: function(cfg) {
 
         var self = this;
+
+        self.autoRender = true;
 
         if ((!cfg || !cfg.node) && 
             !self.template && 
@@ -35656,10 +35695,21 @@ var dialog_Container = MetaphorJs.dialog.Container = app_Container.$extend({
             self.node = window.document.createElement("div");
         }
 
-        self.$super(cfg);
+        self.$intercept(
+            "_onRenderingFinished", 
+            self._onDialogRenderingFinished, 
+            self,
+            "after"
+        );
     },
 
-    _getDialogCfg: function() {
+    $beforeDestroy: function() {
+        if (this.dialog) {
+            this.dialog.$destroy();
+        }
+    },
+
+    getDialogCfg: function() {
 
         var self    = this;
 
@@ -35674,22 +35724,29 @@ var dialog_Container = MetaphorJs.dialog.Container = app_Container.$extend({
         }, true, true);
     },
 
-    _onRenderingFinished: function() {
-        var self = this, i, l, items = self.items
-        self.$super();
-        // insert all placeholders, but
-        // attach only resolved items
-        for (i = -1, l = items.length; ++i < l;){
-            self._putItemInPlace(items[i]);
+    getDialog: function() {
+        return this.dialog;
+    },
+
+
+
+    _onDialogRenderingFinished: function() {
+        var self = this, i, l, items = self.items;
+
+        if (items) {
+            // insert all placeholders, but
+            // attach only resolved items
+            for (i = -1, l = items.length; ++i < l;){
+                self._putItemInPlace(items[i]);
+            }
         }
 
         this._createDialog();  
     },
 
     _createDialog: function() {
-
         var self    = this;
-        self.dialog = new dialog_Dialog(self._getDialogCfg());
+        self.dialog = new dialog_Dialog(self.getDialogCfg());
         self.dialog.on("show", self.onDialogShow, self);
         self.dialog.on("hide", self.onDialogHide, self);
         self.dialog.on("before-show", self.onBeforeDialogShow, self);
@@ -35701,11 +35758,6 @@ var dialog_Container = MetaphorJs.dialog.Container = app_Container.$extend({
             self.show();
         }
     },
-
-    getDialog: function() {
-        return this.dialog;
-    },
-
 
     show: function(e) {
         if (e && !(e instanceof MetaphorJs.lib.DomEvent)) {
@@ -35728,6 +35780,7 @@ var dialog_Container = MetaphorJs.dialog.Container = app_Container.$extend({
         }
         else this._hidden = true;
     },
+
 
     onDialogAttached: function() {
         if (!this._attached) {
@@ -35769,20 +35822,16 @@ var dialog_Container = MetaphorJs.dialog.Container = app_Container.$extend({
             self.dialog = null;
             self.$destroy();
         }
-    },
-
-    onDestroy: function() {
-
-        var self    = this;
-
-        if (self.dialog) {
-            self.dialog.$destroy();
-        }
-
-        self.$super();
-
     }
 
+}
+
+
+
+
+
+var dialog_Component = MetaphorJs.dialog.Component = app_Component.$extend({
+    $mixins: [MetaphorJs.mixin.Dialog]
 });
 
 var index = (function(){
@@ -35968,7 +36017,7 @@ cls({
 
         createDialog: function() {
 
-            var dialog = new dialog_Container({
+            var dialog = new dialog_Component({
                 id: "small-dialog",
                 dialogCfg: {
                     cls: {

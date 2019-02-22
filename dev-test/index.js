@@ -6,10 +6,10 @@ require("../src/app/Container.js");
 require("../src/func/app/resolve.js");
 require("../src/func/app/init.js");
 require("../src/func/dom/onReady.js");
+require("metaphorjs-dialog/src/dialog/Component.js");
 require("metaphorjs-model/src/model/Model.js");
 require("metaphorjs-model/src/model/Record.js");
 require("metaphorjs-model/src/model/Store.js");
-require("metaphorjs-dialog/src/dialog/Container.js");
 require("metaphorjs-promise/src/lib/Promise.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
@@ -182,7 +182,7 @@ cls({
 
         createDialog: function() {
 
-            var dialog = new MetaphorJs.dialog.Container({
+            var dialog = new MetaphorJs.dialog.Component({
                 id: "small-dialog",
                 dialogCfg: {
                     cls: {
