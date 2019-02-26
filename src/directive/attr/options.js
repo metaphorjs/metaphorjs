@@ -155,10 +155,10 @@ Directive.registerAttribute("options", 100, Directive.$extend({
 
         option  = window.document.createElement("option");
         MetaphorJs.dom.setAttr(option, "value", config.value || "");
-        option.text = config.name;
+        option.text = config.name || config.value || "";
 
         if (msie && msie < 9) {
-            option.innerHTML = config.name;
+            option.innerHTML = config.name || config.value || "";
         }
         if (config.disabled) {
             MetaphorJs.dom.setAttr(option, "disabled", "disabled");
