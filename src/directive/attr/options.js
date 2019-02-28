@@ -175,8 +175,10 @@ Directive.registerAttribute("options", 100, Directive.$extend({
             def         = self._defOption,
             tmpScope    = self.scope.$new(),
             msie        = MetaphorJs.browser.isIE(),
+            phValue     = self.config.get("placeholderValue"),
+            phName      = self.config.get("placeholderName") || phValue,
             parent, next,
-            i, len;
+            i, len, ph;
 
         self._fragment   = window.document.createDocumentFragment();
         self.prevGroup  = null;
@@ -192,6 +194,13 @@ Directive.registerAttribute("options", 100, Directive.$extend({
 
         if (def) {
             node.insertBefore(def, node.firstChild);
+        }
+
+        if (phValue && !len && !def) {
+            ph = document.createElement("option");
+            ph.value = phValue;
+            ph.text = phName;
+            node.insertBefore(ph, node.firstChild);
         }
 
         tmpScope.$destroy();
