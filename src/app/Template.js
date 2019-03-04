@@ -997,6 +997,8 @@ module.exports = MetaphorJs.app.Template = function() {
         Template.cache.add(name, tpl);
     };
 
+    Template.get = getTemplate;
+
     Template.prepareConfig = function(config, values) {
         if (typeof values === 'string') {
             config.setDefaultValue("name", values);
