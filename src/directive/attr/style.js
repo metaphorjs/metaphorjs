@@ -6,11 +6,6 @@ var Directive = require("../../app/Directive.js"),
     toCamelCase = require("metaphorjs-shared/src/func/toCamelCase.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-/*
-value is always an object in the end
-DO NOT MIX style="{}" with style.prop="expression".
- */
-
 
 Directive.registerAttribute("style", 1000, Directive.$extend({
 
@@ -38,7 +33,7 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
 
     getCurrentValue: function() {
         var style = this.config.getAllValues();
-        
+
         if (style[""]) {
             extend(style, style[""]);
             delete style[''];
