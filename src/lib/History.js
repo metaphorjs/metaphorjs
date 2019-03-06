@@ -485,7 +485,16 @@ module.exports = MetaphorJs.lib.History = function() {
          */
         replace: function(url, state) {
             init();
-            replaceState(url, null, state);
+            var prev = extend({}, location, true, false),
+                next = MetaphorJs.browser.parseLocation(url);
+
+            if (hostsDiffer(prev, next)) {
+                return null;
+            }
+
+            if (pathsDiffer(prev, next)) {
+                replaceState(url, null, state);
+            }
         },
 
         /**

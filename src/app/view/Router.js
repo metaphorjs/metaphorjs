@@ -98,7 +98,7 @@ module.exports = MetaphorJs.app.view.Router = MetaphorJs.app.view.Base.$extend({
                 def = r;
             }
         }
-    
+
         var tmp = self.onNoMatchFound(loc);
 
         if (tmp) {
@@ -179,7 +179,11 @@ module.exports = MetaphorJs.app.view.Router = MetaphorJs.app.view.Base.$extend({
 
     onRouteFail: function(route) {},
 
-    setRouteComponent: function(route, matches) {
+    onRouteParamChange: function() {
+
+    },
+
+    setRouteComponent: function(route, matches, force) {
 
         var self    = this,
             node    = self.node,
@@ -190,7 +194,7 @@ module.exports = MetaphorJs.app.view.Router = MetaphorJs.app.view.Base.$extend({
             return;
         }
 
-        if (route.id === cview.id) {
+        if (route.id === cview.id && !route.resetOnParamChange) {
             if (self.currentComponent && self.currentComponent.onViewRepeat) {
                 self.currentComponent.onViewRepeat();
             }
