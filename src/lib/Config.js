@@ -1051,13 +1051,66 @@ module.exports = MetaphorJs.lib.Config = (function(){
         }
     });
 
+    /**
+     * @property MetaphorJs.lib.Config.MODE_STATIC
+     * @static
+     * Do not calculate value, use whatever provided or default value
+     */
     Config.MODE_STATIC = MODE_STATIC;
+
+    /**
+     * @property MetaphorJs.lib.Config.MODE_DYNAMIC
+     * @static
+     * Calculate value and watch for changes
+     */
     Config.MODE_DYNAMIC = MODE_DYNAMIC;
+
+    /**
+     * @property MetaphorJs.lib.Config.MODE_SINGLE
+     * @static
+     * Calculate value once 
+     */
     Config.MODE_SINGLE = MODE_SINGLE;
+
+    /**
+     * @property MetaphorJs.lib.Config.MODE_GETTER
+     * @static
+     * Treat value as expression, return a function that executes expression
+     * that returns value
+     */
     Config.MODE_GETTER = MODE_GETTER;
+
+    /**
+     * @property MetaphorJs.lib.Config.MODE_SETTER
+     * @static
+     * Treat value as expression, return a setter function that executes expression
+     * that sets value
+     */
     Config.MODE_SETTER = MODE_SETTER;
+
+    /**
+     * @property MetaphorJs.lib.Config.MODE_FUNC
+     * @static
+     * Treat value as expression, return a function that executes expression
+     */
     Config.MODE_FUNC = MODE_FUNC;
+
+    /**
+     * @property MetaphorJs.lib.Config.MODE_FNSET
+     * @static
+     * Treat value as expression, return an object with
+     * both setter and getter functions
+     */
     Config.MODE_FNSET = MODE_FNSET;
+
+    /**
+     * @property MetaphorJs.lib.Config.MODE_LISTENER
+     * @static
+     * Treat value as expression. If expression is a reference to a function, 
+     * return this function. Else, return a wrapper function that is executed
+     * in current scope (config's or property's) and has all passed arguments
+     * as this.$1, this.$2, etc.
+     */
     Config.MODE_LISTENER = MODE_LISTENER;
 
 

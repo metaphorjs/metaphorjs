@@ -1,0 +1,49 @@
+
+### User
+
+* MetaphorJs Introduction
+    What it is. Similarities to other frameworks, differences.
+
+* Gettings started
+    * Simple use (angular like examples)
+        * Todo app
+
+* ExtJs paradygm vs Angular, ways to construct an app.
+    * Same todo app made two different ways
+
+* MetaphorJs.lib.App
+* MetaphorJs.lib.Scope
+* MetaphorJs.lib.Config
+* MetaphorJs.lib.MutationObserver
+* MetaphorJs.lib.History
+
+* Templates 
+    * <!-- include -->
+    * Loading remote Templates
+    * Filling the cache
+
+* Controller, Component, Container
+
+* Directive usage
+
+* Plugins and Mixins
+
+* model.Api, model.Store, model.Record
+
+* MetaphorJs.lib.Dialog
+
+* Expressions. Setting your own expression parser
+
+* WebComponents
+
+### Developer
+
+* Developing Directives
+    * Metaphorjs.app.Directive
+    * Metaphorjs.app.Renderer
+
+* Building
+    * File structure
+    * prebuilt templates and Expressions
+    * builder
+    * webpack

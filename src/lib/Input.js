@@ -21,6 +21,15 @@ module.exports = MetaphorJs.lib.Input = function(){
 var observable = new MetaphorJs.lib.Observable,
     id = 0;
 
+/**
+ * @class MetaphorJs.lib.Input
+ * 
+ * @constructor
+ * @param {Node} el 
+ * @param {function} changeFn 
+ * @param {object} changeFnContext 
+ * @param {object} cfg 
+ */
 var Input = function(el, changeFn, changeFnContext, cfg) {
 
     if (el.$$input) {
@@ -56,6 +65,9 @@ extend(Input.prototype, {
     keydownDelegate: null,
     changeInitialized: false,
 
+    /**
+     * @method
+     */
     $destroy: function() {
 
         var self        = this,
@@ -306,6 +318,10 @@ extend(Input.prototype, {
         observable.trigger("change-"+self.id, self.processValue(trg.value));
     },
 
+    /**
+     * @method
+     * @param {*} val 
+     */
     setValue: function(val) {
 
         var self    = this,
@@ -339,6 +355,10 @@ extend(Input.prototype, {
         self.triggerChange();
     },
 
+    /**
+     * @method
+     * @returns {*}
+     */
     getValue: function() {
 
         var self    = this,
@@ -363,7 +383,13 @@ extend(Input.prototype, {
         }
     },
 
-
+    /**
+     * @method
+     * @param {string} event change|key
+     * @param {function} fn event listener
+     * @param {object} ctx event listener context
+     * @param {object} opt MetaphorJs.lib.Observable's on() options
+     */
     on: function(event, fn, ctx, opt) {
         var self = this;
         if (event === "change" && !self.changeInitialized) {
@@ -381,25 +407,53 @@ extend(Input.prototype, {
         return observable.on(event+"-"+self.id, fn, ctx, opt);
     },
 
+    /**
+     * @method
+     * @param {string} event 
+     * @param {function} fn 
+     * @param {object} ctx 
+     */
     un: function(event, fn, ctx) {
         return observable.un(event+"-"+this.id, fn, ctx);
     },
 
+    /**
+     * @method
+     * @param {function} fn 
+     * @param {object} context 
+     */
     onChange: function(fn, context) {
         return this.on("change", fn, context);
     },
 
+    /**
+     * @method
+     * @param {function} fn 
+     * @param {object} context 
+     */
     unChange: function(fn, context) {
         return this.un("change", fn, context);
     },
 
-    onKey: function(key, fn, context, args) {
-        return this.on("key", fn, context, {
-            key: key,
-            prepend: args
-        });
+    /**
+     * @method
+     * @param {int} key 
+     * @param {function} fn 
+     * @param {object} context 
+     * @param {object} opt
+     */
+    onKey: function(key, fn, context, opt) {
+        return this.on("key", fn, context, extend({}, opt, {
+            key: key
+        }));
     },
 
+    /**
+     * @method
+     * @param {int} key 
+     * @param {function} fn 
+     * @param {object} context 
+     */
     unKey: function(key, fn, context) {
         this.un("key", fn, context);
     },
@@ -445,6 +499,13 @@ extend(Input.prototype, {
 }, true, false);
 
 
+/**
+ * @method
+ * @static
+ * @param {Node} node
+ * @param {MetaphorJs.lib.Scope} scope
+ * @returns {MetaphorJs.lib.Input}
+ */
 Input.get = function(node, scope) {
     if (node.$$input) {
         return node.$$input;
@@ -458,7 +519,20 @@ Input.get = function(node, scope) {
     return new Input(node);
 };
 
+/**
+ * @method
+ * @static
+ * @param {Node} node
+ * @returns {string}
+ */
 Input.getValue = MetaphorJs.dom.getInputValue;
+
+/**
+ * @method
+ * @static
+ * @param {Node} node
+ * @param {string} value
+ */
 Input.setValue = MetaphorJs.dom.setInputValue;
 
 
