@@ -442,7 +442,8 @@ module.exports = MetaphorJs.app.Template = function() {
         },
 
         resolve: function(renew) {
-            var self    = this;
+            var self    = this,
+                config = self.config;
 
             if (self._resolvePromise) {
                 if (renew) {
@@ -461,15 +462,17 @@ module.exports = MetaphorJs.app.Template = function() {
 
             self._pubResolvePromise = new MetaphorJs.lib.Promise;
 
-            if (self.config.has("name")) {
-                self._resolvePromise = self._resolveTemplate();
+            if (config.has("name")) {
+                config.get("name") && 
+                    (self._resolvePromise = self._resolveTemplate());
             }
-            else if (self.config.has("html")) {
-                self._resolvePromise = self._resolveHtml();
+            else if (config.has("html")) {
+                config.get("html") &&
+                    (self._resolvePromise = self._resolveHtml());
             }
-            else {
-                self._resolvePromise = MetaphorJs.lib.Promise.resolve();
-            }
+
+            !self._resolvePromise &&
+                (self._resolvePromise = MetaphorJs.lib.Promise.resolve());
 
             self._resolvePromise.fail(self._onTemplateNotFound, self);
 
