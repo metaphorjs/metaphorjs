@@ -28,8 +28,6 @@ Directive.registerAttribute("input", 1000, Directive.$extend({
         self.$super();
     },
 
-    initChange: function(){},
-
     initConfig: function() {
         this.config.setType("if", "bool");
         this.config.setMode("value", MetaphorJs.lib.Config.MODE_FUNC);

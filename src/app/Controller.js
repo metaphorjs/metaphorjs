@@ -223,14 +223,6 @@ module.exports = MetaphorJs.app.Controller = cls({
     },
 
     /**
-     * @access public
-     * @return Element
-     */
-    getEl: function() {
-        return this.node;
-    },
-
-    /**
      * @method
      * @access protected
      */
