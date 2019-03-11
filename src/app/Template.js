@@ -102,13 +102,13 @@ module.exports = MetaphorJs.app.Template = function() {
             if (!options[tplId]) {
                 options[tplId] = {};
             }
-            
+
             opt = options[tplId];           
             opt.processed = true;
 
-            if (opt.includes) {
-                tpl = resolveIncludes(tpl);
-            }
+            //if (opt.includes) {
+            tpl = resolveIncludes(tpl);
+            //}
 
             if (opt.text) {
                 return tpl;
