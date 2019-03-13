@@ -1,4 +1,5 @@
 require("../../lib/Expression.js");
+require("../../lib/Config.js");
 require("../../lib/MutationObserver.js");
 require("../../func/dom/getInputValue.js");
 require("../../func/dom/setInputValue.js");
@@ -43,8 +44,13 @@ Directive.registerAttribute("options", 100, Directive.$extend({
             config  = self.config,
             expr;
 
+        config.setType("keepDefault", "bool", 
+                        MetaphorJs.lib.Config.MODE_STATIC, true);
         config.disableProperty("value");
         expr = config.getExpression("value");
+
+        config.on("placeholderName", self.onPlaceholderChange, self);
+        config.on("placeholderValue", self.onPlaceholderChange, self);
 
         self.parseExpr(expr);
         self.$super();
@@ -61,7 +67,10 @@ Directive.registerAttribute("options", 100, Directive.$extend({
             node.removeChild(node.firstChild);
         }
 
-        self._defOption && MetaphorJs.dom.setAttr(self._defOption, "default-option", "");
+        if (self.config.get("keepDefault")) {
+            self._defOption && MetaphorJs.dom.setAttr(self._defOption, "default-option", "");
+        }
+        else self._defOption = null;
 
         try {
             var value = MetaphorJs.lib.Expression.get(self.model, self.scope);
@@ -91,20 +100,33 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         self.store = store;
     },
 
+    getSourceList: function() {
+        return this.store ? 
+            this.store.toArray() :
+            toArray(this.watcher.getValue());
+    },
+
     renderStore: function() {
         var self = this;
-        self.render(self.store.toArray());
+        self.render(this.getSourceList());
         self.dispatchOptionsChange();
     },
 
     renderAll: function() {
-        this.render(toArray(this.watcher.getValue()));
+        this.render(this.getSourceList());
         this.dispatchOptionsChange();
     },
 
     onScopeChange: function() {
         var self = this;
         self.renderAll();
+    },
+
+    onPlaceholderChange: function() {
+        var list = this.getSourceList();
+        if (!list || list.length === 0) {
+            this.render(list);
+        }       
     },
 
     dispatchOptionsChange: function() {
