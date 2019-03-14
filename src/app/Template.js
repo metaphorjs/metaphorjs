@@ -338,6 +338,11 @@ module.exports = MetaphorJs.app.Template = function() {
 
         _rafAttach: function() {
             var self = this;
+
+            if (self.$destroyed) {
+                return;
+            }
+
             self._createShadow();
             self._createComments();
 
@@ -386,6 +391,11 @@ module.exports = MetaphorJs.app.Template = function() {
 
         _rafReplace: function() {
             var self = this;
+
+            if (self.$destroyed) {
+                return;
+            }
+
             if (self._attachTo) {
                 self._replaceNodeWithNode(node, self._attachTo);
                 self._createShadow();
@@ -969,6 +979,8 @@ module.exports = MetaphorJs.app.Template = function() {
         $destroy: function() {
 
             var self = this;
+
+            self.$destroyed = true;
 
             if (self._nextEl && self._nextEl.parentNode) {
                 self._nextEl.parentNode.removeChild(self._nextEl);
