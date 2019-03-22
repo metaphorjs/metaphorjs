@@ -109,7 +109,9 @@ Directive.registerAttribute("bind", 1000,
             var self = this;
 
             if (self.input) {
-                self.input.setValue(val);
+                if (self.input.getValue() != val) {
+                    self.input.setValue(val);
+                }
             }
             else {
                 self.node[typeof self.node.textContent === "string" ? "textContent" : "innerText"] = val;
