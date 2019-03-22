@@ -2,6 +2,7 @@
 require("../../func/dom/getAttr.js");
 require("../../app/ListRenderer.js");
 require("../../lib/Expression.js");
+require("../../func/app/prebuilt.js");
 
 var Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
@@ -17,15 +18,15 @@ var Directive = require("../../app/Directive.js"),
             l = types.length,
             pb;
         
-        if (MetaphorJs.lib.Expression.isPrebuiltKey(expr)) {
-            pb = MetaphorJs.prebuilt.funcs[expr.substring(2)];
+        if (MetaphorJs.app.prebuilt.isKey(expr)) {
+            pb = MetaphorJs.app.prebuilt.get("config", expr);
         }
         else if (typeof expr !== "string") {
             pb = expr;
         }
 
         if (pb) {
-            var obj = (pb.getterFn || pb.fn)(scope);
+            var obj = pb.getterFn(scope);
         }
         else {
             var tmp = expr.split(" in "),

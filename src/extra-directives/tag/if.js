@@ -4,7 +4,6 @@ require("../../func/dom/getAttr.js");
 require("../../lib/Config.js");
 
 var Directive = require("../../app/Directive.js"),
-    undf = require("metaphorjs-shared/src/var/undf.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 

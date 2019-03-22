@@ -406,7 +406,10 @@ module.exports = MetaphorJs.lib.Expression = (function () {
         constructorFn,
 
         parser = function (expr, opt) {
-            return constructorFn(deconstructorFn(expr, opt), opt);
+            return constructorFn(
+                typeof expr === "string" ? deconstructorFn(expr, opt) : expr, 
+                opt
+            );
         },
 
         reset = function () {

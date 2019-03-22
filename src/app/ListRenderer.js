@@ -8,6 +8,7 @@ require("../lib/MutationObserver.js");
 require("../lib/Config.js");
 require("metaphorjs-animate/src/animate/animate.js");
 require("metaphorjs-animate/src/animate/isCssSupported.js");
+require("metaphorjs/src/func/app/prebuilt.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
@@ -633,13 +634,13 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
 
         var parts, pb;
 
-        if (MetaphorJs.lib.Expression.isPrebuiltKey(expr)){
-            pb = MetaphorJs.prebuilt.funcs[expr.substring(2)];
+        if (MetaphorJs.app.prebuilt.isKey(expr)){
+            pb = MetaphorJs.app.prebuilt.get("config", expr);
             parts = {
                 model: pb,
-                name: pb.name
+                name: pb.inflate.itemName
             };
-            this.listSourceExpr = expr;
+            this.listSourceExpr = pb;
         }
         else {
             parts = Directive.getDirective("attr", "each")

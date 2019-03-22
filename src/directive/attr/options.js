@@ -6,11 +6,11 @@ require("../../func/dom/setInputValue.js");
 require("../../func/dom/setAttr.js");
 require("../../func/browser/isIE.js");
 require("../../func/dom/triggerEvent.js");
+require("../../func/app/prebuilt.js");
 
 var cls = require("metaphorjs-class/src/cls.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
     error = require("metaphorjs-shared/src/func/error.js"),
-    isPlainObject = require("metaphorjs-shared/src/func/isPlainObject.js"),
     undf = require("metaphorjs-shared/src/var/undf.js"),
     Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
@@ -71,15 +71,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         else self._defOption = null;
 
         try {
-            var value;
-            if (typeof self.model === "string") {
-                value = MetaphorJs.lib.Expression.get(self.model, self.scope);
-            }
-            else {
-                value = MetaphorJs.lib.Expression.construct(self.model, {
-                    getterOnly: true
-                })(self.scope);
-            }
+            var value = MetaphorJs.lib.Expression.get(self.model, self.scope);
             
             if (cls.isInstanceOf(value, "MetaphorJs.model.Store")) {
                 self.bindStore(value, "on");
@@ -280,10 +272,10 @@ Directive.registerAttribute("options", 100, Directive.$extend({
 
         var model, item, splitIndex;
 
-        if (MetaphorJs.lib.Expression.isPrebuiltKey(expr)) {
-            var pb = MetaphorJs.prebuilt.funcs[expr.substring(2)];
+        if (MetaphorJs.app.prebuilt.isKey(expr)) {
+            var pb = MetaphorJs.app.prebuilt.get("config", expr);
             model = pb;
-            MetaphorJs.lib.Expression.inflatePrebuilt(model);
+            //item = MetaphorJs.app.prebuilt.get("func", pb.inflate.item);
             item = pb.inflate.item;
         }
         else {

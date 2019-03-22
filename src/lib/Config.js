@@ -158,7 +158,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 }
             }
 
-            
+            prop.inflate && (res.inflate = prop.inflate);
             res.descr = descr;
 
             return res;

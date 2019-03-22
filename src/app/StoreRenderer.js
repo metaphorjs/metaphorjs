@@ -2,7 +2,8 @@
 require("../lib/Expression.js");
 require("../lib/Config.js");
 require("../lib/MutationObserver.js");
-require("../app/ListRenderer.js")
+require("../app/ListRenderer.js");
+require("../func/app/prebuilt");
 
 var bind = require("metaphorjs-shared/src/func/bind.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
@@ -43,7 +44,7 @@ module.exports = MetaphorJs.app.StoreRenderer = MetaphorJs.app.ListRenderer.$ext
         }
 
         self._mo            = MetaphorJs.lib.MutationObserver.get(
-                                store, "this.current", 
+                                store, "current", 
                                 self.onChange, self);
         self._griDelegate   = bind(store.indexOfId, store);
         self.bindStore(store, "on");
