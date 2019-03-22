@@ -22,15 +22,9 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
 
     $constructor: function(scope, node, config, renderer, attrSet) {
 
-        var ms = MetaphorJs.lib.Config.MODE_STATIC;
-
-        config.setType("deferred", "bool", ms);
-        config.setType("noCache", "bool", ms);
-        config.setType("noPreload", "bool", ms);
-        config.setDefaultMode("preloadSize", ms);
-        config.setDefaultMode("plugin", ms);
-
         var self = this;
+
+        self.$self.initConfig(config);
 
         if (config.get("deferred")) {
             self.$plugins.push("MetaphorJs.plugin.SrcDeferred");
@@ -157,5 +151,15 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
             self.queue.$destroy();
             self.$super();
         }
+    }
+}, {
+    initConfig: function(config) {
+        var ms = MetaphorJs.lib.Config.MODE_STATIC;
+
+        config.setType("deferred", "bool", ms);
+        config.setType("noCache", "bool", ms);
+        config.setType("noPreload", "bool", ms);
+        config.setDefaultMode("preloadSize", ms);
+        config.setDefaultMode("plugin", ms);
     }
 }));

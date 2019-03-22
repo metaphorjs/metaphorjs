@@ -55,7 +55,16 @@
                 ["dev-test/templates/**", {
                     "base": "dev-test/templates"
                 }]
-            ]
+            ],
+            "prebuild": {
+                "directives": [
+                    "metaphorjs/src/directive/**",
+                    "metaphorjs-validator/src/directive/**"
+                ],
+                "filters": [
+                    "metaphorjs/src/filter/**"
+                ]
+            }
         },
 
         "test-webc": {

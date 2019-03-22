@@ -4,7 +4,8 @@ require("metaphorjs-animate/src/animate/animate.js");
 require("../../lib/Config.js");
 
 var raf = require("metaphorjs-animate/src/func/raf.js"),
-    Directive = require("../../app/Directive.js");
+    Directive = require("../../app/Directive.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
 Directive.registerAttribute("show", 500, Directive.$extend({
@@ -13,15 +14,6 @@ Directive.registerAttribute("show", 500, Directive.$extend({
     id: "show",
 
     _initial: true,
-
-    initConfig: function() {
-        var config = this.config;
-        config.setType("display", 
-            "string", MetaphorJs.lib.Config.MODE_STATIC, "");
-        config.setType("animate", 
-            "bool", MetaphorJs.lib.Config.MODE_STATIC, false);
-        this.$super();
-    },
 
     runAnimation: function(show) {
 
@@ -64,5 +56,12 @@ Directive.registerAttribute("show", 500, Directive.$extend({
         self.runAnimation(val);
         self._initial = false;
         self.$super(val);
+    }
+}, {
+    initConfig: function(config) {
+        config.setType("display", 
+            "string", MetaphorJs.lib.Config.MODE_STATIC, "");
+        config.setType("animate", 
+            "bool", MetaphorJs.lib.Config.MODE_STATIC, false);
     }
 }));

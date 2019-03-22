@@ -112,7 +112,7 @@ module.exports = MetaphorJs.app.Controller = cls({
         }
         if (config.has("as")) {
             scope[config.get("as")] = self;
-        }        
+        }
 
         self[self.__initInstance].apply(self, arguments);
 
@@ -131,14 +131,10 @@ module.exports = MetaphorJs.app.Controller = cls({
         var self = this,
             scope = self.scope,
             config = self.config,
-            mst = MetaphorJs.lib.Config.MODE_STATIC,
-            msl = MetaphorJs.lib.Config.MODE_LISTENER,
-            ctx;
+            mst = MetaphorJs.lib.Config.MODE_STATIC;
 
         config.setType("id", "string", mst, self.id || self.__idPfx + nextUid())
-        config.setMode("init", MetaphorJs.lib.Config.MODE_FUNC);
-        config.setDefaultMode("as", mst);
-        config.setDefaultMode("scope", mst);
+        self.$self.initConfig(config);
 
         if (self.as) {
             config.setDefaultValue("as", self.as);
@@ -246,4 +242,11 @@ module.exports = MetaphorJs.app.Controller = cls({
         self.$super();
     }
 
+}, {
+    initConfig: function(config) {
+        var mst = MetaphorJs.lib.Config.MODE_STATIC;
+        config.setMode("init", MetaphorJs.lib.Config.MODE_FUNC);
+        config.setDefaultMode("as", mst);
+        config.setDefaultMode("scope", mst);
+    }
 });

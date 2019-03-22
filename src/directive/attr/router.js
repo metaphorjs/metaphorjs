@@ -4,51 +4,63 @@ require("../../lib/Config.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-MetaphorJs.app.Directive.registerAttribute("router", 200, 
-    function(scope, node, config, renderer, attrSet) {
+MetaphorJs.app.Directive.registerAttribute("router", 200, function(){
 
-    config.setProperty("value", {
-        defaultMode: MetaphorJs.lib.Config.MODE_STATIC,
-        defaultValue: "MetaphorJs.app.view.Router"
-    });
+    var dir = function router_directive(scope, node, config, renderer, attrSet) {
 
-    var routes = [],
-        r;
-
-    config.eachProperty(function(k){
-        if (k.indexOf("value.") === 0) {
-            config.setDefaultMode(k, MetaphorJs.lib.Config.MODE_SINGLE);
-            r = config.get(k);
-            r['id'] = k.replace('value.', '');
-            routes.push(r);
-        }
-    });
-
-    MetaphorJs.app.Directive.resolveNode(node, "router", function(node){
-        if (!renderer.$destroyed) {
-            var cfg = {scope: scope, node: node, config: config};
-
-            if (routes.length !== 0) {
-                cfg['route'] = routes;
+        dir.initConfig(config);
+    
+        var routes = [],
+            r;
+    
+        config.eachProperty(function(k){
+            if (k.indexOf("value.") === 0) {
+                r = config.get(k);
+                r['id'] = k.replace('value.', '');
+                routes.push(r);
             }
-        
-            MetaphorJs.app.resolve(
-                config.get("value"),
-                cfg,
-                node,
-                [cfg]
-            )
-            .done(function(view){
-                if (renderer.$destroyed || scope.$$destroyed) {
-                    view.$destroy();
+        });
+    
+        MetaphorJs.app.Directive.resolveNode(node, "router", function(node){
+            if (!renderer.$destroyed) {
+                var cfg = {scope: scope, node: node, config: config};
+    
+                if (routes.length !== 0) {
+                    cfg['route'] = routes;
                 }
-                else {
-                    renderer.on("destroy", view.$destroy, view);
-                    scope.$on("destroy", view.$destroy, view);
-                }
-            });
-        }
-    });
+            
+                MetaphorJs.app.resolve(
+                    config.get("value"),
+                    cfg,
+                    node,
+                    [cfg]
+                )
+                .done(function(view){
+                    if (renderer.$destroyed || scope.$$destroyed) {
+                        view.$destroy();
+                    }
+                    else {
+                        renderer.on("destroy", view.$destroy, view);
+                        scope.$on("destroy", view.$destroy, view);
+                    }
+                });
+            }
+        });
+    
+        renderer.flowControl("ignoreInside", true);
+    }
 
-    renderer.flowControl("ignoreInside", true);
-});
+    dir.initConfig = function(config) {
+        config.setProperty("value", {
+            defaultMode: MetaphorJs.lib.Config.MODE_STATIC,
+            defaultValue: "MetaphorJs.app.view.Router"
+        });
+        config.eachProperty(function(k){
+            if (k.indexOf("value.") === 0) {
+                config.setDefaultMode(k, MetaphorJs.lib.Config.MODE_SINGLE);
+            }
+        });
+    };
+
+    return dir;
+}());

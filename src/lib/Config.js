@@ -1,6 +1,7 @@
 require("metaphorjs-observable/src/lib/Observable.js");
 require("./Expression.js");
 require("./MutationObserver.js");
+require("../func/app/prebuilt.js");
 
 var extend = require("metaphorjs-shared/src/func/extend.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
@@ -28,6 +29,20 @@ module.exports = MetaphorJs.lib.Config = (function(){
         MODE_FUNC = 6,
         MODE_FNSET = 7,
         MODE_LISTENER = 8;
+
+    var clearPipes = function(struct) {
+        var i, l;
+        if (struct.pipes) {
+            for (i = 0, l = struct.pipes.length; i < l; i++) {
+                delete struct.pipes[i].fn;
+            }
+        }
+        if (struct.inputPipes) {
+            for (i = 0, l = struct.inputPipes.length; i < l; i++) {
+                delete struct.inputPipes[i].fn;
+            }
+        }
+    };
 
     /**
      * @constructor
@@ -67,12 +82,12 @@ module.exports = MetaphorJs.lib.Config = (function(){
         keys: null,
         cfg: null,
 
-        _initMo: function(name) {
+        _initMo: function(name, pb) {
             var self = this,
                 prop = self.properties[name];
             prop.mo = MetaphorJs.lib.MutationObserver.get(
                 prop.scope || self.cfg.scope, 
-                prop.expression
+                pb || prop.expression
             );
             prop.mo.subscribe(self._onPropMutated, self, {
                 append: [name]
@@ -88,70 +103,191 @@ module.exports = MetaphorJs.lib.Config = (function(){
             }
         },
 
+        storeAsCode: function(name) {
+
+            var self = this,
+                prop = self.getProperty(name),
+                mode, expr, res, descr;
+
+            if (!prop || !prop.expression) {
+                return null;
+            }
+
+            mode = prop.mode || prop.defaultMode || MODE_DYNAMIC;
+            expr = prop.expression;
+
+            if (mode !== MODE_STATIC) {
+                descr = MetaphorJs.lib.Expression.describeExpression(expr);
+            }
+
+            switch (mode) {
+                case MODE_STATIC: {
+                    if (typeof expr === "string") {
+                        expr = expr.replace(/\\([\s\S])|(")/g,"\\$1$2")
+                    }
+                    res = {
+                        getterFn: new Function("", "return \"" + expr + "\""),
+                        mode: MODE_STATIC
+                    };
+                    break;
+                }
+                case MODE_SINGLE:
+                case MODE_DYNAMIC:
+                case MODE_FUNC: 
+                case MODE_GETTER: 
+                case MODE_SETTER:
+                case MODE_FNSET: 
+                 {
+                    res = MetaphorJs.lib.Expression.deconstruct(expr, {
+                        noReturn: mode === MODE_FUNC || mode === MODE_SETTER,
+                        setter: mode === MODE_SETTER || mode === MODE_FNSET
+                    });
+                    clearPipes(res);
+                    break;
+                }
+
+                case MODE_LISTENER: {
+                    var delegate = expr.indexOf('(') === -1 && 
+                                    expr.indexOf('=') === -1;
+                    res = MetaphorJs.lib.Expression.expression(expr, {
+                        noReturn: delegate === false
+                    });
+                    res.delegate = delegate;
+                    clearPipes(res);
+                    break;
+                }
+            }
+
+            
+            res.descr = descr;
+
+            return res;
+        },
+
         _calcProperty: function(name) {
 
             var self = this,
                 prop = self.getProperty(name),
                 value,
+                pb,
                 setTo;
 
             if (!prop || prop.disabled) {
                 return null;
             }
 
-            if (prop.expression) {
+            if (prop.expression || prop.prebuilt) {
+
+                pb = prop.prebuilt;
+
+                if (!pb && MetaphorJs.app.prebuilt.isKey(prop.expression)) {
+                    prop.prebuilt = pb = 
+                        MetaphorJs.app.prebuilt.get("config", prop.expression);
+                }
 
                 if (!prop.mode) {
                     prop.mode = self.cfg.defaultMode || MODE_DYNAMIC;
                 }
 
                 if (prop.mode === MODE_STATIC) {
-                    value = prop.expression;
+                    if (pb) {
+                        value = pb.getterFn();
+                    }
+                    else {
+                        value = prop.expression;
+                    }
                 }
                 else if (prop.mode === MODE_SINGLE) {
-                    value = MetaphorJs.lib.Expression.get(
-                        prop.expression, 
-                        prop.scope || self.cfg.scope
-                    );
-                }
-                else if (prop.mode === MODE_DYNAMIC) {
-                    !prop.mo && self._initMo(name);
-                    value = prop.mo.getValue();
-                }
-                else if (prop.mode === MODE_GETTER || 
-                         prop.mode === MODE_SETTER) {
-                    value = MetaphorJs.lib.Expression.parse(
-                        prop.expression,
-                        {
-                            setter: prop.mode === MODE_SETTER,
-                            setterOnly: prop.mode === MODE_SETTER,
-                            getterOnly: prop.mode === MODE_GETTER
-                        }
-                    );
-                }
-                else if (prop.mode === MODE_FNSET) {
-                    value = {
-                        getter: MetaphorJs.lib.Expression.getter(prop.expression),
-                        setter: MetaphorJs.lib.Expression.setter(prop.expression)
-                    };
-                }
-                else if (prop.mode === MODE_FUNC) {
-                    value = MetaphorJs.lib.Expression.func(prop.expression);
-                }
-                else if (prop.mode === MODE_LISTENER) {
-                    if (prop.expression.indexOf('(') === -1 && 
-                        prop.expression.indexOf('=') === -1) {
+                    if (pb) {
+                        value = (pb.getterFn || pb.fn)(prop.scope || self.cfg.scope);
+                    }
+                    else {
                         value = MetaphorJs.lib.Expression.get(
                             prop.expression, 
                             prop.scope || self.cfg.scope
                         );
                     }
+                }
+                else if (prop.mode === MODE_DYNAMIC) {
+                    !prop.mo && self._initMo(name, pb);
+                    value = prop.mo.getValue();
+                }
+                else if (prop.mode === MODE_GETTER || 
+                         prop.mode === MODE_SETTER) {
+                    
+                    if (pb) {
+                        value = MetaphorJs.lib.Expression.construct(
+                            pb,
+                            {
+                                setterOnly: prop.mode === MODE_SETTER,
+                                getterOnly: prop.mode === MODE_GETTER
+                            }
+                        );
+                    }
+                    else {
+                        value = MetaphorJs.lib.Expression.parse(
+                            prop.expression,
+                            {
+                                setter: prop.mode === MODE_SETTER,
+                                setterOnly: prop.mode === MODE_SETTER,
+                                getterOnly: prop.mode === MODE_GETTER
+                            }
+                        );
+                    }
+                }
+                else if (prop.mode === MODE_FNSET) {
+                    if (pb) {
+                        value = {
+                            getter: MetaphorJs.lib.Expression.construct(
+                                pb, {getterOnly: true}
+                            ),
+                            setter: MetaphorJs.lib.Expression.construct(
+                                pb, {setterOnly: true}
+                            )
+                        }
+                    }
+                    else {
+                        value = {
+                            getter: MetaphorJs.lib.Expression.getter(prop.expression),
+                            setter: MetaphorJs.lib.Expression.setter(prop.expression)
+                        };
+                    }
+                }
+                else if (prop.mode === MODE_FUNC) {
+                    if (pb) {
+                        value = pb.fn;
+                    }
                     else {
                         value = MetaphorJs.lib.Expression.func(prop.expression);
-                        value = self._wrapListener(
-                                    value, 
-                                    prop.scope || self.cfg.scope
-                                );
+                    }
+                }
+                else if (prop.mode === MODE_LISTENER) {
+                    if (pb) {
+                        if (pb.delegate) {
+                            value = pb.getterFn(prop.scope || self.cfg.scope);
+                        }
+                        else {
+                            value = self._wrapListener(
+                                pb.fn, 
+                                prop.scope || self.cfg.scope
+                            );
+                        }
+                    }
+                    else {
+                        if (prop.expression.indexOf('(') === -1 && 
+                            prop.expression.indexOf('=') === -1) {
+                            value = MetaphorJs.lib.Expression.get(
+                                prop.expression, 
+                                prop.scope || self.cfg.scope
+                            );
+                        }
+                        else {
+                            value = MetaphorJs.lib.Expression.func(prop.expression);
+                            value = self._wrapListener(
+                                        value, 
+                                        prop.scope || self.cfg.scope
+                                    );
+                        }
                     }
                 }
             }
@@ -275,7 +411,8 @@ module.exports = MetaphorJs.lib.Config = (function(){
          */
         addProperties: function(properties, scalarAs, override) {
 
-            var prop, k, val;
+
+            var prop, k, val, pb;
             for (k in properties) {
                 val = properties[k];
 
@@ -283,8 +420,15 @@ module.exports = MetaphorJs.lib.Config = (function(){
                     continue;
                 }
 
+                if (MetaphorJs.app.prebuilt.isKey(val)) {
+                    pb = MetaphorJs.app.prebuilt.get("config", val);
+                    prop = {
+                        expression: val,
+                        prebuilt: pb
+                    };
+                }
                 // string can be a value or expression
-                if (typeof val === "string") {
+                else if (typeof val === "string") {
                     prop = {};
                     prop[scalarAs || "expression"] = val;
                 }
@@ -366,6 +510,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
             if (val === undf || val === null) {
                 var k;
+
                 for (k in cfg) {
                     if (k === "value") {
                         value = cfg[k];
@@ -543,7 +688,10 @@ module.exports = MetaphorJs.lib.Config = (function(){
          * @returns {bool}
          */
         hasExpression: function(name) {
-            return !!(this.properties[name] && this.properties[name].expression);
+            return !!(
+                this.properties[name] && 
+                (this.properties[name].expression || this.properties[name].prebuilt)
+            );
         },
 
         /**
@@ -568,7 +716,8 @@ module.exports = MetaphorJs.lib.Config = (function(){
                     self.properties[name] && 
                     (
                         self.properties[name].defaultValue !== undf ||
-                        self.properties[name].expression !== undf
+                        self.properties[name].expression !== undf || 
+                        self.properties[name].prebuilt !== undf
                     )
                 );
         },
@@ -993,9 +1142,11 @@ module.exports = MetaphorJs.lib.Config = (function(){
             }
 
             var scope = prop.scope || this.cfg.scope,
-                descr = MetaphorJs.lib.Expression.describeExpression(
-                    this.getExpression(propName)
-                );
+                descr = prop.prebuilt ? 
+                            (prop.prebuilt.descr||"") : 
+                            MetaphorJs.lib.Expression.describeExpression(
+                                this.getExpression(propName)
+                            );
 
             if (descr.indexOf("r") !== -1) {
                 return scope.$root.$check();

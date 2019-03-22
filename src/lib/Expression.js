@@ -9,44 +9,35 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
 
 require("../filter/__init.js");
 
-module.exports = MetaphorJs.lib.Expression = (function() {
+module.exports = MetaphorJs.lib.Expression = (function () {
 
-    var REG_REPLACE_EXPR    = /((^|[^a-z0-9_$\]\)'"])|(this))(\.)([^0-9])/ig,
-        REG_REPLACER        = "$2____.$5",
-        fnBodyStart     = 'try {',
-        fnBodyEnd       = ';} catch (thrownError) { '+
-                            '/*DEBUG-START*/console.log("expr");console.log(thrownError);/*DEBUG-END*/'+
-                            'return undefined; }',    
-        cache           = {},
-        descrCache      = {},
-        filterSources   = [],
+    var REG_REPLACE_EXPR = /((^|[^a-z0-9_$\]\)'"])|(this))(\.)([^0-9])/ig,
+        REG_REPLACER = "$2____.$5",
+        fnBodyStart = '',
+        fnBodyEnd = '',
+        //fnBodyStart = 'try {',
+        //fnBodyEnd = ';} catch (thrownError) { ' +
+            //'/*DEBUG-START*/console.log("expr");console.log(thrownError);/*DEBUG-END*/' +
+            //'return undefined; }',
+        cache = {},
+        cacheEnabled = true,
+        descrCache = {},
+        filterSources = [],
 
-        prebuiltExpr    = MetaphorJs.prebuilt ?
-                            MetaphorJs.prebuilt.funcs : {} || 
-                            {},
-
-        prebuiltCache   = function(key) {
-            if (isPrebuiltKey(key)) {
-                key = key.substring(2);
-                return prebuiltExpr[key] || null;
-            }
-            return null;
+        isPrebuiltKey = function (expr) {
+            return typeof expr === "string" && expr.substring(0, 2) === '--';
         },
 
-        isPrebuiltKey   = function(expr) {
-            return typeof expr === "string" && expr.substring(0,2) === '--';
-        },
-
-        isAtom          = function(expr) {
+        isAtom = function (expr) {
             return !expr.trim().match(/[^a-zA-Z0-9_$'"\(\)\[\]\.;]/);
         },
 
-        isProperty      = function(expr) {
+        isProperty = function (expr) {
             var match = expr.match(/^this\.([a-zA-Z0-9_$]+)$/);
             return match ? match[1] : false;
         },
 
-        isStatic        = function(val) {
+        isStatic = function (val) {
 
             if (!isString(val)) {
                 return {
@@ -54,36 +45,38 @@ module.exports = MetaphorJs.lib.Expression = (function() {
                 };
             }
 
-            var first   = val.substr(0, 1),
-                last    = val.length - 1,
+            var first = val.substr(0, 1),
+                last = val.length - 1,
                 num;
 
             if (first === '"' || first === "'") {
                 if (val.indexOf(first, 1) === last) {
-                    return {value: val.substring(1, last)};
+                    return { 
+                        value: val.substring(1, last) 
+                    };
                 }
             }
             else if (val === 'true' || val === 'false') {
-                return {value: val === 'true'};
+                return { value: val === 'true' };
             }
             else if ((num = parseFloat(val)) == val) {
-                return {value: num};
+                return { value: num };
             }
 
             return false;
         },
 
-        getFilter       = function(name, filters) {
+        getFilter = function (name, filters) {
             if (filters) {
                 if (isArray(filters)) {
                     filters = filters.concat(filterSources);
                 }
-                else if (filters.hasOwnProperty(name) && 
-                    typeof(filters[name]) === "function") {
+                else if (filters.hasOwnProperty(name) &&
+                    typeof (filters[name]) === "function") {
                     return filters[name];
                 }
                 else {
-                    filters = filterSources;    
+                    filters = filterSources;
                 }
             }
             else {
@@ -100,7 +93,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
         },
 
 
-        expression      = function(expr, opt) {
+        expression = function (expr, opt) {
             opt = opt || {};
 
             if (typeof opt === "string" && opt === "setter") {
@@ -109,17 +102,21 @@ module.exports = MetaphorJs.lib.Expression = (function() {
                 };
             }
 
+            if (!cacheEnabled) {
+                cache = {};
+            }
+
             var asCode = opt.asCode === true,
                 isSetter = opt.setter === true,
                 noReturn = opt.noReturn === true,
-                statc,
                 cacheKey;
 
-            if (statc = isStatic(expr)) {
+            if (isStatic(expr)) {
 
                 cacheKey = expr + "_static";
+                noReturn && (cacheKey += "_noret");
 
-                if (cache[cacheKey]) {
+                if (cache[cacheKey] && !asCode) {
                     return cache[cacheKey];
                 }
 
@@ -127,26 +124,26 @@ module.exports = MetaphorJs.lib.Expression = (function() {
                     throw new Error("Static value cannot work as setter");
                 }
 
-                if (opt.asCode) {
+                if (asCode) {
                     return "".concat(
                         "function() {",
-                            "return ", 
-                            expr, 
+                        "return ",
+                        expr,
                         "}"
                     );
                 }
 
-                return cache[cacheKey] = function() {
-                    return statc.value;
-                };
+                //expr = expr.replace(/\\([\s\S])|(")/g,"\\$1$2")
+                return cache[cacheKey] = new Function("", "return " + expr);
             }
             try {
 
                 var atom = isAtom(expr);
                 cacheKey = expr + "_" + (
-                            isSetter ? "setter" : 
-                                (noReturn ? "func" : "getter")
-                            );
+                    isSetter ? "setter" :
+                        (noReturn ? "func" : "getter")
+                );
+                noReturn && (cacheKey += "_noret");
 
                 if (!atom && isSetter) {
                     throw new Error("Complex expression cannot work as setter");
@@ -155,18 +152,18 @@ module.exports = MetaphorJs.lib.Expression = (function() {
                 if (!cache[cacheKey] || asCode) {
 
                     var code = expr.replace(REG_REPLACE_EXPR, REG_REPLACER),
-                        body = 
-                            !atom || !isSetter ? 
+                        body =
+                            !atom || !isSetter ?
                                 "".concat(
-                                    fnBodyStart, 
-                                    noReturn ? '' : 'return ', 
+                                    fnBodyStart,
+                                    noReturn ? '' : 'return ',
                                     code,
                                     fnBodyEnd
-                                ) : 
+                                ) :
                                 "".concat(
-                                    fnBodyStart, 
+                                    fnBodyStart,
                                     //noReturn ? '' : 'return ', 
-                                    code, ' = $$$$', 
+                                    code, ' = $$$$',
                                     fnBodyEnd
                                 );
 
@@ -175,7 +172,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
                     esc = esc.replace(/\r/g, '\\r');
                     esc = esc.replace(/'/g, "\\'");
                     esc = esc.replace(/"/g, '\\"');
-                    body = body.replace('"expr"', '"' +esc+ '"');
+                    body = body.replace('"expr"', '"' + esc + '"');
                     /*DEBUG-END*/
 
                     if (asCode) {
@@ -198,14 +195,14 @@ module.exports = MetaphorJs.lib.Expression = (function() {
             }
         },
 
-        preparePipe     = function(pipe, filters) {
+        preparePipe = function (pipe, filters) {
 
-            var name    = pipe.shift(),
-                fn      = isFunction(name) ? name : null,
-                params  = [],
-                exprs   = [],
-                fchar   = fn ? null : name.substr(0,1),
-                opt     = {
+            var name = pipe.shift(),
+                fn = isFunction(name) ? name : null,
+                params = [],
+                exprs = [],
+                fchar = fn ? null : name.substr(0, 1),
+                opt = {
                     neg: false,
                     dblneg: false,
                     undeterm: false,
@@ -241,19 +238,19 @@ module.exports = MetaphorJs.lib.Expression = (function() {
 
                 for (i = -1, l = pipe.length; ++i < l;
                     params.push(expressionFn(pipe[i]))) {
-                        if (!isStatic(pipe[i])) {
-                            exprs.push(pipe[i]);
-                        }
+                    if (!isStatic(pipe[i])) {
+                        exprs.push(pipe[i]);
                     }
+                }
 
                 if (fn.$undeterministic) {
                     opt.undeterm = true;
                 }
 
                 return {
-                    fn: fn, 
-                    origArgs: pipe, 
-                    params: params, 
+                    fn: fn,
+                    origArgs: pipe,
+                    params: params,
                     expressions: exprs,
                     opt: opt
                 };
@@ -262,21 +259,21 @@ module.exports = MetaphorJs.lib.Expression = (function() {
             return null;
         },
 
-        parsePipes      = function(expr, isInput, filters) {
+        parsePipes = function (expr, isInput, filters) {
 
-            var separator   = isInput ? ">>" : "|";
+            var separator = isInput ? ">>" : "|";
 
             if (expr.indexOf(separator) === -1) {
                 return expr;
             }
 
-            var parts   = split(expr, separator),
-                ret     = isInput ? parts.pop() : parts.shift(),
-                pipes   = [],
+            var parts = split(expr, separator),
+                ret = isInput ? parts.pop() : parts.shift(),
+                pipes = [],
                 pipe,
                 i, l;
 
-            for(i = 0, l = parts.length; i < l; i++) {
+            for (i = 0, l = parts.length; i < l; i++) {
                 pipe = split(parts[i].trim(), ':');
                 pipe = preparePipe(pipe, filters);
                 pipe && pipes.push(pipe);
@@ -289,13 +286,13 @@ module.exports = MetaphorJs.lib.Expression = (function() {
         },
 
 
-        _initSetter         = function(struct) {
+        _initSetter = function (struct) {
             struct.setterFn = expressionFn(struct.expr, {
                 setter: true
             });
         },
 
-        deconstructor       = function(expr, opt) {
+        deconstructor = function (expr, opt) {
 
             opt = opt || {};
 
@@ -311,57 +308,53 @@ module.exports = MetaphorJs.lib.Expression = (function() {
                     inputPipes: []
                 };
 
-            if (!isNormalPipe && !isInputPipe) {
-                struct.fn = expressionFn(struct.expr, opt);
+            if (!isNormalPipe && !isInputPipe && opt.setter !== true) {
+                struct[opt.noReturn ? "fn" : "getterFn"] = expressionFn(expr, opt);
                 return struct;
             }
 
             if (isNormalPipe) {
-                res = parsePipes(struct.expr, false, opt.filters);
-                struct.expr = res.expr;
+                res = parsePipes(expr, false, opt.filters);
+                expr = res.expr;
                 struct.pipes = res.pipes;
             }
 
             if (isInputPipe) {
-                res = parsePipes(struct.expr, true, opt.filters);
-                struct.expr = res.expr;
+                res = parsePipes(expr, true, opt.filters);
+                expr = res.expr;
                 struct.inputPipes = res.pipes;
                 opt.setter = true;
             }
 
-            struct.fn = expressionFn(struct.expr, opt);
-
-            if (isInputPipe) {
+            if (opt.setter === true) {
+                struct.setterFn = expressionFn(expr, opt);
                 opt.setter = false;
-                struct.getterFn = expressionFn(struct.expr, opt);
-                struct.setterFn = struct.fn;
-            }
-            else {
-                struct.getterFn = struct.fn;
             }
 
+            struct[opt.noReturn ? "fn" : "getterFn"] = expressionFn(expr, opt);
             return struct;
         },
 
-        runThroughPipes     = function(val, pipes, dataObj) {
+        runThroughPipes = function (val, pipes, dataObj) {
             var j,
                 args,
                 pipe,
 
-                jlen    = pipes.length,
+                jlen = pipes.length,
                 z, zl;
 
             for (j = 0; j < jlen; j++) {
-                pipe    = pipes[j];
-                args    = [];
+                pipe = pipes[j];
+                !pipe.fn && pipe.opt.name && (pipe.fn = getFilter(pipe.opt.name));
+                args = [];
                 for (z = -1, zl = pipe.params.length; ++z < zl;
-                        args.push(pipe.params[z](dataObj))){}
+                    args.push(pipe.params[z](dataObj))) { }
 
                 args.unshift(dataObj);
                 args.unshift(val);
 
-                val     = pipe.fn.apply(dataObj, args);
-                
+                val = pipe.fn.apply(dataObj, args);
+
                 if (pipe.opt.neg) {
                     val = !val;
                 }
@@ -369,25 +362,25 @@ module.exports = MetaphorJs.lib.Expression = (function() {
                     val = !!val;
                 }
             }
-        
+
             return val;
         },
 
 
-        constructor         = function(struct, opt) {
-            
+        constructor = function (struct, opt) {
+
             opt = opt || {};
 
-            if (struct.pipes.length === 0 && 
+            if (struct.pipes.length === 0 &&
                 struct.inputPipes.length === 0) {
                 if (opt.setterOnly) {
                     !struct.setterFn && _initSetter(struct);
                     return struct.setterFn;
                 }
-                return struct.fn;
+                return struct.getterFn || struct.fn;
             }
 
-            return function(dataObj, inputVal) {
+            return function (dataObj, inputVal) {
 
                 var val;
 
@@ -399,12 +392,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
                 }
 
                 if (struct.pipes && !opt.setterOnly) {
-                    if (opt.getterOnly) {
-                        val = struct.getterFn(dataObj);
-                    }
-                    else if (!struct.inputPipes.length) {
-                        val = struct.fn(dataObj);
-                    }
+                    val = struct.getterFn(dataObj);
                     val = runThroughPipes(val, struct.pipes, dataObj);
                 }
 
@@ -417,11 +405,11 @@ module.exports = MetaphorJs.lib.Expression = (function() {
         deconstructorFn,
         constructorFn,
 
-        parser      = function(expr, opt) {
+        parser = function (expr, opt) {
             return constructorFn(deconstructorFn(expr, opt), opt);
         },
 
-        reset       = function() {
+        reset = function () {
             parserFn = parser;
             deconstructorFn = deconstructor;
             constructorFn = constructor;
@@ -460,7 +448,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          *  }
          * }
          */
-        setExpressionFn: function(expression) {
+        setExpressionFn: function (expression) {
             expressionFn = expression;
         },
 
@@ -470,7 +458,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          *  @returns {function} See setExpressionFn
          * }
          */
-        getExpressionFn: function() {
+        getExpressionFn: function () {
             return expressionFn;
         },
 
@@ -514,7 +502,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          *  }
          * }
          */
-        setDeconstructorFn: function(deconstructor) {
+        setDeconstructorFn: function (deconstructor) {
             deconstructorFn = deconstructor;
         },
 
@@ -523,7 +511,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          *  @returns {function} See setDeconstructorFn
          * }
          */
-        getDeconstructorFn: function() {
+        getDeconstructorFn: function () {
             return deconstructorFn;
         },
 
@@ -541,7 +529,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          *  }
          * }
          */
-        setConstructorFn: function(constructor) {
+        setConstructorFn: function (constructor) {
             constructorFn = constructor;
         },
 
@@ -550,7 +538,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          *  @returns {function}
          * }
          */
-        getConstructorFn: function() {
+        getConstructorFn: function () {
             return constructorFn;
         },
 
@@ -565,8 +553,8 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          *      }
          *  }
          * }
-         */        
-        setParserFn: function(parser) {
+         */
+        setParserFn: function (parser) {
             parserFn = parser;
         },
 
@@ -575,7 +563,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          *  @returns {function} See setParserFn
          * }
          */
-        getParserFn: function() {
+        getParserFn: function () {
             return parserFn;
         },
 
@@ -585,7 +573,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          *  name:function collection of filters (pipes)
          * }
          */
-        addFilterSource: function(filters) {
+        addFilterSource: function (filters) {
             filterSources.push(filters);
         },
 
@@ -606,8 +594,8 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          *  @returns {*} value of expression on data object
          * }
          */
-        expression: function(expr, opt) {
-            return prebuiltCache(expr) || expressionFn(expr, opt);
+        expression: function (expr, opt) {
+            return expressionFn(expr, opt);
         },
 
         /**
@@ -618,7 +606,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          *  @returns {function} 
          * }
          */
-        deconstruct: function(expr, opt) {
+        deconstruct: function (expr, opt) {
             return deconstructorFn(expr, opt);
         },
 
@@ -637,7 +625,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          * }
          * }
          */
-        construct: function(struct, opt) {
+        construct: function (struct, opt) {
             return constructorFn(struct, opt);
         },
 
@@ -654,7 +642,7 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          *  @returns {function}
          * }
          */
-        parse: function(expr, opt) {
+        parse: function (expr, opt) {
             return parserFn(expr, opt);
         },
 
@@ -669,11 +657,11 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          *  @returns {function}
          * }
          */
-        func: function(expr, opt) {
+        func: function (expr, opt) {
             opt = opt || {};
             opt.noReturn = true;
             opt.getterOnly = true;
-            return prebuiltCache(expr) || parserFn(expr, opt);
+            return parserFn(expr, opt);
         },
 
         /**
@@ -687,11 +675,11 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          *  @returns {function}
          * }
          */
-        setter: function(expr, opt) {
+        setter: function (expr, opt) {
             opt = opt || {};
             opt.setter = true;
             opt.setterOnly = true;
-            return prebuiltCache(expr) || parserFn(expr, opt);
+            return parserFn(expr, opt);
         },
 
         /**
@@ -708,11 +696,11 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          *  @returns {function}
          * }
          */
-        getter: function(expr, opt) {
+        getter: function (expr, opt) {
             opt = opt || {};
             opt.setter = false;
             opt.getterOnly = true;
-            return prebuiltCache(expr) || parserFn(expr, opt);
+            return parserFn(expr, opt);
         },
 
         /**
@@ -723,15 +711,10 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          * @param {*} inputValue
          * @param {object} opt See <code>parse</code>
          */
-        run: function(expr, dataObj, inputValue, opt) {
-            if (isPrebuiltKey(expr)) {
-                prebuiltCache(expr)(dataObj);
-            }
-            else {
-                opt = opt || {};
-                opt.noReturn = true;
-                parserFn(expr, opt)(dataObj, inputValue);
-            }
+        run: function (expr, dataObj, inputValue, opt) {
+            opt = opt || {};
+            opt.noReturn = true;
+            parserFn(expr, opt)(dataObj, inputValue);
         },
 
         /**
@@ -742,15 +725,10 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          * @param {*} inputValue
          * @param {object} opt See <code>parse</code>
          */
-        get: function(expr, dataObj, inputValue, opt) {
-            if (isPrebuiltKey(expr)) {
-                return prebuiltCache(expr)(dataObj);
-            }
-            else {
-                opt = opt || {};
-                opt.getterOnly = true;
-                return parserFn(expr, opt)(dataObj, inputValue);
-            }
+        get: function (expr, dataObj, inputValue, opt) {
+            opt = opt || {};
+            opt.getterOnly = true;
+            return parserFn(expr, opt)(dataObj, inputValue);
         },
 
         /**
@@ -761,14 +739,14 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          * @param {*} inputValue
          * @param {object} opt See <code>parse</code>
          */
-        set: function(expr, dataObj, inputValue, opt) {
+        set: function (expr, dataObj, inputValue, opt) {
             opt = opt || {};
             opt.setter = true;
             opt.setterOnly = true;
             return parserFn(expr, opt)(dataObj, inputValue);
         },
 
-        
+
 
         /**
          * Check if given expression is a static string or number
@@ -816,9 +794,9 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          *  @returns {boolean}
          * }
          */
-        expressionHasPipes: function(expr) {
-            return split(expr, '|').length > 1 || 
-                    split(expr, '>>').length > 1;
+        expressionHasPipes: function (expr) {
+            return split(expr, '|').length > 1 ||
+                split(expr, '>>').length > 1;
         },
 
         /**
@@ -830,24 +808,24 @@ module.exports = MetaphorJs.lib.Expression = (function() {
          *  @returns {string}
          * }
          */
-        describeExpression: function(expr) {
+        describeExpression: function (expr) {
 
-            if (!expr || typeof expr !== "string") 
+            if (!expr || typeof expr !== "string")
                 return "";
 
-            if (isPrebuiltKey(expr)) {
-                expr = expr.substring(2);
-                return MetaphorJs.prebuilt.expressionOpts[expr] || "";
+            if (!cacheEnabled) {
+                descrCache = {};
             }
+
             if (descrCache[expr]) {
                 return descrCache[expr];
             }
 
             var descr = "" +
-                (expr.indexOf("$parent") !== -1 ? "p":"") +
-                (expr.indexOf("$root") !== -1 ? "r":"") +
-                (split(expr, '|').length > 1 ? "o":"") +
-                (split(expr, '>>').length > 1 ? "i":"");
+                (expr.indexOf("$parent") !== -1 ? "p" : "") +
+                (expr.indexOf("$root") !== -1 ? "r" : "") +
+                (split(expr, '|').length > 1 ? "o" : "") +
+                (split(expr, '>>').length > 1 ? "i" : "");
 
             descrCache[expr] = descr;
 
@@ -855,11 +833,19 @@ module.exports = MetaphorJs.lib.Expression = (function() {
         },
 
         /**
-         * Clear expression cache
+         * Clear expressions cache
          * @property {function} clearCache
          */
-        clearCache: function() {
+        clearCache: function () {
             cache = {};
+        },
+
+        disableCache: function() {
+
+        },
+
+        enableCache: function() {
+
         }
     }
 }());

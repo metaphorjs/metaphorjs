@@ -3,7 +3,8 @@ require("metaphorjs-animate/src/animate/animate.js");
 require("../../lib/Config.js");
 
 var Directive = require("../../app/Directive.js"),
-    raf = require("metaphorjs-animate/src/func/raf.js");
+    raf = require("metaphorjs-animate/src/func/raf.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
 Directive.registerAttribute("if", 500, Directive.$extend({
@@ -12,17 +13,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
     id: "if",
 
     _initial: true,
-    
-    initConfig: function() {
-        var config = this.config;
-        config.setType("animate", "bool", MetaphorJs.lib.Config.MODE_STATIC)
-        config.setType("value", "bool");
-        config.setType("once", "bool", MetaphorJs.lib.Config.MODE_STATIC);
-        config.setType("onShow", null, MetaphorJs.lib.Config.MODE_FUNC);
-        config.setType("onHide", null, MetaphorJs.lib.Config.MODE_FUNC);
-        this.$super();
-    },
-    
+   
     initDirective: function() {
         this.createCommentWrap(this.node, "if");
         this.$super();
@@ -74,5 +65,13 @@ Directive.registerAttribute("if", 500, Directive.$extend({
                 self.$destroy();
             }
         }
+    }
+}, {
+    initConfig: function(config) {
+        config.setType("animate", "bool", MetaphorJs.lib.Config.MODE_STATIC)
+        config.setType("value", "bool");
+        config.setType("once", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setType("onShow", null, MetaphorJs.lib.Config.MODE_FUNC);
+        config.setType("onHide", null, MetaphorJs.lib.Config.MODE_FUNC);
     }
 }));

@@ -13,11 +13,25 @@ var Directive = require("../../app/Directive.js"),
     var types = [];
 
     function detectModelType(expr, scope) {
-        var tmp = expr.split(" in "),
-            model = tmp.length === 1 ? expr : tmp[1],
-            obj = MetaphorJs.lib.Expression.get(model, scope),
-            i = 0,
-            l = types.length;
+        var i = 0,
+            l = types.length,
+            pb;
+        
+        if (MetaphorJs.lib.Expression.isPrebuiltKey(expr)) {
+            pb = MetaphorJs.prebuilt.funcs[expr.substring(2)];
+        }
+        else if (typeof expr !== "string") {
+            pb = expr;
+        }
+
+        if (pb) {
+            var obj = (pb.getterFn || pb.fn)(scope);
+        }
+        else {
+            var tmp = expr.split(" in "),
+                model = tmp.length === 1 ? expr : tmp[1],
+                obj = MetaphorJs.lib.Expression.get(model, scope);
+        }
 
         for (; i < l; i++) {
             if (obj instanceof types[i][0]) {
@@ -39,6 +53,7 @@ var Directive = require("../../app/Directive.js"),
         config.disableProperty("value");
         var tagMode = node.nodeName.toLowerCase() === "mjs-each",
             expr;
+
         if (tagMode) {
             expr = MetaphorJs.dom.getAttr(node, "value");
         }
@@ -56,8 +71,41 @@ var Directive = require("../../app/Directive.js"),
         types.push([objectClass, handlerClass]);
     };
 
-    eachDirective.$prebuild = {
-        skip: true
+    eachDirective.deepInitConfig = function(config) {
+        var prop = config.getProperty("value"),
+            parts = this.splitExpression(prop.expression);
+        prop.expression = parts.model;
+        prop.inflate = prop.inflate || {};
+        prop.inflate.itemName = parts.name;
+    };
+
+    eachDirective.splitExpression = function(expr) {
+        var tmp = expr.split(" "),
+            i, len,
+            model, name,
+            row;
+
+        for (i = 0, len = tmp.length; i < len; i++) {
+
+            row = tmp[i];
+
+            if (row === "" || row === "in") {
+                continue;
+            }
+
+            if (!name) {
+                name = row;
+            }
+            else {
+                model = tmp.slice(i).join(" ");
+                break;
+            }
+        }
+
+        return {
+            model: model,
+            name: name || "item"
+        }
     };
 
     eachDirective.registerType(Array, MetaphorJs.app.ListRenderer);

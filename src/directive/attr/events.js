@@ -57,8 +57,7 @@ var Directive = require("../../app/Directive.js"),
 
         (function(name){
 
-            Directive.registerAttribute(name, 1000,
-                function(scope, node, config, renderer, attrSet) {
+            var dir = function(scope, node, config, renderer, attrSet) {
 
                 var eh,
                     destroyed = false,
@@ -82,12 +81,18 @@ var Directive = require("../../app/Directive.js"),
                         eh = null;
                     }
                 };
-            });
+            };
+
+            dir.initConfig = function(config, instance) {
+                prepareConfig(config);
+            };
+
+            Directive.registerAttribute(name, 1000, dir);
 
         }(events[i]));
     }
 
-    Directive.registerAttribute("submit", 1000, function(scope, node, config) {
+    var dir = function(scope, node, config) {
 
         prepareConfig(config);
 
@@ -118,7 +123,11 @@ var Directive = require("../../app/Directive.js"),
             handler = null;
             fn = null;
         };
-    });
+    };
+
+    dir.initConfig = prepareConfig;
+
+    Directive.registerAttribute("submit", 1000, dir);
 
     events = null;
 

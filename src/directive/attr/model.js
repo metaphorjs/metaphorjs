@@ -58,16 +58,6 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         }
     },
 
-    initConfig: function() {
-        var config  = this.config;
-
-        config.setMode("value", MetaphorJs.lib.Config.MODE_FNSET);
-        config.setType("if", "bool");
-        config.setProperty("binding", {
-            defaultValue: "both",
-            defaultMode: MetaphorJs.lib.Config.MODE_STATIC
-        });
-    },
 
     initChange: emptyFn,
 
@@ -162,8 +152,17 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
 }, {
 
+    initConfig: function(config) {
+        config.setMode("value", MetaphorJs.lib.Config.MODE_FNSET);
+        config.setType("if", "bool");
+        config.setProperty("binding", {
+            defaultValue: "both",
+            defaultMode: MetaphorJs.lib.Config.MODE_STATIC
+        });
+    },
+
     $prebuild: {
-        skip: true
+    
     }
 
 }));

@@ -19,11 +19,6 @@ var Directive = require("../../app/Directive.js"),
             this.$super(scope, node, config, renderer, attrSet);
         },
 
-        initConfig: function() {
-            this.$super();
-            this.config.setType("value", "bool");
-        },
-
         onScopeChange: function(val) {
 
             var name = this.id;
@@ -37,13 +32,19 @@ var Directive = require("../../app/Directive.js"),
                 MetaphorJs.dom.removeAttr(this.node, name);
             }
         }
+    }, {
+        initConfig: function(config) {
+            config.setType("value", "bool");
+        }
     });
 
     for (i = 0, l = booleanAttrs.length; i < l; i++) {
         (function(name){
-            Directive.registerAttribute("" + name, 1000, function(scope, node, config, renderer, attrSet){
+            var dir = function(scope, node, config, renderer, attrSet){
                 return new PropertyDirective(name, scope, node, config, renderer, attrSet);
-            });
+            };
+            dir.initConfig = PropertyDirective.initConfig;
+            Directive.registerAttribute("" + name, 1000, dir);
         }(booleanAttrs[i]));
     }
 

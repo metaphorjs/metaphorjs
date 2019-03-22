@@ -99,11 +99,12 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
 
     $init: function(scope, node, config, parentRenderer, attrSet) {
 
-        var self = this;
-
-        self._parseExpr(self._tagMode ? 
+        var self = this,
+            expr = self._tagMode ? 
                         MetaphorJs.dom.getAttr(node, "value") : 
-                        config.getExpression("value"));
+                        config.getExpression("value");
+
+        self._parseExpr(expr);
 
         self._template  = self._tagMode ? 
                             MetaphorJs.dom.toFragment(node.childNodes) : 
@@ -630,30 +631,23 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
 
     _parseExpr: function(expr) {
 
-        var tmp = expr.split(" "),
-            i, len,
-            model, name,
-            row;
+        var parts, pb;
 
-        for (i = 0, len = tmp.length; i < len; i++) {
-
-            row = tmp[i];
-
-            if (row === "" || row === "in") {
-                continue;
-            }
-
-            if (!name) {
-                name = row;
-            }
-            else {
-                model = tmp.slice(i).join(" ");
-                break;
-            }
+        if (MetaphorJs.lib.Expression.isPrebuiltKey(expr)){
+            pb = MetaphorJs.prebuilt.funcs[expr.substring(2)];
+            parts = {
+                model: pb,
+                name: pb.name
+            };
+            this.listSourceExpr = expr;
+        }
+        else {
+            parts = Directive.getDirective("attr", "each")
+                             .splitExpression(expr);
+            this.listSourceExpr = parts.model;
         }
 
-        this.listSourceExpr = model;
-        this.itemScopeName = name || "item";
+        this.itemScopeName = parts.name;
     },
 
 

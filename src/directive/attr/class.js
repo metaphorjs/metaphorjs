@@ -100,7 +100,6 @@ DO NOT put class="{}" when using class.name="{}"
         initConfig: function() {
             var self = this,
                 config = self.config;
-            config.setType("animate", "bool");
             config.eachProperty(function(k) {
                 if (k === 'value' || k.indexOf("value.") === 0) {
                     config.on(k, self.onScopeChange, self);
@@ -159,6 +158,10 @@ DO NOT put class="{}" when using class.name="{}"
 
             self._prev = clss;
             self._initial = false;
+        }
+    }, {
+        initConfig: function(config, instance) {
+            config.setType("animate", "bool");
         }
     }));
 

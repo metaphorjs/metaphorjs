@@ -15,7 +15,7 @@ Directive.registerTag("if", Directive.attr.If.$extend({
     children: null,
     childrenFrag: null,
 
-    $init: function(scope, node, config, renderer, attrSet) {
+    initDirective: function(scope, node, config, renderer, attrSet) {
 
         var self    = this;
 
@@ -24,24 +24,22 @@ Directive.registerTag("if", Directive.attr.If.$extend({
 
         renderer && renderer.flowControl("nodes", self.children);
 
-        config.setType("once", "bool", MetaphorJs.lib.Config.MODE_STATIC);
-        config.setProperty("value", {
-            expression: MetaphorJs.dom.getAttr(node, "value"),
-            type: "bool"
-        });
-
         self.createCommentWrap();
         self.$super(scope, node, config, renderer, attrSet);   
 
         if (node.parentNode) {
             node.parentNode.removeChild(node); 
         }
-
-        var val = config.get("value");
-        self.onChange(val || false, undf);
     },
 
-    onChange: function() {
+    initConfig: function() {
+        this.config.setProperty("value", {
+            expression: MetaphorJs.dom.getAttr(this.node, "value")
+        });
+        this.$super();
+    },
+
+    onScopeChange: function() {
         var self    = this,
             val     = self.config.get("value"),
             prev    = self.wrapperOpen,
@@ -79,5 +77,10 @@ Directive.registerTag("if", Directive.attr.If.$extend({
         this.children = null;
         this.childrenFrag = null;
         this.$super();
+    }
+}, {
+    initConfig: function(config) {
+        config.setType("once", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setType("value", "bool");
     }
 }));

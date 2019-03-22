@@ -56,15 +56,6 @@ Directive.registerAttribute("bind", 1000,
             }
         },
 
-        initConfig: function() {
-            this.$super();
-            var config = this.config;
-            config.setType("if", "bool");
-            config.setType("recursive", "bool");
-            config.setType("once", "bool", MetaphorJs.lib.Config.MODE_STATIC);
-            config.setType("locked", "bool");
-        },
-
         initNode: function(node) {
             var self = this;
             if (MetaphorJs.dom.isField(node)) {
@@ -145,5 +136,12 @@ Directive.registerAttribute("bind", 1000,
             }
 
             self.$super();
+        }
+    }, {
+        initConfig: function(config, instance) {
+            config.setType("if", "bool");
+            config.setType("recursive", "bool");
+            config.setType("once", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+            config.setType("locked", "bool");
         }
     }));

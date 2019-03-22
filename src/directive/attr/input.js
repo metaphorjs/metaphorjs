@@ -28,11 +28,6 @@ Directive.registerAttribute("input", 1000, Directive.$extend({
         self.$super();
     },
 
-    initConfig: function() {
-        this.config.setType("if", "bool");
-        this.config.setMode("value", MetaphorJs.lib.Config.MODE_FUNC);
-    },
-
     initChange: emptyFn,
 
     onOptionsChange: function() {
@@ -78,6 +73,11 @@ Directive.registerAttribute("input", 1000, Directive.$extend({
 
 
 }, {
+
+    initConfig: function(config) {
+        config.setType("if", "bool");
+        config.setMode("value", MetaphorJs.lib.Config.MODE_FUNC);
+    },
 
     $prebuild: {
         skip: true

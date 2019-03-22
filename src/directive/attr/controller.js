@@ -4,19 +4,15 @@ require("../../lib/Config.js");
 require("../../lib/Scope.js");
 
 var Directive = require("../../app/Directive.js"),
+    ns = require("metaphorjs-namespace/src/var/ns.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 (function(){
 
     var ctrlAttr = function(scope, node, config, renderer, attrSet) {
 
-        var ms = MetaphorJs.lib.Config.MODE_STATIC;
-
-        config.setDefaultMode("value", ms);
-        config.setDefaultMode("as", ms);
-
+        ctrlAttr.initConfig(config);
         var ctrlName = config.get("value");
-
         config.removeProperty("value");
 
         // if there is instructions regarding controller's scope
@@ -42,6 +38,23 @@ var Directive = require("../../app/Directive.js"),
                     renderer.on("destroy", ctrl.$destroy, ctrl);
                 }
             });
+    };
+
+    ctrlAttr.initConfig = function(config, instance) {
+        var ms = MetaphorJs.lib.Config.MODE_STATIC;
+        config.setDefaultMode("value", ms);
+        config.setDefaultMode("as", ms);
+    };
+
+    ctrlAttr.deepInitConfig = function(config) {
+        var ctrlName = config.get("value");
+        var constr   = typeof ctrlName === "string" ? ns.get(ctrlName) : ctrlName;
+        if (!constr) {
+            return;
+        }
+        if (constr.initConfig) {
+            constr.initConfig(config);
+        }
     };
 
     Directive.registerAttribute("controller", 200, ctrlAttr);

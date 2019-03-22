@@ -55,7 +55,18 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
             id      = nextUid(),
             type    = "expr",
             propertyName,
-            statc;
+            statc,
+            pb,
+            tp = typeof expr;
+
+
+        if (MetaphorJs.app.prebuilt.isKey(expr)) {
+            pb = MetaphorJs.app.prebuilt.get("config", expr);
+        }
+        else if (tp !== "string" && tp !== "function") {
+            pb = expr;
+            expr = pb.id || nextUid();
+        }
 
         opt = opt || {};
 
@@ -79,9 +90,16 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
         self.sub = [];
         self.localFilter = opt.localFilter || null;
 
-        // only plain getters
-        if (MetaphorJs.lib.Expression.isPrebuiltKey(expr)) {
-            self.getterFn = MetaphorJs.lib.Expression.getter(expr);
+        if (pb) {
+            type = "prebuilt";
+            self.exprStruct = pb;
+            self.getterFn = MetaphorJs.lib.Expression.construct(pb, {getterOnly: true});
+            if (pb.setterFn) {
+                self.setterFn = MetaphorJs.lib.Expression.construct(
+                                    pb, {setterOnly: true}
+                                );
+                self._initSetter();
+            }
         }
         else {
             if (isFunction(expr)) {
@@ -191,15 +209,23 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
                 self.setterFn = bind(self._propertySetter, self);
             }
             else {
-
                 if (!struct) {
                     throw new Error("Unable to make setter out of " + this.expr);
                 }
 
-                self.setterFn = MetaphorJs.lib.Expression.construct(
-                    struct, {setterOnly: true}
-                );
-                var i, l, p, j, jl;
+                if (!self.setterFn) {
+                    self.setterFn = MetaphorJs.lib.Expression.construct(
+                        struct, {setterOnly: true}
+                    );
+                }
+                self._initInputPipes();
+            }
+        },
+
+        _initInputPipes: function() {
+            var self = this, struct = self.exprStruct;
+            var i, l, p, j, jl;
+            if (struct.inputPipes) {
                 for (i = 0, l = struct.inputPipes.length; i < l; i++) {
                     p = struct.inputPipes[i];
                     for (j = 0, jl = p.expressions.length; j < jl; j++) {
@@ -376,17 +402,25 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
      */
     MutationObserver.get = function(dataObj, expr, listener, context, opt) {
 
-        expr = expr.trim();
-        var mo = MutationObserver.exists(dataObj, expr);
+        var pbOrExpr = expr;
 
-        if (mo) {
-            if (listener) {
-                mo.subscribe(listener, context);
-            }
-            return mo;
+        if (typeof expr !== "string") {
+            expr = pbOrExpr.expr;
         }
 
-        return new MutationObserver(dataObj, expr, listener, context, opt);
+        if (expr) {
+            expr = expr.trim();
+            var mo = MutationObserver.exists(dataObj, expr);
+
+            if (mo) {
+                if (listener) {
+                    mo.subscribe(listener, context);
+                }
+                return mo;
+            }
+        }
+
+        return new MutationObserver(dataObj, pbOrExpr, listener, context, opt);
     };
 
     /**

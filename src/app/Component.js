@@ -206,15 +206,9 @@ module.exports = MetaphorJs.app.Component = MetaphorJs.app.Controller.$extend({
     _initTplConfig: function(config) {},
 
     initConfig: function() {
-        var self = this,
-            config = self.config,
-            mst = MetaphorJs.lib.Config.MODE_STATIC;
-
+        var self = this;
         self.$super();
-
-        config.setType("makeTranscludes", "bool", mst, false);
-        config.setType("useShadow", "bool", mst, false);
-        config.setDefaultMode("tag", mst);
+        self.$self.initConfig(self.config);
     },
 
     hasDirective: function(name) {
@@ -547,6 +541,13 @@ module.exports = MetaphorJs.app.Component = MetaphorJs.app.Controller.$extend({
     }
 
 }, {
+
+    initConfig: function(config) {
+        var mst = MetaphorJs.lib.Config.MODE_STATIC;
+        config.setType("makeTranscludes", "bool", mst, false);
+        config.setType("useShadow", "bool", mst, false);
+        config.setDefaultMode("tag", mst);
+    },
 
     registerWebComponent: function(tagName) {
         var cls = this;

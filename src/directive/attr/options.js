@@ -30,7 +30,6 @@ Directive.registerAttribute("options", 100, Directive.$extend({
     _groupEl: null,
     _fragment: null,
     _initial: false,
-    _defaultOptionTpl: null,
 
     $init: function(scope, node, config, renderer, attrSet) {
         if (!(node instanceof window.HTMLSelectElement)) {
@@ -44,8 +43,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
             config  = self.config,
             expr;
 
-        config.setType("keepDefault", "bool", 
-                        MetaphorJs.lib.Config.MODE_STATIC, true);
+        
         config.disableProperty("value");
         expr = config.getExpression("value");
 
@@ -73,7 +71,16 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         else self._defOption = null;
 
         try {
-            var value = MetaphorJs.lib.Expression.get(self.model, self.scope);
+            var value;
+            if (typeof self.model === "string") {
+                value = MetaphorJs.lib.Expression.get(self.model, self.scope);
+            }
+            else {
+                value = MetaphorJs.lib.Expression.construct(self.model, {
+                    getterOnly: true
+                })(self.scope);
+            }
+            
             if (cls.isInstanceOf(value, "MetaphorJs.model.Store")) {
                 self.bindStore(value, "on");
             }
@@ -147,14 +154,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
 
         scope.item      = item;
         scope.$index    = index;
-
-        if (self._defaultOptionTpl && isPlainObject(item)) {
-            config      = item;
-        }
-        else {
-            config      = self._getterFn(scope);
-        }
-
+        config          = self._getterFn(scope);
         config.group    !== undf && (config.group = ""+config.group);
 
         if (config.group !== self.prevGroup) {
@@ -249,23 +249,13 @@ Directive.registerAttribute("options", 100, Directive.$extend({
 
 
     parseExpr: function(expr) {
-
-        var splitIndex  = expr.indexOf(" in "),
-            model, item;
-
-        if (splitIndex === -1) {
-            model   = expr;
-            item    = '{name: this.item, value: this.$index}';
-            this._defaultOptionTpl = true;
+        var parts = this.$self.splitExpression(expr);
+        this.model = parts.model;
+        if (parts.item) {
+            this._getterFn = typeof parts.item === "function" ? 
+                                parts.item : 
+                                MetaphorJs.lib.Expression.getter(parts.item);
         }
-        else {
-            model   = expr.substr(splitIndex + 4);
-            item    = expr.substr(0, splitIndex);
-            this._defaultOptionTpl = false;
-        }
-
-        this.model = model;
-        this._getterFn = MetaphorJs.lib.Expression.getter(item);
     },
 
     onDestroy: function() {
@@ -285,8 +275,44 @@ Directive.registerAttribute("options", 100, Directive.$extend({
     }
 
 }, {
-    $prebuild: {
-        skip: true
+
+    splitExpression: function(expr) {
+
+        var model, item, splitIndex;
+
+        if (MetaphorJs.lib.Expression.isPrebuiltKey(expr)) {
+            var pb = MetaphorJs.prebuilt.funcs[expr.substring(2)];
+            model = pb;
+            MetaphorJs.lib.Expression.inflatePrebuilt(model);
+            item = pb.inflate.item;
+        }
+        else {
+            splitIndex  = expr.indexOf(" in ");
+
+            if (splitIndex === -1) {
+                model   = expr;
+                item    = '{name: this.item, value: this.$index}';
+            }
+            else {
+                model   = expr.substr(splitIndex + 4);
+                item    = expr.substr(0, splitIndex);
+            }
+        }
+
+        return {model: model, item: item};
+    },
+
+    initConfig: function(config) {
+        config.setType("keepDefault", "bool", MetaphorJs.lib.Config.MODE_STATIC, true);
+    },
+
+    deepInitConfig: function(config) {
+        var prop = config.getProperty("value")
+            parts = this.splitExpression(prop.expression);
+
+        prop.expression = parts.model;
+        prop.inflate = prop.inflate || {};
+        prop.inflate.item = MetaphorJs.lib.Expression.expression(parts.item);
     }
 }));
 

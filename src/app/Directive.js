@@ -111,6 +111,7 @@ module.exports = MetaphorJs.app.Directive = (function() {
 
         initConfig: function() {
             var config = this.config;
+            this.$self.initConfig(config, this);
             MetaphorJs.lib.Observable.$initHostConfig(this, config, this.scope);
         },
 
@@ -326,6 +327,25 @@ module.exports = MetaphorJs.app.Directive = (function() {
                     cb(node, cmp);
                 }
             }
+        },
+
+        /**
+         * Static config initializer called from instance's initConfig
+         * or from template prebuilder
+         * @static
+         * @protected
+         * @method
+         * @param {MetaphorJs.lib.Config} config
+         * @param {function|Metaphor.app.Directive} instance
+         */
+        initConfig: function(config, instance) {
+            var msl = MetaphorJs.lib.Config.MODE_LISTENER;
+            config.setDefaultMode("callbackContext", MetaphorJs.lib.Config.MODE_SINGLE);
+            config.eachProperty(function(name) {
+                if (name.substring(0,4) === 'on--') {
+                    config.setMode(name, msl);
+                }
+            });
         }
     });
 }());

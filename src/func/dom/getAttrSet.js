@@ -18,7 +18,7 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
 
     // regular expression seems to be a few milliseconds faster
     // than plain parsing
-    var reg = /^([\[({#$@!])([^)\]}"'\*!]+)[\])}]?([:\*!]?)$/;
+    var reg = /^([\[({#$@!])([^)\]}"':\*!]+)[\])}]?([:\*!]?)$/;
 
     var removeDirective = function removeDirective(node, directive) {
         var ds = this.__directives,

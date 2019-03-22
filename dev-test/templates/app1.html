@@ -191,7 +191,7 @@
             <div class="case">
                 <h4>mjs-validate</h4>
                 <form name="myForm" 
-                        {validate} 
+                        {form} 
                         {class.error}="this.myForm.$invalid" 
                         {class.$animate}>
                     <div>
@@ -224,25 +224,25 @@
                 <textarea {model}="split:this.sep >> this.dynamicList" 
                             {model.$binding}="input"></textarea>
 
-                <ul>
+                <!--<ul>
                     <li {each}="item in this.dynamicList"
                         {bind}="this.item"
                         {bind.$recursive}></li>
-                </ul>
+                </ul>-->
             </div>
 
             <div class="case">
                 <h4>mjs-options</h4>
                 <label class="case-label">Generated from .alist</label>
                 <p class="test">
-                    <select {bind}="this.a" 
+                    <!--<select {bind}="this.a" 
                             {options}="this.alist">
                         <option>not selected</option>
-                    </select>
+                    </select>-->
                 </p>
                 <label class="case-label">Generated from .dynamicList</label>
                 <p class="test">
-                    <select
+                    <!--<select
                     {options}="{
                         name: this.item,
                         value: this.$index,
@@ -251,7 +251,7 @@
                         disabled: this.$index == 4
                         } in this.dynamicList">
                         <option>default value</option>
-                    </select>
+                    </select>-->
                 </p>
             </div>
 
@@ -318,7 +318,7 @@
                        (click)="this.list.push({bool: false, txt: this.newItem}); this.newItem = '';"
                        value="Add item"/>
 
-                <ul {show}="this.bool">
+                <!--<ul {show}="this.bool">
                     <li {each}="item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy"
                         {each.$animate}
                         {each.$animate-move}>
@@ -334,7 +334,7 @@
                         </label>
                         <a href="#" (click)="this.$parent.list.splice(this.$getRawIndex(this.$trackId),1);">x</a>
                     </li>
-                </ul>
+                </ul>-->
 
                 <input {model}="this.listFilter" placeholder="Search"/>
                 <a href="#" (click)="this.sortBy='asc'" 
@@ -347,7 +347,7 @@
             <div class="case double">
                 <h4>mjs-each (tag)</h4>
 
-                <mjs-each value="item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy">
+                <!--<mjs-each value="item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy">
                     <div>
                         <label {class}="{cls3: this.item.bool}">
                             <input type="checkbox" 
@@ -361,7 +361,7 @@
                         </label>
                         <a href="#" (click)="this.$parent.list.splice(this.$getRawIndex(this.$trackId),1);">x</a>
                     </div>
-                </mjs-each>
+                </mjs-each>-->
             </div>
 
             <div class="case" id="newComponent">
@@ -392,7 +392,7 @@
                     <option value="both">Both</option>
                 </select>
                 <br><br>
-                this.a: <select
+                this.a: <!--<select
                     {options}="{
                         name: this.item.data.name, 
                         value: this.item.data.id
@@ -400,12 +400,12 @@
                     {model}="this.$parent.a" 
                     {model.$binding}*="this.selectBinding">
                         <option>Nothing selected</option>
-                    </select>
-                <ul>
+                    </select>-->
+                <!--<ul>
                     <li {each}="item in this.store" {each.$animate}>
                         {{ this.item.name }}
                     </li>
-                </ul>
+                </ul>-->
             </div>
 
             <div class="case double" id="myComponent1" {cmp}="Test.MyComponent">

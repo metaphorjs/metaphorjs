@@ -125,10 +125,10 @@ module.exports = MetaphorJs.app.Template = function() {
             }
             if (tpl = pblt[tplId]) {
                 delete pblt[tplId];
-                if (pbltOpt[tplId]) {
+                /*if (pbltOpt[tplId]) {
                     options[tplId] = pbltOpt[tplId];
                     delete pbltOpt[tplId];
-                }
+                }*/
                 return tpl;
             }
         },
@@ -207,20 +207,10 @@ module.exports = MetaphorJs.app.Template = function() {
         var config = self.config,
             sm = MetaphorJs.lib.Config.MODE_STATIC;
 
-        config.setDefaultMode("name", sm);
-        config.setDefaultMode("html", sm);
         config.on("name", self._onNameChange, self);
         config.on("html", self._onHtmlChange, self);
-        config.setType("runRenderer", "bool", sm);
-        config.setType("useComments", "bool", sm);
-        config.setType("useShadow", "bool", sm);
-        config.setType("deferRendering", "bool", sm);
-        config.setType("makeTranscludes", "bool", sm);
-        config.setType("passReferences", "bool", sm);
 
-        config.setProperty("useComments", "defaultValue", true, /*override: */false);
-        config.setProperty("makeTranscludes", "defaultValue", true, /*override: */false);
-        config.setProperty("passReferences", "defaultValue", false, /*override: */false);
+        Template.initConfig(config);
 
         !shadowSupported && config.setStatic("useShadow", false);
         config.get("useShadow") && config.setStatic("useComments", false);
@@ -1024,6 +1014,24 @@ module.exports = MetaphorJs.app.Template = function() {
             }
             config.addProperties(values, "defaultValue");
         }
+    };
+
+
+    Template.initConfig = function(config) {
+        var sm = MetaphorJs.lib.Config.MODE_STATIC;
+        config.setDefaultMode("value", sm);
+        config.setDefaultMode("name", sm);
+        config.setDefaultMode("html", sm);
+        config.setType("runRenderer", "bool", sm);
+        config.setType("useComments", "bool", sm);
+        config.setType("useShadow", "bool", sm);
+        config.setType("deferRendering", "bool", sm);
+        config.setType("makeTranscludes", "bool", sm);
+        config.setType("passReferences", "bool", sm);
+
+        config.setProperty("useComments", "defaultValue", true, /*override: */false);
+        config.setProperty("makeTranscludes", "defaultValue", true, /*override: */false);
+        config.setProperty("passReferences", "defaultValue", false, /*override: */false);
     };
 
     return Template;

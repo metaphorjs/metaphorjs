@@ -17,13 +17,9 @@ Directive.registerAttribute("source-src", 1000, Directive.$extend({
 
     $constructor: function(scope, node, config, renderer, attrSet) {
 
-        var ms = MetaphorJs.lib.Config.MODE_STATIC;
-
-        config.setType("deferred", "bool", ms);
-        config.setType("noCache", "bool", ms);
-        config.setDefaultMode("plugin", ms);
-
         var self = this;
+
+        self.$self.initConfig(config);
 
         if (config.get("deferred")) {
             self.$plugins.push("plugin.SrcDeferred");
@@ -40,6 +36,7 @@ Directive.registerAttribute("source-src", 1000, Directive.$extend({
         self.$super(scope, node, config, renderer, attrSet);
     },
 
+    initConfig: function(){},
 
     onScopeChange: function() {
         this.doChange();
@@ -87,5 +84,13 @@ Directive.registerAttribute("source-src", 1000, Directive.$extend({
 
     onSrcChanged: function() {
 
+    }
+}, {
+    initConfig: function(config) {
+        var ms = MetaphorJs.lib.Config.MODE_STATIC;
+
+        config.setType("deferred", "bool", ms);
+        config.setType("noCache", "bool", ms);
+        config.setDefaultMode("plugin", ms);
     }
 }));
