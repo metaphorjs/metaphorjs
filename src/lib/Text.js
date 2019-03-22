@@ -2,6 +2,7 @@
 require("metaphorjs-observable/src/lib/Observable.js");
 require("../lib/MutationObserver.js");
 require("../lib/Expression.js");
+require("../func/app/prebuilt.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
@@ -29,6 +30,9 @@ module.exports = MetaphorJs.lib.Text = (function(){
                 return w.getValue();
             }
             else {
+                if (MetaphorJs.app.prebuilt.isKey(expr)) {
+                    expr = MetaphorJs.app.prebuilt.get("config", expr);
+                }
                 return MetaphorJs.lib.Expression.get(expr, scope);
             }
         },
@@ -275,7 +279,8 @@ module.exports = MetaphorJs.lib.Text = (function(){
      * @returns {boolean}
      */
     Text.applicable = function(text) {
-        return !text || !text.indexOf ||
+        return MetaphorJs.app.prebuilt.isKey(text) || 
+                !text || !text.indexOf ||
                 text.indexOf(startSymbol) === -1 ? false : true;
     };
 

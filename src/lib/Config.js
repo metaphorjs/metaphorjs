@@ -30,19 +30,6 @@ module.exports = MetaphorJs.lib.Config = (function(){
         MODE_FNSET = 7,
         MODE_LISTENER = 8;
 
-    var clearPipes = function(struct) {
-        var i, l;
-        if (struct.pipes) {
-            for (i = 0, l = struct.pipes.length; i < l; i++) {
-                delete struct.pipes[i].fn;
-            }
-        }
-        if (struct.inputPipes) {
-            for (i = 0, l = struct.inputPipes.length; i < l; i++) {
-                delete struct.inputPipes[i].fn;
-            }
-        }
-    };
 
     /**
      * @constructor
@@ -142,7 +129,6 @@ module.exports = MetaphorJs.lib.Config = (function(){
                         noReturn: mode === MODE_FUNC || mode === MODE_SETTER,
                         setter: mode === MODE_SETTER || mode === MODE_FNSET
                     });
-                    clearPipes(res);
                     break;
                 }
 
@@ -153,7 +139,6 @@ module.exports = MetaphorJs.lib.Config = (function(){
                         noReturn: delegate === false
                     });
                     res.delegate = delegate;
-                    clearPipes(res);
                     break;
                 }
             }

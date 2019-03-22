@@ -2,248 +2,311 @@
 /* BUNDLE START 004 */
 "use strict";
 
-var MetaphorJsPrebuilt = {"templates":{"a*b.html":"<p>a * b = {{ this.$root.a * this.$root.b }}</p>","a+b.html":"<p>a + b = {{ this.$root.a + this.$root.b }}</p>","app1.html":"<h1>MetaphorJs Feature test</h1><div class=\"cases\"><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Inline</label><div id=\"inline-binding\" class=\"test\">{{this.inline}}</div><label class=\"case-label\">mjs-bind</label><div id=\"binding\" {bind}=\"~8RM~\" class=\"test\"></div><label class=\"case-label\">mjs-bind-html</label><div id=\"html-binding\" {bind-html}=\"~8RR~\" class=\"test\"></div><label class=\"case-label\">Plain attribute (href)</label><p class=\"test\"><a id=\"attr-binding-href\" [href]=\"http://{{this.inline}}.com\">{{this.text}}</a></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Input field (value)</label><p class=\"test\"><input id=\"binding-input-value\" type=\"text\" [value]=\"this.a\"></p><label class=\"case-label\">Input field (mjs-bind) (locked)</label><p class=\"test\"><input id=\"binding-input-bind\" type=\"text\" {bind}=\"~8S5~\" {bind.$locked}></p><label class=\"case-label\">Checkbox (mjs-bind)</label><p class=\"test\"><input id=\"binding-checkbox\" type=\"checkbox\" {bind}=\"~8SB~\"></p><label class=\"case-label\">Radio (mjs-bind) (locked)</label><p class=\"test\"><input id=\"radio-bind-1\" checked=\"checked\" type=\"radio\" value=\"inline1\" name=\"radio-bind\" {bind}=\"~8SH~\" {bind.$locked}> <input id=\"radio-bind-2\" type=\"radio\" value=\"inline2\" name=\"radio-bind\"> <input id=\"radio-bind-3\" type=\"radio\" value=\"inline3\" name=\"radio-bind\"></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Select (mjs-bind)</label><p class=\"test\"><select id=\"select-bind\" {bind}=\"~8SR~\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p><label class=\"case-label\">Textarea (mjs-bind)</label><p class=\"test\"><textarea id=\"textarea-bind-attr\" {bind}=\"~8T0~\"></textarea></p><label class=\"case-label\">Textarea (inline)</label><p class=\"test\"><textarea id=\"textarea-bind-inline\">{{this.inline}}</textarea></p></div><div class=\"case\"><h4>Muplitple inline binding</h4><div id=\"multiple-inline-binding\" class=\"test\">{{this.inline}}<b>{{this.text}}</b>{{this.html}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Uppercase (mjs-bind)</label><div id=\"filter-uppercase-binding\" class=\"test\" {bind}=\"~8TD~\"></div><label class=\"case-label\">Uppercase (inline)</label><div id=\"filter-uppercase-inline\" class=\"test\">{{this.text | uppercase}}</div><label class=\"case-label\">Lowercase (inline)</label><div id=\"filter-lowercase-inline\" class=\"test\">{{this.text | lowercase}}</div><label class=\"case-label\">Limit to (string)</label><div id=\"filter-limit-string\" class=\"test\">{{this.text | limitTo:this.a}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Linkify</label><p id=\"filter-linkify\" class=\"test\" {bind-html}=\"~8TP~\"></p></div><div class=\"case\"><h4>Expressions</h4><label class=\"case-label\">.a + .b</label><div id=\"expr-a-plus-b\" class=\"test\">{{this.a + this.b}}</div><label class=\"case-label\">.bool ? \"true\" : \"false\"</label><div id=\"expr-bool\" class=\"test\">{{this.bool ? \"true\": \"false\"}}</div></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Input (number) (.a)</label><p class=\"test\"><input {model}=\"~8U3~\" type=\"number\" data-type=\"number\" id=\"model-input-a\"></p><label class=\"case-label\">Checkbox (.bool)</label><p class=\"test\"><input id=\"model-checkbox-bool\" type=\"checkbox\" {model}=\"~8U9~\"></p><label class=\"case-label\">Radio (.inline)</label><p class=\"test\"><input id=\"model-radio-1\" checked=\"checked\" type=\"radio\" name=\"r\" value=\"inline1\" {model}=\"~8UF~\">1<label><input id=\"model-radio-2\" type=\"radio\" name=\"r\" value=\"inline2\">2</label><input id=\"model-radio-3\" type=\"radio\" name=\"r\" value=\"inline3\">3</p><label class=\"case-label\">Select (.a)</label><p class=\"test\"><select id=\"model-select-a\" {model}=\"~8UO~\" data-type=\"number\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Textarea (.text)</label><p class=\"test\"><textarea id=\"model-textarea\" {model}=\"~8UZ~\"></textarea></p><label class=\"case-label\">Input (string .text)</label><p class=\"test\"><input type=\"text\" id=\"model-input\" {model}=\"~8V5~\"></p></div><div class=\"case\"><h4>mjs-class</h4><label class=\"case-label\">Plain attribute</label><div class=\"test\"><p id=\"class-inline\" [class]=\"this.inline\">---</p></div><label class=\"case-label\">mjs-class (string)</label><div class=\"test\"><p id=\"class-string\" {class}=\"~8VF~\">---</p></div><label class=\"case-label\">mjs-class ({bool: .bool, inline1: .a == 0})</label><div class=\"test\"><p id=\"class-object\" {class}=\"~8VK~\">---</p></div><div class=\"test\"><p id=\"class-object\" {class.bool}=\"~8VP~\" {class.inline1}=\"~8VQ~\">---</p></div></div><div class=\"case\"><h4>mjs-if, mjs-show, mjs-hide</h4><div id=\"if-bool\" {if}=\"~8VW~\" class=\"test\" {if.$animate}>this should appear if .bool = true</div><div id=\"show-bool\" {show}=\"~8VZ~\" class=\"test\" {show.$animate}>this should show if .bool = true</div><div id=\"hide-bool\" {hide}=\"~8W2~\" class=\"test\" {hide.$animate}>this should hide if .bool = true</div></div><div class=\"case\"><h4>mjs-include</h4><label class=\"case-label\">immediate</label><div {include}=\"test-template.html\"><p>transcluded text</p></div><label class=\"case-label\">immediate (via tag)</label><mjs-include $name=\"test-template.html\"><p>transcluded text</p></mjs-include><label class=\"case-label\">ajax</label><div {include}=\"template.html\" id=\"ajax-template\"><p>Transcluded text</p></div></div><div class=\"case\"><h4>mjs-validate</h4><form name=\"myForm\" {form} {class.error}=\"~8WL~\" {class.$animate}><div><input name=\"field1\" data-validate-required {class}=\"~8WQ~\"></div><div {class}=\"~8WU~\"><label><input type=\"radio\" name=\"radio1\" value=\"1\" data-validate-required> -- 1</label><label><input type=\"radio\" name=\"radio1\" value=\"2\"> -- 2</label><label><input type=\"radio\" name=\"radio1\" value=\"3\"> -- 3</label></div><div><input type=\"submit\" value=\"Submit\"> <input type=\"reset\" value=\"Reset\"></div></form></div><div class=\"case\" {init}=\"~8X7~\"><h4>dynamic list</h4><label><input id=\"radio-sep-1\" type=\"radio\" name=\"sep\" value=\"/\\n|,/\" {model}=\"~8XD~\"> /\\n|,/</label><label><input type=\"radio\" name=\"sep\" value=\"/\\n/\"> /\\n/</label><label><input type=\"radio\" name=\"sep\" value=\",\"> ,</label><br><br><textarea {model}=\"~8XO~\" {model.$binding}=\"input\"></textarea><ul><li {each}=\"~8XU~\" {bind}=\"~8XW~\" {bind.$recursive}></li></ul></div><div class=\"case\"><h4>mjs-options</h4><label class=\"case-label\">Generated from .alist</label><p class=\"test\"><select {bind}=\"~8Y4~\" {options}=\"~8Y6~\"><option>not selected</option></select></p><label class=\"case-label\">Generated from .dynamicList</label><p class=\"test\"><select {options}=\"~8YE~\"><option>default value</option></select></p></div><div class=\"case\" {cmp}=\"Test.TplComponent\" id=\"tplComponentTest\"><h2>{{ this.title }}</h2>mjs-include change template:<br><a href=\"#\" (1|click)=\"~8YN~\" (2|click)=\"~8YQ~\">a + b</a>|<a href=\"#\" (click)=\"~8YU~\">a * b</a><div {include}*=\"~8Z0~\" id=\"tplComponetInc\"></div></div><div class=\"case\" {cmp}=\"Test.StringTemplate\"></div><div class=\"case\" {cmp}=\"Test.ChangeTemplate\">mjs-cmp change template:<br><a href=\"#\" (click)=\"~8Z9~\">tpl1</a>|<a href=\"#\" (click)=\"~8ZD~\">tpl2</a></div><div class=\"case\"><h4>Router</h4><div {router}=\"Test.MyView\" {router.$animate}></div>pushUrl:<a href=\"/1\">/1</a>|<a href=\"/2\">/2</a>|<a href=\"/3\">/3</a>|<a href=\"http://www.kuindji.com\">outside</a><br><br></div><div class=\"case\" {ignore}>This element is ignored by renderer: {{ this.$root.a }}</div><div class=\"case\" {view}=\"~8ZS~\" {view.$default-cmp}:=\"Test.ViewComponent1\"><p>change cmp:<a href=\"#\" (click)=\"~8ZX~\">Cmp1</a>|<a href=\"#\" (click)=\"~901~\">Cmp2</a></p></div></div><div class=\"cases\"><div class=\"case double\" {init}=\"~906~\"><h4>mjs-each (attr)</h4><input {model}=\"~90B~\" (key.enter)=\"~90F~\"> <input type=\"button\" {disabled}=\"~90J~\" (click)=\"~90M~\" value=\"Add item\"><ul {show}=\"~90Q~\"><li {each}=\"~90T~\" {each.$animate} {each.$animate-move}><label {class}=\"~910~\"><input type=\"checkbox\" {model}=\"~914~\"> {{ this.$index }} - {{ this.item.txt }} - {{ this.$first ? \"first\" : \"\" }} - {{ this.$last ? \"last\" : \"\" }} - {{ this.$even ? \"even\" : \"\" }} - {{ this.$odd ? \"odd\" : \"\" }}</label><a href=\"#\" (click)=\"~919~\">x</a></li></ul><input {model}=\"~91D~\" placeholder=\"Search\"><a href=\"#\" (click)=\"~91H~\" (click.log)=\"~91J~\">asc</a><a href=\"#\" (click)=\"~91N~\" (click.log)=\"~91P~\">desc</a></div><div class=\"case double\"><h4>mjs-each (tag)</h4><mjs-each value=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\"><div><label {class}=\"~91W~\"><input type=\"checkbox\" {model}=\"~91Z~\"> {{ this.$index }} - {{ this.item.txt }} - {{ this.$first ? \"first\" : \"\" }} - {{ this.$last ? \"last\" : \"\" }} - {{ this.$even ? \"even\" : \"\" }} - {{ this.$odd ? \"odd\" : \"\" }}</label><a href=\"#\" (click)=\"~922~\">x</a></div></mjs-each></div><div class=\"case\" id=\"newComponent\">Dynamically created component on existing element will go here</div><div class=\"case\" id=\"renderToComponent\">Dynamically created component with renderTo will go here</div><div class=\"case double\" {cmp}=\"Test.MyComponent\" {cmp.$as}=\"ctrl\" {cmp.$init}=\"~927~\"><p ##para>Component's transcluded text + {{ this.$root.a}}</p><a href=\"#\" (click)=\"~92C~\">reverse</a>|<a href=\"#\" (click)=\"~92G~\">create new component on existing element</a>|<a href=\"#\" (click)=\"~92K~\">create new component and render to</a>|<a href=\"#\" (click)=\"~92O~\">create new dialog</a><br><br><button (click)=\"~92U~\">Load store</button><button (click)=\"~92Y~\">Clear store</button><br><br>this.selectBinding:<select {model}=\"~934~\"><option value=\"input\">Input</option><option value=\"scope\">Scope</option><option value=\"both\">Both</option></select><br><br>this.a:<select {options}=\"~93E~\" {model}=\"~93K~\" {model.$binding}*=\"~93N~\"><option>Nothing selected</option></select><ul><li {each}=\"~93S~\" {each.$animate}>{{ this.item.name }}</li></ul></div><div class=\"case double\" id=\"myComponent1\" {cmp}=\"Test.MyComponent\"><p>This is another instance with deferred value: {{ this.deferred }}</p></div><div class=\"case double\"><tagc $as:=\"ctrl\" $test:=\"Value from config\"></tagc></div></div>","app2.html":"<div class=\"case\"><h4>app's resolved value</h4><p class=\"test\">{{this.resolved}}</p></div><div class=\"case\"><h4>recursive rendering</h4><p><a href=\"#\" (click)=\"~947~\">Change level 2</a></p><p class=\"test\">This is level 1:<span {bind}=\"~94C~\" {bind.$recursive}></span></p></div><div class=\"case\"><h4>lang substitution</h4><label class=\"case-label\">using normal expression with filter: 'key' | l</label><p class=\"test\">{{ 'key' | l }}</p><p class=\"test\" {bind}=\"~94K~\" {bind.$recursive}></p></div><div class=\"case\"><h4>pluralization</h4><p><a href=\"#\" (click)=\"~94R~\">Increase B</a></p><label class=\"case-label\">using normal expression:</label><p class=\"test\">{{this.b}} {{ 'plr' | p:this.b}}</p><p><input type=\"number\" data-type=\"number\" {model}=\"~94Y~\"></p><p class=\"test\" {bind}=\"~953~\" {bind.$recursive}></p></div>","cmp1-template.html":"<h2>{{this.title}}</h2><div {transclude}></div>","dirs.html":"<!--{includes: true}--><div class=\"form_select\" (click)=\"~95C~\" {class.loading}=\"~95F~\" {class.disabled}=\"~95H~\" {class.search}=\"~95J~\" {class.multiple}=\"~95L~\" {class.black}=\"~95N~\"><input type=\"hidden\" #el_hidden_field [name]=\"this.field.hiddenInputName\" [value]=\"this.field.$$selection | join:','\"><i #el_icon_down (click)=\"~95S~\"><!-- include icons/down.html --></i><a class=\"form_select__label\" {each}=\"~95W~\" style=\"display: inline-block !important;\">{{ this.$parent.field.getItemName(this.item) }}<i class=\"delete icon\" (click)=\"~960~\"></i></a><input type=\"text\" #el_search class=\"search\" [disabled]=\"this.field.disabled\" {show}=\"~964~\" {show.$display}=\"inline-block\" (focus)=\"~966~\" (blur)=\"~969~\" (key.backspace)=\"~96C~\" {model}=\"~96F~\"><span class=\"sizer\" #el_sizer {if}=\"~96K~\" {bind}=\"~96N~\"></span><div class=\"default text\" #el_default_text (click)=\"~96Q~\" {show}=\"~96T~\" {show.$display}=\"inline-block\" {show.$on--change}=\"~96V~\" {bind}=\"~96Y~\"></div><div class=\"text\" #el_text (click)=\"~972~\" {class.default}=\"~974~\" {show}=\"~977~\" {show.$on--chage}=\"~979~\" {show.$display}=\"inline-block\" {bind}=\"~97C~\"></div><!-- replaces two previous text blocks with invisible placeholder --><div style=\"display: none\" class=\"default text\" {show}=\"~97G~\" {show.$display}=\"inline-block\">&nbsp;</div><select class=\"form-select_hidden-select\" #el_hidden_select (click)=\"~97K~\" (change)=\"~97N~\" {show}=\"~97Q~\" {show.$display}=\"block\" {options}=\"~97T~\"></select><div class=\"form-select-menu\" #el_menu {class.black}=\"~97X~\"><div class=\"items\" #el_menu_items><div class=\"disabled item\" #el_menu_disabled {if}=\"~981~\" (click)=\"~984~\" {bind-html}=\"~987~\"></div><div class=\"empty item\" #el_menu_empty style=\"color: #999;\" {if}=\"~98B~\" (click)=\"~98E~\" {bind-html}=\"~98H~\"></div><div class=\"item\" {each}=\"~98L~\" (click)=\"~98O~\" {bind}=\"~98R~\"></div></div><div class=\"pagination_container\" {cmp}=\"Pagination\" {cmp.$autoscroll}=\"~98V~\" {show}=\"~98Y~\" (click)=\"~991~\"></div></div></div>","tagc.html":"<div class=\"component\"><p>This is a tag component.</p><p>{{ this.ctrl.config.get('test') }}</p></div>","test-template.html":"<p>{{this.$root.text}}</p><div {transclude}></div>"},"config":{
-"~8RM~":"~8RN~",
-"~8RR~":"~8RS~",
-"~8S5~":"~8S6~",
-"~8SB~":"~8SC~",
-"~8SH~":"~8SI~",
-"~8SR~":"~8S6~",
-"~8T0~":"~8SI~",
-"~8TD~":{"getterFn":"~8RN~","pipes":[{"origArgs":[],"params":[],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"uppercase"}}],"descr":"o"},
-"~8TP~":{"getterFn":"~8TQ~","pipes":[{"origArgs":[],"params":[],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"linkify"}}],"descr":"o"},
-"~8U3~":{"getterFn":"~8S6~","setterFn":"~8U4~"},
-"~8U9~":{"getterFn":"~8SC~","setterFn":"~8UA~"},
-"~8UF~":{"getterFn":"~8SI~","setterFn":"~8UG~"},
-"~8UO~":{"getterFn":"~8S6~","setterFn":"~8U4~"},
-"~8UZ~":{"getterFn":"~8RN~","setterFn":"~8V0~"},
-"~8V5~":{"getterFn":"~8RN~","setterFn":"~8V0~"},
-"~8VF~":"~8SI~",
-"~8VK~":"~8VL~",
-"~8VP~":"~8SC~",
-"~8VQ~":"~8VR~",
-"~8VW~":"~8SC~",
-"~8VZ~":"~8SC~",
-"~8W2~":"~8SC~",
-"~8WL~":"~8WM~",
-"~8WQ~":"~8WR~",
-"~8WU~":"~8WV~",
-"~8X7~":{"fn":"~8X8~"},
-"~8XD~":{"getterFn":"~8XE~","setterFn":"~8XF~"},
-"~8XO~":{"getterFn":"~8XP~","setterFn":"~8XQ~","inputPipes":[{"origArgs":["this.sep"],"params":["~8XE~"],"expressions":["this.sep"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"split"}}],"descr":"i"},
-"~8XU~":{"getterFn":"~8XP~","inflate":{"itemName":"item"}},
-"~8XW~":"~8XX~",
-"~8Y4~":"~8S6~",
-"~8Y6~":{"getterFn":"~8Y7~","inflate":{"item":"~8Y8~"}},
-"~8YE~":{"getterFn":"~8XP~","inflate":{"item":"~8YF~"}},
-"~8YN~":{"fn":"~8YO~"},
-"~8YQ~":{"fn":"~8YR~"},
-"~8YU~":{"fn":"~8YV~"},
-"~8Z0~":"~8Z1~",
-"~8Z9~":{"fn":"~8ZA~"},
-"~8ZD~":{"fn":"~8ZE~"},
-"~8ZS~":"~8ZT~",
-"~8ZX~":{"fn":"~8ZY~","descr":"p"},
-"~901~":{"fn":"~902~","descr":"p"},
-"~906~":{"fn":"~907~"},
-"~90B~":{"getterFn":"~90C~","setterFn":"~90D~"},
-"~90F~":{"fn":"~90G~"},
-"~90J~":"~90K~",
-"~90M~":{"fn":"~90N~"},
-"~90Q~":"~8SC~",
-"~90T~":{"getterFn":"~90U~","pipes":[{"origArgs":["this.listFilter"],"params":["~90V~"],"expressions":["this.listFilter"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"filter"}},{"origArgs":["'txt'","this.sortBy"],"params":["~90W~","~90X~"],"expressions":["this.sortBy"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"sortBy"}}],"inflate":{"itemName":"item"},"descr":"o"},
-"~910~":"~911~",
-"~914~":{"getterFn":"~915~","setterFn":"~916~"},
-"~919~":{"fn":"~91A~","descr":"p"},
-"~91D~":{"getterFn":"~90V~","setterFn":"~91E~"},
-"~91H~":{"fn":"~91I~"},
-"~91J~":{"fn":"~91K~"},
-"~91N~":{"fn":"~91O~"},
-"~91P~":{"fn":"~91K~"},
-"~91W~":"~911~",
-"~91Z~":{"getterFn":"~915~","setterFn":"~916~"},
-"~922~":{"fn":"~91A~","descr":"p"},
-"~927~":{"fn":"~928~"},
-"~92C~":{"fn":"~92D~"},
-"~92G~":{"fn":"~92H~"},
+var MetaphorJsPrebuilt = {"config":{
+"~8RF~":"~8RG~",
+"~8RJ~":"~8RK~",
+"~8RU~":"~8RV~",
+"~8RZ~":"~8S0~",
+"~8SD~":"~8SE~",
+"~8SJ~":"~8SK~",
+"~8SP~":"~8SQ~",
+"~8SZ~":"~8SE~",
+"~8T8~":"~8SQ~",
+"~8TL~":{"getterFn":"~8RV~","pipes":[{"origArgs":[],"params":[],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"uppercase"}}],"descr":"o"},
+"~8TX~":{"getterFn":"~8TY~","pipes":[{"origArgs":[],"params":[],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"linkify"}}],"descr":"o"},
+"~8UB~":{"getterFn":"~8SE~","setterFn":"~8UC~"},
+"~8UH~":{"getterFn":"~8SK~","setterFn":"~8UI~"},
+"~8UN~":{"getterFn":"~8SQ~","setterFn":"~8UO~"},
+"~8UW~":{"getterFn":"~8SE~","setterFn":"~8UC~"},
+"~8V7~":{"getterFn":"~8RV~","setterFn":"~8V8~"},
+"~8VD~":{"getterFn":"~8RV~","setterFn":"~8V8~"},
+"~8VN~":"~8SQ~",
+"~8VS~":"~8VT~",
+"~8VX~":"~8SK~",
+"~8VY~":"~8VZ~",
+"~8W4~":"~8SK~",
+"~8W7~":"~8SK~",
+"~8WA~":"~8SK~",
+"~8WT~":"~8WU~",
+"~8WY~":"~8WZ~",
+"~8X2~":"~8X3~",
+"~8XF~":{"fn":"~8XG~"},
+"~8XL~":{"getterFn":"~8XM~","setterFn":"~8XN~"},
+"~8XW~":{"getterFn":"~8XX~","setterFn":"~8XY~","inputPipes":[{"origArgs":["this.sep"],"params":["~8XM~"],"expressions":["this.sep"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"split"}}],"descr":"i"},
+"~8Y2~":{"getterFn":"~8XX~","inflate":{"itemName":"item"}},
+"~8Y4~":"~8Y5~",
+"~8YC~":"~8SE~",
+"~8YE~":{"getterFn":"~8YF~","inflate":{"item":"~8YG~"}},
+"~8YM~":{"getterFn":"~8XX~","inflate":{"item":"~8YN~"}},
+"~8YV~":{"fn":"~8YW~"},
+"~8YY~":{"fn":"~8YZ~"},
+"~8Z2~":{"fn":"~8Z3~"},
+"~8Z8~":"~8Z9~",
+"~8ZH~":{"fn":"~8ZI~"},
+"~8ZL~":{"fn":"~8ZM~"},
+"~900~":"~901~",
+"~905~":{"fn":"~906~","descr":"p"},
+"~909~":{"fn":"~90A~","descr":"p"},
+"~90E~":{"fn":"~90F~"},
+"~90J~":{"getterFn":"~90K~","setterFn":"~90L~"},
+"~90N~":{"fn":"~90O~"},
+"~90R~":"~90S~",
+"~90U~":{"fn":"~90V~"},
+"~90Y~":"~8SK~",
+"~911~":{"getterFn":"~912~","pipes":[{"origArgs":["this.listFilter"],"params":["~913~"],"expressions":["this.listFilter"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"filter"}},{"origArgs":["'txt'","this.sortBy"],"params":["~914~","~915~"],"expressions":["this.sortBy"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"sortBy"}}],"inflate":{"itemName":"item"},"descr":"o"},
+"~918~":"~919~",
+"~91C~":{"getterFn":"~91D~","setterFn":"~91E~"},
+"~91H~":{"fn":"~91I~","descr":"p"},
+"~91L~":{"getterFn":"~913~","setterFn":"~91M~"},
+"~91P~":{"fn":"~91Q~"},
+"~91R~":{"fn":"~91S~"},
+"~91V~":{"fn":"~91W~"},
+"~91X~":{"fn":"~91S~"},
+"~924~":"~919~",
+"~927~":{"getterFn":"~91D~","setterFn":"~91E~"},
+"~92A~":{"fn":"~91I~","descr":"p"},
+"~92F~":{"fn":"~92G~"},
 "~92K~":{"fn":"~92L~"},
 "~92O~":{"fn":"~92P~"},
-"~92U~":{"fn":"~92V~"},
-"~92Y~":{"fn":"~92Z~"},
-"~934~":{"getterFn":"~935~","setterFn":"~936~"},
-"~93E~":{"getterFn":"~93F~","inflate":{"item":"~93G~"}},
-"~93K~":{"getterFn":"~93L~","setterFn":"~93M~","descr":"p"},
-"~93N~":"~935~",
-"~93S~":{"getterFn":"~93F~","inflate":{"itemName":"item"}},
-"~947~":{"fn":"~948~"},
-"~94C~":"~94D~",
-"~94K~":{"getterFn":"~94L~","pipes":[{"origArgs":[],"params":[],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"l"}}],"descr":"o"},
-"~94R~":{"fn":"~94S~"},
-"~94Y~":{"getterFn":"~94Z~","setterFn":"~950~"},
-"~953~":{"getterFn":"~954~","pipes":[{"origArgs":["this.people"],"params":["~94Z~"],"expressions":["this.people"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"p"}}],"descr":"o"},
-"~95C~":{"fn":"~95D~"},
-"~95F~":"~95G~",
-"~95H~":"~95I~",
-"~95J~":"~95K~",
-"~95L~":"~95M~",
-"~95N~":"~95O~",
-"~95S~":{"fn":"~95T~"},
-"~95W~":{"getterFn":"~95X~","inflate":{"itemName":"item"}},
-"~960~":{"fn":"~961~","descr":"p"},
-"~964~":"~95K~",
-"~966~":{"fn":"~967~"},
-"~969~":{"fn":"~96A~"},
-"~96C~":{"fn":"~96D~"},
-"~96F~":{"getterFn":"~96G~","setterFn":"~96H~"},
-"~96K~":"~96L~",
-"~96N~":"~96G~",
-"~96Q~":{"fn":"~96R~"},
-"~96T~":"~96U~",
-"~96V~":"~96W~",
-"~96Y~":"~96Z~",
-"~972~":{"fn":"~96R~"},
-"~974~":"~975~",
+"~92S~":{"fn":"~92T~"},
+"~92W~":{"fn":"~92X~"},
+"~932~":{"fn":"~933~"},
+"~936~":{"fn":"~937~"},
+"~93C~":{"getterFn":"~93D~","setterFn":"~93E~"},
+"~93M~":{"getterFn":"~93N~","inflate":{"item":"~93O~"}},
+"~93S~":{"getterFn":"~93T~","setterFn":"~93U~","descr":"p"},
+"~93V~":"~93D~",
+"~940~":{"getterFn":"~93N~","inflate":{"itemName":"item"}},
+"~947~":"~8SQ~",
+"~948~":"~8SQ~",
+"~949~":"~8RV~",
+"~94A~":"~8SQ~",
+"~94B~":"~8SQ~",
+"~94C~":"~8RV~",
+"~94D~":"~8S0~",
+"~94E~":{"getterFn":"~8RV~","pipes":[{"origArgs":[],"params":[],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"uppercase"}}]},
+"~94F~":{"getterFn":"~8RV~","pipes":[{"origArgs":[],"params":[],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"lowercase"}}]},
+"~94G~":{"getterFn":"~8RV~","pipes":[{"origArgs":["this.a"],"params":["~8SE~"],"expressions":["this.a"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"limitTo"}}]},
+"~94H~":"~94I~",
+"~94J~":"~94K~",
+"~94L~":"~94M~",
+"~94N~":"~94O~",
+"~94P~":"~94Q~",
+"~94R~":"~94S~",
+"~94T~":"~94U~",
+"~94V~":"~94W~",
+"~94X~":"~94Y~",
+"~94Z~":"~950~",
+"~951~":"~94Q~",
+"~952~":"~94S~",
+"~953~":"~94U~",
+"~954~":"~94W~",
+"~955~":"~94Y~",
+"~956~":"~950~",
+"~957~":"~94O~",
+"~958~":"~959~",
+"~95A~":"~95B~",
+"~95K~":{"fn":"~95L~"},
+"~95P~":"~95Q~",
+"~95X~":{"getterFn":"~95Y~","pipes":[{"origArgs":[],"params":[],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"l"}}],"descr":"o"},
+"~964~":{"fn":"~965~"},
+"~96B~":{"getterFn":"~96C~","setterFn":"~96D~"},
+"~96G~":{"getterFn":"~96H~","pipes":[{"origArgs":["this.people"],"params":["~96C~"],"expressions":["this.people"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"p"}}],"descr":"o"},
+"~96J~":"~96K~",
+"~96L~":{"getterFn":"~96M~","pipes":[{"origArgs":[],"params":[],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"l"}}]},
+"~96N~":"~96O~",
+"~96P~":{"getterFn":"~96Q~","pipes":[{"origArgs":["this.b"],"params":["~96O~"],"expressions":["this.b"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"p"}}]},
+"~96V~":"~94M~",
+"~96Y~":{"fn":"~96Z~"},
+"~971~":"~972~",
+"~973~":"~974~",
+"~975~":"~976~",
 "~977~":"~978~",
 "~979~":"~97A~",
-"~97C~":"~97D~",
-"~97G~":"~97H~",
-"~97K~":{"fn":"~97L~"},
-"~97N~":{"fn":"~97O~"},
-"~97Q~":"~97R~",
-"~97T~":{"getterFn":"~97U~","inflate":{"item":"~8Y8~"}},
-"~97X~":"~95O~",
-"~981~":"~982~",
-"~984~":{"fn":"~985~"},
-"~987~":"~988~",
-"~98B~":"~98C~",
-"~98E~":{"fn":"~98F~"},
+"~97E~":{"fn":"~97F~"},
+"~97I~":{"getterFn":"~97J~","inflate":{"itemName":"item"}},
+"~97M~":{"fn":"~97N~","descr":"p"},
+"~97Q~":"~976~",
+"~97S~":{"fn":"~97T~"},
+"~97V~":{"fn":"~97W~"},
+"~97Y~":{"fn":"~97Z~"},
+"~981~":{"getterFn":"~982~","setterFn":"~983~"},
+"~986~":"~987~",
+"~989~":"~982~",
+"~98C~":{"fn":"~98D~"},
+"~98F~":"~98G~",
 "~98H~":"~98I~",
-"~98L~":{"getterFn":"~98M~","inflate":{"itemName":"item"}},
-"~98O~":{"fn":"~98P~","descr":"p"},
-"~98R~":{"getterFn":"~98S~","descr":"p"},
+"~98K~":"~98L~",
+"~98O~":{"fn":"~98D~"},
+"~98Q~":"~98R~",
+"~98T~":"~98U~",
 "~98V~":"~98W~",
 "~98Y~":"~98Z~",
-"~991~":{"fn":"~992~","descr":"p"}},"func":{
-"~8RN~":function(____,$$) {return ____.text},
-"~8RS~":function(____,$$) {return ____.html},
-"~8S6~":function(____,$$) {return ____.a},
-"~8SC~":function(____,$$) {return ____.bool},
-"~8SI~":function(____,$$) {return ____.inline},
-"~8TQ~":function(____,$$) {return ____.linkified},
-"~8U4~":function(____,$$) {____.a = $$},
-"~8UA~":function(____,$$) {____.bool = $$},
-"~8UG~":function(____,$$) {____.inline = $$},
-"~8V0~":function(____,$$) {____.text = $$},
-"~8VL~":function(____,$$) {return {bool: ____.bool, inline1: ____.a == 0}},
-"~8VR~":function(____,$$) {return ____.a == 0},
-"~8WM~":function(____,$$) {return ____.myForm.$invalid},
-"~8WR~":function(____,$$) {return {error: ____.myForm.field1.$invalid}},
-"~8WV~":function(____,$$) {return {error: ____.myForm.radio1.$invalid}},
-"~8X8~":function(____,$$) {____.dynamicList = []},
-"~8XE~":function(____,$$) {return ____.sep},
-"~8XF~":function(____,$$) {____.sep = $$},
-"~8XP~":function(____,$$) {return ____.dynamicList},
-"~8XQ~":function(____,$$) {____.dynamicList = $$},
-"~8XX~":function(____,$$) {return ____.item},
-"~8Y7~":function(____,$$) {return ____.alist},
-"~8Y8~":function(____,$$) {return {name: ____.item, value: ____.$index}},
-"~8YF~":function(____,$$) {return { name: ____.item, value: ____.$index, group: ____.$index - (____.$index % 2), disabledGroup: ____.$index == 0, disabled: ____.$index == 4 }},
-"~8YO~":function(____,$$) {____.tpl = 'a+b.html'},
-"~8YR~":function(____,$$) {console.log('multiple click handlers!')},
-"~8YV~":function(____,$$) {____.tpl = 'a*b.html'},
-"~8Z1~":function(____,$$) {return ____.tpl},
-"~8ZA~":function(____,$$) {____.tpl = ____.tpl1},
-"~8ZE~":function(____,$$) {____.tpl = ____.tpl2},
-"~8ZT~":function(____,$$) {return ____.viewCmp},
-"~8ZY~":function(____,$$) {____.$parent.viewCmp = 'Test.ViewComponent1'},
-"~902~":function(____,$$) {____.$parent.viewCmp = 'Test.ViewComponent2'},
-"~907~":function(____,$$) {____.newItem = ''; ____.listFilter = ''; ____.sortBy = 'asc'},
-"~90C~":function(____,$$) {return ____.newItem},
-"~90D~":function(____,$$) {____.newItem = $$},
-"~90G~":function(____,$$) {if (____.newItem) { ____.list.push({bool: false, txt: ____.newItem}); ____.newItem = ''; }},
-"~90K~":function(____,$$) {return !____.newItem},
-"~90N~":function(____,$$) {____.list.push({bool: false, txt: ____.newItem}); ____.newItem = '';},
-"~90U~":function(____,$$) {return ____.list},
-"~90V~":function(____,$$) {return ____.listFilter},
-"~90W~":function() {return 'txt'},
-"~90X~":function(____,$$) {return ____.sortBy},
-"~911~":function(____,$$) {return {cls3: ____.item.bool}},
-"~915~":function(____,$$) {return ____.item.bool},
-"~916~":function(____,$$) {____.item.bool = $$},
-"~91A~":function(____,$$) {____.$parent.list.splice(____.$getRawIndex(____.$trackId),1);},
-"~91E~":function(____,$$) {____.listFilter = $$},
-"~91I~":function(____,$$) {____.sortBy='asc'},
-"~91K~":function(____,$$) {console.log(____.sortBy)},
-"~91O~":function(____,$$) {____.sortBy='desc'},
-"~928~":function(____,$$) {____.selectBinding = 'scope'},
-"~92D~":function(____,$$) {____.ctrl.reverse()},
-"~92H~":function(____,$$) {____.ctrl.createNew()},
-"~92L~":function(____,$$) {____.ctrl.createRender()},
-"~92P~":function(____,$$) {____.ctrl.createDialog()},
-"~92V~":function(____,$$) {____.store.load()},
-"~92Z~":function(____,$$) {____.store.clear()},
-"~935~":function(____,$$) {return ____.selectBinding},
-"~936~":function(____,$$) {____.selectBinding = $$},
-"~93F~":function(____,$$) {return ____.store},
-"~93G~":function(____,$$) {return { name: ____.item.data.name, value: ____.item.data.id }},
-"~93L~":function(____,$$) {return ____.$parent.a},
-"~93M~":function(____,$$) {____.$parent.a = $$},
-"~948~":function(____,$$) {____.changeLevel2()},
-"~94D~":function(____,$$) {return ____.level1},
-"~94L~":function() {return 'subkey1'},
-"~94S~":function(____,$$) {____.increaseB()},
-"~94Z~":function(____,$$) {return ____.people},
-"~950~":function(____,$$) {____.people = $$},
-"~954~":function() {return 'viewing'},
-"~95D~":function(____,$$) {____.field.onSelfClick(____.$event)},
-"~95G~":function(____,$$) {return ____.loading},
-"~95I~":function(____,$$) {return ____.field.disabled},
-"~95K~":function(____,$$) {return ____.field.searchable},
-"~95M~":function(____,$$) {return ____.field.multiple},
-"~95O~":function(____,$$) {return ____.field.black},
-"~95T~":function(____,$$) {____.field.onDropdownIconClick(____.$event)},
-"~95X~":function(____,$$) {return ____.field.getMultiSelection()},
-"~961~":function(____,$$) {____.$parent.field.onItemDeleteClick(____.item, ____.$event)},
-"~967~":function(____,$$) {____.field.onSearchFocus(____.$event)},
-"~96A~":function(____,$$) {____.field.onSearchBlur(____.$event)},
-"~96D~":function(____,$$) {____.field.onSearchBackspace(____.$event)},
-"~96G~":function(____,$$) {return ____.searchQuery},
-"~96H~":function(____,$$) {____.searchQuery = $$},
-"~96L~":function(____,$$) {return ____.field.multiple && ____.field.searchable},
-"~96R~":function(____,$$) {____.field.onValueTextClick(____.$event)},
-"~96U~":function(____,$$) {return !____.searchQuery && !____.field.hasSelection() && !!____.field.emptyText},
-"~96W~":function(____,$$) {____.emptyShown = ____.$1},
-"~96Z~":function(____,$$) {return ____.field.emptyText},
-"~975~":function(____,$$) {return ____.focused && ____.searchQuery == ''},
-"~978~":function(____,$$) {return !____.searchQuery && !____.field.multiple && ____.field.hasSelection()},
-"~97A~":function(____,$$) {____.selectedShown = ____.$1},
-"~97D~":function(____,$$) {return ____.field.getSelectedName()},
-"~97H~":function(____,$$) {return !____.emptyShown && !____.selectedShown && !____.field.searchable},
-"~97L~":function(____,$$) {____.field.onHiddenSelectClick(____.$event)},
-"~97O~":function(____,$$) {____.field.onHiddenSelectChange(____.$event)},
-"~97R~":function(____,$$) {return ____.field.useHiddenSelect},
-"~97U~":function(____,$$) {return ____.field._getSelectOptions()},
-"~982~":function(____,$$) {return ____.field.showNotFound && ____.field.store.isEmpty()},
-"~985~":function(____,$$) {____.field.onNotFoundClick(null, ____.$event)},
-"~988~":function(____,$$) {return ____.field.notFoundText},
-"~98C~":function(____,$$) {return ____.field.showEmptyItem && !____.field.store.isEmpty()},
-"~98F~":function(____,$$) {____.field.onItemClick(null, ____.$event)},
-"~98I~":function(____,$$) {return ____.field.emptyItemText},
-"~98M~":function(____,$$) {return ____.field.store},
-"~98P~":function(____,$$) {____.$parent.field.onItemClick(____.item, ____.$event)},
-"~98S~":function(____,$$) {return ____.$parent.field.getItemName(____.item)},
-"~98W~":function() {return false},
-"~98Z~":function(____,$$) {return ____.pagination.hasPages()},
-"~992~":function(____,$$) {____.$parent.field.onPaginationClick(____.$event)}},"funcDescr":{
-"~8ZY~":"p",
-"~902~":"p",
-"~91A~":"p",
-"~93L~":"p",
-"~93M~":"p",
-"~961~":"p",
-"~98P~":"p",
-"~98S~":"p",
-"~992~":"p"}}
+"~992~":"~993~",
+"~996~":{"fn":"~997~"},
+"~999~":{"fn":"~99A~"},
+"~99C~":"~99D~",
+"~99F~":{"getterFn":"~99G~","inflate":{"item":"~8YG~"}},
+"~99J~":"~97A~",
+"~99N~":"~99O~",
+"~99Q~":{"fn":"~99R~"},
+"~99T~":"~99U~",
+"~99X~":"~99Y~",
+"~9A0~":{"fn":"~9A1~"},
+"~9A3~":"~9A4~",
+"~9A7~":{"getterFn":"~9A8~","inflate":{"itemName":"item"}},
+"~9AA~":{"fn":"~9AB~","descr":"p"},
+"~9AD~":{"getterFn":"~9AE~","descr":"p"},
+"~9AH~":"~9AI~",
+"~9AK~":"~9AL~",
+"~9AN~":{"fn":"~9AO~","descr":"p"},
+"~9AQ~":"~9AE~",
+"~9AV~":"~9AW~",
+"~9B1~":"~9B2~"},"func":{
+"~8RG~":function(____,$$) {return ____.$root.a * ____.$root.b},
+"~8RK~":function(____,$$) {return ____.$root.a + ____.$root.b},
+"~8RV~":function(____,$$) {return ____.text},
+"~8S0~":function(____,$$) {return ____.html},
+"~8SE~":function(____,$$) {return ____.a},
+"~8SK~":function(____,$$) {return ____.bool},
+"~8SQ~":function(____,$$) {return ____.inline},
+"~8TY~":function(____,$$) {return ____.linkified},
+"~8UC~":function(____,$$) {____.a = $$},
+"~8UI~":function(____,$$) {____.bool = $$},
+"~8UO~":function(____,$$) {____.inline = $$},
+"~8V8~":function(____,$$) {____.text = $$},
+"~8VT~":function(____,$$) {return {bool: ____.bool, inline1: ____.a == 0}},
+"~8VZ~":function(____,$$) {return ____.a == 0},
+"~8WU~":function(____,$$) {return ____.myForm.$invalid},
+"~8WZ~":function(____,$$) {return {error: ____.myForm.field1.$invalid}},
+"~8X3~":function(____,$$) {return {error: ____.myForm.radio1.$invalid}},
+"~8XG~":function(____,$$) {____.dynamicList = []},
+"~8XM~":function(____,$$) {return ____.sep},
+"~8XN~":function(____,$$) {____.sep = $$},
+"~8XX~":function(____,$$) {return ____.dynamicList},
+"~8XY~":function(____,$$) {____.dynamicList = $$},
+"~8Y5~":function(____,$$) {return ____.item},
+"~8YF~":function(____,$$) {return ____.alist},
+"~8YG~":function(____,$$) {return {name: ____.item, value: ____.$index}},
+"~8YN~":function(____,$$) {return { name: ____.item, value: ____.$index, group: ____.$index - (____.$index % 2), disabledGroup: ____.$index == 0, disabled: ____.$index == 4 }},
+"~8YW~":function(____,$$) {____.tpl = 'a+b.html'},
+"~8YZ~":function(____,$$) {console.log('multiple click handlers!')},
+"~8Z3~":function(____,$$) {____.tpl = 'a*b.html'},
+"~8Z9~":function(____,$$) {return ____.tpl},
+"~8ZI~":function(____,$$) {____.tpl = ____.tpl1},
+"~8ZM~":function(____,$$) {____.tpl = ____.tpl2},
+"~901~":function(____,$$) {return ____.viewCmp},
+"~906~":function(____,$$) {____.$parent.viewCmp = 'Test.ViewComponent1'},
+"~90A~":function(____,$$) {____.$parent.viewCmp = 'Test.ViewComponent2'},
+"~90F~":function(____,$$) {____.newItem = ''; ____.listFilter = ''; ____.sortBy = 'asc'},
+"~90K~":function(____,$$) {return ____.newItem},
+"~90L~":function(____,$$) {____.newItem = $$},
+"~90O~":function(____,$$) {if (____.newItem) { ____.list.push({bool: false, txt: ____.newItem}); ____.newItem = ''; }},
+"~90S~":function(____,$$) {return !____.newItem},
+"~90V~":function(____,$$) {____.list.push({bool: false, txt: ____.newItem}); ____.newItem = '';},
+"~912~":function(____,$$) {return ____.list},
+"~913~":function(____,$$) {return ____.listFilter},
+"~914~":function() {return 'txt'},
+"~915~":function(____,$$) {return ____.sortBy},
+"~919~":function(____,$$) {return {cls3: ____.item.bool}},
+"~91D~":function(____,$$) {return ____.item.bool},
+"~91E~":function(____,$$) {____.item.bool = $$},
+"~91I~":function(____,$$) {____.$parent.list.splice(____.$getRawIndex(____.$trackId),1);},
+"~91M~":function(____,$$) {____.listFilter = $$},
+"~91Q~":function(____,$$) {____.sortBy='asc'},
+"~91S~":function(____,$$) {console.log(____.sortBy)},
+"~91W~":function(____,$$) {____.sortBy='desc'},
+"~92G~":function(____,$$) {____.selectBinding = 'scope'},
+"~92L~":function(____,$$) {____.ctrl.reverse()},
+"~92P~":function(____,$$) {____.ctrl.createNew()},
+"~92T~":function(____,$$) {____.ctrl.createRender()},
+"~92X~":function(____,$$) {____.ctrl.createDialog()},
+"~933~":function(____,$$) {____.store.load()},
+"~937~":function(____,$$) {____.store.clear()},
+"~93D~":function(____,$$) {return ____.selectBinding},
+"~93E~":function(____,$$) {____.selectBinding = $$},
+"~93N~":function(____,$$) {return ____.store},
+"~93O~":function(____,$$) {return { name: ____.item.data.name, value: ____.item.data.id }},
+"~93T~":function(____,$$) {return ____.$parent.a},
+"~93U~":function(____,$$) {____.$parent.a = $$},
+"~94I~":function(____,$$) {return ____.a + ____.b},
+"~94K~":function(____,$$) {return ____.bool ? "true": "false"},
+"~94M~":function(____,$$) {return ____.title},
+"~94O~":function(____,$$) {return ____.$root.a},
+"~94Q~":function(____,$$) {return ____.$index},
+"~94S~":function(____,$$) {return ____.item.txt},
+"~94U~":function(____,$$) {return ____.$first ? "first" : ""},
+"~94W~":function(____,$$) {return ____.$last ? "last" : ""},
+"~94Y~":function(____,$$) {return ____.$even ? "even" : ""},
+"~950~":function(____,$$) {return ____.$odd ? "odd" : ""},
+"~959~":function(____,$$) {return ____.item.name},
+"~95B~":function(____,$$) {return ____.deferred},
+"~95L~":function(____,$$) {____.changeLevel2()},
+"~95Q~":function(____,$$) {return ____.level1},
+"~95Y~":function() {return 'subkey1'},
+"~965~":function(____,$$) {____.increaseB()},
+"~96C~":function(____,$$) {return ____.people},
+"~96D~":function(____,$$) {____.people = $$},
+"~96H~":function() {return 'viewing'},
+"~96K~":function(____,$$) {return ____.resolved},
+"~96M~":function() {return 'key'},
+"~96O~":function(____,$$) {return ____.b},
+"~96Q~":function() {return 'plr'},
+"~96Z~":function(____,$$) {____.field.onSelfClick(____.$event)},
+"~972~":function(____,$$) {return ____.loading},
+"~974~":function(____,$$) {return ____.field.disabled},
+"~976~":function(____,$$) {return ____.field.searchable},
+"~978~":function(____,$$) {return ____.field.multiple},
+"~97A~":function(____,$$) {return ____.field.black},
+"~97F~":function(____,$$) {____.field.onDropdownIconClick(____.$event)},
+"~97J~":function(____,$$) {return ____.field.getMultiSelection()},
+"~97N~":function(____,$$) {____.$parent.field.onItemDeleteClick(____.item, ____.$event)},
+"~97T~":function(____,$$) {____.field.onSearchFocus(____.$event)},
+"~97W~":function(____,$$) {____.field.onSearchBlur(____.$event)},
+"~97Z~":function(____,$$) {____.field.onSearchBackspace(____.$event)},
+"~982~":function(____,$$) {return ____.searchQuery},
+"~983~":function(____,$$) {____.searchQuery = $$},
+"~987~":function(____,$$) {return ____.field.multiple && ____.field.searchable},
+"~98D~":function(____,$$) {____.field.onValueTextClick(____.$event)},
+"~98G~":function(____,$$) {return !____.searchQuery && !____.field.hasSelection() && !!____.field.emptyText},
+"~98I~":function(____,$$) {____.emptyShown = ____.$1},
+"~98L~":function(____,$$) {return ____.field.emptyText},
+"~98R~":function(____,$$) {return ____.focused && ____.searchQuery == ''},
+"~98U~":function(____,$$) {return !____.searchQuery && !____.field.multiple && ____.field.hasSelection()},
+"~98W~":function(____,$$) {____.selectedShown = ____.$1},
+"~98Z~":function(____,$$) {return ____.field.getSelectedName()},
+"~993~":function(____,$$) {return !____.emptyShown && !____.selectedShown && !____.field.searchable},
+"~997~":function(____,$$) {____.field.onHiddenSelectClick(____.$event)},
+"~99A~":function(____,$$) {____.field.onHiddenSelectChange(____.$event)},
+"~99D~":function(____,$$) {return ____.field.useHiddenSelect},
+"~99G~":function(____,$$) {return ____.field._getSelectOptions()},
+"~99O~":function(____,$$) {return ____.field.showNotFound && ____.field.store.isEmpty()},
+"~99R~":function(____,$$) {____.field.onNotFoundClick(null, ____.$event)},
+"~99U~":function(____,$$) {return ____.field.notFoundText},
+"~99Y~":function(____,$$) {return ____.field.showEmptyItem && !____.field.store.isEmpty()},
+"~9A1~":function(____,$$) {____.field.onItemClick(null, ____.$event)},
+"~9A4~":function(____,$$) {return ____.field.emptyItemText},
+"~9A8~":function(____,$$) {return ____.field.store},
+"~9AB~":function(____,$$) {____.$parent.field.onItemClick(____.item, ____.$event)},
+"~9AE~":function(____,$$) {return ____.$parent.field.getItemName(____.item)},
+"~9AI~":function() {return false},
+"~9AL~":function(____,$$) {return ____.pagination.hasPages()},
+"~9AO~":function(____,$$) {____.$parent.field.onPaginationClick(____.$event)},
+"~9AW~":function(____,$$) {return ____.ctrl.config.get('test')},
+"~9B2~":function(____,$$) {return ____.$root.text}},"funcDescr":{
+"~8RG~":"r",
+"~8RK~":"r",
+"~906~":"p",
+"~90A~":"p",
+"~91I~":"p",
+"~93T~":"p",
+"~93U~":"p",
+"~94O~":"r",
+"~97N~":"p",
+"~9AB~":"p",
+"~9AE~":"p",
+"~9AO~":"p",
+"~9B2~":"r"},"templates":{"a*b.html":"<p>a * b = {{~8RF~}}</p>","a+b.html":"<p>a + b = {{~8RJ~}}</p>","app1.html":"<h1>MetaphorJs Feature test</h1><div class=\"cases\"><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Inline</label><div id=\"inline-binding\" class=\"test\">{{~947~}}</div><label class=\"case-label\">mjs-bind</label><div id=\"binding\" {bind}=\"~8RU~\" class=\"test\"></div><label class=\"case-label\">mjs-bind-html</label><div id=\"html-binding\" {bind-html}=\"~8RZ~\" class=\"test\"></div><label class=\"case-label\">Plain attribute (href)</label><p class=\"test\"><a id=\"attr-binding-href\" [href]=\"http://{{~948~}}.com\">{{~949~}}</a></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Input field (value)</label><p class=\"test\"><input id=\"binding-input-value\" type=\"text\" [value]=\"this.a\"></p><label class=\"case-label\">Input field (mjs-bind) (locked)</label><p class=\"test\"><input id=\"binding-input-bind\" type=\"text\" {bind}=\"~8SD~\" {bind.$locked}></p><label class=\"case-label\">Checkbox (mjs-bind)</label><p class=\"test\"><input id=\"binding-checkbox\" type=\"checkbox\" {bind}=\"~8SJ~\"></p><label class=\"case-label\">Radio (mjs-bind) (locked)</label><p class=\"test\"><input id=\"radio-bind-1\" checked=\"checked\" type=\"radio\" value=\"inline1\" name=\"radio-bind\" {bind}=\"~8SP~\" {bind.$locked}> <input id=\"radio-bind-2\" type=\"radio\" value=\"inline2\" name=\"radio-bind\"> <input id=\"radio-bind-3\" type=\"radio\" value=\"inline3\" name=\"radio-bind\"></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Select (mjs-bind)</label><p class=\"test\"><select id=\"select-bind\" {bind}=\"~8SZ~\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p><label class=\"case-label\">Textarea (mjs-bind)</label><p class=\"test\"><textarea id=\"textarea-bind-attr\" {bind}=\"~8T8~\"></textarea></p><label class=\"case-label\">Textarea (inline)</label><p class=\"test\"><textarea id=\"textarea-bind-inline\">{{~94A~}}</textarea></p></div><div class=\"case\"><h4>Muplitple inline binding</h4><div id=\"multiple-inline-binding\" class=\"test\">{{~94B~}}<b>{{~94C~}}</b>{{~94D~}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Uppercase (mjs-bind)</label><div id=\"filter-uppercase-binding\" class=\"test\" {bind}=\"~8TL~\"></div><label class=\"case-label\">Uppercase (inline)</label><div id=\"filter-uppercase-inline\" class=\"test\">{{~94E~}}</div><label class=\"case-label\">Lowercase (inline)</label><div id=\"filter-lowercase-inline\" class=\"test\">{{~94F~}}</div><label class=\"case-label\">Limit to (string)</label><div id=\"filter-limit-string\" class=\"test\">{{~94G~}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Linkify</label><p id=\"filter-linkify\" class=\"test\" {bind-html}=\"~8TX~\"></p></div><div class=\"case\"><h4>Expressions</h4><label class=\"case-label\">.a + .b</label><div id=\"expr-a-plus-b\" class=\"test\">{{~94H~}}</div><label class=\"case-label\">.bool ? \"true\" : \"false\"</label><div id=\"expr-bool\" class=\"test\">{{~94J~}}</div></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Input (number) (.a)</label><p class=\"test\"><input {model}=\"~8UB~\" type=\"number\" data-type=\"number\" id=\"model-input-a\"></p><label class=\"case-label\">Checkbox (.bool)</label><p class=\"test\"><input id=\"model-checkbox-bool\" type=\"checkbox\" {model}=\"~8UH~\"></p><label class=\"case-label\">Radio (.inline)</label><p class=\"test\"><input id=\"model-radio-1\" checked=\"checked\" type=\"radio\" name=\"r\" value=\"inline1\" {model}=\"~8UN~\">1<label><input id=\"model-radio-2\" type=\"radio\" name=\"r\" value=\"inline2\">2</label><input id=\"model-radio-3\" type=\"radio\" name=\"r\" value=\"inline3\">3</p><label class=\"case-label\">Select (.a)</label><p class=\"test\"><select id=\"model-select-a\" {model}=\"~8UW~\" data-type=\"number\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Textarea (.text)</label><p class=\"test\"><textarea id=\"model-textarea\" {model}=\"~8V7~\"></textarea></p><label class=\"case-label\">Input (string .text)</label><p class=\"test\"><input type=\"text\" id=\"model-input\" {model}=\"~8VD~\"></p></div><div class=\"case\"><h4>mjs-class</h4><label class=\"case-label\">Plain attribute</label><div class=\"test\"><p id=\"class-inline\" [class]=\"this.inline\">---</p></div><label class=\"case-label\">mjs-class (string)</label><div class=\"test\"><p id=\"class-string\" {class}=\"~8VN~\">---</p></div><label class=\"case-label\">mjs-class ({bool: .bool, inline1: .a == 0})</label><div class=\"test\"><p id=\"class-object\" {class}=\"~8VS~\">---</p></div><div class=\"test\"><p id=\"class-object\" {class.bool}=\"~8VX~\" {class.inline1}=\"~8VY~\">---</p></div></div><div class=\"case\"><h4>mjs-if, mjs-show, mjs-hide</h4><div id=\"if-bool\" {if}=\"~8W4~\" class=\"test\" {if.$animate}>this should appear if .bool = true</div><div id=\"show-bool\" {show}=\"~8W7~\" class=\"test\" {show.$animate}>this should show if .bool = true</div><div id=\"hide-bool\" {hide}=\"~8WA~\" class=\"test\" {hide.$animate}>this should hide if .bool = true</div></div><div class=\"case\"><h4>mjs-include</h4><label class=\"case-label\">immediate</label><div {include}=\"test-template.html\"><p>transcluded text</p></div><label class=\"case-label\">immediate (via tag)</label><mjs-include $name=\"test-template.html\"><p>transcluded text</p></mjs-include><label class=\"case-label\">ajax</label><div {include}=\"template.html\" id=\"ajax-template\"><p>Transcluded text</p></div></div><div class=\"case\"><h4>mjs-validate</h4><form name=\"myForm\" {form} {class.error}=\"~8WT~\" {class.$animate}><div><input name=\"field1\" data-validate-required {class}=\"~8WY~\"></div><div {class}=\"~8X2~\"><label><input type=\"radio\" name=\"radio1\" value=\"1\" data-validate-required> -- 1</label><label><input type=\"radio\" name=\"radio1\" value=\"2\"> -- 2</label><label><input type=\"radio\" name=\"radio1\" value=\"3\"> -- 3</label></div><div><input type=\"submit\" value=\"Submit\"> <input type=\"reset\" value=\"Reset\"></div></form></div><div class=\"case\" {init}=\"~8XF~\"><h4>dynamic list</h4><label><input id=\"radio-sep-1\" type=\"radio\" name=\"sep\" value=\"/\\n|,/\" {model}=\"~8XL~\"> /\\n|,/</label><label><input type=\"radio\" name=\"sep\" value=\"/\\n/\"> /\\n/</label><label><input type=\"radio\" name=\"sep\" value=\",\"> ,</label><br><br><textarea {model}=\"~8XW~\" {model.$binding}=\"input\"></textarea><ul><li {each}=\"~8Y2~\" {bind}=\"~8Y4~\" {bind.$recursive}></li></ul></div><div class=\"case\"><h4>mjs-options</h4><label class=\"case-label\">Generated from .alist</label><p class=\"test\"><select {bind}=\"~8YC~\" {options}=\"~8YE~\"><option>not selected</option></select></p><label class=\"case-label\">Generated from .dynamicList</label><p class=\"test\"><select {options}=\"~8YM~\"><option>default value</option></select></p></div><div class=\"case\" {cmp}=\"Test.TplComponent\" id=\"tplComponentTest\"><h2>{{~94L~}}</h2>mjs-include change template:<br><a href=\"#\" (1|click)=\"~8YV~\" (2|click)=\"~8YY~\">a + b</a>|<a href=\"#\" (click)=\"~8Z2~\">a * b</a><div {include}*=\"~8Z8~\" id=\"tplComponetInc\"></div></div><div class=\"case\" {cmp}=\"Test.StringTemplate\"></div><div class=\"case\" {cmp}=\"Test.ChangeTemplate\">mjs-cmp change template:<br><a href=\"#\" (click)=\"~8ZH~\">tpl1</a>|<a href=\"#\" (click)=\"~8ZL~\">tpl2</a></div><div class=\"case\"><h4>Router</h4><div {router}=\"Test.MyView\" {router.$animate}></div>pushUrl:<a href=\"/1\">/1</a>|<a href=\"/2\">/2</a>|<a href=\"/3\">/3</a>|<a href=\"http://www.kuindji.com\">outside</a><br><br></div><div class=\"case\" {ignore}>This element is ignored by renderer: {{~94N~}}</div><div class=\"case\" {view}=\"~900~\" {view.$default-cmp}:=\"Test.ViewComponent1\"><p>change cmp:<a href=\"#\" (click)=\"~905~\">Cmp1</a>|<a href=\"#\" (click)=\"~909~\">Cmp2</a></p></div></div><div class=\"cases\"><div class=\"case double\" {init}=\"~90E~\"><h4>mjs-each (attr)</h4><input {model}=\"~90J~\" (key.enter)=\"~90N~\"> <input type=\"button\" {disabled}=\"~90R~\" (click)=\"~90U~\" value=\"Add item\"><ul {show}=\"~90Y~\"><li {each}=\"~911~\" {each.$animate} {each.$animate-move}><label {class}=\"~918~\"><input type=\"checkbox\" {model}=\"~91C~\"> {{~94P~}} - {{~94R~}} - {{~94T~}} - {{~94V~}} - {{~94X~}} - {{~94Z~}}</label><a href=\"#\" (click)=\"~91H~\">x</a></li></ul><input {model}=\"~91L~\" placeholder=\"Search\"><a href=\"#\" (click)=\"~91P~\" (click.log)=\"~91R~\">asc</a><a href=\"#\" (click)=\"~91V~\" (click.log)=\"~91X~\">desc</a></div><div class=\"case double\"><h4>mjs-each (tag)</h4><mjs-each value=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\"><div><label {class}=\"~924~\"><input type=\"checkbox\" {model}=\"~927~\"> {{~951~}} - {{~952~}} - {{~953~}} - {{~954~}} - {{~955~}} - {{~956~}}</label><a href=\"#\" (click)=\"~92A~\">x</a></div></mjs-each></div><div class=\"case\" id=\"newComponent\">Dynamically created component on existing element will go here</div><div class=\"case\" id=\"renderToComponent\">Dynamically created component with renderTo will go here</div><div class=\"case double\" {cmp}=\"Test.MyComponent\" {cmp.$as}=\"ctrl\" {cmp.$init}=\"~92F~\"><p ##para>Component's transcluded text + {{~957~}}</p><a href=\"#\" (click)=\"~92K~\">reverse</a>|<a href=\"#\" (click)=\"~92O~\">create new component on existing element</a>|<a href=\"#\" (click)=\"~92S~\">create new component and render to</a>|<a href=\"#\" (click)=\"~92W~\">create new dialog</a><br><br><button (click)=\"~932~\">Load store</button><button (click)=\"~936~\">Clear store</button><br><br>this.selectBinding:<select {model}=\"~93C~\"><option value=\"input\">Input</option><option value=\"scope\">Scope</option><option value=\"both\">Both</option></select><br><br>this.a:<select {options}=\"~93M~\" {model}=\"~93S~\" {model.$binding}*=\"~93V~\"><option>Nothing selected</option></select><ul><li {each}=\"~940~\" {each.$animate}>{{~958~}}</li></ul></div><div class=\"case double\" id=\"myComponent1\" {cmp}=\"Test.MyComponent\"><p>This is another instance with deferred value: {{~95A~}}</p></div><div class=\"case double\"><tagc $as:=\"ctrl\" $test:=\"Value from config\"></tagc></div></div>","app2.html":"<div class=\"case\"><h4>app's resolved value</h4><p class=\"test\">{{~96J~}}</p></div><div class=\"case\"><h4>recursive rendering</h4><p><a href=\"#\" (click)=\"~95K~\">Change level 2</a></p><p class=\"test\">This is level 1:<span {bind}=\"~95P~\" {bind.$recursive}></span></p></div><div class=\"case\"><h4>lang substitution</h4><label class=\"case-label\">using normal expression with filter: 'key' | l</label><p class=\"test\">{{~96L~}}</p><p class=\"test\" {bind}=\"~95X~\" {bind.$recursive}></p></div><div class=\"case\"><h4>pluralization</h4><p><a href=\"#\" (click)=\"~964~\">Increase B</a></p><label class=\"case-label\">using normal expression:</label><p class=\"test\">{{~96N~}} {{~96P~}}</p><p><input type=\"number\" data-type=\"number\" {model}=\"~96B~\"></p><p class=\"test\" {bind}=\"~96G~\" {bind.$recursive}></p></div>","cmp1-template.html":"<h2>{{~96V~}}</h2><div {transclude}></div>","dirs.html":"<!--{includes: true}--><div class=\"form_select\" (click)=\"~96Y~\" {class.loading}=\"~971~\" {class.disabled}=\"~973~\" {class.search}=\"~975~\" {class.multiple}=\"~977~\" {class.black}=\"~979~\"><input type=\"hidden\" #el_hidden_field [name]=\"this.field.hiddenInputName\" [value]=\"this.field.$$selection | join:','\"><i #el_icon_down (click)=\"~97E~\"><!-- include icons/down.html --></i><a class=\"form_select__label\" {each}=\"~97I~\" style=\"display: inline-block !important;\">{{~9AQ~}}<i class=\"delete icon\" (click)=\"~97M~\"></i></a><input type=\"text\" #el_search class=\"search\" [disabled]=\"this.field.disabled\" {show}=\"~97Q~\" {show.$display}=\"inline-block\" (focus)=\"~97S~\" (blur)=\"~97V~\" (key.backspace)=\"~97Y~\" {model}=\"~981~\"><span class=\"sizer\" #el_sizer {if}=\"~986~\" {bind}=\"~989~\"></span><div class=\"default text\" #el_default_text (click)=\"~98C~\" {show}=\"~98F~\" {show.$display}=\"inline-block\" {show.$on--change}=\"~98H~\" {bind}=\"~98K~\"></div><div class=\"text\" #el_text (click)=\"~98O~\" {class.default}=\"~98Q~\" {show}=\"~98T~\" {show.$on--chage}=\"~98V~\" {show.$display}=\"inline-block\" {bind}=\"~98Y~\"></div><!-- replaces two previous text blocks with invisible placeholder --><div style=\"display: none\" class=\"default text\" {show}=\"~992~\" {show.$display}=\"inline-block\">&nbsp;</div><select class=\"form-select_hidden-select\" #el_hidden_select (click)=\"~996~\" (change)=\"~999~\" {show}=\"~99C~\" {show.$display}=\"block\" {options}=\"~99F~\"></select><div class=\"form-select-menu\" #el_menu {class.black}=\"~99J~\"><div class=\"items\" #el_menu_items><div class=\"disabled item\" #el_menu_disabled {if}=\"~99N~\" (click)=\"~99Q~\" {bind-html}=\"~99T~\"></div><div class=\"empty item\" #el_menu_empty style=\"color: #999;\" {if}=\"~99X~\" (click)=\"~9A0~\" {bind-html}=\"~9A3~\"></div><div class=\"item\" {each}=\"~9A7~\" (click)=\"~9AA~\" {bind}=\"~9AD~\"></div></div><div class=\"pagination_container\" {cmp}=\"Pagination\" {cmp.$autoscroll}=\"~9AH~\" {show}=\"~9AK~\" (click)=\"~9AN~\"></div></div></div>","tagc.html":"<div class=\"component\"><p>This is a tag component.</p><p>{{~9AV~}}</p></div>","test-template.html":"<p>{{~9B1~}}</p><div {transclude}></div>"}}
 
 var MetaphorJs = {
     plugin: {},
@@ -4675,6 +4738,173 @@ var lib_Promise = MetaphorJs.lib.Promise = function(){
 
 
 
+var app_prebuilt = MetaphorJs.app.prebuilt = (function() {
+
+    var pb = MetaphorJs.prebuilt || {},
+        fnMap = {}; // used when building
+
+    var unspace = function(fn) {
+        fn = fn.replace(/[\n\r]/g, '');
+        fn = fn.replace(/\s+/g, ' ');
+        fn = fn.replace(' anonymous', '');
+        return fn;
+    };
+
+    var traverse = function(s, fn) {
+        if (isArray(s)) {
+            var i, l;
+            for (i = 0, l = s.length; i < l; i++) {
+                s[i] = traverse(s[i], fn);
+            }
+        }
+        else if (isPlainObject(s)) {
+            var k;
+            for (k in s) {
+                s[k] = traverse(s[k], fn);
+            }
+        }
+        return fn(s);
+    };
+
+    var extractFuncs = function(s) {
+        if (typeof s === "function") {
+            var fnstr = unspace(s.toString());
+            if (!fnMap[fnstr]) {
+                fnMap[fnstr] = api.add("func", s);
+                var descr = lib_Expression.describeExpression(fnstr);
+                if (descr) {
+                    api.add("funcDescr", descr, fnMap[fnstr]);
+                }
+            }
+            s = fnMap[fnstr];
+        }
+        return s;
+    };
+
+    var importFuncs = function(s) {
+        return api.isKey(s) ? pb.func[s] : s;
+    };
+
+    var deflate = function(s) {
+        var k,
+            keys = 0;
+
+        for (k in s) {
+            if (!s[k] || k === "expr") {
+                delete s[k];
+            }
+            else if (isArray(s[k]) && s[k].length === 0) {
+                delete s[k];
+            }
+            else {
+                keys++;
+            }
+        }
+
+        if (keys === 1 && s.getterFn) {
+            s = s.getterFn;
+        }
+
+        return s;
+    };
+
+    var inflate = function(s) {
+        s = traverse(s, importFuncs);
+        if (typeof s === "function") {
+            s = {getterFn: s};
+        }
+        !s.inputPipes && (s.inputPipes = []);
+        !s.pipes && (s.pipes = []);
+        s.inflated = true;
+        return s;
+    };
+
+    var api = {
+
+        /**
+         * @function MetaphorJs.app.prebuilt.deflate
+         * @param {object} data
+         * @returns {object}
+         */
+        deflate: function(s) {
+            return deflate(s);
+        },
+
+        /**
+         * @function MetaphorJs.app.prebuilt.inflate
+         * @param {object} data
+         * @returns {object}
+         */
+        inflate: function(s) {
+            return inflate(s);
+        },
+
+        /**
+         * @function MetaphorJs.app.prebuilt.get
+         * @param {string} type
+         * @param {string} k
+         * @returns {object|undefined}
+         */
+        get: function(type, k) {
+            var data = pb[type] ? pb[type][k] : undefined;
+            if (data) {
+                !data.inflated && (data = inflate(data));
+            }
+            return data;
+        },
+
+        /**
+         * @function MetaphorJs.app.prebuilt.add
+         * @param {string} type
+         * @param {object} data
+         * @param {string} key {
+         *  @optional if not provided, will generate a unique key
+         * }
+         * @returns {string} new (or provided) key
+         */
+        add: function(type, data, k) {
+            k = k || "~" + nextUid() + "~";
+            !pb[type] && (pb[type] = {});
+            type !== "func" && (data = traverse(data, extractFuncs));
+            pb[type][k] = deflate(data);
+            return k;
+        },
+
+        /**
+         * @function MetaphorJs.app.prebuilt.isKey
+         * @param {string} k
+         * @returns {boolean}
+         */
+        isKey: function(k) {
+            return typeof k === "string" && k[0] === "~" && k[k.length-1] === "~";
+        },
+
+        /**
+         * @function MetaphorJs.app.prebuilt.getStorage
+         * @returns {object}
+         */
+        getStorage: function() {
+            return pb;
+        },
+
+        /**
+         * @function MetaphorJs.app.prebuilt.setStorage
+         * @param {object} storage
+         */
+        setStorage: function(storage) {
+            pb = storage;
+        }
+    };
+
+    return api;
+}());
+
+
+
+
+
+
+
 
 /**
  * Text renderer
@@ -4696,6 +4926,9 @@ var lib_Text = MetaphorJs.lib.Text = (function(){
                 return w.getValue();
             }
             else {
+                if (app_prebuilt.isKey(expr)) {
+                    expr = app_prebuilt.get("config", expr);
+                }
                 return lib_Expression.get(expr, scope);
             }
         },
@@ -4942,7 +5175,8 @@ var lib_Text = MetaphorJs.lib.Text = (function(){
      * @returns {boolean}
      */
     Text.applicable = function(text) {
-        return !text || !text.indexOf ||
+        return app_prebuilt.isKey(text) || 
+                !text || !text.indexOf ||
                 text.indexOf(startSymbol) === -1 ? false : true;
     };
 
@@ -4981,172 +5215,6 @@ var dom_commentWrap = MetaphorJs.dom.commentWrap = function commentWrap(node, na
 
     return [before, after];
 };
-
-
-
-
-
-
-var app_prebuilt = MetaphorJs.app.prebuilt = (function() {
-
-    var pb = MetaphorJs.prebuilt || {},
-        fnMap = {}; // used when building
-
-    var unspace = function(fn) {
-        fn = fn.replace(/[\n\r]/g, '');
-        fn = fn.replace(/\s+/g, ' ');
-        fn = fn.replace(' anonymous', '');
-        return fn;
-    };
-
-    var traverse = function(s, fn) {
-        if (isArray(s)) {
-            var i, l;
-            for (i = 0, l = s.length; i < l; i++) {
-                s[i] = traverse(s[i], fn);
-            }
-        }
-        else if (isPlainObject(s)) {
-            var k;
-            for (k in s) {
-                s[k] = traverse(s[k], fn);
-            }
-        }
-        return fn(s);
-    };
-
-    var extractFuncs = function(s) {
-        if (typeof s === "function") {
-            var fnstr = unspace(s.toString());
-            if (!fnMap[fnstr]) {
-                fnMap[fnstr] = api.add("func", s);
-                var descr = lib_Expression.describeExpression(fnstr);
-                if (descr) {
-                    api.add("funcDescr", descr, fnMap[fnstr]);
-                }
-            }
-            s = fnMap[fnstr];
-        }
-        return s;
-    };
-
-    var importFuncs = function(s) {
-        return api.isKey(s) ? pb.func[s] : s;
-    };
-
-    var deflate = function(s) {
-        var k,
-            keys = 0;
-
-        for (k in s) {
-            if (!s[k] || k === "expr") {
-                delete s[k];
-            }
-            else if (isArray(s[k]) && s[k].length === 0) {
-                delete s[k];
-            }
-            else {
-                keys++;
-            }
-        }
-
-        if (keys === 1 && s.getterFn) {
-            s = s.getterFn;
-        }
-
-        return s;
-    };
-
-    var inflate = function(s) {
-        s = traverse(s, importFuncs);
-        if (typeof s === "function") {
-            s = {getterFn: s};
-        }
-        !s.inputPipes && (s.inputPipes = []);
-        !s.pipes && (s.pipes = []);
-        s.inflated = true;
-        return s;
-    };
-
-    var api = {
-
-        /**
-         * @function MetaphorJs.app.prebuilt.deflate
-         * @param {object} data
-         * @returns {object}
-         */
-        deflate: function(s) {
-            return deflate(s);
-        },
-
-        /**
-         * @function MetaphorJs.app.prebuilt.inflate
-         * @param {object} data
-         * @returns {object}
-         */
-        inflate: function(s) {
-            return inflate(s);
-        },
-
-        /**
-         * @function MetaphorJs.app.prebuilt.get
-         * @param {string} type
-         * @param {string} k
-         * @returns {object|undefined}
-         */
-        get: function(type, k) {
-            var data = pb[type] ? pb[type][k] : undefined;
-            if (data) {
-                !data.inflated && (data = inflate(data));
-            }
-            return data;
-        },
-
-        /**
-         * @function MetaphorJs.app.prebuilt.add
-         * @param {string} type
-         * @param {object} data
-         * @param {string} key {
-         *  @optional if not provided, will generate a unique key
-         * }
-         * @returns {string} new (or provided) key
-         */
-        add: function(type, data, k) {
-            k = k || "~" + nextUid() + "~";
-            !pb[type] && (pb[type] = {});
-            type !== "func" && (data = traverse(data, extractFuncs));
-            pb[type][k] = deflate(data);
-            return k;
-        },
-
-        /**
-         * @function MetaphorJs.app.prebuilt.isKey
-         * @param {string} k
-         * @returns {boolean}
-         */
-        isKey: function(k) {
-            return typeof k === "string" && k[0] === "~" && k[k.length-1] === "~";
-        },
-
-        /**
-         * @function MetaphorJs.app.prebuilt.getStorage
-         * @returns {object}
-         */
-        getStorage: function() {
-            return pb;
-        },
-
-        /**
-         * @function MetaphorJs.app.prebuilt.setStorage
-         * @param {object} storage
-         */
-        setStorage: function(storage) {
-            pb = storage;
-        }
-    };
-
-    return api;
-}());
 
 /**
  * Converts given value to boolean. <br>
@@ -5204,19 +5272,6 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
         MODE_FNSET = 7,
         MODE_LISTENER = 8;
 
-    var clearPipes = function(struct) {
-        var i, l;
-        if (struct.pipes) {
-            for (i = 0, l = struct.pipes.length; i < l; i++) {
-                delete struct.pipes[i].fn;
-            }
-        }
-        if (struct.inputPipes) {
-            for (i = 0, l = struct.inputPipes.length; i < l; i++) {
-                delete struct.inputPipes[i].fn;
-            }
-        }
-    };
 
     /**
      * @constructor
@@ -5316,7 +5371,6 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                         noReturn: mode === MODE_FUNC || mode === MODE_SETTER,
                         setter: mode === MODE_SETTER || mode === MODE_FNSET
                     });
-                    clearPipes(res);
                     break;
                 }
 
@@ -5327,7 +5381,6 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                         noReturn: delegate === false
                     });
                     res.delegate = delegate;
-                    clearPipes(res);
                     break;
                 }
             }
