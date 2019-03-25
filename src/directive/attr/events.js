@@ -61,16 +61,17 @@ var Directive = require("../../app/Directive.js"),
 
                 var eh,
                     destroyed = false,
+                    rs = window.document.readyState,
                     init = function(node) {
                         if (!destroyed) {
                             eh = createHandler(name, scope, node, config);
                         }
                     };
 
-                if (window.document.readyState === "complete") {
+                if (rs === "complete" || rs === undefined) {
                     getNode(node, config, name, init);
                 }
-                MetaphorJs.dom.addListener(window, "load", function(){
+                else MetaphorJs.dom.addListener(window, "load", function(){
                     getNode(node, config, name, init);
                 });
 

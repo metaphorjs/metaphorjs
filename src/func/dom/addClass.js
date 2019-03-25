@@ -10,6 +10,9 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
  */
 module.exports = MetaphorJs.dom.addClass = function dom_addClass(el, cls) {
     if (cls && !MetaphorJs.dom.hasClass(el, cls)) {
-        el.className += " " + cls;
+        if (el.classList) {
+            el.classList.add(cls);
+        }
+        else el.className += " " + cls;
     }
 };

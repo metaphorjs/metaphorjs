@@ -32,7 +32,7 @@ module.exports = MetaphorJs.dom.addListener = function(){
         }
 
 
-        if (event == "mousewheel") {
+        if (event === "mousewheel") {
             func = _mousewheelHandler(func);
             var events = _mousewheelHandler.events(),
                 i, l;

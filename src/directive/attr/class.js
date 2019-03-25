@@ -27,6 +27,10 @@ DO NOT put class="{}" when using class.name="{}"
 
         var has;
 
+        if (!node.className) {
+            node.className = "";
+        }
+
         if (toggle !== null) {
             if (toggle === MetaphorJs.dom.hasClass(node, cls)) {
                 return;

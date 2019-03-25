@@ -10,5 +10,9 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
  * @returns {boolean}
  */
 module.exports = MetaphorJs.dom.hasClass = function(el, cls) {
-    return cls ? MetaphorJs.dom.getClsReg(cls).test(el.className) : false;
+    return cls ? 
+            el.classList ? 
+                el.classList.contains(cls) : 
+                MetaphorJs.dom.getClsReg(cls).test(el.className) : 
+            false;
 };

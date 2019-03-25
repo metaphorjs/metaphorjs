@@ -14,6 +14,9 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
  */
 module.exports = MetaphorJs.dom.removeClass = function(el, cls) {
     if (cls) {
-        el.className = el.className.replace(MetaphorJs.dom.getClsReg(cls), '');
+        if (el.classList) {
+            el.classList.remove(cls);
+        }
+        else el.className = el.className.replace(MetaphorJs.dom.getClsReg(cls), '');
     }
 };
