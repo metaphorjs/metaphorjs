@@ -44,6 +44,7 @@ var Directive = require("../../app/Directive.js"),
         var ms = MetaphorJs.lib.Config.MODE_STATIC;
         config.setDefaultMode("value", ms);
         config.setDefaultMode("as", ms);
+        config.setDefaultMode("scope", ms);
     };
 
     ctrlAttr.deepInitConfig = function(config) {

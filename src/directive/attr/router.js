@@ -51,8 +51,11 @@ MetaphorJs.app.Directive.registerAttribute("router", 200, function(){
     }
 
     dir.initConfig = function(config) {
+        var ms = MetaphorJs.lib.Config.MODE_STATIC;
+        config.setDefaultMode("scope", ms);
+        config.setDefaultMode("id", ms);
         config.setProperty("value", {
-            defaultMode: MetaphorJs.lib.Config.MODE_STATIC,
+            defaultMode: ms,
             defaultValue: "MetaphorJs.app.view.Router"
         });
         config.eachProperty(function(k){

@@ -4,7 +4,8 @@ require("metaphorjs/src/func/dom/removeListener.js");
 require("../../lib/Config.js");
 
 var Directive = require("../../app/Directive.js"),
-    bind = require("metaphorjs-shared/src/func/bind.js");
+    bind = require("metaphorjs-shared/src/func/bind.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
 Directive.registerAttribute("focused", 600, Directive.$extend({

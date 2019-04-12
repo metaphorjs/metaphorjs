@@ -66,6 +66,7 @@ var Directive = require("../../app/Directive.js"),
         config.setDefaultMode("init", MetaphorJs.lib.Config.MODE_FUNC);
         config.setDefaultMode("as", ms);
         config.setDefaultMode("ref", ms);
+        config.setDefaultMode("scope", ms);
         config.setMode("into", ms);
         config.setType("cloak", "bool", ms);
     }

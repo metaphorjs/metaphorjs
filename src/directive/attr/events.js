@@ -24,6 +24,7 @@ var Directive = require("../../app/Directive.js"),
             defaultValue: true,
             defaultMode: ms
         });
+        config.setDefaultMode("scope", ms);
         config.setType("stopPropagation", "bool", ms);
         config.setType("if", "bool");
         config.setType("not", "string", ms);
