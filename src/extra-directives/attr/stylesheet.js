@@ -56,9 +56,9 @@ Directive.registerAttribute("stylesheet", 1000,
 
         if (props) {
             for (k in props) {
-                prop = k.split(":", 2);
-                state = prop[1] || "";
-                prop = prop[0];
+                prop = k.split(".", 2);
+                state = prop.length > 1 ? prop[0] || "" : "";
+                prop = prop[1];
                 if (!css[state]) {
                     css[state] = [selector + ":" + state + " {"];
                 }

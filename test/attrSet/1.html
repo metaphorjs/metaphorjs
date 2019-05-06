@@ -17,6 +17,7 @@
             {dir.$cfg-expr-single}!="this.a" 
             (1|click)="this.handleClick(this.$event)"
             (2|click)="this.handleClick(this.$event)"
+            {style.background-color.before}="'#'+this.project.main_color"
             [value]="this.a"></div>
 
     <comp id="test2" 

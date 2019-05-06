@@ -280,29 +280,30 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
             if (name.indexOf('|') !== -1) {
                 parts = name.split('|');
                 indexName = parts[1];
-            }
+            
+                if (name !== indexName && indexName) {
 
-            if (name !== indexName && indexName) {
+                    if (ds[indexName]) {
+                        if (!isArray(ds[indexName])) {
+                            ds[indexName] = [ds[indexName]]
+                            __ds[indexName] = [__ds[indexName]]
+                        }
+                    }
+                    else {
+                        ds[indexName] = [];
+                        __ds[indexName] = [];
+                    }
 
-                if (ds[indexName]) {
-                    if (!isArray(ds[indexName])) {
-                        ds[indexName] = [ds[indexName]]
-                        __ds[indexName] = [__ds[indexName]]
+                    if (isArray(ds[indexName])) {
+                        ds[indexName].push(ds[name])
+                        __ds[indexName].push(__ds[name])
+                        delete ds[name];
+                        delete __ds[name];
                     }
                 }
-                else {
-                    ds[indexName] = [];
-                    __ds[indexName] = [];
-                }
-
-                if (isArray(ds[indexName])) {
-                    ds[indexName].push(ds[name])
-                    __ds[indexName].push(__ds[name])
-                    delete ds[name];
-                    delete __ds[name];
-                }
             }
-            else if (!isArray(ds[name])) {
+
+            if (!isArray(ds[name])) {
                 ds[name] = [ds[name]]
                 __ds[name] = [__ds[name]]
             }

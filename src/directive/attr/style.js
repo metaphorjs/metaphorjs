@@ -61,7 +61,6 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
             for (k in props) {
 
                 trg = toCamelCase(k);
-
                 if (props[k] !== undf && props[k] !== null) {
                     style[trg] = props[k];
                 }
