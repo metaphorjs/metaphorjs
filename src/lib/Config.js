@@ -123,8 +123,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 case MODE_FUNC: 
                 case MODE_GETTER: 
                 case MODE_SETTER:
-                case MODE_FNSET: 
-                 {
+                case MODE_FNSET: {
                     res = MetaphorJs.lib.Expression.deconstruct(expr, {
                         noReturn: mode === MODE_FUNC || mode === MODE_SETTER,
                         setter: mode === MODE_SETTER || mode === MODE_FNSET
@@ -253,8 +252,9 @@ module.exports = MetaphorJs.lib.Config = (function(){
                         }
                         else {
                             value = self._wrapListener(
-                                pb.fn, 
-                                prop.scope || self.cfg.scope
+                                pb.fn || pb.getterFn, 
+                                prop.scope || self.cfg.scope,
+                                prop
                             );
                         }
                     }
@@ -268,10 +268,13 @@ module.exports = MetaphorJs.lib.Config = (function(){
                         }
                         else {
                             value = MetaphorJs.lib.Expression.func(prop.expression);
-                            value = self._wrapListener(
-                                        value, 
-                                        prop.scope || self.cfg.scope
-                                    );
+                            if (value && typeof(value) === "function") {
+                                value = self._wrapListener(
+                                    value, 
+                                    prop.scope || self.cfg.scope,
+                                    prop
+                                );
+                            }
                         }
                     }
                 }
@@ -295,7 +298,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
             return retValue;
         },
 
-        _wrapListener: function(ls, scope) {
+        _wrapListener: function(ls, scope, prop) {
             return function() {
                 var args = toArray(arguments),
                     i, l;
@@ -1097,7 +1100,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 keys = name ? [name] : self.keys,
                 i, l, key, prop,
                 res = name ? 0 : false;
-            
+
             for (i = 0, l = keys.length; i < l; i++) {
                 key = keys[i];
                 prop = self.properties[key];
