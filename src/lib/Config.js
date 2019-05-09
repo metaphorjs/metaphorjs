@@ -239,7 +239,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 }
                 else if (prop.mode === MODE_FUNC) {
                     if (pb) {
-                        value = pb.fn;
+                        value = pb.fn || pb.getterFn;
                     }
                     else {
                         value = MetaphorJs.lib.Expression.func(prop.expression);
