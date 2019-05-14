@@ -16,7 +16,7 @@ module.exports = MetaphorJs.dom.getScrollParent = function() {
         body,
 
         overflow    = function (node) {
-            var style = getStyle(node);
+            var style = MetaphorJs.dom.getStyle(node);
             return style ? style["overflow"] + style["overflowY"] + style["overflowY"] : "";
         },
 
