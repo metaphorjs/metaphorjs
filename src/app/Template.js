@@ -315,7 +315,7 @@ module.exports = MetaphorJs.app.Template = function() {
                 if (self._rendered) {
                     if (window.requestAnimationFrame && 
                         MetaphorJs.dom.isAttached(self._attachTo)) {
-                        requestAnimationFrame(function(){
+                        window.requestAnimationFrame(function(){
                             self._rafAttach();
                         });
                     }
@@ -368,7 +368,7 @@ module.exports = MetaphorJs.app.Template = function() {
 
                 if (self._rendered) {
                     if (window.requestAnimationFrame) {
-                        requestAnimationFrame(function(){
+                        window.requestAnimationFrame(function(){
                             self._rafReplace();
                         });
                     }
@@ -415,7 +415,9 @@ module.exports = MetaphorJs.app.Template = function() {
                     self.attachBefore.parentNode && 
                         self.attach(self.attachTo, self.attachBefore);
                 }
-                else self.attach(self.attachTo);
+                else {
+                    self.attach(self.attachTo);
+                }
             }
             // reattaching to previous
             else if (self._nextEl || self._attachTo || self._shadowRoot) {
@@ -895,7 +897,9 @@ module.exports = MetaphorJs.app.Template = function() {
                     }
                 }
             }
-            else attached = true;
+            else {
+                attached = true;
+            }
 
             self._attached = attached;
             if (attached) {

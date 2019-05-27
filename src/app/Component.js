@@ -113,6 +113,14 @@ module.exports = MetaphorJs.app.Component = MetaphorJs.app.Controller.$extend({
 
         self.config.getAll(); // calc all values into $cfg
         self._initTemplate();
+
+        self.afterInitComponent.apply(self, arguments);
+
+        if (self.autoRender) {
+            self.template.resolve()
+                .done(self.template.render, self.template)
+                .done(self.render, self);
+        }
     },
 
     // this gets called inside parent's $init
@@ -192,14 +200,6 @@ module.exports = MetaphorJs.app.Component = MetaphorJs.app.Controller.$extend({
 
         if (self._nodeCreated) {
             self.template.setNamedNode("main", self.node);
-        }
-
-        self.afterInitComponent.apply(self, arguments);
-
-        if (self.autoRender) {
-            tpl.resolve()
-                .done(tpl.render, tpl)
-                .done(self.render, self);
         }
     },
 
@@ -414,17 +414,24 @@ module.exports = MetaphorJs.app.Component = MetaphorJs.app.Controller.$extend({
         self.afterRender();
         self.trigger('after-render', self);
 
+        console.log("rendering finished")
+
         if (self.renderTo) {
+            console.log("render to")
             self.template.attach(self.renderTo, self.renderBefore);
+            console.log("attached")
         }
 
         if (self.directives) {
+            console.log("directives 1")
             self._initDirectives();
+            console.log("directives 2")
         }
     },
 
 
     _onTemplateAttached: function() {
+        console.log("template attached")
         this._attached = true;
         this.afterAttached();
         this.trigger('after-attached', this);
