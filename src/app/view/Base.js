@@ -61,18 +61,22 @@ module.exports = MetaphorJs.app.view.Base = cls({
 
     clearComponent: function() {
         var self    = this,
-            node    = self.node;
+            node    = self.node,
+            curr    = self.currentComponent;
 
-        if (self.currentComponent) {
+        if (curr) {
 
-            MetaphorJs.animate.animate(node, self.config.get("animate") ? "leave" : null).done(function(){
+            var anim = null,
+                cfg = self.config;
 
-                if (self.currentComponent &&
-                    !self.currentComponent.$destroyed &&
-                    !self.currentComponent.$destroying) {
-                    self.currentComponent.$destroy();
-                }
+            if (cfg && !cfg.$isDestroyed() && cfg.get("animate")) {
+                anim = "leave";
+            }
 
+            MetaphorJs.animate.animate(node, anim).done(function(){
+
+                curr && !curr.$isDestroyed() && curr.$destroy();
+    
                 while (node.firstChild) {
                     node.removeChild(node.firstChild);
                 }

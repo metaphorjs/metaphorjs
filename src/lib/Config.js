@@ -1176,6 +1176,14 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
         /**
          * @method
+         * @returns {bool}
+         */
+        $isDestroyed: function() {
+            return this.properties === null;
+        },
+
+        /**
+         * @method
          */
         $destroy: function() {
             var self = this;
