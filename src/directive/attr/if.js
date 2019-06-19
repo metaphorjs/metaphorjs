@@ -18,25 +18,24 @@ Directive.registerAttribute("if", 500, Directive.$extend({
         this.createCommentWrap(this.node, "if");
         this.$super();
     },
-    
+
 
     onScopeChange: function() {
         var self    = this,
             config  = self.config,
             val     = config.get("value"),
-            parent  = self.wrapperOpen.parentNode,
             node    = self.node,
             initial = self._initial,
 
-            show    = function(){
-                parent.insertBefore(node, self.wrapperClose);
+            show    = function() {
+                self.wrapperClose.parentNode.insertBefore(node, self.wrapperClose);
                 if (!initial) {
                     raf(self.trigger, self, ["show", node]);
                 }
             },
 
             hide    = function() {
-                parent.removeChild(node);
+                node.parentNode.removeChild(node);
                 if (!initial) {
                     raf(self.trigger, self, ["hide", node]);
                 }
