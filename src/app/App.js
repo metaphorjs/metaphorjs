@@ -23,6 +23,7 @@ module.exports = MetaphorJs.app.App = cls({
     lang: null,
     scope: null,
     renderer: null,
+    cmpPromises: null,
     cmpListeners: null,
     components: null,
     sourceObs: null,
@@ -52,6 +53,7 @@ module.exports = MetaphorJs.app.App = cls({
         self.scope          = scope;
         self.cmpListeners   = {};
         self.components     = {};
+        self.cmpPromises    = {};
         self.$refs          = {node: {}, cmp: {}};
 
         self.factory('$parentCmp', ['$node', self.getParentCmp], self);
@@ -177,22 +179,26 @@ module.exports = MetaphorJs.app.App = cls({
     onAvailable: function(id, fn, context) {
 
         var self = this,
-            cmpListeners = self.cmpListeners,
-            components = self.components;
+            promises = self.cmpPromises,
+            components = self.components,
+            ev = "available-" + id;
 
-        if (!cmpListeners[id]) {
-            cmpListeners[id] = new MetaphorJs.lib.Promise;
-        }
+        self.$$observable.createEvent(ev);
 
         if (fn) {
-            cmpListeners[id].done(fn, context);
+            self.$$observable.on(ev, fn, context);
+        }
+
+        if (!promises[id]) {
+            promises[id] = new MetaphorJs.lib.Promise;
+            self.$$observable.once(ev, promises[id].resolve, promises[id]);
         }
 
         if (components[id]) {
-            cmpListeners[id].resolve(components[id])
+            self.$$observable.trigger(ev, components[id]);
         }
 
-        return cmpListeners[id];
+        return promises[id];
     },
 
     /**
@@ -212,16 +218,14 @@ module.exports = MetaphorJs.app.App = cls({
     registerCmp: function(cmp, byKey) {
         var self = this,
             id = cmp[byKey],
+            ev = "available-" + id,
             deregister = function() {
-                delete self.cmpListeners[id];
+                delete self.cmpPromises[id];
                 delete self.components[id];
             };
 
         self.components[id] = cmp;
-
-        if (self.cmpListeners[id]) {
-            self.cmpListeners[id].resolve(cmp);
-        }
+        self.$$observable.trigger(ev, cmp);
 
         if (cmp.on) {
             cmp.on("destroy", deregister);
