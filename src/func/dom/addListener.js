@@ -16,7 +16,7 @@ module.exports = MetaphorJs.dom.addListener = function(){
     var fn = null,
         prefix = null;
 
-    return function dom_addListener(el, event, func) {
+    return function dom_addListener(el, event, func, opt) {
 
         if (fn === null) {
             if (el.addEventListener) {
@@ -31,17 +31,19 @@ module.exports = MetaphorJs.dom.addListener = function(){
             //prefix = el.attachEvent ? "on" : "";
         }
 
+        opt = opt || {};
+        opt.capture = opt.capture || false;
 
         if (event === "mousewheel") {
             func = _mousewheelHandler(func);
             var events = _mousewheelHandler.events(),
                 i, l;
             for (i = 0, l = events.length; i < l; i++) {
-                el[fn](prefix + events[i], func, false);
+                el[fn](prefix + events[i], func, opt);
             }
         }
         else {
-            el[fn](prefix + event, func, false);
+            el[fn](prefix + event, func, opt);
         }
 
         return func;
