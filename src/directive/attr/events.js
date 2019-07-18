@@ -27,6 +27,7 @@ var Directive = require("../../app/Directive.js"),
         config.setDefaultMode("scope", ms);
         config.setType("stopPropagation", "bool", ms);
         config.setType("if", "bool");
+        config.setType("passive", "bool");
         config.setType("not", "string", ms);
         config.eachProperty(function(k){
             if (k === 'value' || k.indexOf('value.') === 0) {

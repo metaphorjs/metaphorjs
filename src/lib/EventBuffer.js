@@ -29,8 +29,9 @@ module.exports = MetaphorJs.lib.EventBuffer = function(){
      * @param {HTMLElement} node 
      * @param {string} event Dom event name
      * @param {int} interval 
+     * @param {object} eventOptions
      */
-    var EventBuffer = function(node, event, interval) {
+    var EventBuffer = function(node, event, interval, eventOpts) {
 
         var self = this,
             key = bufferKey(event, interval);
@@ -41,6 +42,7 @@ module.exports = MetaphorJs.lib.EventBuffer = function(){
 
         node[key] = self;
 
+        self.eventOptions = eventOpts || {};
         self.id = key;
         self.breaks = {};
         self.watchers = {};
@@ -308,7 +310,11 @@ module.exports = MetaphorJs.lib.EventBuffer = function(){
          */
         up: function() {
             var self = this;
-            MetaphorJs.dom.addListener(self.node, self.event, self.handlerDelegate);
+            MetaphorJs.dom.addListener(
+                self.node, self.event, 
+                self.handlerDelegate,
+                self.eventOptions
+            );
         },
 
         /**
@@ -354,16 +360,17 @@ module.exports = MetaphorJs.lib.EventBuffer = function(){
      * @param {HTMLElement} node 
      * @param {string} event 
      * @param {int} interval 
+     * @param {object} eventOptions
      * @returns {MetaphorJs.lib.EventBuffer}
      */
-    EventBuffer.get = function(node, event, interval) {
+    EventBuffer.get = function(node, event, interval, eventOpts) {
         var key = bufferKey(event, interval);
 
         if (node[key]) {
             return node[key];
         }
 
-        return node[key] = new EventBuffer(node, event, interval);
+        return node[key] = new EventBuffer(node, event, interval, eventOpts);
     
     };
 

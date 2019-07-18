@@ -189,11 +189,19 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
             self.handler = self.createHandler();
 
             if (buffer) {
-                self.buffer = MetaphorJs.lib.EventBuffer.get(self.node, self.event, buffer);
+                self.buffer = MetaphorJs.lib.EventBuffer.get(
+                    self.node, self.event, buffer,
+                    self._getEventConfig()
+                );
                 self.buffer.on(self.handler);
             }
             else {
-                MetaphorJs.dom.addListener(self.node, self.event, self.handler);
+                MetaphorJs.dom.addListener(
+                    self.node, 
+                    self.event, 
+                    self.handler,
+                    self._getEventConfig()
+                );
             }
         }
     },
@@ -214,6 +222,14 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
         else {
             MetaphorJs.dom.removeListener(self.node, self.event, self.handler);
         }
+    },
+
+    _getEventConfig: function() {
+        var opts = {};
+        if (this.config.hasExpression("passive")) {
+            opts.passive = this.config.get("passive");
+        }
+        return opts;
     },
 
     /**
