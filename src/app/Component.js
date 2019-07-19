@@ -158,6 +158,10 @@ module.exports = MetaphorJs.app.Component = MetaphorJs.app.Controller.$extend({
             }
         }
 
+        if (!tpl && config.has("template")) {
+            tpl = config.get("template");
+        }
+
         if (!self.node && config.has("tag")) {
             rootNode = window.document.createElement(config.get("tag"));
             self.node = rootNode;
