@@ -72,6 +72,7 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
                 preventDefault = false,
                 returnValue = undf,
                 stopPropagation = false,
+                stopImmediate = false,
                 res,
                 cfg = config.getAll(),
                 not = cfg.not,
@@ -89,6 +90,8 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
 
             cfg.preventDefault !== undf && (preventDefault = cfg.preventDefault);
             cfg.stopPropagation !== undf && (stopPropagation = cfg.stopPropagation);
+            cfg.stopImmediatePropagation !== undf && 
+                (stopImmediate = cfg.stopImmediatePropagation);
             cfg.returnValue !== undf && (returnValue = cfg.returnValue);
             cfg.keyCode !== undf && (keyCode = cfg.keyCode);
 
@@ -143,6 +146,7 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
             }
 
             stopPropagation && e.stopPropagation();
+            stopImmediate && e.stopImmediatePropagation && e.stopImmediatePropagation();
             preventDefault && e.preventDefault();
 
             if (self.$destroyed || self.$destroying) {
