@@ -46,7 +46,7 @@ var Input = function(el, changeFn, changeFnContext, cfg) {
     //self.observable     = new MetaphorJs.lib.Observable;
     self.el             = el;
     self.id             = ++id;
-    self.inputType      = el.type.toLowerCase();
+    self.inputType      = el.type ? el.type.toLowerCase() : "none";
     self.dataType       = cfg.type || MetaphorJs.dom.getAttr(el, "data-type") || self.inputType;
     self.listeners      = [];
 
@@ -182,7 +182,7 @@ extend(Input.prototype, {
         // hold the listener until composition is done.
         // More about composition events:
         // https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent
-        if (!MetaphorJs.browser.isAndroid()) {
+        if (!MetaphorJs.browser.isAndroid() && self.inputType !== "none") {
 
             var compositionStart    = function() {
                 composing = true;
@@ -229,7 +229,7 @@ extend(Input.prototype, {
         // if the browser does support "input" event, we are fine - except on
         // IE9 which doesn't fire the
         // input event on backspace, delete or cut
-        if (MetaphorJs.browser.hasEvent('input')) {
+        if (MetaphorJs.browser.hasEvent('input') && self.inputType !== "none") {
 
             listeners.push(["input", listener, false]);
 
@@ -239,7 +239,7 @@ extend(Input.prototype, {
 
             // if user modifies input value using context menu in IE,
             // we need "paste" and "cut" events to catch it
-            if (MetaphorJs.browser.hasEvent('paste')) {
+            if (MetaphorJs.browser.hasEvent('paste') && self.inputType !== "none") {
                 listeners.push(["paste", deferListener, false]);
                 listeners.push(["cut", deferListener, false]);
             }
@@ -249,7 +249,9 @@ extend(Input.prototype, {
         // if user paste into input using mouse on older browser
         // or form autocomplete on newer browser, we need "change" event to catch it
 
-        listeners.push(["change", listener, false]);
+        if (self.inputType !== "none") {
+            listeners.push(["change", listener, false]);
+        }
     },
 
     processValue: function(val) {
