@@ -574,7 +574,12 @@ module.exports = MetaphorJs.app.Renderer = function() {
                     text.node.src = res;
                 }
 
-                MetaphorJs.dom.setAttr(text.node, attrName, res);
+                if (res === false) {
+                    MetaphorJs.dom.removeAttr(text.node, attrName);
+                }
+                else {
+                    MetaphorJs.dom.setAttr(text.node, attrName, res);
+                }
             }
             else {
                 //text.node.textContent = res;

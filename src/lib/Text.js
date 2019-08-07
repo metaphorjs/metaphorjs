@@ -79,6 +79,10 @@ module.exports = MetaphorJs.lib.Text = (function(){
                 prev = text,
                 iter = 0;
 
+            if (text === false) {
+                return false;
+            }
+
             while (true) {
                 if (iter > 100) {
                     throw new Error(
