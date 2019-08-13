@@ -420,12 +420,13 @@ module.exports = MetaphorJs.lib.Expression = (function () {
         };
 
 
-    if (typeof window !== "undefined") {
-        filterSources.push(window);
-    }
     if (MetaphorJs.filter) {
         filterSources.push(MetaphorJs.filter)
     }
+    if (typeof window !== "undefined") {
+        filterSources.push(window);
+    }
+    
 
     reset();
 
