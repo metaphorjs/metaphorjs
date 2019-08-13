@@ -1,4 +1,5 @@
 require("../../directive/attr/style.js");
+require("../../lib/Stylesheet.js");
 
 var Directive = require("../../app/Directive.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
@@ -18,14 +19,10 @@ Directive.registerAttribute("stylesheet", 1000,
 
     initDirective: function() {
         this.styleId = "stylesheet_" + nextUid();
-        this.stylesheet = window.document.createElement("style");
-        this.stylesheet.type = "text/css";
-        this.stylesheet.id = "for_" + this.styleId;
-        this.head = window.document.head || 
-                        window.document.getElementsByTagName('head')[0] ||
-                        window.document.body;
-
-        this.head.appendChild(this.stylesheet);
+        this.stylesheet = new MetaphorJs.lib.Stylesheet({
+            id: "for_" + this.styleId
+        })
+        this.stylesheet.append();
         this.$super(arguments);
     },
 
@@ -75,27 +72,11 @@ Directive.registerAttribute("stylesheet", 1000,
     },
 
     onScopeChange: function() {
-        var style = this.stylesheet,
-            content = this.getCssText();
-
-        if (style.styleSheet) {
-            // This is required for IE8 and below.
-            style.styleSheet.cssText = content;
-        } 
-        else {
-            while (style.firstChild) {
-                style.removeChild(style.firstChild);
-            }
-            style.appendChild(window.document.createTextNode(content));
-        }
+        this.stylesheet.setContent(this.getCssText());
     },
 
     onDestroy: function() {
-
-        if (this.head) {
-            this.head.removeChild(this.stylesheet);
-        }
-
+        this.stylesheet.$destroy();
         this.$super();
     }
 }));
