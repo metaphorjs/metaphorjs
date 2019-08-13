@@ -17,7 +17,7 @@ var Directive = require("../../app/Directive.js"),
         var i = 0,
             l = types.length,
             pb;
-        
+
         if (MetaphorJs.app.prebuilt.isKey(expr)) {
             pb = MetaphorJs.app.prebuilt.get("config", expr);
         }
@@ -26,7 +26,8 @@ var Directive = require("../../app/Directive.js"),
         }
 
         if (pb) {
-            var obj = pb.getterFn(scope);
+            var getter = MetaphorJs.lib.Expression.construct(pb, {getterOnly: true});
+            var obj = getter(scope);
         }
         else {
             var tmp = expr.split(" in "),
