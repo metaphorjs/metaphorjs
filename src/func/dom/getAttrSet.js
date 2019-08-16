@@ -303,7 +303,7 @@ module.exports = MetaphorJs.dom.getAttrSet = (function() {
                 }
             }
 
-            if (!isArray(ds[name])) {
+            if (ds[name] && !isArray(ds[name])) {
                 ds[name] = [ds[name]]
                 __ds[name] = [__ds[name]]
             }
