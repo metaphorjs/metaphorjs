@@ -209,8 +209,10 @@ module.exports = (function(){
                         self.renderOrUpdate(vars.updateStart, null, "move");
                         for (i = 0, len = newRenderers.length; i < len; i++) {
                             r = newRenderers[i];
-                            r.el.style[prefixes.transform] = null;
-                            r.el.style[prefixes.transform] = "";
+                            if (r && r.el) {
+                                r.el.style[prefixes.transform] = null;
+                                r.el.style[prefixes.transform] = "";
+                            }
                         }
                     }
                     donePromise.resolve();
