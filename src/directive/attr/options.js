@@ -72,7 +72,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
 
         try {
             var value = MetaphorJs.lib.Expression.get(self.model, self.scope);
-            
+
             if (cls.isInstanceOf(value, "MetaphorJs.model.Store")) {
                 self.bindStore(value, "on");
             }
