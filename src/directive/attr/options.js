@@ -168,11 +168,11 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         self._prevGroup  = config.group;
 
         option  = window.document.createElement("option");
-        MetaphorJs.dom.setAttr(option, "value", config.value || "");
-        option.text = config.name || config.value || "";
+        MetaphorJs.dom.setAttr(option, "value", ""+config.value || "");
+        option.text = config.name || ""+config.value || "";
 
         if (msie && msie < 9) {
-            option.innerHTML = config.name || config.value || "";
+            option.innerHTML = config.name || ""+config.value || "";
         }
         if (config.disabled) {
             MetaphorJs.dom.setAttr(option, "disabled", "disabled");

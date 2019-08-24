@@ -3,318 +3,318 @@
 "use strict";
 
 var MetaphorJsPrebuilt = {"config":{
-"~8RF~":"~8RG~",
-"~8RJ~":"~8RK~",
-"~8RU~":"~8RV~",
-"~8RZ~":"~8S0~",
-"~8S9~":"~8SA~",
-"~8SF~":"~8SA~",
-"~8SK~":"~8SL~",
-"~8SQ~":"~8SR~",
-"~8T0~":"~8SA~",
-"~8T9~":"~8SR~",
-"~8TM~":{"getterFn":"~8RV~","pipes":[{"origArgs":[],"params":[],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"uppercase"}}],"descr":"o"},
-"~8TY~":{"getterFn":"~8TZ~","pipes":[{"origArgs":[],"params":[],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"linkify"}}],"descr":"o"},
-"~8UC~":{"getterFn":"~8SA~","setterFn":"~8UD~"},
-"~8UI~":{"getterFn":"~8SL~","setterFn":"~8UJ~"},
-"~8UO~":{"getterFn":"~8SR~","setterFn":"~8UP~"},
-"~8UX~":{"getterFn":"~8SA~","setterFn":"~8UD~"},
-"~8V8~":{"getterFn":"~8RV~","setterFn":"~8V9~"},
-"~8VE~":{"getterFn":"~8RV~","setterFn":"~8V9~"},
-"~8VK~":"~8SR~",
-"~8VP~":"~8SR~",
-"~8VU~":"~8VV~",
-"~8VZ~":"~8SL~",
-"~8W0~":"~8W1~",
-"~8W6~":"~8SL~",
-"~8W9~":"~8SL~",
-"~8WC~":"~8SL~",
-"~8WV~":"~8WW~",
-"~8X0~":"~8X1~",
-"~8X4~":"~8X5~",
-"~8XH~":{"fn":"~8XI~"},
-"~8XN~":{"getterFn":"~8XO~","setterFn":"~8XP~"},
-"~8XY~":{"getterFn":"~8XZ~","setterFn":"~8Y0~","inputPipes":[{"origArgs":["this.sep"],"params":["~8XO~"],"expressions":["this.sep"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"split"}}],"descr":"i"},
-"~8Y4~":{"getterFn":"~8XZ~","inflate":{"itemName":"item"}},
-"~8Y6~":"~8Y7~",
-"~8YE~":"~8SA~",
-"~8YG~":{"getterFn":"~8YH~","inflate":{"item":"~8YI~"}},
-"~8YO~":{"getterFn":"~8XZ~","inflate":{"item":"~8YP~"}},
-"~8YX~":{"fn":"~8YY~"},
-"~8Z0~":{"fn":"~8Z1~"},
-"~8Z4~":{"fn":"~8Z5~"},
-"~8ZA~":"~8ZB~",
-"~8ZJ~":{"fn":"~8ZK~"},
-"~8ZN~":{"fn":"~8ZO~"},
-"~902~":"~903~",
-"~907~":{"fn":"~908~","descr":"p"},
-"~90B~":{"fn":"~90C~","descr":"p"},
-"~90G~":{"fn":"~90H~"},
-"~90L~":{"getterFn":"~90M~","setterFn":"~90N~"},
-"~90P~":{"fn":"~90Q~"},
-"~90T~":"~90U~",
-"~90W~":{"fn":"~90X~"},
-"~910~":"~8SL~",
-"~913~":{"getterFn":"~914~","pipes":[{"origArgs":["this.listFilter"],"params":["~915~"],"expressions":["this.listFilter"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"filter"}},{"origArgs":["'txt'","this.sortBy"],"params":["~916~","~917~"],"expressions":["this.sortBy"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"sortBy"}}],"inflate":{"itemName":"item"},"descr":"o"},
-"~91A~":"~91B~",
-"~91E~":{"getterFn":"~91F~","setterFn":"~91G~"},
-"~91J~":{"fn":"~91K~","descr":"p"},
-"~91N~":{"getterFn":"~915~","setterFn":"~91O~"},
-"~91R~":{"fn":"~91S~"},
-"~91T~":{"fn":"~91U~"},
-"~91X~":{"fn":"~91Y~"},
-"~91Z~":{"fn":"~91U~"},
-"~926~":"~91B~",
-"~929~":{"getterFn":"~91F~","setterFn":"~91G~"},
-"~92C~":{"fn":"~91K~","descr":"p"},
-"~92H~":{"fn":"~92I~"},
-"~92M~":{"fn":"~92N~"},
-"~92Q~":{"fn":"~92R~"},
-"~92U~":{"fn":"~92V~"},
-"~92Y~":{"fn":"~92Z~"},
-"~934~":{"fn":"~935~"},
-"~938~":{"fn":"~939~"},
-"~93E~":{"getterFn":"~93F~","setterFn":"~93G~"},
-"~93O~":{"getterFn":"~93P~","inflate":{"item":"~93Q~"}},
-"~93U~":{"getterFn":"~93V~","setterFn":"~93W~","descr":"p"},
-"~93X~":"~93F~",
-"~942~":{"getterFn":"~93P~","inflate":{"itemName":"item"}},
-"~949~":"~8SR~",
-"~94A~":"~8SR~",
-"~94B~":"~8RV~",
-"~94C~":"~8SR~",
-"~94D~":"~8SR~",
-"~94E~":"~8RV~",
-"~94F~":"~8S0~",
-"~94G~":{"getterFn":"~8RV~","pipes":[{"origArgs":[],"params":[],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"uppercase"}}]},
-"~94H~":{"getterFn":"~8RV~","pipes":[{"origArgs":[],"params":[],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"lowercase"}}]},
-"~94I~":{"getterFn":"~8RV~","pipes":[{"origArgs":["this.a"],"params":["~8SA~"],"expressions":["this.a"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"limitTo"}}]},
-"~94J~":"~94K~",
-"~94L~":"~94M~",
-"~94N~":"~94O~",
-"~94P~":"~94Q~",
-"~94R~":"~94S~",
-"~94T~":"~94U~",
-"~94V~":"~94W~",
-"~94X~":"~94Y~",
-"~94Z~":"~950~",
-"~951~":"~952~",
-"~953~":"~94S~",
-"~954~":"~94U~",
-"~955~":"~94W~",
-"~956~":"~94Y~",
-"~957~":"~950~",
-"~958~":"~952~",
-"~959~":"~94Q~",
-"~95A~":"~95B~",
-"~95C~":"~95D~",
-"~95M~":{"fn":"~95N~"},
-"~95R~":"~95S~",
-"~95Z~":{"getterFn":"~960~","pipes":[{"origArgs":[],"params":[],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"l"}}],"descr":"o"},
-"~966~":{"fn":"~967~"},
-"~96D~":{"getterFn":"~96E~","setterFn":"~96F~"},
-"~96I~":{"getterFn":"~96J~","pipes":[{"origArgs":["this.people"],"params":["~96E~"],"expressions":["this.people"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"p"}}],"descr":"o"},
-"~96L~":"~96M~",
-"~96N~":{"getterFn":"~96O~","pipes":[{"origArgs":[],"params":[],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"l"}}]},
-"~96P~":"~96Q~",
-"~96R~":{"getterFn":"~96S~","pipes":[{"origArgs":["this.b"],"params":["~96Q~"],"expressions":["this.b"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"p"}}]},
-"~96X~":"~94O~",
-"~970~":{"fn":"~971~"},
-"~973~":"~974~",
-"~975~":"~976~",
-"~977~":"~978~",
-"~979~":"~97A~",
-"~97B~":"~97C~",
-"~97E~":"~97F~",
-"~97G~":{"getterFn":"~97H~","pipes":[{"origArgs":["','"],"params":["~97I~"],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"join"}}]},
-"~97L~":{"fn":"~97M~"},
-"~97P~":{"getterFn":"~97Q~","inflate":{"itemName":"item"}},
-"~97T~":{"fn":"~97U~","descr":"p"},
-"~97X~":"~978~",
-"~97Z~":{"fn":"~980~"},
-"~982~":{"fn":"~983~"},
-"~985~":{"fn":"~986~"},
-"~988~":{"getterFn":"~989~","setterFn":"~98A~"},
-"~98B~":"~976~",
-"~98E~":"~98F~",
-"~98H~":"~989~",
-"~98K~":{"fn":"~98L~"},
+"~8V3~":"~8V4~",
+"~8V7~":"~8V8~",
+"~8VI~":"~8VJ~",
+"~8VN~":"~8VO~",
+"~8VX~":"~8VY~",
+"~8W3~":"~8VY~",
+"~8W8~":"~8W9~",
+"~8WE~":"~8WF~",
+"~8WO~":"~8VY~",
+"~8WX~":"~8WF~",
+"~8XA~":{"getterFn":"~8VJ~","pipes":[{"origArgs":[],"params":[],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"uppercase"}}],"descr":"o"},
+"~8XM~":{"getterFn":"~8XN~","pipes":[{"origArgs":[],"params":[],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"linkify"}}],"descr":"o"},
+"~8Y0~":{"getterFn":"~8VY~","setterFn":"~8Y1~"},
+"~8Y6~":{"getterFn":"~8W9~","setterFn":"~8Y7~"},
+"~8YC~":{"getterFn":"~8WF~","setterFn":"~8YD~"},
+"~8YL~":{"getterFn":"~8VY~","setterFn":"~8Y1~"},
+"~8YW~":{"getterFn":"~8VJ~","setterFn":"~8YX~"},
+"~8Z2~":{"getterFn":"~8VJ~","setterFn":"~8YX~"},
+"~8Z8~":"~8WF~",
+"~8ZD~":"~8WF~",
+"~8ZI~":"~8ZJ~",
+"~8ZN~":"~8W9~",
+"~8ZO~":"~8ZP~",
+"~8ZU~":"~8W9~",
+"~8ZX~":"~8W9~",
+"~900~":"~8W9~",
+"~90J~":"~90K~",
+"~90O~":"~90P~",
+"~90S~":"~90T~",
+"~915~":{"fn":"~916~"},
+"~91B~":{"getterFn":"~91C~","setterFn":"~91D~"},
+"~91M~":{"getterFn":"~91N~","setterFn":"~91O~","inputPipes":[{"origArgs":["this.sep"],"params":["~91C~"],"expressions":["this.sep"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"split"}}],"descr":"i"},
+"~91S~":{"getterFn":"~91N~","inflate":{"itemName":"item"}},
+"~91U~":"~91V~",
+"~922~":"~8VY~",
+"~924~":{"getterFn":"~925~","inflate":{"item":"~926~"}},
+"~92C~":{"getterFn":"~91N~","inflate":{"item":"~92D~"}},
+"~92L~":{"fn":"~92M~"},
+"~92O~":{"fn":"~92P~"},
+"~92S~":{"fn":"~92T~"},
+"~92Y~":"~92Z~",
+"~937~":{"fn":"~938~"},
+"~93B~":{"fn":"~93C~"},
+"~93Q~":"~93R~",
+"~93V~":{"fn":"~93W~","descr":"p"},
+"~93Z~":{"fn":"~940~","descr":"p"},
+"~944~":{"fn":"~945~"},
+"~949~":{"getterFn":"~94A~","setterFn":"~94B~"},
+"~94D~":{"fn":"~94E~"},
+"~94H~":"~94I~",
+"~94K~":{"fn":"~94L~"},
+"~94O~":"~8W9~",
+"~94R~":{"getterFn":"~94S~","pipes":[{"origArgs":["this.listFilter"],"params":["~94T~"],"expressions":["this.listFilter"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"filter"}},{"origArgs":["'txt'","this.sortBy"],"params":["~94U~","~94V~"],"expressions":["this.sortBy"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"sortBy"}}],"inflate":{"itemName":"item"},"descr":"o"},
+"~94Y~":"~94Z~",
+"~952~":{"getterFn":"~953~","setterFn":"~954~"},
+"~957~":{"fn":"~958~","descr":"p"},
+"~95B~":{"getterFn":"~94T~","setterFn":"~95C~"},
+"~95F~":{"fn":"~95G~"},
+"~95H~":{"fn":"~95I~"},
+"~95L~":{"fn":"~95M~"},
+"~95N~":{"fn":"~95I~"},
+"~95U~":"~94Z~",
+"~95X~":{"getterFn":"~953~","setterFn":"~954~"},
+"~960~":{"fn":"~958~","descr":"p"},
+"~965~":{"fn":"~966~"},
+"~96A~":{"fn":"~96B~"},
+"~96E~":{"fn":"~96F~"},
+"~96I~":{"fn":"~96J~"},
+"~96M~":{"fn":"~96N~"},
+"~96S~":{"fn":"~96T~"},
+"~96W~":{"fn":"~96X~"},
+"~972~":{"getterFn":"~973~","setterFn":"~974~"},
+"~97C~":{"getterFn":"~97D~","inflate":{"item":"~97E~"}},
+"~97I~":{"getterFn":"~97J~","setterFn":"~97K~","descr":"p"},
+"~97L~":"~973~",
+"~97Q~":{"getterFn":"~97D~","inflate":{"itemName":"item"}},
+"~97X~":"~8WF~",
+"~97Y~":"~8WF~",
+"~97Z~":"~8VJ~",
+"~980~":"~8WF~",
+"~981~":"~8WF~",
+"~982~":"~8VJ~",
+"~983~":"~8VO~",
+"~984~":{"getterFn":"~8VJ~","pipes":[{"origArgs":[],"params":[],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"uppercase"}}]},
+"~985~":{"getterFn":"~8VJ~","pipes":[{"origArgs":[],"params":[],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"lowercase"}}]},
+"~986~":{"getterFn":"~8VJ~","pipes":[{"origArgs":["this.a"],"params":["~8VY~"],"expressions":["this.a"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"limitTo"}}]},
+"~987~":"~988~",
+"~989~":"~98A~",
+"~98B~":"~98C~",
+"~98D~":"~98E~",
+"~98F~":"~98G~",
+"~98H~":"~98I~",
+"~98J~":"~98K~",
+"~98L~":"~98M~",
 "~98N~":"~98O~",
 "~98P~":"~98Q~",
-"~98S~":"~98T~",
-"~98W~":{"fn":"~98L~"},
+"~98R~":"~98G~",
+"~98S~":"~98I~",
+"~98T~":"~98K~",
+"~98U~":"~98M~",
+"~98V~":"~98O~",
+"~98W~":"~98Q~",
+"~98X~":"~98E~",
 "~98Y~":"~98Z~",
-"~991~":"~992~",
-"~993~":"~994~",
-"~996~":"~997~",
-"~99A~":"~99B~",
-"~99E~":{"fn":"~99F~"},
-"~99H~":{"fn":"~99I~"},
-"~99K~":"~99L~",
-"~99N~":{"getterFn":"~99O~","inflate":{"item":"~8YI~"}},
-"~99R~":"~97C~",
-"~99V~":"~99W~",
-"~99Y~":{"fn":"~99Z~"},
-"~9A1~":"~9A2~",
-"~9A5~":"~9A6~",
-"~9A8~":{"fn":"~9A9~"},
-"~9AB~":"~9AC~",
-"~9AF~":{"getterFn":"~9AG~","inflate":{"itemName":"item"}},
-"~9AI~":{"fn":"~9AJ~","descr":"p"},
-"~9AL~":{"getterFn":"~9AM~","descr":"p"},
-"~9AP~":"~9AQ~",
-"~9AS~":"~9AT~",
-"~9AV~":{"fn":"~9AW~","descr":"p"},
-"~9AY~":"~9AM~",
-"~9B3~":"~9B4~",
-"~9B9~":"~9BA~"},"func":{
-"~8RG~":function(____,$$) {return ____.$root.a * ____.$root.b},
-"~8RK~":function(____,$$) {return ____.$root.a + ____.$root.b},
-"~8RV~":function(____,$$) {return ____.text},
-"~8S0~":function(____,$$) {return ____.html},
-"~8SA~":function(____,$$) {return ____.a},
-"~8SL~":function(____,$$) {return ____.bool},
-"~8SR~":function(____,$$) {return ____.inline},
-"~8TZ~":function(____,$$) {return ____.linkified},
-"~8UD~":function(____,$$) {____.a = $$},
-"~8UJ~":function(____,$$) {____.bool = $$},
-"~8UP~":function(____,$$) {____.inline = $$},
-"~8V9~":function(____,$$) {____.text = $$},
-"~8VV~":function(____,$$) {return {bool: ____.bool, inline1: ____.a == 0}},
-"~8W1~":function(____,$$) {return ____.a == 0},
-"~8WW~":function(____,$$) {return ____.myForm.$invalid},
-"~8X1~":function(____,$$) {return {error: ____.myForm.field1.$invalid}},
-"~8X5~":function(____,$$) {return {error: ____.myForm.radio1.$invalid}},
-"~8XI~":function(____,$$) {____.dynamicList = []},
-"~8XO~":function(____,$$) {return ____.sep},
-"~8XP~":function(____,$$) {____.sep = $$},
-"~8XZ~":function(____,$$) {return ____.dynamicList},
-"~8Y0~":function(____,$$) {____.dynamicList = $$},
-"~8Y7~":function(____,$$) {return ____.item},
-"~8YH~":function(____,$$) {return ____.alist},
-"~8YI~":function(____,$$) {return {name: ____.item, value: ____.$index}},
-"~8YP~":function(____,$$) {return { name: ____.item, value: ____.$index, group: ____.$index - (____.$index % 2), disabledGroup: ____.$index == 0, disabled: ____.$index == 4 }},
-"~8YY~":function(____,$$) {____.tpl = 'a+b.html'},
-"~8Z1~":function(____,$$) {console.log('multiple click handlers!')},
-"~8Z5~":function(____,$$) {____.tpl = 'a*b.html'},
-"~8ZB~":function(____,$$) {return ____.tpl},
-"~8ZK~":function(____,$$) {____.tpl = ____.tpl1},
-"~8ZO~":function(____,$$) {____.tpl = ____.tpl2},
-"~903~":function(____,$$) {return ____.viewCmp},
-"~908~":function(____,$$) {____.$parent.viewCmp = 'Test.ViewComponent1'},
-"~90C~":function(____,$$) {____.$parent.viewCmp = 'Test.ViewComponent2'},
-"~90H~":function(____,$$) {____.newItem = ''; ____.listFilter = ''; ____.sortBy = 'asc'},
-"~90M~":function(____,$$) {return ____.newItem},
-"~90N~":function(____,$$) {____.newItem = $$},
-"~90Q~":function(____,$$) {if (____.newItem) { ____.list.push({bool: false, txt: ____.newItem}); ____.newItem = ''; }},
-"~90U~":function(____,$$) {return !____.newItem},
-"~90X~":function(____,$$) {____.list.push({bool: false, txt: ____.newItem}); ____.newItem = '';},
-"~914~":function(____,$$) {return ____.list},
-"~915~":function(____,$$) {return ____.listFilter},
-"~916~":function() {return 'txt'},
-"~917~":function(____,$$) {return ____.sortBy},
-"~91B~":function(____,$$) {return {cls3: ____.item.bool}},
-"~91F~":function(____,$$) {return ____.item.bool},
-"~91G~":function(____,$$) {____.item.bool = $$},
-"~91K~":function(____,$$) {____.$parent.list.splice(____.$getRawIndex(____.$trackId),1);},
-"~91O~":function(____,$$) {____.listFilter = $$},
-"~91S~":function(____,$$) {____.sortBy='asc'},
-"~91U~":function(____,$$) {console.log(____.sortBy)},
-"~91Y~":function(____,$$) {____.sortBy='desc'},
-"~92I~":function(____,$$) {____.selectBinding = 'scope'},
-"~92N~":function(____,$$) {____.ctrl.reverse()},
-"~92R~":function(____,$$) {____.ctrl.createNew()},
-"~92V~":function(____,$$) {____.ctrl.createRender()},
-"~92Z~":function(____,$$) {____.ctrl.createDialog()},
-"~935~":function(____,$$) {____.store.load()},
-"~939~":function(____,$$) {____.store.clear()},
-"~93F~":function(____,$$) {return ____.selectBinding},
-"~93G~":function(____,$$) {____.selectBinding = $$},
-"~93P~":function(____,$$) {return ____.store},
-"~93Q~":function(____,$$) {return { name: ____.item.data.name, value: ____.item.data.id }},
-"~93V~":function(____,$$) {return ____.$parent.a},
-"~93W~":function(____,$$) {____.$parent.a = $$},
-"~94K~":function(____,$$) {return ____.a + ____.b},
-"~94M~":function(____,$$) {return ____.bool ? "true": "false"},
-"~94O~":function(____,$$) {return ____.title},
-"~94Q~":function(____,$$) {return ____.$root.a},
-"~94S~":function(____,$$) {return ____.$index},
-"~94U~":function(____,$$) {return ____.item.txt},
-"~94W~":function(____,$$) {return ____.$first ? "first" : ""},
-"~94Y~":function(____,$$) {return ____.$last ? "last" : ""},
-"~950~":function(____,$$) {return ____.$even ? "even" : ""},
-"~952~":function(____,$$) {return ____.$odd ? "odd" : ""},
-"~95B~":function(____,$$) {return ____.item.name},
-"~95D~":function(____,$$) {return ____.deferred},
-"~95N~":function(____,$$) {____.changeLevel2()},
-"~95S~":function(____,$$) {return ____.level1},
-"~960~":function() {return 'subkey1'},
-"~967~":function(____,$$) {____.increaseB()},
-"~96E~":function(____,$$) {return ____.people},
-"~96F~":function(____,$$) {____.people = $$},
-"~96J~":function() {return 'viewing'},
-"~96M~":function(____,$$) {return ____.resolved},
-"~96O~":function() {return 'key'},
-"~96Q~":function(____,$$) {return ____.b},
-"~96S~":function() {return 'plr'},
-"~971~":function(____,$$) {____.field.onSelfClick(____.$event)},
-"~974~":function(____,$$) {return ____.loading},
-"~976~":function(____,$$) {return ____.field.disabled},
-"~978~":function(____,$$) {return ____.field.searchable},
-"~97A~":function(____,$$) {return ____.field.multiple},
-"~97C~":function(____,$$) {return ____.field.black},
-"~97F~":function(____,$$) {return ____.field.hiddenInputName},
-"~97H~":function(____,$$) {return ____.field.$selection},
-"~97I~":function() {return ','},
-"~97M~":function(____,$$) {____.field.onDropdownIconClick(____.$event)},
-"~97Q~":function(____,$$) {return ____.field.getMultiSelection()},
-"~97U~":function(____,$$) {____.$parent.field.onItemDeleteClick(____.item, ____.$event)},
-"~980~":function(____,$$) {____.field.onSearchFocus(____.$event)},
-"~983~":function(____,$$) {____.field.onSearchBlur(____.$event)},
-"~986~":function(____,$$) {____.field.onSearchBackspace(____.$event)},
-"~989~":function(____,$$) {return ____.searchQuery},
-"~98A~":function(____,$$) {____.searchQuery = $$},
-"~98F~":function(____,$$) {return ____.field.multiple && ____.field.searchable},
-"~98L~":function(____,$$) {____.field.onValueTextClick(____.$event)},
-"~98O~":function(____,$$) {return !____.searchQuery && !____.field.hasSelection() && !!____.field.emptyText},
-"~98Q~":function(____,$$) {____.emptyShown = ____.$1},
-"~98T~":function(____,$$) {return ____.field.emptyText},
-"~98Z~":function(____,$$) {return ____.focused && ____.searchQuery == ''},
-"~992~":function(____,$$) {return !____.searchQuery && !____.field.multiple && ____.field.hasSelection()},
-"~994~":function(____,$$) {____.selectedShown = ____.$1},
-"~997~":function(____,$$) {return ____.field.getSelectedName()},
-"~99B~":function(____,$$) {return !____.emptyShown && !____.selectedShown && !____.field.searchable},
-"~99F~":function(____,$$) {____.field.onHiddenSelectClick(____.$event)},
-"~99I~":function(____,$$) {____.field.onHiddenSelectChange(____.$event)},
-"~99L~":function(____,$$) {return ____.field.useHiddenSelect},
-"~99O~":function(____,$$) {return ____.field._getSelectOptions()},
-"~99W~":function(____,$$) {return ____.field.showNotFound && ____.field.store.isEmpty()},
-"~99Z~":function(____,$$) {____.field.onNotFoundClick(null, ____.$event)},
-"~9A2~":function(____,$$) {return ____.field.notFoundText},
-"~9A6~":function(____,$$) {return ____.field.showEmptyItem && !____.field.store.isEmpty()},
-"~9A9~":function(____,$$) {____.field.onItemClick(null, ____.$event)},
-"~9AC~":function(____,$$) {return ____.field.emptyItemText},
-"~9AG~":function(____,$$) {return ____.field.store},
-"~9AJ~":function(____,$$) {____.$parent.field.onItemClick(____.item, ____.$event)},
-"~9AM~":function(____,$$) {return ____.$parent.field.getItemName(____.item)},
-"~9AQ~":function() {return false},
-"~9AT~":function(____,$$) {return ____.pagination.hasPages()},
-"~9AW~":function(____,$$) {____.$parent.field.onPaginationClick(____.$event)},
-"~9B4~":function(____,$$) {return ____.ctrl.config.get('test')},
-"~9BA~":function(____,$$) {return ____.$root.text}},"funcDescr":{
-"~8RG~":"r",
-"~8RK~":"r",
-"~908~":"p",
-"~90C~":"p",
-"~91K~":"p",
-"~93V~":"p",
+"~990~":"~991~",
+"~99A~":{"fn":"~99B~"},
+"~99F~":"~99G~",
+"~99N~":{"getterFn":"~99O~","pipes":[{"origArgs":[],"params":[],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"l"}}],"descr":"o"},
+"~99U~":{"fn":"~99V~"},
+"~9A1~":{"getterFn":"~9A2~","setterFn":"~9A3~"},
+"~9A6~":{"getterFn":"~9A7~","pipes":[{"origArgs":["this.people"],"params":["~9A2~"],"expressions":["this.people"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"p"}}],"descr":"o"},
+"~9A9~":"~9AA~",
+"~9AB~":{"getterFn":"~9AC~","pipes":[{"origArgs":[],"params":[],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"l"}}]},
+"~9AD~":"~9AE~",
+"~9AF~":{"getterFn":"~9AG~","pipes":[{"origArgs":["this.b"],"params":["~9AE~"],"expressions":["this.b"],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"p"}}]},
+"~9AL~":"~98C~",
+"~9AO~":{"fn":"~9AP~"},
+"~9AR~":"~9AS~",
+"~9AT~":"~9AU~",
+"~9AV~":"~9AW~",
+"~9AX~":"~9AY~",
+"~9AZ~":"~9B0~",
+"~9B2~":"~9B3~",
+"~9B4~":{"getterFn":"~9B5~","pipes":[{"origArgs":["','"],"params":["~9B6~"],"expressions":[],"opt":{"neg":false,"dblneg":false,"undeterm":false,"name":"join"}}]},
+"~9B9~":{"fn":"~9BA~"},
+"~9BD~":{"getterFn":"~9BE~","inflate":{"itemName":"item"}},
+"~9BH~":{"fn":"~9BI~","descr":"p"},
+"~9BL~":"~9AW~",
+"~9BN~":{"fn":"~9BO~"},
+"~9BQ~":{"fn":"~9BR~"},
+"~9BT~":{"fn":"~9BU~"},
+"~9BW~":{"getterFn":"~9BX~","setterFn":"~9BY~"},
+"~9BZ~":"~9AU~",
+"~9C2~":"~9C3~",
+"~9C5~":"~9BX~",
+"~9C8~":{"fn":"~9C9~"},
+"~9CB~":"~9CC~",
+"~9CD~":"~9CE~",
+"~9CG~":"~9CH~",
+"~9CK~":{"fn":"~9C9~"},
+"~9CM~":"~9CN~",
+"~9CP~":"~9CQ~",
+"~9CR~":"~9CS~",
+"~9CU~":"~9CV~",
+"~9CY~":"~9CZ~",
+"~9D2~":{"fn":"~9D3~"},
+"~9D5~":{"fn":"~9D6~"},
+"~9D8~":"~9D9~",
+"~9DB~":{"getterFn":"~9DC~","inflate":{"item":"~926~"}},
+"~9DF~":"~9B0~",
+"~9DJ~":"~9DK~",
+"~9DM~":{"fn":"~9DN~"},
+"~9DP~":"~9DQ~",
+"~9DT~":"~9DU~",
+"~9DW~":{"fn":"~9DX~"},
+"~9DZ~":"~9E0~",
+"~9E3~":{"getterFn":"~9E4~","inflate":{"itemName":"item"}},
+"~9E6~":{"fn":"~9E7~","descr":"p"},
+"~9E9~":{"getterFn":"~9EA~","descr":"p"},
+"~9ED~":"~9EE~",
+"~9EG~":"~9EH~",
+"~9EJ~":{"fn":"~9EK~","descr":"p"},
+"~9EM~":"~9EA~",
+"~9ER~":"~9ES~",
+"~9EX~":"~9EY~"},"func":{
+"~8V4~":function(____,$$) {return ____.$root.a * ____.$root.b},
+"~8V8~":function(____,$$) {return ____.$root.a + ____.$root.b},
+"~8VJ~":function(____,$$) {return ____.text},
+"~8VO~":function(____,$$) {return ____.html},
+"~8VY~":function(____,$$) {return ____.a},
+"~8W9~":function(____,$$) {return ____.bool},
+"~8WF~":function(____,$$) {return ____.inline},
+"~8XN~":function(____,$$) {return ____.linkified},
+"~8Y1~":function(____,$$) {____.a = $$},
+"~8Y7~":function(____,$$) {____.bool = $$},
+"~8YD~":function(____,$$) {____.inline = $$},
+"~8YX~":function(____,$$) {____.text = $$},
+"~8ZJ~":function(____,$$) {return {bool: ____.bool, inline1: ____.a == 0}},
+"~8ZP~":function(____,$$) {return ____.a == 0},
+"~90K~":function(____,$$) {return ____.myForm.$invalid},
+"~90P~":function(____,$$) {return {error: ____.myForm.field1.$invalid}},
+"~90T~":function(____,$$) {return {error: ____.myForm.radio1.$invalid}},
+"~916~":function(____,$$) {____.dynamicList = []},
+"~91C~":function(____,$$) {return ____.sep},
+"~91D~":function(____,$$) {____.sep = $$},
+"~91N~":function(____,$$) {return ____.dynamicList},
+"~91O~":function(____,$$) {____.dynamicList = $$},
+"~91V~":function(____,$$) {return ____.item},
+"~925~":function(____,$$) {return ____.alist},
+"~926~":function(____,$$) {return {name: ____.item, value: ____.$index}},
+"~92D~":function(____,$$) {return { name: ____.item, value: ____.$index, group: ____.$index - (____.$index % 2), disabledGroup: ____.$index == 0, disabled: ____.$index == 4 }},
+"~92M~":function(____,$$) {____.tpl = 'a+b.html'},
+"~92P~":function(____,$$) {console.log('multiple click handlers!')},
+"~92T~":function(____,$$) {____.tpl = 'a*b.html'},
+"~92Z~":function(____,$$) {return ____.tpl},
+"~938~":function(____,$$) {____.tpl = ____.tpl1},
+"~93C~":function(____,$$) {____.tpl = ____.tpl2},
+"~93R~":function(____,$$) {return ____.viewCmp},
+"~93W~":function(____,$$) {____.$parent.viewCmp = 'Test.ViewComponent1'},
+"~940~":function(____,$$) {____.$parent.viewCmp = 'Test.ViewComponent2'},
+"~945~":function(____,$$) {____.newItem = ''; ____.listFilter = ''; ____.sortBy = 'asc'},
+"~94A~":function(____,$$) {return ____.newItem},
+"~94B~":function(____,$$) {____.newItem = $$},
+"~94E~":function(____,$$) {if (____.newItem) { ____.list.push({bool: false, txt: ____.newItem}); ____.newItem = ''; }},
+"~94I~":function(____,$$) {return !____.newItem},
+"~94L~":function(____,$$) {____.list.push({bool: false, txt: ____.newItem}); ____.newItem = '';},
+"~94S~":function(____,$$) {return ____.list},
+"~94T~":function(____,$$) {return ____.listFilter},
+"~94U~":function() {return 'txt'},
+"~94V~":function(____,$$) {return ____.sortBy},
+"~94Z~":function(____,$$) {return {cls3: ____.item.bool}},
+"~953~":function(____,$$) {return ____.item.bool},
+"~954~":function(____,$$) {____.item.bool = $$},
+"~958~":function(____,$$) {____.$parent.list.splice(____.$getRawIndex(____.$trackId),1);},
+"~95C~":function(____,$$) {____.listFilter = $$},
+"~95G~":function(____,$$) {____.sortBy='asc'},
+"~95I~":function(____,$$) {console.log(____.sortBy)},
+"~95M~":function(____,$$) {____.sortBy='desc'},
+"~966~":function(____,$$) {____.selectBinding = 'scope'},
+"~96B~":function(____,$$) {____.ctrl.reverse()},
+"~96F~":function(____,$$) {____.ctrl.createNew()},
+"~96J~":function(____,$$) {____.ctrl.createRender()},
+"~96N~":function(____,$$) {____.ctrl.createDialog()},
+"~96T~":function(____,$$) {____.store.load()},
+"~96X~":function(____,$$) {____.store.clear()},
+"~973~":function(____,$$) {return ____.selectBinding},
+"~974~":function(____,$$) {____.selectBinding = $$},
+"~97D~":function(____,$$) {return ____.store},
+"~97E~":function(____,$$) {return { name: ____.item.data.name, value: ____.item.data.id }},
+"~97J~":function(____,$$) {return ____.$parent.a},
+"~97K~":function(____,$$) {____.$parent.a = $$},
+"~988~":function(____,$$) {return ____.a + ____.b},
+"~98A~":function(____,$$) {return ____.bool ? "true": "false"},
+"~98C~":function(____,$$) {return ____.title},
+"~98E~":function(____,$$) {return ____.$root.a},
+"~98G~":function(____,$$) {return ____.$index},
+"~98I~":function(____,$$) {return ____.item.txt},
+"~98K~":function(____,$$) {return ____.$first ? "first" : ""},
+"~98M~":function(____,$$) {return ____.$last ? "last" : ""},
+"~98O~":function(____,$$) {return ____.$even ? "even" : ""},
+"~98Q~":function(____,$$) {return ____.$odd ? "odd" : ""},
+"~98Z~":function(____,$$) {return ____.item.name},
+"~991~":function(____,$$) {return ____.deferred},
+"~99B~":function(____,$$) {____.changeLevel2()},
+"~99G~":function(____,$$) {return ____.level1},
+"~99O~":function() {return 'subkey1'},
+"~99V~":function(____,$$) {____.increaseB()},
+"~9A2~":function(____,$$) {return ____.people},
+"~9A3~":function(____,$$) {____.people = $$},
+"~9A7~":function() {return 'viewing'},
+"~9AA~":function(____,$$) {return ____.resolved},
+"~9AC~":function() {return 'key'},
+"~9AE~":function(____,$$) {return ____.b},
+"~9AG~":function() {return 'plr'},
+"~9AP~":function(____,$$) {____.field.onSelfClick(____.$event)},
+"~9AS~":function(____,$$) {return ____.loading},
+"~9AU~":function(____,$$) {return ____.field.disabled},
+"~9AW~":function(____,$$) {return ____.field.searchable},
+"~9AY~":function(____,$$) {return ____.field.multiple},
+"~9B0~":function(____,$$) {return ____.field.black},
+"~9B3~":function(____,$$) {return ____.field.hiddenInputName},
+"~9B5~":function(____,$$) {return ____.field.$selection},
+"~9B6~":function() {return ','},
+"~9BA~":function(____,$$) {____.field.onDropdownIconClick(____.$event)},
+"~9BE~":function(____,$$) {return ____.field.getMultiSelection()},
+"~9BI~":function(____,$$) {____.$parent.field.onItemDeleteClick(____.item, ____.$event)},
+"~9BO~":function(____,$$) {____.field.onSearchFocus(____.$event)},
+"~9BR~":function(____,$$) {____.field.onSearchBlur(____.$event)},
+"~9BU~":function(____,$$) {____.field.onSearchBackspace(____.$event)},
+"~9BX~":function(____,$$) {return ____.searchQuery},
+"~9BY~":function(____,$$) {____.searchQuery = $$},
+"~9C3~":function(____,$$) {return ____.field.multiple && ____.field.searchable},
+"~9C9~":function(____,$$) {____.field.onValueTextClick(____.$event)},
+"~9CC~":function(____,$$) {return !____.searchQuery && !____.field.hasSelection() && !!____.field.emptyText},
+"~9CE~":function(____,$$) {____.emptyShown = ____.$1},
+"~9CH~":function(____,$$) {return ____.field.emptyText},
+"~9CN~":function(____,$$) {return ____.focused && ____.searchQuery == ''},
+"~9CQ~":function(____,$$) {return !____.searchQuery && !____.field.multiple && ____.field.hasSelection()},
+"~9CS~":function(____,$$) {____.selectedShown = ____.$1},
+"~9CV~":function(____,$$) {return ____.field.getSelectedName()},
+"~9CZ~":function(____,$$) {return !____.emptyShown && !____.selectedShown && !____.field.searchable},
+"~9D3~":function(____,$$) {____.field.onHiddenSelectClick(____.$event)},
+"~9D6~":function(____,$$) {____.field.onHiddenSelectChange(____.$event)},
+"~9D9~":function(____,$$) {return ____.field.useHiddenSelect},
+"~9DC~":function(____,$$) {return ____.field._getSelectOptions()},
+"~9DK~":function(____,$$) {return ____.field.showNotFound && ____.field.store.isEmpty()},
+"~9DN~":function(____,$$) {____.field.onNotFoundClick(null, ____.$event)},
+"~9DQ~":function(____,$$) {return ____.field.notFoundText},
+"~9DU~":function(____,$$) {return ____.field.showEmptyItem && !____.field.store.isEmpty()},
+"~9DX~":function(____,$$) {____.field.onItemClick(null, ____.$event)},
+"~9E0~":function(____,$$) {return ____.field.emptyItemText},
+"~9E4~":function(____,$$) {return ____.field.store},
+"~9E7~":function(____,$$) {____.$parent.field.onItemClick(____.item, ____.$event)},
+"~9EA~":function(____,$$) {return ____.$parent.field.getItemName(____.item)},
+"~9EE~":function() {return false},
+"~9EH~":function(____,$$) {return ____.pagination.hasPages()},
+"~9EK~":function(____,$$) {____.$parent.field.onPaginationClick(____.$event)},
+"~9ES~":function(____,$$) {return ____.ctrl.config.get('test')},
+"~9EY~":function(____,$$) {return ____.$root.text}},"funcDescr":{
+"~8V4~":"r",
+"~8V8~":"r",
 "~93W~":"p",
-"~94Q~":"r",
-"~97U~":"p",
-"~9AJ~":"p",
-"~9AM~":"p",
-"~9AW~":"p",
-"~9BA~":"r"},"templates":{"a*b.html":"<p>a * b = {{~8RF~}}</p>","a+b.html":"<p>a + b = {{~8RJ~}}</p>","app1.html":"<h1>MetaphorJs Feature test</h1><div class=\"cases\"><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Inline</label><div id=\"inline-binding\" class=\"test\">{{~949~}}</div><label class=\"case-label\">mjs-bind</label><div id=\"binding\" {bind}=\"~8RU~\" class=\"test\"></div><label class=\"case-label\">mjs-bind-html</label><div id=\"html-binding\" {bind-html}=\"~8RZ~\" class=\"test\"></div><label class=\"case-label\">Plain attribute (href)</label><p class=\"test\"><a id=\"attr-binding-href\" [href]=\"http://{{~94A~}}.com\">{{~94B~}}</a></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Input field (value)</label><p class=\"test\"><input id=\"binding-input-value\" type=\"text\" [value]=\"~8S9~\"></p><label class=\"case-label\">Input field (mjs-bind) (locked)</label><p class=\"test\"><input id=\"binding-input-bind\" type=\"text\" {bind}=\"~8SF~\" {bind.$locked}></p><label class=\"case-label\">Checkbox (mjs-bind)</label><p class=\"test\"><input id=\"binding-checkbox\" type=\"checkbox\" {bind}=\"~8SK~\"></p><label class=\"case-label\">Radio (mjs-bind) (locked)</label><p class=\"test\"><input id=\"radio-bind-1\" checked=\"checked\" type=\"radio\" value=\"inline1\" name=\"radio-bind\" {bind}=\"~8SQ~\" {bind.$locked}> <input id=\"radio-bind-2\" type=\"radio\" value=\"inline2\" name=\"radio-bind\"> <input id=\"radio-bind-3\" type=\"radio\" value=\"inline3\" name=\"radio-bind\"></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Select (mjs-bind)</label><p class=\"test\"><select id=\"select-bind\" {bind}=\"~8T0~\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p><label class=\"case-label\">Textarea (mjs-bind)</label><p class=\"test\"><textarea id=\"textarea-bind-attr\" {bind}=\"~8T9~\"></textarea></p><label class=\"case-label\">Textarea (inline)</label><p class=\"test\"><textarea id=\"textarea-bind-inline\">{{~94C~}}</textarea></p></div><div class=\"case\"><h4>Muplitple inline binding</h4><div id=\"multiple-inline-binding\" class=\"test\">{{~94D~}}<b>{{~94E~}}</b>{{~94F~}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Uppercase (mjs-bind)</label><div id=\"filter-uppercase-binding\" class=\"test\" {bind}=\"~8TM~\"></div><label class=\"case-label\">Uppercase (inline)</label><div id=\"filter-uppercase-inline\" class=\"test\">{{~94G~}}</div><label class=\"case-label\">Lowercase (inline)</label><div id=\"filter-lowercase-inline\" class=\"test\">{{~94H~}}</div><label class=\"case-label\">Limit to (string)</label><div id=\"filter-limit-string\" class=\"test\">{{~94I~}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Linkify</label><p id=\"filter-linkify\" class=\"test\" {bind-html}=\"~8TY~\"></p></div><div class=\"case\"><h4>Expressions</h4><label class=\"case-label\">.a + .b</label><div id=\"expr-a-plus-b\" class=\"test\">{{~94J~}}</div><label class=\"case-label\">.bool ? \"true\" : \"false\"</label><div id=\"expr-bool\" class=\"test\">{{~94L~}}</div></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Input (number) (.a)</label><p class=\"test\"><input {model}=\"~8UC~\" type=\"number\" data-type=\"number\" id=\"model-input-a\"></p><label class=\"case-label\">Checkbox (.bool)</label><p class=\"test\"><input id=\"model-checkbox-bool\" type=\"checkbox\" {model}=\"~8UI~\"></p><label class=\"case-label\">Radio (.inline)</label><p class=\"test\"><input id=\"model-radio-1\" checked=\"checked\" type=\"radio\" name=\"r\" value=\"inline1\" {model}=\"~8UO~\">1<label><input id=\"model-radio-2\" type=\"radio\" name=\"r\" value=\"inline2\">2</label><input id=\"model-radio-3\" type=\"radio\" name=\"r\" value=\"inline3\">3</p><label class=\"case-label\">Select (.a)</label><p class=\"test\"><select id=\"model-select-a\" {model}=\"~8UX~\" data-type=\"number\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Textarea (.text)</label><p class=\"test\"><textarea id=\"model-textarea\" {model}=\"~8V8~\"></textarea></p><label class=\"case-label\">Input (string .text)</label><p class=\"test\"><input type=\"text\" id=\"model-input\" {model}=\"~8VE~\"></p></div><div class=\"case\"><h4>mjs-class</h4><label class=\"case-label\">Plain attribute</label><div class=\"test\"><p id=\"class-inline\" [class]=\"~8VK~\">---</p></div><label class=\"case-label\">mjs-class (string)</label><div class=\"test\"><p id=\"class-string\" {class}=\"~8VP~\">---</p></div><label class=\"case-label\">mjs-class ({bool: .bool, inline1: .a == 0})</label><div class=\"test\"><p id=\"class-object\" {class}=\"~8VU~\">---</p></div><div class=\"test\"><p id=\"class-object\" {class.bool}=\"~8VZ~\" {class.inline1}=\"~8W0~\">---</p></div></div><div class=\"case\"><h4>mjs-if, mjs-show, mjs-hide</h4><div id=\"if-bool\" {if}=\"~8W6~\" class=\"test\" {if.$animate}>this should appear if .bool = true</div><div id=\"show-bool\" {show}=\"~8W9~\" class=\"test\" {show.$animate}>this should show if .bool = true</div><div id=\"hide-bool\" {hide}=\"~8WC~\" class=\"test\" {hide.$animate}>this should hide if .bool = true</div></div><div class=\"case\"><h4>mjs-include</h4><label class=\"case-label\">immediate</label><div {include}=\"test-template.html\"><p>transcluded text</p></div><label class=\"case-label\">immediate (via tag)</label><mjs-include $name=\"test-template.html\"><p>transcluded text</p></mjs-include><label class=\"case-label\">ajax</label><div {include}=\"template.html\" id=\"ajax-template\"><p>Transcluded text</p></div></div><div class=\"case\"><h4>mjs-validate</h4><form name=\"myForm\" {form} {class.error}=\"~8WV~\" {class.$animate}><div><input name=\"field1\" data-validate-required {class}=\"~8X0~\"></div><div {class}=\"~8X4~\"><label><input type=\"radio\" name=\"radio1\" value=\"1\" data-validate-required> -- 1</label><label><input type=\"radio\" name=\"radio1\" value=\"2\"> -- 2</label><label><input type=\"radio\" name=\"radio1\" value=\"3\"> -- 3</label></div><div><input type=\"submit\" value=\"Submit\"> <input type=\"reset\" value=\"Reset\"></div></form></div><div class=\"case\" {init}=\"~8XH~\"><h4>dynamic list</h4><label><input id=\"radio-sep-1\" type=\"radio\" name=\"sep\" value=\"/\\n|,/\" {model}=\"~8XN~\"> /\\n|,/</label><label><input type=\"radio\" name=\"sep\" value=\"/\\n/\"> /\\n/</label><label><input type=\"radio\" name=\"sep\" value=\",\"> ,</label><br><br><textarea {model}=\"~8XY~\" {model.$binding}=\"input\"></textarea><ul><li {each}=\"~8Y4~\" {bind}=\"~8Y6~\" {bind.$recursive}></li></ul></div><div class=\"case\"><h4>mjs-options</h4><label class=\"case-label\">Generated from .alist</label><p class=\"test\"><select {bind}=\"~8YE~\" {options}=\"~8YG~\"><option>not selected</option></select></p><label class=\"case-label\">Generated from .dynamicList</label><p class=\"test\"><select {options}=\"~8YO~\"><option>default value</option></select></p></div><div class=\"case\" {cmp}=\"Test.TplComponent\" id=\"tplComponentTest\"><h2>{{~94N~}}</h2>mjs-include change template:<br><a href=\"#\" (1|click)=\"~8YX~\" (2|click)=\"~8Z0~\">a + b</a>|<a href=\"#\" (click)=\"~8Z4~\">a * b</a><div {include}*=\"~8ZA~\" id=\"tplComponetInc\"></div></div><div class=\"case\" {cmp}=\"Test.StringTemplate\"></div><div class=\"case\" {cmp}=\"Test.ChangeTemplate\">mjs-cmp change template:<br><a href=\"#\" (click)=\"~8ZJ~\">tpl1</a>|<a href=\"#\" (click)=\"~8ZN~\">tpl2</a></div><div class=\"case\"><h4>Router</h4><div {router}=\"Test.MyView\" {router.$animate}></div>pushUrl:<a href=\"/1\">/1</a>|<a href=\"/2\">/2</a>|<a href=\"/3\">/3</a>|<a href=\"http://www.kuindji.com\">outside</a><br><br></div><div class=\"case\" {ignore}>This element is ignored by renderer: {{~94P~}}</div><div class=\"case\" {view}=\"~902~\" {view.$default-cmp}:=\"Test.ViewComponent1\"><p>change cmp:<a href=\"#\" (click)=\"~907~\">Cmp1</a>|<a href=\"#\" (click)=\"~90B~\">Cmp2</a></p></div></div><div class=\"cases\"><div class=\"case double\" {init}=\"~90G~\"><h4>mjs-each (attr)</h4><input {model}=\"~90L~\" (key.enter)=\"~90P~\"> <input type=\"button\" {disabled}=\"~90T~\" (click)=\"~90W~\" value=\"Add item\"><ul {show}=\"~910~\"><li {each}=\"~913~\" {each.$animate} {each.$animate-move}><label {class}=\"~91A~\"><input type=\"checkbox\" {model}=\"~91E~\"> {{~94R~}} - {{~94T~}} - {{~94V~}} - {{~94X~}} - {{~94Z~}} - {{~951~}}</label><a href=\"#\" (click)=\"~91J~\">x</a></li></ul><input {model}=\"~91N~\" placeholder=\"Search\"><a href=\"#\" (click)=\"~91R~\" (click.log)=\"~91T~\">asc</a><a href=\"#\" (click)=\"~91X~\" (click.log)=\"~91Z~\">desc</a></div><div class=\"case double\"><h4>mjs-each (tag)</h4><mjs-each value=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\"><div><label {class}=\"~926~\"><input type=\"checkbox\" {model}=\"~929~\"> {{~953~}} - {{~954~}} - {{~955~}} - {{~956~}} - {{~957~}} - {{~958~}}</label><a href=\"#\" (click)=\"~92C~\">x</a></div></mjs-each></div><div class=\"case\" id=\"newComponent\">Dynamically created component on existing element will go here</div><div class=\"case\" id=\"renderToComponent\">Dynamically created component with renderTo will go here</div><div class=\"case double\" {cmp}=\"Test.MyComponent\" {cmp.$as}=\"ctrl\" {cmp.$init}=\"~92H~\"><p ##para>Component's transcluded text + {{~959~}}</p><a href=\"#\" (click)=\"~92M~\">reverse</a>|<a href=\"#\" (click)=\"~92Q~\">create new component on existing element</a>|<a href=\"#\" (click)=\"~92U~\">create new component and render to</a>|<a href=\"#\" (click)=\"~92Y~\">create new dialog</a><br><br><button (click)=\"~934~\">Load store</button><button (click)=\"~938~\">Clear store</button><br><br>this.selectBinding:<select {model}=\"~93E~\"><option value=\"input\">Input</option><option value=\"scope\">Scope</option><option value=\"both\">Both</option></select><br><br>this.a:<select {options}=\"~93O~\" {model}=\"~93U~\" {model.$binding}*=\"~93X~\"><option>Nothing selected</option></select><ul><li {each}=\"~942~\" {each.$animate}>{{~95A~}}</li></ul></div><div class=\"case double\" id=\"myComponent1\" {cmp}=\"Test.MyComponent\"><p>This is another instance with deferred value: {{~95C~}}</p></div><div class=\"case double\"><tagc $as:=\"ctrl\" $test:=\"Value from config\"></tagc></div></div>","app2.html":"<div class=\"case\"><h4>app's resolved value</h4><p class=\"test\">{{~96L~}}</p></div><div class=\"case\"><h4>recursive rendering</h4><p><a href=\"#\" (click)=\"~95M~\">Change level 2</a></p><p class=\"test\">This is level 1:<span {bind}=\"~95R~\" {bind.$recursive}></span></p></div><div class=\"case\"><h4>lang substitution</h4><label class=\"case-label\">using normal expression with filter: 'key' | l</label><p class=\"test\">{{~96N~}}</p><p class=\"test\" {bind}=\"~95Z~\" {bind.$recursive}></p></div><div class=\"case\"><h4>pluralization</h4><p><a href=\"#\" (click)=\"~966~\">Increase B</a></p><label class=\"case-label\">using normal expression:</label><p class=\"test\">{{~96P~}} {{~96R~}}</p><p><input type=\"number\" data-type=\"number\" {model}=\"~96D~\"></p><p class=\"test\" {bind}=\"~96I~\" {bind.$recursive}></p></div>","cmp1-template.html":"<h2>{{~96X~}}</h2><div {transclude}></div>","dirs.html":"<!--{includes: true}--><div class=\"form_select\" (click)=\"~970~\" {class.loading}=\"~973~\" {class.disabled}=\"~975~\" {class.search}=\"~977~\" {class.multiple}=\"~979~\" {class.black}=\"~97B~\"><input type=\"hidden\" #el_hidden_field [name]=\"~97E~\" [value]=\"~97G~\"><i #el_icon_down (click)=\"~97L~\"><!-- include icons/down.html --></i><a class=\"form_select__label\" {each}=\"~97P~\" style=\"display: inline-block !important;\">{{~9AY~}}<i class=\"delete icon\" ~98b~></i></a><input type=\"text\" #el_search class=\"search\" [disabled]=\"this.field.disabled\" {show}=\"~97X~\" {show.$display}=\"inline-block\" (focus)=\"~97Z~\" (blur)=\"~982~\" (key.backspace)=\"~985~\" {model}=\"~988~\"><span class=\"sizer\" #el_sizer {if}=\"~98E~\" {bind}=\"~98H~\"></span><div class=\"default text\" #el_default_text (click)=\"~98K~\" {show}=\"~98N~\" {show.$display}=\"inline-block\" {show.$on--change}=\"~98P~\" {bind}=\"~98S~\"></div><div class=\"text\" #el_text (click)=\"~98W~\" {class.default}=\"~98Y~\" {show}=\"~991~\" {show.$on--chage}=\"~993~\" {show.$display}=\"inline-block\" {bind}=\"~996~\"></div><!-- replaces two previous text blocks with invisible placeholder --><div style=\"display: none\" class=\"default text\" {show}=\"~99A~\" {show.$display}=\"inline-block\">&nbsp;</div><select class=\"form-select_hidden-select\" #el_hidden_select (click)=\"~99E~\" (change)=\"~99H~\" {show}=\"~99K~\" {show.$display}=\"block\" {options}=\"~99N~\"></select><div class=\"form-select-menu\" #el_menu {class.black}=\"~99R~\"><div class=\"items\" #el_menu_items><div class=\"disabled item\" #el_menu_disabled {if}=\"~99V~\" (click)=\"~99Y~\" {bind-html}=\"~9A1~\"></div><div class=\"empty item\" #el_menu_empty style=\"color: #999;\" {if}=\"~9A5~\" (click)=\"~9A8~\" {bind-html}=\"~9AB~\"></div><div class=\"item\" {each}=\"~9AF~\" (click)=\"~9AI~\" {bind}=\"~9AL~\"></div></div><div class=\"pagination_container\" {cmp}=\"Pagination\" {cmp.$autoscroll}=\"~9AP~\" {show}=\"~9AS~\" (click)=\"~9AV~\"></div></div></div>","tagc.html":"<div class=\"component\"><p>This is a tag component.</p><p>{{~9B3~}}</p></div>","test-template.html":"<p>{{~9B9~}}</p><div {transclude}></div>"}}
+"~940~":"p",
+"~958~":"p",
+"~97J~":"p",
+"~97K~":"p",
+"~98E~":"r",
+"~9BI~":"p",
+"~9E7~":"p",
+"~9EA~":"p",
+"~9EK~":"p",
+"~9EY~":"r"},"templates":{"a*b.html":"<p>a * b = {{~8V3~}}</p>","a+b.html":"<p>a + b = {{~8V7~}}</p>","app1.html":"<h1>MetaphorJs Feature test</h1><div class=\"cases\"><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Inline</label><div id=\"inline-binding\" class=\"test\">{{~97X~}}</div><label class=\"case-label\">mjs-bind</label><div id=\"binding\" {bind}=\"~8VI~\" class=\"test\"></div><label class=\"case-label\">mjs-bind-html</label><div id=\"html-binding\" {bind-html}=\"~8VN~\" class=\"test\"></div><label class=\"case-label\">Plain attribute (href)</label><p class=\"test\"><a id=\"attr-binding-href\" [href]=\"http://{{~97Y~}}.com\">{{~97Z~}}</a></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Input field (value)</label><p class=\"test\"><input id=\"binding-input-value\" type=\"text\" [value]=\"~8VX~\"></p><label class=\"case-label\">Input field (mjs-bind) (locked)</label><p class=\"test\"><input id=\"binding-input-bind\" type=\"text\" {bind}=\"~8W3~\" {bind.$locked}></p><label class=\"case-label\">Checkbox (mjs-bind)</label><p class=\"test\"><input id=\"binding-checkbox\" type=\"checkbox\" {bind}=\"~8W8~\"></p><label class=\"case-label\">Radio (mjs-bind) (locked)</label><p class=\"test\"><input id=\"radio-bind-1\" checked=\"checked\" type=\"radio\" value=\"inline1\" name=\"radio-bind\" {bind}=\"~8WE~\" {bind.$locked}> <input id=\"radio-bind-2\" type=\"radio\" value=\"inline2\" name=\"radio-bind\"> <input id=\"radio-bind-3\" type=\"radio\" value=\"inline3\" name=\"radio-bind\"></p></div><div class=\"case\"><h4>Bindings (read only)</h4><label class=\"case-label\">Select (mjs-bind)</label><p class=\"test\"><select id=\"select-bind\" {bind}=\"~8WO~\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p><label class=\"case-label\">Textarea (mjs-bind)</label><p class=\"test\"><textarea id=\"textarea-bind-attr\" {bind}=\"~8WX~\"></textarea></p><label class=\"case-label\">Textarea (inline)</label><p class=\"test\"><textarea id=\"textarea-bind-inline\">{{~980~}}</textarea></p></div><div class=\"case\"><h4>Muplitple inline binding</h4><div id=\"multiple-inline-binding\" class=\"test\">{{~981~}}<b>{{~982~}}</b>{{~983~}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Uppercase (mjs-bind)</label><div id=\"filter-uppercase-binding\" class=\"test\" {bind}=\"~8XA~\"></div><label class=\"case-label\">Uppercase (inline)</label><div id=\"filter-uppercase-inline\" class=\"test\">{{~984~}}</div><label class=\"case-label\">Lowercase (inline)</label><div id=\"filter-lowercase-inline\" class=\"test\">{{~985~}}</div><label class=\"case-label\">Limit to (string)</label><div id=\"filter-limit-string\" class=\"test\">{{~986~}}</div></div><div class=\"case\"><h4>Filters</h4><label class=\"case-label\">Linkify</label><p id=\"filter-linkify\" class=\"test\" {bind-html}=\"~8XM~\"></p></div><div class=\"case\"><h4>Expressions</h4><label class=\"case-label\">.a + .b</label><div id=\"expr-a-plus-b\" class=\"test\">{{~987~}}</div><label class=\"case-label\">.bool ? \"true\" : \"false\"</label><div id=\"expr-bool\" class=\"test\">{{~989~}}</div></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Input (number) (.a)</label><p class=\"test\"><input {model}=\"~8Y0~\" type=\"number\" data-type=\"number\" id=\"model-input-a\"></p><label class=\"case-label\">Checkbox (.bool)</label><p class=\"test\"><input id=\"model-checkbox-bool\" type=\"checkbox\" {model}=\"~8Y6~\"></p><label class=\"case-label\">Radio (.inline)</label><p class=\"test\"><input id=\"model-radio-1\" checked=\"checked\" type=\"radio\" name=\"r\" value=\"inline1\" {model}=\"~8YC~\">1<label><input id=\"model-radio-2\" type=\"radio\" name=\"r\" value=\"inline2\">2</label><input id=\"model-radio-3\" type=\"radio\" name=\"r\" value=\"inline3\">3</p><label class=\"case-label\">Select (.a)</label><p class=\"test\"><select id=\"model-select-a\" {model}=\"~8YL~\" data-type=\"number\"><option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option></select></p></div><div class=\"case\"><h4>Model</h4><label class=\"case-label\">Textarea (.text)</label><p class=\"test\"><textarea id=\"model-textarea\" {model}=\"~8YW~\"></textarea></p><label class=\"case-label\">Input (string .text)</label><p class=\"test\"><input type=\"text\" id=\"model-input\" {model}=\"~8Z2~\"></p></div><div class=\"case\"><h4>mjs-class</h4><label class=\"case-label\">Plain attribute</label><div class=\"test\"><p id=\"class-inline\" [class]=\"~8Z8~\">---</p></div><label class=\"case-label\">mjs-class (string)</label><div class=\"test\"><p id=\"class-string\" {class}=\"~8ZD~\">---</p></div><label class=\"case-label\">mjs-class ({bool: .bool, inline1: .a == 0})</label><div class=\"test\"><p id=\"class-object\" {class}=\"~8ZI~\">---</p></div><div class=\"test\"><p id=\"class-object\" {class.bool}=\"~8ZN~\" {class.inline1}=\"~8ZO~\">---</p></div></div><div class=\"case\"><h4>mjs-if, mjs-show, mjs-hide</h4><div id=\"if-bool\" {if}=\"~8ZU~\" class=\"test\" {if.$animate}>this should appear if .bool = true</div><div id=\"show-bool\" {show}=\"~8ZX~\" class=\"test\" {show.$animate}>this should show if .bool = true</div><div id=\"hide-bool\" {hide}=\"~900~\" class=\"test\" {hide.$animate}>this should hide if .bool = true</div></div><div class=\"case\"><h4>mjs-include</h4><label class=\"case-label\">immediate</label><div {include}=\"test-template.html\"><p>transcluded text</p></div><label class=\"case-label\">immediate (via tag)</label><mjs-include $name=\"test-template.html\"><p>transcluded text</p></mjs-include><label class=\"case-label\">ajax</label><div {include}=\"template.html\" id=\"ajax-template\"><p>Transcluded text</p></div></div><div class=\"case\"><h4>mjs-validate</h4><form name=\"myForm\" {form} {class.error}=\"~90J~\" {class.$animate}><div><input name=\"field1\" data-validate-required {class}=\"~90O~\"></div><div {class}=\"~90S~\"><label><input type=\"radio\" name=\"radio1\" value=\"1\" data-validate-required> -- 1</label><label><input type=\"radio\" name=\"radio1\" value=\"2\"> -- 2</label><label><input type=\"radio\" name=\"radio1\" value=\"3\"> -- 3</label></div><div><input type=\"submit\" value=\"Submit\"> <input type=\"reset\" value=\"Reset\"></div></form></div><div class=\"case\" {init}=\"~915~\"><h4>dynamic list</h4><label><input id=\"radio-sep-1\" type=\"radio\" name=\"sep\" value=\"/\\n|,/\" {model}=\"~91B~\"> /\\n|,/</label><label><input type=\"radio\" name=\"sep\" value=\"/\\n/\"> /\\n/</label><label><input type=\"radio\" name=\"sep\" value=\",\"> ,</label><br><br><textarea {model}=\"~91M~\" {model.$binding}=\"input\"></textarea><ul><li {each}=\"~91S~\" {bind}=\"~91U~\" {bind.$recursive}></li></ul></div><div class=\"case\"><h4>mjs-options</h4><label class=\"case-label\">Generated from .alist</label><p class=\"test\"><select {bind}=\"~922~\" {options}=\"~924~\"><option>not selected</option></select></p><label class=\"case-label\">Generated from .dynamicList</label><p class=\"test\"><select {options}=\"~92C~\"><option>default value</option></select></p></div><div class=\"case\" {cmp}=\"Test.TplComponent\" id=\"tplComponentTest\"><h2>{{~98B~}}</h2>mjs-include change template:<br><a href=\"#\" (1|click)=\"~92L~\" (2|click)=\"~92O~\">a + b</a>|<a href=\"#\" (click)=\"~92S~\">a * b</a><div {include}*=\"~92Y~\" id=\"tplComponetInc\"></div></div><div class=\"case\" {cmp}=\"Test.StringTemplate\"></div><div class=\"case\" {cmp}=\"Test.ChangeTemplate\">mjs-cmp change template:<br><a href=\"#\" (click)=\"~937~\">tpl1</a>|<a href=\"#\" (click)=\"~93B~\">tpl2</a></div><div class=\"case\"><h4>Router</h4><div {router}=\"Test.MyView\" {router.$animate}></div>pushUrl:<a href=\"/1\">/1</a>|<a href=\"/2\">/2</a>|<a href=\"/3\">/3</a>|<a href=\"http://www.kuindji.com\">outside</a><br><br></div><div class=\"case\" {ignore}>This element is ignored by renderer: {{~98D~}}</div><div class=\"case\" {view}=\"~93Q~\" {view.$default-cmp}:=\"Test.ViewComponent1\"><p>change cmp:<a href=\"#\" (click)=\"~93V~\">Cmp1</a>|<a href=\"#\" (click)=\"~93Z~\">Cmp2</a></p></div></div><div class=\"cases\"><div class=\"case double\" {init}=\"~944~\"><h4>mjs-each (attr)</h4><input {model}=\"~949~\" (key.enter)=\"~94D~\"> <input type=\"button\" {disabled}=\"~94H~\" (click)=\"~94K~\" value=\"Add item\"><ul {show}=\"~94O~\"><li {each}=\"~94R~\" {each.$animate} {each.$animate-move}><label {class}=\"~94Y~\"><input type=\"checkbox\" {model}=\"~952~\"> {{~98F~}} - {{~98H~}} - {{~98J~}} - {{~98L~}} - {{~98N~}} - {{~98P~}}</label><a href=\"#\" (click)=\"~957~\">x</a></li></ul><input {model}=\"~95B~\" placeholder=\"Search\"><a href=\"#\" (click)=\"~95F~\" (click.log)=\"~95H~\">asc</a><a href=\"#\" (click)=\"~95L~\" (click.log)=\"~95N~\">desc</a></div><div class=\"case double\"><h4>mjs-each (tag)</h4><mjs-each value=\"item in this.list | filter:this.listFilter | sortBy:'txt':this.sortBy\"><div><label {class}=\"~95U~\"><input type=\"checkbox\" {model}=\"~95X~\"> {{~98R~}} - {{~98S~}} - {{~98T~}} - {{~98U~}} - {{~98V~}} - {{~98W~}}</label><a href=\"#\" (click)=\"~960~\">x</a></div></mjs-each></div><div class=\"case\" id=\"newComponent\">Dynamically created component on existing element will go here</div><div class=\"case\" id=\"renderToComponent\">Dynamically created component with renderTo will go here</div><div class=\"case double\" {cmp}=\"Test.MyComponent\" {cmp.$as}=\"ctrl\" {cmp.$init}=\"~965~\"><p ##para>Component's transcluded text + {{~98X~}}</p><a href=\"#\" (click)=\"~96A~\">reverse</a>|<a href=\"#\" (click)=\"~96E~\">create new component on existing element</a>|<a href=\"#\" (click)=\"~96I~\">create new component and render to</a>|<a href=\"#\" (click)=\"~96M~\">create new dialog</a><br><br><button (click)=\"~96S~\">Load store</button><button (click)=\"~96W~\">Clear store</button><br><br>this.selectBinding:<select {model}=\"~972~\"><option value=\"input\">Input</option><option value=\"scope\">Scope</option><option value=\"both\">Both</option></select><br><br>this.a:<select {options}=\"~97C~\" {model}=\"~97I~\" {model.$binding}*=\"~97L~\"><option>Nothing selected</option></select><ul><li {each}=\"~97Q~\" {each.$animate}>{{~98Y~}}</li></ul></div><div class=\"case double\" id=\"myComponent1\" {cmp}=\"Test.MyComponent\"><p>This is another instance with deferred value: {{~990~}}</p></div><div class=\"case double\"><tagc $as:=\"ctrl\" $test:=\"Value from config\"></tagc></div></div>","app2.html":"<div class=\"case\"><h4>app's resolved value</h4><p class=\"test\">{{~9A9~}}</p></div><div class=\"case\"><h4>recursive rendering</h4><p><a href=\"#\" (click)=\"~99A~\">Change level 2</a></p><p class=\"test\">This is level 1:<span {bind}=\"~99F~\" {bind.$recursive}></span></p></div><div class=\"case\"><h4>lang substitution</h4><label class=\"case-label\">using normal expression with filter: 'key' | l</label><p class=\"test\">{{~9AB~}}</p><p class=\"test\" {bind}=\"~99N~\" {bind.$recursive}></p></div><div class=\"case\"><h4>pluralization</h4><p><a href=\"#\" (click)=\"~99U~\">Increase B</a></p><label class=\"case-label\">using normal expression:</label><p class=\"test\">{{~9AD~}} {{~9AF~}}</p><p><input type=\"number\" data-type=\"number\" {model}=\"~9A1~\"></p><p class=\"test\" {bind}=\"~9A6~\" {bind.$recursive}></p></div>","cmp1-template.html":"<h2>{{~9AL~}}</h2><div {transclude}></div>","dirs.html":"<!--{includes: true}--><div class=\"form_select\" (click)=\"~9AO~\" {class.loading}=\"~9AR~\" {class.disabled}=\"~9AT~\" {class.search}=\"~9AV~\" {class.multiple}=\"~9AX~\" {class.black}=\"~9AZ~\"><input type=\"hidden\" #el_hidden_field [name]=\"~9B2~\" [value]=\"~9B4~\"><i #el_icon_down (click)=\"~9B9~\"><!-- include icons/down.html --></i><a class=\"form_select__label\" {each}=\"~9BD~\" style=\"display: inline-block !important;\">{{~9EM~}}<i class=\"delete icon\" (click)=\"~9BH~\"></i></a><input type=\"text\" #el_search class=\"search\" [disabled]=\"~9BZ~\" {show}=\"~9BL~\" {show.$display}=\"inline-block\" (focus)=\"~9BN~\" (blur)=\"~9BQ~\" (key.backspace)=\"~9BT~\" {model}=\"~9BW~\"><span class=\"sizer\" #el_sizer {if}=\"~9C2~\" {bind}=\"~9C5~\"></span><div class=\"default text\" #el_default_text (click)=\"~9C8~\" {show}=\"~9CB~\" {show.$display}=\"inline-block\" {show.$on--change}=\"~9CD~\" {bind}=\"~9CG~\"></div><div class=\"text\" #el_text (click)=\"~9CK~\" {class.default}=\"~9CM~\" {show}=\"~9CP~\" {show.$on--chage}=\"~9CR~\" {show.$display}=\"inline-block\" {bind}=\"~9CU~\"></div><!-- replaces two previous text blocks with invisible placeholder --><div style=\"display: none\" class=\"default text\" {show}=\"~9CY~\" {show.$display}=\"inline-block\">&nbsp;</div><select class=\"form-select_hidden-select\" #el_hidden_select (click)=\"~9D2~\" (change)=\"~9D5~\" {show}=\"~9D8~\" {show.$display}=\"block\" {options}=\"~9DB~\"></select><div class=\"form-select-menu\" #el_menu {class.black}=\"~9DF~\"><div class=\"items\" #el_menu_items><div class=\"disabled item\" #el_menu_disabled {if}=\"~9DJ~\" (click)=\"~9DM~\" {bind-html}=\"~9DP~\"></div><div class=\"empty item\" #el_menu_empty style=\"color: #999;\" {if}=\"~9DT~\" (click)=\"~9DW~\" {bind-html}=\"~9DZ~\"></div><div class=\"item\" {each}=\"~9E3~\" (click)=\"~9E6~\" {bind}=\"~9E9~\"></div></div><div class=\"pagination_container\" {cmp}=\"Pagination\" {cmp.$autoscroll}=\"~9ED~\" {show}=\"~9EG~\" (click)=\"~9EJ~\"></div></div></div>","tagc.html":"<div class=\"component\"><p>This is a tag component.</p><p>{{~9ER~}}</p></div>","test-template.html":"<p>{{~9EX~}}</p><div {transclude}></div>"}}
 
 var MetaphorJs = {
     plugin: {},
@@ -769,7 +769,8 @@ extend(ObservableEvent.prototype, {
             start:      1, // from which attempt it is allowed to trigger the function
             count:      0, // how many attempts to trigger the function was made
             append:     null, // append parameters
-            prepend:    null // prepend parameters
+            prepend:    null, // prepend parameters
+            replaceArgs:null // replace parameters
         };
 
         extend(e, options, true, false);
@@ -966,6 +967,9 @@ extend(ObservableEvent.prototype, {
             if (l.append) {
                 args    = args.concat(l.append);
             }
+        }
+        else if (l.replaceArgs) {
+            args = [].concat(l.replaceArgs);
         }
         else {
             args = triggerArgs;
@@ -1318,6 +1322,7 @@ extend(Observable.prototype, {
     *       }
     *       @type {array} append Append parameters
     *       @type {array} prepend Prepend parameters
+    *       @type {array} replaceArgs Replace parameters
     *       @type {bool} allowDupes allow the same handler twice
     *       @type {bool|int} async run event asynchronously. If event was
     *                      created with <code>expectPromises: true</code>, 
@@ -2331,12 +2336,13 @@ var lib_Expression = MetaphorJs.lib.Expression = (function () {
         };
 
 
-    if (typeof window !== "undefined") {
-        filterSources.push(window);
-    }
     if (MetaphorJs.filter) {
         filterSources.push(MetaphorJs.filter)
     }
+    if (typeof window !== "undefined") {
+        filterSources.push(window);
+    }
+    
 
     reset();
 
@@ -4983,6 +4989,10 @@ var lib_Text = MetaphorJs.lib.Text = (function(){
                 prev = text,
                 iter = 0;
 
+            if (text === false) {
+                return false;
+            }
+
             while (true) {
                 if (iter > 100) {
                     throw new Error(
@@ -5373,8 +5383,7 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                 case MODE_FUNC: 
                 case MODE_GETTER: 
                 case MODE_SETTER:
-                case MODE_FNSET: 
-                 {
+                case MODE_FNSET: {
                     res = lib_Expression.deconstruct(expr, {
                         noReturn: mode === MODE_FUNC || mode === MODE_SETTER,
                         setter: mode === MODE_SETTER || mode === MODE_FNSET
@@ -5490,7 +5499,7 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                 }
                 else if (prop.mode === MODE_FUNC) {
                     if (pb) {
-                        value = pb.fn;
+                        value = pb.fn || pb.getterFn;
                     }
                     else {
                         value = lib_Expression.func(prop.expression);
@@ -5503,8 +5512,9 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                         }
                         else {
                             value = self._wrapListener(
-                                pb.fn, 
-                                prop.scope || self.cfg.scope
+                                pb.fn || pb.getterFn, 
+                                prop.scope || self.cfg.scope,
+                                prop
                             );
                         }
                     }
@@ -5518,10 +5528,13 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                         }
                         else {
                             value = lib_Expression.func(prop.expression);
-                            value = self._wrapListener(
-                                        value, 
-                                        prop.scope || self.cfg.scope
-                                    );
+                            if (value && typeof(value) === "function") {
+                                value = self._wrapListener(
+                                    value, 
+                                    prop.scope || self.cfg.scope,
+                                    prop
+                                );
+                            }
                         }
                     }
                 }
@@ -5545,7 +5558,7 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
             return retValue;
         },
 
-        _wrapListener: function(ls, scope) {
+        _wrapListener: function(ls, scope, prop) {
             return function() {
                 var args = toArray(arguments),
                     i, l;
@@ -6347,7 +6360,7 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
                 keys = name ? [name] : self.keys,
                 i, l, key, prop,
                 res = name ? 0 : false;
-            
+
             for (i = 0, l = keys.length; i < l; i++) {
                 key = keys[i];
                 prop = self.properties[key];
@@ -6419,6 +6432,14 @@ var lib_Config = MetaphorJs.lib.Config = (function(){
 
             self.subscribe = emptyFn;
             self.unsubscribe = emptyFn;
+        },
+
+        /**
+         * @method
+         * @returns {bool}
+         */
+        $isDestroyed: function() {
+            return this.properties === null;
         },
 
         /**
@@ -6934,7 +6955,9 @@ return DomEvent;
 
 
 var dom_normalizeEvent = MetaphorJs.dom.normalizeEvent = function(originalEvent) {
-    return new lib_DomEvent(originalEvent);
+    return originalEvent instanceof MetaphorJs.lib.DomEvent ? 
+            originalEvent : 
+            new lib_DomEvent(originalEvent);
 };
 
 
@@ -7092,7 +7115,7 @@ var dom_addListener = MetaphorJs.dom.addListener = function(){
     var fn = null,
         prefix = null;
 
-    return function dom_addListener(el, event, func) {
+    return function dom_addListener(el, event, func, opt) {
 
         if (fn === null) {
             if (el.addEventListener) {
@@ -7107,17 +7130,19 @@ var dom_addListener = MetaphorJs.dom.addListener = function(){
             //prefix = el.attachEvent ? "on" : "";
         }
 
+        opt = opt || {};
+        opt.capture = opt.capture || false;
 
-        if (event == "mousewheel") {
+        if (event === "mousewheel") {
             func = _mousewheelHandler(func);
             var events = _mousewheelHandler.events(),
                 i, l;
             for (i = 0, l = events.length; i < l; i++) {
-                el[fn](prefix + events[i], func, false);
+                el[fn](prefix + events[i], func, opt);
             }
         }
         else {
-            el[fn](prefix + event, func, false);
+            el[fn](prefix + event, func, opt);
         }
 
         return func;
@@ -7326,7 +7351,7 @@ var Input = function(el, changeFn, changeFnContext, cfg) {
     //self.observable     = new MetaphorJs.lib.Observable;
     self.el             = el;
     self.id             = ++id;
-    self.inputType      = el.type.toLowerCase();
+    self.inputType      = el.type ? el.type.toLowerCase() : "none";
     self.dataType       = cfg.type || dom_getAttr(el, "data-type") || self.inputType;
     self.listeners      = [];
 
@@ -7462,7 +7487,7 @@ extend(Input.prototype, {
         // hold the listener until composition is done.
         // More about composition events:
         // https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent
-        if (!browser_isAndroid()) {
+        if (!browser_isAndroid() && self.inputType !== "none") {
 
             var compositionStart    = function() {
                 composing = true;
@@ -7509,7 +7534,7 @@ extend(Input.prototype, {
         // if the browser does support "input" event, we are fine - except on
         // IE9 which doesn't fire the
         // input event on backspace, delete or cut
-        if (browser_hasEvent('input')) {
+        if (browser_hasEvent('input') && self.inputType !== "none") {
 
             listeners.push(["input", listener, false]);
 
@@ -7519,7 +7544,7 @@ extend(Input.prototype, {
 
             // if user modifies input value using context menu in IE,
             // we need "paste" and "cut" events to catch it
-            if (browser_hasEvent('paste')) {
+            if (browser_hasEvent('paste') && self.inputType !== "none") {
                 listeners.push(["paste", deferListener, false]);
                 listeners.push(["cut", deferListener, false]);
             }
@@ -7529,7 +7554,9 @@ extend(Input.prototype, {
         // if user paste into input using mouse on older browser
         // or form autocomplete on newer browser, we need "change" event to catch it
 
-        listeners.push(["change", listener, false]);
+        if (self.inputType !== "none") {
+            listeners.push(["change", listener, false]);
+        }
     },
 
     processValue: function(val) {
@@ -8830,7 +8857,7 @@ var classManagerFactory = function(){
              * @return {boolean}
              */
             $isDestroyed: function() {
-                return self.$destroying || self.$destroyed;
+                return this.$destroying || this.$destroyed;
             },
 
             /**
@@ -9870,29 +9897,30 @@ var dom_getAttrSet = MetaphorJs.dom.getAttrSet = (function() {
             if (name.indexOf('|') !== -1) {
                 parts = name.split('|');
                 indexName = parts[1];
-            }
+            
+                if (name !== indexName && indexName) {
 
-            if (name !== indexName && indexName) {
+                    if (ds[indexName]) {
+                        if (!isArray(ds[indexName])) {
+                            ds[indexName] = [ds[indexName]]
+                            __ds[indexName] = [__ds[indexName]]
+                        }
+                    }
+                    else {
+                        ds[indexName] = [];
+                        __ds[indexName] = [];
+                    }
 
-                if (ds[indexName]) {
-                    if (!isArray(ds[indexName])) {
-                        ds[indexName] = [ds[indexName]]
-                        __ds[indexName] = [__ds[indexName]]
+                    if (isArray(ds[indexName])) {
+                        ds[indexName].push(ds[name])
+                        __ds[indexName].push(__ds[name])
+                        delete ds[name];
+                        delete __ds[name];
                     }
                 }
-                else {
-                    ds[indexName] = [];
-                    __ds[indexName] = [];
-                }
-
-                if (isArray(ds[indexName])) {
-                    ds[indexName].push(ds[name])
-                    __ds[indexName].push(__ds[name])
-                    delete ds[name];
-                    delete __ds[name];
-                }
             }
-            else if (!isArray(ds[name])) {
+
+            if (ds[name] && !isArray(ds[name])) {
                 ds[name] = [ds[name]]
                 __ds[name] = [__ds[name]]
             }
@@ -10477,7 +10505,12 @@ var app_Renderer = MetaphorJs.app.Renderer = function() {
                     text.node.src = res;
                 }
 
-                dom_setAttr(text.node, attrName, res);
+                if (res === false) {
+                    dom_removeAttr(text.node, attrName);
+                }
+                else {
+                    dom_setAttr(text.node, attrName, res);
+                }
             }
             else {
                 //text.node.textContent = res;
@@ -11143,6 +11176,7 @@ var app_App = MetaphorJs.app.App = cls({
     lang: null,
     scope: null,
     renderer: null,
+    cmpPromises: null,
     cmpListeners: null,
     components: null,
     sourceObs: null,
@@ -11172,6 +11206,7 @@ var app_App = MetaphorJs.app.App = cls({
         self.scope          = scope;
         self.cmpListeners   = {};
         self.components     = {};
+        self.cmpPromises    = {};
         self.$refs          = {node: {}, cmp: {}};
 
         self.factory('$parentCmp', ['$node', self.getParentCmp], self);
@@ -11297,22 +11332,26 @@ var app_App = MetaphorJs.app.App = cls({
     onAvailable: function(id, fn, context) {
 
         var self = this,
-            cmpListeners = self.cmpListeners,
-            components = self.components;
+            promises = self.cmpPromises,
+            components = self.components,
+            ev = "available-" + id;
 
-        if (!cmpListeners[id]) {
-            cmpListeners[id] = new MetaphorJs.lib.Promise;
-        }
+        self.$$observable.createEvent(ev);
 
         if (fn) {
-            cmpListeners[id].done(fn, context);
+            self.$$observable.on(ev, fn, context);
+        }
+
+        if (!promises[id]) {
+            promises[id] = new MetaphorJs.lib.Promise;
+            self.$$observable.once(ev, promises[id].resolve, promises[id]);
         }
 
         if (components[id]) {
-            cmpListeners[id].resolve(components[id])
+            self.$$observable.trigger(ev, components[id]);
         }
 
-        return cmpListeners[id];
+        return promises[id];
     },
 
     /**
@@ -11332,16 +11371,14 @@ var app_App = MetaphorJs.app.App = cls({
     registerCmp: function(cmp, byKey) {
         var self = this,
             id = cmp[byKey],
+            ev = "available-" + id,
             deregister = function() {
-                delete self.cmpListeners[id];
+                delete self.cmpPromises[id];
                 delete self.components[id];
             };
 
         self.components[id] = cmp;
-
-        if (self.cmpListeners[id]) {
-            self.cmpListeners[id].resolve(cmp);
-        }
+        self.$$observable.trigger(ev, cmp);
 
         if (cmp.on) {
             cmp.on("destroy", deregister);
@@ -11769,7 +11806,11 @@ var dom_getClsReg = MetaphorJs.dom.getClsReg = function(cls) {
  * @returns {boolean}
  */
 var dom_hasClass = MetaphorJs.dom.hasClass = function(el, cls) {
-    return cls ? dom_getClsReg(cls).test(el.className) : false;
+    return cls ? 
+            el.classList ? 
+                el.classList.contains(cls) : 
+                dom_getClsReg(cls).test(el.className) : 
+            false;
 };
 
 
@@ -11783,7 +11824,10 @@ var dom_hasClass = MetaphorJs.dom.hasClass = function(el, cls) {
  */
 var dom_addClass = MetaphorJs.dom.addClass = function dom_addClass(el, cls) {
     if (cls && !dom_hasClass(el, cls)) {
-        el.className += " " + cls;
+        if (el.classList) {
+            el.classList.add(cls);
+        }
+        else el.className += " " + cls;
     }
 };
 
@@ -11802,7 +11846,10 @@ var dom_addClass = MetaphorJs.dom.addClass = function dom_addClass(el, cls) {
  */
 var dom_removeClass = MetaphorJs.dom.removeClass = function(el, cls) {
     if (cls) {
-        el.className = el.className.replace(dom_getClsReg(cls), '');
+        if (el.classList) {
+            el.classList.remove(cls);
+        }
+        else el.className = el.className.replace(dom_getClsReg(cls), '');
     }
 };
 
@@ -12733,6 +12780,94 @@ var ajax_transport_IFrame = MetaphorJs.ajax.transport.IFrame = cls({
 
 
 
+var ajax_transport_Fetch = MetaphorJs.ajax.transport.Fetch = (function(){
+
+    var accepts     = {
+        xml:        "application/xml, text/xml",
+        html:       "text/html",
+        script:     "text/javascript, application/javascript",
+        json:       "application/json, text/javascript",
+        text:       "text/plain",
+        _default:   "*/*"
+    };
+
+    return cls({
+
+        type: "fetch",
+        _deferred: null,
+
+
+        $init: function(opt, deferred, ajax) {
+
+            var self    = this;
+
+            self._deferred      = deferred;
+            self._opt           = opt;
+            self._ajax          = ajax;
+
+            opt.body = opt.data;
+        },
+
+        setHeaders: function() {
+
+            var self = this,
+                opt = self._opt;
+
+            opt.headers = opt.headers || {};
+
+            if (opt.data && opt.contentType) {
+                opt.headers["Content-Type"] = opt.contentTypeHeader || opt.contentType
+            }
+            opt.headers["X-Requested-With"] = "Fetch";
+            opt.headers["Accept"] =
+                opt.dataType && accepts[opt.dataType] ?
+                accepts[opt.dataType] + ", */*; q=0.01" :
+                accepts._default;
+        },
+
+        send: function() {
+
+            var self    = this,
+                opt     = self._opt,
+                p,
+                respCT;
+
+            try {
+                self.setHeaders();
+                p = window.fetch(opt.url, opt);
+                
+                p.then(
+                    function(resp){
+                        respCT = resp.headers.map['content-type'] || "";
+                        return resp.text();
+                    }, 
+                    function(reason){
+                        self._deferred.reject(reason);
+                    }
+                )
+                .then(function(respText){
+                    self._ajax.processResponse(
+                        respText,
+                        respCT
+                    );
+                })
+            }
+            catch (thrownError) {
+                error(thrownError);
+                self._deferred = new MetaphorJs.lib.Promise;
+                if (self._deferred) {
+                    self._deferred.reject(thrownError);
+                }
+            }
+        }
+    });
+}());
+
+
+
+
+
+
 
 
 
@@ -12933,6 +13068,8 @@ var ajax_Ajax = MetaphorJs.ajax.Ajax = (function(){
                 opt.url = fixUrlDomain(opt.url);
             }
 
+            opt.transport   = opt.transport || MetaphorJs.ajax.Ajax.defaultTransport;
+
             var self        = this,
                 href        = window ? window.location.href : "",
                 local       = rurl.exec(href.toLowerCase()) || [],
@@ -12997,16 +13134,23 @@ var ajax_Ajax = MetaphorJs.ajax.Ajax = (function(){
 
             opt.url = prepareUrl(opt.url, opt);
 
-            if ((opt.crossDomain || opt.transport == "script") && !opt.form) {
+            /**
+             * Before initializing transport
+             * @event before-transport
+             * @param {object} opt ajax options
+             */
+            globalEvents.trigger("before-transport", opt);
+
+            if ((opt.crossDomain || opt.transport === "script") && !opt.form) {
                 transport   = new ajax_transport_Script(opt, self.$$promise, self);
             }
-            else if (opt.transport == "iframe") {
+            else if (opt.transport === "iframe") {
                 transport   = new ajax_transport_IFrame(opt, self.$$promise, self);
             }
             else if (opt.transport === "fetch") {
-                transport   = new MetaphorJs.ajax.transport.Fetch(opt, self.$$promise, self);
+                transport   = new ajax_transport_Fetch(opt, self.$$promise, self);
             }
-            else {
+            else if (opt.transport === "xhr") {
                 transport   = new ajax_transport_XHR(opt, self.$$promise, self);
             }
 
@@ -13335,7 +13479,8 @@ var ajax_Ajax = MetaphorJs.ajax.Ajax = (function(){
 
     }, {
         prepareUrl: prepareUrl,
-        global: globalEvents
+        global: globalEvents,
+        defaultTransport: "xhr"
     });
 }());
 
@@ -14021,7 +14166,7 @@ var app_Template = MetaphorJs.app.Template = function() {
                 if (self._rendered) {
                     if (window.requestAnimationFrame && 
                         isAttached(self._attachTo)) {
-                        requestAnimationFrame(function(){
+                        window.requestAnimationFrame(function(){
                             self._rafAttach();
                         });
                     }
@@ -14074,7 +14219,7 @@ var app_Template = MetaphorJs.app.Template = function() {
 
                 if (self._rendered) {
                     if (window.requestAnimationFrame) {
-                        requestAnimationFrame(function(){
+                        window.requestAnimationFrame(function(){
                             self._rafReplace();
                         });
                     }
@@ -14121,7 +14266,9 @@ var app_Template = MetaphorJs.app.Template = function() {
                     self.attachBefore.parentNode && 
                         self.attach(self.attachTo, self.attachBefore);
                 }
-                else self.attach(self.attachTo);
+                else {
+                    self.attach(self.attachTo);
+                }
             }
             // reattaching to previous
             else if (self._nextEl || self._attachTo || self._shadowRoot) {
@@ -14601,7 +14748,9 @@ var app_Template = MetaphorJs.app.Template = function() {
                     }
                 }
             }
-            else attached = true;
+            else {
+                attached = true;
+            }
 
             self._attached = attached;
             if (attached) {
@@ -15230,6 +15379,14 @@ var app_Component = MetaphorJs.app.Component = app_Controller.$extend({
 
         self.config.getAll(); // calc all values into $cfg
         self._initTemplate();
+
+        self.afterInitComponent.apply(self, arguments);
+
+        if (self.autoRender) {
+            self.template.resolve()
+                .done(self.template.render, self.template)
+                .done(self.render, self);
+        }
     },
 
     // this gets called inside parent's $init
@@ -15265,6 +15422,10 @@ var app_Component = MetaphorJs.app.Component = app_Controller.$extend({
             else {
                 attachTo = self.node;
             }
+        }
+
+        if (!tpl && config.has("template")) {
+            tpl = config.get("template");
         }
 
         if (!self.node && config.has("tag")) {
@@ -15309,14 +15470,6 @@ var app_Component = MetaphorJs.app.Component = app_Controller.$extend({
 
         if (self._nodeCreated) {
             self.template.setNamedNode("main", self.node);
-        }
-
-        self.afterInitComponent.apply(self, arguments);
-
-        if (self.autoRender) {
-            tpl.resolve()
-                .done(tpl.render, tpl)
-                .done(self.render, self);
         }
     },
 
@@ -16594,6 +16747,8 @@ extend(Queue.prototype, {
     _nextRequested: false,
     _running: false,
 
+    currentItemNo: null,
+
     length: 0,
     id: null,
     async: true,
@@ -16601,6 +16756,9 @@ extend(Queue.prototype, {
     thenable: false,
     stack: false,
     context: null,
+    onResult: null,
+    onFinish: null,
+    counter: 0,
     mode: Queue.MULTIPLE,
 
     add: function(fn, context, args, mode, prepend, async) {
@@ -16613,7 +16771,8 @@ extend(Queue.prototype, {
                 fn: fn,
                 context: context,
                 args: args,
-                async: async
+                async: async,
+                itemno: ++self.counter
             };
 
         mode = mode || self.mode;
@@ -16692,10 +16851,11 @@ extend(Queue.prototype, {
         self.length = self._queue.length;
 
         if (!item) {
-            return;
+            return false;
         }
 
         self._running = true;
+        self.currentItemNo = item.itemno;
 
         delete self._map[item.id];
 
@@ -16708,11 +16868,10 @@ extend(Queue.prototype, {
             }
             finally {
                 if (isThenable(res)) {
-                    res.catch(error);
                     res.then(self._f, self._f);
                 }
                 else {
-                    self._finish();
+                    self._finish(res);
                 }
             }
         };
@@ -16724,12 +16883,19 @@ extend(Queue.prototype, {
         asnc && asnc !== "raf" && async(fn, null, null, isNumber(asnc) ? asnc : 0);
     },
 
-    _finish: function() {
+    _finish: function(result) {
         var self = this;
+        self.onResult && self.onResult.call(self.context, result);
         if (self._running) {
             self._running = false;
+            self.currentItemNo = null;
             if (self.auto || self._nextRequested) {
-                self.next();
+                if (self.next() === false) {
+                    self.onFinish && self.onFinish.call(self.context);
+                }
+            }
+            else {
+                self.length === 0 && self.onFinish && self.onFinish.call(self.context);
             }
         }
     },
@@ -17729,18 +17895,22 @@ var app_view_Base = MetaphorJs.app.view.Base = cls({
 
     clearComponent: function() {
         var self    = this,
-            node    = self.node;
+            node    = self.node,
+            curr    = self.currentComponent;
 
-        if (self.currentComponent) {
+        if (curr) {
 
-            animate_animate(node, self.config.get("animate") ? "leave" : null).done(function(){
+            var anim = null,
+                cfg = self.config;
 
-                if (self.currentComponent &&
-                    !self.currentComponent.$destroyed &&
-                    !self.currentComponent.$destroying) {
-                    self.currentComponent.$destroy();
-                }
+            if (cfg && !cfg.$isDestroyed() && cfg.get("animate")) {
+                anim = "leave";
+            }
 
+            animate_animate(node, anim).done(function(){
+
+                curr && !curr.$isDestroyed() && curr.$destroy();
+    
                 while (node.firstChild) {
                     node.removeChild(node.firstChild);
                 }
@@ -19276,7 +19446,6 @@ Directive.registerAttribute("bind", 1000,
             var self = this;
 
             if (self.input) {
-                console.log(self.input.getValue(),val)
                 if (self.input.getValue() != val) {
                     self.input.setValue(val);
                 }
@@ -19354,6 +19523,10 @@ DO NOT put class="{}" when using class.name="{}"
     var toggleClass = function(node, cls, toggle, doAnim) {
 
         var has;
+
+        if (!node.className) {
+            node.className = "";
+        }
 
         if (toggle !== null) {
             if (toggle === dom_hasClass(node, cls)) {
@@ -19560,6 +19733,7 @@ DO NOT put class="{}" when using class.name="{}"
         config.setDefaultMode("init", lib_Config.MODE_FUNC);
         config.setDefaultMode("as", ms);
         config.setDefaultMode("ref", ms);
+        config.setDefaultMode("scope", ms);
         config.setMode("into", ms);
         config.setType("cloak", "bool", ms);
     }
@@ -19622,6 +19796,7 @@ DO NOT put class="{}" when using class.name="{}"
         var ms = lib_Config.MODE_STATIC;
         config.setDefaultMode("value", ms);
         config.setDefaultMode("as", ms);
+        config.setDefaultMode("scope", ms);
     };
 
     ctrlAttr.deepInitConfig = function(config) {
@@ -19655,7 +19830,7 @@ DO NOT put class="{}" when using class.name="{}"
         var i = 0,
             l = types.length,
             pb;
-        
+
         if (app_prebuilt.isKey(expr)) {
             pb = app_prebuilt.get("config", expr);
         }
@@ -19664,7 +19839,8 @@ DO NOT put class="{}" when using class.name="{}"
         }
 
         if (pb) {
-            var obj = pb.getterFn(scope);
+            var getter = lib_Expression.construct(pb, {getterOnly: true});
+            var obj = getter(scope);
         }
         else {
             var tmp = expr.split(" in "),
@@ -20086,8 +20262,9 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
      * @param {HTMLElement} node 
      * @param {string} event Dom event name
      * @param {int} interval 
+     * @param {object} eventOptions
      */
-    var EventBuffer = function(node, event, interval) {
+    var EventBuffer = function(node, event, interval, eventOpts) {
 
         var self = this,
             key = bufferKey(event, interval);
@@ -20098,6 +20275,7 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
 
         node[key] = self;
 
+        self.eventOptions = eventOpts || {};
         self.id = key;
         self.breaks = {};
         self.watchers = {};
@@ -20365,7 +20543,11 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
          */
         up: function() {
             var self = this;
-            dom_addListener(self.node, self.event, self.handlerDelegate);
+            dom_addListener(
+                self.node, self.event, 
+                self.handlerDelegate,
+                self.eventOptions
+            );
         },
 
         /**
@@ -20411,16 +20593,17 @@ var lib_EventBuffer = MetaphorJs.lib.EventBuffer = function(){
      * @param {HTMLElement} node 
      * @param {string} event 
      * @param {int} interval 
+     * @param {object} eventOptions
      * @returns {MetaphorJs.lib.EventBuffer}
      */
-    EventBuffer.get = function(node, event, interval) {
+    EventBuffer.get = function(node, event, interval, eventOpts) {
         var key = bufferKey(event, interval);
 
         if (node[key]) {
             return node[key];
         }
 
-        return node[key] = new EventBuffer(node, event, interval);
+        return node[key] = new EventBuffer(node, event, interval, eventOpts);
     
     };
 
@@ -20497,6 +20680,7 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
                 preventDefault = false,
                 returnValue = undf,
                 stopPropagation = false,
+                stopImmediate = false,
                 res,
                 cfg = config.getAll(),
                 not = cfg.not,
@@ -20514,6 +20698,8 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
 
             cfg.preventDefault !== undf && (preventDefault = cfg.preventDefault);
             cfg.stopPropagation !== undf && (stopPropagation = cfg.stopPropagation);
+            cfg.stopImmediatePropagation !== undf && 
+                (stopImmediate = cfg.stopImmediatePropagation);
             cfg.returnValue !== undf && (returnValue = cfg.returnValue);
             cfg.keyCode !== undf && (keyCode = cfg.keyCode);
 
@@ -20568,6 +20754,7 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
             }
 
             stopPropagation && e.stopPropagation();
+            stopImmediate && e.stopImmediatePropagation && e.stopImmediatePropagation();
             preventDefault && e.preventDefault();
 
             if (self.$destroyed || self.$destroying) {
@@ -20614,11 +20801,19 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
             self.handler = self.createHandler();
 
             if (buffer) {
-                self.buffer = lib_EventBuffer.get(self.node, self.event, buffer);
+                self.buffer = lib_EventBuffer.get(
+                    self.node, self.event, buffer,
+                    self._getEventConfig()
+                );
                 self.buffer.on(self.handler);
             }
             else {
-                dom_addListener(self.node, self.event, self.handler);
+                dom_addListener(
+                    self.node, 
+                    self.event, 
+                    self.handler,
+                    self._getEventConfig()
+                );
             }
         }
     },
@@ -20639,6 +20834,14 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
         else {
             dom_removeListener(self.node, self.event, self.handler);
         }
+    },
+
+    _getEventConfig: function() {
+        var opts = {};
+        if (this.config.hasExpression("passive")) {
+            opts.passive = this.config.get("passive");
+        }
+        return opts;
     },
 
     /**
@@ -20683,8 +20886,11 @@ var lib_EventHandler = MetaphorJs.lib.EventHandler;
             defaultValue: true,
             defaultMode: ms
         });
+        config.setDefaultMode("scope", ms);
         config.setType("stopPropagation", "bool", ms);
+        config.setType("stopImmediatePropagation", "bool", ms);
         config.setType("if", "bool");
+        config.setType("passive", "bool");
         config.setType("not", "string", ms);
         config.eachProperty(function(k){
             if (k === 'value' || k.indexOf('value.') === 0) {
@@ -20720,16 +20926,17 @@ var lib_EventHandler = MetaphorJs.lib.EventHandler;
 
                 var eh,
                     destroyed = false,
+                    rs = window.document.readyState,
                     init = function(node) {
                         if (!destroyed) {
                             eh = createHandler(name, scope, node, config);
                         }
                     };
 
-                if (window.document.readyState === "complete") {
+                if (rs === "complete" || rs === undefined) {
                     getNode(node, config, name, init);
                 }
-                dom_addListener(window, "load", function(){
+                else dom_addListener(window, "load", function(){
                     getNode(node, config, name, init);
                 });
 
@@ -20938,25 +21145,24 @@ Directive.registerAttribute("if", 500, Directive.$extend({
         this.createCommentWrap(this.node, "if");
         this.$super();
     },
-    
+
 
     onScopeChange: function() {
         var self    = this,
             config  = self.config,
             val     = config.get("value"),
-            parent  = self.wrapperOpen.parentNode,
             node    = self.node,
             initial = self._initial,
 
-            show    = function(){
-                parent.insertBefore(node, self.wrapperClose);
+            show    = function() {
+                self.wrapperClose.parentNode.insertBefore(node, self.wrapperClose);
                 if (!initial) {
                     raf(self.trigger, self, ["show", node]);
                 }
             },
 
             hide    = function() {
-                parent.removeChild(node);
+                node.parentNode.removeChild(node);
                 if (!initial) {
                     raf(self.trigger, self, ["hide", node]);
                 }
@@ -21748,11 +21954,11 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         self._prevGroup  = config.group;
 
         option  = window.document.createElement("option");
-        dom_setAttr(option, "value", config.value || "");
-        option.text = config.name || config.value || "";
+        dom_setAttr(option, "value", ""+config.value || "");
+        option.text = config.name || ""+config.value || "";
 
         if (msie && msie < 9) {
-            option.innerHTML = config.name || config.value || "";
+            option.innerHTML = config.name || ""+config.value || "";
         }
         if (config.disabled) {
             dom_setAttr(option, "disabled", "disabled");
@@ -21992,8 +22198,11 @@ Directive.registerAttribute("router", 200, function(){
     }
 
     dir.initConfig = function(config) {
+        var ms = lib_Config.MODE_STATIC;
+        config.setDefaultMode("scope", ms);
+        config.setDefaultMode("id", ms);
         config.setProperty("value", {
-            defaultMode: lib_Config.MODE_STATIC,
+            defaultMode: ms,
             defaultValue: "MetaphorJs.app.view.Router"
         });
         config.eachProperty(function(k){
@@ -22479,7 +22688,6 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
             for (k in props) {
 
                 trg = toCamelCase(k);
-
                 if (props[k] !== undf && props[k] !== null) {
                     style[trg] = props[k];
                 }
@@ -23422,7 +23630,9 @@ var model_Model = MetaphorJs.model.Model = function(){
             var self    = this,
                 ext     = self.getRecordProp(null, "extend");
 
-            return ext ? extend(rec, ext, false, false) : rec;
+            rec = ext ? extend(rec, ext, false, false) : rec;
+            rec.$$model = self;
+            return rec;
         },
 
         /**
@@ -23442,7 +23652,7 @@ var model_Model = MetaphorJs.model.Model = function(){
          */
         getRecordId: function(rec) {
             var idProp = this.getRecordProp("load", "id");
-            return (rec.getId ? rec.getId() : rec[idProp]) || null;
+            return rec ? (rec.getId ? rec.getId() : rec[idProp]) || null : null;
         },
 
         /**
@@ -24603,10 +24813,11 @@ var model_Store = MetaphorJs.model.Store = function(){
             /**
              * Is this store currently empty
              * @method
+             * @param {boolean} unfiltered
              * @returns {boolean}
              */
-            isEmpty: function() {
-                return this.length === 0;
+            isEmpty: function(unfiltered) {
+                return unfiltered ? this.length === 0 : this.currentLength === 0;
             },
 
             /**
@@ -25275,10 +25486,17 @@ var model_Store = MetaphorJs.model.Store = function(){
 
                 var self    = this;
 
-                if (!self.local && (!self.totalLength || 
-                                    self.length < self.totalLength)) {
+                if (!self.totalLength || 
+                    self.local ||
+                    self.length < self.totalLength) {
+
                     self.start += self.pageSize;
-                    return self.load(null, options);
+                    if (!self.local) {
+                        return self.load(null, options);
+                    }
+                    else {
+                        self.update();
+                    }
                 }
                 
                 return MetaphorJs.lib.Promise.resolve();
@@ -25295,12 +25513,17 @@ var model_Store = MetaphorJs.model.Store = function(){
 
                 var self    = this;
 
-                if (!self.local && self.start > 0) {
+                if (self.start > 0) {
                     self.start -= self.pageSize;
                     if (self.start < 0) {
                         self.start = 0;
                     }
-                    return self.load(null, options);
+                    if (!self.local) {
+                        return self.load(null, options);
+                    }
+                    else {
+                        self.update();
+                    }
                 }
 
                 return MetaphorJs.lib.Promise.resolve();
@@ -25316,12 +25539,15 @@ var model_Store = MetaphorJs.model.Store = function(){
              */
             loadPage: function(start, options) {
                 var self = this;
+                self.start = parseInt(start, 10);
+                if (self.start < 0) {
+                    self.start = 0;
+                }
                 if (!self.local) {
-                    self.start = parseInt(start, 10);
-                    if (self.start < 0) {
-                        self.start = 0;
-                    }
                     return self.load(null, options);
+                }
+                else {
+                    self.update();
                 }
                 return MetaphorJs.lib.Promise.resolve();
             },
@@ -25334,7 +25560,10 @@ var model_Store = MetaphorJs.model.Store = function(){
              * @returns {int|string|null}
              */
             getRecordId: function(rec) {
-                if (rec instanceof MetaphorJs.model.Record) {
+                if (!rec) {
+                    return null;
+                }
+                else if (rec instanceof MetaphorJs.model.Record) {
                     return rec.getId();
                 }
                 else if (this.model) {
@@ -26243,6 +26472,10 @@ var model_Store = MetaphorJs.model.Store = function(){
                     sorted      = self.sorted,
                     isPlain     = self.model.isPlain();
 
+                if (self.local) {
+                    self.totalLength = self.length = self.items.length;
+                }
+
                 self.currentLength  = self.length;
                 self.currentMap     = self.map;
                 self.current        = self.items;
@@ -26264,6 +26497,11 @@ var model_Store = MetaphorJs.model.Store = function(){
                         }
                     }, null, true);
 
+                    self.currentLength  = self.current.length;
+                }
+
+                if (self.local && self.pageSize) {
+                    self.current = self.current.slice(self.start, self.start + self.pageSize);
                     self.currentLength  = self.current.length;
                 }
 
@@ -31178,7 +31416,7 @@ var dom_getScrollParent = MetaphorJs.dom.getScrollParent = function() {
         body,
 
         overflow    = function (node) {
-            var style = getStyle(node);
+            var style = dom_getStyle(node);
             return style ? style["overflow"] + style["overflowY"] + style["overflowY"] : "";
         },
 
@@ -32033,6 +32271,97 @@ Directive.registerAttribute("include-file", 900, function(scope, node, config){
 
 
 
+var lib_Stylesheet = MetaphorJs.lib.Stylesheet = function() {
+
+    var Stylesheet = function(cfg) {
+
+        var self = this;
+
+        extend(self, cfg);
+
+        !self.id && (self.id = nextUid());
+        self.appended = false;
+
+        if (self.content) {
+            var content = self.content;
+            self.content = null;
+            self.setContent(content);
+        }
+    };
+
+    extend(Stylesheet.prototype, {
+
+        _initStylesheet: function() {
+            var self = this;
+            self.stylesheet = window.document.createElement("style");
+            self.stylesheet.type = "text/css";
+            self.stylesheet.id = "for_" + self.id;
+            self.head = window.document.head || 
+                            window.document.getElementsByTagName('head')[0] ||
+                            window.document.body;        
+        },
+
+        setContent: function(cssContent) {
+            var self = this;
+            if (cssContent != self.content) {
+                self.content = cssContent;
+                if (!self.stylesheet) {
+                    self._initStylesheet();
+                }
+
+                var style = self.stylesheet;
+
+                if (style.styleSheet) {
+                    // This is required for IE8 and below.
+                    style.styleSheet.cssText = self.content;
+                } 
+                else {
+                    while (style.firstChild) {
+                        style.removeChild(style.firstChild);
+                    }
+                    style.appendChild(window.document.createTextNode(self.content));
+                }
+
+                if (!self.appended) {
+                    self.append();
+                }
+            } 
+        },
+
+        append: function() {
+            var self = this;
+            if (!self.stylesheet) {
+                self._initStylesheet();
+            }
+            if (!self.appended) {
+                self.head.appendChild(self.stylesheet);
+                self.appended = true;
+            }
+        },
+        
+        remove: function() {
+            var self = this;
+            if (self.appended) {
+                self.head.removeChild(self.stylesheet);
+                self.appended = false;
+            }
+        },
+
+        $destroy: function() {
+            if (this.appended) {
+                this.remove();
+            }
+        }
+
+    });
+
+    return Stylesheet;
+
+}();
+
+
+
+
 
 /*
 value is always an object in the end
@@ -32048,14 +32377,10 @@ Directive.registerAttribute("stylesheet", 1000,
 
     initDirective: function() {
         this.styleId = "stylesheet_" + nextUid();
-        this.stylesheet = window.document.createElement("style");
-        this.stylesheet.type = "text/css";
-        this.stylesheet.id = "for_" + this.styleId;
-        this.head = window.document.head || 
-                        window.document.getElementsByTagName('head')[0] ||
-                        window.document.body;
-
-        this.head.appendChild(this.stylesheet);
+        this.stylesheet = new lib_Stylesheet({
+            id: "for_" + this.styleId
+        })
+        this.stylesheet.append();
         this.$super(arguments);
     },
 
@@ -32086,9 +32411,9 @@ Directive.registerAttribute("stylesheet", 1000,
 
         if (props) {
             for (k in props) {
-                prop = k.split(":", 2);
-                state = prop[1] || "";
-                prop = prop[0];
+                prop = k.split(".", 2);
+                state = prop.length > 1 ? prop[0] || "" : "";
+                prop = prop[1];
                 if (!css[state]) {
                     css[state] = [selector + ":" + state + " {"];
                 }
@@ -32105,27 +32430,11 @@ Directive.registerAttribute("stylesheet", 1000,
     },
 
     onScopeChange: function() {
-        var style = this.stylesheet,
-            content = this.getCssText();
-
-        if (style.styleSheet) {
-            // This is required for IE8 and below.
-            style.styleSheet.cssText = content;
-        } 
-        else {
-            while (style.firstChild) {
-                style.removeChild(style.firstChild);
-            }
-            style.appendChild(window.document.createTextNode(content));
-        }
+        this.stylesheet.setContent(this.getCssText());
     },
 
     onDestroy: function() {
-
-        if (this.head) {
-            this.head.removeChild(this.stylesheet);
-        }
-
+        this.stylesheet.$destroy();
         this.$super();
     }
 }));
@@ -32736,21 +33045,23 @@ var dialog_position_Abstract = MetaphorJs.dialog.position.Abstract = cls({
             pt          = pts[0],
             i, l;
 
-        if (strategy && strategy != "solid") {
-            if (self.type != pt && self.checkIfFits(e, pt, boundary, size, false)) {
-                self.changeType(pt);
-                return self.fitToBoundary(self.getCoords(e), boundary, size);
-            }
+        if (strategy && strategy !== "none") {
+            if (strategy && strategy != "solid") {
+                if (self.type != pt && self.checkIfFits(e, pt, boundary, size, false)) {
+                    self.changeType(pt);
+                    return self.fitToBoundary(self.getCoords(e), boundary, size);
+                }
 
-            if (self.checkIfFits(e, self.type, boundary, size, false)) {
-                return self.fitToBoundary(self.getCoords(e), boundary, size);
+                if (self.checkIfFits(e, self.type, boundary, size, false)) {
+                    return self.fitToBoundary(self.getCoords(e), boundary, size);
+                }
             }
-        }
-        if (strategy && strategy != "position-only") {
-            for (i = 0, l = pts.length; i < l; i++) {
-                if (self.checkIfFits(e, pts[i], boundary, size, true)) {
-                    self.changeType(pts[i]);
-                    return self.getCoords(e);
+            if (strategy && strategy != "position-only") {
+                for (i = 0, l = pts.length; i < l; i++) {
+                    if (self.checkIfFits(e, pts[i], boundary, size, true)) {
+                        self.changeType(pts[i]);
+                        return self.getCoords(e);
+                    }
                 }
             }
         }
@@ -33320,11 +33631,46 @@ var dialog_position_Custom = MetaphorJs.dialog.position.Custom =
 
     getCoords: function(e) {
         var dlg = this.dialog;
-        return this.get.call(dlg.$$callbackContext, dlg, e);
+        return this.get.call(dlg.$$callbackContext || this, dlg, e);
     }
 });
 
 
+
+
+
+
+
+
+
+
+var dialog_position_None = MetaphorJs.dialog.position.None = 
+                    dialog_position_Abstract.$extend({
+
+    $init: function(dialog) {
+
+        this.$super(dialog);
+        dom_removeStyle(dialog.getElem(), "left");
+        dom_removeStyle(dialog.getElem(), "top");
+    },
+
+    getCoords: function(e) {
+        var dlg = this.dialog,
+            ofs = dom_getOffset(dlg.getElem());
+        return {
+            x: ofs.left,
+            y: ofs.top
+        };
+    },
+
+    apply: function() {
+
+    },
+
+    correctPosition: function(e) {
+        return this.getCoords(e);
+    }
+});
 
 
 
@@ -34019,19 +34365,24 @@ var dialog_Overlay = MetaphorJs.dialog.Overlay = cls({
         }
 
         var node = window.document.createElement("div"),
-            cfg = self.dialog.getCfg();
+            cfg = self.dialog.getCfg(),
+            style = {
+                display:            "none",
+                position: 			"fixed",
+                left:				0,
+                top:				0,
+                right:              0,
+                bottom:             0
+            };
 
-        dom_setStyle(node, {
-            display:            "none",
-            position: 			"fixed",
-            left:				0,
-            top:				0,
-            right:              0,
-            bottom:             0,
-            opacity:			self.opacity,
-            backgroundColor: 	self.color
-        });
+        if (self.opacity !== false) {
+            style.opacity = self.opacity;
+        }
+        if (self.color !== false) {
+            style.backgroundColor = self.color;
+        }
 
+        dom_setStyle(node, style);
         dom_addListener(node, "click", self.onClickDelegate);
 
         if (cfg.render.zIndex) {
@@ -34196,6 +34547,7 @@ var dialog_Manager = MetaphorJs.dialog.Manager = cls({
     }
 
 });
+
 
 
 
@@ -36383,6 +36735,9 @@ var dialog_Dialog = MetaphorJs.dialog.Dialog = (function(){
             }
             else if (type === "draggable") {
                 return "MetaphorJs.dialog.position.Draggable";
+            }
+            else if (type === "none") {
+                return "MetaphorJs.dialog.position.None";
             }
 
             var fc = type.substr(0, 1);
