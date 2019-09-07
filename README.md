@@ -47,6 +47,11 @@ var MyComponent = MetaphorJs.app.Component.$extend({
 
 my-component-template.html
 ```html
+
+<!-- Component doesn't have to have a single main element.
+    MetaphorJs will keep track of correct node placement.
+    You can also tell component to create a single main element
+    automatically -->
 <div ##main>
     <!-- $cfg comes from component Config -->
     <h1 {bind}="this.$cfg.title"></h1>
@@ -57,7 +62,7 @@ my-component-template.html
           (click)="this.cmp.onClick()"
           (click.$if)="this.allowClick == true"
           (click.$stop-propagation)>click here</a></p>
-    <p>
+    <p ##namednode>
         <label>
             <input type="checkbox" {model}="this.allowClick">
             Allow click
@@ -183,10 +188,21 @@ var MyComponent = MetaphorJs.app.Component.$extend({
     onClick: function() {
         this.scope.tpl = "other-template.html"
     }
+}, {
+    /** Components also support directives.
+     * When you use <my-component {show}="this.showCondition">
+     * it applies directive to the named element inside component
+     * or to the main element.
+    */
+    supportsDirectives: {
+        show: "namednode",
+        if: true
+    }
 })
 ```
 
-And many more features yet to be documented.
+And many more features yet to be documented 
+(Data stores, Dialogs, Events, ShadowDOM support, Form validation, ...).
 
 
 Contact me if you want to know more
