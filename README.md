@@ -201,6 +201,14 @@ var MyComponent = MetaphorJs.app.Component.$extend({
 })
 ```
 
+#### Expressions
+
+MetaphorJs doesn't have its own expression parser. It uses browser's built-in javascript parser, that's why all expressions use "this.". 
+But it can be configured to use third-party parser if you need it.
+
+
+#### More
+
 And many more features yet to be documented 
 (Data stores, Dialogs, Events, ShadowDOM support, Form validation, ...).
 
