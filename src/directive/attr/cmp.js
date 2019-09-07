@@ -1,44 +1,86 @@
 
-var Directive = require("../../class/Directive.js"),
-    extend = require("../../func/extend.js"),
-    resolveComponent = require("../../func/resolveComponent.js"),
-    nsGet = require("metaphorjs-namespace/src/func/nsGet.js");
+require("../../func/app/resolve.js");
+require("../../lib/Config.js");
+require("../../lib/Scope.js");
+
+var Directive = require("../../app/Directive.js"),
+    ns = require("metaphorjs-namespace/src/var/ns.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 (function(){
 
-    var cmpAttr = function(scope, node, cmpName, parentRenderer, attr){
+    var cmpAttr = function(scope, node, config, renderer, attrSet) {
 
-        var constr  = typeof cmpName === "string" ?
-                        nsGet(cmpName, true) : cmpName,
-            nodecfg = attr ? attr.config : {};
-
-        if (!constr) {
-            throw "Component " + cmpName + " not found";
+        if (!(node instanceof window.Node)) {
+            throw new Error("cmp directive can only work with DOM nodes");
         }
 
-        var sameScope       = nodecfg.sameScope || constr.$sameScope,
-            isolateScope    = nodecfg.isolateScope || constr.$isolateScope;
+        // if there is no instructions regarding component's scope,
+        // we create a new child scope by default
+        if (!config.has("scope")) {
+            scope = scope.$new();
+        }
 
-        var newScope = isolateScope ? scope.$newIsolated() : (sameScope ? scope : scope.$new());
+        cmpAttr.initConfig(config);
 
-        var cfg     = extend({
-            scope: newScope,
+        var cmpName = config.get("value"),
+            tag     = node.tagName.toLowerCase();
+
+        config.removeProperty("value");
+
+        var cfg = {
+            scope: scope,
             node: node,
-            parentRenderer: parentRenderer,
-            destroyScope: !sameScope
-        }, nodecfg, false, false);
+            config: config,
+            parentRenderer: renderer,
+            autoRender: true
+        };
 
-        resolveComponent(cmpName, cfg, newScope, node, [cfg])
+        if (MetaphorJs.directive.component[tag]) {
+            cfg.directives = attrSet.directives;
+            renderer.flowControl("stop", true);
+        }
+
+        var promise = MetaphorJs.app.resolve(cmpName, cfg, node, [cfg])
             .done(function(cmp){
-                if (nodecfg.ref) {
-                    scope[nodecfg.ref] = cmp;
+                if (renderer.$destroyed || scope.$$destroyed) {
+                    cmp.$destroy();
+                }
+                else {
+                    renderer.on("destroy", cmp.$destroy, cmp);
+                    renderer.trigger(
+                        "reference", "cmp", config.get("ref") || cmp.id, 
+                        cmp, cfg, attrSet
+                    );
                 }
             });
 
-        return constr.$resumeRenderer || !!constr.$shadow;
+        renderer.trigger("reference-promise", promise, cmpName, cfg, attrSet);
+        renderer.flowControl("ignoreInside", true);
     };
 
-    cmpAttr.$breakScope = false;
+    cmpAttr.initConfig = function(config, instance) {
+        var ms = MetaphorJs.lib.Config.MODE_STATIC;
+
+        config.setDefaultMode("value", ms);
+        config.setDefaultMode("init", MetaphorJs.lib.Config.MODE_FUNC);
+        config.setDefaultMode("as", ms);
+        config.setDefaultMode("ref", ms);
+        config.setDefaultMode("scope", ms);
+        config.setMode("into", ms);
+        config.setType("cloak", "bool", ms);
+    }
+
+    cmpAttr.deepInitConfig = function(config) {
+        var cmpName = config.get("value");
+        var constr  = typeof cmpName === "string" ? ns.get(cmpName) : cmpName;
+        if (!constr) {
+            return;
+        }
+        if (constr.initConfig) {
+            constr.initConfig(config);
+        }
+    };
 
     Directive.registerAttribute("cmp", 200, cmpAttr);
 

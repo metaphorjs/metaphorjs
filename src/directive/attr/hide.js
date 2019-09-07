@@ -1,30 +1,18 @@
 
 
-var Directive = require("../../class/Directive.js"),
-    defineClass = require("metaphorjs-class/src/func/defineClass.js");
+var Directive = require("../../app/Directive.js");
 
 require("./show.js");
 
-Directive.registerAttribute("hide", 500, defineClass({
+Directive.registerAttribute("hide", 500, Directive.attr.Show.$extend({
 
-    $class: "Directive.attr.Hide",
-    $extends: "Directive.attr.Show",
+    $class: "MetaphorJs.app.Directive.attr.Hide",
+    id: "hide",
 
-    $init: function(scope, node, expr, renderer, attr) {
-
+    onScopeChange: function(val) {
         var self    = this;
-
-        self.$super(scope, node, expr, renderer, attr);
-        self.display = null;
-    },
-
-    onChange: function() {
-        var self    = this,
-            val     = self.watcher.getLastResult();
-
         self.runAnimation(!val);
-        self.initial = false;
-
+        self._initial = false;
         self.saveStateOnChange(val);
     }
 }));

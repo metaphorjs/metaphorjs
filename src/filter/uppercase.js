@@ -1,7 +1,15 @@
 
 
-var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js");
+require("./__init.js");
 
-nsAdd("filter.uppercase", function(val){
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+
+/**
+ * @filter uppercase
+ * Transform to upper case
+ * @param {string} input
+ * @returns {string}
+ */
+MetaphorJs.filter.uppercase = function(val){
     return (""+val).toUpperCase();
-});
+};

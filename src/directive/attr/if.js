@@ -1,80 +1,76 @@
 
+require("metaphorjs-animate/src/animate/animate.js");
+require("../../lib/Config.js");
 
-
-var animate = require("metaphorjs-animate/src/func/animate.js"),
-    Directive = require("../../class/Directive.js");
+var Directive = require("../../app/Directive.js"),
+    raf = require("metaphorjs-animate/src/func/raf.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
 Directive.registerAttribute("if", 500, Directive.$extend({
 
-    $class: "Directive.attr.If",
-    parentEl: null,
-    prevEl: null,
-    nextEl: null,
-    el: null,
-    initial: true,
-    cfg: null,
-    animate: false,
+    $class: "MetaphorJs.app.Directive.attr.If",
+    id: "if",
 
-    $init: function(scope, node, expr, renderer, attr) {
-
-        var self    = this;
-
-        self.createCommentHolders(node, this.$class);
-
-        //self.parentEl   = node.parentNode;
-        self.cfg        = attr ? attr.config : {};
-        self.animate    = !!self.cfg.animate;
-
-        self.$super(scope, node, expr, renderer, attr);
+    _initial: true,
+   
+    initDirective: function() {
+        this.createCommentWrap(this.node, "if");
+        this.$super();
     },
 
-    onScopeDestroy: function() {
 
-        var self    = this;
-
-        self.prevEl = null;
-        //self.parentEl = null;
-        self.nextEl = null;
-
-        self.$super();
-    },
-
-    onChange: function() {
+    onScopeChange: function() {
         var self    = this,
-            val     = self.watcher.getLastResult(),
-            parent  = self.prevEl.parentNode,
-            node    = self.node;
+            config  = self.config,
+            val     = config.get("value"),
+            node    = self.node,
+            initial = self._initial,
 
-        var show    = function(){
-            parent.insertBefore(node, self.nextEl);
-        };
+            show    = function() {
+                self.wrapperClose.parentNode.insertBefore(node, self.wrapperClose);
+                if (!initial) {
+                    raf(self.trigger, self, ["show", node]);
+                }
+            },
 
-        var hide    = function() {
-            parent.removeChild(node);
-        };
+            hide    = function() {
+                node.parentNode.removeChild(node);
+                if (!initial) {
+                    raf(self.trigger, self, ["hide", node]);
+                }
+            };
 
         if (val) {
-            self.initial || !self.animate ?
-                show() : animate(node, "enter", show);
+            initial || !self.config.get("animate") ?
+                (initial ? show() : raf(show)) : 
+                MetaphorJs.animate.animate(node, "enter", show);
         }
         else {
             if (node.parentNode) {
-                self.initial || !self.animate ?
-                    hide() : animate(node, "leave").done(hide);
+                initial || !self.config.get("animate") ?
+                    (initial ? hide() : raf(hide)) : 
+                    MetaphorJs.animate.animate(node, "leave").done(hide);
             }
         }
 
         self.$super(val);
 
-        if (self.initial) {
-            self.initial = false;
+        if (self._initial) {
+            self._initial = false;
         }
         else {
-            if (self.cfg.once) {
+            if (self.config.get("once")) {
                 self.$destroy();
             }
         }
     }
-
+}, {
+    initConfig: function(config) {
+        config.setType("animate", "bool", MetaphorJs.lib.Config.MODE_STATIC)
+        config.setType("value", "bool");
+        config.setType("once", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setType("onShow", null, MetaphorJs.lib.Config.MODE_FUNC);
+        config.setType("onHide", null, MetaphorJs.lib.Config.MODE_FUNC);
+    }
 }));

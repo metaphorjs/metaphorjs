@@ -1,59 +1,84 @@
+require("../../lib/Expression.js");
+require("../../lib/Config.js");
+require("../../lib/MutationObserver.js");
+require("../../func/dom/getInputValue.js");
+require("../../func/dom/setInputValue.js");
+require("../../func/dom/setAttr.js");
+require("../../func/browser/isIE.js");
+require("../../func/dom/triggerEvent.js");
+require("../../func/app/prebuilt.js");
+
+var cls = require("metaphorjs-class/src/cls.js"),
+    toArray = require("metaphorjs-shared/src/func/toArray.js"),
+    error = require("metaphorjs-shared/src/func/error.js"),
+    undf = require("metaphorjs-shared/src/var/undf.js"),
+    Directive = require("../../app/Directive.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
+Directive.registerAttribute("options", 100, Directive.$extend({
 
-var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
-    cs = require("metaphorjs-class/src/var/cs.js"),
-    createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
-    toArray = require("../../func/array/toArray.js"),
-    getValue = require("metaphorjs-input/src/func/getValue.js"),
-    setValue = require("metaphorjs-input/src/func/setValue.js"),
-    error = require("../../func/error.js"),
-    filterLookup = require("../../func/filterLookup.js"),
-    isPlainObject = require("../../func/isPlainObject.js"),
-    setAttr = require("../../func/dom/setAttr.js"),
-    undf = require("../../var/undf.js"),
-    isIE = require("../../func/browser/isIE.js"),
-    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
-    Directive = require("../../class/Directive.js");
-
-
-Directive.registerAttribute("options", 100, defineClass({
-
-    $class: "Directive.attr.Options",
-    $extends: Directive,
+    $class: "MetaphorJs.app.Directive.attr.Options",
+    id: "options",
 
     model: null,
     store: null,
-    getterFn: null,
-    defOption: null,
-    prevGroup: null,
-    groupEl: null,
-    fragment: null,
 
-    $init: function(scope, node, expr) {
+    _getterFn: null,
+    _defOption: null,
+    _prevGroup: null,
+    _groupEl: null,
+    _fragment: null,
+    _initial: false,
 
-        var self    = this;
+    $init: function(scope, node, config, renderer, attrSet) {
+        if (!(node instanceof window.HTMLSelectElement)) {
+            throw new Error("'options' directive can only work with <select>");
+        }
+        this.$super(scope, node, config, renderer, attrSet);
+    },
+
+    initConfig: function() {
+        var self    = this,
+            config  = self.config,
+            expr;
+
+        
+        config.disableProperty("value");
+        expr = config.getExpression("value");
+
+        config.on("placeholderName", self.onPlaceholderChange, self);
+        config.on("placeholderValue", self.onPlaceholderChange, self);
 
         self.parseExpr(expr);
+        self.$super();
+    },
 
-        self.node       = node;
-        self.scope      = scope;
-        self.defOption  = node.options.length ? node.options[0] : null;
+    initDirective: function() {
+
+        var self    = this,
+            node    = self.node;
+        
+        self._defOption  = node.options.length ? node.options[0] : null;
 
         while (node.firstChild) {
             node.removeChild(node.firstChild);
         }
 
-        self.defOption && setAttr(self.defOption, "default-option", "");
+        if (self.config.get("keepDefault")) {
+            self._defOption && MetaphorJs.dom.setAttr(self._defOption, "default-option", "");
+        }
+        else self._defOption = null;
 
         try {
-            var value = createGetter(self.model)(scope);
-            if (cs.isInstanceOf(value, "Store")) {
+            var value = MetaphorJs.lib.Expression.get(self.model, self.scope);
+
+            if (cls.isInstanceOf(value, "MetaphorJs.model.Store")) {
                 self.bindStore(value, "on");
             }
             else {
-                self.watcher = createWatchable(scope, self.model, self.onChange, self,
-                    {filterLookup: filterLookup});
+                self.watcher = MetaphorJs.lib.MutationObserver.get(
+                    self.scope, self.model, self.onScopeChange, self);
             }
         }
         catch (thrownError) {
@@ -74,65 +99,83 @@ Directive.registerAttribute("options", 100, defineClass({
         self.store = store;
     },
 
+    getSourceList: function() {
+        return this.store ? 
+            this.store.toArray() :
+            toArray(this.watcher.getValue());
+    },
+
     renderStore: function() {
         var self = this;
-        self.render(self.store.current);
+        self.render(this.getSourceList());
+        self.dispatchOptionsChange();
     },
 
     renderAll: function() {
-        this.render(toArray(this.watcher.getValue()));
+        this.render(this.getSourceList());
+        this.dispatchOptionsChange();
     },
 
-    onChange: function() {
-        this.renderAll();
+    onScopeChange: function() {
+        var self = this;
+        self.renderAll();
+    },
+
+    onPlaceholderChange: function() {
+        var list = this.getSourceList();
+        if (!list || list.length === 0) {
+            this.render(list);
+        }       
+    },
+
+    dispatchOptionsChange: function() {
+        var self = this;
+        if (!self._initial && self.node.dispatchEvent) {
+            MetaphorJs.dom.triggerEvent(self.node, "optionschange");
+        }
+        self._initial = false;
     },
 
     renderOption: function(item, index, scope) {
 
         var self        = this,
-            parent      = self.groupEl || self.fragment,
-            msie        = isIE(),
+            parent      = self._groupEl || self._fragment,
+            msie        = MetaphorJs.browser.isIE(),
             config,
             option;
 
         scope.item      = item;
         scope.$index    = index;
-
-        if (self.defaultOptionTpl && isPlainObject(item)) {
-            config      = item;
-        }
-        else {
-            config      = self.getterFn(scope);
-        }
-
+        config          = self._getterFn(scope);
         config.group    !== undf && (config.group = ""+config.group);
 
         if (config.group !== self.prevGroup) {
 
             if (config.group){
-                self.groupEl = parent = window.document.createElement("optgroup");
-                setAttr(parent, "label", config.group);
+                self._groupEl = parent = window.document.createElement("optgroup");
+                MetaphorJs.dom.setAttr(parent, "label", config.group);
                 if (config.disabledGroup) {
-                    setAttr(parent, "disabled", "disabled");
+                    MetaphorJs.dom.setAttr(parent, "disabled", "disabled");
                 }
-                self.fragment.appendChild(parent);
+                self._fragment.appendChild(parent);
             }
             else {
-                parent = self.fragment;
-                self.groupEl = null;
+                parent = self._fragment;
+                self._groupEl = null;
             }
         }
-        self.prevGroup  = config.group;
+
+        self._prevGroup  = config.group;
 
         option  = window.document.createElement("option");
-        setAttr(option, "value", config.value || "");
-        option.text = config.name;
+        MetaphorJs.dom.setAttr(option, "value", ""+config.value || "");
+        option.text = config.name || ""+config.value || "";
 
         if (msie && msie < 9) {
-            option.innerHTML = config.name;
+            option.innerHTML = config.name || ""+config.value || "";
         }
         if (config.disabled) {
-            setAttr(option, "disabled", "disabled");
+            MetaphorJs.dom.setAttr(option, "disabled", "disabled");
         }
 
         parent.appendChild(option);
@@ -142,14 +185,16 @@ Directive.registerAttribute("options", 100, defineClass({
 
         var self        = this,
             node        = self.node,
-            value       = getValue(node),
-            def         = self.defOption,
+            value       = MetaphorJs.dom.getInputValue(node),
+            def         = self._defOption,
             tmpScope    = self.scope.$new(),
-            msie        = isIE(),
+            msie        = MetaphorJs.browser.isIE(),
+            phValue     = self.config.get("placeholderValue"),
+            phName      = self.config.get("placeholderName") || phValue,
             parent, next,
-            i, len;
+            i, len, ph;
 
-        self.fragment   = window.document.createDocumentFragment();
+        self._fragment   = window.document.createDocumentFragment();
         self.prevGroup  = null;
         self.groupEl    = null;
 
@@ -165,6 +210,13 @@ Directive.registerAttribute("options", 100, defineClass({
             node.insertBefore(def, node.firstChild);
         }
 
+        if (phValue && !len && !def) {
+            ph = document.createElement("option");
+            ph.value = phValue;
+            ph.text = phName;
+            node.insertBefore(ph, node.firstChild);
+        }
+
         tmpScope.$destroy();
 
         // ie6 gives "unspecified error when trying to set option.selected"
@@ -177,48 +229,82 @@ Directive.registerAttribute("options", 100, defineClass({
             parent.removeChild(node);
         }
 
-        node.appendChild(self.fragment);
-        self.fragment = null;
+        node.appendChild(self._fragment);
+        self._fragment = null;
 
         if (msie && msie < 8) {
             parent.insertBefore(node, next);
         }
 
-        setValue(node, value);
+        MetaphorJs.dom.setInputValue(node, value);
     },
 
 
     parseExpr: function(expr) {
-
-        var splitIndex  = expr.indexOf(" in "),
-            model, item;
-
-        if (splitIndex === -1) {
-            model   = expr;
-            item    = '{name: .item, value: .$index}';
-            this.defaultOptionTpl = true;
+        var parts = this.$self.splitExpression(expr);
+        this.model = parts.model;
+        if (parts.item) {
+            this._getterFn = typeof parts.item === "function" ? 
+                                parts.item : 
+                                MetaphorJs.lib.Expression.getter(parts.item);
         }
-        else {
-            model   = expr.substr(splitIndex + 4);
-            item    = expr.substr(0, splitIndex);
-            this.defaultOptionTpl = false;
-        }
-
-        this.model = model;
-        this.getterFn = createGetter(item);
     },
 
-    destroy: function() {
+    onDestroy: function() {
 
         var self = this;
 
         if (self.store){
             self.bindStore(self.store, "un");
         }
+        if (self.watcher) {
+            self.watcher.unsubscribe(self.onScopeChange, self);
+            self.watcher.$destroy(true);
+        }
 
         self.$super();
 
     }
 
+}, {
+
+    splitExpression: function(expr) {
+
+        var model, item, splitIndex;
+
+        if (MetaphorJs.app.prebuilt.isKey(expr)) {
+            var pb = MetaphorJs.app.prebuilt.get("config", expr);
+            model = pb;
+            //item = MetaphorJs.app.prebuilt.get("func", pb.inflate.item);
+            item = pb.inflate.item;
+        }
+        else {
+            splitIndex  = expr.indexOf(" in ");
+
+            if (splitIndex === -1) {
+                model   = expr;
+                item    = '{name: this.item, value: this.$index}';
+            }
+            else {
+                model   = expr.substr(splitIndex + 4);
+                item    = expr.substr(0, splitIndex);
+            }
+        }
+
+        return {model: model, item: item};
+    },
+
+    initConfig: function(config) {
+        config.setType("keepDefault", "bool", MetaphorJs.lib.Config.MODE_STATIC, true);
+    },
+
+    deepInitConfig: function(config) {
+        var prop = config.getProperty("value")
+            parts = this.splitExpression(prop.expression);
+
+        prop.expression = parts.model;
+        prop.inflate = prop.inflate || {};
+        prop.inflate.item = MetaphorJs.lib.Expression.expression(parts.item);
+    }
 }));
 

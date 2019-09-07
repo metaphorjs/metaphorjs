@@ -1,17 +1,26 @@
 
-var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
-    preloadImage = require("../func/preloadImage.js"),
-    isThenable = require("../func/isThenable.js");
+require("./__init.js");
+require("../func/dom/preloadImage.js");
 
-module.exports = (function(){
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+    isThenable = require("metaphorjs-shared/src/func/isThenable.js");
 
-    var preloaded = nsAdd("filter.preloaded", function(val, scope) {
+(function(){
+
+    /**
+     * @filter preloaded
+     * Will return true once image is loaded. It will trigger scope check 
+     * automatically once the image is loaded.
+     * @param {string} input Image url
+     * @returns {boolean} 
+     */
+    var preloaded = MetaphorJs.filter.preloaded = function(val, scope) {
 
         if (!val) {
             return false;
         }
 
-        var promise = preloadImage.check(val);
+        var promise = MetaphorJs.dom.preloadImage.check(val);
 
         if (promise === true || !promise) {
             return !!promise;
@@ -26,8 +35,7 @@ module.exports = (function(){
         else {
             return true;
         }
-
-    });
+    };
 
     preloaded.$undeterministic = true;
 

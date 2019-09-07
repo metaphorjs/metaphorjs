@@ -1,15 +1,15 @@
 
+var Directive = require("../../app/Directive.js");
 
-var Directive = require("../../class/Directive.js"),
-    createGetter = require("metaphorjs-watchable/src/func/createGetter.js");
+Directive.registerAttribute("break-if", 500, function(scope, node, config, renderer) {
 
-Directive.registerAttribute("break-if", 500, function(scope, node, expr){
+    config.setType("value", "bool");
 
-    var res = !!createGetter(expr)(scope);
+    var res = config.get("value");
 
     if (res) {
         node.parentNode.removeChild(node);
     }
 
-    return !res;
+    renderer && renderer.flowControl("stop", !!res);
 });

@@ -1,23 +1,19 @@
 
-var Directive = require("../../class/Directive.js"),
-    createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js"),
-    toFragment = require("../../func/dom/toFragment.js"),
-    getAttr = require("../../func/dom/getAttr.js"),
-    toArray = require("../../func/array/toArray.js"),
-    filterLookup = require("../../func/filterLookup.js");
+require("../../func/dom/toFragment.js");
+require("../../func/dom/getAttr.js");
+require("../../lib/Expression.js");
 
-Directive.registerTag("bind-html", function(scope, node) {
+var Directive = require("../../app/Directive.js"),
+    toArray = require("metaphorjs-shared/src/func/toArray.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-    var expr    = getAttr(node, "value"),
-        w       = createWatchable(scope, expr, null, null, {filterLookup: filterLookup}),
-        text    = w.getLastResult(),
-        frg     = toFragment(text),
+Directive.registerTag("bind-html", function(scope, node, config, renderer) {
+
+    var expr    = MetaphorJs.dom.getAttr(node, "value"),
+        text    = MetaphorJs.lib.Expression.get(expr, scope),
+        frg     = MetaphorJs.dom.toFragment(text),
         nodes   = toArray(frg.childNodes);
 
-    node.parentNode.insertBefore(frg, node);
-    node.parentNode.removeChild(node);
-
-    w.unsubscribeAndDestroy();
-
-    return nodes;
+    node.parentNode.replaceChild(node, frg);
+    renderer && renderer.flowControl("nodes", nodes);
 });

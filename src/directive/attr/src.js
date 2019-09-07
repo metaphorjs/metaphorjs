@@ -1,17 +1,16 @@
+require("metaphorjs-shared/src/lib/Queue.js");
+require("../../func/dom/preloadImage.js");
+require("../../func/dom/setAttr.js");
+require("../../lib/Config.js");
+
+var raf = require("metaphorjs-animate/src/func/raf.js"),
+    Directive = require("../../app/Directive.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
-var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
-    raf = require("metaphorjs-animate/src/func/raf.js"),
-    preloadImage = require("../../func/preloadImage.js"),
-    setAttr = require("../../func/dom/setAttr.js"),
-    Directive = require("../../class/Directive.js"),
-    Queue = require("../../lib/Queue.js"),
-    trim = require("../../func/trim.js");
+Directive.registerAttribute("src", 1000, Directive.$extend({
 
-Directive.registerAttribute("src", 1000, defineClass({
-
-    $class: "Directive.attr.Src",
-    $extends: Directive,
+    $class: "MetaphorJs.app.Directive.attr.Src",
 
     queue: null,
     usePreload: true,
@@ -21,52 +20,47 @@ Directive.registerAttribute("src", 1000, defineClass({
     lastPromise: null,
     src: null,
 
-    $constructor: function(scope, node, expr, renderer, attr) {
+    $constructor: function(scope, node, config, renderer, attrSet) {
 
-        var self = this,
-            cfg = attr ? attr.config : {};
+        var self = this;
 
-        self.attr = attr;
+        self.$self.initConfig(config);
 
-        if (cfg.deferred) {
-            self.$plugins.push("plugin.SrcDeferred");
+        if (config.get("deferred")) {
+            self.$plugins.push("MetaphorJs.plugin.SrcDeferred");
         }
-        if (cfg.preloadSize) {
-            self.$plugins.push("plugin.SrcSize");
+        if (config.get("preloadSize")) {
+            self.$plugins.push("MetaphorJs.plugin.SrcSize");
         }
-        if (cfg.plugin) {
-            var tmp = cfg.plugin.split(","),
+        if (config.get("plugin")) {
+            var tmp = config.get("plugin").split(","),
                 i, l;
             for (i = 0, l = tmp.length; i < l; i++) {
-                self.$plugins.push(trim(tmp[i]));
+                self.$plugins.push(tmp[i].trim());
             }
         }
 
-        self.$super(scope, node, expr);
+        self.$super(scope, node, config);
     },
 
-    $init: function(scope, node, expr, renderer, attr) {
+    initDirective: function(scope, node, config, renderer, attrSet) {
 
-        var self = this,
-            cfg = attr ? attr.config : {};
+        var self = this;
 
-        if (cfg.noCache) {
-            self.noCache = true;
-        }
+        self.usePreload = !config.get("noPreload");
 
-        if (cfg.noPreload) {
-            self.usePreload = false;
-        }
-        else {
+        if (self.usePreload) {
             node.style.visibility = "hidden"
         }
 
-        self.queue = new Queue({auto: true, async: true, mode: Queue.REPLACE, thenable: true});
-        self.$super(scope, node, expr);
+        self.queue = new MetaphorJs.lib.Queue({auto: true, async: true, 
+                                    mode: MetaphorJs.lib.Queue.REPLACE, thenable: true});
+
+        self.$super(scope, node, config, renderer, attrSet);
     },
 
 
-    onChange: function() {
+    onScopeChange: function() {
         var self = this;
         self.cancelPrevious();
         if (self.usePreload) {
@@ -83,7 +77,7 @@ Directive.registerAttribute("src", 1000, defineClass({
             return;
         }
 
-        var src = self.watcher.getLastResult();
+        var src = self.config.get("value");
 
         if (!src) {
             return;
@@ -91,12 +85,12 @@ Directive.registerAttribute("src", 1000, defineClass({
 
         self.src = src;
 
-        if (self.noCache) {
+        if (self.config.get("noCache")) {
             src += (src.indexOf("?") !== -1 ? "&amp;" : "?") + "_" + (new Date).getTime();
         }
 
         if (self.usePreload) {
-            self.lastPromise = preloadImage(src);
+            self.lastPromise = MetaphorJs.dom.preloadImage(src);
             if (self.lastPromise) {
                 self.lastPromise.done(self.onImagePreloaded, self);
             }
@@ -104,7 +98,7 @@ Directive.registerAttribute("src", 1000, defineClass({
         else {
             if (self.node) {
                 self.node.src = src;
-                setAttr(self.node, "src", src);
+                MetaphorJs.dom.setAttr(self.node, "src", src);
                 self.onSrcChanged();
             }
         }
@@ -129,7 +123,7 @@ Directive.registerAttribute("src", 1000, defineClass({
             raf(function(){
                 if (self.node) {
                     self.node.src = src;
-                    setAttr(self.node, "src", src);
+                    MetaphorJs.dom.setAttr(self.node, "src", src);
                     self.onSrcChanged();
                     self.node.style.visibility = "";
                     self.scope.$scheduleCheck(50);
@@ -148,14 +142,24 @@ Directive.registerAttribute("src", 1000, defineClass({
         this.$super();
     },
 
-    destroy: function() {
+    onDestroy: function() {
 
         var self = this;
 
         if (!self.$destroyed) {
             self.cancelPrevious();
-            self.queue.destroy();
+            self.queue.$destroy();
             self.$super();
         }
+    }
+}, {
+    initConfig: function(config) {
+        var ms = MetaphorJs.lib.Config.MODE_STATIC;
+
+        config.setType("deferred", "bool", ms);
+        config.setType("noCache", "bool", ms);
+        config.setType("noPreload", "bool", ms);
+        config.setDefaultMode("preloadSize", ms);
+        config.setDefaultMode("plugin", ms);
     }
 }));

@@ -1,16 +1,14 @@
 
-
-var Directive = require("../../class/Directive.js"),
-    defineClass = require("metaphorjs-class/src/func/defineClass.js");
-
 require("./bind.js");
+var Directive = require("../../app/Directive.js");
 
-Directive.registerAttribute("bind-html", 1000, defineClass({
+Directive.registerAttribute("bind-html", 1000, 
+    Directive.attr.Bind.$extend({
+        $class: "MetaphorJs.app.Directive.attr.BindHtml",
+        id: "bind-html",
+        _apis: ["node"],
 
-    $class: "Directive.attr.BindHtml",
-    $extends: "Directive.attr.Bind",
-
-    updateElement: function(val) {
-        this.node.innerHTML = val;
-    }
-}));
+        updateElement: function(val) {
+            this.node.innerHTML = val;
+        }
+    }));

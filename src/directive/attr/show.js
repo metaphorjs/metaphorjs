@@ -1,65 +1,67 @@
 
+require("metaphorjs-promise/src/lib/Promise.js");
+require("metaphorjs-animate/src/animate/animate.js");
+require("../../lib/Config.js");
 
-var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
-    animate = require("metaphorjs-animate/src/func/animate.js"),
-    Promise = require("metaphorjs-promise/src/lib/Promise.js"),
-    raf = require("metaphorjs-animate/src/func/raf.js"),
-    Directive = require("../../class/Directive.js");
+var raf = require("metaphorjs-animate/src/func/raf.js"),
+    Directive = require("../../app/Directive.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
-Directive.registerAttribute("show", 500, defineClass({
+Directive.registerAttribute("show", 500, Directive.$extend({
 
-    $class: "Directive.attr.Show",
-    $extends: Directive,
+    $class: "MetaphorJs.app.Directive.attr.Show",
+    id: "show",
 
-    animate: false,
-    initial: true,
-    display: "",
-
-    $init: function(scope, node, expr, renderer, attr) {
-
-        var self    = this,
-            cfg     = attr ? attr.config : {};
-
-        self.display = cfg.display || "";
-        self.animate = !!cfg.animate;
-
-        self.$super(scope, node, expr, renderer, attr);
-    },
+    _initial: true,
 
     runAnimation: function(show) {
 
         var self    = this,
             style   = self.node.style,
+            initial = this._initial,
             done    = function() {
                 if (!show) {
                     style.display = "none";
                 }
                 else {
-                    style.display = self.display;
+                    style.display = self.config.get("display");
+                }
+                if (!initial) {
+                    self.trigger(show?"show" : "hide", self.node);
                 }
             };
 
-        self.initial || !self.animate ? done() : animate(
-            self.node,
-            show ? "show" : "hide",
-            function() {
-                if (show) {
-                    var p = new Promise;
-                    raf(function(){
-                        style.display = self.display;
-                        p.resolve();
-                    });
-                    return p;
+        initial || !self.config.get("animate") ? 
+            (initial ? done() : raf(done)) : 
+            MetaphorJs.animate.animate(
+                self.node,
+                show ? "show" : "hide",
+                function() {
+                    if (show) {
+                        return new MetaphorJs.lib.Promise(function(resolve){
+                            raf(function(){
+                                style.display = self.config.get("display");
+                                resolve();
+                            });
+                        });
+                    }
                 }
-            })
+            )
             .done(done);
     },
 
-    onChange: function(val) {
+    onScopeChange: function(val) {
         var self    = this;
         self.runAnimation(val);
-        self.initial = false;
+        self._initial = false;
         self.$super(val);
+    }
+}, {
+    initConfig: function(config) {
+        config.setType("display", 
+            "string", MetaphorJs.lib.Config.MODE_STATIC, "");
+        config.setType("animate", 
+            "bool", MetaphorJs.lib.Config.MODE_STATIC, false);
     }
 }));

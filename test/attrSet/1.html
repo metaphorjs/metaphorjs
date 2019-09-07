@@ -1,0 +1,33 @@
+<html>
+<head>
+
+</head>
+<body>
+    <div id="test1" 
+            #node1
+            #node11
+            @before
+            !ignore
+            {dir}="this.a" 
+            {dir.value-expr}*="this.b"
+            {dir.value-static}:="2"
+            {dir.value-expr-single}!="this.a"
+            {dir.$cfg-expr}*="this.b" 
+            {dir.$cfg-stat}:="1"
+            {dir.$cfg-expr-single}!="this.a" 
+            (1|click)="this.handleClick(this.$event)"
+            (2|click)="this.handleClick(this.$event)"
+            {style.background-color.before}="'#'+this.project.main_color"
+            [value]="this.a"></div>
+
+    <comp id="test2" 
+            #node2
+            #node21
+            @after
+            !ignore-inside
+            $as:="div" 
+            $cfg-expr*="this.a" 
+            $cfg-static:="1" 
+            $cfg-single!="this.b"></comp>
+</body>
+</html>

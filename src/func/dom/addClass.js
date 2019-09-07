@@ -1,12 +1,18 @@
 
-var hasClass = require("./hasClass.js");
+require("./__init.js");
+require("./hasClass.js");
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
- * @param {Element} el
- * @param {String} cls
+ * @function MetaphorJs.dom.addClass
+ * @param {HTMLElement} el
+ * @param {string} cls
  */
-module.exports = function addClass(el, cls) {
-    if (cls && !hasClass(el, cls)) {
-        el.className += " " + cls;
+module.exports = MetaphorJs.dom.addClass = function dom_addClass(el, cls) {
+    if (cls && !MetaphorJs.dom.hasClass(el, cls)) {
+        if (el.classList) {
+            el.classList.add(cls);
+        }
+        else el.className += " " + cls;
     }
 };

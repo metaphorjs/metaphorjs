@@ -1,0 +1,36 @@
+<div class="case">
+    <h4>app's resolved value</h4>
+    <p class="test">{{this.resolved}}</p>
+</div>
+
+
+<div class="case">
+    <h4>recursive rendering</h4>
+    <p>
+        <a href="#" (click)="this.changeLevel2()">Change level 2</a>
+    </p>
+    <p class="test">This is level 1: 
+        <span {bind}="this.level1" {bind.$recursive}></span></p>
+</div>
+
+<div class="case">
+    <h4>lang substitution</h4>
+    <label class="case-label">using normal expression with filter: 'key' | l</label>
+    <p class="test">{{ 'key' | l }}</p>
+    <p class="test" {bind}="'subkey1' | l" {bind.$recursive}></p>
+</div>
+
+<div class="case">
+    <h4>pluralization</h4>
+    <p>
+        <a href="#" (click)="this.increaseB()">Increase B</a>
+    </p>
+    <label class="case-label">using normal expression:</label>
+    <p class="test">{{this.b}} {{ 'plr' | p:this.b}}</p>
+
+    <p><input type="number" data-type="number" 
+                {model}="this.people"/></p>
+    <p class="test" 
+            {bind}="'viewing' | p:this.people" 
+            {bind.$recursive}></p>
+</div>

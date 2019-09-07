@@ -1,14 +1,33 @@
+require("../../app/Directive.js");
+require("../../func/app/resolve.js");
+require("../../lib/Config.js");
 
-var Directive = require("../../class/Directive.js"),
-    resolveComponent = require("../../func/resolveComponent.js");
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-Directive.registerAttribute("view", 200, function(scope, node, cls, parentRenderer, attr) {
-    var cfg = {scope: scope, node: node};
-    resolveComponent(
-        cls || "MetaphorJs.View",
-        cfg,
-        scope, node,
-        [cfg, attr]
-    );
-    return false;
+MetaphorJs.app.Directive.registerAttribute("view", 200, 
+    function(scope, node, config, renderer) {
+
+    MetaphorJs.app.Directive.resolveNode(node, "view", function(node){
+        if (!renderer.$destroyed) {
+            var cfg = {scope: scope, node: node, config: config};
+
+            MetaphorJs.app.resolve(
+                "MetaphorJs.app.view.Component",
+                cfg,
+                node,
+                [cfg]
+            )
+            .done(function(view){
+                if (renderer.$destroyed || scope.$$destroyed) {
+                    view.$destroy();
+                }
+                else {
+                    renderer.on("destroy", view.$destroy, view);
+                    scope.$on("destroy", view.$destroy, view);
+                }
+            });
+        }
+    });
+
+    renderer.flowControl("ignoreInside", true);
 });

@@ -1,19 +1,20 @@
+require("metaphorjs-shared/src/lib/Queue.js");
+require("../func/dom/getScrollParent.js");
+require("../func/dom/getPosition.js");
+require("../func/dom/getScrollTop.js");
+require("../func/dom/getScrollLeft.js");
+require("../func/dom/getWidth.js");
+require("../func/dom/getHeight.js");
+require("../func/dom/addListener.js");
+require("../func/dom/removeListener.js");
 
-var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
-    getScrollParent = require("../func/dom/getScrollParent.js"),
-    getPosition = require("../func/dom/getPosition.js"),
-    getScrollTop = require("../func/dom/getScrollTop.js"),
-    getScrollLeft = require("../func/dom/getScrollLeft.js"),
-    getWidth = require("../func/dom/getWidth.js"),
-    getHeight = require("../func/dom/getHeight.js"),
-    addListener = require("../func/event/addListener.js"),
-    removeListener = require("../func/event/removeListener.js"),
-    Queue = require("../lib/Queue.js"),
-    bind = require("../func/bind.js");
+var cls = require("metaphorjs-class/src/cls.js"),
+    bind = require("metaphorjs-shared/src/func/bind.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-module.exports = defineClass({
+module.exports = cls({
 
-    $class: "plugin.SrcDeferred",
+    $class: "MetaphorJs.plugin.SrcDeferred",
 
     directive: null,
 
@@ -30,22 +31,24 @@ module.exports = defineClass({
 
         var self = this;
         self.directive = directive;
-        directive.$intercept("onChange", self.onChange, self, "instead");
+        directive.$intercept("onScopeChange", self.onScopeChange, self, "instead");
+        directive.$intercept("initDirective", self.$initDirective, self, "before");
         self.queue = 
             directive.queue || 
-            new Queue({auto: true, async: true, mode: Queue.REPLACE, thenable: true});
+            new MetaphorJs.lib.Queue({auto: true, async: true, 
+                            mode: MetaphorJs.lib.Queue.REPLACE, thenable: true});
     },
 
-    $beforeHostInit: function(scope, node) {
+    $initDirective: function() {
 
         var self = this;
 
-        self.scrollEl = getScrollParent(node);
+        self.scrollEl = MetaphorJs.dom.getScrollParent(self.directive.node);
         self.scrollDelegate = bind(self.onScroll, self);
         self.resizeDelegate = bind(self.onResize, self);
 
-        addListener(self.scrollEl, "scroll", self.scrollDelegate);
-        addListener(window, "resize", self.resizeDelegate);
+        MetaphorJs.dom.addListener(self.scrollEl, "scroll", self.scrollDelegate);
+        MetaphorJs.dom.addListener(window, "resize", self.resizeDelegate);
     },
 
     isVisible: function() {
@@ -56,18 +59,18 @@ module.exports = defineClass({
 
         var self = this,
             sEl = self.scrollEl,
-            st = getScrollTop(sEl),
-            sl = getScrollLeft(sEl),
+            st = MetaphorJs.dom.getScrollTop(sEl),
+            sl = MetaphorJs.dom.getScrollLeft(sEl),
             w = self.sw,
             h = self.sh,
             t,l;
 
         if (!self.position) {
-            self.position = getPosition(self.directive.node, sEl);
+            self.position = MetaphorJs.dom.getPosition(self.directive.node, sEl);
         }
         if (!w) {
-            w = self.sw = getWidth(sEl);
-            h = self.sh = getHeight(sEl);
+            w = self.sw = MetaphorJs.dom.getWidth(sEl);
+            h = self.sh = MetaphorJs.dom.getHeight(sEl);
         }
 
         t = self.position.top;
@@ -79,19 +82,19 @@ module.exports = defineClass({
 
     onScroll: function() {
         var self = this;
-        self.directive.queue.add(self.changeIfVisible, self);
+        self.queue.add(self.changeIfVisible, self);
     },
 
     onResize: function() {
         var self = this;
         self.position = null;
         self.sw = null;
-        self.directive.queue.add(self.changeIfVisible, self);
+        self.queue.add(self.changeIfVisible, self);
     },
 
-    onChange: function() {
+    onScopeChange: function() {
         var self = this;
-        self.directive.queue.add(self.changeIfVisible, self);
+        self.queue.add(self.changeIfVisible, self);
     },
 
     changeIfVisible: function() {
@@ -106,8 +109,8 @@ module.exports = defineClass({
     stopWatching: function() {
         var self = this;
         if (self.scrollEl) {
-            removeListener(self.scrollEl, "scroll", self.scrollDelegate);
-            removeListener(window, "resize", self.resizeDelegate);
+            MetaphorJs.dom.removeListener(self.scrollEl, "scroll", self.scrollDelegate);
+            MetaphorJs.dom.removeListener(window, "resize", self.resizeDelegate);
             self.scrollEl = null;
             self.checkVisibility = false;
         }
@@ -115,7 +118,7 @@ module.exports = defineClass({
 
     $beforeHostDestroy: function(){
         this.stopWatching();
-        this.queue.destroy();
+        this.queue.$destroy();
     }
 
 });

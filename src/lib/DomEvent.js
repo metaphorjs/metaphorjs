@@ -1,13 +1,26 @@
 
-var returnFalse = require("../func/returnFalse.js"),
-    returnTrue = require("../func/returnTrue.js"),
-    undf = require("../var/undf.js"),
-    isNull = require("../func/isNull.js"),
-    extend = require("../func/extend.js");
+var returnFalse = require("metaphorjs-shared/src/func/returnFalse.js"),
+    returnTrue = require("metaphorjs-shared/src/func/returnTrue.js"),
+    undf = require("metaphorjs-shared/src/var/undf.js"),
+    isNull = require("metaphorjs-shared/src/func/isNull.js"),
+    extend = require("metaphorjs-shared/src/func/extend.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 // from jQuery
 
-var DomEvent = function(src) {
+/**
+ * Dom event wrapper.
+ * @class MetaphorJs.lib.DomEvent
+ */
+
+/**
+ * @method DomEvent
+ * @constructor
+ * @param {Event} src Native event
+ */
+module.exports = MetaphorJs.lib.DomEvent = function(){
+
+var DomEvent = function DomEvent(src) {
 
     if (src instanceof DomEvent) {
         return src;
@@ -81,10 +94,27 @@ var DomEvent = function(src) {
 // http://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
 extend(DomEvent.prototype, {
 
+    /**
+     * @method isDefaultPrevented
+     * @returns {boolean}
+     */
     isDefaultPrevented: returnFalse,
+
+    /**
+     * @method isPropagationStopped
+     * @returns {boolean}
+     */
     isPropagationStopped: returnFalse,
+
+    /**
+     * @method isImmediatePropagationStopped
+     * @returns {boolean}
+     */
     isImmediatePropagationStopped: returnFalse,
 
+    /**
+     * @method
+     */
     preventDefault: function() {
         var e = this.originalEvent;
 
@@ -95,6 +125,10 @@ extend(DomEvent.prototype, {
             e.preventDefault();
         }
     },
+
+    /**
+     * @method
+     */
     stopPropagation: function() {
         var e = this.originalEvent;
 
@@ -105,6 +139,10 @@ extend(DomEvent.prototype, {
             e.stopPropagation();
         }
     },
+
+    /**
+     * @method
+     */
     stopImmediatePropagation: function() {
         var e = this.originalEvent;
 
@@ -118,4 +156,6 @@ extend(DomEvent.prototype, {
     }
 }, true, false);
 
-module.exports = DomEvent;
+return DomEvent;
+
+}();

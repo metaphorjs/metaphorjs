@@ -1,258 +1,292 @@
 
+require("metaphorjs-observable/src/lib/Observable.js");
+require("../lib/MutationObserver.js");
+require("../lib/Expression.js");
+require("../func/app/prebuilt.js");
 
-var isPlainObject = require("../func/isPlainObject.js"),
-    isArray = require("../func/isArray.js"),
-    extend = require("../func/extend.js"),
-    undf = require("../var/undf.js");
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+    extend = require("metaphorjs-shared/src/func/extend.js"),
+    nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
+    async = require("metaphorjs-shared/src/func/async.js"),
+    bind = require("metaphorjs-shared/src/func/bind.js");
 
-module.exports = function(){
+/**
+ * Text renderer
+ * @class MetaphorJs.lib.Text
+ */
+module.exports = MetaphorJs.lib.Text = (function(){
 
-    var pluralDef       = function($number, $locale) {
+    var startSymbol             = '{{',
+        endSymbol               = '}}',
+        startSymbolLength       = 2,
+        endSymbolLength         = 2,
 
-            if ($locale === "pt_BR") {
-                // temporary set a locale for brasilian
-                $locale = "xbr";
+        events                  = new MetaphorJs.lib.Observable,
+
+        _procExpr               = function(expr, scope, observers) {
+            if (observers) {
+                var w = MetaphorJs.lib.MutationObserver.get(scope, expr);
+                observers.push(w);
+                return w.getValue();
+            }
+            else {
+                if (MetaphorJs.app.prebuilt.isKey(expr)) {
+                    expr = MetaphorJs.app.prebuilt.get("config", expr);
+                }
+                return MetaphorJs.lib.Expression.get(expr, scope);
+            }
+        },
+
+        eachText                = function(text, fn) {
+
+            var index       = 0,
+                textLength  = text.length,
+                startIndex,
+                endIndex,
+                expr,
+                result      = "";
+
+            while (index < textLength) {
+                if (((startIndex = text.indexOf(startSymbol, index)) !== -1) &&
+                    ((endIndex = text.indexOf(endSymbol, startIndex + startSymbolLength)) !== -1) &&
+                    text.substr(startIndex - 1, 1) !== '\\') {
+
+                    result += text.substring(index, startIndex);
+
+                    if (endIndex !== startIndex + startSymbolLength) {
+                        expr = text.substring(startIndex + startSymbolLength, endIndex);
+                        expr = expr.trim();
+                        result += fn(expr);
+                    }
+
+                    index = endIndex + endSymbolLength;
+
+                } else {
+                    // we did not find an interpolation
+                    if (index !== textLength) {
+                        result += text.substring(index);
+                    }
+                    break;
+                }
             }
 
-            if ($locale.length > 3) {
-                $locale = $locale.substr(0, -$locale.lastIndexOf('_'));
+            return result;
+        },
+
+        render = function(text, scope, observers, recursive, fullExpr) {
+
+            var result,
+                prev = text,
+                iter = 0;
+
+            if (text === false) {
+                return false;
             }
 
-            switch($locale) {
-                case 'bo':
-                case 'dz':
-                case 'id':
-                case 'ja':
-                case 'jv':
-                case 'ka':
-                case 'km':
-                case 'kn':
-                case 'ko':
-                case 'ms':
-                case 'th':
-                case 'tr':
-                case 'vi':
-                case 'zh':
-                    return 0;
+            while (true) {
+                if (iter > 100) {
+                    throw new Error(
+                        "Got more than 100 iterations on template: " + self.origin);
+                }
 
-                case 'af':
-                case 'az':
-                case 'bn':
-                case 'bg':
-                case 'ca':
-                case 'da':
-                case 'de':
-                case 'el':
-                case 'en':
-                case 'eo':
-                case 'es':
-                case 'et':
-                case 'eu':
-                case 'fa':
-                case 'fi':
-                case 'fo':
-                case 'fur':
-                case 'fy':
-                case 'gl':
-                case 'gu':
-                case 'ha':
-                case 'he':
-                case 'hu':
-                case 'is':
-                case 'it':
-                case 'ku':
-                case 'lb':
-                case 'ml':
-                case 'mn':
-                case 'mr':
-                case 'nah':
-                case 'nb':
-                case 'ne':
-                case 'nl':
-                case 'nn':
-                case 'no':
-                case 'om':
-                case 'or':
-                case 'pa':
-                case 'pap':
-                case 'ps':
-                case 'pt':
-                case 'so':
-                case 'sq':
-                case 'sv':
-                case 'sw':
-                case 'ta':
-                case 'te':
-                case 'tk':
-                case 'ur':
-                case 'zu':
-                    return ($number === 1) ? 0 : 1;
+                if (fullExpr) {
+                    result = _procExpr(text, scope, observers);
+                    fullExpr = false;
+                }
+                else {
+                    result = eachText(prev, function(expr){
+                        return _procExpr(expr, scope, observers);
+                    });
+                }
+                
+                if (!recursive || result === prev) {
+                    return result;
+                }
 
-                case 'am':
-                case 'bh':
-                case 'fil':
-                case 'fr':
-                case 'gun':
-                case 'hi':
-                case 'ln':
-                case 'mg':
-                case 'nso':
-                case 'xbr':
-                case 'ti':
-                case 'wa':
-                    return (($number === 0) || ($number === 1)) ? 0 : 1;
-
-                case 'be':
-                case 'bs':
-                case 'hr':
-                case 'ru':
-                case 'sr':
-                case 'uk':
-                    return (($number % 10 === 1) && ($number % 100 !== 11)) ?
-                           0 :
-                           ((($number % 10 >= 2) && ($number % 10 <= 4) &&
-                             (($number % 100 < 10) || ($number % 100 >= 20))) ? 1 : 2);
-
-                case 'cs':
-                case 'sk':
-                    return ($number === 1) ? 0 : ((($number >= 2) && ($number <= 4)) ? 1 : 2);
-
-                case 'ga':
-                    return ($number === 1) ? 0 : (($number === 2) ? 1 : 2);
-
-                case 'lt':
-                    return (($number % 10 === 1) && ($number % 100 !== 11)) ?
-                           0 :
-                           ((($number % 10 >= 2) &&
-                             (($number % 100 < 10) || ($number % 100 >= 20))) ? 1 : 2);
-
-                case 'sl':
-                    return ($number % 100 === 1) ?
-                           0 :
-                           (($number % 100 === 2) ?
-                                1 :
-                                ((($number % 100 === 3) || ($number % 100 === 4)) ? 2 : 3));
-
-                case 'mk':
-                    return ($number % 10 === 1) ? 0 : 1;
-
-                case 'mt':
-                    return ($number === 1) ?
-                           0 :
-                           ((($number === 0) || (($number % 100 > 1) && ($number % 100 < 11))) ?
-                                1 :
-                                ((($number % 100 > 10) && ($number % 100 < 20)) ? 2 : 3));
-
-                case 'lv':
-                    return ($number === 0) ? 0 : ((($number % 10 === 1) && ($number % 100 !== 11)) ? 1 : 2);
-
-                case 'pl':
-                    return ($number === 1) ?
-                           0 :
-                           ((($number % 10 >= 2) && ($number % 10 <= 4) &&
-                             (($number % 100 < 12) || ($number % 100 > 14))) ? 1 : 2);
-
-                case 'cy':
-                    return ($number === 1) ? 0 : (($number === 2) ? 1 : ((($number === 8) || ($number === 11)) ? 2 : 3));
-
-                case 'ro':
-                    return ($number === 1) ?
-                           0 :
-                           ((($number === 0) || (($number % 100 > 0) && ($number % 100 < 20))) ? 1 : 2);
-
-                case 'ar':
-                    return ($number === 0) ?
-                           0 :
-                           (($number === 1) ?
-                                1 :
-                                (($number === 2) ?
-                                    2 :
-                                    ((($number >= 3) && ($number <= 10)) ?
-                                        3 :
-                                        ((($number >= 11) && ($number <= 99)) ? 4 : 5))));
-
-                default:
-                    return 0;
+                prev = result;
+                iter++;
             }
         };
 
 
-    var Text = function(locale) {
+    /**
+     * @constructor
+     * @method
+     * @param {object} dataObj
+     * @param {string} text 
+     * @param {object} opt {
+     *  @type {bool} recursive
+     * }
+     */
+    var Text = function(scope, text, opt) {
+        opt = opt || {};
 
-        var self    = this;
-        self.store  = {};
-        if (locale) {
-            self.locale = locale;
+        var self        = this;
+
+        self.id         = nextUid();
+        self.origin     = text;
+        self.text       = "";
+        self.scope      = scope;
+        self.$destroyed  = false;
+        self.fullExpr   = false;
+        self.recursive  = false;
+        self.once       = false;
+
+        if (opt.recursive === true || opt.recursive === false) {
+            self.recursive = opt.recursive;
         }
+        if (opt.fullExpr === true || opt.fullExpr === false) {
+            self.fullExpr = opt.fullExpr;
+        }
+        if (opt.once === true || opt.once === false) {
+            self.once = opt.once;
+        }
+
+        self._processDelegate = bind(self._process, self);
+        self.observers  = [];
+
+        self._process(true);
     };
 
     extend(Text.prototype, {
 
-        store: null,
-        locale: "en",
+        _process: function(initial) {
 
-        setLocale: function(locale) {
-            this.locale = locale;
-        },
+            if (this.$destroyed) {
+                return;
+            }
 
-        set: function(key, value) {
-            var store = this.store;
-            if (store[key] === undf) {
-                store[key] = value;
+            var self = this,
+                obs = self.observers.slice();
+
+            self._observeData(obs, "unsubscribe");
+            self.observers = [];
+
+            self.text = render(self.origin, self.scope, 
+                                self.observers, 
+                                self.recursive, 
+                                self.fullExpr);
+
+            self._observeData(self.observers, "subscribe");
+            self._destroyObservers(obs);
+
+            if (!initial) {
+                events.trigger(self.id, self);
             }
         },
 
-        load: function(keys) {
-            extend(this.store, keys, false, false);
+        _onDataChange: function() {
+            async(this._processDelegate);
         },
 
-        get: function(key) {
-            var self    = this;
-            return self.store[key] ||
-                   (self === globalText ? '-- ' + key + ' --' : globalText.get(key));
-        },
-
-        plural: function(key, number) {
-            var self    = this,
-                strings = typeof key === "string" ? self.get(key): key,
-                def     = pluralDef(number, self.locale);
-
-            if (!isArray(strings)) {
-                if (isPlainObject(strings)) {
-                    if (strings[number]) {
-                        return strings[number];
-                    }
-                    if (number === 1 && strings.one !== undf) {
-                        return strings.one;
-                    }
-                    else if (number < 0 && strings.negative !== undf) {
-                        return strings.negative;
-                    }
-                    else {
-                        return strings.other;
-                    }
-                }
-                return strings;
-            }
-            else {
-                return strings[def];
+        _observeData: function(obs, mode) {
+            var i, l,
+                self = this;
+            for (i = 0, l = obs.length; i < l; i++) {
+                // subscribe/unsubscribe
+                obs[i][mode](self._onDataChange, self);
             }
         },
 
-        destroy: function() {
+        _destroyObservers: function(obs) {
+            var i, l;
+            for (i = 0, l = obs.length; i < l; i++) {
+                obs[i].$destroy(true);
+            }
+        },
 
-            this.store = null;
+        /**
+         * Get processed text
+         * @method
+         * @returns {string}
+         */
+        getString: function() {
+            return this.text;
+        },
 
+        /**
+         * Subscribe to changes in text
+         * @param {function} fn 
+         * @param {object} context 
+         * @param {object} opt {
+         *  MetaphorJs.lib.Observable.on() options
+         * }
+         */
+        subscribe: function(fn, context, opt) {
+            return events.on(this.id, fn, context, opt);
+        },
+
+        /**
+         * Unsubscribe from changes in text
+         * @param {function} fn 
+         * @param {object} context 
+         */
+        unsubscribe: function(fn, context) {
+            return events.un(this.id, fn, context);
+        },
+
+        /**
+         * Used only in standalone mode. When part of an app, 
+         * use scope.$check()
+         * @method
+         * @returns {int}
+         */
+        check: function() {
+            return MetaphorJs.lib.MutationObserver.check(this.scope);
+        },
+
+        /**
+         * Destroy text container
+         * @method
+         */
+        $destroy: function() {
+            var self = this;
+            self.$destroyed  = true;
+            events.destroyEvent(self.id);
+            self._observeData(self.observers, "unsubscribe");
+            self._destroyObservers(self.observers);
         }
+    });
 
-    }, true, false);
+    /**
+     * Statically process text without subscribing to changes
+     * @static
+     * @method
+     * @param {string} text Text template
+     * @param {object} dataObj Data object (app.Scope) to read variables from
+     * @param {array|null} observers {
+     *  Pass empty array 
+     *  @type {MetaphorJs.lib.MutationObserver} observer
+     * }
+     * @param {bool} recursive Recursively process text template
+     * @returns {string}
+     */
+    Text.render = render;
 
+    /**
+     * @static
+     * @method
+     * @param {string} text Text template
+     * @param {function} fn {
+     *  @param {string} expression
+     *  @returns {string} replacement
+     * }
+     * @returns {string} processed template
+     */
+    Text.eachText = eachText;
 
-    var globalText  = new Text;
-
-    Text.global     = function() {
-        return globalText;
+    /**
+     * Does the text have expressions
+     * @static
+     * @method
+     * @param {string} text
+     * @returns {boolean}
+     */
+    Text.applicable = function(text) {
+        return MetaphorJs.app.prebuilt.isKey(text) || 
+                !text || !text.indexOf ||
+                text.indexOf(startSymbol) === -1 ? false : true;
     };
 
     return Text;
-}();
+}());

@@ -1,18 +1,33 @@
 
-var normalizeEvent = require("../event/normalizeEvent.js"),
-    is = require("metaphorjs-select/src/func/is.js"),
-    delegates = require("../../var/delegates.js"),
-    addListener = require("../event/addListener.js");
+require("./__init.js");
+require("metaphorjs-shared/src/lib/Cache.js");
+require("metaphorjs/src/func/dom/is.js");
+require("./addListener.js");
+require("./normalizeEvent.js");
 
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-module.exports = function delegate(el, selector, event, fn) {
+/**
+ * Delegate dom event
+ * @function MetaphorJs.dom.delegate
+ * @param {HTMLElement} el Dom node to add event listener to
+ * @param {string} selector Event target selector
+ * @param {string} event Event name
+ * @param {function} fn {
+ *  Event handler
+ *  @param {object} event
+ * }
+ */
+module.exports = MetaphorJs.dom.delegate = function dom_delegate(el, selector, event, fn) {
+
+    var delegates = MetaphorJs.lib.Cache.global().get("dom/delegates", []);
 
     var key = selector + "-" + event,
         listener    = function(e) {
-            e = normalizeEvent(e);
+            e = MetaphorJs.dom.normalizeEvent(e);
             var trg = e.target;
             while (trg) {
-                if (is(trg, selector)) {
+                if (MetaphorJs.dom.is(trg, selector)) {
                     return fn(e);
                 }
                 trg = trg.parentNode;
@@ -26,5 +41,5 @@ module.exports = function delegate(el, selector, event, fn) {
 
     delegates[key].push({el: el, ls: listener, fn: fn});
 
-    addListener(el, event, listener);
+    MetaphorJs.dom.addListener(el, event, listener);
 };

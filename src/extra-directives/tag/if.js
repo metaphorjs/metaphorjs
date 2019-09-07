@@ -1,59 +1,61 @@
 
-var Directive = require("../../class/Directive.js"),
-    defineClass = require("metaphorjs-class/src/func/defineClass.js"),
-    toFragment = require("../../func/dom/toFragment.js"),
-    getAttr = require("../../func/dom/getAttr.js"),
-    undf = require("../../var/undf.js"),
-    toArray = require("../../func/array/toArray.js");
+require("../../func/dom/toFragment.js");
+require("../../func/dom/getAttr.js");
+require("../../lib/Config.js");
 
-Directive.registerTag("if", defineClass({
-    $class: "Directive.tag.If",
-    $extends: "Directive.attr.If",
-    autoOnChange: false,
+var Directive = require("../../app/Directive.js"),
+    toArray = require("metaphorjs-shared/src/func/toArray.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+
+
+Directive.registerTag("if", Directive.attr.If.$extend({
+    $class: "MetaphorJs.app.Directive.tag.If",
+    _autoOnChange: false,
     children: null,
     childrenFrag: null,
 
-    $init: function(scope, node, expr, renderer, attr) {
+    initDirective: function(scope, node, config, renderer, attrSet) {
 
         var self    = this;
-        
-        self.children = toArray(node.childNodes);
-        self.childrenFrag = toFragment(self.children);
-        expr = getAttr(node, "value");
 
-        self.$super(scope, node, expr, renderer, attr);   
-        
+        self.children = toArray(node.childNodes);
+        self.childrenFrag = MetaphorJs.dom.toFragment(self.children);
+
+        renderer && renderer.flowControl("nodes", self.children);
+
+        self.createCommentWrap();
+        self.$super(scope, node, config, renderer, attrSet);   
+
         if (node.parentNode) {
             node.parentNode.removeChild(node); 
         }
-
-        var val = self.watcher.getLastResult();
-        self.onChange(val || false, undf);
     },
 
-    getChildren: function() {
-        return this.children;
+    initConfig: function() {
+        this.config.setProperty("value", {
+            expression: MetaphorJs.dom.getAttr(this.node, "value")
+        });
+        this.$super();
     },
 
-    onChange: function() {
+    onScopeChange: function() {
         var self    = this,
-            val     = self.watcher.getLastResult(),
-            parent  = self.prevEl.parentNode;
+            val     = self.config.get("value"),
+            prev    = self.wrapperOpen,
+            next    = self.wrapperClose,
+            parent  = prev.parentNode;
 
         if (val) {
-            parent.insertBefore(self.childrenFrag, self.nextEl);
+            parent.insertBefore(self.childrenFrag, next);
         }
         else if (!self.initial) {
-            var prev = self.prevEl, 
-                next = self.nextEl, 
-                children = [],
+            var children = [],
                 sib;
 
             self.childrenFrag = window.document.createDocumentFragment();
-            while (prev.parentNode && prev.nextSibling && 
-                    prev.nextSibling !== next) {
+            while (prev.nextSibling && prev.nextSibling !== next) {
                 sib = prev.nextSibling;
-                prev.parentNode.removeChild(sib);
+                parent.removeChild(sib);
                 children.push(sib);
                 self.childrenFrag.appendChild(sib);
             }
@@ -64,14 +66,20 @@ Directive.registerTag("if", defineClass({
             self.initial = false;
         }
         else {
-            if (self.cfg.once) {
+            if (self.config.get("once")) {
                 self.$destroy();
             }
         }
     },
 
-    destroy: function() {
+    onDestroy: function() {
         this.children = null;
+        this.childrenFrag = null;
         this.$super();
+    }
+}, {
+    initConfig: function(config) {
+        config.setType("once", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setType("value", "bool");
     }
 }));

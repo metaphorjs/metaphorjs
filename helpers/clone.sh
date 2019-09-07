@@ -1,6 +1,8 @@
 #!/bin/sh
 
-reps=( "documentor" "validator" "observable" "dnd" "dialog" "build" "animate" "input" "history" "class" "promise"
+reps=( "documentor" "validator" "observable" "dnd" "dialog" 
+        "shared" "ui"
+        "build" "animate" "input" "history" "class" "promise"
         "ajax" "model" "watchable" "select" "namespace" )
 
 git clone https://github.com/metaphorjs/metaphorjs.git

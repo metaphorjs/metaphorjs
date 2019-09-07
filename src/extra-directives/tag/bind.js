@@ -1,17 +1,16 @@
+require("../../lib/Expression.js");
+require("../../func/dom/getAttr.js");
 
-var Directive = require("../../class/Directive.js"),
-    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
-    getAttr = require("../../func/dom/getAttr.js");
+var Directive = require("../../app/Directive.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
-Directive.registerTag("bind", function(scope, node) {
+Directive.registerTag("bind", function(scope, node, config, renderer) {
 
-    var expr    = getAttr(node, "value"),
-        text    = createGetter(expr)(scope),
+    var expr    = MetaphorJs.dom.getAttr(node, "value"),
+        text    = MetaphorJs.lib.Expression.get(expr, scope),
         frg     = window.document.createTextNode(text);
 
-    node.parentNode.insertBefore(frg, node);
-    node.parentNode.removeChild(node);
-
-    return [frg];
+    node.parentNode.replaceChild(node, frg);
+    renderer && renderer.flowControl("nodes", [frg]);
 });

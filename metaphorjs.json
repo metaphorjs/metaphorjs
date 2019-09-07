@@ -1,9 +1,7 @@
 {
     "version": "0.3.13",
     "description": "MetaphorJs app framework",
-    "push": [
-        "github"
-    ],
+    
     "test": [
         {
             "cmd": "node",
@@ -18,23 +16,22 @@
             ]
         }
     ],
+
+
     "mixin": {
         "core": {
             "files": [
-                "src/MetaphorJs.js",
-                "src/class/*",
+                ["metaphorjs-shared/src/MetaphorJs.js", {"as": "*"}],
+                "src/app/**",
                 "src/directive/**",
-                "src/filter/*",
+                "src/filter/**",
                 "src/bootstrap/apps.js"
             ]
         },
         "all": {
             "files": [
                 "core",
-                [
-                    "metaphorjs-model/metaphorjs.json",
-                    "all"
-                ],
+                ["metaphorjs-model/metaphorjs.json", "all"],
                 "metaphorjs-dialog/src/class/dialog/Component.js",
                 "metaphorjs-validator/src/directive/**",
                 "src/plugin/**"
@@ -42,52 +39,77 @@
         }
     },
     "build": {
+
+        "test": {
+            "target": "dev-test/metaphorjs.test.js",
+            "files": [
+                "all",
+                "src/extra-directives/**",
+                "dev-test/index.js"
+            ],
+            "options": {
+                "wrap": true,
+                "removeDebug": false
+            },
+            "templates": [
+                ["dev-test/templates/**", {
+                    "base": "dev-test/templates"
+                }]
+            ],
+            "prebuild": {
+                "directives": [
+                    "metaphorjs/src/directive/**",
+                    "metaphorjs-validator/src/directive/**"
+                ],
+                "filters": [
+                    "metaphorjs/src/filter/**"
+                ]
+            }
+        },
+
+        "test-webc": {
+            "target": "dev-test/metaphorjs.test-webc.js",
+            "files": [
+                "core",
+                "dev-test/webc.js"
+            ],
+            "options": {
+                "wrap": true,
+                "removeDebug": false
+            }
+        },
+
+        "test-min": {
+            "extend": "test",
+            "target": "dev-test/metaphorjs.test.min.js",
+            "pipe": ["build", "compile", "write"]
+        },
+
         "standalone": {
-            "wrap": true,
             "target": "dist/metaphorjs.js",
             "files": [
                 "core"
-            ]
+            ],
+            "options": {
+                "wrap": true
+            }
         },
+
         "all": {
-            "wrap": true,
             "target": "dist/metaphorjs.all.js",
             "files": [
                 "all"
-            ]
-        },
-        "npm": {
-            "auto": true,
-            "target": "dist/metaphorjs.npm.js",
-            "compile": false,
-            "wrap": {
-                "exported": true,
-                "deferred": true,
-                "args": ["window"]
-            },
-            "files": [
-                "core",
-                [
-                    "src/func/run.js",
-                    {
-                        "as": "run"
-                    }
-                ],
-                "metaphorjs-model/src/directive/*",
-                "metaphorjs-dialog/src/class/dialog/Component.js",
-                "metaphorjs-validator/src/directive/**"
             ],
-            "expose": "all",
-            "exposeIn": "MetaphorJsExport",
-            "returns": "MetaphorJsExport"
+            "options": {
+                "wrap": true
+            }
         },
+
         "amd": {
             "target": "dist/metaphorjs.amd.js",
             "files": [
-                "core",
-                [
-                    "src/func/*", {"as": "*"}
-                ],
+                "core", 
+                ["src/func/*", {"as": "*"}],
                 "metaphorjs-model/src/directive/*",
                 "metaphorjs-dialog/src/class/dialog/Component.js",
                 "metaphorjs-validator/src/directive/**"
@@ -101,7 +123,7 @@
                 "metaphorjs-input/src/lib/Input.js",
                 "metaphorjs-input/src/func/getValue.js",
                 "metaphorjs-input/src/func/setValue.js",
-                "metaphorjs-class/src/lib/Class.js",
+                "metaphorjs-class/src/cls.js",
                 "metaphorjs-namespace/src/lib/Namespace.js",
                 "metaphorjs-select/src/func/select.js",
                 "metaphorjs-validator/src/class/Validator.js",
@@ -109,39 +131,30 @@
                 "metaphorjs-dialog/src/class/Dialog.js",
                 "metaphorjs-history/src/lib/History.js"
             ],
-            "prepend": [
-                "src/stubs/amd.js"
-            ],
-            "expose": "all",
-            "define": {
-                "name": "metaphorjs",
-                "return": "MetaphorJs",
-                "deps": {
-                    "metaphorjs-observable": "Observable",
-                    "metaphorjs-promise": "Promise",
-                    "metaphorjs-ajax": "ajax",
-                    "metaphorjs-animate": "animate",
-                    "metaphorjs-input": "Input",
-                    "metaphorjs-class": "Class",
-                    "metaphorjs-namespace": "Namespace",
-                    "metaphorjs-select": "select",
-                    "metaphorjs-validator": "Validator",
-                    "metaphorjs-watchable": "Watchable",
-                    "metaphorjs-dialog": "Dialog",
-                    "metaphorjs-history": "mhistory"
+            "options": {
+                "prepend": [
+                    "src/stubs/amd.js"
+                ],
+                "expose": "**",
+                "amd": {
+                    "name": "metaphorjs",
+                    "return": "__mjsExport",
+                    "deps": {
+                        "metaphorjs-observable": "Observable",
+                        "metaphorjs-promise": "Promise",
+                        "metaphorjs-ajax": "ajax",
+                        "metaphorjs-animate": "animate",
+                        "metaphorjs-input": "Input",
+                        "metaphorjs-class": "cls",
+                        "metaphorjs-namespace": "Namespace",
+                        "metaphorjs-select": "select",
+                        "metaphorjs-validator": "Validator",
+                        "metaphorjs-watchable": "Watchable",
+                        "metaphorjs-dialog": "Dialog",
+                        "metaphorjs-history": "mhistory"
+                    }
                 }
             }
-        },
-        "test": {
-            "auto": true,
-            "global": true,
-            "compile": false,
-            "target": "dev-test/metaphorjs.test.js",
-            "files": [
-                "all",
-                ["src/func/compile.js", {"as": "*"}]
-            ],
-            "expose": "all"
         }
     }
 }

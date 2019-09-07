@@ -1,9 +1,15 @@
 
-var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js");
+require("./__init.js");
 
-nsAdd("filter.p", function(key, scope, number) {
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+
+/**
+ * @filter p 
+ * Get plural text form from LocalText lib
+ * @param {string} input Lang key
+ * @param {int} number Number to find text form for
+ * @returns {string}
+ */
+MetaphorJs.filter.p = function(key, scope, number) {
     return scope.$app.lang.plural(key, parseInt(number, 10) || 0);
-});
-nsAdd("filter.pl", function(number, scope, key) {
-    return scope.$app.lang.plural(key, parseInt(number, 10) || 0);
-});
+};

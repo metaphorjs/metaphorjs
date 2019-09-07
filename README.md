@@ -1,102 +1,89 @@
 #MetaphorJs
 
-v.0.3
+v.1.0beta 
+(actually, while in beta, it's been successully used in production for the last 5 years)
 
-An app framework similar to AngularJs (directives, scopes, dependency injection, etc)
-and ExtJs (class system, event system, data model).
+An app framework similar to AngularJs (directives, scopes, dependency injection, etc) and ExtJs (class system, event system, data model).
 
-[Short documentation with code examples](http://kuindji.com/js/metaphorjs/docs/index.html)
+```javascript
+var MyComponent = MetaphorJs.app.Component.$extend({
+    $class: "MyNamespace.MyComponent",
+    $alias: "MetaphorJs.directive.component.my-component",
+    template: "my-component-template.html",
+    as: "cmp",
 
-Features:
+    initComponent: function() {
+        this.scope.text = this.config.get("text");
+        this.scope.allowClick = false;
+    },
 
-* attribute and tag directives
-* event system (not attached to DOM)
-* promises
-* recursive rendering
-* i18n
-* output and input filters
-* namespace and class system
-* form validation
-* tooltips and dialogs
-* animation (css/js/jquery)
-* build system that integrates your project into MetaphorJs
-* dependency injection
-* global and encapsulated modes
-* data store and active record
-* ajax (with jsonp)
-* cross browser pushState implementation
-* > input, < scope or <-> two way data binding
-* no dependencies
-* cross browser
-* < 50kb minified and gzipped (without modules < 30kb)
+    initConfig: function() {
+        // calling parent class
+        this.$super();
+        this.config.setDefaultValue("title", "My Component");
+        this.config.setDefaultValue("text", "Component's text");
+    },
 
+    onClick: function() {
+        alert("Click on link")
+    }
+});
+```
 
-MetaphorJs and all of its modules do not depend on jQuery or any other dom helper.
+my-component-template.html
+```html
+<div ##main>
+    <!-- $cfg comes from component Config -->
+    <h1 {bind}="this.$cfg.title"></h1>
+    <!-- "this" is the component's Scope -->
+    <p>Text can be inserted via {directive} or mustaches: {{ this.text }}</p>
+    <!-- events, directives and components can be configured -->
+    <p><a href="#" 
+          (click)="this.cmp.onClick()"
+          (click.$if)="this.allowClick == true"
+          (click.$stop-propagation)>click here</a></p>
+    <p>
+        <label>
+            <input type="checkbox" {model}="this.allowClick">
+            Allow click
+        </label>
+    </p>
 
-// Some of the code in the library and its modules is taken from Angular and jQuery.
+    <!-- 
+        Named locations are like slots in shadow dom.
+        Provided html will go inside node slots and after comment slots.
+        Provided html can contain directives and other components.
+    -->
+    <div ##loc1></div>
+    <!--##loc2-->
+</div>
+```
 
-IE6+, Chrome, Safari, Firefox, Opera, Android (Chrome/Native), iOS Safari, Blackberry
+some-other-template.html
+```html
+<!-- first way: -->
+<div {cmp}="MyNamespace.MyComponent"
+     {cmp.$title}="Number 1"
+     {cmp.$text}="Text 1">
+    <p @loc1>First inserted part</p>
+    <p @loc2>Second inserted part</p>
+</div>
 
-###Modules that can be used separately (standalone/amd/node modules)
+<!-- second way -->
+<my-component $title="Number 2" $text="Text 2">
+    <my-component @loc1 $title="Sub Component"></my-component>
+    <p @loc2>Second inserted part</p>
+</my-component>
+```
 
-####Stable
-
-[Namespace](https://github.com/kuindji/metaphorjs-namespace)
-The namespace system similar to one from ExtJs.
-
-[Class](https://github.com/kuindji/metaphorjs-class)
-The class system is based on klass, although i’ve rewritten in quite heavily.
-
-[Observable](https://github.com/kuindji/metaphorjs-observable)
-Event system.
-
-[Promise](https://github.com/kuindji/metaphorjs-promise)
-Promise/A+ compliant library / ES6 Promise polyfill.
-
-[Dialog](https://github.com/kuindji/metaphorjs-dialog)
-Tooltip/Dialog library. (Reworked version of [jquery-dialog](https://github.com/kuindji/jquery-dialog) -- without
-jquery dependency.
-
-####Beta
-
-[Watchable](https://github.com/kuindji/metaphorjs-watchable)
-This one watches for changes in objects and scopes.
-
-[ajax](https://github.com/kuindji/metaphorjs-ajax)
-AJAX implementation similar to jQuery's.
-
-[Validator](https://github.com/kuindji/metaphorjs-validator)
-Form validation.
-
-[history.pushState](https://github.com/kuindji/metaphorjs-history)
-Stateless pushState wrapper/polyfill.
-
-[MetaphorJs.model](https://github.com/kuindji/metaphorjs-model)
-Model/Record/Store classes.
-
-[select](https://github.com/kuindji/metaphorjs-select)
-Selector engine (modified YASS)
-
-[animate](https://github.com/kuindji/metaphorjs-animate)
-Animation engine
-
-[Input](https://github.com/kuindji/metaphorjs-input)
-Input field class
-
-####Build system
-
-https://github.com/kuindji/metaphorjs-build
-
-###Demo
-
-A few Angular-like demos:
-
-[Basics](http://kuindji.com/js/metaphorjs/demo/basics.html),
-[Todo](http://kuindji.com/js/metaphorjs/demo/todo.html),
-[Recursive rendering](http://kuindji.com/js/metaphorjs/demo/recursive.html),
-[Animated tags](http://kuindji.com/js/metaphorjs/demo/tags.html),
-[Flickr feed](http://kuindji.com/js/metaphorjs/demo/flickr.html),
-[Firebase chat](http://kuindji.com/js/metaphorjs/demo/firebase.html)
-
-
-[Dev test page](http://kuindji.com/js/metaphorjs/dev-test/index.html)
+some-other-javascript
+```javascript
+/** third way */
+var cmp = new MyComponent({
+    config: {
+        title: "Number 3",
+        text: "Text 3"
+    },
+    renderTo: document.body
+})
+```

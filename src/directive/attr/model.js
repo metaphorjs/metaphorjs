@@ -1,110 +1,112 @@
+require("../../lib/Scope.js");
+require("../../lib/Expression.js");
+require("../../lib/MutationObserver.js");
+require("../../lib/Config.js");
+require("../../func/dom/addListener.js");
+require("../../func/dom/removeListener.js");
 
-
-
-
-var async = require("../../func/async.js"),
+var async = require("metaphorjs-shared/src/func/async.js"),
+    bind = require("metaphorjs-shared/src/func/bind.js"),
     isIE = require("../../func/browser/isIE.js"),
-    undf = require("../../var/undf.js"),
-    Input = require("metaphorjs-input/src/lib/Input.js"),
-    Scope = require("../../lib/Scope.js"),
-    isString = require("../../func/isString.js"),
-    createFunc = require("metaphorjs-watchable/src/func/createFunc.js"),
-    Directive = require("../../class/Directive.js");
-
+    undf = require("metaphorjs-shared/src/var/undf.js"),
+    isString = require("metaphorjs-shared/src/func/isString.js"),
+    Directive = require("../../app/Directive.js"),
+    emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
 Directive.registerAttribute("model", 1000, Directive.$extend({
 
-    $class: "Directive.attr.Model",
-    inProg: false,
-    input: null,
-    binding: null,
-    updateRoot: false,
-    changeCb: null,
-    initial: false,
+    $class: "MetaphorJs.app.Directive.attr.Model",
+    id: "model",
+    _apis: ["node", "input"],
 
-    autoOnChange: false,
+    _binding: null,
+    _inProg: false,
 
-    $init: function(scope, node, expr, renderer, attr) {
+    initDirective: function() {
 
         var self    = this,
-            cfg     = attr ? attr.config : {};
+            expr    = self.config.getExpression("value")
 
-        self.node           = node;
-        self.input          = Input.get(node, scope);
-        self.updateRoot     = expr.indexOf('$root') + expr.indexOf('$parent') !== -2;
-        self.binding        = cfg.binding || "both";
-
-        if (cfg.change) {
-            self.changeCb   = createFunc(cfg.change);
-        }
-
+        self.mo = MetaphorJs.lib.MutationObserver.get(
+            self.scope, expr, null, null, {
+                setter: true
+            }
+        );
+        self.mo.subscribe(self.onScopeChange, self);
         self.input.onChange(self.onInputChange, self);
 
-        self.$super(scope, node, expr);
+        self.optionsChangeDelegate = bind(self.onOptionsChange, self);
+        MetaphorJs.dom.addListener(self.node, "optionschange", 
+                                    self.optionsChangeDelegate);
+
+        self.$super();
 
         var inputValue      = self.input.getValue(),
-            scopeValue      = self.watcher.getLastResult();
-
-        self.initial = true;
+            scopeValue      = self.mo.getValue(),
+            binding         = self.config.get("binding");
 
         if (scopeValue !== inputValue) {
             // scope value takes priority
-            if (self.binding !== "input" && scopeValue !== undf) {
-                self.onChange(scopeValue);
+            if (binding !== "input" && scopeValue !== undf) {
+                self.onScopeChange(scopeValue);
             }
-            else if (self.binding !== "scope" && inputValue !== undf) {
+            else if (binding !== "scope" && inputValue !== undf) {
                 self.onInputChange(inputValue);
             }
         }
+    },
 
-        self.initial = false;
+
+    initChange: emptyFn,
+
+    onOptionsChange: function() {
+        this.onScopeChange();
     },
 
     onInputChange: function(val) {
 
         var self    = this,
-            scope   = self.scope;
+            config  = self.config,
+            binding = self._binding || config.get("binding");
 
-        if (self.binding !== "scope") {
+        if (binding !== "scope") {
+
+            if (config.has("if") && !config.get("if")) {
+                return;
+            }
 
             if (val && isString(val) && val.indexOf('\\{') !== -1) {
                 val = val.replace(/\\{/g, '{');
             }
 
-            if (self.watcher.getLastResult() == val) {
+            if (self.mo.getValue() == val) {
                 return;
             }
 
-            self.watcher.setValue(val);
+            self.mo.setValue(val);
 
-            self.inProg = true;
-            if (scope instanceof Scope) {
-                self.updateRoot ? scope.$root.$check() : scope.$check();
-            }
-            else {
-                self.watcher.checkAll();
-            }
-            self.inProg = false;
+            self._inProg = true;
+            self.config.checkScope("value");
+            self._inProg = false;
         }
     },
 
-    destroy: function() {
 
-        var self        = this;
-        self.input.destroy();
-        self.$super();
-    },
-
-
-    onChange: function() {
+    onScopeChange: function() {
 
         var self    = this,
-            val     = self.watcher.getLastResult(),
-            binding = self.binding,
+            config  = self.config,
+            val     = self.mo.getValue(), 
+            binding = self._binding || config.get("binding"),
             ie;
 
-        if (self.binding !== "input" && !self.inProg) {
+        if (binding !== "input" && !self._inProg) {
+
+            if (config.has("if") && !config.get("if")) {
+                return;
+            }
 
             // when scope value changed but this field
             // is not in focus, it should try to
@@ -114,7 +116,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             // this value in its options. that will change
             // value to undefined and bubble back to scope
             if (window.document.activeElement !== self.node) {
-                self.binding = "scope";
+                self._binding = "scope";
             }
 
             if ((ie = isIE()) && ie < 8) {
@@ -124,13 +126,43 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
                 self.input.setValue(val);
             }
 
-            self.binding = binding;
+            self._binding = null;
+        }
+    },
+
+    onDestroy: function() {
+        var self        = this;
+
+        MetaphorJs.dom.removeListener(
+            self.node, "optionschange", 
+            self.optionsChangeDelegate);
+
+        self.input.unChange(self.onInputChange, self);
+        self.input.$destroy();
+        self.input = null;
+
+        if (self.mo) {
+            self.mo.unsubscribe(self.onScopeChange, self);
+            self.mo.$destroy(true);
         }
 
-        if (self.changeCb && !self.initial && val != self.watcher.getPrevValue()) {
-            self.changeCb(self.scope);
-        }
+        self.$super();
     }
 
+
+}, {
+
+    initConfig: function(config) {
+        config.setMode("value", MetaphorJs.lib.Config.MODE_FNSET);
+        config.setType("if", "bool");
+        config.setProperty("binding", {
+            defaultValue: "both",
+            defaultMode: MetaphorJs.lib.Config.MODE_STATIC
+        });
+    },
+
+    $prebuild: {
+    
+    }
 
 }));

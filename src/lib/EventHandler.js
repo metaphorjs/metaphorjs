@@ -1,117 +1,68 @@
 
-var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
-    addListener = require("../func/event/addListener.js"),
-    removeListener = require("../func/event/removeListener.js"),
-    trim = require("../func/trim.js"),
-    undf = require("../var/undf.js"),
-    extend = require("../func/extend.js"),
-    async = require("../func/async.js"),
-    isPlainObject = require("../func/isPlainObject.js"),
-    normalizeEvent = require("../func/event/normalizeEvent.js"),
-    EventBuffer = require("./EventBuffer.js"),
-    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
-    createWatchable = require("metaphorjs-watchable/src/func/createWatchable.js");
+require("../func/dom/addListener.js");
+require("../func/dom/removeListener.js");
+require("../func/dom/normalizeEvent.js");
+require("../func/dom/is.js");
+require("./EventBuffer.js");
+require("./Expression.js");
+require("./MutationObserver.js");
 
-module.exports = defineClass({
+var undf = require("metaphorjs-shared/src/var/undf.js"),
+    extend = require("metaphorjs-shared/src/func/extend.js"),
+    async = require("metaphorjs-shared/src/func/async.js"),
+    isPlainObject = require("metaphorjs-shared/src/func/isPlainObject.js"),
+    isArray = require("metaphorjs-shared/src/func/isArray.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-    cfg: null,
-    scope: null,
-    node: null,
-    listeners: null,
-    event: null,
-    buffers: null,
-    updateRoot: false,
-    prevEvent: null,
+/**
+ * Handles events as they come defined in html templates
+ * @class MetaphorJs.lib.EventHandler
+ */
 
-    $init: function(scope, node, cfg, event, defaults) {
+/**
+ * @method EventHandler
+ * @constructor
+ * @param {string} event Dom event name
+ * @param {MetaphorJs.lib.Scope} scope 
+ * @param {HTMLElement} node 
+ * @param {MetaphorJs.lib.Config} cfg MetaphorJs.lib.Config
+ */
+MetaphorJs.lib.EventHandler = function(event, scope, node, cfg) {
 
-        var self = this;
+    var self = this;
 
-        self.event = event;
-        self.prevEvent = {};
+    self.config     = cfg;
+    self.event      = event;
+    self.prevEvent  = {};
+    self.scope      = scope;
+    self.node       = node;
+    self.handler    = null;
+    self.buffer     = null;
 
-        defaults = defaults || {};
+    if (cfg.hasExpression("if")) {
+        cfg.on("if", self.onIfChange, self);
+    }
 
-        cfg = cfg || {};
+    self.up();
+};
 
-        if (typeof cfg === "string") {
+extend(MetaphorJs.lib.EventHandler.prototype, {
 
-            self.updateRoot = cfg.indexOf('$root') + cfg.indexOf('$parent') !== -2;
+    $destroyed: false,
+    $destroying: false,
 
-            var fc = cfg.substr(0,1);
-
-            if (fc === '{') {
-                self.watcher = createWatchable(scope, cfg, self.onConfigChange, self);
-                cfg = extend({}, self.watcher.getLastResult(), true, true);
-            }
-            else if (fc === '=') {
-                cfg = cfg.substr(1);
-                self.watcher = createWatchable(scope, cfg, self.onConfigChange, self);
-                cfg = extend({}, self.watcher.getLastResult(), true, true);
-            }
-            else {
-                var handler = createGetter(cfg);
-                cfg = {
-                    handler: handler
-                };
-            }
-        }
-
-        self.buffers    = {};
-        self.listeners  = [];
-        self.scope      = scope;
-        self.node       = node;
-
-        self.prepareConfig(cfg, defaults);
-
-        self.up();
+    onIfChange: function(val) {
+        this[val?"up":"down"]();
     },
 
-    prepareConfig: function(cfg, defaults) {
-
-        var tmp,
-            event = this.event;
-
-        extend(cfg, defaults, false, false);
-
-        if (cfg.handler && typeof cfg.handler === "string") {
-            cfg.handler = createGetter(cfg.handler);
-        }
-
-        if (cfg.event) {
-            tmp = {};
-            var events = cfg.event.split(","),
-                i, l;
-
-            for (i = 0, l = events.length; i < l; i++) {
-                tmp[trim(events[i])] = cfg;
-            }
-
-            cfg = tmp;
-        }
-        else if (event) {
-            tmp = {};
-            tmp[event] = cfg;
-            cfg = tmp;
-        }
-
-        this.cfg = cfg;
-    },
-
-    onConfigChange: function(val) {
-        var self = this;
-        val = extend({}, val, true, true);
-        self.down();
-        self.prepareConfig(val);
-        self.up();
-    },
-
-    createHandler: function(cfg, scope) {
+    createHandler: function() {
 
         var self        = this,
-            updateRoot  = self.updateRoot;
+            scope       = self.scope,
+            config      = self.config,
+            asnc;
 
-        var handler = function(e){
+        var handler = function(e) {
 
             if (self.$destroyed || self.$destroying) {
                 return;
@@ -121,14 +72,48 @@ module.exports = defineClass({
                 preventDefault = false,
                 returnValue = undf,
                 stopPropagation = false,
-                res;
+                stopImmediate = false,
+                res,
+                cfg = config.getAll(),
+                not = cfg.not,
+                handlers = [],
+                names = [],
+                skipHandler = false,
+                handler, i, l;
+
+            config.eachProperty(function(name){
+                if (name.indexOf("value") === 0) {
+                    handlers.push(config.get(name));
+                    names.push(name);
+                }
+            });
 
             cfg.preventDefault !== undf && (preventDefault = cfg.preventDefault);
             cfg.stopPropagation !== undf && (stopPropagation = cfg.stopPropagation);
+            cfg.stopImmediatePropagation !== undf && 
+                (stopImmediate = cfg.stopImmediatePropagation);
             cfg.returnValue !== undf && (returnValue = cfg.returnValue);
             cfg.keyCode !== undf && (keyCode = cfg.keyCode);
 
-            e = normalizeEvent(e || window.event);
+            e = MetaphorJs.dom.normalizeEvent(e || window.event);
+
+            if (not) {
+                if (!isArray(not)) {
+                    not = [not];
+                }
+                var prnt;
+                nt:
+                for (i = 0, l = not.length; i < l; i++) {
+                    prnt = e.target;
+                    while (prnt && prnt !== self.node) {
+                        if (MetaphorJs.dom.is(prnt, not[i])) {
+                            skipHandler = true;
+                            break nt;
+                        }
+                        prnt = prnt.parentNode;
+                    }
+                }
+            }
 
             if (keyCode) {
                 if (typeof keyCode === "number" && keyCode !== e.keyCode) {
@@ -142,18 +127,26 @@ module.exports = defineClass({
             scope.$event = e;
             scope.$eventNode = self.node;
             scope.$prevEvent = self.prevEvent[e.type];
+            scope.$eventCmp = config.get("targetComponent");
 
-            if (cfg.handler) {
-                res = cfg.handler.call(cfg.context || null, scope);
+            if (!skipHandler && handlers.length > 0) {
+                for (i = 0, l = handlers.length; i < l; i++) {
+                    handler = handlers[i];
+                    res = handler.call(cfg.context || null, scope);
 
-                if (res && isPlainObject(res)) {
-                    res.preventDefault !== undf && (preventDefault = res.preventDefault);
-                    res.stopPropagation !== undf && (stopPropagation = res.stopPropagation);
-                    res.returnValue !== undf && (returnValue = res.returnValue);
+                    if (res && isPlainObject(res)) {
+                        res.preventDefault !== undf && 
+                            (preventDefault = res.preventDefault);
+                        res.stopPropagation !== undf && 
+                            (stopPropagation = res.stopPropagation);
+                        res.returnValue !== undf && 
+                            (returnValue = res.returnValue);
+                    }
                 }
             }
 
             stopPropagation && e.stopPropagation();
+            stopImmediate && e.stopImmediatePropagation && e.stopImmediatePropagation();
             preventDefault && e.preventDefault();
 
             if (self.$destroyed || self.$destroying) {
@@ -162,20 +155,23 @@ module.exports = defineClass({
 
             scope.$event = null;
             scope.$eventNode = null;
+            scope.$eventCmp = null;
 
             self.prevEvent[e.type] = e;
 
-            updateRoot ? scope.$root.$check() : scope.$check();
+            for (i = 0, l = names.length; i < l; i++) {
+                config.checkScope(names[i]);
+            }
 
             if (returnValue !== undf) {
                 return returnValue;
             }
         };
 
-        if (cfg.async) {
+        if (asnc = self.config.get("async")) {
             return function(e) {
                 async(handler, null, [e], 
-                        typeof cfg.async == "number" ? cfg.async : null);
+                        typeof asnc == "number" ? asnc : null);
             };
         }
         else {
@@ -183,75 +179,77 @@ module.exports = defineClass({
         }
     },
 
+    /**
+     * Start listening to event
+     * @method
+     */
     up: function() {
 
         var self    = this,
-            allCfg  = self.cfg,
-            ls      = self.listeners,
-            bs      = self.buffers,
-            node    = self.node,
-            scope   = self.scope,
-            cfg,
-            buffer,
-            handler,
-            event;
+            cfg     = self.config,
+            buffer  = cfg.get("buffer");
 
-        for (event in allCfg) {
-            cfg = allCfg[event];
-            buffer = cfg.buffer;
+        if (!cfg.hasExpression("if") || cfg.get('if')) {
+            self.handler = self.createHandler();
 
-            if (cfg['if'] === undf || cfg['if']) {
-                handler = self.createHandler(cfg, scope);
-                ls.push([event, handler]);
-
-                if (buffer) {
-                    if (!bs[event]) {
-                        bs[event] = EventBuffer.get(node, event, buffer);
-                        bs[event].on(handler);
-                    }
-                }
-                else {
-                    addListener(node, event, handler);
-                }
-            }
-        }
-    },
-
-    down: function() {
-
-        var self    = this,
-            ls      = self.listeners,
-            bs      = self.buffers,
-            node    = self.node,
-            buffer  = self.cfg.buffer,
-            event,
-            handler,
-            i, l;
-
-
-        for (i = 0, l = ls.length; i < l; i++) {
-            event = ls[i][0];
-            handler = ls[i][1];
             if (buffer) {
-                bs[event].un(handler);
-                if (bs[event].destroyIfIdle() === true) {
-                    delete bs[event];
-                }
+                self.buffer = MetaphorJs.lib.EventBuffer.get(
+                    self.node, self.event, buffer,
+                    self._getEventConfig()
+                );
+                self.buffer.on(self.handler);
             }
             else {
-                removeListener(node, event, handler);
+                MetaphorJs.dom.addListener(
+                    self.node, 
+                    self.event, 
+                    self.handler,
+                    self._getEventConfig()
+                );
             }
         }
-
-        self.listeners  = [];
     },
 
-    destroy: function() {
-        var self = this;
-        self.down();
-        if (self.watcher) {
-            self.watcher.unsubscribeAndDestroy(self.onConfigChange, self);
-        }
-    }
+    /**
+     * Stop listening to event
+     * @method
+     */
+    down: function() {
 
+        var self    = this;
+
+        if (self.buffer) {
+            self.buffer.un(self.handler);
+            self.buffer.destroyIfIdle();
+            self.buffer = null;
+        }
+        else {
+            MetaphorJs.dom.removeListener(self.node, self.event, self.handler);
+        }
+    },
+
+    _getEventConfig: function() {
+        var opts = {};
+        if (this.config.hasExpression("passive")) {
+            opts.passive = this.config.get("passive");
+        }
+        return opts;
+    },
+
+    /**
+     * @method
+     */
+    $destroy: function() {
+        var self = this;
+        if (self.$destroyed || self.$destroying) {
+            return;
+        }
+        self.$destroying = true;
+        self.down();
+        self.config.clear();
+        self.$destroying = false;
+        self.$destroyed = true;
+    }
 });
+
+module.exports = MetaphorJs.lib.EventHandler;

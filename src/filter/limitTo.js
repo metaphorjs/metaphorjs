@@ -1,9 +1,18 @@
 
-var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
-    isArray = require("../func/isArray.js"),
-    isString = require("../func/isString.js");
+require("./__init.js");
 
-nsAdd("filter.limitTo", function(input, scope, limit){
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+    isArray = require("metaphorjs-shared/src/func/isArray.js"),
+    isString = require("metaphorjs-shared/src/func/isString.js");
+
+/**
+ * @filter limitTo
+ * Limit array size or string length
+ * @param {array|string} input
+ * @param {int} limit
+ * @return {array|string}
+ */
+MetaphorJs.filter.limitTo = function(input, scope, limit) {
 
     var isS = isString(input);
 
@@ -48,4 +57,4 @@ nsAdd("filter.limitTo", function(input, scope, limit){
     }
 
     return out;
-});
+};

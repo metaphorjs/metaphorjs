@@ -77,6 +77,10 @@ label.case-label {
     float: left;
 }
 
+#container-app {
+    
+}
+
 
 .mjs-show, .mjs-hide, .ng-hide-add, .ng-hide-remove {
     -webkit-transition:  opacity 0.4s;
@@ -119,7 +123,7 @@ label.case-label {
 .mjs-enter-active, .mjs-leave-active, .ng-enter-active, .ng-leave-active {
     -webkit-transition: -webkit-transform 0.4s, opacity 0.4s;
     -moz-transition: -moz-transform 0.4s, opacity 0.4s;
-    -o-transition:   -o-transform: 0.4s, opacity 0.4s;
+    -o-transition: -o-transform 0.4s, opacity 0.4s;
     transition:  transform 0.4s, opacity 0.4s;
 }
 
@@ -134,6 +138,11 @@ label.case-label {
     -webkit-transform: translateY(0);
     -moz-transform: translateY(0);
     transform: translateY(0);
+}
+.mjs-move {
+    -webkit-transform: translate(0,0);
+    -moz-transform: translate(0,0);
+    transform: translate(0,0);
 }
 .mjs-enter-active {
     opacity: 1;
@@ -151,7 +160,7 @@ label.case-label {
 .mjs-move-active {
     -webkit-transition: -webkit-transform 0.4s;
     -moz-transition: -moz-transform 0.4s;
-    -o-transition:   -o-transform 0.4s;
+    -o-transition: -o-transform 0.4s;
     transition:  transform 0.4s;
 }
 
@@ -160,7 +169,7 @@ label.case-label {
 .ng-enter, .ng-leave {
     -webkit-transition: -webkit-transform 0.4s, opacity 0.4s;
     -moz-transition: -moz-transform 0.4s, opacity 0.4s;
-    -o-transition:   -o-transform: 0.4s, opacity 0.4s;
+    -o-transition: -o-transform 0.4s, opacity 0.4s;
     transition:  transform 0.4s, opacity 0.4s;
 }
 

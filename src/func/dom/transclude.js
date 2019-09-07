@@ -1,35 +1,66 @@
 
-var parentData = require("../dom/parentData.js"),
-    data = require("../dom/data.js"),
-    toFragment = require("../dom/toFragment.js"),
-    clone = require("../dom/clone.js"),
-    toArray = require("../array/toArray.js");
+require("./__init.js");
+require("./data.js");
+require("./toFragment.js");
+require("./clone.js");
+require("metaphorjs-shared/src/func/toArray.js");
 
-module.exports = function transclude(node, replace) {
+var toArray = require("metaphorjs-shared/src/func/toArray.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+    undf = require("metaphorjs-shared/src/var/undf.js");
 
-    var contents  = parentData(node, 'mjs-transclude');
+module.exports = MetaphorJs.dom.transclude = (function(){
 
-    if (contents) {
-
-        if (node.firstChild) {
-            data(node, "mjs-transclude", toFragment(node.childNodes));
+    var getTranscludeFrom = function(parent) {
+        var contents;
+        while (parent) {
+            contents = MetaphorJs.dom.data(parent, 'mjs-transclude');
+            if (contents !== undf) {
+                return contents;
+            }
+            parent  = parent.parentNode;
         }
+        return undf;
+    };
 
-        var parent      = node.parentNode,
-            next        = node.nextSibling,
-            cloned      = clone(contents),
-            children    = toArray(cloned.childNodes);
+    return function dom_transclude(node, replace, parents) {
 
-        if (replace) {
-            parent.removeChild(node);
-            parent.insertBefore(cloned, next);
+        parents = parents || [];
+        parents.unshift(node.parentNode);
+
+        var i, l,
+            contents;
+    
+        for (i = 0, l = parents.length; i < l; i++) {
+            contents = getTranscludeFrom(parents[i]);
+            if (contents) {
+                break;
+            }
         }
-        else {
-            node.appendChild(cloned);
+    
+        if (contents) {
+    
+            if (node.firstChild) {
+                MetaphorJs.dom.data(node, "mjs-transclude", MetaphorJs.dom.toFragment(node.childNodes));
+            }
+    
+            var parent      = node.parentNode,
+                //next        = node.nextSibling,
+                cloned      = MetaphorJs.dom.clone(contents),
+                children    = toArray(cloned.childNodes);
+    
+            if (replace) {
+                parent.replaceChild(node, cloned);
+                //parent.removeChild(node);
+                //parent.insertBefore(cloned, next);
+            }
+            else {
+                node.appendChild(cloned);
+            }
+    
+            return children;
         }
-
-        return children;
-    }
-
-    return null;
-};
+    
+        return null;
+    };
+}());

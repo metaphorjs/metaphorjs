@@ -19,19 +19,7 @@
         "url": "https://github.com/metaphorjs/metaphorjs/issues"
     },
     "homepage": "https://github.com/metaphorjs/metaphorjs",
-    "dependencies": {
-        "chai": "*",
-        "chai-as-promised": "*",
-        "grunt": "*",
-        "gulp": "*",
-        "karma": "*",
-        "karma-chai": "*",
-        "karma-chrome-launcher": "*",
-        "karma-mocha": "*",
-        "karma-phantomjs-launcher": "*",
-        "karma-webdriver-launcher": "*",
-        "mocha": "*",
-        "mockery": "*",
-        "selenium-webdriver": "*"
+    "devDependencies": {
+        "jsdom": "^13.0.0"
     }
 }

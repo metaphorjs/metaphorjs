@@ -1,12 +1,19 @@
 
-var removeListener = require("../event/removeListener.js"),
-    addListener = require("../event/addListener.js");
+require("./__init.js");
+require("./removeListener.js");
+require("./addListener.js");
+
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
- * @param {Function} fn
+ * Execute callback when window is ready
+ * @function MetaphorJs.dom.onReady
+ * @param {function} fn {
+ *  @param {Window} win
+ * }
  * @param {Window} w optional window object
  */
-module.exports = function onReady(fn, w) {
+module.exports = MetaphorJs.dom.onReady = function dom_onReady(fn, w) {
 
     var done    = false,
         top     = true,
@@ -18,7 +25,7 @@ module.exports = function onReady(fn, w) {
                 return;
             }
 
-            removeListener(e.type == 'load' ? win : doc, e.type, init);
+            MetaphorJs.dom.removeListener(e.type == 'load' ? win : doc, e.type, init);
 
             if (!done && (done = true)) {
                 fn.call(win, e.type || e);
@@ -28,7 +35,8 @@ module.exports = function onReady(fn, w) {
         poll = function() {
             try {
                 root.doScroll('left');
-            } catch(thrownError) {
+            } 
+            catch(thrownError) {
                 setTimeout(poll, 50);
                 return;
             }
@@ -46,12 +54,13 @@ module.exports = function onReady(fn, w) {
         if (doc.createEventObject && root.doScroll) {
             try {
                 top = !win.frameElement;
-            } catch(thrownError) {}
+            } 
+            catch(thrownError) {}
 
             top && poll();
         }
-        addListener(doc, 'DOMContentLoaded', init);
-        addListener(doc, 'readystatechange', init);
-        addListener(win, 'load', init);
+        MetaphorJs.dom.addListener(doc, 'DOMContentLoaded', init);
+        MetaphorJs.dom.addListener(doc, 'readystatechange', init);
+        MetaphorJs.dom.addListener(win, 'load', init);
     }
 };

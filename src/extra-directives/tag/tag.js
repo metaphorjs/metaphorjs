@@ -1,40 +1,41 @@
+require("../../func/dom/getAttr.js");
+require("../../func/dom/setAttr.js");
+require("../../lib/Expression.js");
 
-var Directive = require("../../class/Directive.js"),
-    createGetter = require("metaphorjs-watchable/src/func/createGetter.js"),
-    getAttr = require("../../func/dom/getAttr.js"),
-    getAttrMap = require("../../func/dom/getAttrMap.js"),
-    setAttr = require("../../func/dom/setAttr.js");
+var Directive = require("../../app/Directive.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
-Directive.registerTag("tag", function(scope, node) {
+Directive.registerTag("tag", function directive_tag_tag(scope, node, config, renderer) {
 
     var expr = getAttr(node, "value"),
-        tag = createGetter(expr)(scope);
+        tag = MetaphorJs.lib.Expression.get(expr, scope),
+        i, l, a;
 
     if (!tag) {
         node.parentNode.removeChild(node);
-        return false;
+        renderer && renderer.flowControl("stop", true);
     }
     else {
         var el = window.document.createElement(tag),
             next = node.nextSibling,
-            attrMap = getAttrMap(node),
-            k;
+            attrs = node.attributes;
 
         while (node.firstChild) {
             el.appendChild(node.firstChild);
         }
 
-        delete attrMap['value'];
-
-        for (k in attrMap) {
-            setAttr(el, k, attrMap[k]);
+        for (i = 0, l = attrs.length; i < l; i++) {
+            a = attrs[i];
+            if (a.name !== "value") {
+                MetaphorJs.dom.setAttr(el, a.name, a.value);
+            }
         }
 
         node.parentNode.insertBefore(el, next);
         node.parentNode.removeChild(node);
 
-        return [el];
+        renderer && renderer.flowControl("nodes", [el]);
     }
 
 });

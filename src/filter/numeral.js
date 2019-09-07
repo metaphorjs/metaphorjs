@@ -1,10 +1,18 @@
 
 
-var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
-    numberFormats = require("../var/numberFormats.js");
+require("./__init.js");
+require("metaphorjs-shared/src/lib/Cache.js");
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-
-nsAdd("filter.numeral",  function(val, scope, format) {
-    format  = numberFormats[format] || format;
-    return numeral(val).format(format);
-});
+/**
+ * @filter moment
+ * Pass given input value through numeral.js lib
+ * @param {string|int} input 
+ * @param {string} format number format
+ * @returns {string}
+ */
+MetaphorJs.filter.numeral = function(val, scope, format) {
+    return numeral(val).format(
+        MetaphorJs.lib.Cache.global().get(format, format)
+    );
+};

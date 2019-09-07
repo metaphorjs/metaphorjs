@@ -1,31 +1,49 @@
 
+require("../../app/Template.js");
+require("../../lib/Config.js");
 
-var Directive = require("../../class/Directive.js"),
-    toBool = require("../../func/toBool.js"),
-    Template = require("../../class/Template.js");
+var Directive = require("../../app/Directive.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-Directive.registerAttribute("include", 1100,
-    function(scope, node, tplExpr, parentRenderer, attr){
+Directive.registerAttribute("include", 1100, function(){
 
-    var cfg = attr ? attr.config : {},
-        asis = toBool(cfg.asis),
-        html = cfg.html,
-        tplCfg = {
+    var dir = function include_directive(scope, node, config, renderer, attrSet){
+
+        if (!(node instanceof window.Node)) {
+            throw new Error("'include' directive can only work with Node");
+        }
+    
+        config.disableProperty("value");
+        config.setProperty("name", config.getProperty("value"));
+        config.removeProperty("value");
+        config.enableProperty("name");
+        config.set("passReferences", true);
+    
+        dir.initConfig(config);
+    
+        var tpl = new MetaphorJs.app.Template({
             scope: scope,
-            node: node,
-            parentRenderer: parentRenderer,
-            animate: !!cfg.animate,
-            ownRenderer: !asis // do not render if asis=true
-        };
+            attachTo: node,
+            parentRenderer: renderer,
+            config: config
+        });
+    
+        renderer.on("destroy", function(){
+            tpl.$destroy();
+            tpl = null;
+        });
+    
+        renderer.flowControl("ignoreInside", true);
+    };
 
-    if (html) {
-        tplCfg['html'] = html;
-    }
-    else {
-        tplCfg['url'] = tplExpr;
-    }
+    dir.initConfig = function(config) {
+        config.setType("asis", "bool", MetaphorJs.lib.Config.MODE_STATIC);
+        config.setDefaultValue("runRenderer", !config.get("asis"));
+    };
 
-    var tpl = new Template(tplCfg);
+    dir.deepInitConfig = function(config) {
+        MetaphorJs.app.Template.initConfig(config);
+    };
 
-    return false; // stop renderer
-});
+    return dir;
+}());

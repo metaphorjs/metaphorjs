@@ -1,9 +1,18 @@
 
-var nsAdd = require("metaphorjs-namespace/src/func/nsAdd.js"),
-    isArray = require("../func/isArray.js"),
-    isString = require("../func/isString.js");
+require("./__init.js");
 
-nsAdd("filter.offset", function(input, scope, offset){
+var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+    isArray = require("metaphorjs-shared/src/func/isArray.js"),
+    isString = require("metaphorjs-shared/src/func/isString.js");
+
+/**
+ * @filter offset
+ * Get slice of array or string starting from offset
+ * @param {array|string} input
+ * @param {int} offset
+ * @returns {array|string}
+ */
+MetaphorJs.filter.offset = function(input, scope, offset) {
 
     var isS = isString(input);
 
@@ -23,4 +32,4 @@ nsAdd("filter.offset", function(input, scope, offset){
     else {
         return input.slice(offset);
     }
-});
+};

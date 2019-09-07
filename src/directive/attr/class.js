@@ -1,30 +1,23 @@
 
+require("metaphorjs-animate/src/animate/animate.js");
+require("metaphorjs-animate/src/animate/stop.js");
+require("../../func/dom/addClass.js");
+require("../../func/dom/removeClass.js");
+require("../../func/dom/hasClass.js");
 
-var Directive = require("../../class/Directive.js"),
-    defineClass = require("metaphorjs-class/src/func/defineClass.js"),
-    animate = require("metaphorjs-animate/src/func/animate.js"),
-    stopAnimation = require("metaphorjs-animate/src/func/stopAnimation.js"),
-    addClass = require("../../func/dom/addClass.js"),
-    removeClass = require("../../func/dom/removeClass.js"),
-    hasClass = require("../../func/dom/hasClass.js"),
-    isArray = require("../../func/isArray.js"),
-    isString = require("../../func/isString.js"),
-    undf = require("../../var/undf.js");
-
-
+var Directive = require("../../app/Directive.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+    isArray = require("metaphorjs-shared/src/func/isArray.js"),
+    undf = require("metaphorjs-shared/src/var/undf.js");
 
 /*
-
 value is always an object in the end
 {class: "condition", class: "condition"}
 
 array turns into _: []
 {_: [class, class]}
 (which is then turned into {class: true, class: true}
-
-
 DO NOT put class="{}" when using class.name="{}"
-
  */
 
 
@@ -34,127 +27,145 @@ DO NOT put class="{}" when using class.name="{}"
 
         var has;
 
+        if (!node.className) {
+            node.className = "";
+        }
+
         if (toggle !== null) {
-            if (toggle === hasClass(node, cls)) {
+            if (toggle === MetaphorJs.dom.hasClass(node, cls)) {
                 return;
             }
             has = !toggle;
         }
         else {
-            has = hasClass(node, cls);
+            has = MetaphorJs.dom.hasClass(node, cls);
         }
 
         if (has) {
             if (doAnim) {
-                animate(node, [cls + "-remove"]).done(function(){
-                    removeClass(node, cls);
+                MetaphorJs.animate.animate(node, [cls + "-remove"]).done(function(){
+                    MetaphorJs.dom.removeClass(node, cls);
                 });
             }
             else {
-                removeClass(node, cls);
+                MetaphorJs.dom.removeClass(node, cls);
             }
         }
         else {
             if (doAnim) {
-                animate(node, [cls + "-add"]).done(function(){
-                    addClass(node, cls);
+                MetaphorJs.animate.animate(node, [cls + "-add"]).done(function(){
+                    MetaphorJs.dom.addClass(node, cls);
                 });
             }
             else {
-                addClass(node, cls);
+                MetaphorJs.dom.addClass(node, cls);
             }
         }
     };
 
-    var flatten = function(obj) {
 
-        var list = {},
-            i, j, l;
+    var flatten = function(values) {
+        var clss = {},
+            i, l, val,
+            j, jl;
 
-        if (!obj) {
-            return list;
-        }
+        for (i = 0, l = values.length; i < l; i++) {
+            val = values[i];
 
-        if (isString(obj)) {
-            list[obj] = true;
-        }
-        else if (isArray(obj)) {
-            for (i = -1, l = obj.length; ++i < l; list[obj[i]] = true){}
-        }
-        else {
-            for (i in obj) {
-                if (i === '_') {
-                    for (j = -1, l = obj._.length; ++j < l;
-                         list[obj._[j]] = true){}
+            if (typeof val === 'string') {
+                clss[val] = true;
+                continue;
+            }
+            else if (isArray(val)) {
+                for (j = -1, jl = val.length; ++j < jl; clss[val[j]] = true){}
+            }
+            for (j in val) {
+                if (j === '_') {
+                    for (j = -1, jl = val._.length; ++j < jl;
+                         clss[val._[j]] = true){}
                 }
                 else {
-                    list[i] = obj[i];
+                    clss[j] = val[j];
                 }
             }
         }
 
-        return list;
+        return clss;
     };
 
-    Directive.registerAttribute("class", 1000, defineClass({
+    Directive.registerAttribute("class", 1000, Directive.$extend({
 
-        $class: "Directive.attr.Class",
-        $extends: Directive,
-        initial: true,
-        animate: false,
+        $class: "MetaphorJs.app.Directive.attr.Class",
+        id: "class",
+        
+        _initial: true,
+        _prev: null,
 
-        $init: function(scope, node, expr, renderer, attr) {
-
-            var self = this, 
-                values = attr ? attr.values : null,
-                cfg = attr ? attr.config : {},
-                k,
-                parts;
-
-            self.animate = !!cfg.animate;
-
-            if (values) {
-                parts = [];
-                if (expr) {
-                    if (expr.substr(0,1) != '[') {
-                        expr = '[' + expr + ']';
-                    }
-                    parts.push('_: ' + expr);
+        initConfig: function() {
+            var self = this,
+                config = self.config;
+            config.eachProperty(function(k) {
+                if (k === 'value' || k.indexOf("value.") === 0) {
+                    config.on(k, self.onScopeChange, self);
                 }
-                for (k in values) {
-                    parts.push("'" + k + "'" + ': ' + values[k]);
-                }
-                expr = '{' + parts.join(', ') + '}';
-            }
-
-            this.$super(scope, node, expr);
+            });
+            self.$super();
         },
 
-        onChange: function() {
+        initChange: function() {
+            var self = this;
+            if (self._autoOnChange) {
+                self.onScopeChange();
+            }
+        },
+
+        getCurrentValue: function() {
+            var all = this.config.getAllValues(),
+                values = [];
+
+            if (all[""]) {
+                values.push(all['']);
+                delete all[''];
+            }
+            values.push(all);
+            
+            return flatten(values);
+        },
+
+        onScopeChange: function() {
 
             var self    = this,
                 node    = self.node,
-                clss    = flatten(self.watcher.getLastResult()),
-                prev    = flatten(self.watcher.getPrevValue()),
+                clss    = self.getCurrentValue(),
+                prev    = self._prev,
                 i;
 
-            stopAnimation(node);
+            MetaphorJs.animate.stop(node);
 
-            for (i in prev) {
-                if (prev.hasOwnProperty(i)) {
-                    if (clss[i] === undf) {
-                        toggleClass(node, i, false, false);
+            if (prev) {
+                for (i in prev) {
+                    if (prev.hasOwnProperty(i)) {
+                        if (clss[i] === undf) {
+                            toggleClass(node, i, false, false);
+                        }
                     }
                 }
             }
 
             for (i in clss) {
                 if (clss.hasOwnProperty(i)) {
-                    toggleClass(node, i, !!clss[i], !self.initial && self.animate);
+                    toggleClass(node, i, !!clss[i], 
+                        !self._initial && 
+                        self.config.get("animate"));
                 }
             }
 
-            self.initial = false;
+            self._prev = clss;
+            self._initial = false;
+        }
+    }, {
+        initConfig: function(config, instance) {
+            config.setType("animate", "bool");
         }
     }));
 

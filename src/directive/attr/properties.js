@@ -1,49 +1,50 @@
 
+require("../../func/dom/removeAttr.js");
+require("../../func/dom/setAttr.js");
 
-var defineClass = require("metaphorjs-class/src/func/defineClass.js"),
-    removeAttr = require("../../func/dom/removeAttr.js"),
-    setAttr = require("../../func/dom/setAttr.js"),
-    Directive = require("../../class/Directive.js");
+var Directive = require("../../app/Directive.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
 (function(){
 
-    var booleanAttrs = ["selected", "checked", "disabled", "readonly", "open", "required"],
+    var booleanAttrs = ["selected", "checked", "disabled", 
+                        "readonly", "open", "required"],
         i, l;
 
-    var PropertyDirective = defineClass({
+    var PropertyDirective = Directive.$extend({
 
-        $extends: Directive,
-
-        propName: null,
-
-        $init: function(scope, node, expr, propName) {
-            this.propName = propName;
-            this.$super(scope, node, expr);
+        $init: function(name, scope, node, config, renderer, attrSet) {
+            this.id = name;
+            this.$super(scope, node, config, renderer, attrSet);
         },
 
-        onChange: function(val) {
+        onScopeChange: function(val) {
 
-            var name = this.propName;
+            var name = this.id;
 
             val = !!val;
 
             if (val) {
-                setAttr(this.node, name, name);
+                MetaphorJs.dom.setAttr(this.node, name, name);
             }
             else {
-                removeAttr(this.node, name);
+                MetaphorJs.dom.removeAttr(this.node, name);
             }
+        }
+    }, {
+        initConfig: function(config) {
+            config.setType("value", "bool");
         }
     });
 
     for (i = 0, l = booleanAttrs.length; i < l; i++) {
         (function(name){
-
-            Directive.registerAttribute("" + name, 1000, function(scope, node, expr){
-                return new PropertyDirective(scope, node, expr, name);
-            });
-
+            var dir = function(scope, node, config, renderer, attrSet){
+                return new PropertyDirective(name, scope, node, config, renderer, attrSet);
+            };
+            dir.initConfig = PropertyDirective.initConfig;
+            Directive.registerAttribute("" + name, 1000, dir);
         }(booleanAttrs[i]));
     }
 
