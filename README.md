@@ -5,7 +5,22 @@ v.1.0beta
 
 An app framework similar to AngularJs (directives, scopes, dependency injection, etc) and ExtJs (class system, event system, data model).
 
+What makes it different?
+Although most of the approaches utilized by MetaphorJs are not unique (and actually over time borrowed from Angular,ExtJs,React and Vue) I am trying to 
+overcome everything I don't like about these frameworks and combine everything
+I like about them. Every time I find something that is hard to do using a framework, or possible but ugly, I change MetaphorJs to not stand in my way but help me, so that code footprint would stay as little as possible, performance would not suffer, etc. This is why I decided to write my own rather than use existing. 
+
+So I guess, flexibility is the main feature.
+
+
+### Features
+
 ```javascript
+/** MetaphorJs has its own class system that supports 
+ * extending, overriding, mixing, plugins. The system is
+ * similar to what ExtJs uses and works in every browser 
+ * (even IE6, not that now anyone would care).
+*/
 var MyComponent = MetaphorJs.app.Component.$extend({
     $class: "MyNamespace.MyComponent",
     $alias: "MetaphorJs.directive.component.my-component",
