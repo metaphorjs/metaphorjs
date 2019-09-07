@@ -110,7 +110,7 @@ var cmp = new MyComponent({
 <!-- elements styling -->
 <div {class}="this.classVariable"></div>
 <div {class.my-class}="this.someCondition"></div>
-<div {style.backgroundColor}="this.colorVariable"></div>
+<div {style.background-color}="this.colorVariable"></div>
 
 <!-- lists -->
 <ul>
