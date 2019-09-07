@@ -87,3 +87,92 @@ var cmp = new MyComponent({
     renderTo: document.body
 })
 ```
+
+
+### Other features
+```html
+<!-- standard directives like show,if,bind,model,class,include,etc: -->
+<span {show}="this.showSpan == true"
+      {show.$display}="inline"></span>
+<div {if}="this.someCondition"></div>
+<input {model}="this.textValue"> <!-- two way binding -->
+<input {input}="this.textValue"> <!-- one way, from form to scope -->
+
+<!-- various ways to configure router -->
+<div {router}="MyNamespace.MyRouter"></div> <!-- configured in the code -->
+<!-- configured directly -->
+<div {router.login}="{regexp: /^\/login/, cmp: 'MyNamespace.page.Login'}"
+     {router.signup}="{regexp: /^\/register/, cmp: 'MyNamespace.page.Register'}">
+</div>
+<!-- via variable that holds current component name -->
+<div {view}="this.componentName"></div>
+
+<!-- elements styling -->
+<div {class}="this.classVariable"></div>
+<div {class.my-class}="this.someCondition"></div>
+<div {style.backgroundColor}="this.colorVariable"></div>
+
+<!-- lists -->
+<ul>
+    <li {each}="item in this.items" {bind}="this.item.name">
+    </li>
+</ul>
+
+<!-- dynamic attributes -->
+<a [href]="this.urlVariable">Click me</a>
+
+<!-- including other templates -->
+<div {include}="this.templateName"></div>
+<!-- MetaphorJs also supports includes via comments. Next comment will be processed as include: -->
+<!-- include some-other-template.html -->
+
+
+<!-- all directive values and configs and component configs can be 
+     dynamic or static: -->
+<div {show}:="true"></div> <!-- static value -->
+<div {show}*="this.doShow"></div> <!-- dynamic value -->
+<div {show}!="this.doShow"></div> <!-- calc once value -->
+
+<!-- filters -->
+<ul {init}="this.list = 'a,b,c'">
+    <li {each}="item in this.list | split:','" {bind}="this.item"><li>
+</ul>
+<!-- there are input and output filters -->
+<!-- this input field will run sanitize() when user types and prepareOutput
+     when putting value back to the field -->
+<input {model}="sanitize >> this.inputValue | prepareOutput">
+
+<!-- recursive binding will check resulting value for mustaches until there is none -->
+<p {bind}="this.text" {bind.$recursive}></p>
+
+<!-- multiple events -->
+<a href="#"
+    (first|click)="this.page.doSomething()"
+    (second|click)="this.page.doSomethingElse()"
+    (second|click.$stop-propagation)>Multiple click events</a>
+
+```
+
+```javascript
+/** Component can switch its template dynamically*/
+var MyComponent = MetaphorJs.app.Component.$extend({
+    $class: "MyNamespace.MyComponent",
+    template: {
+        expression: "this.tpl"
+    },
+
+    initComponent: function() {
+        this.scope.tpl = "my-component-template.html";
+    },
+
+    onClick: function() {
+        this.scope.tpl = "other-template.html"
+    }
+})
+```
+
+And many more features yet to be documented.
+
+
+Contact me if you want to know more
+kuindji at gmail
