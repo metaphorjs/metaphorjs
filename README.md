@@ -106,6 +106,24 @@ var cmp = new MyComponent({
     },
     renderTo: document.body
 })
+// or 
+var parent = new MetaphorJs.app.Container({
+    renderTo: document.body
+    items: [
+        new MyComponent({
+            config: {
+                title: "1"
+            }
+        }),
+        new MyComponent({
+            config: {
+                title: "2"
+            }
+        })
+    ]
+})
+
+
 ```
 
 
@@ -133,10 +151,14 @@ var cmp = new MyComponent({
 <div {style.background-color}="this.colorVariable"></div>
 
 <!-- lists -->
-<ul>
-    <li {each}="item in this.items" {bind}="this.item.name">
-    </li>
+<ul {1|init}="this.items = [{name:'A'}, {name:'B'}]"
+    {2|init}="this.listName = ''">
+    <li {each}="item in this.items" {bind}="this.item.name"></li>
 </ul>
+<input {model}="this.listName">
+<button (click)="this.items.push({name: this.listName})"
+        (click.$if)="this.listName != ''"
+        {disabled}="this.listName == ''">Add</button>
 
 <!-- dynamic attributes -->
 <a [href]="this.urlVariable">Click me</a>
@@ -198,8 +220,34 @@ var MyComponent = MetaphorJs.app.Component.$extend({
         show: "namednode",
         if: true
     }
-})
+});
+
+/**
+ * There is also Controller. It doesn't have its own template, it uses
+ * child elements of the node it has been applied to.
+ */
+var myController = MetaphorJs.app.Controller.$extend({
+    $class: "MyNamespace.MyController",
+    as: "myctrl",
+    initController: function() {
+        this.$super();
+        var node = this.getEl();
+        // do something with the node
+    },
+    onClick: function() {
+
+    }
+});
 ```
+```html
+<div>
+    <div {controller}="MyNamespace.MyController">
+        <p>Some text here</p>
+        <a href="#" (click)="this.myctrl.onClick()">click here</a>
+    </div>
+</div>
+```
+
 
 #### Expressions
 
