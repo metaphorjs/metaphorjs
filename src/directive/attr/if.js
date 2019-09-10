@@ -70,7 +70,5 @@ Directive.registerAttribute("if", 500, Directive.$extend({
         config.setType("animate", "bool", MetaphorJs.lib.Config.MODE_STATIC)
         config.setType("value", "bool");
         config.setType("once", "bool", MetaphorJs.lib.Config.MODE_STATIC);
-        config.setType("onShow", null, MetaphorJs.lib.Config.MODE_FUNC);
-        config.setType("onHide", null, MetaphorJs.lib.Config.MODE_FUNC);
     }
 }));
