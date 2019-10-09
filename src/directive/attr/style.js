@@ -1,8 +1,11 @@
-require("../../func/dom/removeStyle.js")
+require("../../func/dom/removeStyle.js");
+require("metaphorjs/src/lib/Config.js");
 
 var Directive = require("../../app/Directive.js"),
     undf = require("metaphorjs-shared/src/var/undf.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
+    async = require("metaphorjs-shared/src/func/async.js"),
+    toBool = require("metaphorjs-shared/src/func/toBool.js"),
     toCamelCase = require("metaphorjs-shared/src/func/toCamelCase.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
@@ -42,8 +45,7 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
         return style;
     },
 
-    onScopeChange: function() {
-
+    _applyStyle: function() {
         var self    = this,
             node    = self.node,
             style   = node.style,
@@ -71,5 +73,21 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
         }
 
         self.prev = props;
+    },
+
+    onScopeChange: function() {
+
+        var tmt = this.config.get("async");
+        if (toBool(tmt)) {
+            tmt = parseInt(tmt) == tmt ? parseInt(tmt) : null;
+            async(this._applyStyle, this, [], tmt);
+        }
+        else {
+            this._applyStyle();
+        }
+    }
+}, {
+    initConfig: function(config, instance) {
+        config.setDefaultMode("async", MetaphorJs.lib.Config.MODE_STATIC);
     }
 }));
