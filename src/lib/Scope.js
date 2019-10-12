@@ -431,11 +431,11 @@ Scope.$exists = function(name) {
  * Get public scope
  * @static
  * @method $get
- * @param {string} name
+ * @param {string} name - skip to get public default
  * @returns MetaphorJs.lib.Scope
  */
 Scope.$get = function(name) {
-    return publicScopes[name];
+    return publicScopes[name || "__default"];
 };
 
 /**

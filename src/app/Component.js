@@ -16,7 +16,7 @@ require("./Controller.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
-    htmlTags = require("../var/dom/htmlTags");
+    htmlTags = require("../var/dom/htmlTags.js");
 
 /**
  * @class MetaphorJs.app.Component
@@ -61,7 +61,6 @@ module.exports = MetaphorJs.app.Component = MetaphorJs.app.Controller.$extend({
      * @var {Template}
      */
     template:       null,
-
 
     /**
      * @var {boolean}
