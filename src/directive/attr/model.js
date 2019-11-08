@@ -90,6 +90,8 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             self._inProg = true;
             self.config.checkScope("value");
             self._inProg = false;
+
+            self.saveStateOnChange(val);
         }
     },
 
@@ -127,6 +129,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             }
 
             self._binding = null;
+            self.saveStateOnChange(val);
         }
     },
 
