@@ -3,7 +3,7 @@ require("./__init.js");
 require("./removeAttr.js");
 require("../../lib/Config.js");
 
-var toCamelCase = require("metaphorjs-shared/src/func/toCamelCase.js"),
+const toCamelCase = require("metaphorjs-shared/src/func/toCamelCase.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");

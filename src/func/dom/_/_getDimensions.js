@@ -2,7 +2,7 @@
 require("../__init.js");
 require("../getStyle.js");
 
-var _boxSizingReliable = require("./_boxSizingReliable.js"),
+const _boxSizingReliable = require("./_boxSizingReliable.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 module.exports = function(type, name) {

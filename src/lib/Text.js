@@ -4,7 +4,7 @@ require("../lib/MutationObserver.js");
 require("../lib/Expression.js");
 require("../func/app/prebuilt.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     async = require("metaphorjs-shared/src/func/async.js"),

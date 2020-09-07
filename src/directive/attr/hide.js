@@ -1,8 +1,6 @@
-
-
-var Directive = require("../../app/Directive.js");
-
 require("./show.js");
+
+const Directive = require("../../app/Directive.js");
 
 Directive.registerAttribute("hide", 500, Directive.attr.Show.$extend({
 

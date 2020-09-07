@@ -9,11 +9,9 @@ require("../lib/Input.js");
 require("metaphorjs-observable/src/lib/Observable.js");
 require("metaphorjs-observable/src/mixin/Observable.js");
 
-var undf = require("metaphorjs-shared/src/var/undf.js"),
-    isString = require("metaphorjs-shared/src/func/isString.js"),
+const isString = require("metaphorjs-shared/src/func/isString.js"),
     isThenable = require("metaphorjs-shared/src/func/isThenable.js"),
     async = require("metaphorjs-shared/src/func/async.js"),
-    undf = require("metaphorjs-shared/src/var/undf.js"),
     cls = require("metaphorjs-class/src/cls.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js");
@@ -166,8 +164,8 @@ module.exports = MetaphorJs.app.Directive = (function() {
             var self = this,
                 val;
             self.config.on("value", self.onScopeChange, self);
-            if (self._autoOnChange && (val = self.config.get("value")) !== undf) {
-                self.onScopeChange(val, undf);
+            if (self._autoOnChange && (val = self.config.get("value")) !== undefined) {
+                self.onScopeChange(val, undefined);
             }
         },
 
@@ -188,7 +186,7 @@ module.exports = MetaphorJs.app.Directive = (function() {
         },
 
         saveStateOnChange: function(val) {
-            if (this._prevState !== undf) {
+            if (this._prevState !== undefined) {
                 this.trigger("change", val, this._prevState);
             }
             this._prevState = val;

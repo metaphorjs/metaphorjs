@@ -2,7 +2,7 @@ require("./__init.js");
 require("./removeListener.js");
 require("metaphorjs-shared/src/lib/Cache.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 module.exports = function undelegate(el, selector, event, fn) {
 

@@ -1,5 +1,4 @@
 
-var undf = require("metaphorjs-shared/src/var/undf.js");
 
 module.exports = function() {
 
@@ -38,7 +37,7 @@ module.exports = function() {
     };
 
     return function boxSizingReliable() {
-        if (boxSizingReliableVal === undf) {
+        if (boxSizingReliableVal === undefined) {
             boxSizingReliableVal = computePixelPositionAndBoxSizingReliable();
         }
 

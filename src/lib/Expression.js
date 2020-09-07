@@ -1,5 +1,5 @@
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     error = require("metaphorjs-shared/src/func/error.js"),
     isFunction = require("metaphorjs-shared/src/func/isFunction.js"),
     isString = require("metaphorjs-shared/src/func/isString.js"),

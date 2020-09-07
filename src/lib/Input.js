@@ -11,9 +11,8 @@ require("../func/dom/getAttr.js");
 require("../func/dom/normalizeEvent.js");
 require("../func/dom/select.js");
 
-var bind    = require("metaphorjs-shared/src/func/bind.js"),
+const bind    = require("metaphorjs-shared/src/func/bind.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
-    undf = require("metaphorjs-shared/src/var/undf.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 module.exports = MetaphorJs.lib.Input = function(){
@@ -261,13 +260,13 @@ extend(Input.prototype, {
             case "float":
             case "double":
                 if (val === "" || isNaN(val = parseFloat(val))) {
-                    val = undf;
+                    val = undefined;
                 }
                 break;
             case "int":
             case "integer":
                 if (val === "" || isNaN(val = parseInt(val, 10))) {
-                    val = undf;
+                    val = undefined;
                 }
                 break;
             case "bool":
@@ -347,7 +346,7 @@ extend(Input.prototype, {
         }
         else {
 
-            if (val === undf) {
+            if (val === undefined) {
                 val = "";
             }
 
@@ -469,13 +468,13 @@ extend(Input.prototype, {
             return key === e.keyCode;
         }
         else {
-            if (key.ctrlKey !== undf && key.ctrlKey !== e.ctrlKey) {
+            if (key.ctrlKey !== undefined && key.ctrlKey !== e.ctrlKey) {
                 return false;
             }
-            if (key.shiftKey !== undf && key.shiftKey !== e.shiftKey) {
+            if (key.shiftKey !== undefined && key.shiftKey !== e.shiftKey) {
                 return false;
             }
-            return !(key.keyCode !== undf && key.keyCode !== e.keyCode);
+            return !(key.keyCode !== undefined && key.keyCode !== e.keyCode);
         }
     },
 

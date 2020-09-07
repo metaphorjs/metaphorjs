@@ -3,7 +3,7 @@ require("metaphorjs-animate/src/animate/animate.js");
 require("metaphorjs-animate/src/animate/stop.js");
 require("metaphorjs-animate/src/animate/getPrefixes.js");
 
-var cls = require("metaphorjs-class/src/cls.js"),
+const cls = require("metaphorjs-class/src/cls.js"),
     raf = require("metaphorjs-animate/src/func/raf.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 

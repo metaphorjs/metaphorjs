@@ -2,8 +2,7 @@
 require("./__init.js");
 require("./isIE.js");
 
-var undf = require("metaphorjs-shared/src/var/undf.js"),
-    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
  * Check if current browser supports event
@@ -21,7 +20,7 @@ module.exports = MetaphorJs.browser.hasEvent = function(){
         // it. In particular the event is not fired when backspace or delete key are pressed or
         // when cut operation is performed.
 
-        if (eventSupport[event] === undf) {
+        if (eventSupport[event] === undefined) {
 
             if (event === 'input' && MetaphorJs.browser.isIE() == 9) {
                 return eventSupport[event] = false;

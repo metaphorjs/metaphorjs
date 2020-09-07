@@ -6,7 +6,7 @@ require("../func/dom/getHeight.js");
 require("../func/dom/getScrollTop.js");
 require("../func/dom/getScrollLeft.js");
 
-var bind = require("metaphorjs-shared/src/func/bind.js"),
+const bind = require("metaphorjs-shared/src/func/bind.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     raf = require("metaphorjs-animate/src/func/raf.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");

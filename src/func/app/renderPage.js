@@ -4,7 +4,7 @@ require("../dom/toFragment.js");
 require("./init.js");
 require("metaphorjs-promise/src/lib/Promise.js");
 
-var nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
+const nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**

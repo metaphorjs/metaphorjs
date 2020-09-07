@@ -5,10 +5,9 @@ require("../../func/dom/addClass.js");
 require("../../func/dom/removeClass.js");
 require("../../func/dom/hasClass.js");
 
-var Directive = require("../../app/Directive.js"),
+const Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
-    isArray = require("metaphorjs-shared/src/func/isArray.js"),
-    undf = require("metaphorjs-shared/src/var/undf.js");
+    isArray = require("metaphorjs-shared/src/func/isArray.js");
 
 /*
 value is always an object in the end
@@ -145,7 +144,7 @@ DO NOT put class="{}" when using class.name="{}"
             if (prev) {
                 for (i in prev) {
                     if (prev.hasOwnProperty(i)) {
-                        if (clss[i] === undf) {
+                        if (clss[i] === undefined) {
                             toggleClass(node, i, false, false);
                         }
                     }

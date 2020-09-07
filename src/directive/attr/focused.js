@@ -3,7 +3,7 @@ require("../../func/dom/addListener.js");
 require("../../func/dom/removeListener.js");
 require("../../lib/Config.js");
 
-var Directive = require("../../app/Directive.js"),
+const Directive = require("../../app/Directive.js"),
     bind = require("metaphorjs-shared/src/func/bind.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 

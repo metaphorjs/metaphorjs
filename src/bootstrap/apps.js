@@ -1,6 +1,6 @@
 
 
-var run = require("../func/app/run.js");
+const run = require("../func/app/run.js");
 
 run();
 

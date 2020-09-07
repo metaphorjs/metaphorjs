@@ -2,7 +2,7 @@
 require("./__init.js");
 require("../lib/Expression.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js");
 
 /**

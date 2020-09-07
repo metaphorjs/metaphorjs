@@ -4,7 +4,7 @@ require("./isAttached.js");
 require("./getScrollTop.js");
 require("./getScrollLeft.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
  * Get element's offset

@@ -1,7 +1,7 @@
 
 require("./__init.js");
 
-var getRegExp = require("metaphorjs-shared/src/func/getRegExp.js"),
+const getRegExp = require("metaphorjs-shared/src/func/getRegExp.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**

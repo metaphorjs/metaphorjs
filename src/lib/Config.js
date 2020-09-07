@@ -3,14 +3,12 @@ require("./Expression.js");
 require("./MutationObserver.js");
 require("../func/app/prebuilt.js");
 
-var extend = require("metaphorjs-shared/src/func/extend.js"),
+const extend = require("metaphorjs-shared/src/func/extend.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     toBool = require("metaphorjs-shared/src/func/toBool.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
     isPrimitive = require("metaphorjs-shared/src/func/isPrimitive.js"),
-    extend = require("metaphorjs-shared/src/func/extend.js"),
-    undf = require("metaphorjs-shared/src/var/undf.js"),
     emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
@@ -280,13 +278,13 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 }
             }
 
-            if (value === undf) {
+            if (value === undefined) {
                 value = prop.defaultValue;
             }
 
             var retValue = self._prepareValue(value, prop);
 
-            if (value !== undf) {
+            if (value !== undefined) {
                 self.values[name] = retValue;
             }
 
@@ -340,7 +338,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                     return !isArray(value) ? [value] : value;
                 case 'string':
                 case 'str':
-                    return value === null || value === undf ? "" : "" + value;
+                    return value === null || value === undefined ? "" : "" + value;
             }
 
             return value;
@@ -404,7 +402,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
             for (k in properties) {
                 val = properties[k];
 
-                if (val === null || val === undf) {
+                if (val === null || val === undefined) {
                     continue;
                 }
 
@@ -435,7 +433,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                         prop.mode = MODE_DYNAMIC;
                     }
                 }
-                this.setProperty(k, prop, undf, override);
+                this.setProperty(k, prop, undefined, override);
             }
         },
 
@@ -475,7 +473,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 changes = {},
                 value;
 
-            if (override === undf) {
+            if (override === undefined) {
                 override = true;
             }
 
@@ -496,7 +494,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 return false;
             }
 
-            if (val === undf || val === null) {
+            if (val === undefined || val === null) {
                 var k;
 
                 for (k in cfg) {
@@ -504,7 +502,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                         value = cfg[k];
                         continue;
                     }
-                    else if (prop[k] === undf || 
+                    else if (prop[k] === undefined || 
                             (cfg[k] !== prop[k] && override)) {
                         changes[k] = true;
                         prop[k] = cfg[k];
@@ -515,7 +513,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 if (cfg === "value") {
                     value = val;
                 }
-                else if (prop[cfg] === undf || 
+                else if (prop[cfg] === undefined || 
                         (prop[cfg] !== val && override)) {
                     changes[cfg] = true;
                     prop[cfg] = val;
@@ -536,7 +534,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                     prop.mode = self.cfg.defaultMode;
                     changed = true;
                 }
-                else if (newProp && value !== undf && value !== null) {
+                else if (newProp && value !== undefined && value !== null) {
                     prop.mode = MODE_STATIC;
                 }
             }
@@ -552,10 +550,10 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 self._initMo(name);
             }
 
-            if (value !== undf && value !== null) {
+            if (value !== undefined && value !== null) {
                 self.values[name] = value;
             }
-            else if (self.values[name] !== undf) {
+            else if (self.values[name] !== undefined) {
                 if (changes.mode || changes.expression || (
                     !prop.mode && changes.defaultMode
                 )) {
@@ -590,7 +588,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 if (cp.mode === MODE_STATIC || 
                     (!cp.mode && cp.defaultMode === cp.mode === MODE_STATIC) ||
                     (!cp.mode && !cp.defaultMode)) {
-                    if (this.values[name] !== undf) {
+                    if (this.values[name] !== undefined) {
                         cp.value = this.values[name];
                     }
                 }
@@ -637,7 +635,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
         },
 
         _isValue: function(v) {
-            return v !== undf && 
+            return v !== undefined && 
                     v !== null && 
                     !(typeof v === "number" && isNaN(v));
         },
@@ -688,7 +686,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
          * @returns {bool}
          */
         hasValue: function(name) {
-            return this.values[name] !== undf;
+            return this.values[name] !== undefined;
         },
 
         /**
@@ -703,9 +701,9 @@ module.exports = MetaphorJs.lib.Config = (function(){
             return (self._isValue(self.values[name])) || (
                     self.properties[name] && 
                     (
-                        self.properties[name].defaultValue !== undf ||
-                        self.properties[name].expression !== undf || 
-                        self.properties[name].prebuilt !== undf
+                        self.properties[name].defaultValue !== undefined ||
+                        self.properties[name].expression !== undefined || 
+                        self.properties[name].prebuilt !== undefined
                     )
                 );
         },
@@ -769,7 +767,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
          */
         setMode: function(name, mode, expression) {
             var prop = {mode: mode};
-            if (expression !== undf) {
+            if (expression !== undefined) {
                 prop.expression = expression;
             }
             this.setProperty(name, prop);
@@ -797,7 +795,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
             if (defaultMode) {
                 this.setProperty(name, "defaultMode", defaultMode, override);
             }
-            if (defaultValue !== undf) {
+            if (defaultValue !== undefined) {
                 this.setProperty(name, "defaultValue", defaultValue, override);
             }
         },

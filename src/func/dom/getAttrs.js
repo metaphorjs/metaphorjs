@@ -1,5 +1,5 @@
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
  * Get node attributes as plain object

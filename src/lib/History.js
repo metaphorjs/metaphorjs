@@ -6,7 +6,7 @@ require("../func/dom/normalizeEvent.js");
 require("metaphorjs-shared/src/func/browser/parseLocation.js");
 require("metaphorjs-shared/src/func/browser/joinLocation.js");
 
-var extend = require("metaphorjs-shared/src/func/extend.js"),
+const extend = require("metaphorjs-shared/src/func/extend.js"),
     emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
     async = require("metaphorjs-shared/src/func/async.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),

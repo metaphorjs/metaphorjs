@@ -5,7 +5,7 @@ require("../dom/getAttrSet.js");
 require("../dom/removeAttr.js");
 require("metaphorjs-promise/src/lib/Promise.js");
 
-var error = require("metaphorjs-shared/src/func/error.js"),
+const error = require("metaphorjs-shared/src/func/error.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 

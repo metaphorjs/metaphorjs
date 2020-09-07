@@ -1,7 +1,7 @@
 
 require("./__init.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
     isString = require("metaphorjs-shared/src/func/isString.js");
 

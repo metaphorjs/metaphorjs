@@ -3,7 +3,7 @@ require("./History.js");
 require("metaphorjs-shared/src/func/browser/parseLocation.js");
 require("metaphorjs-observable/src/mixin/Observable.js");
 
-var cls = require("metaphorjs-class/src/cls.js"),
+const cls = require("metaphorjs-class/src/cls.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     isString = require("metaphorjs-shared/src/func/isString.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),

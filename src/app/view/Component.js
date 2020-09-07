@@ -1,7 +1,7 @@
 
 require("../../lib/Config.js");
 require("./Base.js");
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 module.exports = MetaphorJs.app.view.Component = MetaphorJs.app.view.Base.$extend({
 

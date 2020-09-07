@@ -6,7 +6,7 @@ require("../../lib/Config.js");
 require("../../func/dom/addListener.js");
 require("../../func/dom/removeListener.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     bind = require("metaphorjs-shared/src/func/bind.js"),
     Directive = require("../../app/Directive.js");
 

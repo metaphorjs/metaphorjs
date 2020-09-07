@@ -1,7 +1,7 @@
 
 require("./__init.js");
 require("./hasClass.js");
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
  * @function MetaphorJs.dom.addClass

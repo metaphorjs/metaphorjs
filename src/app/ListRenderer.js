@@ -10,7 +10,7 @@ require("metaphorjs-animate/src/animate/animate.js");
 require("metaphorjs-animate/src/animate/isCssSupported.js");
 require("../func/app/prebuilt.js");
 
-var cls = require("metaphorjs-class/src/cls.js"),
+const cls = require("metaphorjs-class/src/cls.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
@@ -19,7 +19,6 @@ var cls = require("metaphorjs-class/src/cls.js"),
     isNumber = require("metaphorjs-shared/src/func/isNumber.js"),
     isPrimitive = require("metaphorjs-shared/src/func/isPrimitive.js"),
     bind = require("metaphorjs-shared/src/func/bind.js"),
-    undf = require("metaphorjs-shared/src/var/undf.js"),
     isFunction = require("metaphorjs-shared/src/func/isFunction.js"),
     levenshteinDiff = require("metaphorjs-shared/src/func/levenshteinDiff.js"),
     levenshteinMove = require("metaphorjs-shared/src/func/levenshteinMove.js"),
@@ -553,7 +552,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
 
             if (!trackBy || trackBy === '$') {
                 self._trackByFn = function(item) {
-                    return isPrimitive(item) ? item : undf;
+                    return isPrimitive(item) ? item : undefined;
                 };
             }
             else if (isFunction(trackBy)) {
@@ -567,8 +566,8 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
                         }
                         return item[trackBy];
                     }
-                    else return undf;
-                    //return item && !isPrimitive(item) ? item[trackBy] : undf;
+                    else return undefined;
+                    //return item && !isPrimitive(item) ? item[trackBy] : undefined;
                 };
             }
         }
@@ -606,7 +605,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
 
     scopeGetRawIndex: function(id) {
 
-        if (id === undf) {
+        if (id === undefined) {
             return -1;
         }
 

@@ -8,10 +8,9 @@ require("../../func/browser/isIE.js");
 require("../../func/dom/triggerEvent.js");
 require("../../func/app/prebuilt.js");
 
-var cls = require("metaphorjs-class/src/cls.js"),
+const cls = require("metaphorjs-class/src/cls.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
     error = require("metaphorjs-shared/src/func/error.js"),
-    undf = require("metaphorjs-shared/src/var/undf.js"),
     Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
@@ -147,7 +146,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         scope.item      = item;
         scope.$index    = index;
         config          = self._getterFn(scope);
-        config.group    !== undf && (config.group = ""+config.group);
+        config.group    !== undefined && (config.group = ""+config.group);
 
         if (config.group !== self.prevGroup) {
 

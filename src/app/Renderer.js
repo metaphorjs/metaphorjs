@@ -8,13 +8,12 @@ require("../lib/Config.js");
 require("../func/dom/removeAttr.js");
 require("../func/dom/getAttrSet.js");
 
-var nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
+const nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
     isThenable = require("metaphorjs-shared/src/func/isThenable.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
-    extend = require("metaphorjs-shared/src/func/extend.js"),
-    undf = require("metaphorjs-shared/src/var/undf.js");
+    extend = require("metaphorjs-shared/src/func/extend.js");
 
 
 module.exports = MetaphorJs.app.Renderer = function() {
@@ -374,7 +373,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
 
                     name = handlers[i].name;
 
-                    if ((ds = attrs['directives'][name]) !== undf &&
+                    if ((ds = attrs['directives'][name]) !== undefined &&
                         !attrs['__directives'][name].handled) {
 
                         attrs.__remove(node, "directive", name);
@@ -558,7 +557,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 res         = text.tr.getString(),
                 attrName    = text.attr;
 
-            if (res === undf || res === null) {
+            if (res === undefined || res === null) {
                 res = "";
             }
 

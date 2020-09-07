@@ -2,7 +2,7 @@ require("../../app/Directive.js");
 require("../../func/app/resolve.js");
 require("../../lib/Config.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 MetaphorJs.app.Directive.registerAttribute("view", 200, 
     function(scope, node, config, renderer) {

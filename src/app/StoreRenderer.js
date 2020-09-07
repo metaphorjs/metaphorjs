@@ -5,7 +5,7 @@ require("../lib/MutationObserver.js");
 require("../app/ListRenderer.js");
 require("../func/app/prebuilt");
 
-var bind = require("metaphorjs-shared/src/func/bind.js"),
+const bind = require("metaphorjs-shared/src/func/bind.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 module.exports = MetaphorJs.app.StoreRenderer = MetaphorJs.app.ListRenderer.$extend({

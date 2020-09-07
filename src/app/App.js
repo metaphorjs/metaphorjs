@@ -7,10 +7,10 @@ require("metaphorjs-promise/src/lib/Promise.js");
 require("metaphorjs-shared/src/mixin/Provider.js");
 require("metaphorjs-observable/src/mixin/Observable.js");
 
-var cls = require("metaphorjs-class/src/cls.js"),
-    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
-    emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
-    toArray = require("metaphorjs-shared/src/func/toArray.js");
+const   cls = require("metaphorjs-class/src/cls.js"),
+        MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+        emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
+        toArray = require("metaphorjs-shared/src/func/toArray.js");
 
 /**
  * @class MetaphorJs.app.App

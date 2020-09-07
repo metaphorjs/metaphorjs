@@ -1,7 +1,6 @@
 
-var returnFalse = require("metaphorjs-shared/src/func/returnFalse.js"),
+const returnFalse = require("metaphorjs-shared/src/func/returnFalse.js"),
     returnTrue = require("metaphorjs-shared/src/func/returnTrue.js"),
-    undf = require("metaphorjs-shared/src/var/undf.js"),
     isNull = require("metaphorjs-shared/src/func/isNull.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
@@ -57,7 +56,7 @@ var DomEvent = function DomEvent(src) {
         button = src.button;
 
     // Calculate pageX/Y if missing and clientX/Y available
-    if (self.pageX === undf && !isNull(src.clientX)) {
+    if (self.pageX === undefined && !isNull(src.clientX)) {
         eventDoc = self.target ? self.target.ownerDocument || window.document : window.document;
         doc = eventDoc.documentElement;
         body = eventDoc.body;
@@ -72,14 +71,14 @@ var DomEvent = function DomEvent(src) {
 
     // Add which for click: 1 === left; 2 === middle; 3 === right
     // Note: button is not normalized, so don't use it
-    if ( !self.which && button !== undf ) {
+    if ( !self.which && button !== undefined ) {
         self.which = ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
     }
 
     // Events bubbling up the document may have been marked as prevented
     // by a handler lower down the tree; reflect the correct value.
     self.isDefaultPrevented = src.defaultPrevented ||
-                              src.defaultPrevented === undf &&
+                              src.defaultPrevented === undefined &&
                                   // Support: Android<4.0
                               src.returnValue === false ?
                               returnTrue :

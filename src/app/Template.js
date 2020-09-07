@@ -19,7 +19,7 @@ require("../func/dom/commentWrap.js");
 require("metaphorjs-observable/src/lib/Observable.js");
 require("../func/dom/isAttached.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     copy = require("metaphorjs-shared/src/func/copy.js"),

@@ -2,10 +2,10 @@
 require("../../app/Directive.js");
 require("../../lib/Config.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
-var appDirective = function(scope, node, config, renderer) {
+const appDirective = function(scope, node, config, renderer) {
     renderer && renderer.flowControl("stop", true);
 };
 

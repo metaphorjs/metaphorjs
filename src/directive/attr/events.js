@@ -5,19 +5,19 @@ require("../../lib/Config.js");
 require("../../func/dom/addListener.js");
 require("../../func/dom/removeListener.js");
 
-var Directive = require("../../app/Directive.js"),
+const Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 (function(){
 
-    var events = ['click', 'dblclick', 'mousedown', 'mouseup', 'mouseover',
+    let events = ['click', 'dblclick', 'mousedown', 'mouseup', 'mouseover',
                   'mouseout', 'mousemove', 'keydown', 'keyup', 'keypress',
                   'change',
                   'focus', 'blur', 'copy', 'cut', 'paste', 'load', 'mousewheel',
                   'touchstart', 'touchend', 'touchcancel', 'touchleave', 'touchmove'],
         i, len;
 
-    var prepareConfig = function(config) {
+    const prepareConfig = function(config) {
         var ms = MetaphorJs.lib.Config.MODE_STATIC;
         config.setProperty("preventDefault", {
             type: "bool", 
@@ -38,13 +38,13 @@ var Directive = require("../../app/Directive.js"),
         return config;
     };
 
-    var createHandler = function(name, scope, node, config) {
+    const createHandler = function(name, scope, node, config) {
         return new MetaphorJs.lib.EventHandler(
             name, scope, node, prepareConfig(config)
         );
     };
 
-    var getNode = function(node, config, directive, cb) {
+    const getNode = function(node, config, directive, cb) {
         Directive.resolveNode(node, directive, function(node, cmp){
             if(cmp) {
                 config.setProperty("targetComponent", {
@@ -96,7 +96,7 @@ var Directive = require("../../app/Directive.js"),
         }(events[i]));
     }
 
-    var dir = function(scope, node, config) {
+    const dir = function(scope, node, config) {
 
         prepareConfig(config);
 

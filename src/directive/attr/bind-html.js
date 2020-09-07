@@ -1,6 +1,6 @@
 
 require("./bind.js");
-var Directive = require("../../app/Directive.js");
+const Directive = require("../../app/Directive.js");
 
 Directive.registerAttribute("bind-html", 1000, 
     Directive.attr.Bind.$extend({

@@ -5,7 +5,7 @@ require("../dom/onReady.js");
 require("../dom/select.js");
 require("../dom/getAttr.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
  * Run application

@@ -5,10 +5,9 @@ require("../../lib/Config.js");
 require("../../func/dom/addListener.js");
 require("../../func/dom/removeListener.js");
 
-var async = require("metaphorjs-shared/src/func/async.js"),
+const async = require("metaphorjs-shared/src/func/async.js"),
     bind = require("metaphorjs-shared/src/func/bind.js"),
     isIE = require("../../func/browser/isIE.js"),
-    undf = require("metaphorjs-shared/src/var/undf.js"),
     isString = require("metaphorjs-shared/src/func/isString.js"),
     Directive = require("../../app/Directive.js"),
     emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
@@ -49,10 +48,10 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
 
         if (scopeValue !== inputValue) {
             // scope value takes priority
-            if (binding !== "input" && scopeValue !== undf) {
+            if (binding !== "input" && scopeValue !== undefined) {
                 self.onScopeChange(scopeValue);
             }
-            else if (binding !== "scope" && inputValue !== undf) {
+            else if (binding !== "scope" && inputValue !== undefined) {
                 self.onInputChange(inputValue);
             }
         }

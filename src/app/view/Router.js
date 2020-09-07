@@ -13,7 +13,7 @@ require("../../func/dom/removeClass.js")
 require("../../lib/MutationObserver.js");
 require("./Base.js");
 
-var extend = require("metaphorjs-shared/src/func/extend.js"),
+const extend = require("metaphorjs-shared/src/func/extend.js"),
     async = require("metaphorjs-shared/src/func/async.js"),
     isThenable = require("metaphorjs-shared/src/func/isThenable.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),

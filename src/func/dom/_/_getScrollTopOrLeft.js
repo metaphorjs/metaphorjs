@@ -1,5 +1,4 @@
 
-var undf = require("metaphorjs-shared/src/var/undf.js");
 
 module.exports = function(vertical) {
 
@@ -17,7 +16,7 @@ module.exports = function(vertical) {
         return scroll;
     };
 
-    if(window[wProp] !== undf) {
+    if(window[wProp] !== undefined) {
         //most browsers except IE before #9
         defaultST = function(){
             return window[wProp];

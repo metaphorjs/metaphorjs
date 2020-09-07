@@ -2,7 +2,7 @@
 require("./__init.js");
 require("./select.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
  * Check if given element matches selector

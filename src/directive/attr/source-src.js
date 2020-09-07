@@ -2,7 +2,7 @@ require("../../func/dom/select.js");
 require("../../func/dom/setAttr.js");
 require("../../lib/Config.js");
 
-var Directive = require("../../app/Directive.js"),
+const Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 Directive.registerAttribute("source-src", 1000, Directive.$extend({

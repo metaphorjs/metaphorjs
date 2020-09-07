@@ -1,6 +1,6 @@
 
 require("./__init.js");
-var isString = require("metaphorjs-shared/src/func/isString.js"),
+const isString = require("metaphorjs-shared/src/func/isString.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 module.exports = MetaphorJs.dom.toFragment = function dom_toFragment(nodes, doc) {

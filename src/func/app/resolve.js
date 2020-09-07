@@ -8,7 +8,7 @@ require("../dom/removeClass.js");
 require("../../app/Template.js")
 require("../../lib/Config.js");
 
-var extend = require("metaphorjs-shared/src/func/extend.js"),
+const extend = require("metaphorjs-shared/src/func/extend.js"),
     error = require("metaphorjs-shared/src/func/error.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js"),
     isString = require("metaphorjs-shared/src/func/isString.js"),

@@ -3,7 +3,7 @@ require("../../func/app/resolve.js");
 require("../../lib/Config.js");
 require("../../lib/Scope.js");
 
-var Directive = require("../../app/Directive.js"),
+const Directive = require("../../app/Directive.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 

@@ -7,7 +7,7 @@ require("../func/dom/getPosition.js");
 require("../func/dom/getScrollLeft.js");
 require("../func/dom/getScrollTop.js");
 
-var cls = require("metaphorjs-class/src/cls.js"),
+const cls = require("metaphorjs-class/src/cls.js"),
     bind = require("metaphorjs-shared/src/func/bind.js"),
     raf = require('metaphorjs-animate/src/func/raf.js'),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");

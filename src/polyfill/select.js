@@ -2,7 +2,7 @@
 require("../func/dom/__init.js");
 require("../func/dom/getAttr.js");
 
-var toArray = require("metaphorjs-shared/src/func/toArray.js"),
+const toArray = require("metaphorjs-shared/src/func/toArray.js"),
     error = require("metaphorjs-shared/src/func/error.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 

@@ -1,5 +1,5 @@
 
-var Directive = require("../../app/Directive.js");
+const Directive = require("../../app/Directive.js");
 
 Directive.registerAttribute("include-file", 900, function(scope, node, config){
 

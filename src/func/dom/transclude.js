@@ -5,9 +5,8 @@ require("./toFragment.js");
 require("./clone.js");
 require("metaphorjs-shared/src/func/toArray.js");
 
-var toArray = require("metaphorjs-shared/src/func/toArray.js"),
-    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
-    undf = require("metaphorjs-shared/src/var/undf.js");
+const toArray = require("metaphorjs-shared/src/func/toArray.js"),
+    MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 module.exports = MetaphorJs.dom.transclude = (function(){
 
@@ -15,12 +14,12 @@ module.exports = MetaphorJs.dom.transclude = (function(){
         var contents;
         while (parent) {
             contents = MetaphorJs.dom.data(parent, 'mjs-transclude');
-            if (contents !== undf) {
+            if (contents !== undefined) {
                 return contents;
             }
             parent  = parent.parentNode;
         }
-        return undf;
+        return undefined;
     };
 
     return function dom_transclude(node, replace, parents) {

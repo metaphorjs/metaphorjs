@@ -2,11 +2,11 @@ require("../../app/Directive.js");
 require("../../func/app/resolve.js");
 require("../../lib/Config.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 MetaphorJs.app.Directive.registerAttribute("router", 200, function(){
 
-    var dir = function router_directive(scope, node, config, renderer, attrSet) {
+    const dir = function router_directive(scope, node, config, renderer, attrSet) {
 
         dir.initConfig(config);
     

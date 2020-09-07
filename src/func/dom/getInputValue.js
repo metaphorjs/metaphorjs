@@ -1,9 +1,8 @@
 
 require("./__init.js");
 
-var isNull = require("metaphorjs-shared/src/func/isNull.js"),
+const isNull = require("metaphorjs-shared/src/func/isNull.js"),
     isString = require("metaphorjs-shared/src/func/isString.js"),
-    undf = require("metaphorjs-shared/src/var/undf.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
@@ -21,7 +20,7 @@ module.exports = MetaphorJs.dom.getInputValue = function(){
         option: function(elem) {
             var val = elem.getAttribute("value") || elem.value;
 
-            return val !== undf ?
+            return val !== undefined ?
                    val :
                    ( elem.innerText || elem.textContent ).trim();
         },
@@ -79,7 +78,7 @@ module.exports = MetaphorJs.dom.getInputValue = function(){
 
         hook = hooks[elem.type] || hooks[elem.nodeName.toLowerCase()];
 
-        if (hook && (ret = hook(elem, "value")) !== undf) {
+        if (hook && (ret = hook(elem, "value")) !== undefined) {
             return ret;
         }
 

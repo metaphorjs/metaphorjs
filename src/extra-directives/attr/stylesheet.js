@@ -1,7 +1,7 @@
 require("../../directive/attr/style.js");
 require("../../lib/Stylesheet.js");
 
-var Directive = require("../../app/Directive.js"),
+const Directive = require("../../app/Directive.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 

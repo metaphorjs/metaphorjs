@@ -1,5 +1,5 @@
 
-var Directive = require("../../app/Directive.js");
+const Directive = require("../../app/Directive.js");
 
 Directive.registerAttribute("break-if", 500, function(scope, node, config, renderer) {
 

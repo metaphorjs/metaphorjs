@@ -2,7 +2,7 @@
 require("../app/Renderer.js");
 require("../lib/Scope.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     getAttrSet = require("../func/dom/getAttrSet.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js");
 

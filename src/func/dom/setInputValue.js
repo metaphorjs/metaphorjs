@@ -5,10 +5,9 @@ require("./getAttr.js");
 require("./setAttr.js");
 require("./removeAttr.js");
 
-var toArray     = require("metaphorjs-shared/src/func/toArray.js"),
+const toArray     = require("metaphorjs-shared/src/func/toArray.js"),
     isArray     = require("metaphorjs-shared/src/func/isArray.js"),
     isNumber    = require("metaphorjs-shared/src/func/isNumber.js"),
-    undf        = require("metaphorjs-shared/src/var/undf.js"),
     isNull      = require("metaphorjs-shared/src/func/isNull.js"),
     MetaphorJs  = require("metaphorjs-shared/src/MetaphorJs.js");
 
@@ -82,7 +81,7 @@ module.exports = MetaphorJs.dom.setInputValue = function() {
         var hook = hooks[el.type] || hooks[el.nodeName.toLowerCase()];
 
         // If set returns undefined, fall back to normal setting
-        if (!hook || hook(el, val, "value") === undf) {
+        if (!hook || hook(el, val, "value") === undefined) {
             el.value = val;
         }
     };

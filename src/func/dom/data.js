@@ -1,8 +1,7 @@
 
 require("./__init.js");
 
-var nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
-    undf = require("metaphorjs-shared/src/var/undf.js"),
+const nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
@@ -48,7 +47,7 @@ module.exports = MetaphorJs.dom.data = function(){
             return;
         }
 
-        if (value !== undf) {
+        if (value !== undefined) {
             /*if (!obj) {
                 obj = dataCache[id] = {};
             }
@@ -57,7 +56,7 @@ module.exports = MetaphorJs.dom.data = function(){
             return value;
         }
         else {
-            //return obj ? obj[key] : undf;
+            //return obj ? obj[key] : undefined;
             return el[nodekey];
         }
     };

@@ -8,7 +8,7 @@ require("../func/dom/getHeight.js");
 require("../func/dom/addListener.js");
 require("../func/dom/removeListener.js");
 
-var cls = require("metaphorjs-class/src/cls.js"),
+const cls = require("metaphorjs-class/src/cls.js"),
     bind = require("metaphorjs-shared/src/func/bind.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 

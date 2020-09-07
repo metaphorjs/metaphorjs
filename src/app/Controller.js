@@ -4,7 +4,7 @@ require("../lib/Scope.js");
 require("../lib/Config.js");
 require("metaphorjs-observable/src/mixin/Observable.js");
 
-var cls = require("metaphorjs-class/src/cls.js"),
+const cls = require("metaphorjs-class/src/cls.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),

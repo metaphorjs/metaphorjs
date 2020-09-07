@@ -2,7 +2,7 @@
 require("./__init.js");
 require("../func/dom/preloadImage.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     isThenable = require("metaphorjs-shared/src/func/isThenable.js");
 
 (function(){

@@ -1,8 +1,7 @@
 
 require("./__init.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
-    undf = require("metaphorjs-shared/src/var/undf.js");
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
  * @filter collect
@@ -21,7 +20,7 @@ MetaphorJs.filter.collect = function(input, scope, prop) {
 
     for (i = 0, l = input.length; i < l; i++) {
         val = input[i][prop];
-        if (val != undf) {
+        if (val != undefined) {
             res.push(val);
         }
     }

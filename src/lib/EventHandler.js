@@ -7,8 +7,7 @@ require("./EventBuffer.js");
 require("./Expression.js");
 require("./MutationObserver.js");
 
-var undf = require("metaphorjs-shared/src/var/undf.js"),
-    extend = require("metaphorjs-shared/src/func/extend.js"),
+const extend = require("metaphorjs-shared/src/func/extend.js"),
     async = require("metaphorjs-shared/src/func/async.js"),
     isPlainObject = require("metaphorjs-shared/src/func/isPlainObject.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
@@ -70,7 +69,7 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
 
             var keyCode,
                 preventDefault = false,
-                returnValue = undf,
+                returnValue = undefined,
                 stopPropagation = false,
                 stopImmediate = false,
                 res,
@@ -88,12 +87,12 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
                 }
             });
 
-            cfg.preventDefault !== undf && (preventDefault = cfg.preventDefault);
-            cfg.stopPropagation !== undf && (stopPropagation = cfg.stopPropagation);
-            cfg.stopImmediatePropagation !== undf && 
+            cfg.preventDefault !== undefined && (preventDefault = cfg.preventDefault);
+            cfg.stopPropagation !== undefined && (stopPropagation = cfg.stopPropagation);
+            cfg.stopImmediatePropagation !== undefined && 
                 (stopImmediate = cfg.stopImmediatePropagation);
-            cfg.returnValue !== undf && (returnValue = cfg.returnValue);
-            cfg.keyCode !== undf && (keyCode = cfg.keyCode);
+            cfg.returnValue !== undefined && (returnValue = cfg.returnValue);
+            cfg.keyCode !== undefined && (keyCode = cfg.keyCode);
 
             e = MetaphorJs.dom.normalizeEvent(e || window.event);
 
@@ -135,11 +134,11 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
                     res = handler.call(cfg.context || null, scope);
 
                     if (res && isPlainObject(res)) {
-                        res.preventDefault !== undf && 
+                        res.preventDefault !== undefined && 
                             (preventDefault = res.preventDefault);
-                        res.stopPropagation !== undf && 
+                        res.stopPropagation !== undefined && 
                             (stopPropagation = res.stopPropagation);
-                        res.returnValue !== undf && 
+                        res.returnValue !== undefined && 
                             (returnValue = res.returnValue);
                     }
                 }
@@ -150,7 +149,7 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
             preventDefault && e.preventDefault();
 
             if (self.$destroyed || self.$destroying) {
-                return returnValue !== undf ? returnValue : undf;
+                return returnValue !== undefined ? returnValue : undefined;
             }
 
             scope.$event = null;
@@ -163,7 +162,7 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
                 config.checkScope(names[i]);
             }
 
-            if (returnValue !== undf) {
+            if (returnValue !== undefined) {
                 return returnValue;
             }
         };

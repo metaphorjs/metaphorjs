@@ -2,7 +2,7 @@
 require("metaphorjs-animate/src/animate/animate.js");
 require("../../lib/Config.js");
 
-var Directive = require("../../app/Directive.js"),
+const Directive = require("../../app/Directive.js"),
     raf = require("metaphorjs-animate/src/func/raf.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 

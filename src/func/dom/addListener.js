@@ -1,6 +1,6 @@
 require("./__init.js");
 
-var _mousewheelHandler = require("./_/_mousewheelHandler.js"),
+const _mousewheelHandler = require("./_/_mousewheelHandler.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**

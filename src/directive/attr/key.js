@@ -5,12 +5,12 @@ require("../../lib/Config.js");
 require("../../func/dom/addListener.js");
 require("../../func/dom/removeListener.js");
 
-var Directive = require("../../app/Directive.js"),
+const Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 (function() {
 
-var keys = {
+const keys = {
     "enter": 13,
     "esc": 27,
     "escape": 27,
@@ -138,7 +138,7 @@ or
 
  */
 
-var getNode = function(node, config, cb) {
+const getNode = function(node, config, cb) {
     Directive.resolveNode(node, "key", function(node, cmp){
         if (cmp) {
             config.setProperty("targetComponent", {
@@ -150,7 +150,7 @@ var getNode = function(node, config, cb) {
     });
 };
 
-var dir = function key_directive(scope, node, config, renderer, attrSet){
+const dir = function key_directive(scope, node, config, renderer, attrSet){
 
     dir.initConfig(config);
 

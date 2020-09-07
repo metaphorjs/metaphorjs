@@ -1,7 +1,7 @@
 require("metaphorjs-observable/src/lib/Observable.js");
 require("./MutationObserver.js");
 
-var extend = require("metaphorjs-shared/src/func/extend.js"),
+const extend = require("metaphorjs-shared/src/func/extend.js"),
     async = require("metaphorjs-shared/src/func/async.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 

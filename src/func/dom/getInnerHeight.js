@@ -1,6 +1,6 @@
 
 require("./__init.js");
-var _dom_getDimensions = require("./_/_getDimensions.js"),
+const _dom_getDimensions = require("./_/_getDimensions.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**

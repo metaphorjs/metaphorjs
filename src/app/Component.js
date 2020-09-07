@@ -14,7 +14,7 @@ require("metaphorjs-observable/src/mixin/Observable.js");
 require("metaphorjs-promise/src/lib/Promise.js");
 require("./Controller.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
     htmlTags = require("../var/dom/htmlTags.js");
 
@@ -312,7 +312,7 @@ module.exports = MetaphorJs.app.Component = MetaphorJs.app.Controller.$extend({
                 continue;
             }
 
-            if ((ds = dirs[name]) !== undf) {
+            if ((ds = dirs[name]) !== undefined) {
 
                 !isArray(ds) && (ds = [ds]);
 

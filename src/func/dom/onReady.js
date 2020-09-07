@@ -3,7 +3,7 @@ require("./__init.js");
 require("./removeListener.js");
 require("./addListener.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
  * Execute callback when window is ready

@@ -2,8 +2,7 @@
 
 require("./__init.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
-    undf = require("metaphorjs-shared/src/var/undf.js"),
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     getRegExp = require("metaphorjs-shared/src/func/getRegExp.js");
 
 /**
@@ -18,7 +17,7 @@ var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
  */
 MetaphorJs.filter.split = function(input, scope, sep, limit) {
 
-    limit       = limit || undf;
+    limit       = limit || undefined;
     sep         = sep || "/\\n|,/";
 
     if (!input) {

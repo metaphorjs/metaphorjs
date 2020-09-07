@@ -1,7 +1,7 @@
 
 require("./__init.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     sortArray = require("metaphorjs-shared/src/func/sortArray.js");
 
 /**

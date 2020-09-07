@@ -1,8 +1,7 @@
 require("../../func/dom/removeStyle.js");
 require("../../lib/Config.js");
 
-var Directive = require("../../app/Directive.js"),
-    undf = require("metaphorjs-shared/src/var/undf.js"),
+const Directive = require("../../app/Directive.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     async = require("metaphorjs-shared/src/func/async.js"),
     toBool = require("metaphorjs-shared/src/func/toBool.js"),
@@ -54,7 +53,7 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
             k, trg;
 
         for (k in prev) {
-            if (!props || props[k] === undf) {
+            if (!props || props[k] === undefined) {
                 MetaphorJs.dom.removeStyle(node, k);
             }
         }
@@ -63,7 +62,7 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
             for (k in props) {
 
                 trg = toCamelCase(k);
-                if (props[k] !== undf && props[k] !== null) {
+                if (props[k] !== undefined && props[k] !== null) {
                     style[trg] = props[k];
                 }
                 else {

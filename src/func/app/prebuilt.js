@@ -1,7 +1,7 @@
 
 require("../../lib/Expression.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
     isPlainObject = require("metaphorjs-shared/src/func/isPlainObject.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js");

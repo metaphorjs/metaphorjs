@@ -7,7 +7,7 @@ require("../func/app/resolve.js");
 require("../func/dom/getAttrSet.js");
 require("../func/dom/is.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),
     isPlainObject = require("metaphorjs-shared/src/func/isPlainObject.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),

@@ -4,7 +4,7 @@ require("./getStyle.js");
 require("./getOffsetParent.js");
 require("./getOffset.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
  * Get node position relative to offset parent or specific node

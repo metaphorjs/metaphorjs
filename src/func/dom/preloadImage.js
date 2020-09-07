@@ -3,7 +3,7 @@ require("./__init.js");
 require("./addListener.js");
 require("metaphorjs-promise/src/lib/Promise.js");
 
-var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
+const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 module.exports = MetaphorJs.dom.preloadImage = function() {
 

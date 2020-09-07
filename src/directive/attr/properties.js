@@ -2,17 +2,17 @@
 require("../../func/dom/removeAttr.js");
 require("../../func/dom/setAttr.js");
 
-var Directive = require("../../app/Directive.js"),
+const Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
 (function(){
 
-    var booleanAttrs = ["selected", "checked", "disabled", 
-                        "readonly", "open", "required"],
-        i, l;
+    const booleanAttrs = ["selected", "checked", "disabled", 
+                        "readonly", "open", "required"];
+    let i, l;
 
-    var PropertyDirective = Directive.$extend({
+    const PropertyDirective = Directive.$extend({
 
         $init: function(name, scope, node, config, renderer, attrSet) {
             this.id = name;

@@ -1,6 +1,6 @@
 
 require("./__init.js");
-var _getScrollTopOrLeft = require("./_/_getScrollTopOrLeft.js"),
+const _getScrollTopOrLeft = require("./_/_getScrollTopOrLeft.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 /**
