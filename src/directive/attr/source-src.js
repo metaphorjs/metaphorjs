@@ -1,4 +1,4 @@
-require("metaphorjs/src/func/dom/select.js");
+require("../../func/dom/select.js");
 require("../../func/dom/setAttr.js");
 require("../../lib/Config.js");
 

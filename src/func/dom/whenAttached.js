@@ -1,5 +1,5 @@
 
-require("metaphorjs/src/func/dom/isAttached.js");
+require("./isAttached.js");
 require("metaphorjs-promise/src/lib/Promise.js");
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 

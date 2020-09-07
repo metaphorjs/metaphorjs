@@ -2,7 +2,7 @@
 require("./__init.js");
 require("./init.js");
 require("../dom/onReady.js");
-require("metaphorjs/src/func/dom/select.js");
+require("../dom/select.js");
 require("../dom/getAttr.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");

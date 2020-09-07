@@ -1,5 +1,5 @@
 
-require("metaphorjs/src/lib/Expression.js");
+require("../../lib/Expression.js");
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     isArray = require("metaphorjs-shared/src/func/isArray.js"),

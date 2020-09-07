@@ -1,8 +1,8 @@
 
 require("metaphorjs-observable/src/lib/Observable.js");
-require("metaphorjs/src/func/dom/getAttr.js");
-require("metaphorjs/src/func/dom/addListener.js");
-require("metaphorjs/src/func/dom/normalizeEvent.js");
+require("../func/dom/getAttr.js");
+require("../func/dom/addListener.js");
+require("../func/dom/normalizeEvent.js");
 require("metaphorjs-shared/src/func/browser/parseLocation.js");
 require("metaphorjs-shared/src/func/browser/joinLocation.js");
 
@@ -279,7 +279,7 @@ module.exports = MetaphorJs.lib.History = function() {
             }
             // iframe
             else {
-
+                /*
                 var frame   = null,
                     initialUpdate = false;
 
@@ -351,6 +351,7 @@ module.exports = MetaphorJs.lib.History = function() {
                 else {
                     MetaphorJs.dom.addListener(win, "load", initFrame);
                 }
+                */
             }
         }
 

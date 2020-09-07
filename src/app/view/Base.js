@@ -12,6 +12,8 @@ require("metaphorjs-observable/src/mixin/Observable.js");
 var cls = require("metaphorjs-class/src/cls.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     raf = require("metaphorjs-animate/src/func/raf.js"),
+    extend = require("metaphorjs-shared/src/func/extend.js"),
+    nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     isObject = require("metaphorjs-shared/src/func/isObject.js"),
     isString = require("metaphorjs-shared/src/func/isString.js");
 

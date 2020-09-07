@@ -1,5 +1,5 @@
 require("../../func/dom/removeStyle.js");
-require("metaphorjs/src/lib/Config.js");
+require("../../lib/Config.js");
 
 var Directive = require("../../app/Directive.js"),
     undf = require("metaphorjs-shared/src/var/undf.js"),

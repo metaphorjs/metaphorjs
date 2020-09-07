@@ -1,7 +1,7 @@
 
 var MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
-require("metaphorjs/src/plugin/ListBuffered.js");
+require("./ListBuffered.js");
 
 module.exports = MetaphorJs.plugin.ListBuffered.$extend({
 

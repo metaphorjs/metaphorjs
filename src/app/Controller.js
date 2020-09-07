@@ -8,7 +8,8 @@ var cls = require("metaphorjs-class/src/cls.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
-    extend = require("metaphorjs-shared/src/func/extend.js");
+    extend = require("metaphorjs-shared/src/func/extend.js"),
+    isThenable = require("metaphorjs-shared/src/func/isThenable.js");
 
 /**
  * @class MetaphorJs.app.Controller

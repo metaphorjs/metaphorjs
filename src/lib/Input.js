@@ -2,14 +2,14 @@
 require("metaphorjs-observable/src/lib/Observable.js");
 require("../func/dom/getInputValue.js");
 require("../func/dom/setInputValue.js");
-require("metaphorjs/src/func/dom/addListener.js");
-require("metaphorjs/src/func/dom/removeListener.js");
-require("metaphorjs/src/func/dom/isAttached.js");
-require("metaphorjs/src/func/browser/isAndroid.js");
-require("metaphorjs/src/func/browser/hasEvent.js");
-require("metaphorjs/src/func/dom/getAttr.js");
-require("metaphorjs/src/func/dom/normalizeEvent.js");
-require("metaphorjs/src/func/dom/select.js");
+require("../func/dom/addListener.js");
+require("../func/dom/removeListener.js");
+require("../func/dom/isAttached.js");
+require("../func/browser/isAndroid.js");
+require("../func/browser/hasEvent.js");
+require("../func/dom/getAttr.js");
+require("../func/dom/normalizeEvent.js");
+require("../func/dom/select.js");
 
 var bind    = require("metaphorjs-shared/src/func/bind.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),

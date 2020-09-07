@@ -9,3 +9,4 @@ Directive.registerAttribute("include-file", 900, function(scope, node, config){
 
     node.innerHTML = fs.readFileSync(filePath).toString();
 });
+

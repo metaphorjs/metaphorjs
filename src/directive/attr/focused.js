@@ -1,6 +1,6 @@
 
-require("metaphorjs/src/func/dom/addListener.js");
-require("metaphorjs/src/func/dom/removeListener.js");
+require("../../func/dom/addListener.js");
+require("../../func/dom/removeListener.js");
 require("../../lib/Config.js");
 
 var Directive = require("../../app/Directive.js"),

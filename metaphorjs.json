@@ -47,10 +47,6 @@
                 "src/extra-directives/**",
                 "dev-test/index.js"
             ],
-            "options": {
-                "wrap": true,
-                "removeDebug": false
-            },
             "templates": [
                 ["dev-test/templates/**", {
                     "base": "dev-test/templates"
@@ -64,7 +60,9 @@
                 "filters": [
                     "metaphorjs/src/filter/**"
                 ]
-            }
+            },
+            "useCC": true,
+            "library": "MetaphorJs"
         },
 
         "test-webc": {
@@ -72,17 +70,7 @@
             "files": [
                 "core",
                 "dev-test/webc.js"
-            ],
-            "options": {
-                "wrap": true,
-                "removeDebug": false
-            }
-        },
-
-        "test-min": {
-            "extend": "test",
-            "target": "dev-test/metaphorjs.test.min.js",
-            "pipe": ["build", "compile", "write"]
+            ]
         },
 
         "standalone": {
@@ -92,68 +80,6 @@
             ],
             "options": {
                 "wrap": true
-            }
-        },
-
-        "all": {
-            "target": "dist/metaphorjs.all.js",
-            "files": [
-                "all"
-            ],
-            "options": {
-                "wrap": true
-            }
-        },
-
-        "amd": {
-            "target": "dist/metaphorjs.amd.js",
-            "files": [
-                "core", 
-                ["src/func/*", {"as": "*"}],
-                "metaphorjs-model/src/directive/*",
-                "metaphorjs-dialog/src/class/dialog/Component.js",
-                "metaphorjs-validator/src/directive/**"
-            ],
-            "omit": [
-                "src/bootstrap/apps.js",
-                "metaphorjs-observable/src/lib/Observable.js",
-                "metaphorjs-promise/src/lib/Promise.js",
-                "metaphorjs-ajax/src/func/ajax.js",
-                "metaphorjs-animate/src/func/animate.js",
-                "metaphorjs-input/src/lib/Input.js",
-                "metaphorjs-input/src/func/getValue.js",
-                "metaphorjs-input/src/func/setValue.js",
-                "metaphorjs-class/src/cls.js",
-                "metaphorjs-namespace/src/lib/Namespace.js",
-                "metaphorjs-select/src/func/select.js",
-                "metaphorjs-validator/src/class/Validator.js",
-                "metaphorjs-watchable/src/lib/Watchable.js",
-                "metaphorjs-dialog/src/class/Dialog.js",
-                "metaphorjs-history/src/lib/History.js"
-            ],
-            "options": {
-                "prepend": [
-                    "src/stubs/amd.js"
-                ],
-                "expose": "**",
-                "amd": {
-                    "name": "metaphorjs",
-                    "return": "__mjsExport",
-                    "deps": {
-                        "metaphorjs-observable": "Observable",
-                        "metaphorjs-promise": "Promise",
-                        "metaphorjs-ajax": "ajax",
-                        "metaphorjs-animate": "animate",
-                        "metaphorjs-input": "Input",
-                        "metaphorjs-class": "cls",
-                        "metaphorjs-namespace": "Namespace",
-                        "metaphorjs-select": "select",
-                        "metaphorjs-validator": "Validator",
-                        "metaphorjs-watchable": "Watchable",
-                        "metaphorjs-dialog": "Dialog",
-                        "metaphorjs-history": "mhistory"
-                    }
-                }
             }
         }
     }
