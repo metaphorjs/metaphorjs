@@ -251,13 +251,15 @@ extend(Scope.prototype, {
      * @param {object} obj Key:value pairs
      */
     $set: function(key, value) {
-        var self = this;
         if (typeof key === "string") {
             this[key] = value;
         }
+        else if (typeof key === "function") {
+            key(this);
+        }
         else {
-            for (var k in key) {
-                self[k] = key[k];
+            for (let k in key) {
+                this[k] = key[k];
             }
         }
         this.$check();
