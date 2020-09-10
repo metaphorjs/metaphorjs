@@ -264,6 +264,15 @@ extend(State.prototype, {
         this.$check();
     },
 
+    /**
+     * Update state with object and check for changes
+     * @param {object} data 
+     */
+    $extend: function(data) {
+        extend(this, data, true, true);
+        this.$check();
+    },
+
     $$onParentDestroy: function() {
         this.$destroy();
     },
