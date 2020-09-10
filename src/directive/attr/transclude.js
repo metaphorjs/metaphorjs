@@ -4,7 +4,7 @@ const Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 Directive.registerAttribute("transclude", 1000, 
-    function(scope, node, config, renderer, attrSet) {
+    function(state, node, config, renderer, attrSet) {
 
         if (!(node instanceof window.Node)) {
             throw new Error("'transclude' directive can only work with Node");

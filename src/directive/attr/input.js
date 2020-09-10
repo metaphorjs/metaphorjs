@@ -1,4 +1,4 @@
-require("../../lib/Scope.js");
+require("../../lib/State.js");
 require("../../lib/Expression.js");
 require("../../lib/MutationObserver.js");
 require("../../lib/Config.js");
@@ -31,13 +31,13 @@ Directive.registerAttribute("input", 1000, Directive.$extend({
     initChange: emptyFn,
 
     onOptionsChange: function() {
-        this.onScopeChange();
+        this.onStateChange();
     },
 
     onInputChange: function(val) {
 
-        var self    = this,
-            scope   = self.scope,
+        const self    = this,
+            state   = self.state,
             config  = self.config;
 
         if (config.has("if") && !config.get("if")) {
@@ -50,13 +50,13 @@ Directive.registerAttribute("input", 1000, Directive.$extend({
         self._inProg = true;
 
         var fn = config.get("value");
-        scope.$prev = self._prev;
-        scope.$value = val;
-        fn(scope);
-        scope.$prev = null;
-        scope.$value = null;
+        state.$prev = self._prev;
+        state.$value = val;
+        fn(state);
+        state.$prev = null;
+        state.$value = null;
 
-        config.checkScope("value");
+        config.checkState("value");
         self._prev = val;
         self._inProg = false;
     },

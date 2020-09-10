@@ -159,7 +159,7 @@ module.exports = (function(){
             for (i = 0, len = oldRenderers.length; i < len; i++) {
                 r = oldRenderers[i];
                 if (r) {
-                    r.scope.$destroy();
+                    r.state.$destroy();
 
                     MetaphorJs.animate.stop(r.el);
                     animPromises.push(MetaphorJs.animate.animate(r.el, "leave")

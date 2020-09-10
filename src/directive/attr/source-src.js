@@ -15,7 +15,7 @@ Directive.registerAttribute("source-src", 1000, Directive.$extend({
     lastPromise: null,
     src: null,
 
-    $constructor: function(scope, node, config, renderer, attrSet) {
+    $constructor: function(state, node, config, renderer, attrSet) {
 
         var self = this;
 
@@ -33,12 +33,12 @@ Directive.registerAttribute("source-src", 1000, Directive.$extend({
             }
         }
 
-        self.$super(scope, node, config, renderer, attrSet);
+        self.$super(state, node, config, renderer, attrSet);
     },
 
     initConfig: function(){},
 
-    onScopeChange: function() {
+    onStateChange: function() {
         this.doChange();
     },
 

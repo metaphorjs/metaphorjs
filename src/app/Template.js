@@ -10,7 +10,7 @@ require("../func/dom/setAttr.js");
 require("metaphorjs-promise/src/lib/Promise.js");
 require("metaphorjs-observable/src/lib/Observable.js");
 require("metaphorjs-shared/src/lib/Cache.js");
-require("../lib/Scope.js");
+require("../lib/State.js");
 require("../lib/Expression.js");
 require("../lib/MutationObserver.js");
 require("../lib/Config.js");
@@ -196,10 +196,10 @@ module.exports = MetaphorJs.app.Template = function() {
         });
         observable.createEvent("attached-" + self.id);
 
-        self.scope = MetaphorJs.lib.Scope.$produce(self.scope);
+        self.state = MetaphorJs.lib.State.$produce(self.state);
         self.config = MetaphorJs.lib.Config.create(
             self.config, 
-            {scope: self.scope}
+            {state: self.state}
         );
 
         MetaphorJs.lib.Observable.$initHost(this, cfg, observable);
@@ -221,7 +221,7 @@ module.exports = MetaphorJs.app.Template = function() {
                 self._onParentRendererDestroy, self
             );
         }*/
-        self.scope.$on("destroy", self._onScopeDestroy, self);
+        self.state.$on("destroy", self._onStateDestroy, self);
 
         self._collectInitialNodes(self.attachTo || self.replaceNode);
         self.resolve();
@@ -260,9 +260,9 @@ module.exports = MetaphorJs.app.Template = function() {
         rootNode:           null,
 
         /**
-         * @var {MetpahorJs.lib.Scope}
+         * @var {MetpahorJs.lib.State}
          */
-        scope:              null,
+        state:              null,
 
         /**
          * @var {MetpahorJs.lib.Config}
@@ -500,7 +500,7 @@ module.exports = MetaphorJs.app.Template = function() {
             if (node && nodes.indexOf(node) === -1) {
                 nodes.push(node);
                 if (self._renderer && self._virtualSets[ref]) {
-                    self._renderer.processNode(node, self.scope, self.getVirtualSet(ref));
+                    self._renderer.processNode(node, self.state, self.getVirtualSet(ref));
                 }
             }
         },
@@ -719,7 +719,7 @@ module.exports = MetaphorJs.app.Template = function() {
                 observable.relayEvent(self._renderer, "reference", "reference-" + self.id);
                 
                 if (self._nodes) {
-                    self._renderer.process(self._nodes, self.scope);
+                    self._renderer.process(self._nodes, self.state);
                 }
                 else {
                     self._renderer.trigger("rendered", self._renderer);
@@ -762,7 +762,7 @@ module.exports = MetaphorJs.app.Template = function() {
                                 node.setAttribute(attr, attrSet.rest[attr]);
                             }
                         }
-                        self._renderer.processNode(node, self.scope, attrSet);
+                        self._renderer.processNode(node, self.state, attrSet);
                     }
                 }
             }
@@ -966,7 +966,7 @@ module.exports = MetaphorJs.app.Template = function() {
             this.$destroy();
         },*/
 
-        _onScopeDestroy: function() {
+        _onStateDestroy: function() {
             this.$destroy();
         },
 

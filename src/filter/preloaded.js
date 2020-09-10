@@ -9,12 +9,12 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
 
     /**
      * @filter preloaded
-     * Will return true once image is loaded. It will trigger scope check 
+     * Will return true once image is loaded. It will trigger state check 
      * automatically once the image is loaded.
      * @param {string} input Image url
      * @returns {boolean} 
      */
-    var preloaded = MetaphorJs.filter.preloaded = function(val, scope) {
+    var preloaded = MetaphorJs.filter.preloaded = function(val, state) {
 
         if (!val) {
             return false;
@@ -28,7 +28,7 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
 
         if (isThenable(promise)) {
             promise.always(function(){
-                scope.$check();
+                state.$check();
             });
             return false;
         }

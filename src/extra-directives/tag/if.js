@@ -14,7 +14,7 @@ Directive.registerTag("if", Directive.attr.If.$extend({
     children: null,
     childrenFrag: null,
 
-    initDirective: function(scope, node, config, renderer, attrSet) {
+    initDirective: function(state, node, config, renderer, attrSet) {
 
         var self    = this;
 
@@ -24,7 +24,7 @@ Directive.registerTag("if", Directive.attr.If.$extend({
         renderer && renderer.flowControl("nodes", self.children);
 
         self.createCommentWrap();
-        self.$super(scope, node, config, renderer, attrSet);   
+        self.$super(state, node, config, renderer, attrSet);   
 
         if (node.parentNode) {
             node.parentNode.removeChild(node); 
@@ -38,7 +38,7 @@ Directive.registerTag("if", Directive.attr.If.$extend({
         this.$super();
     },
 
-    onScopeChange: function() {
+    onStateChange: function() {
         var self    = this,
             val     = self.config.get("value"),
             prev    = self.wrapperOpen,

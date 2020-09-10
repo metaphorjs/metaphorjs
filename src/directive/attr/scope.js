@@ -1,18 +1,18 @@
 
 require("../../lib/Config.js");
-require("../../lib/Scope.js");
+require("../../lib/State.js");
 
 const Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
-Directive.registerAttribute("scope", 1000, function(){
-    const dir = function scope_directive(scope, node, config, renderer, attrSet) {
+Directive.registerAttribute("state", 1000, function(){
+    const dir = function state_directive(state, node, config, renderer, attrSet) {
 
         dir.initConfig(config);
-        var newScope = MetaphorJs.lib.Scope.$produce(config.get("value"), scope);
+        var newState = MetaphorJs.lib.State.$produce(config.get("value"), state);
     
-        renderer.flowControl("newScope", newScope);
+        renderer.flowControl("newState", newState);
         config.clear();
     };
 

@@ -10,6 +10,6 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
  * @param {string} key Lang key
  * @returns {string}
  */
-MetaphorJs.filter.pl = function(number, scope, key) {
-    return scope.$app.lang.plural(key, parseInt(number, 10) || 0);
+MetaphorJs.filter.pl = function(number, state, key) {
+    return state.$app.lang.plural(key, parseInt(number, 10) || 0);
 };

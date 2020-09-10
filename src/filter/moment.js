@@ -10,7 +10,7 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
  * @param {string} format date format
  * @returns {string}
  */
-MetaphorJs.filter.moment = function(val, scope, format) {
+MetaphorJs.filter.moment = function(val, state, format) {
     return val ? moment(val).format(
         MetaphorJs.lib.Cache.global().get(format, format)
     ) : "";

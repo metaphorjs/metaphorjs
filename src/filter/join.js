@@ -12,7 +12,7 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
  * @param {string} separator
  * @returns {string}
  */
-MetaphorJs.filter.join = function(input, scope, separator) {
+MetaphorJs.filter.join = function(input, state, separator) {
 
     separator = separator || ", ";
 

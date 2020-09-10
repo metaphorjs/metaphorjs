@@ -21,11 +21,11 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, node, a
     args        = args || [];
 
     node        = node || cfg.node;
-    var scope   = cfg.scope; 
+    var state   = cfg.state; 
     var config  = cfg.config || null;
 
     cfg.config  = config;
-    cfg.scope   = cfg.scope || scope;
+    cfg.state   = cfg.state || state;
     cfg.node    = cfg.node || node;
 
     if (args.length === 0) {
@@ -34,9 +34,9 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, node, a
 
     if (config) {
         if (!(config instanceof MetaphorJs.lib.Config)) {
-            config = new MetaphorJs.lib.Config(config, {
-                scope: scope
-            }, /*scalarAs: */"defaultValue");
+            config = new MetaphorJs.lib.Config(config, 
+                                                { state }, 
+                                                /*scalarAs: */"defaultValue");
         }
     }
 
@@ -47,14 +47,14 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, node, a
 
     var i,
         defers      = [],
-        app         = scope ? scope.$app : null,
+        app         = state ? state.$app : null,
         gProvider   = MetaphorJs.lib.Provider.global(),
         injectFn    = app ? app.inject : gProvider.inject,
         injectCt    = app ? app : gProvider,
         cloak       = config && config.has("cloak") ? config.get("cloak") : null,
         inject      = {
             $node: node || null,
-            $scope: scope || null,
+            $state: state || null,
             $config: config || null,
             $args: args || null
         };
@@ -75,7 +75,7 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, node, a
                 fn = constr.resolve[i];
 
                 if (isFunction(fn)) {
-                    d.resolve(fn(scope, node, config));
+                    d.resolve(fn(state, node, config));
                 }
                 else {
                     d.resolve(

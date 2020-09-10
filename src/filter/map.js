@@ -10,7 +10,7 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
  * @param {array} input
  * @param {string} fnName {
  *  Either a namespace entry, or global function name or 
- *  expression to try against current scope. In any case
+ *  expression to try against current state. In any case
  *  it must resolve into a function that accepts 
  *  mapped item as first argument.
  *  @param {*} item
@@ -18,13 +18,13 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
  * }
  * @returns {array} new array
  */
-MetaphorJs.filter.map = function(array, scope, fnName) {
+MetaphorJs.filter.map = function(array, state, fnName) {
 
     var i, l,
         res = [],
         fn = ns.get(fnName, true) ||
                 window[fnName] ||
-                MetaphorJs.lib.Expression.get(fnName, scope);
+                MetaphorJs.lib.Expression.get(fnName, state);
     array = array || [];
 
     if (fn) {

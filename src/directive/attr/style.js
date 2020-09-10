@@ -19,10 +19,10 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
         var self = this,
             config = self.config;
 
-        config.on("value", self.onScopeChange, self);
+        config.on("value", self.onStateChange, self);
         config.eachProperty(function(k){
             if (k.indexOf("value.") === 0) {
-                config.on(k, self.onScopeChange, self);
+                config.on(k, self.onStateChange, self);
             }
         });
 
@@ -30,7 +30,7 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
     },
 
     initChange: function() {
-        this.onScopeChange();
+        this.onStateChange();
     },
 
     getCurrentValue: function() {
@@ -74,7 +74,7 @@ Directive.registerAttribute("style", 1000, Directive.$extend({
         self.prev = props;
     },
 
-    onScopeChange: function() {
+    onStateChange: function() {
 
         var tmt = this.config.get("async");
         if (toBool(tmt)) {

@@ -51,7 +51,7 @@ Directive.registerAttribute("show", 500, Directive.$extend({
             .done(done);
     },
 
-    onScopeChange: function(val) {
+    onStateChange: function(val) {
         var self    = this;
         self.runAnimation(val);
         self._initial = false;

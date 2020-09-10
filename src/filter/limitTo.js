@@ -12,7 +12,7 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
  * @param {int} limit
  * @return {array|string}
  */
-MetaphorJs.filter.limitTo = function(input, scope, limit) {
+MetaphorJs.filter.limitTo = function(input, state, limit) {
 
     var isS = isString(input);
 

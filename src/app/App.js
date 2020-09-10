@@ -1,4 +1,4 @@
-require("../lib/Scope.js");
+require("../lib/State.js");
 require("./Renderer.js");
 require("../func/dom/getAttr.js");
 require("../func/dom/removeAttr.js");
@@ -21,7 +21,7 @@ module.exports = MetaphorJs.app.App = cls({
                 MetaphorJs.mixin.Provider],
 
     lang: null,
-    scope: null,
+    state: null,
     renderer: null,
     cmpPromises: null,
     cmpListeners: null,
@@ -37,20 +37,20 @@ module.exports = MetaphorJs.app.App = cls({
     $init: function(node, data) {
 
         var self        = this,
-            scope       = data instanceof MetaphorJs.lib.Scope ? 
+            state       = data instanceof MetaphorJs.lib.State ? 
                                 data : 
-                                new MetaphorJs.lib.Scope(data),
+                                new MetaphorJs.lib.State(data),
             args;
 
         MetaphorJs.dom.removeAttr(node, "mjs-app");
 
-        scope.$app      = self;
+        state.$app      = self;
         self.$super();
 
         self.lang       = new MetaphorJs.lib.LocalText;
 
         self.node           = node;
-        self.scope          = scope;
+        self.state          = state;
         self.cmpListeners   = {};
         self.components     = {};
         self.cmpPromises    = {};
@@ -58,7 +58,7 @@ module.exports = MetaphorJs.app.App = cls({
 
         self.factory('$parentCmp', ['$node', self.getParentCmp], self);
         self.value('$app', self);
-        self.value('$rootScope', scope.$root);
+        self.value('$rootState', state.$root);
         self.value('$lang', self.lang);
         self.value('$locale', self.lang);
 
@@ -67,7 +67,7 @@ module.exports = MetaphorJs.app.App = cls({
         self.renderer.on("reference", self._onChildReference, self);
 
         args = toArray(arguments);
-        args[1] = scope;
+        args[1] = state;
         self.initApp.apply(self, args);
     },
 
@@ -90,7 +90,7 @@ module.exports = MetaphorJs.app.App = cls({
      * @method
      */
     run: function() {
-        this.renderer.process(this.node, this.scope);
+        this.renderer.process(this.node, this.state);
     },
 
     /**
@@ -237,7 +237,7 @@ module.exports = MetaphorJs.app.App = cls({
         var self    = this;
 
         self.renderer.$destroy();
-        self.scope.$destroy();
+        self.state.$destroy();
         self.lang.$destroy();
 
         self.$super();

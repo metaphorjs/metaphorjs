@@ -11,7 +11,7 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
  * }
  * @returns {*}
  */
-MetaphorJs.filter.get = function(val, scope, prop) {
+MetaphorJs.filter.get = function(val, state, prop) {
     var tmp = (""+prop).split("."),
         key;
 

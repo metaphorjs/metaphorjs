@@ -1,7 +1,7 @@
 
 require("../../func/app/resolve.js");
 require("../../lib/Config.js");
-require("../../lib/Scope.js");
+require("../../lib/State.js");
 
 const Directive = require("../../app/Directive.js"),
     ns = require("metaphorjs-namespace/src/var/ns.js"),
@@ -9,20 +9,20 @@ const Directive = require("../../app/Directive.js"),
 
 (function(){
 
-    var ctrlAttr = function(scope, node, config, renderer, attrSet) {
+    var ctrlAttr = function(state, node, config, renderer, attrSet) {
 
         ctrlAttr.initConfig(config);
         var ctrlName = config.get("value");
         config.removeProperty("value");
 
-        // if there is instructions regarding controller's scope
-        // we set this scope for all children of current node
-        if (config.has("scope")) {
-            renderer.flowControl("newScope", scope);
+        // if there is instructions regarding controller's state
+        // we set this state for all children of current node
+        if (config.has("state")) {
+            renderer.flowControl("newState", state);
         }
 
         var cfg = {
-            scope: scope,
+            state: state,
             node: node,
             config: config,
             parentRenderer: renderer,
@@ -31,7 +31,7 @@ const Directive = require("../../app/Directive.js"),
 
         MetaphorJs.app.resolve(ctrlName, cfg, node, [cfg])
             .done(function(ctrl) {
-                if (renderer.$destroyed || scope.$$destroyed) {
+                if (renderer.$destroyed || state.$$destroyed) {
                     ctrl.$destroy();
                 }
                 else {
@@ -44,12 +44,12 @@ const Directive = require("../../app/Directive.js"),
         var ms = MetaphorJs.lib.Config.MODE_STATIC;
         config.setDefaultMode("value", ms);
         config.setDefaultMode("as", ms);
-        config.setDefaultMode("scope", ms);
+        config.setDefaultMode("state", ms);
     };
 
     ctrlAttr.deepInitConfig = function(config) {
-        var ctrlName = config.get("value");
-        var constr   = typeof ctrlName === "string" ? ns.get(ctrlName) : ctrlName;
+        const ctrlName = config.get("value");
+        const constr   = typeof ctrlName === "string" ? ns.get(ctrlName) : ctrlName;
         if (!constr) {
             return;
         }

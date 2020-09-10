@@ -12,7 +12,7 @@ module.exports = MetaphorJs.app.StoreRenderer = MetaphorJs.app.ListRenderer.$ext
 
     store: null,
 
-    $constructor: function(scope, node, config, parentRenderer, attrSet) {
+    $constructor: function(state, node, config, parentRenderer, attrSet) {
 
         config.setDefaultMode("pullNext", MetaphorJs.lib.Config.MODE_STATIC);
 
@@ -27,7 +27,7 @@ module.exports = MetaphorJs.app.StoreRenderer = MetaphorJs.app.ListRenderer.$ext
                 typeof plg === "string" ? plg : "MetaphorJs.plugin.ListPullNext");
         }
 
-        this.$super(scope, node, config, parentRenderer, attrSet);
+        this.$super(state, node, config, parentRenderer, attrSet);
     },
 
     initDataSource: function() {
@@ -37,7 +37,7 @@ module.exports = MetaphorJs.app.StoreRenderer = MetaphorJs.app.ListRenderer.$ext
 
         self.store          = store = MetaphorJs.lib.Expression.get(
                                     self.listSourceExpr, 
-                                    self.scope
+                                    self.state
                                 );
         if (self._trackBy !== false) {
             self._trackByFn = bind(store.getRecordId, store);

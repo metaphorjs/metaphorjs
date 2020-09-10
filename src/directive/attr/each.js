@@ -13,7 +13,7 @@ const Directive = require("../../app/Directive.js"),
 
     var types = [];
 
-    function detectModelType(expr, scope) {
+    function detectModelType(expr, state) {
         var i = 0,
             l = types.length,
             pb;
@@ -27,12 +27,12 @@ const Directive = require("../../app/Directive.js"),
 
         if (pb) {
             var getter = MetaphorJs.lib.Expression.construct(pb, {getterOnly: true});
-            var obj = getter(scope);
+            var obj = getter(state);
         }
         else {
             var tmp = expr.split(" in "),
                 model = tmp.length === 1 ? expr : tmp[1],
-                obj = MetaphorJs.lib.Expression.get(model, scope);
+                obj = MetaphorJs.lib.Expression.get(model, state);
         }
 
         for (; i < l; i++) {
@@ -44,7 +44,7 @@ const Directive = require("../../app/Directive.js"),
         return null;
     }
 
-    var eachDirective = function eachDirective(scope, node, config, renderer, attrSet) {
+    var eachDirective = function eachDirective(state, node, config, renderer, attrSet) {
 
         if (!(node instanceof window.Node)) {
             throw new Error("'each' directive can only work with DOM nodes");
@@ -63,9 +63,9 @@ const Directive = require("../../app/Directive.js"),
             expr = config.getExpression("value");
         }
 
-        var handler = detectModelType(expr, scope) || MetaphorJs.app.ListRenderer;
+        var handler = detectModelType(expr, state) || MetaphorJs.app.ListRenderer;
 
-        return new handler(scope, node, config, renderer, attrSet);
+        return new handler(state, node, config, renderer, attrSet);
     };
 
 

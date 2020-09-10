@@ -15,7 +15,7 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
  * @param {int} limit
  * @returns {array}
  */
-MetaphorJs.filter.split = function(input, scope, sep, limit) {
+MetaphorJs.filter.split = function(input, state, sep, limit) {
 
     limit       = limit || undefined;
     sep         = sep || "/\\n|,/";

@@ -6,14 +6,14 @@ var Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 Directive.registerTag("include", function(){
-    var dir = function tag_include_directive(scope, node, config, renderer) {
+    var dir = function tag_include_directive(state, node, config, renderer) {
 
         dir.initConfig(config);
     
         var tpl = new MetaphorJs.app.Template({
-            scope: scope,
+            state,
             replaceNode: node,
-            config: config,
+            config,
             parentRenderer: renderer
         });
     

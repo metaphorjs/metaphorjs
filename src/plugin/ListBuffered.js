@@ -75,8 +75,8 @@ module.exports = cls({
 
         self.up();
 
-        self.list.scope.$on("freeze", self.down, self);
-        self.list.scope.$on("unfreeze", self.up, self);
+        self.list.state.$on("freeze", self.down, self);
+        self.list.state.$on("unfreeze", self.up, self);
     },
 
     doRender: function() {

@@ -1,4 +1,4 @@
-require("../../lib/Scope.js");
+require("../../lib/State.js");
 require("../../lib/Expression.js");
 require("../../lib/MutationObserver.js");
 require("../../lib/Config.js");
@@ -29,11 +29,11 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             expr    = self.config.getExpression("value")
 
         self.mo = MetaphorJs.lib.MutationObserver.get(
-            self.scope, expr, null, null, {
+            self.state, expr, null, null, {
                 setter: true
             }
         );
-        self.mo.subscribe(self.onScopeChange, self);
+        self.mo.subscribe(self.onStateChange, self);
         self.input.onChange(self.onInputChange, self);
 
         self.optionsChangeDelegate = bind(self.onOptionsChange, self);
@@ -43,15 +43,15 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         self.$super();
 
         var inputValue      = self.input.getValue(),
-            scopeValue      = self.mo.getValue(),
+            stateValue      = self.mo.getValue(),
             binding         = self.config.get("binding");
 
-        if (scopeValue !== inputValue) {
-            // scope value takes priority
-            if (binding !== "input" && scopeValue !== undefined) {
-                self.onScopeChange(scopeValue);
+        if (stateValue !== inputValue) {
+            // state value takes priority
+            if (binding !== "input" && stateValue !== undefined) {
+                self.onStateChange(StateValue);
             }
-            else if (binding !== "scope" && inputValue !== undefined) {
+            else if (binding !== "state" && inputValue !== undefined) {
                 self.onInputChange(inputValue);
             }
         }
@@ -61,7 +61,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     initChange: emptyFn,
 
     onOptionsChange: function() {
-        this.onScopeChange();
+        this.onStateChange();
     },
 
     onInputChange: function(val) {
@@ -70,7 +70,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             config  = self.config,
             binding = self._binding || config.get("binding");
 
-        if (binding !== "scope") {
+        if (binding !== "state") {
 
             if (config.has("if") && !config.get("if")) {
                 return;
@@ -87,7 +87,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
             self.mo.setValue(val);
 
             self._inProg = true;
-            self.config.checkScope("value");
+            self.config.checkState("value");
             self._inProg = false;
 
             self.saveStateOnChange(val);
@@ -95,7 +95,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
     },
 
 
-    onScopeChange: function() {
+    onStateChange: function() {
 
         var self    = this,
             config  = self.config,
@@ -109,15 +109,15 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
                 return;
             }
 
-            // when scope value changed but this field
+            // when state value changed but this field
             // is not in focus, it should try to
             // change input's value, but not react
             // to input's 'change' and 'input' events --
             // fields like select or radio may not have
             // this value in its options. that will change
-            // value to undefined and bubble back to scope
+            // value to undefined and bubble back to state
             if (window.document.activeElement !== self.node) {
-                self._binding = "scope";
+                self._binding = "state";
             }
 
             if ((ie = isIE()) && ie < 8) {
@@ -144,7 +144,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         self.input = null;
 
         if (self.mo) {
-            self.mo.unsubscribe(self.onScopeChange, self);
+            self.mo.unsubscribe(self.onStateChange, self);
             self.mo.$destroy(true);
         }
 

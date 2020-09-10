@@ -7,7 +7,7 @@ const Directive = require("../../app/Directive.js"),
 
 Directive.registerAttribute("include", 1100, function(){
 
-    const dir = function include_directive(scope, node, config, renderer, attrSet){
+    const dir = function include_directive(state, node, config, renderer, attrSet){
 
         if (!(node instanceof window.Node)) {
             throw new Error("'include' directive can only work with Node");
@@ -22,7 +22,7 @@ Directive.registerAttribute("include", 1100, function(){
         dir.initConfig(config);
     
         var tpl = new MetaphorJs.app.Template({
-            scope: scope,
+            state: state,
             attachTo: node,
             parentRenderer: renderer,
             config: config

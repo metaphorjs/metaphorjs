@@ -28,9 +28,9 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
 
     id: null,
     config: null,
-    scope: null,
+    state: null,
     listSourceExpr: null,
-    itemScopeName: null,
+    itemStateName: null,
 
     _tagMode: false,
     _animateMove: false,
@@ -50,12 +50,12 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
     _localTrack: false,
     _griDelegate: null,
 
-    $constructor: function(scope, node, config, parentRenderer, attrSet) {
+    $constructor: function(state, node, config, parentRenderer, attrSet) {
 
         var self = this;
 
         self.config         = config;
-        self.scope          = scope;
+        self.state          = state;
         self.initConfig();
 
         self._tagMode       = node.nodeName.toLowerCase() === "mjs-each";
@@ -97,7 +97,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
         self._trackBy = config.get("trackBy");
     },
 
-    $init: function(scope, node, config, parentRenderer, attrSet) {
+    $init: function(state, node, config, parentRenderer, attrSet) {
 
         var self = this,
             expr = self._tagMode ? 
@@ -133,7 +133,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
         node.parentNode.removeChild(node);
 
         self.initDataSource();
-        self.scope.$app.registerCmp(self, "id");
+        self.state.$app.registerCmp(self, "id");
 
         self._renderQueue.add(self.render, self, [self.getList()]);
     },
@@ -171,7 +171,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
 
         var self        = this;
         self._mo        = MetaphorJs.lib.MutationObserver.get(
-                            self.scope, self.listSourceExpr, 
+                            self.state, self.listSourceExpr, 
                             self.onChange, self,
                             {
                                 localFilter: bind(self.localTracklistFilter, self)
@@ -180,7 +180,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
         if (self._localTrack && !self._trackBy) {
             self._trackBy = "$$" + self._mo.id;
         }
-        self._griDelegate = bind(self.scopeGetRawIndex, self);
+        self._griDelegate = bind(self.stateGetRawIndex, self);
     },
 
     trigger: emptyFn,
@@ -207,13 +207,13 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
     createItem: function(el, list, index) {
 
         var self        = this,
-            iname       = self.itemScopeName,
-            itemScope   = self.scope.$new(),
+            iname       = self.itemStateName,
+            itemState   = self.state.$new(),
             tm          = self._tagMode;
 
-        itemScope.$on("changed", self.scope.$check, self.scope);
+        itemState.$on("changed", self.state.$check, self.state);
 
-        itemScope[iname]    = self.getListItem(list, index);
+        itemState[iname]    = self.getListItem(list, index);
         el = tm ? toArray(el.childNodes) : el;
 
         return {
@@ -221,7 +221,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
             action: "enter",
             el: el,
             placeholder: window.document.createComment("*list*" + index + "*"),
-            scope: itemScope,
+            state: itemState,
             attached: false,
             rendered: false,
             hidden: false
@@ -281,37 +281,37 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
 
     renderItem: function(index, items, list, trackByFn, renderOnly) {
 
-        var self = this;
+        const self = this;
 
         list = list || self.getList();
         items = items || self._items;
         trackByFn = trackByFn || self.getTrackByFunction();
 
-        var item        = items[index],
-            scope       = item.scope,
-            last        = items.length - 1,
-            even        = !(index % 2);
+        const   item        = items[index],
+                state       = item.state,
+                last        = items.length - 1,
+                even        = !(index % 2);
 
         if (renderOnly && item.rendered) {
             return;
         }
 
-        scope.$index    = index;
-        scope.$first    = index === 0;
-        scope.$last     = index === last;
-        scope.$even     = even;
-        scope.$odd      = !even;
-        scope.$trackId  = trackByFn(list[index]);
-        scope.$getRawIndex = self.griDelegate;
+        state.$index    = index;
+        state.$first    = index === 0;
+        state.$last     = index === last;
+        state.$even     = even;
+        state.$odd      = !even;
+        state.$trackId  = trackByFn(list[index]);
+        state.$getRawIndex = self.griDelegate;
 
         if (!item.renderer) {
             item.renderer  = new MetaphorJs.app.Renderer;
-            scope.$on("destroy", item.renderer.$destroy, item.renderer);
-            item.renderer.process(item.el, scope);
+            state.$on("destroy", item.renderer.$destroy, item.renderer);
+            item.renderer.process(item.el, state);
             item.rendered = true;
         }
         else {
-            scope.$check();
+            state.$check();
         }
     },
 
@@ -344,7 +344,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
             updateStart = null,
             animateMove = self._animateMove,
             newItems    = [],
-            iname       = self.itemScopeName,
+            iname       = self.itemStateName,
             origItems   = items.slice(),
             doesMove    = false,
             prevItem,
@@ -399,7 +399,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
                     }
 
                     prevItem.action = "move";
-                    prevItem.scope[iname] = self.getListItem(list, i);
+                    prevItem.state[iname] = self.getListItem(list, i);
                     doesMove = animateMove;
 
                     newItems.push(prevItem);
@@ -463,8 +463,8 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
                 item.placeholder.parentNode && 
                     item.placeholder.parentNode.removeChild(item.placeholder);
             }
-            if (item && item.scope) {
-                item.scope.$destroy();
+            if (item && item.state) {
+                item.state.$destroy();
                 item.rendered = false;
             }
         }
@@ -603,7 +603,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
     },
 
 
-    scopeGetRawIndex: function(id) {
+    stateGetRawIndex: function(id) {
 
         if (id === undefined) {
             return -1;
@@ -647,7 +647,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
             this.listSourceExpr = parts.model;
         }
 
-        this.itemScopeName = parts.name;
+        this.itemStateName = parts.name;
     },
 
 

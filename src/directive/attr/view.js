@@ -5,11 +5,11 @@ require("../../lib/Config.js");
 const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 MetaphorJs.app.Directive.registerAttribute("view", 200, 
-    function(scope, node, config, renderer) {
+    function(state, node, config, renderer) {
 
     MetaphorJs.app.Directive.resolveNode(node, "view", function(node){
         if (!renderer.$destroyed) {
-            var cfg = {scope: scope, node: node, config: config};
+            const cfg = { state, node, config };
 
             MetaphorJs.app.resolve(
                 "MetaphorJs.app.view.Component",
@@ -18,12 +18,12 @@ MetaphorJs.app.Directive.registerAttribute("view", 200,
                 [cfg]
             )
             .done(function(view){
-                if (renderer.$destroyed || scope.$$destroyed) {
+                if (renderer.$destroyed || state.$$destroyed) {
                     view.$destroy();
                 }
                 else {
                     renderer.on("destroy", view.$destroy, view);
-                    scope.$on("destroy", view.$destroy, view);
+                    state.$on("destroy", view.$destroy, view);
                 }
             });
         }

@@ -6,7 +6,7 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 MetaphorJs.app.Directive.registerAttribute("router", 200, function(){
 
-    const dir = function router_directive(scope, node, config, renderer, attrSet) {
+    const dir = function router_directive(state, node, config, renderer, attrSet) {
 
         dir.initConfig(config);
     
@@ -23,7 +23,7 @@ MetaphorJs.app.Directive.registerAttribute("router", 200, function(){
     
         MetaphorJs.app.Directive.resolveNode(node, "router", function(node){
             if (!renderer.$destroyed) {
-                var cfg = {scope: scope, node: node, config: config};
+                const cfg = { state, node, config };
     
                 if (routes.length !== 0) {
                     cfg['route'] = routes;
@@ -36,12 +36,12 @@ MetaphorJs.app.Directive.registerAttribute("router", 200, function(){
                     [cfg]
                 )
                 .done(function(view){
-                    if (renderer.$destroyed || scope.$$destroyed) {
+                    if (renderer.$destroyed || state.$$destroyed) {
                         view.$destroy();
                     }
                     else {
                         renderer.on("destroy", view.$destroy, view);
-                        scope.$on("destroy", view.$destroy, view);
+                        state.$on("destroy", view.$destroy, view);
                     }
                 });
             }
@@ -52,7 +52,7 @@ MetaphorJs.app.Directive.registerAttribute("router", 200, function(){
 
     dir.initConfig = function(config) {
         var ms = MetaphorJs.lib.Config.MODE_STATIC;
-        config.setDefaultMode("scope", ms);
+        config.setDefaultMode("state", ms);
         config.setDefaultMode("id", ms);
         config.setProperty("value", {
             defaultMode: ms,

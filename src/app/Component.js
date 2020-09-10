@@ -8,7 +8,7 @@ require("./Directive.js");
 require("./Renderer.js");
 require("../func/dom/addClass.js");
 require("../func/dom/removeClass.js");
-require("../lib/Scope.js");
+require("../lib/State.js");
 require("../lib/Config.js");
 require("metaphorjs-observable/src/mixin/Observable.js");
 require("metaphorjs-promise/src/lib/Promise.js");
@@ -127,7 +127,7 @@ module.exports = MetaphorJs.app.Component = MetaphorJs.app.Controller.$extend({
         var self = this;
 
         if (self.$view) {   
-            self.scope.$view = self.$view;
+            self.state.$view = self.$view;
         }
 
         self.initComponent.apply(self, arguments);
@@ -178,7 +178,7 @@ module.exports = MetaphorJs.app.Component = MetaphorJs.app.Controller.$extend({
             runRenderer: true,
             useShadow: config.copyProperty("useShadow"),
             makeTranscludes: config.copyProperty("makeTranscludes")
-        }, {scope: self.scope});
+        }, { state: self.state });
 
         attachTo && tplConfig.setStatic("useComments", false);
         MetaphorJs.app.Template.prepareConfig(tplConfig, tpl);
@@ -186,7 +186,7 @@ module.exports = MetaphorJs.app.Component = MetaphorJs.app.Controller.$extend({
         self._initTplConfig(tplConfig);
 
         self.template = tpl = new MetaphorJs.app.Template({
-            scope: self.scope,
+            state: self.state,
             config: tplConfig,
 
             rootNode: rootNode,
@@ -235,7 +235,7 @@ module.exports = MetaphorJs.app.Component = MetaphorJs.app.Controller.$extend({
             if (dir) {
                 MetaphorJs.app.Renderer.applyDirective(
                     dir.handler, 
-                    self._getDirectiveScope(), 
+                    self._getDirectiveState(), 
                     self, 
                     self._prepareDirectiveCfg(dirCfg)
                 );
@@ -257,14 +257,13 @@ module.exports = MetaphorJs.app.Component = MetaphorJs.app.Controller.$extend({
         }
     },
 
-    _getDirectiveScope: function() {
-        var self = this,
-            dirs = self.directives || {};
-        return  dirs.scope ||
-                self.parentScope ||
-                self.scope.$parent || 
-                self.config.getOption("scope") ||
-                self.scope;
+    _getDirectiveState: function() {
+        const dirs = this.directives || {};
+        return  dirs.state ||
+                this.parentState ||
+                this.state.$parent || 
+                this.config.getOption("state") ||
+                this.state;
     },
 
     _prepareDirectiveCfg: function(cfg) {
@@ -286,7 +285,7 @@ module.exports = MetaphorJs.app.Component = MetaphorJs.app.Controller.$extend({
 
         config = new MetaphorJs.lib.Config(
             cfg, 
-            {scope: self._getDirectiveScope()}
+            { state: self._getDirectiveState() }
         );
         self.on("destroy", config.$destroy, config);
         return config;
@@ -320,7 +319,7 @@ module.exports = MetaphorJs.app.Component = MetaphorJs.app.Controller.$extend({
 
                     MetaphorJs.app.Renderer.applyDirective(
                         handlers[i].handler, 
-                        self._getDirectiveScope(), 
+                        self._getDirectiveState(), 
                         self, 
                         self._prepareDirectiveCfg(ds[j])
                     );

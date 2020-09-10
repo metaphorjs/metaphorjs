@@ -1,6 +1,6 @@
 
 
-require("../lib/Scope.js");
+require("../lib/State.js");
 require("../lib/Config.js");
 require("metaphorjs-observable/src/mixin/Observable.js");
 
@@ -32,9 +32,9 @@ module.exports = MetaphorJs.app.Controller = cls({
     node:           null,
 
     /**
-     * @var {MetaphorJs.lib.Scope}
+     * @var {MetaphorJs.lib.State}
      */
-    scope:          null,
+    state:          null,
 
     /**
      * @var {MetaphorJs.app.Renderer}
@@ -49,7 +49,7 @@ module.exports = MetaphorJs.app.Controller = cls({
     /**
      * @var {bool}
      */
-    destroyScope:   false,
+    destroyState:   false,
 
 
     __nodeId:       "$$ctrlId",
@@ -63,8 +63,8 @@ module.exports = MetaphorJs.app.Controller = cls({
      */
     $init: function(cfg) {
 
-        var self    = this,
-            scope,
+        let self    = this,
+            state,
             config;
 
         cfg = cfg || {};
@@ -74,25 +74,25 @@ module.exports = MetaphorJs.app.Controller = cls({
         self.$super(cfg);
         extend(self, cfg, true, false);
 
-        if (!self.scope || (typeof(self.scope) === "string" && 
-                            self.scope.indexOf(":new") !== -1)) {
-            self.destroyScope = true;
+        if (!self.state || (typeof(self.state) === "string" && 
+                            self.state.indexOf(":new") !== -1)) {
+            self.destroyState = true;
         }
-        scope = self.scope = MetaphorJs.lib.Scope.$produce(self.scope);
+        state = self.state = MetaphorJs.lib.State.$produce(self.state);
 
-        // We initialize config with current scope or change config's scope
+        // We initialize config with current state or change config's state
         // to current so that all new properties that come from initConfig
-        // are bound to local scope. 
-        // All pre-existing properties are already bound to outer scope;
-        // Also, each property configuration can have its own scope specified
+        // are bound to local state. 
+        // All pre-existing properties are already bound to outer state;
+        // Also, each property configuration can have its own state specified
         config = self.config = MetaphorJs.lib.Config.create(
             self.config,
-            {scope: scope}, 
+            { state }, 
             /*scalarAs: */"defaultValue"
         )
-        config.setOption("scope", scope);
-        scope.$cfg = {};
-        config.setTo(scope.$cfg);
+        config.setOption("state", state);
+        state.$cfg = {};
+        config.setTo(state.$cfg);
         self.initConfig();
         self.$callMixins("$initConfig", config);
         if (self._protoCfg) {
@@ -109,16 +109,16 @@ module.exports = MetaphorJs.app.Controller = cls({
         }
 
         if (config.has("init")) {
-            config.get("init")(scope);
+            config.get("init")(state);
         }
         if (config.has("as")) {
-            scope[config.get("as")] = self;
+            state[config.get("as")] = self;
         }
 
         self[self.__initInstance].apply(self, arguments);
 
-        if (scope.$app) {
-            scope.$app.registerCmp(self, "id");
+        if (state.$app) {
+            state.$app.registerCmp(self, "id");
         }
 
         if (self.parentRenderer) {
@@ -130,7 +130,7 @@ module.exports = MetaphorJs.app.Controller = cls({
 
     initConfig: function() {
         var self = this,
-            scope = self.scope,
+            state = self.state,
             config = self.config,
             mst = MetaphorJs.lib.Config.MODE_STATIC;
 
@@ -141,7 +141,7 @@ module.exports = MetaphorJs.app.Controller = cls({
             config.setDefaultValue("as", self.as);
         }
 
-        MetaphorJs.lib.Observable.$initHostConfig(self, config, scope, self.node);
+        MetaphorJs.lib.Observable.$initHostConfig(self, config, state, self.node);
     },
 
     _claimNode: function() {
@@ -232,22 +232,20 @@ module.exports = MetaphorJs.app.Controller = cls({
 
     onDestroy:      function() {
 
-        var self    = this;
-
-        if (self.destroyScope && self.scope) {
-            self.scope.$destroy();
+        if (this.destroyState && this.state) {
+            this.state.$destroy();
         }
 
-        self._releaseNode();
-        self.config.$destroy();
-        self.$super();
+        this._releaseNode();
+        this.config.$destroy();
+        this.$super();
     }
 
 }, {
     initConfig: function(config) {
-        var mst = MetaphorJs.lib.Config.MODE_STATIC;
+        const mst = MetaphorJs.lib.Config.MODE_STATIC;
         config.setMode("init", MetaphorJs.lib.Config.MODE_FUNC);
         config.setDefaultMode("as", mst);
-        config.setDefaultMode("scope", mst);
+        config.setDefaultMode("state", mst);
     }
 });

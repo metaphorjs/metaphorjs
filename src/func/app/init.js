@@ -18,7 +18,7 @@ module.exports = MetaphorJs.app.init = function app_init(node, cls, data, autoru
     try {
         var p = MetaphorJs.app.resolve(
                     cls || "MetaphorJs.app.App", 
-                    extend({scope: data}, cfg), 
+                    extend({ state: data }, cfg), 
                     node, 
                     [node, data]
                 );

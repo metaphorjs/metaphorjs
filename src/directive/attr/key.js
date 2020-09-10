@@ -150,7 +150,7 @@ const getNode = function(node, config, cb) {
     });
 };
 
-const dir = function key_directive(scope, node, config, renderer, attrSet){
+const dir = function key_directive(state, node, config, renderer, attrSet){
 
     dir.initConfig(config);
 
@@ -161,7 +161,7 @@ const dir = function key_directive(scope, node, config, renderer, attrSet){
         }
 
         var h = cfg.handler;
-        var context = cfg.context || scope;
+        var context = cfg.context || state;
 
         delete cfg.handler;
         delete cfg.context;
@@ -171,12 +171,12 @@ const dir = function key_directive(scope, node, config, renderer, attrSet){
         }
 
         var handler = function(e) {
-            scope.$event = e;
-            scope.$eventCmp = config.get("targetComponent");
-            h(scope);
-            scope.$event = null;
-            scope.$eventCmp = null;
-            scope.$check();
+            state.$event = e;
+            state.$eventCmp = config.get("targetComponent");
+            h(state);
+            state.$event = null;
+            state.$eventCmp = null;
+            state.$check();
         };
         
         MetaphorJs.lib.Input.get(node).onKey(cfg, handler, context);

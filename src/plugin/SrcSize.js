@@ -29,13 +29,13 @@ module.exports = cls({
 
         var attr    = self.directive.attr,
             node    = self.directive.node,
-            scope   = self.directive.scope,
+            state   = self.directive.state,
             cfg     = attr ? attr.config : {},
             size    = cfg.preloadSize,
             style   = node.style;
 
         if (size !== "attr") {
-            size    = MetaphorJs.lib.Expression.parse(size)(scope);
+            size    = MetaphorJs.lib.Expression.parse(size)(state);
         }
 
         var width   = size === "attr" ? parseInt(MetaphorJs.dom.getAttr(node, "width"), 10) : size.width,

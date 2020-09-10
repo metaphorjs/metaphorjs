@@ -17,16 +17,16 @@ const extend = require("metaphorjs-shared/src/func/extend.js"),
  */
 module.exports = MetaphorJs.lib.Config = (function(){
 
-    var $$observable = new MetaphorJs.lib.Observable;
+    const   $$observable = new MetaphorJs.lib.Observable;
 
-    var MODE_STATIC = 1,
-        MODE_DYNAMIC = 2,
-        MODE_SINGLE = 3,
-        MODE_GETTER = 4,
-        MODE_SETTER = 5,
-        MODE_FUNC = 6,
-        MODE_FNSET = 7,
-        MODE_LISTENER = 8;
+    const   MODE_STATIC = 1,
+            MODE_DYNAMIC = 2,
+            MODE_SINGLE = 3,
+            MODE_GETTER = 4,
+            MODE_SETTER = 5,
+            MODE_FUNC = 6,
+            MODE_FNSET = 7,
+            MODE_LISTENER = 8;
 
 
     /**
@@ -34,7 +34,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
      * @method
      * @param {object} properties Attribute expressions/properties map
      * @param {object} cfg {
-     *  @type {object} scope Data object
+     *  @type {object} state Data object
      *  @type {object} setTo set all values to this object
      * }
      * @param {string} scalarAs {
@@ -71,7 +71,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
             var self = this,
                 prop = self.properties[name];
             prop.mo = MetaphorJs.lib.MutationObserver.get(
-                prop.scope || self.cfg.scope, 
+                prop.state || self.cfg.state, 
                 pb || prop.expression
             );
             prop.mo.subscribe(self._onPropMutated, self, {
@@ -181,12 +181,12 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 }
                 else if (prop.mode === MODE_SINGLE) {
                     if (pb) {
-                        value = (pb.getterFn || pb.fn)(prop.scope || self.cfg.scope);
+                        value = (pb.getterFn || pb.fn)(prop.state || self.cfg.state);
                     }
                     else {
                         value = MetaphorJs.lib.Expression.get(
                             prop.expression, 
-                            prop.scope || self.cfg.scope
+                            prop.state || self.cfg.state
                         );
                     }
                 }
@@ -246,12 +246,12 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 else if (prop.mode === MODE_LISTENER) {
                     if (pb) {
                         if (pb.delegate) {
-                            value = pb.getterFn(prop.scope || self.cfg.scope);
+                            value = pb.getterFn(prop.state || self.cfg.state);
                         }
                         else {
                             value = self._wrapListener(
                                 pb.fn || pb.getterFn, 
-                                prop.scope || self.cfg.scope,
+                                prop.state || self.cfg.state,
                                 prop
                             );
                         }
@@ -261,7 +261,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                             prop.expression.indexOf('=') === -1) {
                             value = MetaphorJs.lib.Expression.get(
                                 prop.expression, 
-                                prop.scope || self.cfg.scope
+                                prop.state || self.cfg.state
                             );
                         }
                         else {
@@ -269,7 +269,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                             if (value && typeof(value) === "function") {
                                 value = self._wrapListener(
                                     value, 
-                                    prop.scope || self.cfg.scope,
+                                    prop.state || self.cfg.state,
                                     prop
                                 );
                             }
@@ -296,16 +296,16 @@ module.exports = MetaphorJs.lib.Config = (function(){
             return retValue;
         },
 
-        _wrapListener: function(ls, scope, prop) {
+        _wrapListener: function(ls, state, prop) {
             return function() {
                 var args = toArray(arguments),
                     i, l;
                 for (i = 0, l = args.length; i < l; i++) {
-                    scope["$" + (i+1)] = args[i];
+                    state["$" + (i+1)] = args[i];
                 }
-                ls(scope);
+                ls(state);
                 for (i = 0, l = args.length; i < l; i++) {
-                    delete scope["$" + (i+1)];
+                    delete state["$" + (i+1)];
                 }
             };
         },
@@ -444,7 +444,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
          * @param {object} cfg {
          *  @type {string} type int|float|array|bool|string
          *  @type {object} setTo
-         *  @type {object} scope
+         *  @type {object} state
          *  @type {boolean} disabled
          *  @type {*} defaultValue
          *  @type {*} value
@@ -539,8 +539,8 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 }
             }
 
-            if (!prop.scope) {
-                prop.scope = self.cfg.scope;
+            if (!prop.state) {
+                prop.state = self.cfg.state;
             }
 
             if (prop.mode === MODE_DYNAMIC && 
@@ -582,7 +582,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
 
             if (prop) {
                 cp = extend({}, prop, false, false);
-                cp.scope = cp.scope || this.cfg.scope;
+                cp.state = cp.state || this.cfg.state;
                 delete cp['mo'];
 
                 if (cp.mode === MODE_STATIC || 
@@ -830,14 +830,14 @@ module.exports = MetaphorJs.lib.Config = (function(){
          * Transform property to dynamic mode if it is static
          * @param {string} name 
          * @param {string} expression 
-         * @param {object|null} scope {
+         * @param {object|null} state {
          *  @optional
          * }
          */
-        makeLocalDynamic: function(name, expression, scope) {
+        makeLocalDynamic: function(name, expression, state) {
             var self = this,
                 prop, val;
-            scope = scope || self.cfg.scope;
+            state = state || self.cfg.state;
             if (prop = self.properties[name]) {
                 if (prop.final) {
                     return;
@@ -845,9 +845,9 @@ module.exports = MetaphorJs.lib.Config = (function(){
                 if (!prop.mode || prop.mode === MODE_STATIC || prop.mode === MODE_SINGLE) {
                     val = self.get(name);
                     self.setProperty(name, {
-                        expression: expression,
+                        expression,
                         mode: MODE_DYNAMIC,
-                        scope: scope
+                        state
                     });
                     self.values[name] = val;
                     self.set(name, val);
@@ -855,9 +855,9 @@ module.exports = MetaphorJs.lib.Config = (function(){
             }
             else {
                 self.setProperty(name, {
-                    expression: expression,
+                    expression,
                     mode: MODE_DYNAMIC,
-                    scope: scope
+                    state
                 });
             }
         },
@@ -1114,36 +1114,36 @@ module.exports = MetaphorJs.lib.Config = (function(){
         },
 
         /**
-         * Check scope based on property opts 
+         * Check state based on property opts 
          * (does it require checking parent or root)
          * @method
          * @param {string} propName 
          */
-        checkScope: function(propName) {
+        checkState: function(propName) {
 
-            var prop = this.properties[propName];
+            const prop = this.properties[propName];
 
             if (!prop) {
                 return;
             }
 
-            var scope = prop.scope || this.cfg.scope,
-                descr = prop.prebuilt ? 
+            const   state = prop.state || this.cfg.state,
+                    descr = prop.prebuilt ? 
                             (prop.prebuilt.descr||"") : 
                             MetaphorJs.lib.Expression.describeExpression(
                                 this.getExpression(propName)
                             );
 
             if (descr.indexOf("r") !== -1) {
-                return scope.$root.$check();
+                return state.$root.$check();
             }
             else if (descr.indexOf("p") !== -1) {
-                return scope.$parent ? 
-                        scope.$parent.$check() : 
-                        scope.$root.$check();
+                return state.$parent ? 
+                        state.$parent.$check() : 
+                        state.$root.$check();
             }
             else {
-                return scope.$check();
+                return state.$check();
             }
         },
 
@@ -1253,7 +1253,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
      * @static
      * Treat value as expression. If expression is a reference to a function, 
      * return this function. Else, return a wrapper function that is executed
-     * in current scope (config's or property's) and has all passed arguments
+     * in current state (config's or property's) and has all passed arguments
      * as this.$1, this.$2, etc.
      */
     Config.MODE_LISTENER = MODE_LISTENER;

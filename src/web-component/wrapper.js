@@ -1,6 +1,6 @@
 
 require("../app/Renderer.js");
-require("../lib/Scope.js");
+require("../lib/State.js");
 
 const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     getAttrSet = require("../func/dom/getAttrSet.js"),
@@ -26,12 +26,12 @@ module.exports = MetaphorJs.dom.webComponentWrapper = function(tagName, cls, par
 
             if (!this.cmp) {
 
-                var scope = MetaphorJs.lib.Scope.$produce(this.getAttribute("$scope")),
+                var state = MetaphorJs.lib.State.$produce(this.getAttribute("$state")),
                     attrSet = getAttrSet(this),
                     config = new MetaphorJs.lib.Config(
                         attrSet.config,
                         {
-                            scope: scope
+                            state: state
                         }
                     );
 
@@ -40,7 +40,7 @@ module.exports = MetaphorJs.dom.webComponentWrapper = function(tagName, cls, par
                 config.setFinal("useShadow");
 
                 this.cmp = new cls({
-                    scope: scope,
+                    state: state,
                     config: config,
                     node: this,
                     replaceCustomNode: false,

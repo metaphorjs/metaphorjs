@@ -20,7 +20,7 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
     lastPromise: null,
     src: null,
 
-    $constructor: function(scope, node, config, renderer, attrSet) {
+    $constructor: function(state, node, config, renderer, attrSet) {
 
         var self = this;
 
@@ -40,10 +40,10 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
             }
         }
 
-        self.$super(scope, node, config);
+        self.$super(state, node, config);
     },
 
-    initDirective: function(scope, node, config, renderer, attrSet) {
+    initDirective: function(state, node, config, renderer, attrSet) {
 
         var self = this;
 
@@ -56,11 +56,11 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
         self.queue = new MetaphorJs.lib.Queue({auto: true, async: true, 
                                     mode: MetaphorJs.lib.Queue.REPLACE, thenable: true});
 
-        self.$super(scope, node, config, renderer, attrSet);
+        self.$super(state, node, config, renderer, attrSet);
     },
 
 
-    onScopeChange: function() {
+    onStateChange: function() {
         var self = this;
         self.cancelPrevious();
         if (self.usePreload) {
@@ -126,7 +126,7 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
                     MetaphorJs.dom.setAttr(self.node, "src", src);
                     self.onSrcChanged();
                     self.node.style.visibility = "";
-                    self.scope.$scheduleCheck(50);
+                    self.state.$scheduleCheck(50);
                 }
             });
         }
@@ -137,7 +137,7 @@ Directive.registerAttribute("src", 1000, Directive.$extend({
 
     },
 
-    onScopeReset: function() {
+    onStateReset: function() {
         this.cancelPrevious();
         this.$super();
     },

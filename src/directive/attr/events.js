@@ -10,21 +10,23 @@ const Directive = require("../../app/Directive.js"),
 
 (function(){
 
-    let events = ['click', 'dblclick', 'mousedown', 'mouseup', 'mouseover',
-                  'mouseout', 'mousemove', 'keydown', 'keyup', 'keypress',
-                  'change',
-                  'focus', 'blur', 'copy', 'cut', 'paste', 'load', 'mousewheel',
-                  'touchstart', 'touchend', 'touchcancel', 'touchleave', 'touchmove'],
-        i, len;
+    const events = [  'click', 'dblclick', 'mousedown', 'mouseup', 'mouseover',
+                    'mouseout', 'mousemove', 'keydown', 'keyup', 'keypress',
+                    'change',
+                    'focus', 'blur', 'copy', 'cut', 'paste', 'load', 'mousewheel',
+                    'touchstart', 'touchend', 'touchcancel', 
+                    'touchleave', 'touchmove',
+                    'dragstart', 'dragenter', 'dragleave', 'dragend', 'drop'];
+    let i, len;
 
     const prepareConfig = function(config) {
-        var ms = MetaphorJs.lib.Config.MODE_STATIC;
+        const ms = MetaphorJs.lib.Config.MODE_STATIC;
         config.setProperty("preventDefault", {
             type: "bool", 
             defaultValue: true,
             defaultMode: ms
         });
-        config.setDefaultMode("scope", ms);
+        config.setDefaultMode("state", ms);
         config.setType("stopPropagation", "bool", ms);
         config.setType("stopImmediatePropagation", "bool", ms);
         config.setType("if", "bool");
@@ -38,9 +40,9 @@ const Directive = require("../../app/Directive.js"),
         return config;
     };
 
-    const createHandler = function(name, scope, node, config) {
+    const createHandler = function(name, state, node, config) {
         return new MetaphorJs.lib.EventHandler(
-            name, scope, node, prepareConfig(config)
+            name, state, node, prepareConfig(config)
         );
     };
 
@@ -60,14 +62,14 @@ const Directive = require("../../app/Directive.js"),
 
         (function(name){
 
-            var dir = function(scope, node, config, renderer, attrSet) {
+            var dir = function(state, node, config, renderer, attrSet) {
 
                 var eh,
                     destroyed = false,
                     rs = window.document.readyState,
                     init = function(node) {
                         if (!destroyed) {
-                            eh = createHandler(name, scope, node, config);
+                            eh = createHandler(name, state, node, config);
                         }
                     };
 
@@ -96,14 +98,14 @@ const Directive = require("../../app/Directive.js"),
         }(events[i]));
     }
 
-    const dir = function(scope, node, config) {
+    const dir = function(state, node, config) {
 
         prepareConfig(config);
 
         var fn = config.get("value"),
             handler = function(){
-                fn(scope);
-                config.checkScope("value")
+                fn(state);
+                config.checkState("value")
             },
             resolvedNode,
             init = function(node) {
@@ -132,7 +134,5 @@ const Directive = require("../../app/Directive.js"),
     dir.initConfig = prepareConfig;
 
     Directive.registerAttribute("submit", 1000, dir);
-
-    events = null;
 
 }());

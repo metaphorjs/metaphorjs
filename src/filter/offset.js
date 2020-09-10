@@ -12,7 +12,7 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
  * @param {int} offset
  * @returns {array|string}
  */
-MetaphorJs.filter.offset = function(input, scope, offset) {
+MetaphorJs.filter.offset = function(input, state, offset) {
 
     var isS = isString(input);
 

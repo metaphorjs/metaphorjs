@@ -12,6 +12,6 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
  * @param {string|boolean|null} opt true | false | "strict"
  * @returns {array}
  */
-MetaphorJs.filter.filter = function(val, scope, by, opt) {
+MetaphorJs.filter.filter = function(val, state, by, opt) {
     return filterArray(val, by, opt);
 };

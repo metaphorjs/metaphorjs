@@ -14,6 +14,6 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
  * @param {string} dir
  * @returns {array}
  */
-MetaphorJs.filter.sortBy = function(val, scope, field, dir) {
+MetaphorJs.filter.sortBy = function(val, state, field, dir) {
     return sortArray(val, field, dir);
 };

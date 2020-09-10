@@ -105,7 +105,7 @@ DO NOT put class="{}" when using class.name="{}"
                 config = self.config;
             config.eachProperty(function(k) {
                 if (k === 'value' || k.indexOf("value.") === 0) {
-                    config.on(k, self.onScopeChange, self);
+                    config.on(k, self.onStateChange, self);
                 }
             });
             self.$super();
@@ -114,7 +114,7 @@ DO NOT put class="{}" when using class.name="{}"
         initChange: function() {
             var self = this;
             if (self._autoOnChange) {
-                self.onScopeChange();
+                self.onStateChange();
             }
         },
 
@@ -131,7 +131,7 @@ DO NOT put class="{}" when using class.name="{}"
             return flatten(values);
         },
 
-        onScopeChange: function() {
+        onStateChange: function() {
 
             var self    = this,
                 node    = self.node,

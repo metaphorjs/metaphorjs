@@ -5,7 +5,7 @@ require("../../lib/Config.js");
 const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
-const appDirective = function(scope, node, config, renderer) {
+const appDirective = function(state, node, config, renderer) {
     renderer && renderer.flowControl("stop", true);
 };
 

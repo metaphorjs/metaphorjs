@@ -1,4 +1,4 @@
-require("../lib/Scope.js");
+require("../lib/State.js");
 require("metaphorjs-observable/src/lib/Observable.js");
 require("metaphorjs-promise/src/lib/Promise.js");
 require("../lib/Text.js");
@@ -18,8 +18,8 @@ const nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
 
 module.exports = MetaphorJs.app.Renderer = function() {
 
-    var handlers                = null,
-        dirs                    = MetaphorJs.directive,
+    let handlers                = null;
+    const dirs                    = MetaphorJs.directive,
         nodeCmt                 = window.document.COMMENT_NODE,
         nodeText                = window.document.TEXT_NODE,
         nodeElem                = window.document.ELEMENT_NODE,
@@ -43,23 +43,22 @@ module.exports = MetaphorJs.app.Renderer = function() {
             "link": true
         },
 
-        applyDirective = function(dir, parentScope, node, config, attrs, renderer) {
+        applyDirective = function(dir, parentState, node, config, attrs, renderer) {
 
-            config.setDefaultMode("scope", MetaphorJs.lib.Config.MODE_STATIC);
+            config.setDefaultMode("state", MetaphorJs.lib.Config.MODE_STATIC);
 
-            var scope   = config.has("scope") ? 
-                            MetaphorJs.lib.Scope.$produce(config.get("scope"), parentScope) :
-                            parentScope,
-                app     = parentScope.$app || scope.$app,
+            const state = config.has("state") ? 
+                            MetaphorJs.lib.State.$produce(config.get("state"), parentState) :
+                            parentState,
+                app     = parentState.$app || state.$app,
                 inject  = {
-                    $scope: scope,
+                    $state: state,
                     $node: node,
                     $config: config,
                     $attrSet: attrs,
                     $renderer: renderer
                 },
-                args    = [scope, node, config, renderer, attrs],
-                res,
+                args    = [state, node, config, renderer, attrs],
                 processRes = function(res) {
                 
                     if (res && res.$destroy) {
@@ -67,19 +66,21 @@ module.exports = MetaphorJs.app.Renderer = function() {
                             if (renderer.$destroyed) res.$destroy();
                             else renderer.on("destroy", res.$destroy, res);
                         }
-                        else parentScope.$on("destroy", res.$destroy, res);
+                        else parentState.$on("destroy", res.$destroy, res);
                     }
                     else if (typeof res === "function") {
                         if (renderer) {
                             if (renderer.$destroyed) res();
                             else renderer.on("destroy", res);
                         }
-                        else parentScope.$on("destroy", res);
+                        else parentState.$on("destroy", res);
                     }
                 };
 
-            if (config.has("scope")) {
-                config.setOption("scope", scope);
+            let res;
+
+            if (config.has("state")) {
+                config.setOption("state", state);
             }
 
             if (app) {
@@ -167,7 +168,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
             fc.nodes = null;
             fc.stop = false;
             fc.ignoreInside = false;
-            fc.newScope = null;
+            fc.newState = null;
         },
 
         _checkFCState: function(defers, nodes, attrs) {
@@ -175,7 +176,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
             fc.waitFor && defers && defers.push(fc.waitFor);
             fc.nodes && nodes && collectNodes(nodes, fc.nodes);
             fc.ignoreInside && attrs && (attrs.renderer.ignoreInside = true);
-            fc.newScope && (this._treeState.newScope = fc.newScope);
+            fc.newState && (this._treeState.newState = fc.newState);
             this._resetFC();
         },
 
@@ -201,7 +202,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
 
             if (MetaphorJs.lib.Text.applicable(textStr)) {
                 textRenderer = new MetaphorJs.lib.Text(
-                    self._treeState.scope,
+                    self._treeState.state,
                     textStr
                 );
                 textRenderer.subscribe(self._onTextChange, self, {
@@ -225,7 +226,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
             var self = this,
                 config = new MetaphorJs.lib.Config(
                     attrs.config, 
-                    {scope: self._treeState.scope}
+                    {state: self._treeState.state}
                 );
     
             var directive = MetaphorJs.app.Directive.getDirective("attr", "cmp");
@@ -236,7 +237,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
 
             self.on("destroy", config.$destroy, config);
 
-            return applyDirective(directive, self._treeState.scope, 
+            return applyDirective(directive, self._treeState.state, 
                                     node, config, attrs, self);
         },
 
@@ -245,11 +246,11 @@ module.exports = MetaphorJs.app.Renderer = function() {
             var self = this,
                 config = new MetaphorJs.lib.Config(
                     attrs.config, 
-                    {scope: self._treeState.scope}
+                    {state: self._treeState.state}
                 );
             self.on("destroy", config.$destroy, config);
 
-            return applyDirective(directive, self._treeState.scope, 
+            return applyDirective(directive, self._treeState.state, 
                                     node, config, attrs, self);
         },
 
@@ -258,24 +259,24 @@ module.exports = MetaphorJs.app.Renderer = function() {
             var self = this,
                 config = new MetaphorJs.lib.Config(
                     dcfg,
-                    {scope: self._treeState.scope}
+                    {state: self._treeState.state}
                 );
             self.on("destroy", config.$destroy, config);
 
-            return applyDirective(directive, self._treeState.scope, 
+            return applyDirective(directive, self._treeState.state, 
                                     node, config, attrs, self);
         },
 
         _processReferences: function(node, attrs) {
             var self = this, i, len, ref,
-                scope = self._treeState.scope;
+                state = self._treeState.state;
             for (i = 0, len = attrs.references.length; i < len; i++) {
                 ref = attrs.references[i];
                 if (ref[0] === '#') {
                     self.trigger("reference", "node", ref.substring(1), node);
                 }
                 else {
-                    scope[ref] = node;
+                    state[ref] = node;
                 }
                 MetaphorJs.dom.removeAttr(node, '#' + ref);
             }
@@ -286,7 +287,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 texts = self._texts,
                 textStr = attrs['attributes'][name],
                 textRenderer = new MetaphorJs.lib.Text(
-                    self._treeState.scope, 
+                    self._treeState.state, 
                     textStr, 
                     {
                         recursive: !!attrs.renderer.recursive,
@@ -421,16 +422,16 @@ module.exports = MetaphorJs.app.Renderer = function() {
          * along with this node's children<br>
          * Return a Promise resolving in any of the above
          * @param {Node} node 
-         * @param {MetaphorJs.lib.Scope} scope
+         * @param {MetaphorJs.lib.State} state
          * @returns {boolean|array|Promise|Node}
          */
-        processNode: function(node, scope, /*system private attr */_attrs) {
+        processNode: function(node, state, /*system private attr */_attrs) {
             var self = this;
-            self._treeState.scope = scope;
+            self._treeState.state = state;
             self._processNode(node, _attrs);
         },
 
-        process: function(smth, scope) {
+        process: function(smth, state) {
             var self    = this;
 
             if (!handlers) {
@@ -440,7 +441,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 return;
             }
 
-            self._treeState.scope = scope;
+            self._treeState.state = state;
 
             if (smth.nodeType) {
                 self._treeState.countdown++;
@@ -497,8 +498,8 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 self = this,
                 tag = el.nodeName,
                 subState = {
-                    thisLevelScope: null,
-                    childLevelScope: null
+                    thisLevelState: null,
+                    childLevelState: null
                 },
                 ts = self._treeState;
 
@@ -509,10 +510,10 @@ module.exports = MetaphorJs.app.Renderer = function() {
 
             res = self._processNode(el);
 
-            if (ts.newScope) {
-                subState.thisLevelScope = ts.scope;
-                subState.childLevelScope = ts.newScope;
-                delete ts.newScope;
+            if (ts.newState) {
+                subState.thisLevelState = ts.state;
+                subState.childLevelState = ts.newState;
+                delete ts.newState;
             }
 
             isThenable(res) ?
@@ -527,9 +528,9 @@ module.exports = MetaphorJs.app.Renderer = function() {
                 ts = self._treeState;
     
             if (res !== false) {
-                sub.childLevelScope && (ts.scope = sub.childLevelScope);
+                sub.childLevelState && (ts.state = sub.childLevelState);
                 self._nodeChildren(res, el);
-                sub.thisLevelScope && (ts.scope = sub.thisLevelScope);
+                sub.thisLevelState && (ts.state = sub.thisLevelState);
             }
 
             --ts.countdown === 0 && self._onProcessingFinished();

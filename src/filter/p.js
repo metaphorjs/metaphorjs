@@ -10,6 +10,6 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
  * @param {int} number Number to find text form for
  * @returns {string}
  */
-MetaphorJs.filter.p = function(key, scope, number) {
-    return scope.$app.lang.plural(key, parseInt(number, 10) || 0);
+MetaphorJs.filter.p = function(key, state, number) {
+    return state.$app.lang.plural(key, parseInt(number, 10) || 0);
 };

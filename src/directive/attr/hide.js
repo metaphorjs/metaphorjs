@@ -7,7 +7,7 @@ Directive.registerAttribute("hide", 500, Directive.attr.Show.$extend({
     $class: "MetaphorJs.app.Directive.attr.Hide",
     id: "hide",
 
-    onScopeChange: function(val) {
+    onStateChange: function(val) {
         var self    = this;
         self.runAnimation(!val);
         self._initial = false;

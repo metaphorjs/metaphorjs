@@ -9,10 +9,10 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
  * Render template from string to DomFragment
  * @function MetaphorJs.app.renderTpl
  * @param {string} htmlString
- * @param {MetaphorJs.lib.Scope} scope
+ * @param {MetaphorJs.lib.State} state
  * @returns {DocumentFragment}
  */
-module.exports = MetaphorJs.app.renderTpl = function app_renderTpl(htmlString, scope) {
+module.exports = MetaphorJs.app.renderTpl = function app_renderTpl(htmlString, state) {
 
     var div = window.document.createElement("div");
 
@@ -21,8 +21,8 @@ module.exports = MetaphorJs.app.renderTpl = function app_renderTpl(htmlString, s
     var fragment = MetaphorJs.dom.toFragment(div.childNodes);
 
     var renderer = new MetaphorJs.app.Renderer;
-    scope.$on("destroy", renderer.$destroy, renderer);
-    renderer.process(fragment, scope);
+    state.$on("destroy", renderer.$destroy, renderer);
+    renderer.process(fragment, state);
 
     return fragment;
 };

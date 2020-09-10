@@ -47,7 +47,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             idkey = self._getIdKey(),
             renderRef, attrSet,
             foundCmp, foundPromise,
-            scope = self.scope,
+            state = self.state,
             items = self.items || [],
             def,
 
@@ -93,10 +93,10 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
                 foundPromise = null;
                 renderRef = null;
                 renderer = new MetaphorJs.app.Renderer;
-                scope.$on("destroy", renderer.$destroy, renderer);
+                state.$on("destroy", renderer.$destroy, renderer);
                 renderer.on("reference", refCallback);
                 renderer.on("reference-promise", promiseCallback);
-                renderer.process(node, scope);
+                renderer.process(node, state);
 
                 if (foundCmp || foundPromise) {
                     if (!renderRef) {
@@ -242,7 +242,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             }
             else if (typeof def === "function") {
                 item.component = new def({
-                    scope: self.scope.$new()
+                    state: self.state.$new()
                 });
             }
             else if (def instanceof MetaphorJs.app.Component) {
@@ -254,12 +254,12 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             }
             else if (def instanceof MetaphorJs.app.Template) {
                 item.component = new MetaphorJs.app.Component({
-                    scope: self.scope,
+                    state: self.state,
                     template: def
                 });
             }
             else if (typeof def === "string") {
-                var cfg = {scope: self.scope};
+                var cfg = { state: self.state };
                 item.component = MetaphorJs.app.resolve(def, cfg);
             }
             else if (isThenable(def)) {
@@ -358,7 +358,7 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
 
             var newItem = self._createDefaultItemDef();
             newItem.component = new wrapCls({
-                scope: self.scope,
+                state: self.state,
                 items: [
                     item.component
                 ]

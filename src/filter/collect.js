@@ -9,7 +9,7 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
  * @param {string} field Field name to collect from objects
  * @returns {array}
  */
-MetaphorJs.filter.collect = function(input, scope, prop) {
+MetaphorJs.filter.collect = function(input, state, prop) {
 
     var res = [],
         i, l, val;

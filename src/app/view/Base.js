@@ -29,7 +29,7 @@ module.exports = MetaphorJs.app.view.Base = cls({
 
         if (!self.config) {
             self.config = new MetaphorJs.lib.Config(null, {
-                scope: self.scope
+                state: self.state
             });
         }
 
@@ -46,7 +46,7 @@ module.exports = MetaphorJs.app.view.Base = cls({
             self.id = self.config.get("id") || nextUid();
         }
 
-        self.scope.$app.registerCmp(self, "id");        
+        self.state.$app.registerCmp(self, "id");        
         self.initView();
     },
 
@@ -103,11 +103,11 @@ module.exports = MetaphorJs.app.view.Base = cls({
 
             var cfg     = isObject(cmp) ? cmp : {},
                 cls     = (isString(cmp) ? cmp : null) || "MetaphorJs.app.Component",
-                scope   = cfg.scope || self.scope.$new();
+                state   = cfg.state || self.state.$new();
 
             cfg.destroyEl = false;
             cfg.autoRender = true;
-            cfg.scope = scope;
+            cfg.state = state;
 
             return MetaphorJs.app.resolve(cls, cfg, node, [cfg]).done(function(newCmp){
                 newCmp.on("destroy", self.onCmpDestroy, self);
@@ -143,7 +143,7 @@ module.exports = MetaphorJs.app.view.Base = cls({
             MetaphorJs.dom.data(self.node, "mjs-transclude", null, "remove");
         }
 
-        self.scope = null;
+        self.state = null;
         self.currentComponent = null;
         self.currentView = null;
 

@@ -11,7 +11,7 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
  * @param {string} format number format
  * @returns {string}
  */
-MetaphorJs.filter.numeral = function(val, scope, format) {
+MetaphorJs.filter.numeral = function(val, state, format) {
     return numeral(val).format(
         MetaphorJs.lib.Cache.global().get(format, format)
     );

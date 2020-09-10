@@ -23,9 +23,9 @@ module.exports = MetaphorJs.lib.Text = (function(){
 
         events                  = new MetaphorJs.lib.Observable,
 
-        _procExpr               = function(expr, scope, observers) {
+        _procExpr               = function(expr, state, observers) {
             if (observers) {
-                var w = MetaphorJs.lib.MutationObserver.get(scope, expr);
+                var w = MetaphorJs.lib.MutationObserver.get(state, expr);
                 observers.push(w);
                 return w.getValue();
             }
@@ -33,7 +33,7 @@ module.exports = MetaphorJs.lib.Text = (function(){
                 if (MetaphorJs.app.prebuilt.isKey(expr)) {
                     expr = MetaphorJs.app.prebuilt.get("config", expr);
                 }
-                return MetaphorJs.lib.Expression.get(expr, scope);
+                return MetaphorJs.lib.Expression.get(expr, state);
             }
         },
 
@@ -73,7 +73,7 @@ module.exports = MetaphorJs.lib.Text = (function(){
             return result;
         },
 
-        render = function(text, scope, observers, recursive, fullExpr) {
+        render = function(text, state, observers, recursive, fullExpr) {
 
             var result,
                 prev = text,
@@ -90,12 +90,12 @@ module.exports = MetaphorJs.lib.Text = (function(){
                 }
 
                 if (fullExpr) {
-                    result = _procExpr(text, scope, observers);
+                    result = _procExpr(text, state, observers);
                     fullExpr = false;
                 }
                 else {
                     result = eachText(prev, function(expr){
-                        return _procExpr(expr, scope, observers);
+                        return _procExpr(expr, state, observers);
                     });
                 }
                 
@@ -118,7 +118,7 @@ module.exports = MetaphorJs.lib.Text = (function(){
      *  @type {bool} recursive
      * }
      */
-    var Text = function(scope, text, opt) {
+    var Text = function(state, text, opt) {
         opt = opt || {};
 
         var self        = this;
@@ -126,7 +126,7 @@ module.exports = MetaphorJs.lib.Text = (function(){
         self.id         = nextUid();
         self.origin     = text;
         self.text       = "";
-        self.scope      = scope;
+        self.state      = state;
         self.$destroyed  = false;
         self.fullExpr   = false;
         self.recursive  = false;
@@ -162,7 +162,7 @@ module.exports = MetaphorJs.lib.Text = (function(){
             self._observeData(obs, "unsubscribe");
             self.observers = [];
 
-            self.text = render(self.origin, self.scope, 
+            self.text = render(self.origin, self.state, 
                                 self.observers, 
                                 self.recursive, 
                                 self.fullExpr);
@@ -227,12 +227,12 @@ module.exports = MetaphorJs.lib.Text = (function(){
 
         /**
          * Used only in standalone mode. When part of an app, 
-         * use scope.$check()
+         * use state.$check()
          * @method
          * @returns {int}
          */
         check: function() {
-            return MetaphorJs.lib.MutationObserver.check(this.scope);
+            return MetaphorJs.lib.MutationObserver.check(this.state);
         },
 
         /**
@@ -253,7 +253,7 @@ module.exports = MetaphorJs.lib.Text = (function(){
      * @static
      * @method
      * @param {string} text Text template
-     * @param {object} dataObj Data object (app.Scope) to read variables from
+     * @param {object} dataObj Data object (app.State) to read variables from
      * @param {array|null} observers {
      *  Pass empty array 
      *  @type {MetaphorJs.lib.MutationObserver} observer

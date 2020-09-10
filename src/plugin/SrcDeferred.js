@@ -31,7 +31,7 @@ module.exports = cls({
 
         var self = this;
         self.directive = directive;
-        directive.$intercept("onScopeChange", self.onScopeChange, self, "instead");
+        directive.$intercept("onStateChange", self.onStateChange, self, "instead");
         directive.$intercept("initDirective", self.$initDirective, self, "before");
         self.queue = 
             directive.queue || 
@@ -92,7 +92,7 @@ module.exports = cls({
         self.queue.add(self.changeIfVisible, self);
     },
 
-    onScopeChange: function() {
+    onStateChange: function() {
         var self = this;
         self.queue.add(self.changeIfVisible, self);
     },

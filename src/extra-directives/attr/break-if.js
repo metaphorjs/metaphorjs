@@ -1,7 +1,7 @@
 
 const Directive = require("../../app/Directive.js");
 
-Directive.registerAttribute("break-if", 500, function(scope, node, config, renderer) {
+Directive.registerAttribute("break-if", 500, function(state, node, config, renderer) {
 
     config.setType("value", "bool");
 

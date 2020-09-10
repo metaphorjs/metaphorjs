@@ -38,7 +38,7 @@ module.exports = MetaphorJs.app.Directive = (function() {
 
         $mixins: [MetaphorJs.mixin.Observable],
 
-        scope: null,
+        state: null,
         node: null,
         component: null,
         attrSet: null,
@@ -53,18 +53,18 @@ module.exports = MetaphorJs.app.Directive = (function() {
         _initial: true,
         _asyncInit: false,
 
-        $init: function(scope, node, config, renderer, attrSet) {
+        $init: function(state, node, config, renderer, attrSet) {
 
             var self        = this;
 
-            self.scope      = scope;
+            self.state      = state;
             self.config     = config;
             self.renderer   = renderer;
             self.attrSet    = attrSet;
             self._nodeAttr  = node;
 
             self.initConfig();
-            self.initScope();
+            self.initState();
 
             self._asyncInit && self.initAsyncInit();
             self.initNodeAttr();
@@ -110,14 +110,12 @@ module.exports = MetaphorJs.app.Directive = (function() {
         initConfig: function() {
             var config = this.config;
             this.$self.initConfig(config, this);
-            MetaphorJs.lib.Observable.$initHostConfig(this, config, this.scope);
+            MetaphorJs.lib.Observable.$initHostConfig(this, config, this.state);
         },
 
-        initScope: function() {
-            var self = this,
-                scope = self.scope;
-            scope.$on("destroy", self.onScopeDestroy, self);
-            scope.$on("reset", self.onScopeReset, self);
+        initState: function() {
+            this.state.$on("destroy", this.onStateDestroy, this);
+            this.state.$on("reset", this.onStateReset, this);
         },
 
         initComponent: function(component) {
@@ -137,7 +135,7 @@ module.exports = MetaphorJs.app.Directive = (function() {
         initNode: function(node) {
             if (this._apis.indexOf("input") !== -1 && 
                 MetaphorJs.dom.isField(node)) {
-                this.input = MetaphorJs.lib.Input.get(node, this.scope);
+                this.input = MetaphorJs.lib.Input.get(node, this.state);
             }
         },
 
@@ -163,9 +161,9 @@ module.exports = MetaphorJs.app.Directive = (function() {
         initChange: function() {
             var self = this,
                 val;
-            self.config.on("value", self.onScopeChange, self);
+            self.config.on("value", self.onStateChange, self);
             if (self._autoOnChange && (val = self.config.get("value")) !== undefined) {
-                self.onScopeChange(val, undefined);
+                self.onStateChange(val, undefined);
             }
         },
 
@@ -175,13 +173,13 @@ module.exports = MetaphorJs.app.Directive = (function() {
             this.wrapperClose = cmts[1];
         },
 
-        onScopeDestroy: function() {
+        onStateDestroy: function() {
             this.$destroy();
         },
 
-        onScopeReset: function() {},
+        onStateReset: function() {},
 
-        onScopeChange: function(val) {
+        onStateChange: function(val) {
             this.saveStateOnChange(val);
         },
 
@@ -203,9 +201,9 @@ module.exports = MetaphorJs.app.Directive = (function() {
                 self._initPromise.$destroy();   
             }
 
-            if (self.scope) {
-                self.scope.$un("destroy", self.onScopeDestroy, self);
-                self.scope.$un("reset", self.onScopeReset, self);
+            if (self.state) {
+                self.state.$un("destroy", self.onStateDestroy, self);
+                self.state.$un("reset", self.onStateReset, self);
             }
 
             if (self.config) {

@@ -1,4 +1,4 @@
-require("../../lib/Scope.js");
+require("../../lib/State.js");
 require("../../lib/Text.js");
 require("../../func/dom/isField.js");
 require("../../lib/Input.js");
@@ -40,7 +40,7 @@ Directive.registerAttribute("bind", 1000,
                 config.disableProperty("value");
                 config.disableProperty("recursive");
                 self.textRenderer = new MetaphorJs.lib.Text(
-                    self.scope, 
+                    self.state, 
                     config.getExpression("value"), 
                     {
                         recursive: true, 
@@ -67,33 +67,33 @@ Directive.registerAttribute("bind", 1000,
 
             var self = this,
                 config = self.config,
-                scopeVal,
+                stateVal,
                 inputVal;
 
             if (config.has("locked") && config.get("locked")) {
-                scopeVal = self.config.get("value") || null;
+                stateVal = self.config.get("value") || null;
                 inputVal = self.input.getValue() || null;
-                if (scopeVal != inputVal) {
-                    self.onScopeChange();
+                if (stateVal != inputVal) {
+                    self.onStateChange();
                 }
             }
         },
 
         onTextRendererChange: function() {
-            this.onScopeChange();
+            this.onStateChange();
         },
 
         onOptionsChange: function() {
-            this.onScopeChange();
+            this.onStateChange();
         },
 
         onIfChange: function(val) {
             if (this.config.get("if")) {
-                this.onScopeChange();
+                this.onStateChange();
             }
         },
 
-        onScopeChange: function() {
+        onStateChange: function() {
             var config = this.config;
             if (config.has("if") && !config.get("if")) {
                 return;

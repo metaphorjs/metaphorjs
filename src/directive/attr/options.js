@@ -30,11 +30,11 @@ Directive.registerAttribute("options", 100, Directive.$extend({
     _fragment: null,
     _initial: false,
 
-    $init: function(scope, node, config, renderer, attrSet) {
+    $init: function(state, node, config, renderer, attrSet) {
         if (!(node instanceof window.HTMLSelectElement)) {
             throw new Error("'options' directive can only work with <select>");
         }
-        this.$super(scope, node, config, renderer, attrSet);
+        this.$super(state, node, config, renderer, attrSet);
     },
 
     initConfig: function() {
@@ -70,14 +70,14 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         else self._defOption = null;
 
         try {
-            var value = MetaphorJs.lib.Expression.get(self.model, self.scope);
+            var value = MetaphorJs.lib.Expression.get(self.model, self.state);
 
             if (cls.isInstanceOf(value, "MetaphorJs.model.Store")) {
                 self.bindStore(value, "on");
             }
             else {
                 self.watcher = MetaphorJs.lib.MutationObserver.get(
-                    self.scope, self.model, self.onScopeChange, self);
+                    self.state, self.model, self.onStateChange, self);
             }
         }
         catch (thrownError) {
@@ -115,7 +115,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         this.dispatchOptionsChange();
     },
 
-    onScopeChange: function() {
+    onStateChange: function() {
         var self = this;
         self.renderAll();
     },
@@ -135,7 +135,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         self._initial = false;
     },
 
-    renderOption: function(item, index, scope) {
+    renderOption: function(item, index, state) {
 
         var self        = this,
             parent      = self._groupEl || self._fragment,
@@ -143,9 +143,9 @@ Directive.registerAttribute("options", 100, Directive.$extend({
             config,
             option;
 
-        scope.item      = item;
-        scope.$index    = index;
-        config          = self._getterFn(scope);
+        state.item      = item;
+        state.$index    = index;
+        config          = self._getterFn(state);
         config.group    !== undefined && (config.group = ""+config.group);
 
         if (config.group !== self.prevGroup) {
@@ -186,7 +186,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
             node        = self.node,
             value       = MetaphorJs.dom.getInputValue(node),
             def         = self._defOption,
-            tmpScope    = self.scope.$new(),
+            tmpState    = self.state.$new(),
             msie        = MetaphorJs.browser.isIE(),
             phValue     = self.config.get("placeholderValue"),
             phName      = self.config.get("placeholderName") || phValue,
@@ -202,7 +202,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
         }
 
         for (i = 0, len = list.length; i < len; i++) {
-            self.renderOption(list[i], i, tmpScope);
+            self.renderOption(list[i], i, tmpState);
         }
 
         if (def) {
@@ -216,7 +216,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
             node.insertBefore(ph, node.firstChild);
         }
 
-        tmpScope.$destroy();
+        tmpState.$destroy();
 
         // ie6 gives "unspecified error when trying to set option.selected"
         // on node.appendChild(fragment);
@@ -257,7 +257,7 @@ Directive.registerAttribute("options", 100, Directive.$extend({
             self.bindStore(self.store, "un");
         }
         if (self.watcher) {
-            self.watcher.unsubscribe(self.onScopeChange, self);
+            self.watcher.unsubscribe(self.onStateChange, self);
             self.watcher.$destroy(true);
         }
 

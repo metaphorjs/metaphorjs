@@ -25,12 +25,12 @@ Directive.registerAttribute("focused", 600, Directive.$extend({
     },
 
     onInputFocus: function() {
-        this.config.get("value")(this.scope, true);
-        this.scope.$check();
+        this.config.get("value")(this.state, true);
+        this.state.$check();
     },
     onInputBlur: function() {
-        this.config.get("value")(this.scope, false);
-        this.scope.$check();
+        this.config.get("value")(this.state, false);
+        this.state.$check();
     },
 
     onDestroy: function(){

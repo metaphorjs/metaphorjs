@@ -504,15 +504,15 @@ extend(Input.prototype, {
  * @method
  * @static
  * @param {Node} node
- * @param {MetaphorJs.lib.Scope} scope
+ * @param {MetaphorJs.lib.State} state
  * @returns {MetaphorJs.lib.Input}
  */
-Input.get = function(node, scope) {
+Input.get = function(node, state) {
     if (node.$$input) {
         return node.$$input;
     }
-    if (scope && scope.$app && !node.type) {
-        var cmp = scope.$app.getParentCmp(node, true);
+    if (state && state.$app && !node.type) {
+        var cmp = state.$app.getParentCmp(node, true);
         if (cmp && cmp.getInputApi) {
             return cmp.getInputApi();
         }

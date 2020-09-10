@@ -20,7 +20,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
     },
 
 
-    onScopeChange: function() {
+    onStateChange: function() {
         var self    = this,
             config  = self.config,
             val     = config.get("value"),

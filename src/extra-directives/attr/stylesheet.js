@@ -71,7 +71,7 @@ Directive.registerAttribute("stylesheet", 1000,
         return lines.join("\n");
     },
 
-    onScopeChange: function() {
+    onStateChange: function() {
         this.stylesheet.setContent(this.getCssText());
     },
 

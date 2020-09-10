@@ -6,10 +6,10 @@ var Directive = require("../../app/Directive.js"),
     MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
 
 
-Directive.registerTag("tag", function directive_tag_tag(scope, node, config, renderer) {
+Directive.registerTag("tag", function directive_tag_tag(state, node, config, renderer) {
 
     var expr = getAttr(node, "value"),
-        tag = MetaphorJs.lib.Expression.get(expr, scope),
+        tag = MetaphorJs.lib.Expression.get(expr, state),
         i, l, a;
 
     if (!tag) {

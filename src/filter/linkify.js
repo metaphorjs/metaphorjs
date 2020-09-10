@@ -11,7 +11,7 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
  * @param {string} target Optional target parameter
  * @returns {string}
  */
-MetaphorJs.filter.linkify = function(input, scope, target){
+MetaphorJs.filter.linkify = function(input, state, target){
     target = target ? ' target="'+target+'"' : "";
     if (input) {
         var exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;

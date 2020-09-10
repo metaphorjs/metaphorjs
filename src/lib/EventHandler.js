@@ -22,18 +22,18 @@ const extend = require("metaphorjs-shared/src/func/extend.js"),
  * @method EventHandler
  * @constructor
  * @param {string} event Dom event name
- * @param {MetaphorJs.lib.Scope} scope 
+ * @param {MetaphorJs.lib.State} state 
  * @param {HTMLElement} node 
  * @param {MetaphorJs.lib.Config} cfg MetaphorJs.lib.Config
  */
-MetaphorJs.lib.EventHandler = function(event, scope, node, cfg) {
+MetaphorJs.lib.EventHandler = function(event, state, node, cfg) {
 
     var self = this;
 
     self.config     = cfg;
     self.event      = event;
     self.prevEvent  = {};
-    self.scope      = scope;
+    self.state      = state;
     self.node       = node;
     self.handler    = null;
     self.buffer     = null;
@@ -57,7 +57,7 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
     createHandler: function() {
 
         var self        = this,
-            scope       = self.scope,
+            state       = self.state,
             config      = self.config,
             asnc;
 
@@ -123,15 +123,15 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
                 }
             }
 
-            scope.$event = e;
-            scope.$eventNode = self.node;
-            scope.$prevEvent = self.prevEvent[e.type];
-            scope.$eventCmp = config.get("targetComponent");
+            state.$event = e;
+            state.$eventNode = self.node;
+            state.$prevEvent = self.prevEvent[e.type];
+            state.$eventCmp = config.get("targetComponent");
 
             if (!skipHandler && handlers.length > 0) {
                 for (i = 0, l = handlers.length; i < l; i++) {
                     handler = handlers[i];
-                    res = handler.call(cfg.context || null, scope);
+                    res = handler.call(cfg.context || null, state);
 
                     if (res && isPlainObject(res)) {
                         res.preventDefault !== undefined && 
@@ -152,14 +152,14 @@ extend(MetaphorJs.lib.EventHandler.prototype, {
                 return returnValue !== undefined ? returnValue : undefined;
             }
 
-            scope.$event = null;
-            scope.$eventNode = null;
-            scope.$eventCmp = null;
+            state.$event = null;
+            state.$eventNode = null;
+            state.$eventCmp = null;
 
             self.prevEvent[e.type] = e;
 
             for (i = 0, l = names.length; i < l; i++) {
-                config.checkScope(names[i]);
+                config.checkState(names[i]);
             }
 
             if (returnValue !== undefined) {
