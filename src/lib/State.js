@@ -268,8 +268,18 @@ extend(State.prototype, {
      * Update state with object and check for changes
      * @param {object} data 
      */
-    $extend: function(data) {
-        extend(this, data, true, true);
+    /**
+     * Update state with object and check for changes
+     * @param {string} key
+     * @param {object} data 
+     */
+    $extend: function(key, data) {
+        if (arguments.length === 2) {
+            this[key] = extend(this[key], data, true, true);    
+        }
+        else {
+            extend(this, key, true, true);
+        }
         this.$check();
     },
 
