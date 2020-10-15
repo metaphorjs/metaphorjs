@@ -16,6 +16,7 @@ require("./Controller.js");
 
 const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
+    isArray = require("metaphorjs-shared/src/func/isArray.js")
     htmlTags = require("../var/dom/htmlTags.js");
 
 /**

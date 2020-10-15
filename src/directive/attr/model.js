@@ -49,7 +49,7 @@ Directive.registerAttribute("model", 1000, Directive.$extend({
         if (stateValue !== inputValue) {
             // state value takes priority
             if (binding !== "input" && stateValue !== undefined) {
-                self.onStateChange(StateValue);
+                self.onStateChange(stateValue);
             }
             else if (binding !== "state" && inputValue !== undefined) {
                 self.onInputChange(inputValue);
