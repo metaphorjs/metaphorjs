@@ -25,7 +25,7 @@ cls({
     $class: "Test.MyApp2",
     $extends: "MetaphorJs.app.App",
 
-    initApp: function(node, scope, someValue) {
+    initApp: function(node, state, someValue) {
 
         var self    = this;
         var level2Inx = 0;
@@ -34,24 +34,24 @@ cls({
             '(level 3 value: {{.c}})'
         ];
 
-        self.scope.resolved = someValue;
+        self.state.resolved = someValue;
 
-        self.scope.level1   = '[ and here comes level 2: {{.level2}} ]';
-        self.scope.level2   = level2[level2Inx];
+        self.state.level1   = '[ and here comes level 2: {{.level2}} ]';
+        self.state.level2   = level2[level2Inx];
 
-        self.scope.b        = 1;
-        self.scope.c        = "variable c";
+        self.state.b        = 1;
+        self.state.c        = "variable c";
 
-        self.scope.changeLevel2 = function(inx) {
+        self.state.changeLevel2 = function(inx) {
             level2Inx = level2Inx == 0 ? 1 : 0;
-            self.scope.level2 = level2[level2Inx];
+            self.state.level2 = level2[level2Inx];
         };
 
-        self.scope.increaseB = function() {
-            self.scope.b++;
+        self.state.increaseB = function() {
+            self.state.b++;
         };
 
-        self.scope.people = 0;
+        self.state.people = 0;
 
         self.lang.setLocale("ru");
         self.lang.set("key", "text value");
@@ -69,7 +69,7 @@ cls({
     }
 
 }, {
-    inject: ['$node', '$scope', 'someValue'],
+    inject: ['$node', '$state', 'someValue'],
     resolve: {
         someValue: function() {
             var p = new MetaphorJs.lib.Promise;
@@ -130,7 +130,7 @@ cls({
 
             var self    = this;
 
-            self.scope.title = "My Component" + (new Date).getTime();
+            self.state.title = "My Component" + (new Date).getTime();
 
             var model   = new MetaphorJs.model.Model({
                 type: "Test.MyRecord",
@@ -142,11 +142,11 @@ cls({
                 }
             });
 
-            self.scope.store = new MetaphorJs.model.Store({
+            self.state.store = new MetaphorJs.model.Store({
                 model: model
             });
 
-            self.scope.deferred = self.deferred;
+            self.state.deferred = self.deferred;
         },
 
         afterRender: function() {
@@ -156,15 +156,15 @@ cls({
         },
 
         reverse: function() {
-            var title   = this.scope.title;
-            this.scope.title    = title.split("").reverse().join('');
+            var title   = this.state.title;
+            this.state.title    = title.split("").reverse().join('');
         },
 
         createNew: function() {
             var node    = document.getElementById("newComponent");
             MetaphorJs.app.resolve(
                 "Test.DynamicComponent", 
-                {autoRender: true, scope: this.scope}, 
+                {autoRender: true, state: this.state}, 
                 node
             );
         },
@@ -173,7 +173,7 @@ cls({
             var to  = document.getElementById("renderToComponent");
             MetaphorJs.app.resolve(
                 "Test.DynamicComponent", 
-                {autoRender: false, scope: this.scope}
+                {autoRender: false, state: this.state}
             )
             .done(function(cmp){
                 cmp.render(to)
@@ -201,7 +201,7 @@ cls({
                     as: "dlg"
                 },
                 renderTo: window.document.body,
-                scope: this.scope,
+                state: this.state,
                 template: {
                     html: '<p>This is a dialog. <a href="#" (click)="this.dlg.hide()">close</a></p>'
                 }
@@ -210,15 +210,15 @@ cls({
         },
 
         loadStore: function() {
-            this.scope.store.load()
-                .done(function(){this.scope.$check();}, this)
+            this.state.store.load()
+                .done(function(){this.state.$check();}, this)
                 .fail(function(reason){
                     console.log('failed', reason)
                 });
         }
     }, {
         resolve: {
-            deferred: ['$node', '$scope', 'test', function(node, scope, test) {
+            deferred: ['$node', '$state', 'test', function(node, state, test) {
                 return new MetaphorJs.lib.Promise(function(resolve, reject){
                     setTimeout(function(){
                         resolve((new Date).getTime());
@@ -243,7 +243,7 @@ cls({
         if (cfg.param) {
             alert("received param: " + cfg.param);
         }
-        self.scope.title = "My Component2 " + (new Date).getTime();
+        self.state.title = "My Component2 " + (new Date).getTime();
     }
 });
 
@@ -259,10 +259,10 @@ cls({
 
         var self    = this;
 
-        self.scope.title= "Tpl Component";
-        self.scope.tpl  = "a+b.html";
+        self.state.title= "Tpl Component";
+        self.state.tpl  = "a+b.html";
 
-        self.scope.$app.onAvailable("myComponent1").done(function(cmp){
+        self.state.$app.onAvailable("myComponent1").done(function(cmp){
             if (window.console && window.console.log) {
                 console.log("on available myComponent1");
             }
@@ -307,12 +307,12 @@ cls({
 
     initComponent: function() {
 
-        var scope = this.scope;
+        var state = this.state;
 
-        scope.tpl1 = '<p>Template 1</p><div {transclude}></div>';
-        scope.tpl2 = '<p>Template 2</p><div {transclude}></div>';
+        state.tpl1 = '<p>Template 1</p><div {transclude}></div>';
+        state.tpl2 = '<p>Template 2</p><div {transclude}></div>';
 
-        scope.tpl = scope.tpl1;
+        state.tpl = state.tpl1;
     }
 });
 

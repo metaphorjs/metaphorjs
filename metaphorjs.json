@@ -55,6 +55,7 @@
             "prebuild": {
                 "directives": [
                     "metaphorjs/src/directive/**",
+                    "metaphorjs/src/extra-directives/**",
                     "metaphorjs-validator/src/directive/**"
                 ],
                 "filters": [

@@ -5,7 +5,7 @@ const getBuilder = require("metaphorjs-build/src/func/getBuilder.js");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const WatchExternalFilesPlugin = require("webpack-watch-files-plugin").default;
 
-const builder = getBuilder("app");
+const builder = getBuilder("test");
 builder.prepare();
 builder.createPrebuildFile();
 const entry = builder.createEntryFile();
@@ -19,9 +19,12 @@ module.exports = {
     watchOptions: {
         ignored: /node_modules/
     },
+    optimization: {
+        concatenateModules: true
+    },
     devServer: {
         static: {
-            directory: path.join(__dirname, 'build'),
+            directory: path.join(__dirname, 'dev-test'),
         },
         compress: true,
         port: 9000,
@@ -44,12 +47,8 @@ module.exports = {
     plugins: [
         new WatchExternalFilesPlugin({
             files: [
-                './src/templates/**/*.html'
+                './dev-test/templates/**/*.html'
             ]
-        }),
-        new HtmlWebpackPlugin({
-            filename: "index.html",
-            templateContent: fs.readFileSync("src/index.html").toString()
         }),
         builder.getTemplateWatcher()
     ]

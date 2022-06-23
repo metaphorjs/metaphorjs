@@ -157,6 +157,7 @@ module.exports = MetaphorJs.app.Template = function() {
             if (!cache.exists(name)) {
                 if (!loadPromises[url]) {
                     loadPromises[url] = fetch(url)
+                    .then(r => r.text())
                     .then(response => {
                         return MetaphorJs.dom.toFragment(response);
                     })

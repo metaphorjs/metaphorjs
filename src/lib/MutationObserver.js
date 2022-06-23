@@ -49,7 +49,7 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
      *  }
      * }
      */
-    var MutationObserver = function(dataObj, expr, listener, context, opt) {
+    const MutationObserver = function(dataObj, expr, listener, context, opt) {
 
         var self    = this,
             id      = nextUid(),
@@ -241,8 +241,9 @@ module.exports = MetaphorJs.lib.MutationObserver = (function(){
         },
 
         _getValue: function() {
-            var self = this,
-                val = self.getterFn(self.dataObj);
+            const self = this;
+            const val = self.getterFn(self.dataObj || {});
+            
             return self.localFilter ? self.localFilter(val, self) : val;
         },
 
