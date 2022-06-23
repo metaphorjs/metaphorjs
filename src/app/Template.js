@@ -23,8 +23,7 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     toArray = require("metaphorjs-shared/src/func/toArray.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
     copy = require("metaphorjs-shared/src/func/copy.js"),
-    nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
-    ajax = require("metaphorjs-ajax/src/func/ajax.js");
+    nextUid = require("metaphorjs-shared/src/func/nextUid.js");
 
 module.exports = MetaphorJs.app.Template = function() {
 
@@ -157,11 +156,12 @@ module.exports = MetaphorJs.app.Template = function() {
 
             if (!cache.exists(name)) {
                 if (!loadPromises[url]) {
-                    loadPromises[url] = ajax(url, {dataType: 'fragment'})
-                    .always(function(fragment) { // sync action
-                        cache.add(name, fragment);
+                    loadPromises[url] = fetch(url)
+                    .then(response => {
+                        return MetaphorJs.dom.toFragment(response);
                     })
-                    .then(function(fragment) { // async action
+                    .then(fragment => { 
+                        cache.add(name, fragment);
                         delete loadPromises[url];
                         return fragment;
                     });
