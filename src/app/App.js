@@ -2,6 +2,7 @@ require("../lib/State.js");
 require("./Renderer.js");
 require("../func/dom/getAttr.js");
 require("../func/dom/removeAttr.js");
+require("../func/dom/onReady.js");
 require("metaphorjs-shared/src/lib/LocalText.js");
 require("metaphorjs-promise/src/lib/Promise.js");
 require("metaphorjs-shared/src/mixin/Provider.js");
@@ -36,11 +37,11 @@ module.exports = MetaphorJs.app.App = cls({
      */
     $init: function(node, data) {
 
-        var self        = this,
+        const self        = this,
             state       = data instanceof MetaphorJs.lib.State ? 
                                 data : 
-                                new MetaphorJs.lib.State(data),
-            args;
+                                new MetaphorJs.lib.State(data);
+        let args;
 
         MetaphorJs.dom.removeAttr(node, "mjs-app");
 
@@ -78,7 +79,7 @@ module.exports = MetaphorJs.app.App = cls({
     },
 
     _onChildReference: function(type, ref, item) {
-        var self = this;
+        const self = this;
         if (!self.$refs[type]) {
             self.$refs[type] = {};
         }
@@ -145,8 +146,8 @@ module.exports = MetaphorJs.app.App = cls({
      */
     getParentCmp: function(node, includeSelf) {
 
-        var self    = this,
-            parent  = includeSelf ? node : node.parentNode,
+        const self    = this;
+        let parent  = includeSelf ? node : node.parentNode,
             id;
 
         while (parent && parent !== window.document.documentElement) {
@@ -178,7 +179,7 @@ module.exports = MetaphorJs.app.App = cls({
      */
     onAvailable: function(id, fn, context) {
 
-        var self = this,
+        const self = this,
             promises = self.cmpPromises,
             components = self.components,
             ev = "available-" + id;
@@ -216,7 +217,7 @@ module.exports = MetaphorJs.app.App = cls({
      * @param {string} byKey 
      */
     registerCmp: function(cmp, byKey) {
-        var self = this,
+        const self = this,
             id = cmp[byKey],
             ev = "available-" + id,
             deregister = function() {
@@ -234,7 +235,7 @@ module.exports = MetaphorJs.app.App = cls({
 
     onDestroy: function() {
 
-        var self    = this;
+        const self    = this;
 
         self.renderer.$destroy();
         self.state.$destroy();

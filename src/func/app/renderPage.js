@@ -32,15 +32,15 @@ module.exports = MetaphorJs.app.renderPage = function app_renderPage(opt, doc) {
         return MetaphorJs.lib.Promise.resolve("");
     }
 
-    var document = doc || opt.document,
-        jsdom;
+    let document = doc || opt.document;
+    let jsdom;
     
     if (!document) {
         jsdom = require("jsdom");
         document = jsdom.jsdom('');
     }
 
-    var id = nextUid(),
+    const id = nextUid(),
         frag = MetaphorJs.dom.toFragment(opt.html, document),
         p = new MetaphorJs.lib.Promise,
         start = "<" + id,
@@ -54,10 +54,10 @@ module.exports = MetaphorJs.app.renderPage = function app_renderPage(opt, doc) {
 
     MetaphorJs.app.init(document.documentElement, opt.appClass, opt.appData, true)
         .done(function(){
-            var html = jsdom ? jsdom.serializeDocument(document) : 
+            const html = jsdom ? jsdom.serializeDocument(document) : 
                                 document.documentElement.innerHTML,
-                inx1 = html.indexOf(start),
-                inx2 = html.indexOf(end);
+                    inx1 = html.indexOf(start),
+                    inx2 = html.indexOf(end);
 
             p.resolve(html.substring(inx1 + start.length, inx2));
         });

@@ -14,13 +14,13 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
  */
 module.exports = MetaphorJs.app.renderTpl = function app_renderTpl(htmlString, state) {
 
-    var div = window.document.createElement("div");
+    const div = window.document.createElement("div");
 
     div.innerHTML = htmlString;
 
-    var fragment = MetaphorJs.dom.toFragment(div.childNodes);
+    const fragment = MetaphorJs.dom.toFragment(div.childNodes);
 
-    var renderer = new MetaphorJs.app.Renderer;
+    const renderer = new MetaphorJs.app.Renderer;
     state.$on("destroy", renderer.$destroy, renderer);
     renderer.process(fragment, state);
 

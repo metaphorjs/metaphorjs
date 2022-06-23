@@ -11,12 +11,12 @@ const error = require("metaphorjs-shared/src/func/error.js"),
 
 module.exports = MetaphorJs.app.init = function app_init(node, cls, data, autorun) {
 
-    var attrs = MetaphorJs.dom.getAttrSet(node);
-    var cfg = attrs.directives.app || {};
+    const attrs = MetaphorJs.dom.getAttrSet(node);
+    const cfg = attrs.directives.app || {};
     attrs.__remove("directive", node, "app")
 
     try {
-        var p = MetaphorJs.app.resolve(
+        const p = MetaphorJs.app.resolve(
                     cls || "MetaphorJs.app.App", 
                     extend({ state: data }, cfg), 
                     node, 

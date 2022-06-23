@@ -9,25 +9,25 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
 
 module.exports = MetaphorJs.app.prebuilt = (function() {
 
-    var pb = MetaphorJs.prebuilt || {},
-        fnMap = {}; // used when building
+    let pb = MetaphorJs.prebuilt || {};
+    const fnMap = {}; // used when building
 
-    var unspace = function(fn) {
+    const unspace = function(fn) {
         fn = fn.replace(/[\n\r]/g, '');
         fn = fn.replace(/\s+/g, ' ');
         fn = fn.replace(' anonymous', '');
         return fn;
     };
 
-    var traverse = function(s, fn) {
+    const traverse = function(s, fn) {
         if (isArray(s)) {
-            var i, l;
+            let i, l;
             for (i = 0, l = s.length; i < l; i++) {
                 s[i] = traverse(s[i], fn);
             }
         }
         else if (isPlainObject(s)) {
-            var k;
+            let k;
             for (k in s) {
                 s[k] = traverse(s[k], fn);
             }
@@ -35,12 +35,12 @@ module.exports = MetaphorJs.app.prebuilt = (function() {
         return fn(s);
     };
 
-    var extractFuncs = function(s) {
+    const extractFuncs = function(s) {
         if (typeof s === "function") {
-            var fnstr = unspace(s.toString());
+            let fnstr = unspace(s.toString());
             if (!fnMap[fnstr]) {
                 fnMap[fnstr] = api.add("func", s);
-                var descr = MetaphorJs.lib.Expression.describeExpression(fnstr);
+                let descr = MetaphorJs.lib.Expression.describeExpression(fnstr);
                 if (descr) {
                     api.add("funcDescr", descr, fnMap[fnstr]);
                 }
@@ -50,12 +50,12 @@ module.exports = MetaphorJs.app.prebuilt = (function() {
         return s;
     };
 
-    var importFuncs = function(s) {
+    const importFuncs = function(s) {
         return api.isKey(s) ? pb.func[s] : s;
     };
 
-    var deflate = function(s) {
-        var k,
+    const deflate = function(s) {
+        let k,
             keys = 0;
 
         for (k in s) {
@@ -77,7 +77,7 @@ module.exports = MetaphorJs.app.prebuilt = (function() {
         return s;
     };
 
-    var inflate = function(s) {
+    const inflate = function(s) {
         s = traverse(s, importFuncs);
         if (typeof s === "function") {
             s = {getterFn: s};
@@ -88,7 +88,7 @@ module.exports = MetaphorJs.app.prebuilt = (function() {
         return s;
     };
 
-    var api = {
+    const api = {
 
         /**
          * @function MetaphorJs.app.prebuilt.deflate

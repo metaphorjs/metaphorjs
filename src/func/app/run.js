@@ -15,7 +15,7 @@ const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js");
  */
 module.exports = MetaphorJs.app.run = function app_run(w, appData) {
 
-    var win = w || window;
+    const win = w || window;
 
     if (!win) {
         throw new Error("Window object neither defined nor provided");
@@ -23,8 +23,8 @@ module.exports = MetaphorJs.app.run = function app_run(w, appData) {
 
     MetaphorJs.dom.onReady(function() {
 
-        var appNodes    = MetaphorJs.dom.select("[mjs-app]", win.document),
-            i, l, el;
+        const appNodes = MetaphorJs.dom.select("[mjs-app]", win.document);
+        let i, l, el;
 
         for (i = -1, l = appNodes.length; ++i < l;){
             el      = appNodes[i];

@@ -1,0 +1,17 @@
+{
+    "build": {
+        
+        "app": {
+            "target": "build/metaphorjs.js",
+            "files": [
+                ["metaphorjs/metaphorjs.json", "core"],
+                "src/**/*.js"
+            ],
+            "templates": [
+                ["src/templates/**/*.html", {
+                    "base": "src/templates"
+                }]
+            ]
+        }
+    }
+}

@@ -21,8 +21,8 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, node, a
     args        = args || [];
 
     node        = node || cfg.node;
-    var state   = cfg.state; 
-    var config  = cfg.config || null;
+    let state   = cfg.state; 
+    let config  = cfg.config || null;
 
     cfg.config  = config;
     cfg.state   = cfg.state || state;
@@ -45,8 +45,8 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, node, a
         throw new Error("Component " + cmp + " not found");
     }
 
-    var i,
-        defers      = [],
+    let i;
+    const defers    = [],
         app         = state ? state.$app : null,
         gProvider   = MetaphorJs.lib.Provider.global(),
         injectFn    = app ? app.inject : gProvider.inject,
@@ -63,8 +63,8 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, node, a
 
         for (i in constr.resolve) {
             (function(name){
-                var d = new MetaphorJs.lib.Promise,
-                    fn;
+                const d = new MetaphorJs.lib.Promise;
+                let fn;
 
                 defers.push(d.done(function(value){
                     inject[name] = value;
@@ -95,7 +95,7 @@ module.exports = MetaphorJs.app.resolve = function app_resolve(cmp, cfg, node, a
         }
     }
 
-    var p;
+    let p;
 
     if (defers.length) {
         p = new MetaphorJs.lib.Promise;
