@@ -147,23 +147,23 @@ module.exports = MetaphorJs.app.Controller = cls({
     },
 
     _claimNode: function() {
-        var self = this;
+        const self = this;
         self.node && (self.node[self.__nodeId] = self.id);
     },
 
     _releaseNode: function() {
-        var self = this;
+        const self = this;
         self.node && (self.node[self.__nodeId] = null);
     },
 
     _onChildReference: function(type, ref, item) {
-        var self = this;
+        const self = this;
 
         if (!self.$refs[type]) {
             self.$refs[type] = {};
         }
 
-        var th = self.$refs[type][ref];
+        const th = self.$refs[type][ref];
 
         if (!th) {
             self.$refs[type][ref] = item;

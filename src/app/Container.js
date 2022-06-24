@@ -51,15 +51,18 @@ module.exports = MetaphorJs.app.Container = MetaphorJs.app.Component.$extend({
             items = self.items || [],
             def,
 
-            refCallback = function(type, ref, cmp, cfg, attrSet){
-                if (cfg.node === node) {
+            refCallback = function(type, ref, cmp, cfg, attrSet) {
+                if (cfg && cfg.node === node) {
                     foundCmp = cmp;
                     renderRef = attrSet.at;
+                }
+                else if (type === "node" && cmp === node) {
+                    self._onChildReference(type, ref, cmp);
                 }
             },
 
             promiseCallback = function(promise, cmpName, cfg, attrSet){
-                if (cfg.node === node) {
+                if (cfg && cfg.node === node) {
                     foundPromise = promise;
                     renderRef = attrSet.at;
                 }
