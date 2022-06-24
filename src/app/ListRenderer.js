@@ -133,7 +133,7 @@ module.exports = MetaphorJs.app.ListRenderer = cls({
         node.parentNode.removeChild(node);
 
         self.initDataSource();
-        self.state.$app.registerCmp(self, "id");
+        self.state.$app && self.state.$app.registerCmp(self, "id");
 
         self._renderQueue.add(self.render, self, [self.getList()]);
     },

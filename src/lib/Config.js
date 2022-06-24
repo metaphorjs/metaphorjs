@@ -419,7 +419,7 @@ module.exports = MetaphorJs.lib.Config = (function(){
                     prop[scalarAs || "expression"] = val;
                 }
                 // bool and int can only be a value
-                else if (isPrimitive(val)) {
+                else if (isPrimitive(val) || Array.isArray(val)) {
                     prop = {defaultValue: val};
                 }
                 // objects can only describe properties

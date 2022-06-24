@@ -9,6 +9,7 @@ const cls = require("metaphorjs-class/src/cls.js"),
     emptyFn = require("metaphorjs-shared/src/func/emptyFn.js"),
     nextUid = require("metaphorjs-shared/src/func/nextUid.js"),
     extend = require("metaphorjs-shared/src/func/extend.js"),
+    isPlainObject = require("metaphorjs-shared/src/func/isPlainObject.js"),
     isThenable = require("metaphorjs-shared/src/func/isThenable.js");
 
 /**
@@ -69,7 +70,7 @@ module.exports = MetaphorJs.app.Controller = cls({
 
         cfg = cfg || {};
 
-        self._protoCfg = self.config;
+        self._protoCfg = cfg.config;
         self.config = null;
         self.$super(cfg);
         extend(self, cfg, true, false);
@@ -95,10 +96,11 @@ module.exports = MetaphorJs.app.Controller = cls({
         config.setTo(state.$cfg);
         self.initConfig();
         self.$callMixins("$initConfig", config);
+
         if (self._protoCfg) {
             config.addProperties(
                 self._protoCfg, 
-                /*scalarAs: */"defaultValue"
+                /*scalarAs:*/ "defaultValue"
             );
         }
 
