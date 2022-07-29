@@ -138,11 +138,11 @@ extend(Input.prototype, {
     initRadioInput: function() {
 
         var self    = this,
-            el      = self.el,
-            name    = el.name,
-            parent;
+            el      = self.el;
+            //name    = el.name,
+            //parent;
 
-        if (MetaphorJs.dom.isAttached(el)) {
+        /*if (MetaphorJs.dom.isAttached(el)) {
             parent  = el.ownerDocument;
         }
         else {
@@ -150,9 +150,12 @@ extend(Input.prototype, {
             while (parent.parentNode) {
                 parent = parent.parentNode;
             }
-        }
+        }*/
 
-        self.radio  = MetaphorJs.dom.select("input[name="+name+"]", parent);
+        //console.log(el)
+        //console.log(parent)
+        //self.radio  = MetaphorJs.dom.select("input[name="+name+"]", parent);
+        self.radio = [ el ];
 
         self.onRadioInputChangeDelegate = bind(self.onRadioInputChange, self);
         self.listeners.push(["click", self.onRadioInputChangeDelegate, false]);

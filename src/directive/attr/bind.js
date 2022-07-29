@@ -8,6 +8,7 @@ require("../../func/dom/removeListener.js");
 
 const MetaphorJs = require("metaphorjs-shared/src/MetaphorJs.js"),
     bind = require("metaphorjs-shared/src/func/bind.js"),
+    async = require("metaphorjs-shared/src/func/async.js"),
     Directive = require("../../app/Directive.js");
 
 Directive.registerAttribute("bind", 1000, 
@@ -74,7 +75,7 @@ Directive.registerAttribute("bind", 1000,
                 stateVal = self.config.get("value") || null;
                 inputVal = self.input.getValue() || null;
                 if (stateVal != inputVal) {
-                    self.onStateChange();
+                    async(() => self.onStateChange());
                 }
             }
         },

@@ -223,6 +223,7 @@ module.exports = MetaphorJs.app.Renderer = function() {
         },
 
         _processComponent: function(component, node, attrs) {
+            
             var self = this,
                 config = new MetaphorJs.lib.Config(
                     attrs.config, 
@@ -242,7 +243,6 @@ module.exports = MetaphorJs.app.Renderer = function() {
         },
 
         _processTag: function(directive, node, attrs) {
-
             var self = this,
                 config = new MetaphorJs.lib.Config(
                     attrs.config, 

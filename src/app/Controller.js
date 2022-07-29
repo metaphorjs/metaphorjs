@@ -71,6 +71,7 @@ module.exports = MetaphorJs.app.Controller = cls({
         cfg = cfg || {};
 
         self._protoCfg = cfg.config;
+
         self.config = null;
         self.$super(cfg);
         extend(self, cfg, true, false);

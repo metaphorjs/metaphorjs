@@ -7,7 +7,8 @@
         "test": "test"
     },
     "scripts": {
-        "test": "mocha"
+        "test": "mocha",
+        "start-dev": "npx webpack serve -c webpack.dev-test.config.js"
     },
     "repository": {
         "type": "git",

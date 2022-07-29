@@ -21,7 +21,7 @@ Directive.registerAttribute("if", 500, Directive.$extend({
 
 
     onStateChange: function() {
-        var self    = this,
+        const self    = this,
             config  = self.config,
             val     = config.get("value"),
             node    = self.node,

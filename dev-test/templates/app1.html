@@ -43,8 +43,20 @@
                             value="inline1" name="radio-bind" 
                             {bind}="this.inline" 
                             {bind.$locked}>
-                    <input id="radio-bind-2" type="radio" value="inline2" name="radio-bind">
-                    <input id="radio-bind-3" type="radio" value="inline3" name="radio-bind">
+                    <input 
+                        id="radio-bind-2" 
+                        type="radio" 
+                        value="inline2" 
+                        name="radio-bind"
+                        {bind}="this.inline" 
+                        {bind.$locked}>
+                    <input 
+                        id="radio-bind-3" 
+                        type="radio" 
+                        value="inline3" 
+                        name="radio-bind"
+                        {bind}="this.inline" 
+                        {bind.$locked}>
                 </p>
             </div>
 
@@ -116,8 +128,19 @@
                     <input id="model-radio-1" checked type="radio" 
                             name="r" value="inline1" 
                             {model}="this.inline"/>1
-                    <label><input id="model-radio-2" type="radio" name="r" value="inline2"/>2</label>
-                    <input  id="model-radio-3" type="radio" name="r" value="inline3"/>3
+                    <label>
+                        <input 
+                            id="model-radio-2" 
+                            type="radio" 
+                            name="r" 
+                            value="inline2"
+                            {model}="this.inline"/>2</label>
+                    <input  
+                        id="model-radio-3" 
+                        type="radio" 
+                        name="r" 
+                        value="inline3"
+                        {model}="this.inline"/>3
                 </p>
                 <label class="case-label">Select (.a)</label>
                 <p class="test">
